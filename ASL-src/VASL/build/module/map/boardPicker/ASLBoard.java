@@ -287,7 +287,7 @@ public class ASLBoard extends Board {
     System.gc();
   }
 
-  public Image getScaledImage(double zoom, Component obs) {
+  public synchronized Image getScaledImage(double zoom, Component obs) {
     boolean wasReversed = reversed;
     reversed = false;
     Image im = super.getScaledImage(zoom, obs);
