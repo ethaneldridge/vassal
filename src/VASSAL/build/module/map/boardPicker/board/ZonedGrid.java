@@ -32,6 +32,8 @@ import java.awt.geom.Area;
 import java.awt.geom.AffineTransform;
 import java.util.ArrayList;
 import java.util.Iterator;
+import java.io.File;
+import java.net.MalformedURLException;
 
 /**
  * Map Grid that contains any number of {@link VASSAL.build.module.map.boardPicker.board.mapgrid.Zone}s against a background {@link MapGrid}
@@ -101,7 +103,14 @@ public class ZonedGrid extends AbstractConfigurable implements MapGrid, GridCont
   }
 
   public HelpFile getHelpFile() {
-    return null;
+    File dir = VASSAL.build.module.Documentation.getDocumentationBaseDir();
+    dir = new File(dir, "ReferenceManual");
+    try {
+      return new HelpFile(null, new File(dir, "ZonedGrid.htm"));
+    }
+    catch (MalformedURLException ex) {
+      return null;
+    }
   }
 
   public void removeFrom(Buildable parent) {
