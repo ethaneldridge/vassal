@@ -42,7 +42,6 @@ public class Hideable extends Decorator implements EditablePiece {
   private char hideKey;
   private String command = "Invisible";
 
-  private Transparent trans;
   private Color bgColor;
 
   private KeyCommand[] commands;
@@ -92,17 +91,6 @@ public class Hideable extends Decorator implements EditablePiece {
       bgColor = ColorConfigurer.stringToColor(st.nextToken());
     }
     commands = null;
-  }
-
-  public void setInner(GamePiece p) {
-    super.setInner(p);
-    if (trans == null) {
-      trans = new Transparent(p);
-      trans.setAlpha(0.3);
-    }
-    else {
-      trans.setPiece(p);
-    }
   }
 
   public void mySetState(String in) {
@@ -170,7 +158,13 @@ public class Hideable extends Decorator implements EditablePiece {
                      (int) (zoom * r.height));
         }
       }
-      trans.draw(g, x, y, obs, zoom);
+      if (g instanceof Graphics2D) {
+        Graphics2D g2d = (Graphics2D)g;
+        Composite oldComposite = g2d.getComposite();
+        g2d.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.3F));
+        piece.draw(g, x, y, obs, zoom);
+        g2d.setComposite(oldComposite);
+      }
     }
     else {
       piece.draw(g, x, y, obs, zoom);
