@@ -84,6 +84,10 @@ public class PlaceDM extends PlaceMarker {
     return result;
   }
 
+  public String getDescription() {
+    return "Place DM";
+  }
+
   public String myGetType() {
     String s = super.myGetType();
     return ID + s.substring(s.indexOf(";") + 1);
