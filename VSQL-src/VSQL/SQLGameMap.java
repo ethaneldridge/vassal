@@ -18,6 +18,8 @@
  */
 package VSQL;
 
+import java.awt.Point;
+
 import CASL.Map.GameMap;
 import CASL.Map.Hex;
 import CASL.Map.Terrain;
@@ -25,7 +27,8 @@ import CASL.Map.Terrain;
 
 public class SQLGameMap extends GameMap {
 
-
+    protected static SQLGameMap theMap;
+    
 	public SQLGameMap(int w, int h) {
 		super(w, h);
 		LOS_err_A6_3_1  = "Exits depression before range/elevation restictions are satisfied (A6.3)";
@@ -43,7 +46,17 @@ public class SQLGameMap extends GameMap {
 		LOS_err_A6_2_4  = "Must have a height advantage to see over this terrain (43.4)";
 		LOS_err_A6_4_1  = "Source or Target location is in a blind hex (7.4, 43.62)";
 		LOS_err_B10_23  = "Source or Target location is in a blind hex (B10.23)";
+		
+		theMap = this;
 	
+	}
+	
+	public static SQLGameMap getMap() {
+	  return theMap;
+	}
+	
+	public Hex getGridHex(int x, int y) {
+	  return gridToHex(x, y);
 	}
 
 	/*

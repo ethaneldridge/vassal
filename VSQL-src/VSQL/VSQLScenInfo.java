@@ -1,7 +1,7 @@
 /*
  * $Id$
  *
- * Copyright (c) 2000-2003 by Rodney Kinney
+ * Copyright (c) 2000-2005 by Rodney Kinney and Brent Easton
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Library General Public
@@ -101,8 +101,6 @@ public class VSQLScenInfo extends AbstractBuildable implements GameComponent, Co
     movesFirst.setSelectedIndex(0);
 
     frame.getContentPane().setLayout(new BoxLayout(frame.getContentPane(), BoxLayout.Y_AXIS));
-    //frame.getContentPane().setLayout(new GridBagLayout());
-    //GridBagConstraints con = new GridBagConstraints();
 
     Box b = Box.createHorizontalBox();
     b.add(movesFirst);
@@ -116,15 +114,7 @@ public class VSQLScenInfo extends AbstractBuildable implements GameComponent, Co
     });
     b.add(nextTurn);
     
-    //con.weightx = 1;
-    //con.weighty = 0;
-    //con.gridx = 0;
-    //con.gridy = 0;
-    //con.gridwidth = 1;
-    //con.gridheight = 1;
     Dimension base = new Dimension(300, 50);
-    //b.setPreferredSize(base);
-    //b.setSize(base);
     b.setMaximumSize(base);
     frame.getContentPane().add(b);
 
@@ -133,36 +123,23 @@ public class VSQLScenInfo extends AbstractBuildable implements GameComponent, Co
     b.add(AxisELR);
     b.add(new JLabel("Axis SAN: "));
     b.add(AxisSAN);
-    // frame.getContentPane().add(b);
+    // frame.getContentPane().add(b); Leave out for VSQL
 
     b = Box.createHorizontalBox();
     b.add(new JLabel("Allied ELR: "));
     b.add(AlliedELR);
     b.add(new JLabel("Allied SAN: "));
     b.add(AlliedSAN);
-    // frame.getContentPane().add(b);
+    // frame.getContentPane().add(b); Leave out for VSQL
 
-
-    //JPanel notesPanel = new JPanel();   
+   
     notes = new FixedTextConfigurer(null, "Notes: ");
-    //frame.getContentPane().add(notes.getControls());
-    //notesPanel.add(notes.getControls());
-
-    //JPanel privatePanel = new JPanel();
     myPrivate = new TextConfigurer(null, "Private notes: ");
-    //frame.getContentPane().add(myPrivate.getControls());
-    //frame.getContentPane().add(notes.getControls());
-    //privatePanel.add(myPrivate.getControls());
     
     JTabbedPane tab = new JTabbedPane();
     tab.addTab("Scenario Notes", null, notes.getControls(), "Scenario Notes");
     tab.addTab("Private Notes", null, myPrivate.getControls(), "Private Notes");
-    //JPanel notePanel = new JPanel();
-    //notePanel.add(tab);
-    
-    //con.weighty = 1;
-    //con.gridy = 1;
-    //con.gridheight = 5;
+
     frame.getContentPane().add(tab);
     
     JPanel p = new JPanel();
@@ -174,13 +151,8 @@ public class VSQLScenInfo extends AbstractBuildable implements GameComponent, Co
       }
     });
     p.add(saveButton);
-    //p.setPreferredSize(base);
-    //p.setSize(base);
     p.setMaximumSize(base);
     
-    //con.weighty = 0;
-    //con.gridy = 6;
-    //con.gridheight = 1;
     frame.getContentPane().add(p);
     
     frame.addWindowListener(new WindowAdapter() {
