@@ -31,11 +31,15 @@ import VASSAL.tools.SequenceEncoder;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
+import java.util.Hashtable;
+import java.util.Enumeration;
+import java.util.StringTokenizer;
 
 public class ScenInfo extends AbstractBuildable implements GameComponent, CommandEncoder {
 
   private JTextField AxisELR, AxisSAN, AlliedELR, AlliedSAN;
-  private TextConfigurer notes, myPrivate, yourPrivate;
+  private TextConfigurer notes;
+  private Hashtable privateNotes = new Hashtable();
   private JComboBox movesFirst;
   private JButton launch;
   private JButton nextTurn;
@@ -47,17 +51,11 @@ public class ScenInfo extends AbstractBuildable implements GameComponent, Comman
   private AbstractAction launchAction;
 
   private int axisSAN, alliedSAN;
-  private String opponentId = "";
+  private TextConfigurer myPrivate;
 
   public ScenInfo() {
     frame = new JFrame("Scenario Information");
-    frame.setDefaultCloseOperation(WindowConstants.HIDE_ON_CLOSE);
-
-    frame.addWindowListener(new WindowAdapter() {
-      public void windowClosing(WindowEvent evt) {
-        GameModule.getGameModule().sendAndLog(new SetInfo(getState(), ScenInfo.this));
-      }
-    });
+    frame.setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
 
     launch = new JButton("Info");
     launch.setAlignmentY(0.0F);
@@ -132,10 +130,25 @@ public class ScenInfo extends AbstractBuildable implements GameComponent, Comman
 
     myPrivate = new TextConfigurer(null, "Private notes: ");
     frame.getContentPane().add(myPrivate.getControls());
-    yourPrivate = new TextConfigurer(null, "Private notes: ");
     frame.getContentPane().add(notes.getControls());
 
+    JPanel p = new JPanel();
+    JButton saveButton = new JButton("Save");
+    saveButton.addActionListener(new ActionListener() {
+      public void actionPerformed(ActionEvent e) {
+        save();
+        frame.setVisible(false);
+      }
+    });
+    p.add(saveButton);
+    frame.getContentPane().add(p);
+
     frame.pack();
+  }
+
+  private void save() {
+    privateNotes.put(GameModule.getUserId(), myPrivate.getValue());
+    GameModule.getGameModule().sendAndLog(new SetInfo(getState(), this));
   }
 
   public void addTo(Buildable b) {
@@ -181,13 +194,19 @@ public class ScenInfo extends AbstractBuildable implements GameComponent, Comman
     }
     while (st.hasMoreTokens()) {
       String id = st.nextToken();
+      String encodedNotes = st.nextToken();
+      StringBuffer buffer = new StringBuffer();
+      SequenceEncoder.Decoder st2 = new SequenceEncoder.Decoder(encodedNotes,'|');
+      while (st2.hasMoreTokens()) {
+        buffer.append(st2.nextToken());
+        if (st2.hasMoreTokens()) {
+          buffer.append('\n');
+        }
+      }
       if (id.equals(GameModule.getUserId())) {
-        myPrivate.setValue(st.nextToken());
+        myPrivate.setValue(buffer.toString());
       }
-      else {
-        opponentId = id;
-        yourPrivate.setValue(st.nextToken());
-      }
+      privateNotes.put(id,buffer.toString());
     }
   }
 
@@ -248,7 +267,7 @@ public class ScenInfo extends AbstractBuildable implements GameComponent, Comman
   public void reset() {
     notes.setValue("");
     myPrivate.setValue("");
-    yourPrivate.setValue("");
+    privateNotes.clear();
   }
 
   public String[] getAttributeNames() {
@@ -271,9 +290,19 @@ public class ScenInfo extends AbstractBuildable implements GameComponent, Comman
         .append(AxisELR.getText()).append(AxisSAN.getText())
         .append(AlliedELR.getText()).append(AlliedSAN.getText());
     se.append(notes.getValueString());
-    se.append(GameModule.getUserId()).append(myPrivate.getValueString());
-    se.append(opponentId).append(yourPrivate.getValueString());
-
+    for (Enumeration e = privateNotes.keys(); e.hasMoreElements();) {
+      String id = (String) e.nextElement();
+      String notes = (String) privateNotes.get(id);
+      if (notes != null && notes.length() > 0) {
+        SequenceEncoder se2 = new SequenceEncoder('|');
+        StringTokenizer st = new StringTokenizer(notes,"\r\n");
+        while (st.hasMoreTokens()) {
+          se2.append(st.nextToken());
+        }
+        se.append(id);
+        se.append(se2.getValue());
+      }
+    }
     return se.getValue();
   }
 
