@@ -136,31 +136,14 @@ public class SpecialDiceButton extends AbstractConfigurable implements CommandEn
       results[i++] = ran.nextInt(((SpecialDie) it.next()).getFaceCount());
     }
     Command c = reportResults(results);
+    if (reportResultAsText) {
+      c = c.append(reportTextResults(results));
+    }
     GameModule.getGameModule().sendAndLog(c);
   }
 
   private Command reportResults(int[] results) {
-    format.setProperty(NAME, getConfigureName());
-
-    int total = 0;
-    for (int i = 0; i < dice.size(); ++i) {
-      SpecialDie die = (SpecialDie) dice.get(i);
-      format.setProperty("result" + (i + 1), die.getTextValue(results[i]));
-      total += die.getIntValue(results[i]);
-    }
-    format.setProperty(RESULT_TOTAL, "" + total);
     resultsIcon.setResults(results);
-    if (reportResultAsText) {
-      format.setFormat(chatResultFormat);
-      String msg = format.getText();
-      if (msg.startsWith("*")) {
-        msg = "*" + msg;
-      }
-      else {
-        msg = "* " + msg;
-      }
-      GameModule.getGameModule().getChatter().show(msg);
-    }
 
     if (reportResultInWindow) {
       dialog.setVisible(true);
@@ -172,6 +155,29 @@ public class SpecialDiceButton extends AbstractConfigurable implements CommandEn
       launch.repaint();
     }
     return new ShowResults(this, results);
+  }
+
+  private Command reportTextResults(int[] results) {
+    format.setProperty(NAME, getConfigureName());
+
+    int total = 0;
+    for (int i = 0; i < dice.size(); ++i) {
+      SpecialDie die = (SpecialDie) dice.get(i);
+      format.setProperty("result" + (i + 1), die.getTextValue(results[i]));
+      total += die.getIntValue(results[i]);
+    }
+    format.setProperty(RESULT_TOTAL, "" + total);
+    format.setFormat(chatResultFormat);
+    String msg = format.getText();
+    if (msg.startsWith("*")) {
+      msg = "*" + msg;
+    }
+    else {
+      msg = "* " + msg;
+    }
+    Command c = new Chatter.DisplayText(GameModule.getGameModule().getChatter(), msg);
+    c.execute();
+    return c;
   }
 
   /**
