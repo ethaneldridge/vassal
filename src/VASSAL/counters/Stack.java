@@ -79,6 +79,8 @@ public class Stack implements GamePiece {
   }
 
   public Enumeration getPiecesInReverseOrder() {
+    final GamePiece[] clone = new GamePiece[pieceCount];
+    System.arraycopy(contents, 0, clone, 0, pieceCount);
     return new Enumeration() {
       private int index = pieceCount - 1;
 
@@ -87,7 +89,7 @@ public class Stack implements GamePiece {
       }
 
       public Object nextElement() {
-        return contents[index--];
+        return clone[index--];
       }
     };
   }
@@ -397,7 +399,7 @@ public class Stack implements GamePiece {
         String id = getPieceAt(i).getId();
         if (!newContents.contains(id)
           && !oldContents.contains(id)) {
-          int index = i == 0 ? -1 : newContents.indexOf(getPieceAt(-1).getId());
+          int index = i == 0 ? -1 : newContents.indexOf(getPieceAt(i-1).getId());
           newContents.insertElementAt(id, index + 1);
         }
       }
