@@ -19,8 +19,8 @@
 package VASL.counters;
 
 import VASSAL.build.GameModule;
+import VASSAL.command.ChangeTracker;
 import VASSAL.command.Command;
-import VASSAL.command.PieceTracker;
 import VASSAL.counters.*;
 import VASSAL.tools.SequenceEncoder;
 
@@ -96,7 +96,7 @@ public class MarkMoved extends Decorator implements EditablePiece {
 
   public Command myKeyEvent(javax.swing.KeyStroke stroke) {
     if (stroke.equals(markStroke)) {
-      PieceTracker c = new PieceTracker(this);
+      ChangeTracker c = new ChangeTracker(this);
       hasMoved = !hasMoved;
       return c.getChangeCommand();
     }

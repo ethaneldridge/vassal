@@ -19,8 +19,8 @@
 package VASL.counters;
 
 import VASSAL.build.GameModule;
+import VASSAL.command.ChangeTracker;
 import VASSAL.command.Command;
-import VASSAL.command.PieceTracker;
 import VASSAL.counters.*;
 import VASSAL.tools.SequenceEncoder;
 
@@ -181,7 +181,7 @@ public class Turreted extends Embellishment implements EditablePiece {
   public Command myKeyEvent(KeyStroke stroke) {
     myGetKeyCommands();
     if (commands[commands.length - 1].matches(stroke)) {
-      PieceTracker c = new PieceTracker(this);
+      ChangeTracker c = new ChangeTracker(this);
       flipped = !flipped;
       return c.getChangeCommand();
     }
