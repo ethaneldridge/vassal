@@ -62,6 +62,7 @@ public class DiceButton extends AbstractConfigurable {
   /** Variable name for reporting format */
   public static final String PLAYER_SIDE="playerSide";
   /** Variable name for reporting format */
+  public static final String DESCRIPTION="description";
   public static final String RESULT="result";
   public static final String REPORT_NAME="name";
 
@@ -152,6 +153,7 @@ public class DiceButton extends AbstractConfigurable {
     reportFormat.setProperty(PLAYER_SIDE,PlayerRoster.getMySide());
     reportFormat.setProperty(REPORT_NAME, getConfigureName());
     reportFormat.setProperty(RESULT, result);
+    reportFormat.setProperty(DESCRIPTION, result);
     String text = reportFormat.getText();
     String report = text.startsWith("*") ? "*"+text : "* "+text;
     return report;
@@ -183,7 +185,7 @@ public class DiceButton extends AbstractConfigurable {
 
   public static class ReportFormatConfig implements ConfigurerFactory {
     public Configurer getConfigurer(AutoConfigurable c, String key, String name) {
-      return new FormattedStringConfigurer(key, name, new String[]{REPORT_NAME, RESULT, PLAYER_NAME,PLAYER_SIDE});
+      return new FormattedStringConfigurer(key, name, new String[]{REPORT_NAME, DESCRIPTION, RESULT, PLAYER_NAME,PLAYER_SIDE});
     }
   }
 

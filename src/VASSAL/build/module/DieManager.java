@@ -622,8 +622,9 @@ public class DieManager extends AbstractConfigurable {
      * @param result
      * @return
      */
-    protected String formatResult(String result, FormattedString format) {
+    protected String formatResult(String description, String result, FormattedString format) {
       format.setProperty(DiceButton.RESULT, result);
+      format.setProperty(DiceButton.DESCRIPTION, description);
       String text = format.getText();
       String report = text.startsWith("*") ? "*"+text : "* "+text;
       return report;
@@ -655,7 +656,7 @@ public class DieManager extends AbstractConfigurable {
         if (reportTotal)
             val += total;
 
-        val = formatResult(val,format);
+        val = formatResult(rolls[i].getDescription(),val,format);
         GameModule.getGameModule().getChatter().send(val);
       }
     }
