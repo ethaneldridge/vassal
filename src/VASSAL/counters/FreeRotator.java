@@ -36,6 +36,7 @@ import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
 import java.awt.geom.AffineTransform;
+import java.awt.image.BufferedImage;
 import java.awt.image.FilteredImageSource;
 import java.awt.image.ImageProducer;
 import java.io.File;
@@ -161,30 +162,13 @@ public class FreeRotator extends Decorator implements EditablePiece, MouseListen
     if (getAngle() == 0.0) {
       piece.draw(g, x, y, obs, zoom);
     }
-    if (Info.is2dEnabled()) {
-      Graphics2D g2d = (Graphics2D) g;
-      AffineTransform oldT = g2d.getTransform();
-      g2d.translate(x, y);
-      g2d.transform(AffineTransform.getRotateInstance(getAngleInRadians()));
-/*
-      g2d.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_NEAREST_NEIGHBOR);
-      piece.draw(g, 0, 0, obs, zoom);
-      g2d.setClip(piece.getShape());
-*/
-      g2d.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR);
-      piece.draw(g, 0, 0, obs, zoom);
-//      g2d.setClip(null);
-      g2d.setTransform(oldT);
-    }
     else {
       Image rotated = getRotatedImage(getAngle(), obs);
       Rectangle r = getRotatedBounds();
-      g.drawImage(rotated,
+      Image zoomed = GameModule.getGameModule().getDataArchive().getScaledImage(rotated,zoom);
+      g.drawImage(zoomed,
                   x + (int) (zoom * r.x),
-                  y + (int) (zoom * r.y),
-                  (int) (zoom * r.width),
-                  (int) (zoom * r.height),
-                  obs);
+                  y + (int) (zoom * r.y),obs);
     }
   }
 
@@ -376,18 +360,38 @@ public class FreeRotator extends Decorator implements EditablePiece, MouseListen
   }
 
   public Image getRotatedImage(double angle, Component obs) {
+    Image rotated = (Image) images.get(new Double(angle));
     if (unrotated.isChanged()) {
       images.clear();
       bounds.clear();
+      if (rotated != null) {
+        GameModule.getGameModule().getDataArchive().unCacheImage(rotated);
+        rotated = null;
+      }
     }
-    Image rotated = (Image) images.get(new Double(angle));
     if (rotated == null) {
-      RotateFilter filter = new RotateFilter(angle);
-      Rectangle rotatedBounds = piece.boundingBox();
-      filter.transformSpace(rotatedBounds);
-      ImageProducer producer = new FilteredImageSource
-          (unrotated.getImage(obs).getSource(), filter);
-      rotated = obs.createImage(producer);
+      Rectangle rotatedBounds;
+      if (Info.is2dEnabled()) {
+        Rectangle unrotatedBounds = piece.boundingBox();
+        rotatedBounds = boundingBox();
+        rotated = new BufferedImage(rotatedBounds.width, rotatedBounds.height, BufferedImage.TYPE_4BYTE_ABGR);
+        ((BufferedImage)rotated).setRGB(0,0,rotatedBounds.width,rotatedBounds.height,new int[rotatedBounds.width*rotatedBounds.height],0,rotatedBounds.width);
+          Graphics2D g2d = ((BufferedImage)rotated).createGraphics();
+          g2d.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR);
+//      g2d.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_NEAREST_NEIGHBOR);
+          AffineTransform t = AffineTransform.getTranslateInstance(-rotatedBounds.x, -rotatedBounds.y);
+          t.rotate(-Math.PI * angle / 180.0);
+          t.translate(unrotatedBounds.x, unrotatedBounds.y);
+          g2d.drawImage(unrotated.getImage(obs), t, obs);
+      }
+      else {
+        RotateFilter filter = new RotateFilter(angle);
+        rotatedBounds = piece.boundingBox();
+        filter.transformSpace(rotatedBounds);
+        ImageProducer producer = new FilteredImageSource
+            (unrotated.getImage(obs).getSource(), filter);
+        rotated = obs.createImage(producer);
+      }
       images.put(new Double(angle), rotated);
       bounds.put(new Double(angle), rotatedBounds);
     }

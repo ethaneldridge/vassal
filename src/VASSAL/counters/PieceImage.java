@@ -18,10 +18,8 @@
  */
 package VASSAL.counters;
 
-import VASSAL.tools.TransparentFilter;
-
 import java.awt.*;
-import java.awt.image.FilteredImageSource;
+import java.awt.image.BufferedImage;
 
 /**
  * Maintains an {@link Image} built from the {@link GamePiece#draw}
@@ -40,12 +38,10 @@ public class PieceImage {
       lastState = currentState();
 
       Rectangle bbox = piece.boundingBox();
-      im = obs.createImage(bbox.width, bbox.height);
-      Graphics g = im.getGraphics();
-      piece.draw(g,-bbox.x, -bbox.y, obs, 1.0);
-      TransparentFilter f = new TransparentFilter();
-      f.setAlpha(0.0, TransparentFilter.getOffscreenEquivalent(obs.getBackground().getRGB(), obs));
-      im = obs.createImage(new FilteredImageSource(im.getSource(), f));
+      im = new BufferedImage(bbox.width, bbox.height, BufferedImage.TYPE_4BYTE_ABGR);
+      ((BufferedImage)im).setRGB(0,0,bbox.width,bbox.height,new int[bbox.width*bbox.height],0,bbox.width);
+
+      piece.draw(((BufferedImage)im).createGraphics(),-bbox.x, -bbox.y, obs, 1.0);
     }
     return im;
   }
