@@ -52,6 +52,9 @@ public class FormattedString {
 			String key = (String) e.nextElement();
 			String val = p.getProperty(key);
       if (val != null) {
+        s = s.replaceAll("\\$"+key+"\\$", "null");
+      }
+      else {
         s = s.replaceAll("\\$"+key+"\\$", val);
       }
     }
