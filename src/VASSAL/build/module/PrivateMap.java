@@ -26,20 +26,19 @@
  */
 package VASSAL.build.module;
 
-import VASSAL.build.*;
+import VASSAL.build.Buildable;
+import VASSAL.build.GameModule;
+import VASSAL.build.IllegalBuildException;
 import VASSAL.build.module.documentation.HelpFile;
 import VASSAL.configure.StringArrayConfigurer;
 
 import javax.swing.*;
+import java.awt.event.*;
 import java.awt.*;
-import java.awt.event.KeyListener;
-import java.awt.event.MouseListener;
-import java.awt.event.MouseMotionListener;
-import java.awt.event.KeyEvent;
-import java.util.Vector;
-import java.util.Enumeration;
 import java.io.File;
 import java.net.MalformedURLException;
+import java.util.Enumeration;
+import java.util.Vector;
 
 /**
  * A Map that may be configured to be visible only a particular side.
@@ -119,20 +118,36 @@ public class PrivateMap extends Map {
     }
     else if (USE_BOARDS.equals(key)) {
       return surrogate == null ? null :
-        surrogate.getMapName();
+          surrogate.getMapName();
     }
     else {
       return super.getAttributeValueString(key);
     }
   }
 
-  protected JDialog createParentFrame() {
-    return new JDialog(GameModule.getGameModule().getFrame()) {
-      public void setVisible(boolean show) {
-        super.setVisible(show && (visibleToAll
-                                  || isAccessibleTo(PlayerRoster.getMySide())));
-      }
-    };
+  protected Window createParentFrame() {
+    if (GlobalOptions.getInstance().isUseSingleWindow()) {
+      JDialog d = new JDialog(GameModule.getGameModule().getFrame()) {
+        public void setVisible(boolean show) {
+          super.setVisible(show && (visibleToAll
+                                    || isAccessibleTo(PlayerRoster.getMySide())));
+        }
+      };
+      d.setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
+      d.setTitle(getDefaultWindowTitle());
+      return d;
+    }
+    else {
+      JFrame d = new JFrame() {
+        public void setVisible(boolean show) {
+          super.setVisible(show && (visibleToAll
+                                    || isAccessibleTo(PlayerRoster.getMySide())));
+        }
+      };
+      d.setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
+      d.setTitle(getDefaultWindowTitle());
+      return d;
+    }
   }
 
   public boolean shouldDockIntoMainWindow() {
@@ -173,9 +188,9 @@ public class PrivateMap extends Map {
     if (theMap == null) {
       theMap = new View(this);
       scroll =
-        new JScrollPane(theMap,
-                        JScrollPane.VERTICAL_SCROLLBAR_ALWAYS,
-                        JScrollPane.HORIZONTAL_SCROLLBAR_ALWAYS);
+          new JScrollPane(theMap,
+                          JScrollPane.VERTICAL_SCROLLBAR_ALWAYS,
+                          JScrollPane.HORIZONTAL_SCROLLBAR_ALWAYS);
       scroll.unregisterKeyboardAction(KeyStroke.getKeyStroke(KeyEvent.VK_PAGE_DOWN, 0));
       scroll.unregisterKeyboardAction(KeyStroke.getKeyStroke(KeyEvent.VK_PAGE_UP, 0));
     }

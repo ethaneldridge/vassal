@@ -25,8 +25,9 @@ import java.util.StringTokenizer;
  * Class for storing release-related information
  */
 public final class Info {
-  private static final String VERSION = "1.3b1";
+  private static final String VERSION = "1.3b2";
   private static Boolean is2dEnabled;
+  private static Boolean isDndEnabled;
   /** This class should not be instantiated */
   private Info() {
   }
@@ -39,6 +40,27 @@ public final class Info {
     return VERSION;
   }
 
+  /**
+   *
+   * @return true if this platform supports Swing Drag and Drop
+   */
+  public static boolean isDndEnabled() {
+    if (isDndEnabled == null) {
+      try {
+        Class.forName("java.awt.dnd.DropTarget");
+        isDndEnabled = Boolean.TRUE;
+      }
+      catch (ClassNotFoundException e) {
+        isDndEnabled = Boolean.FALSE;
+      }
+    }
+    return isDndEnabled.booleanValue();
+  }
+
+  /**
+   *
+   * @return true if this platform supports Java2D
+   */
   public static boolean is2dEnabled() {
     if (is2dEnabled == null) {
       try {
