@@ -34,10 +34,12 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Area;
+import java.util.StringTokenizer;
 
 public class Zone extends AbstractConfigurable implements GridContainer {
   public static final String NAME = "name";
   public static final String PATH = "path";
+  public static final String USE_PARENT_GRID = "useParentGrid";
   public static final String LOCATION_FORMAT = "locationFormat";
   public static final String GRID_LOCATION = "gridLocation";
 
@@ -46,6 +48,7 @@ public class Zone extends AbstractConfigurable implements GridContainer {
   protected Polygon myPolygon;
   private MapGrid grid = null;
   private ZonedGrid parentGrid;
+  private boolean useParentGrid;
 
   public Zone() {
     myPolygon = new Polygon();
@@ -56,7 +59,7 @@ public class Zone extends AbstractConfigurable implements GridContainer {
   }
 
   public String[] getAttributeNames() {
-    String s[] = {NAME, LOCATION_FORMAT, PATH};
+    String s[] = {NAME, LOCATION_FORMAT, PATH, USE_PARENT_GRID};
     return s;
   }
 
@@ -64,14 +67,16 @@ public class Zone extends AbstractConfigurable implements GridContainer {
     return new String[]{
       "Name",
       "Location Format",
-      "Shape"};
+      "Shape",
+      "Use board's grid"};
   }
 
   public Class[] getAttributeTypes() {
     return new Class[]{
       String.class,
       LocationFormatConfig.class,
-      ShapeEditor.class};
+      ShapeEditor.class,
+      Boolean.class};
   }
 
   public static class LocationFormatConfig implements ConfigurerFactory {
@@ -113,6 +118,9 @@ public class Zone extends AbstractConfigurable implements GridContainer {
     else if (LOCATION_FORMAT.equals(key)) {
       return locationFormat;
     }
+    else if (USE_PARENT_GRID.equals(key)) {
+      return String.valueOf(useParentGrid);
+    }
     return null;
   }
 
@@ -129,18 +137,21 @@ public class Zone extends AbstractConfigurable implements GridContainer {
     else if (LOCATION_FORMAT.equals(key)) {
       locationFormat = (String) val;
     }
+    else if (USE_PARENT_GRID.equals(key)) {
+      useParentGrid = "true".equals(val) || Boolean.TRUE.equals(val);
+    }
   }
 
   public Class[] getAllowableConfigureComponents() {
-    return new Class[]{HexGrid.class, SquareGrid.class, RegionGrid.class};
+    return useParentGrid ? new Class[0] : new Class[]{HexGrid.class, SquareGrid.class, RegionGrid.class};
   }
 
   public String locationName(Point p) {
     format.setFormat(locationFormat);
     format.setProperty(NAME, getConfigureName());
     String gridLocation = null;
-    if (grid != null) {
-      gridLocation = grid.locationName(p);
+    if (getGrid() != null) {
+      gridLocation = getGrid().locationName(p);
     }
     format.setProperty(GRID_LOCATION, gridLocation);
     return format.getText();
@@ -155,8 +166,8 @@ public class Zone extends AbstractConfigurable implements GridContainer {
    */
   public Point snapTo(Point p) {
     Point snap = p;
-    if (grid != null) {
-      snap = grid.snapTo(p);
+    if (getGrid() != null) {
+      snap = getGrid().snapTo(p);
     }
     return snap;
   }
@@ -180,6 +191,9 @@ public class Zone extends AbstractConfigurable implements GridContainer {
   }
 
   public MapGrid getGrid() {
+    if (useParentGrid) {
+      return parentGrid != null ? parentGrid.getBackgroundGrid() : null;
+    }
     return grid;
   }
 
@@ -201,8 +215,8 @@ public class Zone extends AbstractConfigurable implements GridContainer {
     Shape s = transform.createTransformedShape(myPolygon);
     newClip.intersect(new Area(s));
     g2d.setClip(newClip);
-    if (grid != null) {
-      grid.draw(g, bounds, visibleRect, scale, reversed);
+    if (getGrid() != null) {
+      getGrid().draw(g, bounds, visibleRect, scale, reversed);
     }
     g2d.setClip(oldClip);
   }
@@ -239,7 +253,30 @@ public class Zone extends AbstractConfigurable implements GridContainer {
       labels.add(new JLabel("Right-click to add point"));
       labels.add(new JLabel("Left-click to move points"));
       labels.add(new JLabel("DEL to remove point"));
+      labels.setAlignmentX(0.0f);
       frame.getContentPane().add(labels);
+      JButton direct = new JButton("Set Coordinates directly");
+      direct.addActionListener(new ActionListener() {
+        public void actionPerformed(ActionEvent e) {
+          String newShape = JOptionPane.showInputDialog(frame,"Enter x,y coordinates of polygon vertices,\nseparated by spaces",
+                                      PolygonEditor.polygonToString(editor.getPolygon()).replace(';',' '));
+          if (newShape != null) {
+            StringBuffer buffer = new StringBuffer();
+            StringTokenizer st = new StringTokenizer(newShape);
+            while (st.hasMoreTokens()) {
+              buffer.append(st.nextToken());
+              if (st.hasMoreTokens()) {
+                buffer.append(';');
+              }
+            }
+            newShape = buffer.toString();
+            PolygonEditor.reset(editor.getPolygon(),newShape);
+            editor.repaint();
+          }
+        }
+      });
+      direct.setAlignmentX(0.0f);
+      frame.getContentPane().add(direct);
       frame.getContentPane().add(new JScrollPane(editor));
       JPanel buttonPanel = new JPanel();
       JButton closeButton = new JButton("Ok");

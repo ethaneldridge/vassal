@@ -37,13 +37,16 @@ import java.net.MalformedURLException;
 public class PredefinedSetup extends AbstractConfigurable {
   public static final String NAME = "name";
   public static final String FILE = "file";
+  public static final String USE_FILE = "useFile";
   public static final String IS_MENU = "isMenu";
   private boolean isMenu;
+  private boolean useFile=true;
   private String fileName;
   private JMenuItem menuItem;
   private JMenu menu;
   private JMenuItem originalItem;
   private VisibilityCondition showFile;
+  private VisibilityCondition showUseFile;
 
   public PredefinedSetup() {
     menuItem = new JMenuItem();
@@ -55,21 +58,26 @@ public class PredefinedSetup extends AbstractConfigurable {
     });
     showFile = new VisibilityCondition() {
       public boolean shouldBeVisible() {
+        return !isMenu && useFile;
+      }
+    };
+    showUseFile = new VisibilityCondition() {
+      public boolean shouldBeVisible() {
         return !isMenu;
       }
     };
   }
 
   public String[] getAttributeDescriptions() {
-    return new String[]{"Name", "Saved Game", "Contains sub-menus"};
+    return new String[]{"Name", "Contains sub-menus", "Use pre-defined file", "Saved Game"};
   }
 
   public Class[] getAttributeTypes() {
-    return new Class[]{String.class, File.class, Boolean.class};
+    return new Class[]{String.class, Boolean.class, Boolean.class, File.class};
   }
 
   public String[] getAttributeNames() {
-    return new String[]{NAME, FILE, IS_MENU};
+    return new String[]{NAME, IS_MENU, USE_FILE, FILE};
   }
 
   public String getAttributeValueString(String key) {
@@ -78,6 +86,9 @@ public class PredefinedSetup extends AbstractConfigurable {
     }
     else if (FILE.equals(key)) {
       return fileName;
+    }
+    else if (USE_FILE.equals(key)) {
+      return String.valueOf(useFile);
     }
     else if (IS_MENU.equals(key)) {
       return String.valueOf(isMenu);
@@ -92,6 +103,9 @@ public class PredefinedSetup extends AbstractConfigurable {
       setConfigureName((String) value);
       menuItem.setText((String) value);
       menu.setText((String) value);
+    }
+    else if (USE_FILE.equals(key)) {
+      useFile = "true".equals(value) || Boolean.TRUE.equals(value);
     }
     else if (FILE.equals(key)) {
       if (value instanceof File) {
@@ -111,13 +125,17 @@ public class PredefinedSetup extends AbstractConfigurable {
     if (FILE.equals(name)) {
       return showFile;
     }
+    else if (USE_FILE.equals(name)) {
+      return showUseFile;
+    }
     else {
       return super.getAttributeVisibility(name);
     }
   }
 
   public void launch() {
-    if (fileName != null) {
+    if (useFile
+      && fileName != null) {
       try {
         int index = fileName.indexOf(".");
         String prefix = index > 3 ? fileName.substring(0, index) : "VSL";

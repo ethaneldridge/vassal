@@ -25,7 +25,9 @@ import VASSAL.command.Command;
 import VASSAL.configure.ColorConfigurer;
 import VASSAL.configure.IntConfigurer;
 import VASSAL.configure.StringConfigurer;
+import VASSAL.configure.FormattedStringConfigurer;
 import VASSAL.tools.SequenceEncoder;
+import VASSAL.tools.FormattedString;
 
 import javax.swing.*;
 import java.awt.*;
@@ -54,6 +56,9 @@ public class Labeler extends Decorator implements EditablePiece {
   private String menuCommand = "Change Label";
   private Font font = new Font("Dialog", 0, 10);
   private KeyCommand[] commands;
+  private FormattedString nameFormat;
+  private static final String PIECE_NAME = "pieceName";
+  private static final String LABEL = "label";
 
   private Image labelImage;
   private JLabel lbl;
@@ -93,6 +98,7 @@ public class Labeler extends Decorator implements EditablePiece {
       horizontalOffset = st.nextInt(0);
       verticalJust = st.nextChar('b');
       horizontalJust = st.nextChar('c');
+      nameFormat = new FormattedString(st.nextToken("$"+PIECE_NAME+"$ ($"+LABEL+"$)"));
     }
     lbl.setForeground(textFg);
     lbl.setFont(font);
@@ -107,15 +113,14 @@ public class Labeler extends Decorator implements EditablePiece {
     se.append(s == null ? "" : s);
     s = ColorConfigurer.colorToString(textFg);
     se.append(s == null ? "" : s);
-    se.append("" + verticalPos);
-    se.append("" + verticalOffset);
-    se.append("" + horizontalPos);
-    se.append("" + horizontalOffset);
-    se.append("" + verticalJust);
-    se.append("" + horizontalJust);
-
+    se.append(String.valueOf(verticalPos));
+    se.append(String.valueOf(verticalOffset));
+    se.append(String.valueOf(horizontalPos));
+    se.append(String.valueOf(horizontalOffset));
+    se.append(String.valueOf(verticalJust));
+    se.append(String.valueOf(horizontalJust));
+    se.append(nameFormat.getFormat());
     return ID + se.getValue();
-
   }
 
   public String myGetState() {
@@ -131,7 +136,9 @@ public class Labeler extends Decorator implements EditablePiece {
       return piece.getName();
     }
     else {
-      return piece.getName() + " (" + label + ")";
+      nameFormat.setProperty(PIECE_NAME,piece.getName());
+      nameFormat.setProperty(LABEL, label);
+      return nameFormat.getText();
     }
   }
 
@@ -353,12 +360,17 @@ public class Labeler extends Decorator implements EditablePiece {
     private JComboBox hPos,vPos,hJust,vJust;
     private IntConfigurer hOff,vOff,font;
     private ListCellRenderer renderer;
+    private FormattedStringConfigurer format;
 
     public Ed(Labeler l) {
       controls.setLayout(new BoxLayout(controls, BoxLayout.Y_AXIS));
 
       initialValue = new StringConfigurer(null, "Text", l.label);
       controls.add(initialValue.getControls());
+
+      format = new FormattedStringConfigurer(null,"Name format",new String[]{PIECE_NAME,LABEL});
+      format.setValue(l.nameFormat.getFormat());
+      controls.add(format.getControls());
 
       command = new StringConfigurer(null, "Menu Command", l.menuCommand);
       controls.add(command.getControls());
@@ -456,6 +468,7 @@ public class Labeler extends Decorator implements EditablePiece {
       se.append(i.toString());
       se.append(vJust.getSelectedItem().toString());
       se.append(hJust.getSelectedItem().toString());
+      se.append(format.getValueString());
       return ID + se.getValue();
     }
 

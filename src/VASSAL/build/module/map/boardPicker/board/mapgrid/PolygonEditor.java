@@ -58,7 +58,21 @@ public class PolygonEditor extends JPanel {
     ModifyPolygon mp = new ModifyPolygon();
     addMouseListener(mp);
     addMouseMotionListener(mp);
-    addKeyListener(new DeletePoint());
+    ActionListener l = new ActionListener() {
+      public void actionPerformed(ActionEvent e) {
+        if (selected >= 0) {
+          for (int i = selected; i < polygon.npoints - 1; ++i) {
+            polygon.xpoints[i] = polygon.xpoints[i + 1];
+            polygon.ypoints[i] = polygon.ypoints[i + 1];
+          }
+          polygon.npoints--;
+          selected = -1;
+          repaint();
+        }
+      }
+    };
+    registerKeyboardAction(l, KeyStroke.getKeyStroke(KeyEvent.VK_DELETE,0), WHEN_IN_FOCUSED_WINDOW);
+    registerKeyboardAction(l, KeyStroke.getKeyStroke(KeyEvent.VK_BACK_SPACE,0), WHEN_IN_FOCUSED_WINDOW);
     requestFocus();
     selected = 2;
     repaint();
@@ -72,9 +86,9 @@ public class PolygonEditor extends JPanel {
       SequenceEncoder.Decoder pd = new SequenceEncoder.Decoder(s, ',');
       if (pd.hasMoreTokens()) {
         try {
-          int x = Integer.parseInt(pd.nextToken());
+          int x = Integer.parseInt(pd.nextToken().trim());
           if (pd.hasMoreTokens()) {
-            int y = Integer.parseInt(pd.nextToken());
+            int y = Integer.parseInt(pd.nextToken().trim());
             p.addPoint(x, y);
           }
         }
@@ -204,23 +218,6 @@ public class PolygonEditor extends JPanel {
       setupForEdit();
     }
 
-  }
-
-  private class DeletePoint extends KeyAdapter {
-    public void keyReleased(KeyEvent e) {
-      if (selected >= 0) {
-        if (e.getKeyCode() == KeyEvent.VK_DELETE
-            || e.getKeyCode() == KeyEvent.VK_BACK_SPACE) {
-          for (int i = selected; i < polygon.npoints - 1; ++i) {
-            polygon.xpoints[i] = polygon.xpoints[i + 1];
-            polygon.ypoints[i] = polygon.ypoints[i + 1];
-          }
-          polygon.npoints--;
-        }
-        selected = -1;
-        repaint();
-      }
-    }
   }
 
   public static void main(String[] args) {
