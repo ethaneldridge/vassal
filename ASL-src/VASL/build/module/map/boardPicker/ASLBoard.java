@@ -383,6 +383,10 @@ public class ASLBoard extends Board {
     }
   }
 
+  public String locationName(Point p) {
+    return getName()+super.locationName(p);
+  }
+
   public Point localCoordinates(Point p1) {
     Point p = new Point(p1.x, p1.y);
 
