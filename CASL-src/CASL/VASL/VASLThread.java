@@ -728,10 +728,13 @@ public class VASLThread
   private void loadPiece(GamePiece piece) {
     // determine what hex the piece is in
     Point p = map.mapCoordinates(new Point(piece.getPosition()));
+	p.x *= map.getZoom();
+	p.y *= map.getZoom();
     p.translate(-map.getEdgeBuffer().width, -map.getEdgeBuffer().height);
 
     if (!CASLMap.onMap(p.x, p.y)) return;
     Hex h = CASLMap.gridToHex(p.x, p.y);
+
     // add the piece to the scenario/map
     if ((piece.getProperty(ASLProperties.HINDRANCE) != null && !Boolean.TRUE.equals(piece.getProperty(VASSAL.counters.Properties.INVISIBLE_TO_ME)))) {
       // smoke
