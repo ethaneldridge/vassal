@@ -1,8 +1,12 @@
 package VASSAL.build.module.map;
 
 import VASSAL.build.Buildable;
+import VASSAL.build.GameModule;
 import VASSAL.build.module.Map;
 import VASSAL.counters.*;
+import VASSAL.command.Command;
+import VASSAL.command.AddPiece;
+import VASSAL.command.ChangeTracker;
 
 import java.awt.event.MouseMotionListener;
 import java.awt.event.MouseEvent;
@@ -32,9 +36,11 @@ import java.util.Enumeration;
  * A class for moving and rotating pieces, as for mineatures-based games
  */
 public class FreePieceMover extends PieceMover implements MouseMotionListener, Drawable {
+  protected GamePiece ghost;
   protected GamePiece dragging;
   protected Transparent trans;
-  protected FreeRotator rotator;
+  protected FreeRotator ghostRotator;
+  protected FreeRotator draggingRotator;
   protected Point anchor;
   protected Point arrow;
 
@@ -49,17 +55,18 @@ public class FreePieceMover extends PieceMover implements MouseMotionListener, D
     PieceIterator pi = DragBuffer.getBuffer().getIterator();
     if (pi.hasMoreElements()) {
       dragging = pi.nextPiece();
-      trans = new Transparent(dragging);
       anchor = map.componentCoordinates(dragging.getPosition());
       if (dragging instanceof Stack) {
-        for (Enumeration enum = ((Stack)dragging).getPieces(); rotator == null && enum.hasMoreElements();) {
-          GamePiece p = (GamePiece) enum.nextElement();
-          rotator = (FreeRotator) Decorator.getDecorator(p, FreeRotator.class);
+        for (Enumeration enum = ((Stack) dragging).getPieces(); enum.hasMoreElements();) {
+          dragging = (GamePiece) enum.nextElement();
+          break;
         }
       }
-      else {
-        rotator = (FreeRotator) Decorator.getDecorator(dragging, FreeRotator.class);
-      }
+      ghost = ((AddPiece) GameModule.getGameModule().decode(GameModule.getGameModule().encode(new AddPiece(dragging)))).getTarget();
+      ghostRotator = (FreeRotator) Decorator.getDecorator(ghost, FreeRotator.class);
+      draggingRotator = (FreeRotator) Decorator.getDecorator(dragging, FreeRotator.class);
+      trans = new Transparent(ghost);
+      trans.setAlpha(0.4);
       arrow = null;
     }
     else {
@@ -68,10 +75,10 @@ public class FreePieceMover extends PieceMover implements MouseMotionListener, D
   }
 
   protected void clear() {
-    dragging = null;
+    ghost = null;
     anchor = null;
     arrow = null;
-    rotator = null;
+    ghostRotator = null;
     trans = null;
   }
 
@@ -96,9 +103,9 @@ public class FreePieceMover extends PieceMover implements MouseMotionListener, D
   protected Point getDragDestination(Point src, Point dest) {
     Point p = dest;
     if (dest != null
-      && src != null) {
+        && src != null) {
       double dist = Math.sqrt(Math.pow(dest.x - src.x, 2.0) + Math.pow((dest.y - src.y), 2.0));
-      int maxDrag = getMaxDragDistance(dragging);
+      int maxDrag = getMaxDragDistance(ghost);
       if (dist > maxDrag) {
         p = new Point(src.x + (int) Math.round(maxDrag * (dest.x - src.x) / dist),
                       src.y + (int) Math.round(maxDrag * (dest.y - src.y) / dist));
@@ -109,17 +116,21 @@ public class FreePieceMover extends PieceMover implements MouseMotionListener, D
 
   public void mouseDragged(MouseEvent e) {
     if (e.isShiftDown()) {
-      if (rotator != null) {
+      if (ghostRotator != null) {
         Point p = map.mapCoordinates(e.getPoint());
-        Point p2 = getDragDestination(map.mapCoordinates(anchor),p);
+        Point p2 = getDragDestination(map.mapCoordinates(anchor), map.mapCoordinates(arrow));
         double myAngle;
-        if (p2.x == p2.x) {
-          myAngle = 0.0;
+        if (p.y == p2.y) {
+          myAngle = p.x < p2.x ? Math.PI / 2 : -Math.PI / 2;
         }
         else {
-          myAngle = Math.atan((p.x-p2.x)/(p.y-p2.y));
+          myAngle = Math.atan((p.x - p2.x) / (p2.y - p.y));
+          if (p2.y < p.y) {
+            myAngle += Math.PI;
+          }
         }
-        rotator.setAngle(myAngle);
+        System.err.println("Angle " + myAngle + ", mouse " + p + ", arrow " + p2);
+        ghostRotator.setAngle(-180. * myAngle / Math.PI);
       }
     }
     else {
@@ -130,11 +141,21 @@ public class FreePieceMover extends PieceMover implements MouseMotionListener, D
 
   public void mouseReleased(MouseEvent e) {
     if (anchor != null) {
-      Point p = getDragDestination(map.mapCoordinates(anchor),e.getPoint());
+      Point p = getDragDestination(map.mapCoordinates(anchor), e.getPoint());
       e.translatePoint(p.x - e.getX(), p.y - e.getY());
     }
     super.mouseReleased(e);
     clear();
+  }
+
+  public Command movePieces(Map m, Point p) {
+    Command c = super.movePieces(m,p);
+    if (draggingRotator != null && ghostRotator != null) {
+      ChangeTracker tracker = new ChangeTracker(dragging);
+      draggingRotator.setAngle(ghostRotator.getAngle());
+      c.append(tracker.getChangeCommand());
+    }
+    return c;
   }
 
   /**
