@@ -30,7 +30,6 @@ import VASSAL.build.GameModule;
 import VASSAL.build.module.Chatter;
 import VASSAL.build.module.Map;
 import VASSAL.build.module.documentation.HelpFile;
-import VASSAL.build.module.map.MassKeyCommand;
 import VASSAL.command.ChangeTracker;
 import VASSAL.command.Command;
 import VASSAL.configure.PlayerIdFormattedStringConfigurer;
@@ -98,6 +97,9 @@ public class ReportState extends Decorator implements EditablePiece {
 
   // We perform the inner commands first so that their effects will be reported
   public Command keyEvent(KeyStroke stroke) {
+    format.clearProperties();
+    format.setProperty(OLD_MAP_NAME, getMap() == null ? null : getMap().getConfigureName());
+    format.setProperty(OLD_LOCATION_NAME, getMap() == null ? null : getMap().locationName(getPosition()) );
     Command c = piece.keyEvent(stroke);
     return c == null ? myKeyEvent(stroke)
         : c.append(myKeyEvent(stroke));
@@ -171,7 +173,7 @@ public class ReportState extends Decorator implements EditablePiece {
 
           if (getMap() != null) {
             format.setFormat(getMap().getChangeFormat());
-            format.setProperty(Map.MESSAGE,reportText);
+            format.setProperty(Map.MESSAGE, reportText);
             reportText = format.getText();
           }
 
@@ -249,7 +251,9 @@ public class ReportState extends Decorator implements EditablePiece {
   public static final String OLD_UNIT_NAME = "oldPieceName";
   public static final String NEW_UNIT_NAME = "newPieceName";
   public static final String MAP_NAME = "mapName";
+  public static final String OLD_MAP_NAME = "oldMapName";
   public static final String LOCATION_NAME = "location";
+  public static final String OLD_LOCATION_NAME = "oldLocation";
   public static final String COMMAND_NAME = "menuCommand";
 
   public static class Ed implements PieceEditor {
@@ -273,7 +277,9 @@ public class ReportState extends Decorator implements EditablePiece {
                                                                                          OLD_UNIT_NAME,
                                                                                          NEW_UNIT_NAME,
                                                                                          MAP_NAME,
-                                                                                         LOCATION_NAME});
+                                                                                         OLD_MAP_NAME,
+                                                                                         LOCATION_NAME,
+                                                                                         OLD_LOCATION_NAME});
       format.setValue(piece.reportFormat);
       box.add(format.getControls());
       cycleFormat = new StringArrayConfigurer(null, "Message formats", piece.cycleReportFormat);
