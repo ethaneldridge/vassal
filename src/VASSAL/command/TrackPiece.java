@@ -25,6 +25,7 @@ import VASSAL.counters.*;
  * A TrackPiece is instantiated with a GamePiece and later finalized.
  * The old state is the state of the GamePIece at instantiation, while
  * the new state is the state of the GamePiece at finalization.
+ * @deprecated Use {@link ChangeTracker}
  */
 public class TrackPiece extends ChangePiece {
   private GamePiece piece;

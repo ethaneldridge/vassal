@@ -27,6 +27,7 @@ import java.awt.*;
 /**
  * Warns the user when an uncaught Exception occurs
  * Use this by calling System.setProperty("sun.awt.exception.handler","VASSAL.tools.ErrorLog");
+ * See Java code in  EventDispatchThread.handleException()
  */
 public class ErrorLog {
   private static boolean disabled = false;

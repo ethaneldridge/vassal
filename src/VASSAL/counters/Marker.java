@@ -18,14 +18,15 @@
  */
 package VASSAL.counters;
 
+import VASSAL.build.module.documentation.HelpFile;
 import VASSAL.command.Command;
 import VASSAL.tools.SequenceEncoder;
-import VASSAL.build.module.documentation.HelpFile;
 
 import javax.swing.*;
-import java.util.Vector;
 import java.io.File;
 import java.net.MalformedURLException;
+import java.util.Vector;
+import java.awt.*;
 
 /**
  * A generic Decorator that retains in its state the value of a
@@ -67,19 +68,19 @@ public class Marker extends Decorator implements EditablePiece {
   }
 
   public void draw(java.awt.Graphics g, int x, int y, java.awt.Component obs, double zoom) {
-    getInner().draw(g, x, y, obs, zoom);
+    piece.draw(g, x, y, obs, zoom);
   }
 
   public String getName() {
-    return getInner().getName();
+    return piece.getName();
   }
 
   public java.awt.Rectangle boundingBox() {
-    return getInner().boundingBox();
+    return piece.boundingBox();
   }
 
-  public java.awt.Rectangle selectionBounds() {
-    return getInner().selectionBounds();
+  public Shape getShape() {
+    return piece.getShape();
   }
 
   public Object getProperty(Object key) {

@@ -82,6 +82,13 @@ public class LOS_Thread extends AbstractConfigurable implements
       }
     };
     launch = new LaunchButton("Thread", LABEL, HOTKEY, al);
+    URL imageURL = getClass().getResource("/images/thread.gif");
+    if (imageURL != null) {
+      launch.setIcon(new ImageIcon(imageURL));
+    }
+    else {
+      launch.setText("overview");
+    }
   }
 
   /**

@@ -23,10 +23,13 @@ import VASSAL.build.Buildable;
 import VASSAL.build.module.map.boardPicker.Board;
 import VASSAL.build.module.map.boardPicker.board.mapgrid.GridNumbering;
 import VASSAL.build.module.map.boardPicker.board.mapgrid.SquareGridNumbering;
+import VASSAL.build.module.documentation.HelpFile;
 import VASSAL.configure.ColorConfigurer;
 import VASSAL.configure.VisibilityCondition;
 
 import java.awt.*;
+import java.io.File;
+import java.net.MalformedURLException;
 
 public class SquareGrid extends AbstractConfigurable implements MapGrid {
   private double dx = 48.0;
@@ -143,7 +146,14 @@ public class SquareGrid extends AbstractConfigurable implements MapGrid {
   }
 
   public VASSAL.build.module.documentation.HelpFile getHelpFile() {
-    return null;
+    File dir = new File("docs");
+    dir = new File(dir, "ReferenceManual");
+    try {
+      return new HelpFile(null, new File(dir, "RectangularGrid.htm"));
+    }
+    catch (MalformedURLException ex) {
+      return null;
+    }
   }
 
 

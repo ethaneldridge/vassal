@@ -13,7 +13,7 @@
  * Library General Public License for more details.
  *
  * You should have received a copy of the GNU Library General Public
- * License along with this library; if not, copies are available 
+ * License along with this library; if not, copies are available
  * at http://www.opensource.org.
  */
 package VASSAL.build.module.map;
@@ -22,29 +22,34 @@ import VASSAL.build.AbstractBuildable;
 import VASSAL.build.Buildable;
 import VASSAL.build.GameModule;
 import VASSAL.build.module.Chatter;
+import VASSAL.build.module.GameComponent;
 import VASSAL.build.module.GlobalOptions;
 import VASSAL.build.module.Map;
-import VASSAL.build.module.GameComponent;
 import VASSAL.build.module.map.boardPicker.Board;
+import VASSAL.command.ChangeTracker;
 import VASSAL.command.Command;
 import VASSAL.command.NullCommand;
-import VASSAL.command.TrackPiece;
+import VASSAL.configure.BooleanConfigurer;
 import VASSAL.counters.*;
 import VASSAL.tools.Sort;
-import VASSAL.tools.TransparentFilter;
-import VASSAL.configure.BooleanConfigurer;
+import VASSAL.Info;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.image.FilteredImageSource;
-import java.awt.event.*;
-import java.util.Enumeration;
+import java.awt.datatransfer.StringSelection;
+import java.awt.dnd.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
 import java.net.URL;
+import java.util.Enumeration;
 
 /**
  * This is a MouseListener that moves pieces on a Map window
  */
-public class PieceMover extends AbstractBuildable implements MouseListener, Drawable, MouseMotionListener, GameComponent, PieceFinder, Sort.Comparator {
+public class PieceMover extends AbstractBuildable implements
+    MouseListener, GameComponent, PieceFinder, Sort.Comparator {
   /* Test cases for moving pieces:
   - Simple click on piece -> no move
   - Click and drag piece to within its own outline:  move if to new grid snap point or > 5 pixels away
@@ -56,20 +61,16 @@ public class PieceMover extends AbstractBuildable implements MouseListener, Draw
 
   protected Map map;
   protected Point dragBegin;
-
-  protected Color outlineColor = Color.black;
-  protected int thickness = 3;
-  protected Rectangle outline;
-  protected Point outlineOffset;
-  protected boolean checkDragContents = false;
   private JButton markUnmovedButton;
 
   public void addTo(Buildable b) {
     map = (Map) b;
     map.addLocalMouseListener(this);
-//    map.addDrawComponent(this);
-//    map.getView().addMouseMotionListener(this);
     GameModule.getGameModule().getGameState().addGameComponent(this);
+    if (Info.isDndEnabled()) {
+      DragHandler dh = new DragHandler();
+      map.setDragGestureListener(dh);
+    }
   }
 
   public void setup(boolean gameStarting) {
@@ -144,17 +145,6 @@ public class PieceMover extends AbstractBuildable implements MouseListener, Draw
     return e.isShiftDown();
   }
 
-  public void draw(java.awt.Graphics g, Map map) {
-    if (outline != null) {
-      g.setColor(outlineColor);
-      for (int i = 0; i < thickness; ++i) {
-        g.drawRect(outline.x + outlineOffset.x - i,
-                   outline.y + outlineOffset.y - i,
-                   outline.width + 2 * i, outline.height + 2 * i);
-      }
-    }
-  }
-
   /** Invoked after a piece has been moved */
   protected Command movedPiece(GamePiece p, Point loc) {
     if (p instanceof Stack) {
@@ -177,7 +167,7 @@ public class PieceMover extends AbstractBuildable implements MouseListener, Draw
     }
     Command c = new NullCommand();
     if (!hasMoved
-      || shouldMarkMoved()) {
+        || shouldMarkMoved()) {
       if (p instanceof Stack) {
         for (Enumeration e = ((Stack) p).getPieces(); e.hasMoreElements();) {
           c.append(markMoved((GamePiece) e.nextElement(), hasMoved));
@@ -185,10 +175,9 @@ public class PieceMover extends AbstractBuildable implements MouseListener, Draw
       }
       else if (p.getProperty(Properties.MOVED) != null) {
         if (p.getId() != null) {
-          TrackPiece comm = new TrackPiece(p);
+          ChangeTracker comm = new ChangeTracker(p);
           p.setProperty(Properties.MOVED, hasMoved ? Boolean.TRUE : Boolean.FALSE);
-          comm.finalize();
-          c = comm;
+          c = comm.getChangeCommand();
         }
       }
     }
@@ -242,7 +231,7 @@ public class PieceMover extends AbstractBuildable implements MouseListener, Draw
       comm = comm.append(movedPiece(bottom, p));
       comm = comm.append(m.placeAt(bottom, p));
       if (!(bottom instanceof Stack)
-        && !Boolean.TRUE.equals(bottom.getProperty(Properties.NO_STACK))) {
+          && !Boolean.TRUE.equals(bottom.getProperty(Properties.NO_STACK))) {
         Stack parent = m.getStackMetrics().createStack(bottom);
         if (parent != null) {
           comm = comm.append(m.placeAt(parent, p));
@@ -266,7 +255,7 @@ public class PieceMover extends AbstractBuildable implements MouseListener, Draw
       GameModule.setUserId(myId);
       String nextOrigin = m.locationName(next.getPosition());
       if (nextOrigin == null
-        || !nextOrigin.equals(origin)) {
+          || !nextOrigin.equals(origin)) {
         origin = null;
       }
       comm = comm.append(movedPiece(next, bottom.getPosition()));
@@ -275,10 +264,10 @@ public class PieceMover extends AbstractBuildable implements MouseListener, Draw
     }
     String s = moved.toString();
     if (comm != null
-      && !comm.isNull()
-      && destination != null
-      && s.length() > 0
-      && GlobalOptions.getInstance().autoReportEnabled()) {
+        && !comm.isNull()
+        && destination != null
+        && s.length() > 0
+        && GlobalOptions.getInstance().autoReportEnabled()) {
       if (origin == null) {
         s = "* " + s + " moves " + destination + " * ";
       }
@@ -293,69 +282,65 @@ public class PieceMover extends AbstractBuildable implements MouseListener, Draw
     return comm;
   }
 
+  /**
+   * This listener is used for faking drag-and-drop on Java 1.1 systems
+   * @param e
+   */
   public void mousePressed(MouseEvent e) {
     if (canHandleEvent(e)) {
-      GamePiece p = map.findPiece(e.getPoint(), PieceFinder.MOVABLE);
-      dragBegin = e.getPoint();
-      if (p == null) {
-        DragBuffer.getBuffer().clear();
+      selectMovablePieces(e.getPoint());
+      if (!Info.isDndEnabled() && DragBuffer.getBuffer().getIterator().hasMoreElements()) {
+        map.getView().setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
       }
-      else if (Boolean.TRUE.equals(p.getProperty(Properties.IMMOBILE))) {
-        DragBuffer.getBuffer().clear();
-        if (KeyBuffer.getBuffer().contains(p)) {
-          DragBuffer.getBuffer().add(p);
-        }
-        else {
-          p = null;
-        }
-      }
-      else if (Boolean.TRUE.equals(p.getProperty(Properties.NO_STACK))) {
-        DragBuffer.getBuffer().clear();
+    }
+  }
+
+  /** Place the clicked-on piece into the {@link DragBuffer} */
+  protected void selectMovablePieces(Point point) {
+    GamePiece p = map.findPiece(point, PieceFinder.MOVABLE);
+    dragBegin = point;
+    if (p == null) {
+      DragBuffer.getBuffer().clear();
+    }
+    else if (Boolean.TRUE.equals(p.getProperty(Properties.IMMOBILE))) {
+      DragBuffer.getBuffer().clear();
+      if (KeyBuffer.getBuffer().contains(p)) {
         DragBuffer.getBuffer().add(p);
       }
       else {
-        DragBuffer.getBuffer().clear();
-        if (KeyBuffer.getBuffer().contains(p)) {
-          DragBuffer.getBuffer().add(p);
-          // If clicking on a selected piece, put all selected pieces into the drag buffer
-          for (Enumeration enum = KeyBuffer.getBuffer().getPieces(); enum.hasMoreElements();) {
-            GamePiece piece = (GamePiece) enum.nextElement();
-            if (piece != p
+        p = null;
+      }
+    }
+    else if (Boolean.TRUE.equals(p.getProperty(Properties.NO_STACK))) {
+      DragBuffer.getBuffer().clear();
+      DragBuffer.getBuffer().add(p);
+    }
+    else {
+      DragBuffer.getBuffer().clear();
+      if (KeyBuffer.getBuffer().contains(p)) {
+        DragBuffer.getBuffer().add(p);
+        // If clicking on a selected piece, put all selected pieces into the drag buffer
+        for (Enumeration enum = KeyBuffer.getBuffer().getPieces(); enum.hasMoreElements();) {
+          GamePiece piece = (GamePiece) enum.nextElement();
+          if (piece != p
               && piece.getParent() != p) {
-              DragBuffer.getBuffer().add(piece);
-            }
+            DragBuffer.getBuffer().add(piece);
           }
         }
-        else {
-          // Otherwise, only put the clicked-on piece into the drag buffer
-          DragBuffer.getBuffer().add(p);
-        }
       }
-      if (p != null) {
-        setOutline(p);
+      else {
+        // Otherwise, only put the clicked-on piece into the drag buffer
+        DragBuffer.getBuffer().add(p);
       }
-      checkDragContents = true;
     }
   }
 
-  private boolean canHandleEvent(MouseEvent e) {
+  protected boolean canHandleEvent(MouseEvent e) {
     return !e.isShiftDown()
-      && !e.isControlDown()
-      && !e.isMetaDown()
-      && e.getClickCount() < 2
-      && !e.isConsumed();
-  }
-
-  protected void setOutline(GamePiece p) {
-    outline = p.selectionBounds();
-    outlineOffset = new Point((int) (map.getZoom() * (outline.x - p.getPosition().x)),
-                              (int) (map.getZoom() * (outline.y - p.getPosition().y)));
-    outline.width *= map.getZoom();
-    outline.height *= map.getZoom();
-    if (map.getHighlighter() instanceof ColoredBorder) {
-      outlineColor = ((ColoredBorder) map.getHighlighter()).getColor();
-      thickness = ((ColoredBorder) map.getHighlighter()).getThickness();
-    }
+        && !e.isControlDown()
+        && !e.isMetaDown()
+        && e.getClickCount() < 2
+        && !e.isConsumed();
   }
 
   /**
@@ -374,7 +359,7 @@ public class PieceMover extends AbstractBuildable implements MouseListener, Draw
       }
       else {
         if (Math.abs(pt.x - dragBegin.x) <= 5
-          && Math.abs(pt.y - dragBegin.y) <= 5) {
+            && Math.abs(pt.y - dragBegin.y) <= 5) {
           isClick = true;
         }
       }
@@ -385,16 +370,19 @@ public class PieceMover extends AbstractBuildable implements MouseListener, Draw
   public void mouseReleased(MouseEvent e) {
     if (canHandleEvent(e)) {
       if (!isClick(e.getPoint())) {
-        Command move = movePieces(map, e.getPoint());
-        GameModule.getGameModule().sendAndLog(move);
-        if (move != null) {
-          DragBuffer.getBuffer().clear();
-        }
+        performDrop(e.getPoint());
       }
     }
     dragBegin = null;
-    outline = null;
     map.getView().setCursor(null);
+  }
+
+  protected void performDrop(Point p) {
+    Command move = movePieces(map, p);
+    GameModule.getGameModule().sendAndLog(move);
+    if (move != null) {
+      DragBuffer.getBuffer().clear();
+    }
   }
 
   public void mouseEntered(MouseEvent e) {
@@ -404,44 +392,6 @@ public class PieceMover extends AbstractBuildable implements MouseListener, Draw
   }
 
   public void mouseClicked(MouseEvent e) {
-  }
-
-  public void mouseDragged(MouseEvent e) {
-/*
-    if (outline != null) {
-      outline.setLocation(e.getPoint());
-      map.repaint();
-    }
-    else if (checkDragContents) {
-      PieceIterator it = DragBuffer.getBuffer().getIterator();
-      if (it.hasMoreElements()) {
-        setOutline(it.nextPiece());
-      }
-      checkDragContents = false;
-    }
-*/
-    if (checkDragContents) {
-      PieceIterator it = DragBuffer.getBuffer().getIterator();
-      if (it.hasMoreElements()) {
-        setOutline(it.nextPiece());
-      }
-      if (outline != null) {
-        Component obs = map.getView();
-        Image im = obs.createImage(outline.width, outline.height);
-        im.getGraphics().setColor(outlineColor);
-        for (int i = 0; i < thickness; ++i) {
-          im.getGraphics().drawRect(i, i, outline.width - 2 * i, outline.height - 2 * i);
-        }
-        TransparentFilter f = new TransparentFilter();
-        f.setAlpha(0.0, TransparentFilter.getOffscreenEquivalent(obs.getBackground().getRGB(), obs));
-        im = obs.createImage(new FilteredImageSource(im.getSource(), f));
-        map.getView().setCursor(Toolkit.getDefaultToolkit().createCustomCursor(im, new Point(-outlineOffset.x,-outlineOffset.y), "outline"));
-      }
-      checkDragContents = false;
-    }
-  }
-
-  public void mouseMoved(MouseEvent e) {
   }
 
   /**
@@ -455,7 +405,7 @@ public class PieceMover extends AbstractBuildable implements MouseListener, Draw
     GamePiece selected = null;
     Board b = map.findBoard(pt);
     if (b == null
-      || b.getGrid() == null) {
+        || b.getGrid() == null) {
       selected = PieceFinder.MOVABLE.select(map, piece, pt);
     }
     else {
@@ -463,7 +413,7 @@ public class PieceMover extends AbstractBuildable implements MouseListener, Draw
       if (piece instanceof Stack) {
         Stack s = (Stack) piece;
         if (s.isExpanded()) {
-          Rectangle[] bounds = new Rectangle[s.getPieceCount()];
+          Shape[] bounds = new Shape[s.getPieceCount()];
           map.getStackMetrics().getContents(s, null, bounds, null, s.getPosition().x, s.getPosition().y);
           for (Enumeration e = s.getPiecesInVisibleOrder();
                e.hasMoreElements();) {
@@ -475,21 +425,21 @@ public class PieceMover extends AbstractBuildable implements MouseListener, Draw
           }
         }
         else if (s.getPosition().equals(snap)
-          && s.topPiece() != null) {
+            && s.topPiece() != null) {
           selected = s;
         }
       }
       else if (piece.getPosition().equals(snap)
-        && !Boolean.TRUE.equals(piece.getProperty(Properties.INVISIBLE_TO_ME))) {
+          && !Boolean.TRUE.equals(piece.getProperty(Properties.INVISIBLE_TO_ME))) {
         selected = piece;
       }
     }
     if (selected != null
-      && Boolean.TRUE.equals(selected.getProperty(Properties.NO_STACK))) {
+        && Boolean.TRUE.equals(selected.getProperty(Properties.NO_STACK))) {
       selected = null;
     }
     if (selected != null
-      && DragBuffer.getBuffer().contains(selected)) {
+        && DragBuffer.getBuffer().contains(selected)) {
       /* If clicking and dragging to within the outline of the same piece,
       ignore this piece if it's a stack or the only visible piece in a stack */
       if (selected.getParent() == null) {
@@ -498,8 +448,8 @@ public class PieceMover extends AbstractBuildable implements MouseListener, Draw
       else {
         Enumeration e = selected.getParent().getPiecesInVisibleOrder();
         if (e.hasMoreElements()
-          && e.nextElement() == selected
-          && !e.hasMoreElements()) {
+            && e.nextElement() == selected
+            && !e.hasMoreElements()) {
           selected = null;
         }
       }
@@ -516,7 +466,7 @@ public class PieceMover extends AbstractBuildable implements MouseListener, Draw
     GamePiece p2 = (GamePiece) o2;
     int result = 0;
     if (p1.getMap() == null
-      && p2.getMap() == null) {
+        && p2.getMap() == null) {
       return 0;
     }
     else if (p1.getMap() == null) {
@@ -538,4 +488,29 @@ public class PieceMover extends AbstractBuildable implements MouseListener, Draw
     }
     return result;
   }
+
+  private class DragHandler implements DragSourceListener, DragGestureListener {
+    public void dragGestureRecognized(DragGestureEvent dge) {
+      if (DragBuffer.getBuffer().getIterator().hasMoreElements()) {
+        dge.startDrag(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR), new StringSelection(""), this);
+      }
+    }
+
+    public void dragEnter(DragSourceDragEvent dsde) {
+    }
+
+    public void dragOver(DragSourceDragEvent dsde) {
+    }
+
+    public void dropActionChanged(DragSourceDragEvent dsde) {
+    }
+
+    public void dragExit(DragSourceEvent dse) {
+    }
+
+    public void dragDropEnd(DragSourceDropEvent dsde) {
+      map.repaint();
+    }
+  }
+
 }

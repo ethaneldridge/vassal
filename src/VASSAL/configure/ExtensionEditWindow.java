@@ -42,7 +42,7 @@ public class ExtensionEditWindow extends VASSAL.configure.ModuleEditWindow {
   private void initExtensionComponents() {
     super.initComponents(new JScrollPane(new VASSAL.configure.ExtensionTree(GameModule.getGameModule(),helpWindow, extension)));
     toolbar.addSeparator();
-    toolbar.add(extension.getEditAction(this));
+    toolbar.add(extension.getEditAction(new JDialog(this)));
   }
 
   protected void refreshTitle() {

@@ -20,8 +20,8 @@ package VASSAL.counters;
 
 import VASSAL.build.GameModule;
 import VASSAL.build.module.documentation.HelpFile;
-import VASSAL.build.module.documentation.HelpWindowExtension;
 import VASSAL.build.module.documentation.HelpWindow;
+import VASSAL.build.module.documentation.HelpWindowExtension;
 import VASSAL.build.widget.PieceSlot;
 
 import javax.swing.*;
@@ -39,7 +39,7 @@ import java.awt.event.MouseEvent;
  * the properties of a "Single Piece" in the Configuration window.
  */
 public class PieceDefiner extends javax.swing.JPanel implements HelpWindowExtension {
-  protected DefaultListModel availableModel;
+  protected static DefaultListModel availableModel;
   protected DefaultListModel inUseModel;
   protected ListCellRenderer r;
   protected PieceSlot slot;
@@ -48,22 +48,26 @@ public class PieceDefiner extends javax.swing.JPanel implements HelpWindowExtens
 
   /** Creates new form test */
   public PieceDefiner() {
-    availableModel = new DefaultListModel();
-    availableModel.addElement(new BasicPiece());
-    availableModel.addElement(new Embellishment());
-    availableModel.addElement(new Labeler());
-    availableModel.addElement(new Hideable());
-    availableModel.addElement(new Obscurable());
-    availableModel.addElement(new ReturnToDeck());
-    availableModel.addElement(new Immobilized());
-    availableModel.addElement(new TableInfo());
-    availableModel.addElement(new PlaceMarker());
-    availableModel.addElement(new Replace());
-    availableModel.addElement(new FreeRotator());
-    availableModel.addElement(new MovementMarkable());
-    availableModel.addElement(new Restricted());
-    availableModel.addElement(new ReportState());
-    availableModel.addElement(new Marker());
+    if (availableModel == null) {
+      availableModel = new DefaultListModel();
+      availableModel.addElement(new BasicPiece());
+      availableModel.addElement(new Embellishment());
+      availableModel.addElement(new Labeler());
+      availableModel.addElement(new Hideable());
+      availableModel.addElement(new Obscurable());
+      availableModel.addElement(new SendToLocation());
+      availableModel.addElement(new ReturnToDeck());
+      availableModel.addElement(new Immobilized());
+      availableModel.addElement(new TableInfo());
+      availableModel.addElement(new PlaceMarker());
+      availableModel.addElement(new Replace());
+      availableModel.addElement(new FreeRotator());
+      availableModel.addElement(new NonRectangular());
+      availableModel.addElement(new MovementMarkable());
+      availableModel.addElement(new Restricted());
+      availableModel.addElement(new ReportState());
+      availableModel.addElement(new Marker());
+    }
     inUseModel = new DefaultListModel();
     r = new Renderer();
     slot = new PieceSlot();
@@ -88,7 +92,7 @@ public class PieceDefiner extends javax.swing.JPanel implements HelpWindowExtens
         catch (Throwable ex) {
         }
       }
-      piece = ((Decorator) piece).getInner();
+      piece = ((Decorator) piece).piece;
     }
     if (piece == null) {
       inUseModel.insertElementAt(new BasicPiece(), 0);

@@ -13,7 +13,7 @@
  * Library General Public License for more details.
  *
  * You should have received a copy of the GNU Library General Public
- * License along with this library; if not, copies are available 
+ * License along with this library; if not, copies are available
  * at http://www.opensource.org.
  */
 package VASSAL.build.module.map;
@@ -21,15 +21,16 @@ package VASSAL.build.module.map;
 import VASSAL.build.*;
 import VASSAL.build.module.GameComponent;
 import VASSAL.build.module.Map;
-import VASSAL.build.module.PlayerRoster;
-import VASSAL.build.module.PrivateMap;
 import VASSAL.build.module.documentation.HelpFile;
 import VASSAL.command.Command;
-import VASSAL.configure.*;
+import VASSAL.configure.AutoConfigurer;
+import VASSAL.configure.ColorConfigurer;
+import VASSAL.configure.Configurer;
+import VASSAL.configure.VisibilityCondition;
 import VASSAL.counters.GamePiece;
-import VASSAL.counters.PieceFinder;
-import VASSAL.preferences.PositionOption;
+import VASSAL.counters.Properties;
 import VASSAL.tools.LaunchButton;
+import VASSAL.Info;
 import org.w3c.dom.Element;
 
 import javax.swing.*;
@@ -38,6 +39,7 @@ import java.awt.event.*;
 import java.io.File;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.Enumeration;
 
 /**
  * This is scaled version of a {@link Map} that gives an overview.
@@ -45,44 +47,24 @@ import java.net.URL;
  * which draws a square indicating the current viewable area in the
  * map window */
 public class GlobalMap extends JPanel implements MouseListener,
-  AutoConfigurable, GameComponent, Drawable {
+    AutoConfigurable, GameComponent, Drawable {
   private Map map;
-  private String boundsKey;
   private double scale = 0.19444444;      // Zoom factor
   private Color rectColor = Color.black;
-  private JScrollPane scroll;
   private LaunchButton launch;
 
-  private JFrame f;
-  private BooleanConfigurer visibility;
-  private ComponentListener visListener;
+  private JWindow f;
+  private CounterDetailViewer mouseOverViewer;
 
   public GlobalMap() {
-    setSize(350, 125);
-    f = new JFrame();
-    scroll = new JScrollPane(this);
-    f.getContentPane().add(scroll);
-    f.setDefaultCloseOperation(javax.swing.WindowConstants.HIDE_ON_CLOSE);
-    visListener = new ComponentAdapter() {
-      public void componentHidden(ComponentEvent e) {
-        if (visibility != null) {
-          visibility.setValue(Boolean.FALSE);
-        }
-      }
-
-      public void componentShown(ComponentEvent e) {
-        if (visibility != null) {
-          visibility.setValue(Boolean.TRUE);
-        }
-      }
-    };
-    launch = new LaunchButton(null,null,HOTKEY,new ActionListener() {
-      public void actionPerformed(ActionEvent e) {
-        f.setVisible(!f.isVisible());
-      }
-    });
+    ActionListener al = new ActionListener() {
+          public void actionPerformed(ActionEvent e) {
+            setWindowVisible(!f.isVisible());
+          }
+        };
+    launch = new LaunchButton(null,null,HOTKEY,al);
     launch.setToolTipText("Show/Hide overview window");
-    launch.setAttribute(HOTKEY,KeyStroke.getKeyStroke(KeyEvent.VK_O,KeyEvent.CTRL_MASK+KeyEvent.SHIFT_MASK));
+    launch.setAttribute(HOTKEY, KeyStroke.getKeyStroke(KeyEvent.VK_O, KeyEvent.CTRL_MASK + KeyEvent.SHIFT_MASK));
     URL imageURL = getClass().getResource("/images/overview.gif");
     if (imageURL != null) {
       launch.setIcon(new ImageIcon(imageURL));
@@ -94,19 +76,36 @@ public class GlobalMap extends JPanel implements MouseListener,
     addMouseListener(this);
   }
 
+  private void initWindow() {
+    if (f == null) {
+      Component ancestor = map.getView().getTopLevelAncestor();
+      JFrame owner = ancestor instanceof JFrame ? (JFrame) ancestor : null;
+      f = new JWindow(owner);
+      f.getContentPane().add(this);
+      if (Info.is2dEnabled()) {
+        map.getView().addHierarchyBoundsListener(new HierarchyBoundsAdapter() {
+          public void ancestorMoved(HierarchyEvent e) {
+            adjustWindowLocation();
+          }
+        });
+      }
+      else {
+        map.getView().addComponentListener(new ComponentAdapter() {
+          public void componentMoved(ComponentEvent e) {
+            adjustWindowLocation();
+          }
+        });
+      }
+    }
+  }
+
   /**
    * Expects to be added to a {@link Map}.  Adds itself as a {@link
    * GameComponent} and a {@link Drawable} component */
   public void addTo(Buildable b) {
     map = (Map) b;
 
-    boundsKey = "BoundsOfGlobalMap" + map.getId();
-    GameModule.getGameModule().getPrefs().addOption
-      (new PositionOption(boundsKey, f));
-
-    String visibilityKey = "GlobalMap" + map.getId()+"Visible";
-    visibility = new BooleanConfigurer(visibilityKey,null,Boolean.TRUE);
-    GameModule.getGameModule().getPrefs().addOption(null,visibility);
+    mouseOverViewer = new CounterViewer();
 
     GameModule.getGameModule().getGameState().addGameComponent(this);
 
@@ -128,7 +127,9 @@ public class GlobalMap extends JPanel implements MouseListener,
     map.removeDrawComponent(this);
     map.getToolBar().remove(launch);
     GameModule.getGameModule().getGameState().removeGameComponent(this);
-    f.dispose();
+    if (f != null) {
+      f.dispose();
+    }
   }
 
   public void build(Element e) {
@@ -140,7 +141,7 @@ public class GlobalMap extends JPanel implements MouseListener,
   private static final String HOTKEY = "hotkey";
 
   public String[] getAttributeNames() {
-    return new String[]{SCALE, COLOR,HOTKEY};
+    return new String[]{SCALE, COLOR, HOTKEY};
   }
 
   public VisibilityCondition getAttributeVisibility(String name) {
@@ -161,7 +162,7 @@ public class GlobalMap extends JPanel implements MouseListener,
       rectColor = (Color) value;
     }
     else {
-      launch.setAttribute(key,value);
+      launch.setAttribute(key, value);
     }
   }
 
@@ -193,14 +194,19 @@ public class GlobalMap extends JPanel implements MouseListener,
 
   public void paint(Graphics g) {
     g.clearRect(0, 0, getSize().width, getSize().height);
-    map.drawBoards(g, -Math.round((float)scale * map.getEdgeBuffer().width),
-             -Math.round((float)scale * map.getEdgeBuffer().height), scale, this);
+    map.drawBoards(g, -Math.round((float) scale * map.getEdgeBuffer().width),
+                   -Math.round((float) scale * map.getEdgeBuffer().height), scale, this);
     GamePiece stack[] = map.getPieces();
     for (int i = 0; i < stack.length; i++) {
-      int x = Math.round((stack[i].getPosition().x - map.getEdgeBuffer().width) * (float)scale);
-      int y = Math.round((stack[i].getPosition().y - map.getEdgeBuffer().height) * (float)scale);
-      stack[i].draw(g, x, y, this, scale);
+      Point p = componentCoordinates(stack[i].getPosition());
+      stack[i].draw(g, p.x, p.y, this, scale);
     }
+    for (Enumeration e = map.getComponents(DrawPile.class); e.hasMoreElements();) {
+      DrawPile deck = (DrawPile) e.nextElement();
+      Point p = componentCoordinates(deck.getPosition());
+      deck.draw(g, p.x, p.y, this, scale);
+    }
+    mouseOverViewer.draw(g, map);
 
     // Draw a rectangle indicating the present viewing area
     g.setColor(rectColor);
@@ -209,12 +215,11 @@ public class GlobalMap extends JPanel implements MouseListener,
     Point ul = map.mapCoordinates(r.getLocation());
     ul.translate(-map.getEdgeBuffer().width,
                  -map.getEdgeBuffer().height);
-    int x0 = (int) (scale * ul.x);
-    int y0 = (int) (scale * ul.y);
+    ul = componentCoordinates(ul);
     int w = (int) (scale * r.width / map.getZoom());
     int h = (int) (scale * r.height / map.getZoom());
-    g.drawRect(x0, y0, w, h);
-    g.drawRect(x0 - 1, y0 - 1, w + 2, h + 2);
+    g.drawRect(ul.x, ul.y, w, h);
+    g.drawRect(ul.x - 1, ul.y - 1, w + 2, h + 2);
   }
 
   public void mousePressed(MouseEvent e) {
@@ -229,17 +234,39 @@ public class GlobalMap extends JPanel implements MouseListener,
   public void mouseClicked(MouseEvent e) {
   }
 
+  /**
+   * Transform a point from Map coordinates to coordinates in the overview window
+   * @param p
+   * @return
+   */
+  public Point componentCoordinates(Point p) {
+    p = new Point(p.x - map.getEdgeBuffer().width,
+                  p.y - map.getEdgeBuffer().height);
+    p.x *= scale;
+    p.y *= scale;
+    return p;
+  }
+
+  /**
+   * Transform a point from coordinates in the overview window to Map coordinates
+   * @param p
+   * @return
+   */
+  public Point mapCoordinates(Point p) {
+    p = new Point((int) Math.round(p.x / scale),
+                  (int) Math.round(p.y / scale));
+    p.translate(map.getEdgeBuffer().width,
+                map.getEdgeBuffer().height);
+    return p;
+  }
+
   public void mouseReleased(MouseEvent e) {
-    map.centerAt(new Point(map.getEdgeBuffer().width + (int) (e.getX() / scale),
-                           map.getEdgeBuffer().height + (int) (e.getY() / scale)));
+    map.centerAt(mapCoordinates(e.getPoint()));
     map.repaint();
   }
 
   public String getToolTipText(MouseEvent e) {
-    Point p = new Point(map.getEdgeBuffer().width + (int) (e.getX() / scale),
-                        map.getEdgeBuffer().height + (int) (e.getY() / scale));
-    GamePiece piece = map.findPiece(p, PieceFinder.MOVABLE);
-    return piece == null ? null : piece.getName();
+    return null;
   }
 
   public Command getRestoreCommand() {
@@ -254,34 +281,37 @@ public class GlobalMap extends JPanel implements MouseListener,
   }
 
   public void setup(boolean show) {
-    boolean visible = show
-      && map.getAllBoards().hasMoreElements()
-      && visibility.booleanValue().booleanValue();
-    if (map instanceof PrivateMap
-      && !((PrivateMap) map).isAccessibleTo(PlayerRoster.getMySide())) {
-      visible = false;
-    }
-    if (visible) {
-      f.setTitle(map.getMapName() + " overview");
-      scroll.getViewport().setPreferredSize(getPreferredSize());
-      f.pack();
-      Rectangle r = (Rectangle) GameModule.getGameModule().getPrefs()
-        .getValue(boundsKey);
-      if (r != null) {
-        f.setLocation(r.x, r.y);
-      }
-    }
-    f.removeComponentListener(visListener);
-    f.setVisible(visible);
-    f.addComponentListener(visListener);
-
+    initWindow();
     if (show) {
-      revalidate();
+      f.setSize(getPreferredSize());
+    }
+    else {
+      f.setVisible(false);
+    }
+
+    if (show && map.getComponents(CounterDetailViewer.class).hasMoreElements()) {
+      addMouseMotionListener(mouseOverViewer);
+      f.addKeyListener(mouseOverViewer);
+    }
+    else {
+      removeMouseMotionListener(mouseOverViewer);
+      f.removeKeyListener(mouseOverViewer);
     }
   }
 
-  public void setTitle(String s) {
-    f.setTitle(s);
+  public void setWindowVisible(final boolean visible) {
+    if (visible) {
+      adjustWindowLocation();
+    }
+    f.setVisible(visible);
+  }
+
+  protected void adjustWindowLocation() {
+    if (map.getView().isShowing()) {
+      Point p = map.getView().getLocationOnScreen();
+      p.translate(map.getView().getVisibleRect().x,map.getView().getVisibleRect().y);
+      f.setLocation(p);
+    }
   }
 
   public static String getConfigureTypeName() {
@@ -320,6 +350,33 @@ public class GlobalMap extends JPanel implements MouseListener,
 
   public org.w3c.dom.Element getBuildElement(org.w3c.dom.Document doc) {
     return AutoConfigurable.Util.getBuildElement(doc, this);
+  }
+
+  private class CounterViewer extends CounterDetailViewer {
+    public CounterViewer() {
+      this.map = GlobalMap.this.map;
+    }
+
+    public void draw(Graphics g, Map map) {
+      if (currentMousePosition != null) {
+        this.draw(g, currentMousePosition.getPoint(), GlobalMap.this);
+      }
+    }
+
+    protected GamePiece findPieceAtMousePosition() {
+      Point oldPoint = currentMousePosition.getPoint();
+      Point mapPoint = GlobalMap.this.map.componentCoordinates(mapCoordinates(oldPoint));
+
+      currentMousePosition.translatePoint(mapPoint.x - oldPoint.x, mapPoint.y - oldPoint.y);
+      GamePiece p = super.findPieceAtMousePosition();
+      currentMousePosition.translatePoint(oldPoint.x - mapPoint.x, oldPoint.y - mapPoint.y);
+      return p;
+    }
+
+    protected boolean shouldBeVisible() {
+      return currentPiece != null
+          && !Boolean.TRUE.equals(currentPiece.getProperty(Properties.IMMOBILE));
+    }
   }
 }
 

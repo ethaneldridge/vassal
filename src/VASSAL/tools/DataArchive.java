@@ -13,37 +13,52 @@
  * Library General Public License for more details.
  *
  * You should have received a copy of the GNU Library General Public
- * License along with this library; if not, copies are available 
+ * License along with this library; if not, copies are available
  * at http://www.opensource.org.
  */
 package VASSAL.tools;
 
+import VASSAL.build.GameModule;
+import VASSAL.build.module.GlobalOptions;
 import VASSAL.build.module.documentation.HelpFile;
+import VASSAL.configure.BooleanConfigurer;
 
+import javax.swing.*;
 import java.awt.*;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 import java.io.*;
+import java.net.URL;
+import java.security.AllPermission;
+import java.security.CodeSource;
+import java.security.PermissionCollection;
+import java.security.SecureClassLoader;
+import java.util.Enumeration;
 import java.util.Hashtable;
 import java.util.Vector;
-import java.util.Enumeration;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 import java.util.zip.ZipInputStream;
-import java.net.URL;
 
 /**
  * Wrapper around a Zip archive with methods to cache images
  */
-public class DataArchive extends ClassLoader {
+public class DataArchive extends SecureClassLoader {
   protected ZipFile archive = null;
   protected Vector extensions = new Vector();
   private Hashtable imageCache = new Hashtable();
+  private Hashtable scaledImageCache = new Hashtable();
   protected String[] imageNames;
   public static final String IMAGE_DIR = "images/";
+  private BooleanConfigurer smoothPrefs;
+  private CodeSource cs;
 
   protected DataArchive() {
+    super(DataArchive.class.getClassLoader());
   }
 
   public DataArchive(String zipName) throws IOException {
+    this();
     archive = new ZipFile(zipName);
   }
 
@@ -71,7 +86,7 @@ public class DataArchive extends ClassLoader {
   }
 
   public static Image findImage(File dir, String zip, String file)
-    throws IOException {
+      throws IOException {
     /*
      ** Looks for entry "file" in ZipFile "zip" in directory "dir"
      ** If no such zipfile, look for "file" in "dir"
@@ -81,7 +96,7 @@ public class DataArchive extends ClassLoader {
     }
     else if ((new File(dir, file)).exists()) {
       return Toolkit.getDefaultToolkit().getImage
-        (dir.getPath() + File.separatorChar + file);
+          (dir.getPath() + File.separatorChar + file);
     }
     else {
       throw new IOException("Image " + file + " not found in " + dir
@@ -105,6 +120,86 @@ public class DataArchive extends ClassLoader {
     }
   }
 
+  /**
+   * Return a scaled instance of the image.  Each zoom factory of each image is stored in a cache
+   * @param base
+   * @param scale
+   * @return
+   */
+  public Image getScaledImage(Image base, double scale) {
+    Dimension d = getImageBounds(base).getSize();
+    d.width *= scale;
+    d.height *= scale;
+    ScaledCacheKey key = new ScaledCacheKey(base,d);
+    Image scaled = (Image) scaledImageCache.get(key);
+    if (scaled == null) {
+      scaled = getScaledInstance(base, d);
+      new ImageIcon(scaled); // Wait for the image to load
+      scaledImageCache.put(key,scaled);
+    }
+    return scaled;
+  }
+
+  private Image getScaledInstance(Image im, Dimension size) {
+    if (smoothPrefs == null) {
+      smoothPrefs = (BooleanConfigurer) GameModule.getGameModule().getPrefs().getOption(GlobalOptions.SCALER_ALGORITHM);
+      smoothPrefs.addPropertyChangeListener(new PropertyChangeListener() {
+        public void propertyChange(PropertyChangeEvent evt) {
+          scaledImageCache.clear();
+        }
+      });
+    }
+    int algorithm = Boolean.TRUE.equals(smoothPrefs.getValue()) ? Image.SCALE_AREA_AVERAGING : Image.SCALE_DEFAULT;
+    return im.getScaledInstance(size.width,size.height,algorithm);
+  }
+
+  /**
+   *
+   * @param im
+   * @return the boundaries of this image, where (0,0) is the center of the image
+   */
+  public static Rectangle getImageBounds(Image im) {
+    ImageIcon icon = new ImageIcon(im);
+    return new Rectangle(-icon.getIconWidth() / 2, -icon.getIconHeight() / 2, icon.getIconWidth(), icon.getIconHeight());
+  }
+
+/*
+  private Shape getImageShape(String imageName) {
+    Shape s = (Shape) imageShapes.get(imageName);
+    if (s == null) {
+      Area a = new Area();
+      try {
+        Image im = getCachedImage(imageName);
+        ImageIcon icon = new ImageIcon(im);
+        int width = icon.getIconWidth();
+        int height = icon.getIconHeight();
+        int[] pixels = new int[width * height];
+        PixelGrabber pg = new PixelGrabber(im, 0, 0, width, height, pixels, 0, width);
+        long time = System.currentTimeMillis();
+        pg.grabPixels();
+        System.err.println("Grab "+imageName+" took "+(System.currentTimeMillis()-time));
+        time = System.currentTimeMillis();
+        for (int j = 0; j < height; ++j) {
+          for (int i = 0; i < width; ++i) {
+            if (((pixels[i + j * width] >> 24) & 0xff) > 0) {
+              a.add(new Area(new Rectangle(i, j, 1, 1)));
+            }
+          }
+        }
+        System.err.println("Build shape "+imageName+" took "+(System.currentTimeMillis()-time));
+      }
+      catch (IOException e) {
+      }
+      catch (InterruptedException e) {
+
+      }
+      s = a;
+      imageShapes.put(imageName,s);
+    }
+    return s;
+  }
+*/
+
   public void unCacheImage(String file) {
     imageCache.remove(IMAGE_DIR + file);
   }
@@ -117,29 +212,13 @@ public class DataArchive extends ClassLoader {
    * Read all available bytes from the given InputStream
    */
   public static byte[] getBytes(InputStream in) throws IOException {
-/* -- This code doesn't work under JRE 1.3
-        byte[] buffer = new byte[100000];
-        byte[] data = new byte[0];
-        int count=0;
-        int length = 0;
-        while ((count = in.read(buffer)) > 0) {
-            length += count;
-            byte[] temp = new byte[length];
-            System.arraycopy(data,0,temp,0,length-count);
-            System.arraycopy(buffer,0,temp,length-count,count);
-            data = temp;
-        }
-	return data;
-	*/
-
-// David Miller's code
     BufferedInputStream bufIn = new BufferedInputStream(in);
     int nLen = bufIn.available();
     int nCurBytes = 0;
     byte buffer[] = null;
     byte abyte0[] = new byte[nLen];
 
-    while ((nCurBytes = bufIn.read(abyte0, 0, abyte0.length)) != -1) {
+    while ((nCurBytes = bufIn.read(abyte0, 0, abyte0.length)) > 0) {
       if (buffer == null) {
         buffer = new byte[nCurBytes];
         System.arraycopy(abyte0, 0, buffer, 0, nCurBytes);
@@ -153,7 +232,7 @@ public class DataArchive extends ClassLoader {
         System.arraycopy(abyte0, 0, buffer, oldbuf.length, nCurBytes);
       }
     }
-    return buffer;
+    return buffer != null ? buffer : new byte[0];
   }
 
   /**
@@ -239,7 +318,8 @@ public class DataArchive extends ClassLoader {
                                       boolean resolve) throws ClassNotFoundException {
     Class c;
     try {
-      c = findSystemClass(name);
+//      c = findSystemClass(name);
+      c = Class.forName(name);
     }
     catch (Exception noClass) {
       c = findLoadedClass(name);
@@ -253,12 +333,21 @@ public class DataArchive extends ClassLoader {
     return c;
   }
 
+  protected PermissionCollection getPermissions(CodeSource codesource) {
+    PermissionCollection p = super.getPermissions(codesource);
+    p.add(new AllPermission());
+    return p;
+  }
+
   protected Class findClass(String name) throws ClassNotFoundException {
+    if (cs == null) {
+      cs = new CodeSource(null,null);
+    }
     try {
       String slashname = name.replace('.', '/');
       InputStream in = getFileStream(slashname + ".class");
       byte[] data = getBytes(in);
-      return defineClass(slashname, data, 0, data.length);
+      return defineClass(slashname, data, 0, data.length,cs);
     }
     catch (IOException e) {
       throw new ClassNotFoundException("Unable to load " + name + "\n" + e.getMessage());
@@ -294,7 +383,7 @@ public class DataArchive extends ClassLoader {
     if (archive != null) {
       try {
         ZipInputStream zis
-          = new ZipInputStream(new FileInputStream(archive.getName()));
+            = new ZipInputStream(new FileInputStream(archive.getName()));
 
         ZipEntry entry = null;
         while ((entry = zis.getNextEntry()) != null) {
@@ -309,6 +398,151 @@ public class DataArchive extends ClassLoader {
     }
     for (Enumeration e = extensions.elements(); e.hasMoreElements();) {
       ((DataArchive) e.nextElement()).listImageNames(v);
+    }
+  }
+
+  public static class Scaler {
+    static final int IMAGE_ID = 0;
+    public static final int SCALE_AREA_AVERAGING = 16;
+    public static final int SCALE_SMOOTH = 4;
+    public static final int SCALE_FAST = 2;
+
+    private Hashtable scaledImageCache = new Hashtable();
+
+    private int scalingMethod;
+
+    public Scaler() {
+    }
+
+    public void clearCache() {
+      scaledImageCache.clear();
+    }
+
+    private void setScalingMethod() {
+      // this can be 16,8,4 or 2 depending on scaling alg
+      if (GlobalOptions.getInstance().isAveragedScaling()) {
+        scalingMethod = SCALE_AREA_AVERAGING;
+      }
+      else {
+        scalingMethod = SCALE_FAST;
+      }
+    }
+
+    public Image scale(Image img, double zoom, Component obs) {
+      return scaleImage(img, zoom, obs);
+    }
+
+    public Image scale(Image img, String pieceID, double zoom, Component obs) {
+      if (pieceID != null) {
+        // Check whether the scaled image is in the cache
+        String hashKey = pieceID + String.valueOf(zoom);
+        if (scaledImageCache.containsKey(hashKey)) {
+          return (Image) scaledImageCache.get(hashKey);
+        }
+        img = scaleImage(img, zoom, obs);
+        scaledImageCache.put(hashKey, img);
+      }
+      else {
+        img = scaleImage(img, zoom, obs);
+      }
+      return img;
+    }
+
+/*
+	private Image JAIscaleImage( Image img,  double zoom, Component obs  )
+	{
+
+		// Create an RGB color model
+		int[] bits = { 8, 8, 8 };
+		ColorModel colorModel = new
+				ComponentColorModel(
+					ColorSpace.getInstance(ColorSpace.CS_sRGB),
+						bits,	false, false,
+						Transparency.OPAQUE,
+						DataBuffer.TYPE_BYTE);
+
+		// Possible Interpolation methods are (in order of quality):
+		// INTERP_NEAREST, INTERP_BILINEAR, INTERP_BICUBIC, INTERP_BICUBIC2
+		Interpolation interp = Interpolation.getInstance(
+									Interpolation.INTERP_BICUBIC);
+		ParameterBlock pb = new ParameterBlock();
+		pb.add(img);
+		PlanarImage image1 = (PlanarImage)JAI.create("awtImage", pb);
+
+		//		Create the ParameterBlock.
+		pb = new ParameterBlock();
+		pb.addSource(image1).add(colorModel);
+		//		Perform the color conversion.
+		PlanarImage image2 = JAI.create("ColorConvert", pb);
+
+				ParameterBlock params = new ParameterBlock();
+		params.addSource(image2);
+		params.add(new Float(zoom)); // x scale factor
+		params.add(new Float(zoom)); // y scale factor
+		params.add(0.0F); // x translate
+		params.add(0.0F); // y translate
+		params.add(interp); // interpolation method
+
+		PlanarImage image3 = (PlanarImage)JAI.create("scale", params);
+		img = (Image)image3.getAsBufferedImage();
+		return img;
+	}
+*/
+    private Image scaleImage(Image img, double zoom, Component obs) {
+      setScalingMethod();
+      int width = img.getWidth(obs);
+      int height = img.getHeight(obs);
+      MediaTracker t = new MediaTracker(obs);
+      Image scaled = img;
+      try {
+        scaled = scaled.getScaledInstance(
+            (int) (zoom * width),
+            (int) (zoom * height),
+            scalingMethod);
+
+        t.addImage(scaled, IMAGE_ID);
+        try {
+          t.waitForID(IMAGE_ID);
+        }
+        catch (InterruptedException e) {
+        }
+      }
+      catch (IllegalArgumentException c) {
+      }
+      try {
+        Thread.sleep(2);
+      }
+      catch (InterruptedException e) {
+      }
+      return scaled;
+    }
+  }
+  private static class ScaledCacheKey {
+    private Image base;
+    private Dimension bounds;
+
+    public ScaledCacheKey(Image base, Dimension bounds) {
+      this.bounds = bounds;
+      this.base = base;
+    }
+
+    public boolean equals(Object o) {
+      if (this == o) return true;
+      if (!(o instanceof ScaledCacheKey)) return false;
+
+      final ScaledCacheKey scaledCacheKey = (ScaledCacheKey) o;
+
+      if (!bounds.equals(scaledCacheKey.bounds)) return false;
+      if (!base.equals(scaledCacheKey.base)) return false;
+
+      return true;
+    }
+
+    public int hashCode() {
+      int result;
+      result = base.hashCode();
+      result = 29 * result + bounds.hashCode();
+      return result;
     }
   }
 }

@@ -13,7 +13,7 @@
  * Library General Public License for more details.
  *
  * You should have received a copy of the GNU Library General Public
- * License along with this library; if not, copies are available 
+ * License along with this library; if not, copies are available
  * at http://www.opensource.org.
  */
 package VASSAL.counters;
@@ -26,17 +26,19 @@ import VASSAL.command.AddPiece;
 import VASSAL.command.ChangePiece;
 import VASSAL.command.Command;
 import VASSAL.command.RemovePiece;
+import VASSAL.tools.DataArchive;
 import VASSAL.tools.SequenceEncoder;
 
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.InputEvent;
 import java.awt.event.MouseEvent;
+import java.io.File;
+import java.io.IOException;
+import java.net.MalformedURLException;
 import java.util.Enumeration;
 import java.util.Hashtable;
 import java.util.Vector;
-import java.io.File;
-import java.net.MalformedURLException;
 
 /**
  * Basic class for representing a physical component of the game
@@ -48,7 +50,8 @@ public class BasicPiece implements EditablePiece {
   private static Highlighter highlighter;
 
   public static Font POPUP_MENU_FONT = new Font("Dialog", 0, 11);
-  protected Dimension imageSize;// = new Dimension(-1,-1);
+  protected Image image;
+  protected Rectangle imageBounds;
   protected JPopupMenu popup;
 
   private Map map;
@@ -73,23 +76,25 @@ public class BasicPiece implements EditablePiece {
   public void mySetType(String type) {
     SequenceEncoder.Decoder st = new SequenceEncoder.Decoder(type, ';');
     st.nextToken();
-    String key = st.nextToken();
-    cloneKey = key.length() > 0 ? key.toUpperCase().charAt(0) : (char) 0;
-    key = st.nextToken();
-    deleteKey = key.length() > 0 ? key.toUpperCase().charAt(0) : (char) 0;
+    cloneKey = st.nextChar('\0');
+    deleteKey = st.nextChar('\0');
     imageName = st.nextToken();
     commonName = st.nextToken();
 
-    Image im = myImage();
-    if (im != null) {
-      JLabel l = new JLabel();
-      l.setIcon(new ImageIcon(im));
-      imageSize = l.getPreferredSize();
+    if (imageName.trim().length() > 0) {
+      try {
+        image = GameModule.getGameModule().getDataArchive().getCachedImage(imageName + ".gif");
+        imageBounds = DataArchive.getImageBounds(image);
+      }
+      catch (IOException e) {
+        System.err.println("Unable to locate image "+imageName);
+        imageBounds = new Rectangle();
+      }
     }
     else {
-      imageSize = new Dimension(0, 0);
+      image = null;
+      imageBounds = new Rectangle();
     }
-
     commands = null;
   }
 
@@ -133,40 +138,18 @@ public class BasicPiece implements EditablePiece {
     return GameModule.getGameModule().getPrefs().getValue(s);
   }
 
-  protected Image myImage() {
-    try {
-      return GameModule.getGameModule() == null ? null
-        : GameModule.getGameModule().getDataArchive().getCachedImage(imageName + ".gif");
-    }
-    catch (java.io.IOException ex) {
-      return null;
-    }
-  }
-
-  public static void verifySize(Dimension d, Image i, Component obs) {
-    if ((d.width < 0 || d.height < 0)
-      && i != null) {
-      MediaTracker mt = new MediaTracker(obs);
-      mt.addImage(i, 0);
-      try {
-        mt.waitForAll();
-      }
-      catch (Exception e) {
-      }
-      d.setSize(i.getWidth(obs),
-                i.getHeight(obs));
-    }
-  }
-
   public void draw(Graphics g, int x, int y, Component obs, double zoom) {
-    Image im = myImage();
-    if (im != null) {
-      g.drawImage(im,
-                  x - (int) (zoom * imageSize.width / 2),
-                  y - (int) (zoom * imageSize.height / 2),
-                  (int) (zoom * imageSize.width),
-                  (int) (zoom * imageSize.height),
-                  obs);
+    if (image != null) {
+        if (zoom == 1.0) {
+          g.drawImage(image,x+imageBounds.x,y+imageBounds.y,obs);
+        }
+        else {
+          Image scaledImage = GameModule.getGameModule().getDataArchive().getScaledImage(image,zoom);
+          g.drawImage(scaledImage,
+                      x + (int) (zoom * imageBounds.x),
+                      y + (int) (zoom * imageBounds.y),
+                      obs);
+        }
     }
   }
 
@@ -182,23 +165,6 @@ public class BasicPiece implements EditablePiece {
         v.addElement(new KeyCommand("Delete",
                                     KeyStroke.getKeyStroke(deleteKey, InputEvent.CTRL_MASK), target));
       }
-      /*
-      if (getMap() != null) {
-      if (getMap().getStackMetrics().getMoveUpKey() != null) {
-          v.addElement(new KeyCommand("Move up",getMap().getStackMetrics().getMoveUpKey(),target));
-      }
-      if (getMap().getStackMetrics().getMoveDownKey() != null) {
-          v.addElement(new KeyCommand("Move down",getMap().getStackMetrics().getMoveDownKey(),target));
-      }
-      if (getMap().getStackMetrics().getMoveTopKey() != null) {
-          v.addElement(new KeyCommand("Move to top",getMap().getStackMetrics().getMoveTopKey(),target));
-      }
-      if (getMap().getStackMetrics().getMoveBottomKey() != null) {
-          v.addElement(new KeyCommand("Move to bottom",getMap().getStackMetrics().getMoveBottomKey(),target));
-      }
-      }
-      */
-
       commands = new KeyCommand[v.size()];
       for (int i = 0; i < v.size(); ++i) {
         commands[i] = (KeyCommand) v.elementAt(i);
@@ -262,14 +228,11 @@ public class BasicPiece implements EditablePiece {
   }
 
   public Rectangle boundingBox() {
-    return selectionBounds();
+    return new Rectangle(imageBounds.x,imageBounds.y,imageBounds.width,imageBounds.height);
   }
 
-  public Rectangle selectionBounds() {
-    Dimension d = imageSize.width < 0 ? new Dimension(0, 0) : imageSize;
-    Rectangle r = new Rectangle(getPosition(), d);
-    r.translate(-r.width / 2, -r.height / 2);
-    return r;
+  public Shape getShape() {
+    return new Rectangle(imageBounds.x,imageBounds.y,imageBounds.width,imageBounds.height);
   }
 
   public boolean equals(GamePiece c) {
@@ -306,27 +269,7 @@ public class BasicPiece implements EditablePiece {
     }
     else if (KeyStroke.getKeyStroke(deleteKey, InputEvent.CTRL_MASK).equals(stroke)) {
       comm = new RemovePiece(outer);
-      Stack oldParent = parent;
-      if (oldParent != null) {
-        if (oldParent.getPieceCount() == 1) {
-          Command c2 = new RemovePiece(parent);
-          c2.execute();
-          comm.append(c2);
-          comm.execute();
-        }
-        else {
-          BoundsTracker tracker = new BoundsTracker();
-          tracker.addPiece(oldParent);
-          String s = oldParent.getState();
-          oldParent.remove(outer);
-          tracker.repaint();
-          comm.execute();
-          comm = new ChangePiece(oldParent.getId(), s, oldParent.getState()).append(comm);
-        }
-      }
-      else {
-        comm.execute();
-      }
+      comm.execute();
     }
     else if (getMap() != null &&
       stroke.equals(getMap().getStackMetrics().getMoveUpKey())) {
@@ -459,8 +402,7 @@ public class BasicPiece implements EditablePiece {
         return;
       }
     }
-    Point newPos = new Point(Integer.parseInt(st.nextToken()),
-                             Integer.parseInt(st.nextToken()));
+    Point newPos = new Point(st.nextInt(0),st.nextInt(0));
     setPosition(newPos);
     if (newMap != oldMap) {
       if (newMap != null) {

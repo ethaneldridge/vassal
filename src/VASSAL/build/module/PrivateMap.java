@@ -13,7 +13,7 @@
  * Library General Public License for more details.
  *
  * You should have received a copy of the GNU Library General Public
- * License along with this library; if not, copies are available 
+ * License along with this library; if not, copies are available
  * at http://www.opensource.org.
  */
 /*
@@ -26,20 +26,21 @@
  */
 package VASSAL.build.module;
 
-import VASSAL.build.*;
+import VASSAL.build.Buildable;
+import VASSAL.build.GameModule;
+import VASSAL.build.IllegalBuildException;
 import VASSAL.build.module.documentation.HelpFile;
 import VASSAL.configure.StringArrayConfigurer;
+import VASSAL.Info;
 
 import javax.swing.*;
+import java.awt.event.*;
 import java.awt.*;
-import java.awt.event.KeyListener;
-import java.awt.event.MouseListener;
-import java.awt.event.MouseMotionListener;
-import java.awt.event.KeyEvent;
-import java.util.Vector;
-import java.util.Enumeration;
+import java.awt.dnd.DropTarget;
 import java.io.File;
 import java.net.MalformedURLException;
+import java.util.Enumeration;
+import java.util.Vector;
 
 /**
  * A Map that may be configured to be visible only a particular side.
@@ -119,23 +120,40 @@ public class PrivateMap extends Map {
     }
     else if (USE_BOARDS.equals(key)) {
       return surrogate == null ? null :
-        surrogate.getMapName();
+          surrogate.getMapName();
     }
     else {
       return super.getAttributeValueString(key);
     }
   }
 
-  public Window getParentFrame() {
-    if (topWindow == null) {
-      topWindow = new JFrame() {
+  protected Window createParentFrame() {
+    if (GlobalOptions.getInstance().isUseSingleWindow()) {
+      JDialog d = new JDialog(GameModule.getGameModule().getFrame()) {
         public void setVisible(boolean show) {
           super.setVisible(show && (visibleToAll
                                     || isAccessibleTo(PlayerRoster.getMySide())));
         }
       };
+      d.setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
+      d.setTitle(getDefaultWindowTitle());
+      return d;
     }
-    return topWindow;
+    else {
+      JFrame d = new JFrame() {
+        public void setVisible(boolean show) {
+          super.setVisible(show && (visibleToAll
+                                    || isAccessibleTo(PlayerRoster.getMySide())));
+        }
+      };
+      d.setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
+      d.setTitle(getDefaultWindowTitle());
+      return d;
+    }
+  }
+
+  public boolean shouldDockIntoMainWindow() {
+    return false;
   }
 
   /** Return true if the player playing the given side can access this map
@@ -153,10 +171,10 @@ public class PrivateMap extends Map {
   public void setup(boolean show) {
     super.setup(show);
     if (!show) {
-      ((View) theMap).clearListeners();
+      ((View) theMap).disableListeners();
     }
     else if (isAccessibleTo(PlayerRoster.getMySide())) {
-      ((View) theMap).useListeners();
+      ((View) theMap).enableListeners();
     }
   }
 
@@ -172,9 +190,9 @@ public class PrivateMap extends Map {
     if (theMap == null) {
       theMap = new View(this);
       scroll =
-        new JScrollPane(theMap,
-                        JScrollPane.VERTICAL_SCROLLBAR_ALWAYS,
-                        JScrollPane.HORIZONTAL_SCROLLBAR_ALWAYS);
+          new JScrollPane(theMap,
+                          JScrollPane.VERTICAL_SCROLLBAR_ALWAYS,
+                          JScrollPane.HORIZONTAL_SCROLLBAR_ALWAYS);
       scroll.unregisterKeyboardAction(KeyStroke.getKeyStroke(KeyEvent.VK_PAGE_DOWN, 0));
       scroll.unregisterKeyboardAction(KeyStroke.getKeyStroke(KeyEvent.VK_PAGE_UP, 0));
     }
@@ -212,9 +230,16 @@ public class PrivateMap extends Map {
     private Vector keyListeners = new Vector();
     private Vector mouseListeners = new Vector();
     private Vector mouseMotionListeners = new Vector();
+    private DropTarget dropTarget;
 
     public View(PrivateMap m) {
       super(m);
+    }
+
+    public synchronized void setDropTarget(DropTarget dt) {
+      if (dt != null) {
+        dropTarget = dt;
+      }
     }
 
     public synchronized void addKeyListener(KeyListener l) {
@@ -229,7 +254,10 @@ public class PrivateMap extends Map {
       mouseMotionListeners.addElement(l);
     }
 
-    protected void clearListeners() {
+    /**
+     * Disable all keyboard and mouse listeners on this component
+     */
+    protected void disableListeners() {
       for (Enumeration e = keyListeners.elements(); e.hasMoreElements();) {
         removeKeyListener((KeyListener) e.nextElement());
       }
@@ -239,9 +267,15 @@ public class PrivateMap extends Map {
       for (Enumeration e = mouseMotionListeners.elements(); e.hasMoreElements();) {
         removeMouseMotionListener((MouseMotionListener) e.nextElement());
       }
+      if (Info.isDndEnabled()) {
+        super.setDropTarget(null);
+      }
     }
 
-    protected void useListeners() {
+    /**
+     * Enable all keyboard and mouse listeners on this component
+     */
+    protected void enableListeners() {
       for (Enumeration e = keyListeners.elements(); e.hasMoreElements();) {
         super.addKeyListener((KeyListener) e.nextElement());
       }
@@ -250,6 +284,9 @@ public class PrivateMap extends Map {
       }
       for (Enumeration e = mouseMotionListeners.elements(); e.hasMoreElements();) {
         super.addMouseMotionListener((MouseMotionListener) e.nextElement());
+      }
+      if (Info.isDndEnabled()) {
+        super.setDropTarget(dropTarget);
       }
     }
   }

@@ -21,7 +21,7 @@ package VASSAL.command;
 import VASSAL.build.GameModule;
 import VASSAL.build.module.Map;
 import VASSAL.counters.GamePiece;
-import VASSAL.counters.Stack;
+import VASSAL.counters.KeyBuffer;
 
 /**
  * This Command removed a {@link GamePiece} from a game.  Its undo
@@ -63,18 +63,11 @@ public class RemovePiece extends Command {
         target.getParent().remove(target);
         target.setParent(null);
       }
-/*
-      if (target instanceof Stack) {
-        Stack s = (Stack) target;
-        while (s.getPieceCount() > 0) {
-          s.undoAdd(s.getPieceAt(0));
-        }
-      }
-*/
       if (m != null) {
         m.repaint(r);
       }
       GameModule.getGameModule().getGameState().removePiece(target.getId());
+      KeyBuffer.getBuffer().remove(target);
     }
   }
 
