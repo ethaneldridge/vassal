@@ -173,16 +173,21 @@ public class AutoConfigurer extends Configurer
   }
 
   protected void checkVisibility() {
+    boolean visChanged = false;
     if (conditions != null) {
       for (Enumeration e = configurers.elements();
            e.hasMoreElements();) {
         Configurer c = (Configurer) e.nextElement();
         VisibilityCondition cond = (VisibilityCondition) conditions.get(c.getKey());
         if (cond != null) {
-          c.getControls().setVisible(cond.shouldBeVisible());
+          if (c.getControls().isVisible() != cond.shouldBeVisible()) {
+            visChanged = true;
+            c.getControls().setVisible(cond.shouldBeVisible());
+          }
         }
       }
-      if (p.getTopLevelAncestor() instanceof Window) {
+      // Only repack the configurer if an item visiblity has changed.
+      if (visChanged && p.getTopLevelAncestor() instanceof Window) {
         ((Window) p.getTopLevelAncestor()).pack();
       }
     }

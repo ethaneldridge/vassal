@@ -212,12 +212,12 @@ public class DrawPile extends SetupStack {
                        Color.class,
                        Boolean.class,
                        String.class,
-                       String.class,
+                       FormattedStringConfig.class,
                        AssignedDeckPrompt.class,
-                       ReportFormatConfig.class};
+                       FormattedStringConfig.class};
   }
 
-  public static class ReportFormatConfig implements ConfigurerFactory {
+  public static class FormattedStringConfig implements ConfigurerFactory {
     public Configurer getConfigurer(AutoConfigurable c, String key, String name) {
       return new FormattedStringConfigurer(key, name, GlobalOptions.getDeckOptions());
     }

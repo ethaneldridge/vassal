@@ -26,18 +26,11 @@
  */
 package VASSAL.build.module;
 
+import VASSAL.Info;
 import VASSAL.build.*;
 import VASSAL.build.module.documentation.HelpFile;
-import VASSAL.configure.BooleanConfigurer;
-import VASSAL.configure.Configurer;
-import VASSAL.configure.ConfigurerFactory;
-import VASSAL.configure.FormattedStringConfigurer;
-import VASSAL.configure.StringEnum;
-import VASSAL.counters.GamePiece;
-import VASSAL.counters.Hideable;
-import VASSAL.counters.Obscurable;
+import VASSAL.configure.*;
 import VASSAL.tools.FormattedString;
-import VASSAL.Info;
 
 import java.io.File;
 import java.net.MalformedURLException;
@@ -89,14 +82,14 @@ public class GlobalOptions extends AbstractConfigurable {
   private String markMoved = NEVER;
 
   // Default Report Formats
-  private static String playerIdFmt1 = "<$playerName$($playerSide$)>";
-  private static String playerIdFmt2 = "<$playerName$>";
-  private static String gridRefFmt = "$boardName$$gridRef$";
-  private static String mapRefFmt1 = "$gridRef$[$mapName$]";
-  private static String mapRefFmt2 = "$gridRef$";
-  private static String chatFmt = "$playerId$ - $text$";
-  private static String moveFmt = "$unitName$ moves $fromMapRef$ -> $toMapRef$ *";
-  private static String createFmt = "$unitName$ created in $toMapRef$";
+  private static String playerIdFmt1 = "<$"+PLAYER_NAME+"$($"+PLAYER_SIDE+"$)>";
+  private static String playerIdFmt2 = "<$"+PLAYER_NAME+"$>";
+  private static String gridRefFmt = "$"+BOARD_NAME+"$$"+GRID_REF+"$";
+  private static String mapRefFmt1 = "$"+GRID_REF+"$[$"+MAP_NAME+"$]";
+  private static String mapRefFmt2 = "$"+GRID_REF+"$";
+  private static String chatFmt = "$"+PLAYER_NAME+"$ - $"+TEXT+"$";
+  private static String moveFmt = "$"+UNIT_NAME+"$"+" moves $"+FROM_MAP_REF+"$ -> $"+TO_MAP_REF+"$ *";
+  private static String createFmt = "$"+UNIT_NAME+"$ created in $"+TO_MAP_REF+"$";
 
   private static GlobalOptions instance;
   private boolean useSingleWindow;

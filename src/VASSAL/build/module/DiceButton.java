@@ -42,7 +42,7 @@ public class DiceButton extends AbstractConfigurable {
   protected int nSides = 6, nDice = 2, plus = 0;
   protected boolean reportTotal = false;
   protected boolean promptAlways = false;
-  protected FormattedString reportFormat = new FormattedString("*** $text$ *** $playerId$");
+  protected FormattedString reportFormat = new FormattedString("*** $"+GlobalOptions.TEXT+"$ *** $"+GlobalOptions.PLAYER_ID+"$");
   protected LaunchButton launch;
 
   public static final String DEPRECATED_NAME = "label";

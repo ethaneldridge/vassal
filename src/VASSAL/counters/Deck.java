@@ -626,7 +626,12 @@ public class Deck extends Stack {
     DrawPile target = DrawPile.findDrawPile(reshuffleTarget);
     if (target != null) {
       if (reshuffleMessage.length() > 0) {
-        c = reportCommand(reshuffleCommand);
+		FormattedString fmt = new FormattedString(reshuffleMessage);
+		fmt.setProperty(GlobalOptions.PLAYER_ID, GlobalOptions.getPlayerId());
+		fmt.setProperty(GlobalOptions.DECK_NAME, getDeckName());
+		fmt.setProperty(GlobalOptions.COMMAND_NAME, reshuffleCommand);
+		c = new Chatter.DisplayText(GameModule.getGameModule().getChatter(), "*" + fmt.getText());
+		c.execute();
       }
       else {
         c = new NullCommand();

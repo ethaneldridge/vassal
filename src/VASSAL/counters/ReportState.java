@@ -50,8 +50,8 @@ import java.net.MalformedURLException;
 public class ReportState extends Decorator implements EditablePiece {
   public static final String ID = "report;";
   private String keys = "";
-  private String format1 = "$mapRef$: $newUnitName$ *";
-  private String format2 = "$mapRef$: $newUnitName$ *";
+  private String format1 = "$"+GlobalOptions.MAP_REF+"$: $"+GlobalOptions.NEW_UNIT_NAME+"$ *";
+  private String format2 = "$"+GlobalOptions.MAP_REF+"$: $"+GlobalOptions.NEW_UNIT_NAME+"$ *";
 
   public ReportState() {
     this(ID, null);
