@@ -265,7 +265,7 @@ public class Zoomer extends AbstractConfigurable implements GameComponent {
   }
 
   public VASSAL.build.module.documentation.HelpFile getHelpFile() {
-    File dir = new File("docs");
+    File dir = VASSAL.build.module.Documentation.getDocumentationBaseDir();
     dir = new File(dir, "ReferenceManual");
     try {
       return new HelpFile(null, new File(dir, "Map.htm"), "#Zoom");

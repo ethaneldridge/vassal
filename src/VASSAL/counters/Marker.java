@@ -139,7 +139,7 @@ public class Marker extends Decorator implements EditablePiece {
   }
 
   public VASSAL.build.module.documentation.HelpFile getHelpFile() {
-    File dir = new File("docs");
+    File dir = VASSAL.build.module.Documentation.getDocumentationBaseDir();
     dir = new File(dir,"ReferenceManual");
     try {
       return new HelpFile(null,new File(dir,"PropertyMarker.htm"));
