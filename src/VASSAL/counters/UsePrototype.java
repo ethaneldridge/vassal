@@ -106,7 +106,7 @@ public class UsePrototype extends Decorator implements EditablePiece {
       String type = def.getPiece().getType(); // Check to see if prototype definition has changed
       if (!type.equals(lastCachedPrototype)) {
         lastCachedPrototype = type;
-        prototype = new PieceCloner().clonePiece(def.getPiece());
+        prototype = PieceCloner.getInstance().clonePiece(def.getPiece());
         Decorator outer = (Decorator)Decorator.getInnermost(prototype).getProperty(Properties.OUTER);
         if (outer != null) { // Will be null for an empty prototype
           outer.setInner(piece);

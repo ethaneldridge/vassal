@@ -76,8 +76,11 @@ public class CounterDetailViewer extends AbstractConfigurable implements Drawabl
   protected boolean showRef = false;
   protected double zoomLevel = 1.0;
 
-  public void addTo(Buildable b) {
+  public CounterDetailViewer() {
     enumBuilder = createEnumBuilder();
+  }
+
+  public void addTo(Buildable b) {
     map = (Map) b;
     Enumeration e = map.getComponents(getClass());
     while (e.hasMoreElements()) {

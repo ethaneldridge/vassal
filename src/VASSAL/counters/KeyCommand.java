@@ -28,7 +28,6 @@ public class KeyCommand extends AbstractAction {
   private String name;
   private KeyStroke stroke;
   private GamePiece target;
-  private static PieceCloner cloner = new PieceCloner();
 
   public KeyCommand(String name, KeyStroke key, GamePiece target) {
     super(key == null ? name : name + "  " + HotKeyConfigurer.getString(key));
@@ -57,7 +56,7 @@ public class KeyCommand extends AbstractAction {
     BoundsTracker t = new BoundsTracker();
     GamePiece outer = Decorator.getOutermost(target);
     t.addPiece(outer);
-    outer.setProperty(Properties.SNAPSHOT,cloner.clonePiece(outer)); // save state prior to command
+    outer.setProperty(Properties.SNAPSHOT,PieceCloner.getInstance().clonePiece(outer)); // save state prior to command
     Command c = target.keyEvent(stroke);
     if (target.getId() != null) {
       GameModule.getGameModule().sendAndLog(c);

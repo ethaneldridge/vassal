@@ -28,6 +28,11 @@ import VASSAL.command.AddPiece;
  */
 public class PieceCloner {
   private static PieceCloner instance;
+
+  // For use by sub-classes
+  protected PieceCloner() {
+  }
+
   public static PieceCloner getInstance() {
     if (instance == null) {
       instance = new PieceCloner();

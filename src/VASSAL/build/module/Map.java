@@ -1561,8 +1561,7 @@ public class Map extends AbstractConfigurable implements GameComponent,
       String val = "";
       if (boards.size() > 0) {
         Board b = (Board) boards.firstElement();
-        if (b.getGrid() != null
-          && b.getGrid().getGridNumbering() != null) {
+        if (b.getGrid() != null) {
           val = "$" + PIECE_NAME + "$" + " moves $" + OLD_LOCATION + "$ -> $" + LOCATION + "$ *";
         }
       }

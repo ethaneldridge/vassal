@@ -29,7 +29,6 @@ public class KeyBuffer {
   private static KeyBuffer theBuffer;
   private Vector pieces;
   private BoundsTracker bounds;
-  private PieceCloner cloner = new PieceCloner();
 
   private KeyBuffer() {
     pieces = new Vector();
@@ -104,7 +103,7 @@ public class KeyBuffer {
     for (Enumeration e = targets.elements();
          e.hasMoreElements();) {
       GamePiece g = (GamePiece) e.nextElement();
-      g.setProperty(Properties.SNAPSHOT,cloner.clonePiece(g)); // save state prior to command
+      g.setProperty(Properties.SNAPSHOT,PieceCloner.getInstance().clonePiece(g)); // save state prior to command
       Command c2 = g.keyEvent(stroke);
       comm = comm.append(c2);
     }

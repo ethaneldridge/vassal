@@ -57,10 +57,8 @@ public class PieceSlot extends Widget implements MouseListener, KeyListener {
   protected static Font FONT = new Font("Dialog", 0, 12);
   private javax.swing.JPanel panel;
   private int width, height;
-  private PieceCloner cloner;
 
   public PieceSlot() {
-    cloner = new PieceCloner();
     panel = new PieceSlot.Panel();
     panel.addMouseListener(this);
     panel.addKeyListener(this);
@@ -172,7 +170,7 @@ public class PieceSlot extends Widget implements MouseListener, KeyListener {
 
     if (getPiece() != null) {
       DragBuffer.getBuffer().clear();
-      GamePiece newPiece = cloner.clonePiece(getPiece());
+      GamePiece newPiece = PieceCloner.getInstance().clonePiece(getPiece());
       DragBuffer.getBuffer().add(newPiece);
     }
   }

@@ -81,7 +81,6 @@ public class MassKeyCommand extends AbstractConfigurable implements PieceVisitor
   protected boolean reportSingle;
   protected static boolean suppressTraitReports = false;
   protected FormattedString reportFormat = new FormattedString("");
-  private PieceCloner cloner = new PieceCloner();
 
   public MassKeyCommand() {
     ActionListener al = new ActionListener() {
@@ -140,7 +139,7 @@ public class MassKeyCommand extends AbstractConfigurable implements PieceVisitor
   private void apply(GamePiece p, Command c, BoundsTracker tracker) {
     if (isValidTarget(p)) {
       tracker.addPiece(p);
-      p.setProperty(Properties.SNAPSHOT,cloner.clonePiece(p));
+      p.setProperty(Properties.SNAPSHOT,PieceCloner.getInstance().clonePiece(p));
       c.append(p.keyEvent(stroke));
       tracker.addPiece(p);
     }

@@ -58,7 +58,6 @@ public class SetupStack extends AbstractConfigurable implements GameComponent, C
   private boolean stackInitialized;
   protected String id;
   public static final String NAME = "name";
-  private PieceCloner cloner = new PieceCloner();
 
   public void setup(boolean gameStarting) {
     if (gameStarting && !stackInitialized && isOwningBoardActive()) {
@@ -213,7 +212,7 @@ public class SetupStack extends AbstractConfigurable implements GameComponent, C
     for (int i = 0; i < c.length; ++i) {
       PieceSlot slot = (PieceSlot) c[i];
       GamePiece p = slot.getPiece();
-      p = cloner.clonePiece(p);
+      p = PieceCloner.getInstance().clonePiece(p);
       GameModule.getGameModule().getGameState().addPiece(p);
       s.add(p);
     }
