@@ -213,8 +213,6 @@ public class GlobalMap extends JPanel implements MouseListener,
 
     Rectangle r = map.getView().getVisibleRect();
     Point ul = map.mapCoordinates(r.getLocation());
-    ul.translate(-map.getEdgeBuffer().width,
-                 -map.getEdgeBuffer().height);
     ul = componentCoordinates(ul);
     int w = (int) (scale * r.width / map.getZoom());
     int h = (int) (scale * r.height / map.getZoom());
