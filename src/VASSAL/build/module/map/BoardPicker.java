@@ -177,12 +177,15 @@ public class BoardPicker extends JDialog
     }
     Set names = new HashSet();
     for (Enumeration e = possibleBoards.elements(); e.hasMoreElements();) {
-      Board b = (Board) e.nextElement();
-      if (names.contains(b.getName())) {
-        report.addWarning("More than one board named '"+b.getName()+"' in "+ConfigureTree.getConfigureName(map));
+      Object o = e.nextElement();
+      if (o instanceof Board) {
+        Board b = (Board) o;
+        if (names.contains(b.getName())) {
+          report.addWarning("More than one board named '"+b.getName()+"' in "+ConfigureTree.getConfigureName(map));
+        }
+        names.add(b.getName());
+        b.validate(b, report);
       }
-      names.add(b.getName());
-      b.validate(b, report);
     }
   }
 

@@ -55,22 +55,48 @@ public class ExtensionEditWindow extends VASSAL.configure.ModuleEditWindow {
   }
 
   protected void save() {
-    try {
-      extension.save();
-      refreshTitle();
+    ValidationReport report = new ValidationReport();
+    GameModule.getGameModule().validate(GameModule.getGameModule(),report);
+    if (report.getWarnings().size() == 0) {
+      GameModule.getGameModule().save();
     }
-    catch (IOException e) {
-      JOptionPane.showMessageDialog(this,e.getMessage(),"Save Failed",JOptionPane.ERROR_MESSAGE);
+    else {
+      new ValidationReportDialog(report, new ValidationReportDialog.CallBack() {
+        public void ok() {
+          try {
+            extension.save();
+            refreshTitle();
+          }
+          catch (IOException e) {
+            JOptionPane.showMessageDialog(ExtensionEditWindow.this,e.getMessage(),"Save Failed",JOptionPane.ERROR_MESSAGE);
+          }
+        }
+        public void cancel() {
+        }
+      }).setVisible(true);
     }
   }
 
   protected void saveAs() {
-    try {
-      extension.saveAs();
-      refreshTitle();
+    ValidationReport report = new ValidationReport();
+    GameModule.getGameModule().validate(GameModule.getGameModule(),report);
+    if (report.getWarnings().size() == 0) {
+      GameModule.getGameModule().saveAs();
     }
-    catch (IOException e) {
-      JOptionPane.showMessageDialog(this,e.getMessage(),"Save Failed",JOptionPane.ERROR_MESSAGE);
+    else {
+      new ValidationReportDialog(report, new ValidationReportDialog.CallBack() {
+        public void ok() {
+          try {
+            extension.saveAs();
+            refreshTitle();
+          }
+          catch (IOException e) {
+            JOptionPane.showMessageDialog(ExtensionEditWindow.this,e.getMessage(),"Save Failed",JOptionPane.ERROR_MESSAGE);
+          }
+        }
+        public void cancel() {
+        }
+      }).setVisible(true);
     }
   }
 }

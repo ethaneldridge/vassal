@@ -21,8 +21,10 @@ package VASSAL.build;
 import VASSAL.tools.DataArchive;
 import org.w3c.dom.*;
 
-import java.io.IOException;
-import java.io.OutputStreamWriter;
+import javax.xml.transform.*;
+import javax.xml.transform.dom.DOMSource;
+import javax.xml.transform.stream.StreamResult;
+import java.io.*;
 
 /**
  * This class holds static convenience methods for building {@link Buildable}
@@ -124,42 +126,69 @@ public abstract class Builder {
   }
 
   /**
-   * Write an XML document to an OutputStream
+   * Write an XML document to a Writer
    */
-  public static void writeDocument(Document doc, java.io.OutputStream out) throws IOException {
-    OutputStreamWriter writer = new OutputStreamWriter(out);
-    writer.write(toString(doc));
-    writer.close();
+  public static void writeDocument(Document doc, Writer writer) throws IOException {
+    try {
+      Source source = new DOMSource(doc);
+
+      // Prepare the output file
+      Result result = new StreamResult(writer);
+
+      // Write the DOM document to the file
+      Transformer xformer = TransformerFactory.newInstance().newTransformer();
+      xformer.transform(source, result);
+    }
+    catch (TransformerException e) {
+      throw new IOException(e.getMessage());
+    }
+    catch (TransformerFactoryConfigurationError e) {
+      throw new IOException(e.getMessage());
+    }
   }
 
   /**
    * Return the decoded text contents of an Element node
    */
   public static String getText(Element e) {
-    String s = "";
+    StringBuffer buffer = new StringBuffer();
     org.w3c.dom.NodeList sub = e.getChildNodes();
     for (int i = 0; i < sub.getLength(); ++i) {
       if (sub.item(i).getNodeType()
         == Node.TEXT_NODE) {
-        s = s.concat(((org.w3c.dom.Text) sub.item(i)).getData());
+        buffer.append(((org.w3c.dom.Text) sub.item(i)).getData());
       }
       else if (sub.item(i).getNodeType()
         == Node.ENTITY_REFERENCE_NODE) {
-        s = s.concat(sub.item(i).getFirstChild().toString());
+        buffer.append(sub.item(i).getFirstChild().toString());
       }
     }
-    return s.trim();
+    return buffer.toString().trim();
   }
 
   /**
    * @return a String representation of an XML Node
    */
+  public static String toString(Document doc) {
+    StringWriter w = new StringWriter();
+    try {
+      writeDocument(doc,w);
+      return w.toString();
+    }
+    catch (IOException e) {
+      e.printStackTrace();
+      return "";
+    }
+  }
+
+  /** @deprecated */
   public static String toString(Node n) {
     StringBuffer buffer = new StringBuffer();
     appendToBuffer(n, "", buffer);
     return buffer.toString();
   }
 
+  /** @deprecated */
   static void appendToBuffer(Node n, String prefix, StringBuffer buffer) {
     try {
       switch (n.getNodeType()) {
@@ -208,7 +237,7 @@ public abstract class Builder {
           }
           break;
         case Node.DOCUMENT_NODE:
-          buffer.append("<?xml version=\"1.0\"?>\n");
+          buffer.append("<?xml version=\"1.0\" encoding=\"UTF-8\" ?>\n");
           appendToBuffer(((Document) n).getDocumentElement(), "", buffer);
           break;
         default:
@@ -222,6 +251,7 @@ public abstract class Builder {
     }
   }
 
+  /** @deprecated */
   static String encodedText(String val) {
     for (int i = val.indexOf('&'); i >= 0; i = val.indexOf('&', i + 1)) {
       val = val.substring(0, i).concat("&amp;").concat(val.substring(i + 1));

@@ -226,7 +226,7 @@ public class ModuleExtension extends AbstractBuildable implements GameComponent 
       String save = buildString();
       ((ArchiveWriter) archive).addFile
           ("buildFile",
-           new java.io.ByteArrayInputStream(save.getBytes()));
+           new java.io.ByteArrayInputStream(save.getBytes("UTF-8")));
       ((ArchiveWriter) archive).write();
       lastSave = save;
     }
@@ -241,7 +241,7 @@ public class ModuleExtension extends AbstractBuildable implements GameComponent 
       String save = buildString();
       ((ArchiveWriter) archive).addFile
           ("buildFile",
-           new java.io.ByteArrayInputStream(save.getBytes()));
+           new java.io.ByteArrayInputStream(save.getBytes("UTF-8")));
       ((ArchiveWriter) archive).saveAs();
       lastSave = save;
     }

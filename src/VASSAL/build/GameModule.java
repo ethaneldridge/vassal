@@ -37,6 +37,7 @@ import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.io.File;
 import java.io.IOException;
+import java.io.StringWriter;
 import java.net.MalformedURLException;
 import java.util.Enumeration;
 import java.util.Random;
@@ -117,8 +118,8 @@ public abstract class GameModule extends AbstractConfigurable implements Command
     controlPanel.setLayout(new BorderLayout());
     addKeyStrokeSource
         (new KeyStrokeSource
-            (toolBar,
-             JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT));
+            (frame.getRootPane(),
+             JComponent.WHEN_IN_FOCUSED_WINDOW));
     frame.getContentPane().add(controlPanel, BorderLayout.CENTER);
 
     validator = new CompoundValidityChecker
@@ -638,7 +639,7 @@ public abstract class GameModule extends AbstractConfigurable implements Command
       String save = buildString();
       getArchiveWriter().addFile
           ("buildFile",
-           new java.io.ByteArrayInputStream(save.getBytes()));
+           new java.io.ByteArrayInputStream(save.getBytes("UTF-8")));
       if (saveAs) {
         getArchiveWriter().saveAs();
       }

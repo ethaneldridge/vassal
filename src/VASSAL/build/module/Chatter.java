@@ -146,11 +146,7 @@ public class Chatter extends JPanel implements CommandEncoder, Buildable {
     GameModule mod = (GameModule) b;
     mod.setChatter(this);
     mod.addCommandEncoder(this);
-    mod.addKeyStrokeSource
-        (new KeyStrokeSource(conversation,
-                             WHEN_ANCESTOR_OF_FOCUSED_COMPONENT));
-    mod.addKeyStrokeSource
-        (new KeyStrokeSource(input, WHEN_FOCUSED));
+    mod.addKeyStrokeSource(new KeyStrokeSource(this, WHEN_ANCESTOR_OF_FOCUSED_COMPONENT));
     setHandle((String) mod.getPrefs().getOption(GameModule.REAL_NAME).getValue());
 
     FontConfigurer chatFont = new FontConfigurer

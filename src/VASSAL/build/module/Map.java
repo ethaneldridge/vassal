@@ -437,18 +437,21 @@ public class Map extends AbstractConfigurable implements GameComponent,
     }
 
     GameModule.getGameModule().getGameState().addGameComponent(this);
-    GameModule.getGameModule().addKeyStrokeSource
-        (new KeyStrokeSource(theMap, JComponent.WHEN_IN_FOCUSED_WINDOW));
     GameModule.getGameModule().getToolBar().add(launchButton);
 
     if (shouldDockIntoMainWindow()) {
       IntConfigurer config = new IntConfigurer(MAIN_WINDOW_HEIGHT, null, new Integer(-1));
       GameModule.getGameModule().getGlobalPrefs().addOption(null, config);
       JPanel root = new JPanel(new BorderLayout());
-//      root.add(toolBar, BorderLayout.NORTH);
       root.add(scroll, BorderLayout.CENTER);
       ComponentSplitter splitter = new ComponentSplitter();
       mainWindowDock = splitter.splitBottom(splitter.getSplitAncestor(GameModule.getGameModule().getControlPanel(), -1), root, true);
+      GameModule.getGameModule().addKeyStrokeSource
+          (new KeyStrokeSource(theMap, JComponent.WHEN_FOCUSED));
+    }
+    else {
+      GameModule.getGameModule().addKeyStrokeSource
+          (new KeyStrokeSource(theMap, JComponent.WHEN_IN_FOCUSED_WINDOW));
     }
   }
 
