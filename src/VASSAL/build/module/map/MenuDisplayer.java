@@ -80,7 +80,7 @@ public class MenuDisplayer extends MouseAdapter implements Buildable {
 
   public void mouseReleased(MouseEvent e) {
     if (e.isMetaDown()) {
-      GamePiece p = map.findPiece(e.getPoint(), PieceFinder.PIECE_IN_STACK);
+      final GamePiece p = map.findPiece(e.getPoint(), PieceFinder.PIECE_IN_STACK);
       if (p != null
         && (e.isShiftDown()
         || !Boolean.TRUE.equals(p.getProperty(Properties.IMMOBILE)))) {
@@ -94,6 +94,7 @@ public class MenuDisplayer extends MouseAdapter implements Buildable {
 
           public void popupMenuWillBecomeInvisible
             (javax.swing.event.PopupMenuEvent evt) {
+            KeyBuffer.getBuffer().add(p);
             map.repaint();
           }
 
@@ -101,9 +102,8 @@ public class MenuDisplayer extends MouseAdapter implements Buildable {
             (javax.swing.event.PopupMenuEvent evt) {
           }
         });
-        popup.show(map.getView(), pt.x, pt.y);
         KeyBuffer.getBuffer().clear();
-        KeyBuffer.getBuffer().add(p);
+        popup.show(map.getView(), pt.x, pt.y);
         e.consume();
       }
     }
