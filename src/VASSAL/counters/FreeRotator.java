@@ -36,7 +36,6 @@ import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
 import java.awt.geom.AffineTransform;
-import java.awt.geom.NoninvertibleTransformException;
 import java.awt.image.FilteredImageSource;
 import java.awt.image.ImageProducer;
 import java.io.File;
@@ -65,10 +64,10 @@ public class FreeRotator extends Decorator implements EditablePiece, MouseListen
 
   private Hashtable images = new Hashtable();
   private Hashtable bounds = new Hashtable();
-
   private PieceImage unrotated;
+
   private double tempAngle;
-  private Transparent trans;
+  private boolean drawGhost;
 
   public FreeRotator() {
     this(ID + "6;];[", null);
@@ -165,6 +164,8 @@ public class FreeRotator extends Decorator implements EditablePiece, MouseListen
     if (Info.is2dEnabled()) {
       Graphics2D g2d = (Graphics2D) g;
       AffineTransform oldT = g2d.getTransform();
+      g2d.setRenderingHint(RenderingHints.KEY_INTERPOLATION,RenderingHints.VALUE_INTERPOLATION_BILINEAR);
+      g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING,RenderingHints.VALUE_ANTIALIAS_ON);
       g2d.transform(AffineTransform.getRotateInstance(getAngleInRadians(), x, y));
       piece.draw(g, x, y, obs, zoom);
       g2d.setTransform(oldT);
@@ -182,16 +183,17 @@ public class FreeRotator extends Decorator implements EditablePiece, MouseListen
   }
 
   public void draw(Graphics g, Map map) {
-    if (trans != null
+    if (drawGhost
         && Info.is2dEnabled()
         && g instanceof Graphics2D) {
       Point p = map.componentCoordinates(getPosition());
-      Rectangle r = map.getView().getVisibleRect();
-      p.translate(-r.x, -r.y);
       Graphics2D g2d = (Graphics2D) g;
       AffineTransform t = g2d.getTransform();
-      g2d.setTransform(AffineTransform.getRotateInstance(Math.PI * (getAngle() - tempAngle) / 180., p.x, p.y));
-      trans.draw(g, p.x, p.y, map.getView(), map.getZoom());
+      g2d.transform(AffineTransform.getRotateInstance(-Math.PI * tempAngle / 180., p.x, p.y));
+      g2d.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER,0.5F));
+      g2d.setRenderingHint(RenderingHints.KEY_INTERPOLATION,RenderingHints.VALUE_INTERPOLATION_BILINEAR);
+      g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING,RenderingHints.VALUE_ANTIALIAS_ON);
+      piece.draw(g,p.x,p.y,map.getView(),map.getZoom());
       g2d.setTransform(t);
     }
   }
@@ -326,8 +328,9 @@ public class FreeRotator extends Decorator implements EditablePiece, MouseListen
   }
 
   public void mousePressed(MouseEvent e) {
-    trans = new Transparent(this);
-    trans.setAlpha(0.5);
+    drawGhost = true;
+//    trans = new Transparent(this);
+//    trans.setAlpha(0.5);
   }
 
   public void mouseReleased(MouseEvent e) {
@@ -345,7 +348,7 @@ public class FreeRotator extends Decorator implements EditablePiece, MouseListen
   }
 
   public void mouseDragged(MouseEvent e) {
-    if (trans != null) {
+    if (drawGhost) {
       Point p = getMap().mapCoordinates(e.getPoint());
       Point p2 = getPosition();
       double myAngle;
