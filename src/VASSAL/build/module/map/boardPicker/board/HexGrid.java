@@ -23,12 +23,15 @@ import VASSAL.build.Buildable;
 import VASSAL.build.module.map.boardPicker.Board;
 import VASSAL.build.module.map.boardPicker.board.mapgrid.GridNumbering;
 import VASSAL.build.module.map.boardPicker.board.mapgrid.HexGridNumbering;
+import VASSAL.build.module.documentation.HelpFile;
 import VASSAL.configure.AutoConfigurer;
 import VASSAL.configure.ColorConfigurer;
 import VASSAL.configure.Configurer;
 import VASSAL.configure.VisibilityCondition;
 
 import java.awt.*;
+import java.io.File;
+import java.net.MalformedURLException;
 
 /**
  * A Hexgrid is a map grid composed of hexes.
@@ -204,7 +207,14 @@ public class HexGrid extends AbstractConfigurable implements MapGrid {
   }
 
   public VASSAL.build.module.documentation.HelpFile getHelpFile() {
-    return null;
+    File dir = new File("docs");
+    dir = new File(dir, "ReferenceManual");
+    try {
+      return new HelpFile(null, new File(dir, "HexGrid.htm"));
+    }
+    catch (MalformedURLException ex) {
+      return null;
+    }
   }
 
   public String getAttributeValueString(String key) {

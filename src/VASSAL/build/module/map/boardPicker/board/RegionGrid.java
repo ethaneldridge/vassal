@@ -22,6 +22,7 @@ import VASSAL.build.AbstractConfigurable;
 import VASSAL.build.Buildable;
 import VASSAL.build.module.map.boardPicker.Board;
 import VASSAL.build.module.map.boardPicker.board.mapgrid.GridNumbering;
+import VASSAL.build.module.documentation.HelpFile;
 import VASSAL.configure.EditPropertiesAction;
 import VASSAL.configure.Configurer;
 import VASSAL.configure.VisibilityCondition;
@@ -32,6 +33,8 @@ import java.awt.event.*;
 import java.util.Hashtable;
 import java.util.Vector;
 import java.util.Enumeration;
+import java.io.File;
+import java.net.MalformedURLException;
 
 public class RegionGrid extends AbstractConfigurable implements MapGrid {
 
@@ -138,7 +141,14 @@ public class RegionGrid extends AbstractConfigurable implements MapGrid {
   }
 
   public VASSAL.build.module.documentation.HelpFile getHelpFile() {
-    return null;
+    File dir = new File("docs");
+    dir = new File(dir, "ReferenceManual");
+    try {
+      return new HelpFile(null, new File(dir, "IrregularGrid.htm"));
+    }
+    catch (MalformedURLException ex) {
+      return null;
+    }
   }
 
   public String getAttributeValueString(String key) {
