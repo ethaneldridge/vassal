@@ -29,6 +29,7 @@ import VASSAL.command.NullCommand;
 import VASSAL.configure.ColorConfigurer;
 import VASSAL.tools.FormattedString;
 import VASSAL.tools.SequenceEncoder;
+import VASSAL.tools.PlayerIdFormattedString;
 
 import javax.swing.*;
 import java.awt.*;
@@ -572,8 +573,7 @@ public class Deck extends Stack {
    */
   private Command reportCommand(String format, String commandName) {
     Command c = null;
-    FormattedString reportFormat = new FormattedString(format);
-    reportFormat.setProperty(GlobalOptions.PLAYER_NAME, (String) GameModule.getGameModule().getPrefs().getValue(GameModule.REAL_NAME));
+    FormattedString reportFormat = new PlayerIdFormattedString(format);
     reportFormat.setProperty(DrawPile.DECK_NAME, getDeckName());
     reportFormat.setProperty(DrawPile.COMMAND_NAME, commandName);
     String rep = reportFormat.getText();

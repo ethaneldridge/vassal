@@ -13,7 +13,7 @@
  * Library General Public License for more details.
  *
  * You should have received a copy of the GNU Library General Public
- * License along with this library; if not, copies are available 
+ * License along with this library; if not, copies are available
  * at http://www.opensource.org.
  */
 package VASSAL.build.module;
@@ -25,16 +25,20 @@ import VASSAL.build.*;
  */
 
 public class ConnectionWindow extends AbstractBuildable {
-    public ConnectionWindow() {
-    }
-    public void addTo(Buildable b) {
-    }
-    public String[] getAttributeNames() {
-	return new String[0];
-    }
-    public void setAttribute(String name, Object value) {
-    }
-    public String getAttributeValueString(String name) {
-	return null;
-    }
+  public ConnectionWindow() {
+  }
+
+  public void addTo(Buildable b) {
+  }
+
+  public String[] getAttributeNames() {
+    return new String[0];
+  }
+
+  public void setAttribute(String name, Object value) {
+  }
+
+  public String getAttributeValueString(String name) {
+    return null;
+  }
 }

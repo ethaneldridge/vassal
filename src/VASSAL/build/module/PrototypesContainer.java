@@ -81,12 +81,12 @@ public class PrototypesContainer extends AbstractConfigurable {
     super.add(b);
     if (b instanceof PrototypeDefinition) {
       PrototypeDefinition def = (PrototypeDefinition) b;
-      definitions.put(def.getConfigureName(),def);
+      definitions.put(def.getConfigureName(), def);
       def.addPropertyChangeListener(new PropertyChangeListener() {
         public void propertyChange(PropertyChangeEvent evt) {
           if (Configurable.NAME_PROPERTY.equals(evt.getPropertyName())) {
             definitions.remove(evt.getOldValue());
-            definitions.put(evt.getNewValue(),evt.getSource());
+            definitions.put(evt.getNewValue(), evt.getSource());
           }
         }
       });

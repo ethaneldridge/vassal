@@ -26,6 +26,7 @@ import VASSAL.build.module.documentation.HelpFile;
 import VASSAL.configure.*;
 import VASSAL.tools.FormattedString;
 import VASSAL.tools.LaunchButton;
+import VASSAL.tools.PlayerIdFormattedString;
 
 import javax.swing.*;
 import java.awt.event.ActionEvent;
@@ -42,7 +43,7 @@ public class DiceButton extends AbstractConfigurable {
   protected int nSides = 6, nDice = 2, plus = 0;
   protected boolean reportTotal = false;
   protected boolean promptAlways = false;
-  protected FormattedString reportFormat = new FormattedString("** $"+REPORT_NAME+"$ = $"+RESULT+"$ *** <$"+GlobalOptions.PLAYER_NAME+"$>");
+  protected FormattedString reportFormat = new PlayerIdFormattedString("** $" + REPORT_NAME + "$ = $" + RESULT + "$ *** <$" + GlobalOptions.PLAYER_NAME + "$>");
   protected LaunchButton launch;
 
   public static final String DEPRECATED_NAME = "label";
@@ -58,9 +59,9 @@ public class DiceButton extends AbstractConfigurable {
   public static final String REPORT_FORMAT = "reportFormat";
 
   /** Variable name for reporting format */
-  public static final String DETAILS="details";
-  public static final String RESULT="result";
-  public static final String REPORT_NAME="name";
+  public static final String DETAILS = "details";
+  public static final String RESULT = "result";
+  public static final String REPORT_NAME = "name";
 
   public DiceButton() {
     ActionListener rollAction = new ActionListener() {
@@ -145,13 +146,11 @@ public class DiceButton extends AbstractConfigurable {
    * @return
    */
   protected String formatResult(String result) {
-    reportFormat.setProperty(GlobalOptions.PLAYER_NAME, (String) GameModule.getGameModule().getPrefs().getValue(GameModule.REAL_NAME));
-    reportFormat.setProperty(GlobalOptions.PLAYER_SIDE,PlayerRoster.getMySide());
     reportFormat.setProperty(REPORT_NAME, getConfigureName());
     reportFormat.setProperty(RESULT, result);
     reportFormat.setProperty(DETAILS, result);
     String text = reportFormat.getText();
-    String report = text.startsWith("*") ? "*"+text : "* "+text;
+    String report = text.startsWith("*") ? "*" + text : "* " + text;
     return report;
   }
 
@@ -181,7 +180,7 @@ public class DiceButton extends AbstractConfigurable {
 
   public static class ReportFormatConfig implements ConfigurerFactory {
     public Configurer getConfigurer(AutoConfigurable c, String key, String name) {
-      return new FormattedStringConfigurer(key, name, new String[]{REPORT_NAME, DETAILS, RESULT, GlobalOptions.PLAYER_NAME,GlobalOptions.PLAYER_SIDE});
+      return new PlayerIdFormattedStringConfigurer(key, name, new String[]{REPORT_NAME, DETAILS, RESULT});
     }
   }
 

@@ -13,7 +13,7 @@
  * Library General Public License for more details.
  *
  * You should have received a copy of the GNU Library General Public
- * License along with this library; if not, copies are available 
+ * License along with this library; if not, copies are available
  * at http://www.opensource.org.
  */
 package VASSAL.build.module;
@@ -68,7 +68,7 @@ public class BasicCommandEncoder implements CommandEncoder, Buildable {
       return new TableInfo(type, inner);
     }
     else if (type.startsWith(PropertySheet.ID)) {
-      return new PropertySheet(type,inner);
+      return new PropertySheet(type, inner);
     }
     else if (type.startsWith(FreeRotator.ID)) {
       return new FreeRotator(type, inner);
@@ -101,14 +101,14 @@ public class BasicCommandEncoder implements CommandEncoder, Buildable {
       return new SendToLocation(type, inner);
     }
     else if (type.startsWith(UsePrototype.ID)) {
-      return new UsePrototype(type,inner);
+      return new UsePrototype(type, inner);
     }
-	else if (type.startsWith(Clone.ID)) {
-	  return new Clone(type,inner);
-	}
-	else if (type.startsWith(Delete.ID)) {
-	  return new Delete(type,inner);
-	}
+    else if (type.startsWith(Clone.ID)) {
+      return new Clone(type, inner);
+    }
+    else if (type.startsWith(Delete.ID)) {
+      return new Delete(type, inner);
+    }
     return null;
   }
 
@@ -208,7 +208,7 @@ public class BasicCommandEncoder implements CommandEncoder, Buildable {
       String id = st.nextToken();
       String newState = st.nextToken();
       String oldState = st.hasMoreTokens() ? st.nextToken() : null;
-      return new ChangePiece(id,oldState,newState);
+      return new ChangePiece(id, oldState, newState);
     }
     else if (command.startsWith(MOVE)) {
       command = command.substring(MOVE.length());
@@ -222,7 +222,7 @@ public class BasicCommandEncoder implements CommandEncoder, Buildable {
       int oldX = Integer.parseInt(st.nextToken());
       int oldY = Integer.parseInt(st.nextToken());
       String oldUnderId = unwrapNull(st.nextToken());
-      return new MovePiece(id,newMapId, new Point(newX,newY),newUnderId,oldMapId,new Point(oldX,oldY),oldUnderId);
+      return new MovePiece(id, newMapId, new Point(newX, newY), newUnderId, oldMapId, new Point(oldX, oldY), oldUnderId);
     }
     else {
       return null;
@@ -242,9 +242,9 @@ public class BasicCommandEncoder implements CommandEncoder, Buildable {
     if (c instanceof AddPiece) {
       AddPiece a = (AddPiece) c;
       return ADD
-        + se.append(wrapNull(a.getTarget().getId()))
-        .append(a.getTarget().getType())
-        .append(a.getState()).getValue();
+          + se.append(wrapNull(a.getTarget().getId()))
+          .append(a.getTarget().getType())
+          .append(a.getState()).getValue();
     }
     else if (c instanceof RemovePiece) {
       return REMOVE + ((RemovePiece) c).getId();
@@ -261,14 +261,14 @@ public class BasicCommandEncoder implements CommandEncoder, Buildable {
       MovePiece mp = (MovePiece) c;
       se.append(mp.getId())
           .append(wrapNull(mp.getNewMapId()))
-          .append(mp.getNewPosition().x+"")
-          .append(mp.getNewPosition().y+"")
+          .append(mp.getNewPosition().x + "")
+          .append(mp.getNewPosition().y + "")
           .append(wrapNull(mp.getNewUnderneathId()))
           .append(wrapNull(mp.getOldMapId()))
-          .append(mp.getOldPosition().x+"")
-          .append(mp.getOldPosition().y+"")
+          .append(mp.getOldPosition().x + "")
+          .append(mp.getOldPosition().y + "")
           .append(wrapNull(mp.getOldUnderneathId()));
-      return MOVE+se.getValue();
+      return MOVE + se.getValue();
     }
     else if (c instanceof NullCommand) {
       return "";

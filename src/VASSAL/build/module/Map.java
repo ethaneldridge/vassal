@@ -618,7 +618,7 @@ public class Map extends AbstractConfigurable implements GameComponent,
     Board b = findBoard(p);
     if (b != null) {
       loc = b.locationName(new Point(p.x - b.bounds().x,
-                                         p.y - b.bounds().y));
+                                     p.y - b.bounds().y));
     }
     return loc;
   }
@@ -1489,31 +1489,25 @@ public class Map extends AbstractConfigurable implements GameComponent,
 
   public static class MoveWithinFormatConfig implements ConfigurerFactory {
     public Configurer getConfigurer(AutoConfigurable c, String key, String name) {
-      return new FormattedStringConfigurer(key, name, new String[]{GlobalOptions.PLAYER_NAME,
-                                                                   GlobalOptions.PLAYER_SIDE,
-                                                                   PIECE_NAME,
-                                                                   LOCATION,
-                                                                   OLD_LOCATION});
+      return new PlayerIdFormattedStringConfigurer(key, name, new String[]{PIECE_NAME,
+                                                                           LOCATION,
+                                                                           OLD_LOCATION});
     }
   }
 
   public static class MoveToFormatConfig implements ConfigurerFactory {
     public Configurer getConfigurer(AutoConfigurable c, String key, String name) {
-      return new FormattedStringConfigurer(key, name, new String[]{GlobalOptions.PLAYER_NAME,
-                                                                   GlobalOptions.PLAYER_SIDE,
-                                                                   PIECE_NAME,
-                                                                   LOCATION,
-                                                                   OLD_MAP,
-                                                                   OLD_LOCATION});
+      return new PlayerIdFormattedStringConfigurer(key, name, new String[]{PIECE_NAME,
+                                                                           LOCATION,
+                                                                           OLD_MAP,
+                                                                           OLD_LOCATION});
     }
   }
 
   public static class CreateFormatConfig implements ConfigurerFactory {
     public Configurer getConfigurer(AutoConfigurable c, String key, String name) {
-      return new FormattedStringConfigurer(key, name, new String[]{GlobalOptions.PLAYER_NAME,
-                                                                   GlobalOptions.PLAYER_SIDE,
-                                                                   PIECE_NAME,
-                                                                   LOCATION});
+      return new PlayerIdFormattedStringConfigurer(key, name, new String[]{PIECE_NAME,
+                                                                           LOCATION});
     }
   }
 
@@ -1526,7 +1520,7 @@ public class Map extends AbstractConfigurable implements GameComponent,
       if (boards.size() > 0) {
         Board b = (Board) boards.firstElement();
         if (b.getGrid() != null
-          && b.getGrid().getGridNumbering() != null) {
+            && b.getGrid().getGridNumbering() != null) {
           val = "$" + PIECE_NAME + "$ created in $" + LOCATION + "$";
         }
       }
@@ -1543,7 +1537,7 @@ public class Map extends AbstractConfigurable implements GameComponent,
       if (boards.size() > 0) {
         Board b = (Board) boards.firstElement();
         if (b.getGrid() != null
-          && b.getGrid().getGridNumbering() != null) {
+            && b.getGrid().getGridNumbering() != null) {
           val = "$" + PIECE_NAME + "$" + " moves $" + OLD_LOCATION + "$ -> $" + LOCATION + "$ *";
         }
       }

@@ -41,6 +41,7 @@ import VASSAL.configure.*;
 import VASSAL.counters.*;
 import VASSAL.tools.FormattedString;
 import VASSAL.tools.LaunchButton;
+import VASSAL.tools.PlayerIdFormattedString;
 
 import javax.swing.*;
 import java.awt.event.ActionEvent;
@@ -81,7 +82,7 @@ public class MassKeyCommand extends AbstractConfigurable implements PieceVisitor
   private BoundsTracker tracker;
   protected boolean reportSingle;
   protected static boolean suppressTraitReports = false;
-  protected FormattedString reportFormat = new FormattedString("");
+  protected FormattedString reportFormat = new PlayerIdFormattedString("");
 
   public MassKeyCommand() {
     ActionListener al = new ActionListener() {
@@ -102,8 +103,6 @@ public class MassKeyCommand extends AbstractConfigurable implements PieceVisitor
     suppressTraitReports = reportSingle;
 
     reportFormat.setProperty(COMMAND_NAME, getConfigureName());
-    reportFormat.setProperty(GlobalOptions.PLAYER_NAME, (String) GameModule.getGameModule().getPrefs().getValue(GameModule.REAL_NAME));
-    reportFormat.setProperty(GlobalOptions.PLAYER_SIDE, PlayerRoster.getMySide());
     String reportText = reportFormat.getText();
     if (reportText.length() > 0) {
       keyCommand = new Chatter.DisplayText(GameModule.getGameModule().getChatter(), "*" + reportText);
@@ -140,7 +139,7 @@ public class MassKeyCommand extends AbstractConfigurable implements PieceVisitor
   private void apply(GamePiece p, Command c, BoundsTracker tracker) {
     if (isValidTarget(p)) {
       tracker.addPiece(p);
-      p.setProperty(Properties.SNAPSHOT,PieceCloner.getInstance().clonePiece(p));
+      p.setProperty(Properties.SNAPSHOT, PieceCloner.getInstance().clonePiece(p));
       c.append(p.keyEvent(stroke));
       tracker.addPiece(p);
     }
@@ -224,18 +223,11 @@ public class MassKeyCommand extends AbstractConfigurable implements PieceVisitor
     }
   }
 
-  public static final String COMMAND_NAME="commandName";
-
-  // Options for Global Key Report
-  private static final String[] getFormatParameters() {
-    return new String[]{GlobalOptions.PLAYER_NAME,
-                        GlobalOptions.PLAYER_SIDE,
-                        COMMAND_NAME};
-  }
+  public static final String COMMAND_NAME = "commandName";
 
   public static class ReportFormatConfig implements ConfigurerFactory {
     public Configurer getConfigurer(AutoConfigurable c, String key, String name) {
-      return new FormattedStringConfigurer(key, name, getFormatParameters());
+      return new PlayerIdFormattedStringConfigurer(key, name, new String[]{COMMAND_NAME});
     }
   }
 

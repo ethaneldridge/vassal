@@ -37,8 +37,10 @@ import VASSAL.command.ChangeTracker;
 import VASSAL.configure.FormattedStringConfigurer;
 import VASSAL.configure.StringConfigurer;
 import VASSAL.configure.StringArrayConfigurer;
+import VASSAL.configure.PlayerIdFormattedStringConfigurer;
 import VASSAL.tools.FormattedString;
 import VASSAL.tools.SequenceEncoder;
+import VASSAL.tools.PlayerIdFormattedString;
 
 import javax.swing.*;
 import java.awt.*;
@@ -55,7 +57,7 @@ import java.net.MalformedURLException;
 public class ReportState extends Decorator implements EditablePiece {
   public static final String ID = "report;";
   private String keys = "";
-  private FormattedString format = new FormattedString();
+  private FormattedString format = new PlayerIdFormattedString();
   private String reportFormat;
   private String[] cycleReportFormat;
   private String cycleDownKeys;
@@ -100,7 +102,7 @@ public class ReportState extends Decorator implements EditablePiece {
   public Command keyEvent(KeyStroke stroke) {
     Command c = piece.keyEvent(stroke);
     return c == null ? myKeyEvent(stroke)
-      : c.append(myKeyEvent(stroke));
+        : c.append(myKeyEvent(stroke));
   }
 
   public Command myKeyEvent(KeyStroke stroke) {
@@ -109,8 +111,6 @@ public class ReportState extends Decorator implements EditablePiece {
     // Retrieve the name, location and visibilty of the unit prior to the
     // trait being executed if it is outside this one.
 
-    format.setProperty(GlobalOptions.PLAYER_NAME, (String) GameModule.getGameModule().getPrefs().getOption(GameModule.REAL_NAME).getValue());
-    format.setProperty(GlobalOptions.PLAYER_SIDE, PlayerRoster.getMySide());
     format.setProperty(MAP_NAME, getMap() == null ? null : getMap().getConfigureName());
     format.setProperty(LOCATION_NAME, getMap() == null ? null : getMap().locationName(getPosition()));
 
@@ -248,17 +248,6 @@ public class ReportState extends Decorator implements EditablePiece {
   private static final String LOCATION_NAME = "location";
   private static final String COMMAND_NAME = "menuCommand";
 
-  // Options for Trait Command Report
-  private static final String[] getFormatParameters() {
-    return new String[]{GlobalOptions.PLAYER_NAME,
-                        GlobalOptions.PLAYER_SIDE,
-                        COMMAND_NAME,
-                        OLD_UNIT_NAME,
-                        NEW_UNIT_NAME,
-                        MAP_NAME,
-                        LOCATION_NAME};
-  }
-
   public static class Ed implements PieceEditor {
 
     private StringConfigurer keys;
@@ -276,7 +265,11 @@ public class ReportState extends Decorator implements EditablePiece {
       box.add(keys.getControls());
       cycle = new JCheckBox("Cycle through different messages");
       box.add(cycle);
-      format = new FormattedStringConfigurer(null, "Report format", getFormatParameters());
+      format = new PlayerIdFormattedStringConfigurer(null, "Report format", new String[]{COMMAND_NAME,
+                                                                                         OLD_UNIT_NAME,
+                                                                                         NEW_UNIT_NAME,
+                                                                                         MAP_NAME,
+                                                                                         LOCATION_NAME});
       format.setValue(piece.reportFormat);
       box.add(format.getControls());
       cycleFormat = new StringArrayConfigurer(null, "Message formats", piece.cycleReportFormat);

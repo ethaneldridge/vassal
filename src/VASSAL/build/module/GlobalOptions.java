@@ -27,10 +27,10 @@
 package VASSAL.build.module;
 
 import VASSAL.Info;
+import VASSAL.tools.FormattedString;
 import VASSAL.build.*;
 import VASSAL.build.module.documentation.HelpFile;
-import VASSAL.configure.BooleanConfigurer;
-import VASSAL.configure.StringEnum;
+import VASSAL.configure.*;
 
 import java.io.File;
 import java.net.MalformedURLException;
@@ -50,12 +50,15 @@ public class GlobalOptions extends AbstractConfigurable {
   public static final String PLAYER_NAME = "playerName";
   public static final String PLAYER_SIDE = "playerSide";
   public static final String PLAYER_ID = "playerId";
+  public static final String PLAYER_ID_FORMAT="playerIdFormat";
 
   private String promptString = "Opponents can unmask my pieces";
   private String nonOwnerUnmaskable = NEVER;
   private String centerOnMoves = ALWAYS;
   private String autoReport = NEVER;
   private String markMoved = NEVER;
+
+  private FormattedString playerIdFormat = new FormattedString("$"+PLAYER_NAME+"$");
 
   private static GlobalOptions instance;
   private boolean useSingleWindow;
@@ -101,6 +104,12 @@ public class GlobalOptions extends AbstractConfigurable {
     }
   }
 
+  public static class PlayerIdFormatConfig implements ConfigurerFactory {
+    public Configurer getConfigurer(AutoConfigurable c, String key, String name) {
+      return new FormattedStringConfigurer(key,name,new String[]{PLAYER_NAME,PLAYER_SIDE});
+    }
+  }
+
   public Class[] getAllowableConfigureComponents() {
     return new Class[0];
   }
@@ -109,15 +118,16 @@ public class GlobalOptions extends AbstractConfigurable {
     return new String[]{"Allow non-owners to un-mask pieces",
                         null,
                         "Center on opponent's moves",
-                        "Auto-report moves"};
+                        "Auto-report moves",
+      "Player Id format"};
   }
 
   public String[] getAttributeNames() {
-    return new String[]{NON_OWNER_UNMASKABLE, PROMPT_STRING, CENTER_ON_MOVE, AUTO_REPORT};
+    return new String[]{NON_OWNER_UNMASKABLE, PROMPT_STRING, CENTER_ON_MOVE, AUTO_REPORT, PLAYER_ID_FORMAT};
   }
 
   public Class[] getAttributeTypes() {
-    return new Class[]{Prompt.class, null, Prompt.class, Prompt.class};
+    return new Class[]{Prompt.class, null, Prompt.class, Prompt.class, PlayerIdFormatConfig.class};
   }
 
   public String getAttributeValueString(String key) {
@@ -135,6 +145,9 @@ public class GlobalOptions extends AbstractConfigurable {
     }
     else if (MARK_MOVED.equals(key)) {
       return markMoved;
+    }
+    else if (PLAYER_ID_FORMAT.equals(key)){
+      return playerIdFormat.getFormat();
     }
     else {
       return null;
@@ -195,6 +208,9 @@ public class GlobalOptions extends AbstractConfigurable {
         GameModule.getGameModule().getPrefs().addOption(config);
       }
     }
+    else if (PLAYER_ID_FORMAT.equals(key)) {
+      playerIdFormat.setFormat((String) value);
+    }
   }
 
   public boolean autoReportEnabled() {
@@ -207,6 +223,12 @@ public class GlobalOptions extends AbstractConfigurable {
 
   public boolean isMarkMoveEnabled() {
     return isEnabled(markMoved, MARK_MOVED);
+  }
+
+  public String getPlayerId() {
+    playerIdFormat.setProperty(PLAYER_NAME, (String) GameModule.getGameModule().getPrefs().getValue(GameModule.REAL_NAME));
+    playerIdFormat.setProperty(PLAYER_SIDE,PlayerRoster.getMySide());
+    return playerIdFormat.getText();
   }
 
   private boolean isEnabled(String attValue, String prefsPrompt) {

@@ -13,7 +13,7 @@
  * Library General Public License for more details.
  *
  * You should have received a copy of the GNU Library General Public
- * License along with this library; if not, copies are available 
+ * License along with this library; if not, copies are available
  * at http://www.opensource.org.
  */
 package VASSAL.build.module;
@@ -51,10 +51,10 @@ public class ExtensionsLoader implements CommandEncoder {
           new ModuleExtension(new DataArchive(extensions[i])).build();
         }
         catch (IOException e) {
-          reportBuildError(e,extensions[i]);
+          reportBuildError(e, extensions[i]);
         }
         catch (IllegalBuildException e) {
-          reportBuildError(e,extensions[i]);
+          reportBuildError(e, extensions[i]);
         }
       }
     }
@@ -94,7 +94,7 @@ public class ExtensionsLoader implements CommandEncoder {
     File dir = new File(new File(GameModule.getGameModule().getDataArchive().getName()).getParent(), dirName);
     String[] s = dir.list();
     if (s == null) {
-       s = new String[0];
+      s = new String[0];
     }
     for (int i = 0; i < s.length; ++i) {
       s[i] = new File(dir, s[i]).getPath();
@@ -106,9 +106,9 @@ public class ExtensionsLoader implements CommandEncoder {
     String dirName = new File(GameModule.getGameModule().getDataArchive().getName()).getName();
     int index = dirName.lastIndexOf('.');
     if (index > 0) {
-      dirName = dirName.substring(0,index);
+      dirName = dirName.substring(0, index);
     }
-    dirName = dirName+"_ext";
+    dirName = dirName + "_ext";
     return dirName;
   }
 
@@ -156,7 +156,7 @@ public class ExtensionsLoader implements CommandEncoder {
             try {
               String name = f.getPath();
               if (name.startsWith(System.getProperty("user.dir"))
-                && name.length() > System.getProperty("user.dir").length()) {
+                  && name.length() > System.getProperty("user.dir").length()) {
                 name = name.substring(System.getProperty("user.dir").length() + 1);
               }
               DataArchive archive = new DataArchive(name);

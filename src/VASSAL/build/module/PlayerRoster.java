@@ -13,7 +13,7 @@
  * Library General Public License for more details.
  *
  * You should have received a copy of the GNU Library General Public
- * License along with this library; if not, copies are available 
+ * License along with this library; if not, copies are available
  * at http://www.opensource.org.
  */
 package VASSAL.build.module;
@@ -119,9 +119,9 @@ public class PlayerRoster implements Configurable, CommandEncoder, GameComponent
       public void actionPerformed(ActionEvent e) {
         String mySide = getMySide();
         if (mySide != null
-          && JOptionPane.YES_OPTION
-          == JOptionPane.showConfirmDialog(null, "Give up your position as '" + mySide + "'?",
-                                           "Retire", JOptionPane.YES_NO_OPTION)) {
+            && JOptionPane.YES_OPTION
+            == JOptionPane.showConfirmDialog(null, "Give up your position as '" + mySide + "'?",
+                                             "Retire", JOptionPane.YES_NO_OPTION)) {
           remove(GameModule.getUserId());
         }
       }
@@ -213,7 +213,7 @@ public class PlayerRoster implements Configurable, CommandEncoder, GameComponent
   public void setup(boolean gameStarting) {
     if (gameStarting) {
       GameModule gm = GameModule.getGameModule();
-      Entry me = new Entry(gm.getUserId(), gm.getChatter().getHandle(), null);
+      Entry me = new Entry(gm.getUserId(), GlobalOptions.getInstance().getPlayerId(), null);
       if (players.contains(me)) {
         Entry saved = (Entry) players.elementAt(players.indexOf(me));
         saved.playerName = me.playerName;
@@ -298,8 +298,8 @@ public class PlayerRoster implements Configurable, CommandEncoder, GameComponent
         public void actionPerformed(ActionEvent e) {
           String s = tf.getText();
           if (s.length() > 0
-            && !sides.contains(s)
-            && !sides.equals(OBSERVER)) {
+              && !sides.contains(s)
+              && !sides.equals(OBSERVER)) {
             sides.addElement(s);
           }
           tf.setText("");

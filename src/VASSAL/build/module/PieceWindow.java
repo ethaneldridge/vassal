@@ -201,7 +201,7 @@ public class PieceWindow extends Widget implements UniqueIdManager.Identifyable 
   }
 
   public String[] getAttributeDescriptions() {
-    return new String[]{"Name", "Button text", "Button icon","Hotkey to show/hide"};
+    return new String[]{"Name", "Button text", "Button icon", "Hotkey to show/hide"};
   }
 
   public Class[] getAttributeTypes() {
@@ -210,7 +210,7 @@ public class PieceWindow extends Widget implements UniqueIdManager.Identifyable 
 
   public static class IconConfig implements ConfigurerFactory {
     public Configurer getConfigurer(AutoConfigurable c, String key, String name) {
-      return new IconConfigurer(key,name,"/images/counter.gif");
+      return new IconConfigurer(key, name, "/images/counter.gif");
     }
   }
 
@@ -220,8 +220,8 @@ public class PieceWindow extends Widget implements UniqueIdManager.Identifyable 
 
   public void setAttribute(String name, Object value) {
     if (DEPRECATED_NAME.equals(name)) {
-      setAttribute(NAME,value);
-      setAttribute(BUTTON_TEXT,value);
+      setAttribute(NAME, value);
+      setAttribute(BUTTON_TEXT, value);
     }
     else if (NAME.equals(name)) {
       String s = (String) value;

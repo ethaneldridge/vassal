@@ -238,10 +238,8 @@ public class DrawPile extends SetupStack {
 
   public static class FormattedStringConfig implements ConfigurerFactory {
     public Configurer getConfigurer(AutoConfigurable c, String key, String name) {
-      return new FormattedStringConfigurer(key, name, new String[]{GlobalOptions.PLAYER_NAME,
-                                                                   GlobalOptions.PLAYER_SIDE,
-                                                                   DECK_NAME,
-                                                                   COMMAND_NAME});
+      return new PlayerIdFormattedStringConfigurer(key, name, new String[]{DECK_NAME,
+                                                                           COMMAND_NAME});
     }
   }
 

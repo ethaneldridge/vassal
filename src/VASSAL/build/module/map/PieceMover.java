@@ -35,6 +35,7 @@ import VASSAL.configure.BooleanConfigurer;
 import VASSAL.counters.*;
 import VASSAL.tools.Sort;
 import VASSAL.tools.FormattedString;
+import VASSAL.tools.PlayerIdFormattedString;
 import VASSAL.Info;
 
 import javax.swing.*;
@@ -74,7 +75,7 @@ public class PieceMover extends AbstractBuildable implements
   protected PieceFinder dragTargetSelector; // Selects drag target from mouse click on the Map
   protected PieceFinder dropTargetSelector; // Selects piece to merge with at the drop destination
   protected PieceVisitorDispatcher selectionProcessor; // Processes drag target after having been selected
-  private FormattedString format = new FormattedString();
+  private FormattedString format = new PlayerIdFormattedString();
 
   public void addTo(Buildable b) {
     dragTargetSelector = createDragTargetSelector();
@@ -524,8 +525,6 @@ public class PieceMover extends AbstractBuildable implements
       else {
         format.setFormat(map.getMoveWithinFormat());
       }
-      format.setProperty(GlobalOptions.PLAYER_NAME, (String) GameModule.getGameModule().getPrefs().getValue(GameModule.REAL_NAME));
-      format.setProperty(GlobalOptions.PLAYER_SIDE, PlayerRoster.getMySide());
       format.setProperty(Map.PIECE_NAME, movedPieceNames.toString());
       format.setProperty(Map.LOCATION, destination);
       if (fromMap != null) {

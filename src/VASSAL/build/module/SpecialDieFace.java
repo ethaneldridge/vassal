@@ -92,7 +92,7 @@ public class SpecialDieFace extends AbstractConfigurable {
         if (o instanceof String) {
           o = Integer.valueOf((String) o);
         }
-        value = ((Integer)o).intValue();
+        value = ((Integer) o).intValue();
       }
       catch (NumberFormatException e) {
       }
@@ -107,7 +107,7 @@ public class SpecialDieFace extends AbstractConfigurable {
       return getConfigureName();
     }
     else if (NUMERICAL_VALUE.equals(key)) {
-      return ""+value;
+      return "" + value;
     }
     else if (ICON.equals(key)) {
       return imageName;

@@ -21,10 +21,7 @@ package VASSAL.build.module;
 import VASSAL.build.*;
 import VASSAL.build.module.documentation.HelpFile;
 import VASSAL.configure.*;
-import VASSAL.tools.LaunchButton;
-import VASSAL.tools.SequenceEncoder;
-import VASSAL.tools.UniqueIdManager;
-import VASSAL.tools.FormattedString;
+import VASSAL.tools.*;
 import VASSAL.command.*;
 
 import javax.swing.*;
@@ -60,7 +57,7 @@ public class SpecialDiceButton extends AbstractConfigurable implements CommandEn
   private Color bgColor;
   private ResultsIcon resultsIcon = new ResultsIcon();
 
-  private FormattedString format = new FormattedString();
+  private FormattedString format = new PlayerIdFormattedString();
   private String chatResultFormat = "** $" + NAME + "$ = [$result1$] *** <$" + GlobalOptions.PLAYER_NAME + "$>";
   private String windowTitleResultFormat = "$" + NAME + "$";
 
@@ -137,8 +134,6 @@ public class SpecialDiceButton extends AbstractConfigurable implements CommandEn
   }
 
   private Command reportResults(int[] results) {
-    format.setProperty(GlobalOptions.PLAYER_NAME, (String) GameModule.getGameModule().getPrefs().getValue(GameModule.REAL_NAME));
-    format.setProperty(GlobalOptions.PLAYER_SIDE, PlayerRoster.getMySide());
     format.setProperty(NAME, getConfigureName());
 
     int total = 0;
@@ -215,7 +210,7 @@ public class SpecialDiceButton extends AbstractConfigurable implements CommandEn
                         "Show result in button",
                         "Width",
                         "Heidght",
-      "Background color"};
+                        "Background color"};
   }
 
   public Class[] getAttributeTypes() {
@@ -230,7 +225,7 @@ public class SpecialDiceButton extends AbstractConfigurable implements CommandEn
                        Boolean.class,
                        Integer.class,
                        Integer.class,
-      Color.class};
+                       Color.class};
   }
 
   public static class IconConfig implements ConfigurerFactory {
@@ -241,15 +236,15 @@ public class SpecialDiceButton extends AbstractConfigurable implements CommandEn
 
   public static class ReportFormatConfig implements ConfigurerFactory {
     public Configurer getConfigurer(AutoConfigurable c, String key, String name) {
-      return new FormattedStringConfigurer(key, name, new String[]{NAME, RESULT_N, RESULT_TOTAL, GlobalOptions.PLAYER_NAME, GlobalOptions.PLAYER_SIDE});
+      return new PlayerIdFormattedStringConfigurer(key, name, new String[]{NAME, RESULT_N, RESULT_TOTAL});
     }
   }
 
   public VisibilityCondition getAttributeVisibility(String name) {
 // get size only when output in window or on button
     if (WINDOW_X.equals(name)
-          || WINDOW_Y.equals(name)
-      || BACKGROUND_COLOR.equals(name)) {
+        || WINDOW_Y.equals(name)
+        || BACKGROUND_COLOR.equals(name)) {
       return new VisibilityCondition() {
         public boolean shouldBeVisible() {
           return reportResultInWindow || reportResultInButton;
@@ -568,7 +563,7 @@ public class SpecialDiceButton extends AbstractConfigurable implements CommandEn
       int offset = 0;
       for (int i = 0; i < icons.length; ++i) {
         if (icons[i] != null) {
-          icons[i].paintIcon(c,g,x+offset,y);
+          icons[i].paintIcon(c, g, x + offset, y);
           offset += icons[i].getIconWidth();
         }
       }

@@ -13,7 +13,7 @@
  * Library General Public License for more details.
  *
  * You should have received a copy of the GNU Library General Public
- * License along with this library; if not, copies are available 
+ * License along with this library; if not, copies are available
  * at http://www.opensource.org.
  */
 package VASSAL.build.module;
@@ -45,8 +45,8 @@ public class Chatter extends JPanel implements CommandEncoder, Buildable {
   protected JTextArea conversation;
   protected JTextField input;
   protected JScrollPane scroll = new JScrollPane
-    (JScrollPane.VERTICAL_SCROLLBAR_ALWAYS,
-     JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+      (JScrollPane.VERTICAL_SCROLLBAR_ALWAYS,
+       JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
   protected static final String MY_CHAT_COLOR = "myChatColor";
   protected static final String OTHER_CHAT_COLOR = "otherChatColor";
   protected static final String GAME_MSG_COLOR = "gameMessageColor";
@@ -81,15 +81,15 @@ public class Chatter extends JPanel implements CommandEncoder, Buildable {
       }
     });
     input.setMaximumSize
-      (new Dimension(input.getMaximumSize().width,
-                     input.getPreferredSize().height));
+        (new Dimension(input.getMaximumSize().width,
+                       input.getPreferredSize().height));
     scroll.setViewportView(conversation);
     add(scroll);
     add(input);
   }
 
   private String formatChat(String text) {
-    return "<"+getHandle()+"> - "+text;
+    return "<" + GlobalOptions.getInstance().getPlayerId() + "> - " + text;
   }
 
   public JTextField getInputField() {
@@ -103,12 +103,14 @@ public class Chatter extends JPanel implements CommandEncoder, Buildable {
     conversation.append("\n" + s);
   }
 
+  /** @deprecated use GlobalOptions.getPlayerId() */
   public void setHandle(String s) {
     handle = s;
   }
 
+  /** @deprecated use GlobalOptions.getPlayerId() */
   public String getHandle() {
-    return handle;
+    return GlobalOptions.getInstance().getPlayerId();
   }
 
   /**
@@ -145,32 +147,32 @@ public class Chatter extends JPanel implements CommandEncoder, Buildable {
     mod.setChatter(this);
     mod.addCommandEncoder(this);
     mod.addKeyStrokeSource
-      (new KeyStrokeSource(conversation,
-                           WHEN_ANCESTOR_OF_FOCUSED_COMPONENT));
+        (new KeyStrokeSource(conversation,
+                             WHEN_ANCESTOR_OF_FOCUSED_COMPONENT));
     mod.addKeyStrokeSource
-      (new KeyStrokeSource(input, WHEN_FOCUSED));
+        (new KeyStrokeSource(input, WHEN_FOCUSED));
     setHandle((String) mod.getPrefs().getOption(GameModule.REAL_NAME).getValue());
 
     FontConfigurer chatFont = new FontConfigurer
-      ("ChatFont", "Chat Window Font: ");
+        ("ChatFont", "Chat Window Font: ");
     chatFont.addPropertyChangeListener(new PropertyChangeListener() {
       public void propertyChange(PropertyChangeEvent evt) {
         setFont((Font) evt.getNewValue());
       }
     });
 
-    mod.getControlPanel().add(this,BorderLayout.CENTER);
+    mod.getControlPanel().add(this, BorderLayout.CENTER);
 
     chatFont.fireUpdate();
-    mod.getPrefs().addOption("Chat Window",chatFont);
-    ColorConfigurer gameMsgColor = new ColorConfigurer(GAME_MSG_COLOR,"Game messages",Color.magenta);
-    mod.getGlobalPrefs().addOption("Chat Window",gameMsgColor);
-    ColorConfigurer systemMsgColor = new ColorConfigurer(SYS_MSG_COLOR,"System messages",new Color(160,160,160));
-    mod.getGlobalPrefs().addOption("Chat Window",systemMsgColor);
-    ColorConfigurer myChatColor = new ColorConfigurer(MY_CHAT_COLOR,"My text messages",Color.gray);
-    mod.getGlobalPrefs().addOption("Chat Window",myChatColor);
-    ColorConfigurer otherChatColor = new ColorConfigurer(OTHER_CHAT_COLOR,"Other's text messages",Color.black);
-    mod.getGlobalPrefs().addOption("Chat Window",otherChatColor);
+    mod.getPrefs().addOption("Chat Window", chatFont);
+    ColorConfigurer gameMsgColor = new ColorConfigurer(GAME_MSG_COLOR, "Game messages", Color.magenta);
+    mod.getGlobalPrefs().addOption("Chat Window", gameMsgColor);
+    ColorConfigurer systemMsgColor = new ColorConfigurer(SYS_MSG_COLOR, "System messages", new Color(160, 160, 160));
+    mod.getGlobalPrefs().addOption("Chat Window", systemMsgColor);
+    ColorConfigurer myChatColor = new ColorConfigurer(MY_CHAT_COLOR, "My text messages", Color.gray);
+    mod.getGlobalPrefs().addOption("Chat Window", myChatColor);
+    ColorConfigurer otherChatColor = new ColorConfigurer(OTHER_CHAT_COLOR, "Other's text messages", Color.black);
+    mod.getGlobalPrefs().addOption("Chat Window", otherChatColor);
   }
 
   public void add(Buildable b) {
@@ -201,7 +203,7 @@ public class Chatter extends JPanel implements CommandEncoder, Buildable {
    */
   public void send(String msg) {
     if (msg != null
-      && msg.length() > 0) {
+        && msg.length() > 0) {
       show(msg);
       GameModule.getGameModule().sendAndLog(new DisplayText(this, msg));
     }
@@ -214,7 +216,7 @@ public class Chatter extends JPanel implements CommandEncoder, Buildable {
    */
   public void keyCommand(KeyStroke e) {
     if ((e.getKeyCode() == 0 || e.getKeyCode() == KeyEvent.CHAR_UNDEFINED)
-      && !Character.isISOControl(e.getKeyChar())) {
+        && !Character.isISOControl(e.getKeyChar())) {
       input.setText(input.getText() + e.getKeyChar());
     }
     else if (e.isOnKeyRelease()) {
@@ -291,7 +293,7 @@ public class Chatter extends JPanel implements CommandEncoder, Buildable {
   protected Color getColor(Element elem) {
     Color col = null;
     try {
-      String s = elem.getDocument().getText(elem.getStartOffset(),elem.getEndOffset()-elem.getStartOffset()).trim();
+      String s = elem.getDocument().getText(elem.getStartOffset(), elem.getEndOffset() - elem.getStartOffset()).trim();
       if (s.length() > 0) {
         switch (s.charAt(0)) {
           case '*':

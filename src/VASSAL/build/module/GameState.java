@@ -131,7 +131,7 @@ public abstract class GameState {
   public void setup(boolean gameStarting) {
     if (!gameStarting && gameStarted && isModified()) {
       switch (JOptionPane.showConfirmDialog
-        (GameModule.getGameModule().getFrame(), "Save Game?", "Game modified", JOptionPane.YES_NO_CANCEL_OPTION)) {
+          (GameModule.getGameModule().getFrame(), "Save Game?", "Game modified", JOptionPane.YES_NO_CANCEL_OPTION)) {
         case JOptionPane.YES_OPTION:
           saveGame();
           break;
@@ -267,10 +267,10 @@ public abstract class GameState {
         outputFile = new File(fd.getFile());
       }
       if (outputFile.exists()
-        && shouldConfirmOverwrite()
-        && JOptionPane.NO_OPTION
-        == JOptionPane.showConfirmDialog(GameModule.getGameModule().getFrame(),
-                                         "Overwrite " + outputFile.getName() + "?", "File Exists", JOptionPane.YES_NO_OPTION)) {
+          && shouldConfirmOverwrite()
+          && JOptionPane.NO_OPTION
+          == JOptionPane.showConfirmDialog(GameModule.getGameModule().getFrame(),
+                                           "Overwrite " + outputFile.getName() + "?", "File Exists", JOptionPane.YES_NO_OPTION)) {
         outputFile = null;
       }
     }

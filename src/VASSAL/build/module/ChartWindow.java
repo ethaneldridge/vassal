@@ -139,9 +139,9 @@ public class ChartWindow extends Widget {
 
   public Class[] getAllowableConfigureComponents() {
     return new Class[]{VASSAL.build.widget.Chart.class,
-      VASSAL.build.widget.HtmlChart.class,
-      TabWidget.class,
-      PanelWidget.class };
+                       VASSAL.build.widget.HtmlChart.class,
+                       TabWidget.class,
+                       PanelWidget.class};
   }
 
   public void add(Buildable b) {

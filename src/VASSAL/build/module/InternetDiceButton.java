@@ -57,9 +57,7 @@ public class InternetDiceButton extends DiceButton implements GameComponent, Com
    * Ask the die manager to do our roll!
    */
   protected void DR() {
-    reportFormat.setProperty(NAME,getConfigureName());
-    reportFormat.setProperty(GlobalOptions.PLAYER_NAME, (String) GameModule.getGameModule().getPrefs().getValue(GameModule.REAL_NAME));
-    reportFormat.setProperty(GlobalOptions.PLAYER_SIDE,PlayerRoster.getMySide());
+    reportFormat.setProperty(NAME, getConfigureName());
     dieManager.roll(nDice, nSides, plus, reportTotal, getConfigureName(), reportFormat);
   }
 

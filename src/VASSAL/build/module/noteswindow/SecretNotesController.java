@@ -3,6 +3,7 @@ package VASSAL.build.module.noteswindow;
 import VASSAL.build.GameModule;
 import VASSAL.build.module.GameComponent;
 import VASSAL.build.module.Chatter;
+import VASSAL.build.module.GlobalOptions;
 import VASSAL.command.Command;
 import VASSAL.command.CommandEncoder;
 import VASSAL.configure.StringConfigurer;
@@ -184,10 +185,10 @@ public class SecretNotesController implements GameComponent, CommandEncoder, Add
         }
         String msg;
         if (index < 0) {
-          msg = "* " + GameModule.getGameModule().getChatter().getHandle() + " has created message \'" + secretNote.getName() + "\' *";
+          msg = "* " + GlobalOptions.getInstance().getPlayerId() + " has created message \'" + secretNote.getName() + "\' *";
         }
         else {
-          msg = "* " + GameModule.getGameModule().getChatter().getHandle() + " has revealed message \'" + secretNote.getName() + "\' *";
+          msg = "* " + GlobalOptions.getInstance().getPlayerId() + " has revealed message \'" + secretNote.getName() + "\' *";
         }
         c = new Chatter.DisplayText(GameModule.getGameModule().getChatter(), msg);
         c.execute();

@@ -85,7 +85,7 @@ public class RandomTextButton extends DiceButton {
 
   public VisibilityCondition getAttributeVisibility(String name) {
     if (REPORT_TOTAL.equals(name)
-      || PLUS.equals(name)) {
+        || PLUS.equals(name)) {
       return new VisibilityCondition() {
         public boolean shouldBeVisible() {
           return isNumeric;
@@ -96,7 +96,6 @@ public class RandomTextButton extends DiceButton {
       return super.getAttributeVisibility(name);
     }
   }
-
 
 
   /**
@@ -136,7 +135,7 @@ public class RandomTextButton extends DiceButton {
 
   public void setAttribute(String key, Object value) {
     if (NUMERIC.equals(key)) {
-        isNumeric = Boolean.TRUE.equals(value) || "true".equals(value);
+      isNumeric = Boolean.TRUE.equals(value) || "true".equals(value);
     }
     else if (FACES.equals(key)) {
       if (value instanceof String) {
@@ -152,7 +151,7 @@ public class RandomTextButton extends DiceButton {
 
   public String getAttributeValueString(String key) {
     if (NUMERIC.equals(key)) {
-      return ""+isNumeric;
+      return "" + isNumeric;
     }
     else if (FACES.equals(key)) {
       return StringArrayConfigurer.arrayToString(m_faces);
@@ -161,11 +160,12 @@ public class RandomTextButton extends DiceButton {
       return super.getAttributeValueString(key);
     }
   }
+
   public HelpFile getHelpFile() {
     File dir = VASSAL.build.module.Documentation.getDocumentationBaseDir();
     dir = new File(dir, "ReferenceManual");
     try {
-      return new HelpFile(null, new File(dir, "GameModule.htm"),"#RandomTextButton");
+      return new HelpFile(null, new File(dir, "GameModule.htm"), "#RandomTextButton");
     }
     catch (MalformedURLException ex) {
       return null;

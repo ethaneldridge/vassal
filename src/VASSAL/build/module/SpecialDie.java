@@ -128,7 +128,7 @@ public class SpecialDie extends AbstractConfigurable {
     SpecialDieFace aFace = (SpecialDieFace) dieFaceList.get(face);
     format.setProperty(NAME, getConfigureName());
     format.setProperty(RESULT, aFace.getTextValue());
-    format.setProperty(NUMERICAL_VALUE, aFace.getIntValue()+"");
+    format.setProperty(NUMERICAL_VALUE, aFace.getIntValue() + "");
     return format.getText();
   }
 
