@@ -46,11 +46,13 @@ import java.net.MalformedURLException;
 public class PieceWindow extends Widget implements UniqueIdManager.Identifyable {
   private String id;
   private LaunchButton launch;
+  private boolean hidden;
   public static final String DEPRECATED_NAME = "entryName";
   public static final String NAME = "name";
   public static final String BUTTON_TEXT = "text";
   public static final String ICON = "icon";
   public static final String HOTKEY = "hotkey";
+  public static final String HIDDEN = "hidden";
   private static UniqueIdManager idMgr = new UniqueIdManager("PieceWindow");
   private JComponent root;
   private ComponentSplitter.SplitPane mainWindowDock;
@@ -180,16 +182,18 @@ public class PieceWindow extends Widget implements UniqueIdManager.Identifyable 
   public void addTo(Buildable parent) {
     idMgr.add(this);
 
-    String key = PositionOption.key + getConfigureName();
-    if ("PieceWindow0".equals(id) && GlobalOptions.getInstance().isUseSingleWindow()) {
-      mainWindowDock = new ComponentSplitter().splitLeft(GameModule.getGameModule().getControlPanel(), root, false);
+    if (!hidden) {
+      String key = PositionOption.key + getConfigureName();
+      if ("PieceWindow0".equals(id) && GlobalOptions.getInstance().isUseSingleWindow()) {
+        mainWindowDock = new ComponentSplitter().splitLeft(GameModule.getGameModule().getControlPanel(), root, false);
+      }
+      else {
+        Window w = initFrame();
+        final PositionOption pos = new VisibilityOption(key, w);
+        GameModule.getGameModule().getPrefs().addOption(pos);
+      }
+      GameModule.getGameModule().getToolBar().add(launch);
     }
-    else {
-      Window w = initFrame();
-      final PositionOption pos = new VisibilityOption(key, w);
-      GameModule.getGameModule().getPrefs().addOption(pos);
-    }
-    GameModule.getGameModule().getToolBar().add(launch);
   }
 
   public void removeFrom(Buildable parent) {
@@ -201,11 +205,11 @@ public class PieceWindow extends Widget implements UniqueIdManager.Identifyable 
   }
 
   public String[] getAttributeDescriptions() {
-    return new String[]{"Name", "Button text", "Button icon", "Hotkey to show/hide"};
+    return new String[]{"Name", "Hidden (requires restart)", "Button text", "Button icon", "Hotkey to show/hide"};
   }
 
   public Class[] getAttributeTypes() {
-    return new Class[]{String.class, String.class, IconConfig.class, KeyStroke.class};
+    return new Class[]{String.class, Boolean.class, String.class, IconConfig.class, KeyStroke.class};
   }
 
   public static class IconConfig implements ConfigurerFactory {
@@ -215,7 +219,7 @@ public class PieceWindow extends Widget implements UniqueIdManager.Identifyable 
   }
 
   public String[] getAttributeNames() {
-    return new String[]{NAME, BUTTON_TEXT, ICON, HOTKEY};
+    return new String[]{NAME, HIDDEN, BUTTON_TEXT, ICON, HOTKEY};
   }
 
   public void setAttribute(String name, Object value) {
@@ -228,6 +232,12 @@ public class PieceWindow extends Widget implements UniqueIdManager.Identifyable 
       setConfigureName(s);
       launch.setToolTipText("Show/Hide the " + s + " window");
     }
+    else if (HIDDEN.equals(name)) {
+      if (value instanceof String) {
+        value = Boolean.valueOf((String)value);
+      }
+      hidden = ((Boolean)value).booleanValue();
+    }
     else {
       launch.setAttribute(name, value);
     }
@@ -236,6 +246,9 @@ public class PieceWindow extends Widget implements UniqueIdManager.Identifyable 
   public String getAttributeValueString(String name) {
     if (NAME.equals(name)) {
       return getConfigureName();
+    }
+    else if (HIDDEN.equals(name)) {
+      return String.valueOf(hidden);
     }
     else {
       return launch.getAttributeValueString(name);
