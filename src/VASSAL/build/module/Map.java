@@ -404,7 +404,7 @@ public class Map extends AbstractConfigurable implements GameComponent,
 
     if (shouldDockIntoMainWindow()) {
       IntConfigurer config = new IntConfigurer(MAIN_WINDOW_HEIGHT, null, new Integer(-1));
-      GameModule.getGameModule().getGlobalPrefs().addOption(config);
+      GameModule.getGameModule().getGlobalPrefs().addOption(null,config);
       JPanel root = new JPanel(new BorderLayout());
 //      root.add(toolBar, BorderLayout.NORTH);
       root.add(scroll, BorderLayout.CENTER);

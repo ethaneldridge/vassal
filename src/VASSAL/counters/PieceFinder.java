@@ -55,84 +55,66 @@ public interface PieceFinder {
 
 }
 
-class StackOnly implements PieceFinder {
-  private Rectangle[] bounds = new Rectangle[0];
-
-  public GamePiece select(Map map, GamePiece piece, Point pt) {
-    if (piece instanceof Stack) {
-      Stack s = (Stack) piece;
-      if (bounds.length < s.getPieceCount()) {
-        bounds = new Rectangle[s.getPieceCount()];
-      }
-      map.getStackMetrics().getContents(s, null, bounds, null, s.getPosition().x, s.getPosition().y);
-      for (Enumeration e = s.getPiecesInVisibleOrder();
-           e.hasMoreElements();) {
-        GamePiece child = (GamePiece) e.nextElement();
-        if (bounds[s.indexOf(child)].contains(pt)) {
-          return piece;
-        }
-      }
-      return null;
-    }
-    else {
-      return null;
-    }
-  }
-}
-
-class PieceInStack implements PieceFinder {
-  private Rectangle[] bounds = new Rectangle[0];
-
+class StackOnly extends Movable {
   public GamePiece select(Map map, GamePiece piece, Point pt) {
     GamePiece selected = null;
     if (piece instanceof Stack) {
-      Stack s = (Stack) piece;
-      if (bounds.length < s.getPieceCount()) {
-        bounds = new Rectangle[s.getPieceCount()];
-      }
-      map.getStackMetrics().getContents(s, null, bounds, null, s.getPosition().x, s.getPosition().y);
-      for (Enumeration e = s.getPiecesInVisibleOrder();
-           e.hasMoreElements();) {
-        GamePiece child = (GamePiece) e.nextElement();
-        if (bounds[s.indexOf(child)].contains(pt)) {
-          selected = s.isExpanded() ? child : s.topPiece();
-          break;
-        }
+      selected = super.select(map,piece,pt);
+      if (!(selected instanceof Stack)) {
+        selected = selected.getParent();
       }
     }
-    else if (Info.is2dEnabled()) {
-      Shape s = (Shape) piece.getProperty(Properties.SHAPE);
-      if (s == null) {
-        s = piece.selectionBounds();
-      }
-      if (s.contains(pt)) {
-        selected = piece;
-      }
-    }
-    else if (piece.selectionBounds().contains(pt)) {
-      selected = piece;
+    return selected;
+  }
+}
+
+class PieceInStack extends Movable {
+  public GamePiece select(Map map, GamePiece piece, Point pt) {
+    GamePiece selected = null;
+    selected = super.select(map,piece,pt);
+    if (selected != null
+      && piece instanceof Stack
+      && !((Stack)piece).isExpanded()) {
+      selected = ((Stack)piece).topPiece();
     }
     return selected;
   }
 }
 
 class Movable implements PieceFinder {
-  private Rectangle[] bounds = new Rectangle[0];
+  protected Rectangle[] bounds = new Rectangle[0];
+  protected Shape[] shapes = new Shape[0];
 
   public GamePiece select(Map map, GamePiece piece, Point pt) {
     GamePiece selected = null;
     if (piece instanceof Stack) {
       Stack s = (Stack) piece;
-      if (bounds.length < s.getPieceCount()) {
-        bounds = new Rectangle[s.getPieceCount()];
+      if (Info.is2dEnabled()) {
+        if (shapes.length < s.getPieceCount()) {
+          shapes = new Shape[s.getPieceCount()];
+        }
+        map.getStackMetrics().getContents(s, null, null,shapes, null, s.getPosition().x, s.getPosition().y);
+        for (Enumeration e = s.getPiecesInVisibleOrder();
+             e.hasMoreElements();) {
+          GamePiece child = (GamePiece) e.nextElement();
+          if (shapes[s.indexOf(child)].contains(pt)) {
+            selected = s.isExpanded() ? child : s;
+            break;
+          }
+        }
       }
-      map.getStackMetrics().getContents(s, null, bounds, null, s.getPosition().x, s.getPosition().y);
-      for (Enumeration e = s.getPiecesInVisibleOrder();
-           e.hasMoreElements();) {
-        GamePiece child = (GamePiece) e.nextElement();
-        if (bounds[s.indexOf(child)].contains(pt)) {
-          selected = s.isExpanded() ? child : s;
-          break;
+      else {
+        if (bounds.length < s.getPieceCount()) {
+          bounds = new Rectangle[s.getPieceCount()];
+        }
+        map.getStackMetrics().getContents(s, null, bounds, null, s.getPosition().x, s.getPosition().y);
+        for (Enumeration e = s.getPiecesInVisibleOrder();
+             e.hasMoreElements();) {
+          GamePiece child = (GamePiece) e.nextElement();
+          if (bounds[s.indexOf(child)].contains(pt)) {
+            selected = s.isExpanded() ? child : s;
+            break;
+          }
         }
       }
     }

@@ -13,7 +13,7 @@
  * Library General Public License for more details.
  *
  * You should have received a copy of the GNU Library General Public
- * License along with this library; if not, copies are available 
+ * License along with this library; if not, copies are available
  * at http://www.opensource.org.
  */
 package VASSAL.counters;
@@ -94,7 +94,7 @@ public class Obscurable extends Decorator implements EditablePiece {
         case IMAGE:
           if (s.length() > 1) {
             obscuredToOthersImage = s.substring(1);
-            obscuredToOthersView = new BasicPiece(BasicPiece.ID+";;"+obscuredToOthersImage+";;");
+            obscuredToOthersView = new BasicPiece(BasicPiece.ID + ";;" + obscuredToOthersImage + ";;");
           }
       }
     }
@@ -106,13 +106,13 @@ public class Obscurable extends Decorator implements EditablePiece {
     se.append(obscureKey + "").append(imageName).append(hideCommand);
     switch (displayStyle) {
       case PEEK:
-        se.append(peekKey == 0 ? displayStyle+"" : displayStyle+""+peekKey);
+        se.append(peekKey == 0 ? displayStyle + "" : displayStyle + "" + peekKey);
         break;
       case IMAGE:
-        se.append(displayStyle+obscuredToOthersImage);
+        se.append(displayStyle + obscuredToOthersImage);
         break;
       default:
-        se.append(""+displayStyle);
+        se.append("" + displayStyle);
     }
     return ID + se.getValue();
   }
@@ -147,18 +147,18 @@ public class Obscurable extends Decorator implements EditablePiece {
 
   public boolean obscuredToMe() {
     return obscuredBy != null
-      && !obscuredBy.equals(GameModule.getUserId());
+        && !obscuredBy.equals(GameModule.getUserId());
   }
 
   public boolean obscuredToOthers() {
     return obscuredBy != null
-      && obscuredBy.equals(GameModule.getUserId());
+        && obscuredBy.equals(GameModule.getUserId());
   }
 
   public void setProperty(Object key, Object val) {
     if (ID.equals(key)) {
       if (val instanceof String
-        || val == null) {
+          || val == null) {
         obscuredBy = (String) val;
       }
     }
@@ -182,6 +182,17 @@ public class Obscurable extends Decorator implements EditablePiece {
     }
     else if (ID.equals(key)) {
       return obscuredBy;
+    }
+    else if (Properties.SHAPE.equals(key)) {
+      if (obscuredToMe()) {
+        return bBoxObscuredToMe();
+      }
+      else if (obscuredToOthers()) {
+        return bBoxObscuredToOthers();
+      }
+      else {
+        return super.getProperty(key);
+      }
     }
     else {
       return super.getProperty(key);
@@ -227,8 +238,8 @@ public class Obscurable extends Decorator implements EditablePiece {
         }
         break;
       case IMAGE:
-        getInner().draw(g,x,y,obs,zoom);
-        obscuredToOthersView.draw(g,x,y,obs,zoom);
+        getInner().draw(g, x, y, obs, zoom);
+        obscuredToOthersView.draw(g, x, y, obs, zoom);
     }
   }
 
@@ -292,8 +303,8 @@ public class Obscurable extends Decorator implements EditablePiece {
     }
     commands[0].setEnabled(isMaskableBy(GameModule.getUserId()));
     if (obscuredToOthers()
-      && displayStyle == PEEK
-      && peekKey != 0) {
+        && displayStyle == PEEK
+        && peekKey != 0) {
       return commands;
     }
     else {
@@ -304,8 +315,8 @@ public class Obscurable extends Decorator implements EditablePiece {
   /** Return true if this piece can be masked/un-masked by the player with the given id*/
   public boolean isMaskableBy(String id) {
     return obscuredBy == null
-      || obscuredBy.equals(id)
-      || ObscurableOptions.getInstance().isUnmaskable(obscuredBy);
+        || obscuredBy.equals(id)
+        || ObscurableOptions.getInstance().isUnmaskable(obscuredBy);
   }
 
   public Command myKeyEvent(KeyStroke stroke) {
@@ -313,7 +324,7 @@ public class Obscurable extends Decorator implements EditablePiece {
     if (commands[0].matches(stroke)) {
       ChangeTracker c = new ChangeTracker(this);
       if (obscuredToOthers()
-        || obscuredToMe()) {
+          || obscuredToMe()) {
         obscuredBy = null;
       }
       else if (!obscuredToMe()) {
@@ -356,7 +367,7 @@ public class Obscurable extends Decorator implements EditablePiece {
     private KeySpecifier peekKeyInput;
     private JPanel controls = new JPanel();
     private String[] optionNames = new String[]{"Background", "Plain", "Inset", "Use Image"};
-    private char[] optionChars = new char[]{BACKGROUND,PEEK,INSET,IMAGE};
+    private char[] optionChars = new char[]{BACKGROUND, PEEK, INSET, IMAGE};
     private ImagePicker imagePicker;
 
     public Ed(Obscurable p) {
@@ -379,12 +390,12 @@ public class Obscurable extends Decorator implements EditablePiece {
 
       box = Box.createHorizontalBox();
       displayOption = new StringEnumConfigurer(null, "Display style", optionNames);
-      for (int i=0;i<optionNames.length;++i) {
-      if (p.displayStyle == optionChars[i]) {
+      for (int i = 0; i < optionNames.length; ++i) {
+        if (p.displayStyle == optionChars[i]) {
           displayOption.setValue(optionNames[i]);
           break;
+        }
       }
-    }
       box.add(displayOption.getControls());
 
       final JPanel showDisplayOption = new JPanel() {
@@ -454,10 +465,10 @@ public class Obscurable extends Decorator implements EditablePiece {
     public String getType() {
       SequenceEncoder se = new SequenceEncoder(';');
       se.append("" + obscureKeyInput.getKey())
-        .append(picker.getImageName())
-        .append(obscureCommandInput.getValueString());
+          .append(picker.getImageName())
+          .append(obscureCommandInput.getValueString());
       char optionChar = INSET;
-      for (int i=0;i<optionNames.length;++i) {
+      for (int i = 0; i < optionNames.length; ++i) {
         if (optionNames[i].equals(displayOption.getValueString())) {
           optionChar = optionChars[i];
           break;
@@ -465,13 +476,13 @@ public class Obscurable extends Decorator implements EditablePiece {
       }
       switch (optionChar) {
         case PEEK:
-          se.append(optionChar+peekKeyInput.getKey());
+          se.append(optionChar + peekKeyInput.getKey());
           break;
         case IMAGE:
-          se.append(optionChar+imagePicker.getImageName());
+          se.append(optionChar + imagePicker.getImageName());
           break;
         default:
-          se.append(""+optionChar);
+          se.append("" + optionChar);
       }
       return ID + se.getValue();
     }

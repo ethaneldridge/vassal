@@ -64,6 +64,10 @@ public class Hideable extends Decorator implements EditablePiece {
     else if (Properties.INVISIBLE_TO_OTHERS.equals(key)) {
       return new Boolean(invisibleToOthers());
     }
+    else if (Properties.SHAPE.equals(key)
+      && invisibleToMe()) {
+      return new Rectangle(getPosition(),new Dimension(0,0));
+    }
     else {
       return super.getProperty(key);
     }
@@ -130,7 +134,7 @@ public class Hideable extends Decorator implements EditablePiece {
 
   public Rectangle selectionBounds() {
     if (invisibleToMe()) {
-      return new Rectangle(getPosition().x, getPosition().y, 0, 0);
+      return new Rectangle(getPosition(), new Dimension(0,0));
     }
     else {
       return getInner().selectionBounds();

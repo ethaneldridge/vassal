@@ -24,8 +24,10 @@ import VASSAL.build.module.Map;
 import VASSAL.configure.*;
 import VASSAL.counters.*;
 import VASSAL.command.*;
+import VASSAL.Info;
 
 import java.awt.*;
+import java.awt.geom.AffineTransform;
 import javax.swing.*;
 import java.awt.event.KeyEvent;
 import java.util.Enumeration;
@@ -324,6 +326,18 @@ public class StackMetrics extends AbstractConfigurable {
     if (blankColor == null) {
       p.draw(g, x, y, obs, zoom);
     }
+    else if (Info.is2dEnabled()) {
+      Graphics2D g2d = (Graphics2D) g;
+      g.setColor(blankColor);
+      Shape s = (Shape) p.getProperty(Properties.SHAPE);
+      Rectangle r = p.selectionBounds();
+      AffineTransform t = AffineTransform.getTranslateInstance(x-r.width/2-p.getPosition().x,y-r.height/2-p.getPosition().y);
+      t.scale(zoom,zoom);
+      s = t.createTransformedShape(s);
+      g2d.fill(s);
+      g.setColor(Color.black);
+      g2d.draw(s);
+    }
     else {
       g.setColor(blankColor);
       Rectangle r = p.selectionBounds();
@@ -335,14 +349,18 @@ public class StackMetrics extends AbstractConfigurable {
     }
   }
 
+  public int getContents(Stack parent, Point[] positions, Rectangle[] selectionBounds, Rectangle[] boundingBoxes, int x, int y) {
+    return getContents(parent,positions,selectionBounds,null,boundingBoxes,x,y);
+  }
   /**
    * Fill the argument arrays with the positions, selection bounds and bounding boxes of the pieces in the argument stack
    * @param parent The parent Stack
    * @param positions If non-null will contain a {@link Point} giving the position of each piece in <code>parent</code>, where (0,0) is the position of the parent
    * @param selectionBounds If non-null will contain a {@link Rectangle} giving the selection bounds for each piece in <code>parent</code>, where (0,0) is the position of the parent
    * @param boundingBoxes If non-null will contain a {@link Rectangle} giving the bounding box for each piece in <code>parent</code>, where (0,0) is the position of the parent
+   * @return the number of pieces processed in the stack
    */
-  public int getContents(Stack parent, Point[] positions, Rectangle[] selectionBounds, Rectangle[] boundingBoxes, int x, int y) {
+  public int getContents(Stack parent, Point[] positions, Rectangle[] selectionBounds, Shape[] shapes, Rectangle[] boundingBoxes, int x, int y) {
     int count = parent.getPieceCount();
     if (positions != null) {
       count = Math.min(count, positions.length);
@@ -352,6 +370,9 @@ public class StackMetrics extends AbstractConfigurable {
     }
     if (boundingBoxes != null) {
       count = Math.min(count, boundingBoxes.length);
+    }
+    if (shapes != null) {
+      count = Math.min(count,shapes.length);
     }
     int dx = parent.isExpanded() ? exSepX : unexSepX;
     int dy = parent.isExpanded() ? exSepY : unexSepY;
@@ -369,6 +390,9 @@ public class StackMetrics extends AbstractConfigurable {
         }
         if (boundingBoxes != null) {
           boundingBoxes[index] = blank;
+        }
+        if (shapes != null) {
+          shapes[index] = blank;
         }
       }
       else {
@@ -394,6 +418,13 @@ public class StackMetrics extends AbstractConfigurable {
           Point pos = child.getPosition();
           bbox.translate(nextPos.x - pos.x, nextPos.y - pos.y);
           boundingBoxes[index] = bbox;
+        }
+        if (shapes != null) {
+          Shape s = (Shape) child.getProperty(Properties.SHAPE);
+          if (s != null) {
+            s = AffineTransform.getTranslateInstance(nextPos.x-child.getPosition().x,nextPos.y-child.getPosition().y).createTransformedShape(s);
+            shapes[index] = s;
+          }
         }
         currentPos = nextPos;
         currentSelBounds = nextSelBounds;

@@ -112,6 +112,9 @@ public class BasicPiece implements EditablePiece {
     if (Properties.KEY_COMMANDS.equals(key)) {
       return getKeyCommands();
     }
+    else if (Properties.SHAPE.equals(key)) {
+      return selectionBounds();
+    }
     return props == null ? null : props.get(key);
   }
 

@@ -27,6 +27,7 @@ import VASSAL.tools.SequenceEncoder;
 import javax.swing.*;
 import javax.swing.event.ListSelectionListener;
 import java.awt.*;
+import java.awt.geom.Area;
 import java.awt.event.*;
 import java.io.File;
 import java.net.MalformedURLException;
@@ -355,6 +356,21 @@ public class Embellishment extends Decorator implements EditablePiece {
     }
     else {
       return getInner().selectionBounds();
+    }
+  }
+
+  public Object getProperty(Object key) {
+    if (Properties.SHAPE.equals(key)) {
+      Shape s = (Shape) getInner().getProperty(key);
+      Dimension d = getCurrentImageSize();
+      Rectangle myShape = new Rectangle(getPosition(),d);
+      myShape.translate(xOff-d.width/2,yOff-d.height/2);
+      Area a = new Area(s);
+      a.add(new Area(myShape));
+      return a;
+    }
+    else {
+      return super.getProperty(key);
     }
   }
 
