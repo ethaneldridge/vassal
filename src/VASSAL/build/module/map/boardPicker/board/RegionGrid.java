@@ -20,21 +20,20 @@ package VASSAL.build.module.map.boardPicker.board;
 
 import VASSAL.build.AbstractConfigurable;
 import VASSAL.build.Buildable;
+import VASSAL.build.module.documentation.HelpFile;
 import VASSAL.build.module.map.boardPicker.Board;
 import VASSAL.build.module.map.boardPicker.board.mapgrid.GridNumbering;
-import VASSAL.build.module.documentation.HelpFile;
-import VASSAL.configure.EditPropertiesAction;
 import VASSAL.configure.Configurer;
+import VASSAL.configure.EditPropertiesAction;
 import VASSAL.configure.VisibilityCondition;
 
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
-import java.util.Hashtable;
-import java.util.Vector;
-import java.util.Enumeration;
 import java.io.File;
 import java.net.MalformedURLException;
+import java.util.Enumeration;
+import java.util.Hashtable;
 
 public class RegionGrid extends AbstractConfigurable implements MapGrid {
 
@@ -287,8 +286,9 @@ public class RegionGrid extends AbstractConfigurable implements MapGrid {
     else {
     	checkPoint = doSnap(p);
     }
-    
-    return ((Region) regionList.get(checkPoint)).getName();
+
+    Region region = (Region) regionList.get(checkPoint);
+    return region != null ? region.getName() : null;
 
   }
 
