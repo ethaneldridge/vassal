@@ -25,7 +25,7 @@ import java.util.StringTokenizer;
  * Class for storing release-related information
  */
 public final class Info {
-  public static final String VERSION = "1.3";
+  public static final String VERSION = "1.3b1";
   /** This class should not be instantiated */
   private Info() {
   }
