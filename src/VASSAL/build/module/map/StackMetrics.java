@@ -330,8 +330,8 @@ public class StackMetrics extends AbstractConfigurable {
       Graphics2D g2d = (Graphics2D) g;
       g.setColor(blankColor);
       Shape s = (Shape) p.getProperty(Properties.SHAPE);
-      Rectangle r = p.selectionBounds();
-      AffineTransform t = AffineTransform.getTranslateInstance(x-r.width/2-p.getPosition().x,y-r.height/2-p.getPosition().y);
+      Point pt = p.getPosition();
+      AffineTransform t = AffineTransform.getTranslateInstance(x-zoom*pt.x,y-zoom*pt.y);
       t.scale(zoom,zoom);
       s = t.createTransformedShape(s);
       g2d.fill(s);

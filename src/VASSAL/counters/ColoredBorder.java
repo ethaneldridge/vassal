@@ -45,9 +45,10 @@ public class ColoredBorder implements Highlighter {
         Stroke str = g2d.getStroke();
         g2d.setStroke(new BasicStroke(thickness));
         g2d.setColor(c);
-        AffineTransform temp = AffineTransform.getTranslateInstance(x / zoom - p.getPosition().x, y / zoom - p.getPosition().y);
-        temp.scale(zoom, zoom);
-        g2d.draw(temp.createTransformedShape(s));
+        Point pt = p.getPosition();
+        AffineTransform t = AffineTransform.getTranslateInstance(x-zoom*pt.x, y-zoom*pt.y);
+        t.scale(zoom, zoom);
+        g2d.draw(t.createTransformedShape(s));
         g2d.setStroke(str);
       }
       else {
