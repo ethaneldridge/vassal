@@ -455,8 +455,8 @@ public class DrawPile extends AbstractConfigurable implements Drawable, GameComp
     if (contents != null
       && (count = contents.getPieceCount()) > 0) {
       GamePiece top = contents.topPiece();
-      Rectangle r = top.selectionBounds();
-      r.setLocation(x+(int)(zoom*(r.x-top.getPosition().x)),y+(int)(zoom*(r.y-top.getPosition().y)));
+      Rectangle r = top.getShape().getBounds();
+      r.setLocation(x+(int)(zoom*(r.x)),y+(int)(zoom*(r.y)));
       r.setSize((int) (zoom * r.width), (int) (zoom * r.height));
       count = count > 10 ? 10 : count;
       for (int i = 0; i < count - 1; ++i) {
@@ -508,8 +508,8 @@ public class DrawPile extends AbstractConfigurable implements Drawable, GameComp
     if (contents != null
       && contents.getPieceCount() > 0) {
       GamePiece p = contents.topPiece();
-      r = new Rectangle(p.selectionBounds());
-      r.translate(-p.getPosition().x + pos.x, -p.getPosition().y + pos.y);
+      r = p.getShape().getBounds();
+      r.translate(pos.x,pos.y);
       for (int i = 0, n = Math.min(10,contents.getPieceCount()); i < n; ++i) {
         r.setSize(r.width + 2, r.height + 2);
         r.y -= 2;

@@ -95,6 +95,7 @@ public class Obscurable extends Decorator implements EditablePiece {
           if (s.length() > 1) {
             obscuredToOthersImage = s.substring(1);
             obscuredToOthersView = new BasicPiece(BasicPiece.ID + ";;" + obscuredToOthersImage + ";;");
+            obscuredToMeView.setPosition(new Point());
           }
       }
     }
@@ -129,11 +130,11 @@ public class Obscurable extends Decorator implements EditablePiece {
       return bBoxObscuredToOthers();
     }
     else {
-      return getInner().boundingBox();
+      return piece.boundingBox();
     }
   }
 
-  public Rectangle selectionBounds() {
+  public Shape getShape() {
     if (obscuredToMe()) {
       return bBoxObscuredToMe();
     }
@@ -141,7 +142,7 @@ public class Obscurable extends Decorator implements EditablePiece {
       return bBoxObscuredToOthers();
     }
     else {
-      return getInner().selectionBounds();
+      return piece.getShape();
     }
   }
 
@@ -183,17 +184,6 @@ public class Obscurable extends Decorator implements EditablePiece {
     else if (ID.equals(key)) {
       return obscuredBy;
     }
-    else if (Properties.SHAPE.equals(key)) {
-      if (obscuredToMe()) {
-        return bBoxObscuredToMe();
-      }
-      else if (obscuredToOthers()) {
-        return bBoxObscuredToOthers();
-      }
-      else {
-        return super.getProperty(key);
-      }
-    }
     else {
       return super.getProperty(key);
     }
@@ -207,7 +197,7 @@ public class Obscurable extends Decorator implements EditablePiece {
       drawObscuredToOthers(g, x, y, obs, zoom);
     }
     else {
-      getInner().draw(g, x, y, obs, zoom);
+      piece.draw(g, x, y, obs, zoom);
     }
   }
 
@@ -219,32 +209,33 @@ public class Obscurable extends Decorator implements EditablePiece {
     switch (displayStyle) {
       case BACKGROUND:
         obscuredToMeView.draw(g, x, y, obs, zoom);
-        getInner().draw(g, x, y, obs, zoom * .5);
+        piece.draw(g, x, y, obs, zoom * .5);
         break;
       case INSET:
-        getInner().draw(g, x, y, obs, zoom);
-        obscuredToMeView.draw(g, x - (int) (zoom * getInner().selectionBounds().width / 2
-                                            - .5 * zoom * obscuredToMeView.selectionBounds().width / 2),
-                              y - (int) (zoom * getInner().selectionBounds().height / 2
-                                         - .5 * zoom * obscuredToMeView.selectionBounds().height / 2),
+        piece.draw(g, x, y, obs, zoom);
+        Rectangle bounds = piece.getShape().getBounds();
+        Rectangle obsBounds = obscuredToMeView.getShape().getBounds();
+        obscuredToMeView.draw(g, x - (int) (zoom * bounds.width / 2
+                                            - .5 * zoom * obsBounds.width / 2),
+                              y - (int) (zoom * bounds.height / 2
+                                         - .5 * zoom * obsBounds.height / 2),
                               obs, zoom * 0.5);
         break;
       case PEEK:
         if (peeking && Boolean.TRUE.equals(getProperty(Properties.SELECTED))) {
-          getInner().draw(g, x, y, obs, zoom);
+          piece.draw(g, x, y, obs, zoom);
         }
         else {
           obscuredToMeView.draw(g, x, y, obs, zoom);
         }
         break;
       case IMAGE:
-        getInner().draw(g, x, y, obs, zoom);
+        piece.draw(g, x, y, obs, zoom);
         obscuredToOthersView.draw(g, x, y, obs, zoom);
     }
   }
 
   protected Rectangle bBoxObscuredToMe() {
-    obscuredToMeView.setPosition(getPosition());
     return obscuredToMeView.boundingBox();
   }
 
@@ -253,10 +244,9 @@ public class Obscurable extends Decorator implements EditablePiece {
       case BACKGROUND:
         return bBoxObscuredToMe();
       case IMAGE:
-        obscuredToOthersView.setPosition(getPosition());
-        return getInner().boundingBox().union(obscuredToOthersView.boundingBox());
+        return piece.boundingBox().union(obscuredToOthersView.boundingBox());
       default:
-        return getInner().boundingBox();
+        return piece.boundingBox();
     }
   }
 
@@ -265,10 +255,10 @@ public class Obscurable extends Decorator implements EditablePiece {
       return "?";
     }
     else if (obscuredToOthers()) {
-      return getInner().getName() + "(?)";
+      return piece.getName() + "(?)";
     }
     else {
-      return getInner().getName();
+      return piece.getName();
     }
   }
 

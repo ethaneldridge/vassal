@@ -66,8 +66,8 @@ public class Transparent {
       gg.drawImage(im, 0, 0, obs);
       im = obs.createImage(new FilteredImageSource
         (im2.getSource(), filter));
-      offset = new Point(piece.boundingBox().x - piece.getPosition().x,
-                         piece.boundingBox().y - piece.getPosition().y);
+      offset = new Point(piece.boundingBox().x,
+                         piece.boundingBox().y);
 
     }
     g.drawImage(im,

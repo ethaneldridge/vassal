@@ -61,7 +61,7 @@ public class PlaceDM extends PlaceMarker {
     }
     Command result = null;
     if (getMap() != null
-        && getInner().getName().indexOf("broken") < 0) {
+        && piece.getName().indexOf("broken") < 0) {
       boolean dmExists = false;
       if (getParent() != null) {
         GamePiece outer = Decorator.getOutermost(this);

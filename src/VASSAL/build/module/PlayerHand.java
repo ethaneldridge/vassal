@@ -90,8 +90,8 @@ public class PlayerHand extends PrivateMap {
   public Command placeAt(GamePiece piece, Point pt) {
     Command c = null;
     if (nstacks == 0) {
-      pt = new Point(-piece.boundingBox().x + piece.getPosition().x,
-                     -piece.boundingBox().y + piece.getPosition().y);
+      pt = new Point(-piece.boundingBox().x,
+                     -piece.boundingBox().y);
       c = super.placeAt(piece, pt);
     }
     else if (stack[0] instanceof Stack) {

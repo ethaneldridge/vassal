@@ -89,7 +89,7 @@ public class PieceDefiner extends javax.swing.JPanel implements HelpWindowExtens
         catch (Throwable ex) {
         }
       }
-      piece = ((Decorator) piece).getInner();
+      piece = ((Decorator) piece).piece;
     }
     if (piece == null) {
       inUseModel.insertElementAt(new BasicPiece(), 0);

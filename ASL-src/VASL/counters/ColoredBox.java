@@ -73,18 +73,18 @@ public class ColoredBox extends Decorator implements EditablePiece {
     return null;
   }
 
-  public Rectangle selectionBounds() {
-    Rectangle r = new Rectangle(getPosition(), size);
+  public Shape getShape() {
+    Rectangle r = new Rectangle(new Point(), size);
     r.translate(-r.width / 2, -r.height / 2);
     return r;
   }
 
   public Rectangle boundingBox() {
-    return getInner().boundingBox();
+    return piece.boundingBox();
   }
 
   public String getName() {
-    return getInner().getName();
+    return piece.getName();
   }
 
   public Color getColor() {
@@ -92,7 +92,7 @@ public class ColoredBox extends Decorator implements EditablePiece {
   }
 
   public void draw(Graphics g, int x, int y, Component obs, double zoom) {
-    getInner().draw(g, x, y, obs, zoom);
+    piece.draw(g, x, y, obs, zoom);
     g.setColor(getColor());
     g.fillRect(x - (int) (zoom * size.width) / 2,
                y - (int) (zoom * size.height) / 2,

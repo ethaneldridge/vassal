@@ -131,10 +131,10 @@ public class Embellishment extends Decorator implements EditablePiece {
       if (st.hasMoreTokens()) {
         String second = st.nextToken();
         if (first.length() == 0) {
-          name = getInner().getName() + second;
+          name = piece.getName() + second;
         }
         else {
-          name = first + getInner().getName();
+          name = first + piece.getName();
         }
       }
       else {
@@ -142,7 +142,7 @@ public class Embellishment extends Decorator implements EditablePiece {
       }
     }
     else {
-      name = getInner().getName();
+      name = piece.getName();
     }
     return name;
   }
@@ -191,7 +191,7 @@ public class Embellishment extends Decorator implements EditablePiece {
   }
 
   public void draw(Graphics g, int x, int y, Component obs, double zoom) {
-    getInner().draw(g, x, y, obs, zoom);
+    piece.draw(g, x, y, obs, zoom);
 
     if (value <= 0) {
       return;
@@ -212,7 +212,7 @@ public class Embellishment extends Decorator implements EditablePiece {
     }
     if (drawUnderneathWhenSelected
       && Boolean.TRUE.equals(getProperty(Properties.SELECTED))) {
-      getInner().draw(g, x, y, obs, zoom);
+      piece.draw(g, x, y, obs, zoom);
     }
   }
 
@@ -311,13 +311,13 @@ public class Embellishment extends Decorator implements EditablePiece {
   public Rectangle boundingBox() {
     if (value > 0) {
       Dimension d = getCurrentImageSize();
-      Rectangle r = new Rectangle(getPosition(), d);
+      Rectangle r = new Rectangle(new Point(), d);
       r.translate(xOff - d.width / 2,
                   yOff - d.height / 2);
-      return r.union(getInner().boundingBox());
+      return r.union(piece.boundingBox());
     }
     else {
-      return getInner().boundingBox();
+      return piece.boundingBox();
     }
   }
 
@@ -346,31 +346,18 @@ public class Embellishment extends Decorator implements EditablePiece {
     }
   }
 
-  public Rectangle selectionBounds() {
+  public Shape getShape() {
     if (value > 0) {
+      Shape s = piece.getShape();
       Dimension d = getCurrentImageSize();
-      Rectangle r = new Rectangle(getPosition(), d);
-      r.translate(xOff - d.width / 2,
-                  yOff - d.height / 2);
-      return r.union(getInner().selectionBounds());
-    }
-    else {
-      return getInner().selectionBounds();
-    }
-  }
-
-  public Object getProperty(Object key) {
-    if (Properties.SHAPE.equals(key)) {
-      Shape s = (Shape) getInner().getProperty(key);
-      Dimension d = getCurrentImageSize();
-      Rectangle myShape = new Rectangle(getPosition(),d);
+      Rectangle myShape = new Rectangle(0,0,d.width,d.height);
       myShape.translate(xOff-d.width/2,yOff-d.height/2);
       Area a = new Area(s);
       a.add(new Area(myShape));
       return a;
     }
     else {
-      return super.getProperty(key);
+      return piece.getShape();
     }
   }
 
@@ -407,7 +394,8 @@ public class Embellishment extends Decorator implements EditablePiece {
   public static Embellishment getLayerWithMatchingActivateCommand(GamePiece piece, KeyStroke stroke, boolean active) {
     for (Embellishment layer = (Embellishment) Decorator.getDecorator(piece, Embellishment.class);
          layer != null;
-         layer = (Embellishment) Decorator.getDecorator(layer.getInner(), Embellishment.class)) {
+         layer = (Embellishment) Decorator.getDecorator(layer.piece, Embellishment.class)
+        ) {
       for (int i = 0; i < layer.activateKey.length(); ++i) {
         if (stroke.equals(KeyStroke.getKeyStroke(layer.activateKey.charAt(i), InputEvent.CTRL_MASK))) {
           if (active && layer.isActive()) {

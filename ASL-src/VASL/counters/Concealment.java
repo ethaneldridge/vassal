@@ -178,20 +178,20 @@ public class Concealment extends Decorator implements EditablePiece {
     return c1.getColor().equals(c2.getColor());
   }
 
-  public Rectangle selectionBounds() {
-    return getInner().selectionBounds();
+  public Shape getShape() {
+    return piece.getShape();
   }
 
   public Rectangle boundingBox() {
-    return getInner().boundingBox();
+    return piece.boundingBox();
   }
 
   public String getName() {
-    return getInner().getName();
+    return piece.getName();
   }
 
   public void draw(Graphics g, int x, int y, Component obs, double zoom) {
-    getInner().draw(g, x, y, obs, zoom);
+    piece.draw(g, x, y, obs, zoom);
   }
 
   public String getDescription() {

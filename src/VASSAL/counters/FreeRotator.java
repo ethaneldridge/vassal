@@ -36,6 +36,7 @@ import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
 import java.awt.geom.AffineTransform;
+import java.awt.geom.NoninvertibleTransformException;
 import java.awt.image.FilteredImageSource;
 import java.awt.image.ImageProducer;
 import java.io.File;
@@ -79,7 +80,7 @@ public class FreeRotator extends Decorator implements EditablePiece, MouseListen
   }
 
   public String getName() {
-    return getInner().getName();
+    return piece.getName();
   }
 
   public void setInner(GamePiece p) {
@@ -89,18 +90,19 @@ public class FreeRotator extends Decorator implements EditablePiece, MouseListen
 
   public Rectangle boundingBox() {
     if (getAngle() == 0.0) {
-      return getInner().boundingBox();
+      return piece.boundingBox();
     }
     else {
+      return AffineTransform.getRotateInstance(-Math.PI * getAngle() / 180.0).createTransformedShape(piece.boundingBox()).getBounds();
+/*
       Rectangle r = getRotatedBounds();
       if (r == null) {
-        return getInner().boundingBox();
+        return piece.boundingBox();
       }
       else {
-        r = new Rectangle(r);
-        r.translate(getPosition().x, getPosition().y);
         return r;
       }
+*/
     }
   }
 
@@ -116,8 +118,17 @@ public class FreeRotator extends Decorator implements EditablePiece, MouseListen
     return (Rectangle) bounds.get(new Double(getAngle()));
   }
 
-  public java.awt.Rectangle selectionBounds() {
-    return getAngle() == 0.0 ? getInner().selectionBounds() : boundingBox();
+  public Shape getShape() {
+    if (getAngle() == 0.0) {
+      return piece.getShape();
+    }
+    else {
+      return AffineTransform.getRotateInstance(getAngleInRadians()).createTransformedShape(piece.getShape());
+    }
+  }
+
+  public double getAngleInRadians() {
+    return -Math.PI * getAngle() / 180.0;
   }
 
   public void mySetType(String type) {
@@ -148,16 +159,33 @@ public class FreeRotator extends Decorator implements EditablePiece, MouseListen
 
   public void draw(Graphics g, int x, int y, Component obs, double zoom) {
     if (getAngle() == 0.0) {
-      getInner().draw(g, x, y, obs, zoom);
+      piece.draw(g, x, y, obs, zoom);
     }
-    Image rotated = getRotatedImage(getAngle(), obs);
-    Rectangle r = getRotatedBounds();
-    g.drawImage(rotated,
-                x + (int) (zoom * r.x),
-                y + (int) (zoom * r.y),
-                (int) (zoom * r.width),
-                (int) (zoom * r.height),
-                obs);
+    if (Info.is2dEnabled()) {
+      Graphics2D g2d = (Graphics2D) g;
+      AffineTransform oldT = g2d.getTransform();
+      AffineTransform t = AffineTransform.getRotateInstance(getAngleInRadians(),x,y);
+      oldT.concatenate(t);
+      g2d.setTransform(oldT);
+      piece.draw(g,x,y,obs,zoom);
+      try {
+        oldT.concatenate(t.createInverse());
+        g2d.setTransform(oldT);
+      }
+      catch (NoninvertibleTransformException e) {
+        e.printStackTrace();
+      }
+    }
+    else {
+      Image rotated = getRotatedImage(getAngle(), obs);
+      Rectangle r = getRotatedBounds();
+      g.drawImage(rotated,
+                  x + (int) (zoom * r.x),
+                  y + (int) (zoom * r.y),
+                  (int) (zoom * r.width),
+                  (int) (zoom * r.height),
+                  obs);
+    }
   }
 
   public void draw(Graphics g, Map map) {
@@ -340,16 +368,6 @@ public class FreeRotator extends Decorator implements EditablePiece, MouseListen
     getMap().repaint();
   }
 
-  public Object getProperty(Object key) {
-    if (Properties.SHAPE.equals(key)) {
-      Shape s = AffineTransform.getRotateInstance(-Math.PI * getAngle() / 180.0, getPosition().x, getPosition().y).createTransformedShape(getInner().selectionBounds());
-      return s;
-    }
-    else {
-      return super.getProperty(key);
-    }
-  }
-
   public void mouseMoved(MouseEvent e) {
   }
 
@@ -361,9 +379,7 @@ public class FreeRotator extends Decorator implements EditablePiece, MouseListen
     Image rotated = (Image) images.get(new Double(angle));
     if (rotated == null) {
       RotateFilter filter = new RotateFilter(angle);
-      Rectangle rotatedBounds = getInner().boundingBox();
-      Point innerPos = getInner().getPosition();
-      rotatedBounds.translate(-innerPos.x, -innerPos.y);
+      Rectangle rotatedBounds = piece.boundingBox();
       filter.transformSpace(rotatedBounds);
       ImageProducer producer = new FilteredImageSource
           (unrotated.getImage(obs).getSource(), filter);

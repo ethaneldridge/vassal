@@ -425,11 +425,9 @@ public class Map extends AbstractConfigurable implements GameComponent,
   /**
    * Set the boards for this map.  Each map may contain more than
    * one {@link Board} */
-  public void setBoards(Enumeration boardList) {
+  public synchronized void setBoards(Enumeration boardList) {
     boards.removeAllElements();
-    boards = null;
     System.gc();
-    boards = new Vector();
     while (boardList.hasMoreElements()) {
       boards.addElement(boardList.nextElement());
     }
@@ -479,7 +477,7 @@ public class Map extends AbstractConfigurable implements GameComponent,
   /**
    * @return the size of the map in pixels at 100% zoom, including the edge buffer
    */
-  public Dimension mapSize() {
+  public synchronized Dimension mapSize() {
     Rectangle r = new Rectangle(0, 0);
     for (int i = 0; i < boards.size(); ++i) {
       Board b = (Board) boards.elementAt(i);
@@ -905,17 +903,14 @@ public class Map extends AbstractConfigurable implements GameComponent,
       throw new RuntimeException("Piece is not on this map");
     }
     Rectangle r = p.boundingBox();
-    if (Boolean.TRUE.equals(p.getProperty(Properties.INVISIBLE_TO_ME))) {
-      r = new Rectangle(p.getPosition(), new Dimension(0, 0));
+    Point pos = p.getPosition();
+    r.translate(pos.x,pos.y);
+    if (Boolean.TRUE.equals(p.getProperty(Properties.SELECTED))) {
+      r = r.union(highlighter.boundingBox(p));
     }
-    else {
-      if (Boolean.TRUE.equals(p.getProperty(Properties.SELECTED))) {
-        r = r.union(highlighter.boundingBox(p));
-      }
-      if (p.getParent() != null) {
-        Point pt = getStackMetrics().relativePosition(p.getParent(), p);
-        r.translate(pt.x, pt.y);
-      }
+    if (p.getParent() != null) {
+      Point pt = getStackMetrics().relativePosition(p.getParent(), p);
+      r.translate(pt.x, pt.y);
     }
     return r;
   }
@@ -923,18 +918,16 @@ public class Map extends AbstractConfigurable implements GameComponent,
   /**
    * Returns the selection bounding box of a GamePiece accounting for
    * the offset of a piece within a stack
-   *
+   * @deprecated
    * @see GamePiece#selectionBounds
    */
   public Rectangle selectionBoundsOf(GamePiece p) {
     if (p.getMap() != this) {
       throw new RuntimeException("Piece is not on this map");
     }
-    Rectangle r = p.selectionBounds();
-    if (Boolean.TRUE.equals(p.getProperty(Properties.INVISIBLE_TO_ME))) {
-      r = new Rectangle(p.getPosition(), new Dimension(0, 0));
-    }
-    else if (p.getParent() != null) {
+    Rectangle r = p.getShape().getBounds();
+    r.translate(p.getPosition().x,p.getPosition().y);
+    if (p.getParent() != null) {
       Point pt = getStackMetrics().relativePosition(p.getParent(), p);
       r.translate(pt.x, pt.y);
     }

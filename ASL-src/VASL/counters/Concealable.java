@@ -83,7 +83,7 @@ public class Concealable extends Obscurable implements EditablePiece {
 
   protected void drawObscuredToOthers(Graphics g, int x, int y, Component obs, double zoom) {
     loadImages(obs);
-    getInner().draw(g, x, y, obs, zoom);
+    piece.draw(g, x, y, obs, zoom);
     g.setColor(getColor(nation));
     int size = (int) (zoom * imageSize.width);
     g.fillRect(x - size / 2, y - size / 2, size / 2, size * 2 / 3);
@@ -172,7 +172,7 @@ public class Concealable extends Obscurable implements EditablePiece {
             break;
           }
         }
-        getMap().repaint(getParent().boundingBox());
+        getMap().repaint(getMap().boundingBoxOf(getParent()));
       }
       return outer.getState().equals(state) ? null
           : new ChangePiece(outer.getId(), state, outer.getState());
@@ -197,7 +197,7 @@ public class Concealable extends Obscurable implements EditablePiece {
         c = c.append(p.adjustConcealment());
       }
     }
-    s.getMap().repaint(s.boundingBox());
+    s.getMap().repaint(s.getMap().boundingBoxOf(s));
     return c;
   }
 
@@ -227,11 +227,11 @@ public class Concealable extends Obscurable implements EditablePiece {
   }
 
   public Rectangle boundingBox() {
-    return getInner().boundingBox();
+    return piece.boundingBox();
   }
 
-  public Rectangle selectionBounds() {
-    return getInner().selectionBounds();
+  public Shape getShape() {
+    return piece.getShape();
   }
 
   private void loadImages(Component obs) {
@@ -271,10 +271,10 @@ public class Concealable extends Obscurable implements EditablePiece {
       return "?";
     }
     else if (obscuredToOthers()) {
-      return getInner().getName() + "(?)";
+      return piece.getName() + "(?)";
     }
     else {
-      return getInner().getName();
+      return piece.getName();
     }
   }
 

@@ -44,10 +44,9 @@ public class PieceImage {
 
       // Now the boundingBox should be correct
       Rectangle bbox = piece.boundingBox();
-      Point pos = piece.getPosition();
       im = obs.createImage(bbox.width, bbox.height);
       Graphics g = im.getGraphics();
-      piece.draw(g, pos.x - bbox.x, pos.y - bbox.y, obs, 1.0);
+      piece.draw(g,-bbox.x, -bbox.y, obs, 1.0);
       TransparentFilter f = new TransparentFilter();
       f.setAlpha(0.0, TransparentFilter.getOffscreenEquivalent(obs.getBackground().getRGB(), obs));
       im = obs.createImage(new FilteredImageSource(im.getSource(), f));
@@ -63,7 +62,8 @@ public class PieceImage {
     StringBuffer buf = new StringBuffer();
     for (GamePiece p = piece;
          p instanceof Decorator;
-         p = ((Decorator) p).getInner()) {
+         p = ((Decorator) p).piece
+        ) {
       buf.append(((Decorator) p).myGetState());
     }
     return buf.toString();

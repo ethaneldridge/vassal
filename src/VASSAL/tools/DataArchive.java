@@ -21,6 +21,9 @@ package VASSAL.tools;
 import VASSAL.build.module.documentation.HelpFile;
 
 import java.awt.*;
+import java.awt.image.PixelGrabber;
+import java.awt.image.ImageObserver;
+import java.awt.geom.Area;
 import java.io.*;
 import java.util.Hashtable;
 import java.util.Vector;
@@ -33,10 +36,11 @@ import java.net.URL;
 /**
  * Wrapper around a Zip archive with methods to cache images
  */
-public class DataArchive extends ClassLoader {
+public class DataArchive extends ClassLoader implements ImageObserver {
   protected ZipFile archive = null;
   protected Vector extensions = new Vector();
   private Hashtable imageCache = new Hashtable();
+  private Hashtable imageShapes = new Hashtable();
   protected String[] imageNames;
   public static final String IMAGE_DIR = "images/";
 
@@ -105,8 +109,53 @@ public class DataArchive extends ClassLoader {
     }
   }
 
+  public Shape getImageShape(String imageName) {
+    Shape s = (Shape) imageShapes.get(imageName);
+    if (s == null) {
+      Area a = new Area();
+      try {
+        Image im = getCachedImage(imageName);
+        int width = im.getWidth(this);
+        int height = im.getHeight(this);
+        while (width < 0 || height < 0) {
+          synchronized(this) {
+            wait(100);
+          }
+        }
+        int[] pixels = new int[width * height];
+        PixelGrabber pg = new PixelGrabber(im, 0, 0, width, height, pixels, 0, width);
+        long time = System.currentTimeMillis();
+        pg.grabPixels();
+        System.err.println("Grab "+imageName+" took "+(System.currentTimeMillis()-time));
+        time = System.currentTimeMillis();
+        for (int j = 0; j < height; ++j) {
+          for (int i = 0; i < width; ++i) {
+            if (((pixels[i + j * width] >> 24) & 0xff) > 0) {
+              a.add(new Area(new Rectangle(i, j, 1, 1)));
+            }
+          }
+        }
+        System.err.println("Build shape "+imageName+" took "+(System.currentTimeMillis()-time));
+      }
+      catch (IOException e) {
+      }
+      catch (InterruptedException e) {
+      }
+      s = a;
+      imageShapes.put(imageName,s);
+    }
+    return s;
+  }
+
+  public synchronized boolean imageUpdate(Image img, int infoflags,
+                             int x, int y, int width, int height) {
+    notifyAll();
+    return img.getWidth(null) >= 0 && img.getHeight(null) >= 0;
+  }
+
   public void unCacheImage(String file) {
     imageCache.remove(IMAGE_DIR + file);
+    imageShapes.remove(file);
   }
 
   public static Image getImage(InputStream in) throws IOException {

@@ -81,35 +81,34 @@ public class TextInfo extends Decorator implements EditablePiece {
     return null;
   }
 
-  public Rectangle selectionBounds() {
-    return getInner().selectionBounds();
+  public Shape getShape() {
+    return piece.getShape();
   }
 
   public Rectangle boundingBox() {
-    Rectangle r = getInner().boundingBox();
+    Rectangle r = piece.boundingBox();
     if (infoSize == null) {
       return r;
     }
     else {
       Rectangle infoRec = new Rectangle
-          (getPosition().x + getInfoOffset().x,
-           getPosition().y + getInfoOffset().y,
+          (getInfoOffset().x,getInfoOffset().y,
            infoSize.width, infoSize.height);
       return r.union(infoRec);
     }
   }
 
   private Point getInfoOffset() {
-    return new Point(getInner().selectionBounds().width / 2 + 6,
+    return new Point(piece.getShape().getBounds().width / 2 + 6,
                      -infoSize.height / 2);
   }
 
   public String getName() {
-    return getInner().getName();
+    return piece.getName();
   }
 
   public void draw(Graphics g, int x, int y, Component obs, double zoom) {
-    getInner().draw(g, x, y, obs, zoom);
+    piece.draw(g, x, y, obs, zoom);
     if (showInfo) {
       if (infoSize == null) {
         g.setFont(font);

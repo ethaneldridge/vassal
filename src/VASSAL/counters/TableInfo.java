@@ -77,19 +77,19 @@ public class TableInfo extends Decorator implements EditablePiece {
   }
 
   public void draw(java.awt.Graphics g, int x, int y, java.awt.Component obs, double zoom) {
-    getInner().draw(g, x, y, obs, zoom);
+    piece.draw(g, x, y, obs, zoom);
   }
 
   public String getName() {
-    return getInner().getName();
+    return piece.getName();
   }
 
   public java.awt.Rectangle boundingBox() {
-    return getInner().boundingBox();
+    return piece.boundingBox();
   }
 
-  public java.awt.Rectangle selectionBounds() {
-    return getInner().selectionBounds();
+  public Shape getShape() {
+    return piece.getShape();
   }
 
   public String myGetState() {

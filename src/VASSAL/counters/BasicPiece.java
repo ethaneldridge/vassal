@@ -30,6 +30,8 @@ import VASSAL.tools.SequenceEncoder;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.geom.AffineTransform;
+import java.awt.geom.Rectangle2D;
 import java.awt.event.InputEvent;
 import java.awt.event.MouseEvent;
 import java.io.File;
@@ -111,9 +113,6 @@ public class BasicPiece implements EditablePiece {
   public Object getProperty(Object key) {
     if (Properties.KEY_COMMANDS.equals(key)) {
       return getKeyCommands();
-    }
-    else if (Properties.SHAPE.equals(key)) {
-      return selectionBounds();
     }
     return props == null ? null : props.get(key);
   }
@@ -246,12 +245,12 @@ public class BasicPiece implements EditablePiece {
   }
 
   public Rectangle boundingBox() {
-    return selectionBounds();
+    return getShape().getBounds();
   }
 
-  public Rectangle selectionBounds() {
+  public Shape getShape() {
     Dimension d = imageSize.width < 0 ? new Dimension(0, 0) : imageSize;
-    Rectangle r = new Rectangle(getPosition(), d);
+    Rectangle r = new Rectangle(new Point(), d);
     r.translate(-r.width / 2, -r.height / 2);
     return r;
   }

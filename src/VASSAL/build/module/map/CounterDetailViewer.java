@@ -109,15 +109,15 @@ public class CounterDetailViewer
       while (pi.hasMoreElements()) {
         GamePiece piece = pi.nextPiece();
         v.addElement(piece);
-        bounds.width += piece.selectionBounds().width;
-        bounds.height = Math.max(bounds.height, piece.selectionBounds().height);
+        Rectangle pieceBounds = piece.getShape().getBounds();
+        bounds.width += pieceBounds.width;
+        bounds.height = Math.max(bounds.height, pieceBounds.height);
       }
       if (bounds.width > 0) {
         Rectangle r = comp.getVisibleRect();
         bounds.x = Math.min(bounds.x, r.x + r.width - bounds.width);
         bounds.y = Math.min(bounds.y, r.y + r.height - bounds.height);
         Color outline = map.getHighlighter() instanceof ColoredBorder ? ((ColoredBorder) map.getHighlighter()).getColor() : Color.black;
-        ;
         Color background = new Color(255 - outline.getRed(), 255 - outline.getGreen(), 255 - outline.getBlue());
         g.setColor(background);
         g.fillRect(bounds.x - 1, bounds.y - 1, bounds.width + 2, bounds.height + 2);
@@ -129,10 +129,11 @@ public class CounterDetailViewer
           // Draw the next piece
           // pt is the location of the left edge of the piece
           GamePiece piece = pi.nextPiece();
-          piece.draw(g, bounds.x + piece.getPosition().x - piece.selectionBounds().x,
-                     bounds.y + piece.getPosition().y - piece.selectionBounds().y, comp, 1.0);
+          Rectangle pieceBounds = piece.getShape().getBounds();
+          piece.draw(g, bounds.x + piece.getPosition().x - pieceBounds.x,
+                     bounds.y + piece.getPosition().y - pieceBounds.y, comp, 1.0);
 
-          bounds.translate(piece.selectionBounds().width, 0);
+          bounds.translate(pieceBounds.width, 0);
         }
       }
     }

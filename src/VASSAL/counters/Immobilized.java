@@ -59,7 +59,7 @@ public class Immobilized extends Decorator implements EditablePiece {
   }
 
   public String getName() {
-    return getInner().getName();
+    return piece.getName();
   }
 
   public KeyCommand[] myGetKeyCommands() {
@@ -86,15 +86,15 @@ public class Immobilized extends Decorator implements EditablePiece {
   }
 
   public void draw(Graphics g, int x, int y, Component obs, double zoom) {
-    getInner().draw(g, x, y, obs, zoom);
+    piece.draw(g, x, y, obs, zoom);
   }
 
   public Rectangle boundingBox() {
-    return getInner().boundingBox();
+    return piece.boundingBox();
   }
 
-  public Rectangle selectionBounds() {
-    return getInner().selectionBounds();
+  public Shape getShape() {
+    return piece.getShape();
   }
 
   public String myGetType() {

@@ -105,26 +105,26 @@ public class MarkMoved extends Decorator implements EditablePiece {
     }
   }
 
-  public Rectangle selectionBounds() {
-    return getInner().selectionBounds();
+  public Shape getShape() {
+    return piece.getShape();
   }
 
   public Rectangle boundingBox() {
-    Rectangle r = getInner().boundingBox();
-    Rectangle r2 = getInner().selectionBounds();
+    Rectangle r = piece.boundingBox();
+    Rectangle r2 = piece.getShape().getBounds();
     r2.width += 20;
     return r.union(r2);
   }
 
   public String getName() {
-    return getInner().getName();
+    return piece.getName();
   }
 
   public void draw(Graphics g, int x, int y, Component obs, double zoom) {
-    getInner().draw(g, x, y, obs, zoom);
+    piece.draw(g, x, y, obs, zoom);
     if (hasMoved) {
-      Rectangle r = getInner().selectionBounds();
-      Point p = getInner().getPosition();
+      Rectangle r = piece.getShape().getBounds();
+      Point p = piece.getPosition();
       try {
         Image im =
             GameModule.getGameModule().getDataArchive().getCachedImage(markImage + ".gif");

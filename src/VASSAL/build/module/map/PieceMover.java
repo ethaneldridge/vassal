@@ -407,7 +407,7 @@ public class PieceMover extends AbstractBuildable implements
       if (piece instanceof Stack) {
         Stack s = (Stack) piece;
         if (s.isExpanded()) {
-          Rectangle[] bounds = new Rectangle[s.getPieceCount()];
+          Shape[] bounds = new Shape[s.getPieceCount()];
           map.getStackMetrics().getContents(s, null, bounds, null, s.getPosition().x, s.getPosition().y);
           for (Enumeration e = s.getPiecesInVisibleOrder();
                e.hasMoreElements();) {

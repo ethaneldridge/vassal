@@ -55,15 +55,15 @@ public class ReportState extends Decorator implements EditablePiece {
   }
 
   public Rectangle boundingBox() {
-    return getInner().boundingBox();
+    return piece.boundingBox();
   }
 
   public void draw(Graphics g, int x, int y, Component obs, double zoom) {
-    getInner().draw(g, x, y, obs, zoom);
+    piece.draw(g, x, y, obs, zoom);
   }
 
   public String getName() {
-    return getInner().getName();
+    return piece.getName();
   }
 
   protected KeyCommand[] myGetKeyCommands() {
@@ -108,8 +108,8 @@ public class ReportState extends Decorator implements EditablePiece {
   public void mySetState(String newState) {
   }
 
-  public Rectangle selectionBounds() {
-    return getInner().selectionBounds();
+  public Shape getShape() {
+    return piece.getShape();
   }
 
   public String getDescription() {

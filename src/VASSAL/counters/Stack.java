@@ -25,6 +25,8 @@ import VASSAL.command.Command;
 import VASSAL.tools.SequenceEncoder;
 
 import java.awt.*;
+import java.awt.geom.Area;
+import java.awt.geom.AffineTransform;
 import java.util.Enumeration;
 import java.util.Vector;
 
@@ -246,17 +248,17 @@ public class Stack implements GamePiece {
     return r;
   }
 
-  public Rectangle selectionBounds() {
+  public Shape getShape() {
     Point pt = getPosition();
-    Rectangle r = new Rectangle(pt, new Dimension(0, 0));
-    Rectangle[] childBounds = new Rectangle[getPieceCount()];
-    getMap().getStackMetrics().getContents(this, null, childBounds, null, pt.x, pt.y);
+    Area a = new Area();
+    Shape[] childBounds = new Shape[getPieceCount()];
+    getMap().getStackMetrics().getContents(this, null, childBounds, null, 0, 0);
     for (PieceIterator e = PieceIterator.visible(getPieces());
          e.hasMoreElements();) {
       GamePiece p = e.nextPiece();
-      r = r.union(childBounds[indexOf(p)]);
+      a.add(new Area(childBounds[indexOf(p)]));
     }
-    return r;
+    return AffineTransform.getTranslateInstance(pt.x,pt.y).createTransformedShape(a);
   }
 
   public void selectNext(GamePiece c) {

@@ -36,13 +36,13 @@ public class ASLHighlighter extends ColoredBorder {
     if (p.getMap() != null
         && GlobalOptions.getInstance().autoReportEnabled()
         && p.getMap().locationName(p.getPosition()) != null) {
-      Rectangle r = p.selectionBounds();
+      Rectangle r = p.getShape().getBounds();
       Point pos = p.getPosition();
       if (p.getParent() != null) {
         Point rel = p.getMap().getStackMetrics().relativePosition(p.getParent(), p);
         x -= (int) (zoom * (rel.x));
         y -= (int) (zoom * (rel.y));
-        r = p.getParent().bottomPiece().selectionBounds();
+        r = p.getParent().bottomPiece().getShape().getBounds();
         pos = p.getParent().bottomPiece().getPosition();
       }
       y += (int) (zoom * (r.y + r.height - pos.y + 6));

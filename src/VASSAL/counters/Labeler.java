@@ -129,10 +129,10 @@ public class Labeler extends Decorator implements EditablePiece {
 
   public String getName() {
     if (label.length() == 0) {
-      return getInner().getName();
+      return piece.getName();
     }
     else {
-      return getInner().getName() + " (" + label + ")";
+      return piece.getName() + " (" + label + ")";
     }
   }
 
@@ -178,7 +178,7 @@ public class Labeler extends Decorator implements EditablePiece {
     if (labelImage == null && label != null && label.length() > 0) {
       labelImage = createImage(obs);
     }
-    getInner().draw(g, x, y, obs, zoom);
+    piece.draw(g, x, y, obs, zoom);
 
     if (labelImage != null) {
       Point p = getLabelPosition();
@@ -197,8 +197,8 @@ public class Labeler extends Decorator implements EditablePiece {
     int x = horizontalOffset;
     int y = verticalOffset;
 
-    Rectangle selBnds = getInner().selectionBounds();
-    Point innerPos = getInner().getPosition();
+    Rectangle selBnds = piece.getShape().getBounds();
+    Point innerPos = piece.getPosition();
     switch (verticalPos) {
       case 't':
         y += selBnds.y - innerPos.y;
@@ -267,17 +267,15 @@ public class Labeler extends Decorator implements EditablePiece {
   }
 
   public Rectangle boundingBox() {
-    Rectangle r = getInner().boundingBox();
-    Rectangle r2 = getInner().selectionBounds();
-    Point p = getPosition();
+    Rectangle r = piece.boundingBox();
+    Rectangle r2 = piece.getShape().getBounds();
     Point p2 = getLabelPosition();
-    p2.translate(p.x, p.y);
     Rectangle r3 = new Rectangle(p2, lbl.getSize());
     return r.union(r2).union(r3);
   }
 
-  public Rectangle selectionBounds() {
-    return getInner().selectionBounds();
+  public Shape getShape() {
+    return piece.getShape();
   }
 
   public KeyCommand[] myGetKeyCommands() {

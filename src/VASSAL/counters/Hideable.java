@@ -13,7 +13,7 @@
  * Library General Public License for more details.
  *
  * You should have received a copy of the GNU Library General Public
- * License along with this library; if not, copies are available 
+ * License along with this library; if not, copies are available
  * at http://www.opensource.org.
  */
 package VASSAL.counters;
@@ -24,9 +24,11 @@ import VASSAL.command.Command;
 import VASSAL.command.ChangeTracker;
 import VASSAL.configure.ColorConfigurer;
 import VASSAL.tools.SequenceEncoder;
+import VASSAL.Info;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.geom.AffineTransform;
 import java.awt.event.InputEvent;
 import java.io.File;
 import java.net.MalformedURLException;
@@ -63,10 +65,6 @@ public class Hideable extends Decorator implements EditablePiece {
     }
     else if (Properties.INVISIBLE_TO_OTHERS.equals(key)) {
       return new Boolean(invisibleToOthers());
-    }
-    else if (Properties.SHAPE.equals(key)
-      && invisibleToMe()) {
-      return new Rectangle(getPosition(),new Dimension(0,0));
     }
     else {
       return super.getProperty(key);
@@ -113,9 +111,9 @@ public class Hideable extends Decorator implements EditablePiece {
 
   public String myGetType() {
     return command == null ?
-      ID + hideKey
-      : ID + hideKey + ';' + command
-      + (bgColor == null ? ";" : ';' + ColorConfigurer.colorToString(bgColor));
+        ID + hideKey
+        : ID + hideKey + ';' + command
+        + (bgColor == null ? ";" : ';' + ColorConfigurer.colorToString(bgColor));
   }
 
   public String myGetState() {
@@ -124,29 +122,29 @@ public class Hideable extends Decorator implements EditablePiece {
 
   private boolean invisibleToMe() {
     return hiddenBy != null
-      && !hiddenBy.equals(GameModule.getUserId());
+        && !hiddenBy.equals(GameModule.getUserId());
   }
 
   private boolean invisibleToOthers() {
     return hiddenBy != null
-      && hiddenBy.equals(GameModule.getUserId());
+        && hiddenBy.equals(GameModule.getUserId());
   }
 
-  public Rectangle selectionBounds() {
+  public Shape getShape() {
     if (invisibleToMe()) {
-      return new Rectangle(getPosition(), new Dimension(0,0));
+      return new Rectangle();
     }
     else {
-      return getInner().selectionBounds();
+      return piece.getShape();
     }
   }
 
   public Rectangle boundingBox() {
     if (invisibleToMe()) {
-      return new Rectangle(getPosition().x, getPosition().y, 0, 0);
+      return new Rectangle();
     }
     else {
-      return getInner().boundingBox();
+      return piece.boundingBox();
     }
   }
 
@@ -156,18 +154,26 @@ public class Hideable extends Decorator implements EditablePiece {
     }
     else if (invisibleToOthers()) {
       if (bgColor != null) {
-        Rectangle r = getInner().selectionBounds();
-        r.translate(-getInner().getPosition().x, -getInner().getPosition().y);
-        g.setColor(bgColor);
-        g.fillRect(x + (int) (zoom * r.x),
-                   y + (int) (zoom * r.y),
-                   (int) (zoom * r.width),
-                   (int) (zoom * r.height));
+        if (Info.is2dEnabled()) {
+          Graphics2D g2d = (Graphics2D) g;
+          g.setColor(bgColor);
+          AffineTransform t = AffineTransform.getScaleInstance(zoom, zoom);
+          t.translate(x/zoom, y/zoom);
+          g2d.fill(t.createTransformedShape(piece.getShape()));
+        }
+        else {
+          Rectangle r = (Rectangle) piece.getShape();
+          g.setColor(bgColor);
+          g.fillRect(x + (int) (zoom * r.x),
+                     y + (int) (zoom * r.y),
+                     (int) (zoom * r.width),
+                     (int) (zoom * r.height));
+        }
       }
       trans.draw(g, x, y, obs, zoom);
     }
     else {
-      getInner().draw(g, x, y, obs, zoom);
+      piece.draw(g, x, y, obs, zoom);
     }
   }
 
@@ -176,10 +182,10 @@ public class Hideable extends Decorator implements EditablePiece {
       return "";
     }
     else if (invisibleToOthers()) {
-      return getInner().getName() + "(" + command + ")";
+      return piece.getName() + "(" + command + ")";
     }
     else {
-      return getInner().getName();
+      return piece.getName();
     }
   }
 
@@ -261,7 +267,7 @@ public class Hideable extends Decorator implements EditablePiece {
 
     public String getType() {
       return ID + hideKeyInput.getKey() + ";" + hideCommandInput.getText()
-        + (colorConfig.getValue() == null ? "" : ";" + colorConfig.getValueString());
+          + (colorConfig.getValue() == null ? "" : ";" + colorConfig.getValueString());
     }
 
     public Component getControls() {

@@ -40,20 +40,14 @@ public class ColoredBorder implements Highlighter {
     if (Info.is2dEnabled()
         && g instanceof Graphics2D) {
       Graphics2D g2d = (Graphics2D) g;
-      Shape s = (Shape) p.getProperty(Properties.SHAPE);
-      if (s != null) {
-        Stroke str = g2d.getStroke();
-        g2d.setStroke(new BasicStroke(thickness));
-        g2d.setColor(c);
-        Point pt = p.getPosition();
-        AffineTransform t = AffineTransform.getTranslateInstance(x-zoom*pt.x, y-zoom*pt.y);
-        t.scale(zoom, zoom);
-        g2d.draw(t.createTransformedShape(s));
-        g2d.setStroke(str);
-      }
-      else {
-        highlightSelectionBounds(p, g, x, y, obs, zoom);
-      }
+      Shape s = p.getShape();
+      Stroke str = g2d.getStroke();
+      g2d.setStroke(new BasicStroke(thickness));
+      g2d.setColor(c);
+      AffineTransform t = AffineTransform.getScaleInstance(zoom,zoom);
+      t.translate(x/zoom,y/zoom);
+      g2d.draw(t.createTransformedShape(s));
+      g2d.setStroke(str);
     }
     else {
       highlightSelectionBounds(p, g, x, y, obs, zoom);
@@ -61,8 +55,7 @@ public class ColoredBorder implements Highlighter {
   }
 
   private void highlightSelectionBounds(GamePiece p, Graphics g, int x, int y, Component obs, double zoom) {
-    Rectangle r = p.selectionBounds();
-    r.translate(-p.getPosition().x, -p.getPosition().y);
+    Rectangle r = p.getShape().getBounds();
     g.setColor(c);
     for (int i = 1; i < thickness; ++i)
       g.drawRect(x + (int) (zoom * r.x) - i,
@@ -72,7 +65,7 @@ public class ColoredBorder implements Highlighter {
   }
 
   public java.awt.Rectangle boundingBox(GamePiece p) {
-    Rectangle r = p.selectionBounds();
+    Rectangle r = p.getShape().getBounds();
     r.translate(-thickness, -thickness);
     r.setSize(r.width + 2 * thickness, r.height + 2 * thickness);
     return r;

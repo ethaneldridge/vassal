@@ -61,7 +61,7 @@ public class Turreted extends Embellishment implements EditablePiece {
     offsets();
     super.draw(g, x, y, obs, zoom);
     if (Boolean.TRUE.equals(getProperty(Properties.SELECTED))) {
-      getInner().draw(g, x, y, obs, zoom);
+      piece.draw(g, x, y, obs, zoom);
     }
   }
 
@@ -70,8 +70,8 @@ public class Turreted extends Embellishment implements EditablePiece {
     return super.boundingBox();
   }
 
-  public Rectangle selectionBounds() {
-    return getInner().selectionBounds();
+  public Shape getShape() {
+    return piece.getShape();
   }
 
   private void offsets() {
@@ -123,8 +123,7 @@ public class Turreted extends Embellishment implements EditablePiece {
   }
 
   protected int getVehicleCA() {
-    for (GamePiece p = getInner(); p instanceof Decorator;
-         p = ((Decorator) p).getInner()) {
+    for (GamePiece p = piece;p instanceof Decorator;p = ((Decorator) p).getInner()) {
       if (p instanceof Embellishment
           && p.getType().indexOf("Rotate") >= 0) {
         return ((Embellishment) p).getValue() + 1;
@@ -174,7 +173,7 @@ public class Turreted extends Embellishment implements EditablePiece {
       return super.getName();
     }
     else {
-      return getInner().getName();
+      return piece.getName();
     }
   }
 

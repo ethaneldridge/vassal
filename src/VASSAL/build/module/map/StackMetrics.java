@@ -214,7 +214,7 @@ public class StackMetrics extends AbstractConfigurable {
    * Different instances of StackMetrics may render a {@link Stack}
    * in different ways.  The default algorithm is: If not expanded,
    * all but the top visible GamePiece is drawn as a white square
-   * with size given by {@link GamePiece#selectionBounds}.  The
+   * with size given by {@link GamePiece#getShape}.  The
    * separation between GamePieces is given by {@link
    * #relativePosition}
    *
@@ -329,10 +329,9 @@ public class StackMetrics extends AbstractConfigurable {
     else if (Info.is2dEnabled()) {
       Graphics2D g2d = (Graphics2D) g;
       g.setColor(blankColor);
-      Shape s = (Shape) p.getProperty(Properties.SHAPE);
-      Point pt = p.getPosition();
-      AffineTransform t = AffineTransform.getTranslateInstance(x-zoom*pt.x,y-zoom*pt.y);
-      t.scale(zoom,zoom);
+      Shape s = p.getShape();
+      AffineTransform t = AffineTransform.getScaleInstance(zoom,zoom);
+      t.translate(x/zoom,y/zoom);
       s = t.createTransformedShape(s);
       g2d.fill(s);
       g.setColor(Color.black);
@@ -340,7 +339,7 @@ public class StackMetrics extends AbstractConfigurable {
     }
     else {
       g.setColor(blankColor);
-      Rectangle r = p.selectionBounds();
+      Rectangle r = p.getShape().getBounds();
       r.setSize((int) (zoom * r.width), (int) (zoom * r.height));
       r.setLocation(x - r.width / 2, y - r.height / 2);
       g.fillRect(r.x, r.y, r.width, r.height);
@@ -349,24 +348,20 @@ public class StackMetrics extends AbstractConfigurable {
     }
   }
 
-  public int getContents(Stack parent, Point[] positions, Rectangle[] selectionBounds, Rectangle[] boundingBoxes, int x, int y) {
-    return getContents(parent,positions,selectionBounds,null,boundingBoxes,x,y);
-  }
   /**
    * Fill the argument arrays with the positions, selection bounds and bounding boxes of the pieces in the argument stack
    * @param parent The parent Stack
-   * @param positions If non-null will contain a {@link Point} giving the position of each piece in <code>parent</code>, where (0,0) is the position of the parent
-   * @param selectionBounds If non-null will contain a {@link Rectangle} giving the selection bounds for each piece in <code>parent</code>, where (0,0) is the position of the parent
-   * @param boundingBoxes If non-null will contain a {@link Rectangle} giving the bounding box for each piece in <code>parent</code>, where (0,0) is the position of the parent
+   * @param positions If non-null will contain a {@link Point} giving the position of each piece in <code>parent</code>
+   * @param shapes If non-null will contain a {@link Shape} giving the shape of for each piece in <code>parent</code>
+   * @param boundingBoxes If non-null will contain a {@link Rectangle} giving the bounding box for each piece in <code>parent</code>
+   * @param x the x-location of the parent
+   * @param y the y-location of the parent
    * @return the number of pieces processed in the stack
    */
-  public int getContents(Stack parent, Point[] positions, Rectangle[] selectionBounds, Shape[] shapes, Rectangle[] boundingBoxes, int x, int y) {
+  public int getContents(Stack parent, Point[] positions, Shape[] shapes, Rectangle[] boundingBoxes, int x, int y) {
     int count = parent.getPieceCount();
     if (positions != null) {
       count = Math.min(count, positions.length);
-    }
-    if (selectionBounds != null) {
-      count = Math.min(count, selectionBounds.length);
     }
     if (boundingBoxes != null) {
       count = Math.min(count, boundingBoxes.length);
@@ -385,9 +380,6 @@ public class StackMetrics extends AbstractConfigurable {
         if (positions != null) {
           positions[index] = blank.getLocation();
         }
-        if (selectionBounds != null) {
-          selectionBounds[index] = blank;
-        }
         if (boundingBoxes != null) {
           boundingBoxes[index] = blank;
         }
@@ -396,11 +388,11 @@ public class StackMetrics extends AbstractConfigurable {
         }
       }
       else {
-        nextSelBounds = child.selectionBounds();
-        nextPos = child.getPosition();
+        nextSelBounds = child.getShape().getBounds();
+        nextPos = new Point(0,0);
         if (currentPos == null) {
           currentSelBounds = nextSelBounds;
-          currentSelBounds.translate(x - nextPos.x, y - nextPos.y);
+          currentSelBounds.translate(x, y);
           currentPos = new Point(x, y);
           nextPos = currentPos;
         }
@@ -410,21 +402,15 @@ public class StackMetrics extends AbstractConfigurable {
         if (positions != null) {
           positions[index] = nextPos;
         }
-        if (selectionBounds != null) {
-          selectionBounds[index] = nextSelBounds;
-        }
         if (boundingBoxes != null) {
           Rectangle bbox = child.boundingBox();
-          Point pos = child.getPosition();
-          bbox.translate(nextPos.x - pos.x, nextPos.y - pos.y);
+          bbox.translate(nextPos.x, nextPos.y);
           boundingBoxes[index] = bbox;
         }
         if (shapes != null) {
-          Shape s = (Shape) child.getProperty(Properties.SHAPE);
-          if (s != null) {
-            s = AffineTransform.getTranslateInstance(nextPos.x-child.getPosition().x,nextPos.y-child.getPosition().y).createTransformedShape(s);
-            shapes[index] = s;
-          }
+          Shape s = child.getShape();
+          s = AffineTransform.getTranslateInstance(nextPos.x,nextPos.y).createTransformedShape(s);
+          shapes[index] = s;
         }
         currentPos = nextPos;
         currentSelBounds = nextSelBounds;
