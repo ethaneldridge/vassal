@@ -86,4 +86,8 @@ public class PropertiesEncoder {
   public String getStringValue() {
     return stringValue;
   }
+
+  public String toString() {
+    return stringValue;
+  }
 }

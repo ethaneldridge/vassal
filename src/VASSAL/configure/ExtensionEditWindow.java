@@ -58,7 +58,12 @@ public class ExtensionEditWindow extends VASSAL.configure.ModuleEditWindow {
     ValidationReport report = new ValidationReport();
     GameModule.getGameModule().validate(GameModule.getGameModule(),report);
     if (report.getWarnings().size() == 0) {
-      GameModule.getGameModule().save();
+      try {
+        extension.save();
+      }
+      catch (IOException e) {
+        JOptionPane.showMessageDialog(ExtensionEditWindow.this,e.getMessage(),"Save Failed",JOptionPane.ERROR_MESSAGE);
+      }
     }
     else {
       new ValidationReportDialog(report, new ValidationReportDialog.CallBack() {
@@ -81,7 +86,12 @@ public class ExtensionEditWindow extends VASSAL.configure.ModuleEditWindow {
     ValidationReport report = new ValidationReport();
     GameModule.getGameModule().validate(GameModule.getGameModule(),report);
     if (report.getWarnings().size() == 0) {
-      GameModule.getGameModule().saveAs();
+      try {
+        extension.save();
+      }
+      catch (IOException e) {
+        JOptionPane.showMessageDialog(ExtensionEditWindow.this,e.getMessage(),"Save Failed",JOptionPane.ERROR_MESSAGE);
+      }
     }
     else {
       new ValidationReportDialog(report, new ValidationReportDialog.CallBack() {

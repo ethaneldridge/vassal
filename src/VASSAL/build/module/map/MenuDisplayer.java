@@ -19,20 +19,19 @@
 package VASSAL.build.module.map;
 
 import VASSAL.build.Buildable;
-import VASSAL.build.IllegalBuildException;
 import VASSAL.build.module.Map;
 import VASSAL.counters.*;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
 import javax.swing.*;
+import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.awt.*;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
-import java.util.HashMap;
 
 public class MenuDisplayer extends MouseAdapter implements Buildable {
   public static Font POPUP_MENU_FONT = new Font("Dialog", 0, 10);
