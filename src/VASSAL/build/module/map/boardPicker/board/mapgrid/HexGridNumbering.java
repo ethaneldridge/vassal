@@ -32,6 +32,7 @@ import VASSAL.counters.Labeler;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.*;
 
 public class HexGridNumbering extends RegularGridNumbering {
   private HexGrid grid;
@@ -140,8 +141,8 @@ public class HexGridNumbering extends RegularGridNumbering {
         // Convert from map co-ordinates to board co-ordinates
         gridp.translate(-bounds.x, -bounds.y);
         grid.rotateIfSideways(gridp);
-        gridp.x = (int) Math.round(gridp.x/scale);
-        gridp.y = (int) Math.round(gridp.y/scale);
+        gridp.x = (int) Math.round(gridp.x / scale);
+        gridp.y = (int) Math.round(gridp.y / scale);
         if (reversed) {
           gridp.x = bounds.width - gridp.x;
           gridp.y = bounds.height - gridp.y;
@@ -161,8 +162,8 @@ public class HexGridNumbering extends RegularGridNumbering {
         // Convert from map co-ordinates to board co-ordinates
         gridp.translate(-bounds.x, -bounds.y);
         grid.rotateIfSideways(gridp);
-        gridp.x = (int) Math.round(gridp.x/scale);
-        gridp.y = (int) Math.round(gridp.y/scale);
+        gridp.x = (int) Math.round(gridp.x / scale);
+        gridp.y = (int) Math.round(gridp.y / scale);
         if (reversed) {
           gridp.x = bounds.width - gridp.x;
           gridp.y = bounds.height - gridp.y;
@@ -269,7 +270,7 @@ public class HexGridNumbering extends RegularGridNumbering {
       ny = (int) Math.round((p.y - origin.y) / dy);
     }
     else {
-      ny = (int) Math.round((p.y - origin.y - dy/2) / dy);
+      ny = (int) Math.round((p.y - origin.y - dy / 2) / dy);
     }
     return ny;
   }
@@ -284,6 +285,78 @@ public class HexGridNumbering extends RegularGridNumbering {
 
   protected int getMaxColumns() {
     return (int) Math.floor(grid.getBoard().bounds().width / grid.getHexSize() + 0.5);
+  }
+
+  public static void main(String[] args) {
+    class TestPanel extends JPanel {
+      private boolean reversed;
+      private double scale = 1.0;
+      private HexGrid grid;
+      private HexGridNumbering numbering;
+
+      private TestPanel() {
+        setLayout(new BorderLayout());
+        Box b = Box.createHorizontalBox();
+        final JTextField tf = new JTextField("1.0");
+        b.add(tf);
+        tf.addKeyListener(new KeyAdapter() {
+          public void keyReleased(KeyEvent e) {
+            try {
+              scale = Double.parseDouble(tf.getText());
+              repaint();
+            }
+            catch (NumberFormatException e1) {
+              e1.printStackTrace();
+            }
+          }
+        });
+        final JCheckBox reverseBox = new JCheckBox("Reversed");
+        reverseBox.addItemListener(new ItemListener() {
+          public void itemStateChanged(ItemEvent e) {
+            reversed = reverseBox.isSelected();
+            repaint();
+          }
+        });
+        b.add(reverseBox);
+        final JCheckBox sidewaysBox = new JCheckBox("Sideways");
+        sidewaysBox.addItemListener(new ItemListener() {
+          public void itemStateChanged(ItemEvent e) {
+            grid.setAttribute(HexGrid.SIDEWAYS, sidewaysBox.isSelected() ? Boolean.TRUE : Boolean.FALSE);
+            repaint();
+          }
+        });
+        b.add(sidewaysBox);
+        add(BorderLayout.NORTH, b);
+        grid = new HexGrid();
+        grid.setAttribute(HexGrid.COLOR, Color.black);
+        numbering = new HexGridNumbering();
+        numbering.setAttribute(HexGridNumbering.COLOR, Color.black);
+        numbering.addTo(grid);
+        JPanel p = new JPanel() {
+          public void paint(Graphics g) {
+            Rectangle r = new Rectangle(0,0,getWidth(),getHeight());
+            g.clearRect(r.x,r.y,r.width,r.height);
+            grid.draw(g, r, getVisibleRect(), scale, reversed);
+            numbering.draw(g, getBounds(), getVisibleRect(), scale, reversed);
+          }
+        };
+        Dimension d = new Dimension(4000,4000);
+        p.setPreferredSize(d);
+        add(BorderLayout.CENTER, new JScrollPane(p));
+      }
+    }
+    JFrame f = new JFrame();
+    f.getContentPane().add(new TestPanel());
+    Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
+    screenSize.height -= 100;
+    screenSize.width -= 100;
+    f.setSize(screenSize);
+    f.setVisible(true);
+    f.addWindowListener(new WindowAdapter() {
+      public void windowClosing(WindowEvent e) {
+        System.exit(0);
+      }
+    });
   }
 
 }
