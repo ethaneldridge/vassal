@@ -635,13 +635,13 @@ public class DrawPile extends SetupStack implements Drawable, MouseListener {
       ChangeTracker tracker = new ChangeTracker(p);
       p.setProperty(Obscurable.ID, HIDDEN_TO_ALL);
       contents.add(p);
-      comm = contentsTracker.getChangeCommand().append(tracker.getChangeCommand());
+      comm = tracker.getChangeCommand().append(contentsTracker.getChangeCommand());
     }
     else if (NEVER.equals(faceDownOption)) {
       ChangeTracker tracker = new ChangeTracker(p);
       p.setProperty(Obscurable.ID, null);
       contents.add(p);
-      comm = contentsTracker.getChangeCommand().append(tracker.getChangeCommand());
+      comm = tracker.getChangeCommand().append(contentsTracker.getChangeCommand());
     }
     else {
       contents.add(p);

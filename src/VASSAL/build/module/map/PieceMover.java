@@ -264,7 +264,7 @@ public class PieceMover extends AbstractBuildable implements
       GamePiece next = it.nextPiece();
       GameModule.setUserId("yendoR117");  // Don't report my hidden or concealed units
       //if (next.getMap() == map) { // Make sure moved from offmap are reported
-      if (next.getMap() == map || origin.equals(OFFMAP)) {
+      if (next.getMap() == map || OFFMAP.equals(origin)) {
         if (next.getName().length() > 0) {
           moved.append(',');
           moved.append(next.getName());
