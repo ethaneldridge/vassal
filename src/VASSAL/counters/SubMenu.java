@@ -35,7 +35,7 @@ public class SubMenu extends Decorator implements EditablePiece {
   private KeyCommand[] keyCommands = new KeyCommand[1];
 
   public SubMenu() {
-    this(ID+"Sub-menu;",null);
+    this(ID+"Sub-Menu;",null);
   }
 
   public SubMenu(String type, GamePiece inner) {
@@ -44,7 +44,12 @@ public class SubMenu extends Decorator implements EditablePiece {
   }
 
   public String getDescription() {
-    return "Sub-Menu";
+    if ("Sub-Menu".equals(getMenuName())) {
+      return "Sub-Menu";
+    }
+    else {
+      return "Sub-Menu:  "+getMenuName();
+    }
   }
 
   public HelpFile getHelpFile() {

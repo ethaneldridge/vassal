@@ -130,7 +130,7 @@ public class MenuDisplayer extends MouseAdapter implements Buildable {
         for (Iterator it2 = menuCommand.getCommands(); it2.hasNext();) {
           List matchingCommands = (List) commandNames.get(it2.next());
           if (matchingCommands != null) {
-            for (Iterator it3 = matchingCommands.iterator(); it.hasNext();) {
+            for (Iterator it3 = matchingCommands.iterator(); it3.hasNext();) {
               JMenuItem item = (JMenuItem) it3.next();
               subMenu.add(item);
               commands.remove(item);
