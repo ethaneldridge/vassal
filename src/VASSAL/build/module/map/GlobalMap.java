@@ -23,10 +23,7 @@ import VASSAL.build.module.GameComponent;
 import VASSAL.build.module.Map;
 import VASSAL.build.module.documentation.HelpFile;
 import VASSAL.command.Command;
-import VASSAL.configure.AutoConfigurer;
-import VASSAL.configure.ColorConfigurer;
-import VASSAL.configure.Configurer;
-import VASSAL.configure.VisibilityCondition;
+import VASSAL.configure.*;
 import VASSAL.counters.GamePiece;
 import VASSAL.counters.Properties;
 import VASSAL.tools.LaunchButton;
@@ -62,17 +59,9 @@ public class GlobalMap extends JPanel implements MouseListener,
             setWindowVisible(!f.isVisible());
           }
         };
-    launch = new LaunchButton(null,null,HOTKEY,al);
+    launch = new LaunchButton(null,null,HOTKEY,ICON_NAME,al);
     launch.setToolTipText("Show/Hide overview window");
     launch.setAttribute(HOTKEY, KeyStroke.getKeyStroke(KeyEvent.VK_O, KeyEvent.CTRL_MASK + KeyEvent.SHIFT_MASK));
-    URL imageURL = getClass().getResource("/images/overview.gif");
-    if (imageURL != null) {
-      launch.setIcon(new ImageIcon(imageURL));
-    }
-    else {
-      launch.setText("overview");
-    }
-
     addMouseListener(this);
   }
 
@@ -139,9 +128,10 @@ public class GlobalMap extends JPanel implements MouseListener,
   private static final String SCALE = "scale";
   private static final String COLOR = "color";
   private static final String HOTKEY = "hotkey";
+  public static final String ICON_NAME = "icon";
 
   public String[] getAttributeNames() {
-    return new String[]{SCALE, COLOR, HOTKEY};
+    return new String[]{SCALE, COLOR, ICON_NAME, HOTKEY};
   }
 
   public VisibilityCondition getAttributeVisibility(String name) {
@@ -181,11 +171,18 @@ public class GlobalMap extends JPanel implements MouseListener,
   public String[] getAttributeDescriptions() {
     return new String[]{"Scale factor",
                         "Visible rectangle highlight color",
+                        "Toolbar button icon",
                         "Hotkey to show/hide"};
   }
 
   public Class[] getAttributeTypes() {
-    return new Class[]{Double.class, Color.class, KeyStroke.class};
+    return new Class[]{Double.class, Color.class, IconConfig.class, KeyStroke.class};
+  }
+
+  public static class IconConfig implements ConfigurerFactory {
+    public Configurer getConfigurer(AutoConfigurable c, String key, String name) {
+      return new IconConfigurer(key,name,"/images/overview.gif");
+    }
   }
 
   public void draw(Graphics g, Map m) {

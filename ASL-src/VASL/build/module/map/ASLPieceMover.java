@@ -169,33 +169,6 @@ public class ASLPieceMover extends PieceMover {
     if (c == null || c.isNull()) {
       return c;
     }
-/*
-    if (Boolean.TRUE.equals(GameModule.getGameModule().getPrefs().getValue(MARK_MOVED))) {
-      for (Enumeration e = toBeMarked.elements();
-           e.hasMoreElements();) {
-        c.append(markMoved((GamePiece) e.nextElement(), true));
-      }
-    }
-*/
-/*
-    for (Enumeration e = concealment.elements();
-         e.hasMoreElements();) {
-      GamePiece piece = (GamePiece) e.nextElement();
-      c.append(Concealable.adjustConcealment(piece.getParent()));
-    }
-    for (Enumeration e = concealable.elements();
-         e.hasMoreElements();) {
-      GamePiece piece = (GamePiece) e.nextElement();
-      c.append(((Concealable) Decorator.getDecorator(piece, Concealable.class)).adjustConcealment());
-    }
-    for (Enumeration e = concealStacks.elements();
-         e.hasMoreElements();) {
-      Stack piece = (Stack) e.nextElement();
-      if (piece.getMap() != null) {
-        c.append(Concealable.adjustConcealment(piece));
-      }
-    }
-*/
     if (movingConcealment != null) {
       if (movingConcealment.getParent() != null) {
         c.append(Concealable.adjustConcealment(movingConcealment.getParent()));
@@ -207,26 +180,6 @@ public class ASLPieceMover extends PieceMover {
     return c;
   }
 
-/*
-  public Command markMoved(GamePiece p, boolean hasMoved) {
-    Command c = new NullCommand();
-    if (p instanceof Stack) {
-      for (Enumeration e = ((Stack) p).getPieces(); e.hasMoreElements();) {
-        c.append(markMoved((GamePiece) e.nextElement(), hasMoved));
-      }
-    }
-    else {
-      MarkMoved m = (MarkMoved) Decorator.getDecorator(p, MarkMoved.class);
-      if (m != null) {
-        String oldState = p.getState();
-        m.setMoved(hasMoved);
-        c.append(new ChangePiece(p.getId(), oldState, p.getState()));
-      }
-    }
-    return c;
-  }
-*/
-
   /**
    * Remove all un-movable pieces from the DragBuffer.  Un-movable pieces
    * are those with the ASLProperties.LOCATION property set.
@@ -235,7 +188,7 @@ public class ASLPieceMover extends PieceMover {
     Vector movable = new Vector();
     for (PieceIterator it = DragBuffer.getBuffer().getIterator();
          it.hasMoreElements();) {
-      GamePiece p = (GamePiece) it.nextPiece();
+      GamePiece p = it.nextPiece();
       if (p instanceof Stack) {
         Vector toMove = new Vector();
         for (PieceIterator pi = new PieceIterator(((Stack) p).getPieces());
@@ -251,7 +204,7 @@ public class ASLPieceMover extends PieceMover {
         }
         else {
           for (int i = 0; i < toMove.size(); ++i) {
-            movable.addElement((GamePiece) toMove.elementAt(i));
+            movable.addElement(toMove.elementAt(i));
           }
         }
       }

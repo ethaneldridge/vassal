@@ -53,6 +53,7 @@ import java.util.ArrayList;
 import java.util.Iterator;
 
 import java.awt.image.*;
+import java.io.IOException;
 
 
 /**
@@ -68,7 +69,9 @@ public class PieceMover extends AbstractBuildable implements
 
   protected Map map;
   protected Point dragBegin;
-  private JButton markUnmovedButton;
+  protected JButton markUnmovedButton;
+  public static final String ICON_NAME="icon";
+  private String iconName;
 
   public void addTo(Buildable b) {
     map = (Map) b;
@@ -89,7 +92,7 @@ public class PieceMover extends AbstractBuildable implements
     return null;
   }
 
-  private void initButton() {
+  protected void initButton() {
     String value = getMarkOption();
     if (GlobalOptions.PROMPT.equals(value)) {
       BooleanConfigurer config = new BooleanConfigurer(Map.MARK_MOVED, "Mark Moved Pieces", Boolean.TRUE);
@@ -98,13 +101,22 @@ public class PieceMover extends AbstractBuildable implements
     if (!GlobalOptions.NEVER.equals(value)) {
       if (markUnmovedButton == null) {
         markUnmovedButton = new JButton();
-        URL icon = getClass().getResource("/images/unmoved.gif");
-        if (icon != null) {
-          markUnmovedButton.setIcon(new ImageIcon(icon));
-          ;
+        if (iconName != null) {
+          try {
+            markUnmovedButton.setIcon(new ImageIcon(GameModule.getGameModule().getDataArchive().getCachedImage(iconName)));
+          }
+          catch (IOException e) {
+            e.printStackTrace();
+          }
         }
-        else {
-          markUnmovedButton.setText("Mark Unmoved");
+        if (markUnmovedButton.getIcon() == null) {
+          URL icon = getClass().getResource("/images/unmoved.gif");
+          if (icon != null) {
+            markUnmovedButton.setIcon(new ImageIcon(icon));
+          }
+          else {
+            markUnmovedButton.setText("Mark Unmoved");
+          }
         }
         markUnmovedButton.setAlignmentY(0.0F);
         markUnmovedButton.setToolTipText("Mark all pieces on this map as not moved");
@@ -137,14 +149,20 @@ public class PieceMover extends AbstractBuildable implements
   }
 
   public String[] getAttributeNames() {
-    return new String[0];
+    return new String[]{ICON_NAME};
   }
 
   public String getAttributeValueString(String key) {
+    if (ICON_NAME.equals(key)) {
+      return iconName;
+    }
     return null;
   }
 
   public void setAttribute(String key, Object value) {
+    if (ICON_NAME.equals(key)) {
+      iconName = (String) value;
+    }
   }
 
   protected boolean isMultipleSelectionEvent(MouseEvent e) {

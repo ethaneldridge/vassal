@@ -184,10 +184,10 @@ public class SecretNotesController implements GameComponent, CommandEncoder, Add
         }
         String msg;
         if (index < 0) {
-          msg = "* " + GameModule.getGameModule().getChatter().getPlayerId() + " has created message \'" + secretNote.getName() + "\' *";
+          msg = "* " + GameModule.getGameModule().getChatter().getHandle() + " has created message \'" + secretNote.getName() + "\' *";
         }
         else {
-          msg = "* " + GameModule.getGameModule().getChatter().getPlayerId() + " has revealed message \'" + secretNote.getName() + "\' *";
+          msg = "* " + GameModule.getGameModule().getChatter().getHandle() + " has revealed message \'" + secretNote.getName() + "\' *";
         }
         c = new Chatter.DisplayText(GameModule.getGameModule().getChatter(), msg);
         c.execute();
@@ -208,14 +208,10 @@ public class SecretNotesController implements GameComponent, CommandEncoder, Add
   }
 
   private class Controls extends JPanel implements ItemListener {
-
-    private JCheckBox status;
     private JTextArea text;
     private JTable table;
-    private JScrollPane secretScroll;
     private JButton revealButton;
     private String[] columnNames = {"Player", "Date/Time", "Note Name", "Revealed"};
-    private AbstractTableModel model;
 
     public Controls() {
       setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
@@ -236,7 +232,6 @@ public class SecretNotesController implements GameComponent, CommandEncoder, Add
             //...//no rows are selected
           }
           else {
-            int selectedRow = lsm.getMinSelectionIndex();
             displaySelected();
           }
         }
