@@ -18,10 +18,7 @@
  */
 package VASSAL.build.module.map;
 
-import VASSAL.build.AbstractConfigurable;
-import VASSAL.build.Buildable;
-import VASSAL.build.Configurable;
-import VASSAL.build.GameModule;
+import VASSAL.build.*;
 import VASSAL.build.module.Map;
 import VASSAL.build.module.documentation.HelpFile;
 import VASSAL.build.module.map.boardPicker.Board;
@@ -29,6 +26,7 @@ import VASSAL.build.module.map.boardPicker.board.MapGrid;
 import VASSAL.configure.BooleanConfigurer;
 import VASSAL.configure.ColorConfigurer;
 import VASSAL.configure.VisibilityCondition;
+import VASSAL.configure.StringEnum;
 import VASSAL.counters.GamePiece;
 import VASSAL.tools.LaunchButton;
 
@@ -61,6 +59,10 @@ public class LOS_Thread extends AbstractConfigurable implements
   public static final String RANGE_BACKGROUND = "rangeBg";
   public static final String RANGE_FOREGROUND = "rangeFg";
   public static final String RANGE_SCALE = "scale";
+  public static final String RANGE_ROUNDING = "round";
+  public static final String ROUND_UP = "Up";
+  public static final String ROUND_DOWN = "Down";
+  public static final String ROUND_OFF = "Nearest whole number";
   public static Font RANGE_FONT = new Font("Dialog", 0, 11);
 
   protected boolean retainAfterRelease = false;
@@ -74,6 +76,7 @@ public class LOS_Thread extends AbstractConfigurable implements
   protected boolean visible;
   protected boolean drawRange;
   protected int rangeScale;
+  protected double rangeRounding=0.5;
   protected boolean hideCounters;
   protected String fixedColor;
   protected Color threadColor = Color.black, rangeFg = Color.white, rangeBg = Color.black;
@@ -157,7 +160,7 @@ public class LOS_Thread extends AbstractConfigurable implements
    * </pre>
    */
   public String[] getAttributeNames() {
-    return new String[]{HOTKEY, LABEL, DRAW_RANGE, RANGE_SCALE, HIDE_COUNTERS, LOS_COLOR, RANGE_FOREGROUND, RANGE_BACKGROUND};
+    return new String[]{HOTKEY, LABEL, DRAW_RANGE, RANGE_SCALE, RANGE_ROUNDING, HIDE_COUNTERS, LOS_COLOR, RANGE_FOREGROUND, RANGE_BACKGROUND};
   }
 
   public void setAttribute(String key, Object value) {
@@ -172,6 +175,17 @@ public class LOS_Thread extends AbstractConfigurable implements
         value = Integer.valueOf((String) value);
       }
       rangeScale = ((Integer) value).intValue();
+    }
+    else if (RANGE_ROUNDING.equals(key)) {
+      if (ROUND_UP.equals(value)) {
+        rangeRounding = 1.0;
+      }
+      else if (ROUND_DOWN.equals(value)) {
+        rangeRounding = 0.0;
+      }
+      else {
+        rangeRounding = 0.5;
+      }
     }
     else if (HIDE_COUNTERS.equals(key)) {
       if (value instanceof String) {
@@ -210,6 +224,17 @@ public class LOS_Thread extends AbstractConfigurable implements
     else if (RANGE_SCALE.equals(key)) {
       return "" + rangeScale;
     }
+    else if (RANGE_ROUNDING.equals(key)) {
+      if (rangeRounding == 1.0) {
+        return ROUND_UP;
+      }
+      else if (rangeRounding == 0.0) {
+        return ROUND_DOWN;
+      }
+      else {
+        return ROUND_OFF;
+      }
+    }
     else if (HIDE_COUNTERS.equals(key)) {
       return "" + hideCounters;
     }
@@ -246,7 +271,7 @@ public class LOS_Thread extends AbstractConfigurable implements
         drawRange(g, b.getGrid().range(anchor, arrow));
       }
       else if (rangeScale > 0) {
-        int dist = (int) Math.round(anchor.getLocation().distance(arrow.getLocation())/rangeScale);
+        int dist = (int)(rangeRounding + anchor.getLocation().distance(arrow.getLocation())/rangeScale);
         drawRange(g, dist);
       }
     }
@@ -376,6 +401,7 @@ public class LOS_Thread extends AbstractConfigurable implements
                         "Button text",
                         "Draw Range",
                         "Pixels per range unit",
+                        "Round fractions",
                         "Hide Pieces while drawing",
                         "Thread color"};
   }
@@ -385,13 +411,15 @@ public class LOS_Thread extends AbstractConfigurable implements
                        String.class,
                        Boolean.class,
                        Integer.class,
+                       RoundingOptions.class,
                        Boolean.class,
                        Color.class};
   }
 
   public VisibilityCondition getAttributeVisibility(String name) {
     VisibilityCondition cond = null;
-    if (RANGE_SCALE.equals(name)) {
+    if (RANGE_SCALE.equals(name)
+      || RANGE_ROUNDING.equals(name)) {
       cond = new VisibilityCondition() {
         public boolean shouldBeVisible() {
           return drawRange;
@@ -399,6 +427,12 @@ public class LOS_Thread extends AbstractConfigurable implements
       };
     }
     return cond;
+  }
+
+  public static class RoundingOptions extends StringEnum {
+    public String[] getValidValues(AutoConfigurable target) {
+      return new String[]{ROUND_UP, ROUND_DOWN, ROUND_OFF};
+    }
   }
 
   public Configurable[] getConfigureComponents() {
