@@ -236,10 +236,13 @@ public class PieceMover extends AbstractBuildable implements
       return null;
     }
 
-    GamePiece mergeWith = map.findPiece(p, this);
-
     GamePiece bottom = it.nextPiece();
     KeyBuffer.getBuffer().clear();
+
+    GamePiece mergeWith = null;
+    if (!Boolean.TRUE.equals(bottom.getProperty(Properties.NO_STACK))) {
+      mergeWith = map.findPiece(p, this);
+    }
 
     if (!Boolean.TRUE.equals(bottom.getProperty(Properties.IGNORE_GRID))) {
       p = map.snapTo(p);
