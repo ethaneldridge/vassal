@@ -18,6 +18,8 @@
  */
 package VASSAL.tools;
 
+import VASSAL.Info;
+
 import javax.swing.*;
 import javax.swing.plaf.basic.BasicSplitPaneUI;
 import java.awt.*;
@@ -385,16 +387,17 @@ public class ComponentSplitter {
           Container ancestor = getTopLevelAncestor();
           if (ancestor != null) {
             int newLoc = 0;
+            Rectangle screenBounds = Info.getScreenBounds(ancestor);
             switch (getOrientation()) {
               case JSplitPane.HORIZONTAL_SPLIT:
                 ancestor.setSize(Math.min(ancestor.getSize().width + getHideableComponent().getPreferredSize().width,
-                                          Toolkit.getDefaultToolkit().getScreenSize().width - ancestor.getLocation().x), ancestor.getSize().height);
+                                          screenBounds.width - ancestor.getLocation().x), ancestor.getSize().height);
                 newLoc = getBaseComponent().getSize().width;
                 break;
               case JSplitPane.VERTICAL_SPLIT:
                 ancestor.setSize(ancestor.getSize().width,
                                  Math.min(ancestor.getSize().height + getHideableComponent().getPreferredSize().height,
-                                          Toolkit.getDefaultToolkit().getScreenSize().height - ancestor.getLocation().y));
+                                          screenBounds.height - ancestor.getLocation().y));
                 newLoc = getBaseComponent().getSize().height;
                 break;
             }

@@ -31,6 +31,7 @@ import VASSAL.command.Command;
 import VASSAL.command.MoveTracker;
 import VASSAL.configure.ColorConfigurer;
 import VASSAL.configure.VisibilityCondition;
+import VASSAL.configure.IntConfigurer;
 import VASSAL.counters.*;
 import VASSAL.preferences.PositionOption;
 import VASSAL.tools.ComponentSplitter;
@@ -67,6 +68,8 @@ public class Map extends AbstractConfigurable implements GameComponent,
 
   private String mapID = "";
   private String mapName = "";
+
+  private static final String FRAME_HEIGHT="mainWindowHeight";
 
   protected JPanel theMap;
 
@@ -391,6 +394,8 @@ public class Map extends AbstractConfigurable implements GameComponent,
     GameModule.getGameModule().getToolBar().add(launchButton);
 
     if (shouldDockIntoMainWindow()) {
+      IntConfigurer config = new IntConfigurer(FRAME_HEIGHT,null,new Integer(-1));
+      GameModule.getGameModule().getPrefs().addOption(config);
       JPanel root = new JPanel(new BorderLayout());
 //      root.add(toolBar, BorderLayout.NORTH);
       root.add(scroll, BorderLayout.CENTER);
@@ -1020,6 +1025,11 @@ public class Map extends AbstractConfigurable implements GameComponent,
     if (show) {
       if (shouldDockIntoMainWindow()) {
         mainWindowDock.showComponent();
+        int height = ((Integer)GameModule.getGameModule().getPrefs().getValue(FRAME_HEIGHT)).intValue();
+        if (height > 0) {
+          Container top = mainWindowDock.getTopLevelAncestor();
+          top.setSize(top.getSize().width,height);
+        }
         if (toolBar.getParent() == null) {
           GameModule.getGameModule().getToolBar().addSeparator();
           GameModule.getGameModule().getToolBar().add(toolBar);
@@ -1056,6 +1066,9 @@ public class Map extends AbstractConfigurable implements GameComponent,
       boards.removeAllElements();
       System.gc();
       if (mainWindowDock != null) {
+        if (mainWindowDock.getHideableComponent().isVisible()) {
+          GameModule.getGameModule().getPrefs().getOption(FRAME_HEIGHT).setValue(new Integer(mainWindowDock.getTopLevelAncestor().getSize().height));
+        }
         mainWindowDock.hideComponent();
         toolBar.setVisible(false);
       }

@@ -1,5 +1,6 @@
 package VASSAL;
 
+import java.awt.*;
 import java.util.StringTokenizer;
 
 /*
@@ -55,6 +56,26 @@ public final class Info {
       }
     }
     return isDndEnabled.booleanValue();
+  }
+
+  /**
+   * If running JRE 1.4, we can take into account the screen insets (i.e. Windows taskbar)
+   * @return
+   */
+  public static Rectangle getScreenBounds(Component c) {
+    Rectangle bounds =  new Rectangle(Toolkit.getDefaultToolkit().getScreenSize());
+    try {
+      GraphicsConfiguration config = c.getGraphicsConfiguration();
+      Insets insets = (Insets) Toolkit.class.getMethod("getScreenInsets",new Class[]{GraphicsConfiguration.class})
+        .invoke(Toolkit.getDefaultToolkit(),new Object[]{config});
+      System.err.println("Insets are "+insets);
+      bounds.translate(insets.left,insets.top);
+      bounds.setSize(bounds.width-insets.left-insets.right,bounds.height-insets.top-insets.bottom);
+    }
+    catch (Throwable t) {
+    }
+    System.err.println("Screen bounds are "+bounds);
+    return bounds;
   }
 
   /**
