@@ -4,6 +4,6 @@ LICENSE.txt file and also available from http://www.opensource.org.
 
   CASL is a program that defines rules-aware terrain for ASL map
 boards.  It is used by VASL for calculating LOS, but it is a
-standalone application by itself.
+standalone application by itself. 
 
 
