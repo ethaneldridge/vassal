@@ -13,6 +13,7 @@ import VASSAL.configure.StringEnum;
 import VASSAL.counters.GamePiece;
 import VASSAL.counters.PieceCloner;
 import VASSAL.counters.Stack;
+import VASSAL.counters.Properties;
 import VASSAL.tools.UniqueIdManager;
 
 import java.awt.*;
@@ -67,6 +68,14 @@ public class SetupStack extends AbstractConfigurable implements GameComponent, U
       if (owningBoardName != null) {
         Rectangle r = map.getBoardByName(owningBoardName).bounds();
         p.translate(r.x, r.y);
+      }
+      for (int i=0;i<s.getPieceCount();++i) {
+        GamePiece piece = s.getPieceAt(i);
+        if (Boolean.TRUE.equals(piece.getProperty(Properties.NO_STACK))) {
+          s.remove(piece);
+          map.placeAt(piece,p);
+          i--;
+        }
       }
       map.placeAt(s, p);
     }
