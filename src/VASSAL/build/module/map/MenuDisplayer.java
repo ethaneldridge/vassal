@@ -96,8 +96,8 @@ public class MenuDisplayer extends MouseAdapter implements Buildable {
         }
         else {
           if (strokes.contains(stroke)) {
-            KeyCommand command = (KeyCommand) commands.get(strokes.indexOf(stroke));
-            if (command.getName().length() < c[i].getName().length()) {
+            JMenuItem command = (JMenuItem) commands.get(strokes.indexOf(stroke));
+            if (((String)command.getAction().getValue(Action.NAME)).length() < c[i].getName().length()) {
               item = new JMenuItem(c[i]);
               item.setFont(POPUP_MENU_FONT);
               commands.set(strokes.indexOf(stroke), item);

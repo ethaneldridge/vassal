@@ -21,11 +21,16 @@ package VASSAL.build.module.map;
 import VASSAL.build.AbstractConfigurable;
 import VASSAL.build.Buildable;
 import VASSAL.build.GameModule;
-import VASSAL.build.IllegalBuildException;
 import VASSAL.build.module.Map;
 import VASSAL.build.module.documentation.HelpFile;
+import VASSAL.configure.Configurer;
 import VASSAL.configure.StringArrayConfigurer;
 import VASSAL.counters.*;
+
+import javax.swing.*;
+import java.awt.*;
+import java.io.File;
+import java.net.MalformedURLException;
 
 /**
  * Defines PieceCollection in which pieces are assigned to an arbitrary number of layers
@@ -62,7 +67,6 @@ public class LayeredPieceCollection extends AbstractConfigurable {
   }
 
   public void setAttribute(String key, Object value) {
-    checkGameInProgress();
     if (PROPERTY_NAME.equals(key)) {
       collection.propertyName = (String) value;
     }
@@ -76,7 +80,6 @@ public class LayeredPieceCollection extends AbstractConfigurable {
   }
 
   public void addTo(Buildable parent) {
-    checkGameInProgress();
     map = (Map)parent;
     map.setPieceCollection(collection);
   }
@@ -86,7 +89,14 @@ public class LayeredPieceCollection extends AbstractConfigurable {
   }
 
   public HelpFile getHelpFile() {
-    return null;
+    File dir = VASSAL.build.module.Documentation.getDocumentationBaseDir();
+    dir = new File(dir, "ReferenceManual");
+    try {
+      return new HelpFile(null, new File(dir, "Map.htm"), "#GamePieceLayers");
+    }
+    catch (MalformedURLException ex) {
+      return null;
+    }
   }
 
   public static String getConfigureTypeName() {
@@ -94,14 +104,7 @@ public class LayeredPieceCollection extends AbstractConfigurable {
   }
 
   public void removeFrom(Buildable parent) {
-    checkGameInProgress();
     map.setPieceCollection(new DefaultPieceCollection());
-  }
-
-  private void checkGameInProgress() {
-    if (GameModule.getGameModule().getGameState().isGameStarted()) {
-      throw new IllegalBuildException("You cannot modify this component while a game is in progress");
-    }
   }
 
   /** The PieceCollection class used by the map to which a LayeredPieceCollection has been added */
@@ -137,8 +140,9 @@ public class LayeredPieceCollection extends AbstractConfigurable {
       return ((Integer)dispatcher.accept(p)).intValue();
     }
 
-    public boolean canMerge(GamePiece p1, GamePiece p2) {
-      return getLayerForPiece(p1) == getLayerForPiece(p2);
+    protected boolean canPiecesMerge(GamePiece p1, GamePiece p2) {
+      return super.canPiecesMerge(p1, p2)
+          && getLayerForPiece(p1) == getLayerForPiece(p2);
     }
 
     public Object visitDeck(Deck d) {
@@ -149,7 +153,7 @@ public class LayeredPieceCollection extends AbstractConfigurable {
       String property = (String) p.getProperty(propertyName);
       int layer = layerOrder.length;
       for (int i=0;i<layerOrder.length;++i) {
-        if (property.equals(layerOrder[i])) {
+        if (layerOrder[i].equals(property)) {
           layer = i;
           break;
         }

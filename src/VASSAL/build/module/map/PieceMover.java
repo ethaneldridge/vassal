@@ -111,9 +111,7 @@ public class PieceMover extends AbstractBuildable implements
       public Object visitDefault(GamePiece piece) {
         GamePiece selected = null;
         if (this.map.getStackMetrics().isStackingEnabled()
-            && !Boolean.TRUE.equals(dragging.getProperty(Properties.NO_STACK))
-            && !Boolean.TRUE.equals(piece.getProperty(Properties.INVISIBLE_TO_ME))
-            && !Boolean.TRUE.equals(piece.getProperty(Properties.NO_STACK))) {
+            && this.map.getPieceCollection().canMerge(dragging,piece)) {
           Board b = this.map.findBoard(pt);
           if (b == null || b.getGrid() == null) {
             selected = (GamePiece) super.visitDefault(piece);
@@ -137,7 +135,7 @@ public class PieceMover extends AbstractBuildable implements
       public Object visitStack(Stack s) {
         GamePiece selected = null;
         if (this.map.getStackMetrics().isStackingEnabled()
-            && !Boolean.TRUE.equals(dragging.getProperty(Properties.NO_STACK))
+            && this.map.getPieceCollection().canMerge(dragging,s)
             && !DragBuffer.getBuffer().contains(s)
             && s.topPiece() != null) {
           Board b = this.map.findBoard(pt);

@@ -32,21 +32,6 @@ public class DefaultPieceCollection extends CompoundPieceCollection {
     super(2);
   }
 
-  public boolean canMerge(GamePiece p1, GamePiece p2) {
-    boolean canMerge = false;
-    if (p1 == null
-      || p2 == null) {
-      return false;
-    }
-    if (p1 instanceof Deck || p2 instanceof Deck) {
-      canMerge = true;
-    }
-    else if (p1 instanceof Stack) {
-
-    }
-    return canMerge;
-  }
-
   protected int getLayerForPiece(GamePiece p) {
     return Boolean.TRUE.equals(p.getProperty(Properties.NO_STACK)) ? 0 : 1;
   }

@@ -19,6 +19,9 @@
 package VASSAL.build.module.map;
 
 import VASSAL.counters.GamePiece;
+import VASSAL.counters.Deck;
+import VASSAL.counters.Stack;
+import VASSAL.counters.Properties;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -88,6 +91,54 @@ public abstract class CompoundPieceCollection implements PieceCollection {
 
   public void moveToFront(GamePiece p) {
     getCollectionForPiece(p).moveToFront(p);
+  }
+
+  public boolean canMerge(GamePiece p1, GamePiece p2) {
+    boolean canMerge = false;
+    if (p1 instanceof Deck
+        || p2 instanceof Deck) {
+      canMerge = true;
+    }
+    else if (p1 instanceof Stack) {
+      if (p2 instanceof Stack) {
+        canMerge = canStacksMerge((Stack) p1, (Stack) p2);
+      }
+      else {
+        canMerge = canStackAndPieceMerge((Stack) p1, p2);
+      }
+    }
+    else if (p2 instanceof Stack) {
+      canMerge = canStackAndPieceMerge((Stack) p2, p1);
+    }
+    else {
+      canMerge = canPiecesMerge(p1, p2);
+    }
+    return canMerge;
+  }
+
+  protected boolean canStacksMerge(Stack s1, Stack s2) {
+    return canPiecesMerge(s1.topPiece(), s2.topPiece());
+  }
+
+  protected boolean canStackAndPieceMerge(Stack s, GamePiece p) {
+    boolean canMerge = false;
+    GamePiece top = s.topPiece();
+    if (top != null) {
+      canMerge = canPiecesMerge(top, p);
+    }
+    return canMerge;
+  }
+
+  protected boolean canPiecesMerge(GamePiece p1, GamePiece p2) {
+    boolean canMerge = false;
+    if (p1 != null
+        && p2 != null) {
+      canMerge = !Boolean.TRUE.equals(p1.getProperty(Properties.NO_STACK))
+          && !Boolean.TRUE.equals(p2.getProperty(Properties.NO_STACK))
+          && !Boolean.TRUE.equals(p1.getProperty(Properties.INVISIBLE_TO_ME))
+          && !Boolean.TRUE.equals(p2.getProperty(Properties.INVISIBLE_TO_ME));
+    }
+    return canMerge;
   }
 
 }
