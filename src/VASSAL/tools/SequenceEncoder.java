@@ -163,6 +163,13 @@ public class SequenceEncoder {
       return defaultValue;
     }
 
+    public boolean nextBoolean(boolean defaultValue) {
+      if (val != null) {
+        defaultValue = "true".equals(nextToken());
+      }
+      return defaultValue;
+    }
+
     /**
      * Return the first character of the next token
      * @param defaultValue Return this value if no more tokens, or if next token has zero length

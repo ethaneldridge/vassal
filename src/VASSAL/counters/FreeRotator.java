@@ -105,7 +105,21 @@ public class FreeRotator extends Decorator implements EditablePiece, MouseListen
   }
 
   public void setAngle(double angle) {
-    validAngles[angleIndex] = angle;
+    if (validAngles.length == 1) {
+      validAngles[angleIndex] = angle;
+    }
+    else {
+      // Find nearest valid angle
+      int newIndex = angleIndex;
+      double minDist = Math.abs(validAngles[angleIndex]-angle);
+      for (int i=0;i<validAngles.length;++i) {
+        if (minDist > Math.abs(validAngles[i]-angle)) {
+          newIndex = i;
+          minDist = Math.abs(validAngles[i]-angle);
+        }
+      }
+      angleIndex = newIndex;
+    }
   }
 
   public Rectangle getRotatedBounds() {

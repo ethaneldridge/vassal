@@ -35,9 +35,7 @@ import VASSAL.build.widget.CardSlot;
 import VASSAL.build.widget.PieceSlot;
 import VASSAL.command.AddPiece;
 import VASSAL.command.Command;
-import VASSAL.configure.ChooseComponentDialog;
-import VASSAL.configure.ConfigurerWindow;
-import VASSAL.configure.StringConfigurer;
+import VASSAL.configure.*;
 import VASSAL.tools.ComponentPathBuilder;
 import VASSAL.tools.SequenceEncoder;
 
@@ -46,6 +44,8 @@ import javax.swing.event.TreeSelectionEvent;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.TreePath;
 import java.awt.*;
+import java.awt.geom.AffineTransform;
+import java.awt.geom.Point2D;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.InputEvent;
@@ -61,6 +61,9 @@ public class PlaceMarker extends Decorator implements EditablePiece {
   protected char key;
   protected String markerSpec;
   protected String markerText = "";
+  protected int xOffset=0;
+  protected int yOffset=0;
+  protected boolean matchRotation=false;
 
   public PlaceMarker() {
     this(ID + "Place Marker;M;null;null", null);
@@ -99,6 +102,8 @@ public class PlaceMarker extends Decorator implements EditablePiece {
     se.append(key != 0 ? "" + key : "");
     se.append(markerSpec == null ? "null" : markerSpec);
     se.append(markerText == null ? "null" : markerText);
+    se.append(Integer.toString(xOffset)).append(yOffset+"");
+    se.append(matchRotation+"");
     return ID + se.getValue();
   }
 
@@ -108,10 +113,26 @@ public class PlaceMarker extends Decorator implements EditablePiece {
       GamePiece marker = createMarker();
       Command c = null;
       if (marker != null) {
-        c = getMap().getStackMetrics().placeOrMerge(Decorator.getOutermost(this), marker);
+        GamePiece outer = getOutermost(this);
+        Point p = getPosition();
+        p.translate(xOffset,-yOffset);
+        if (matchRotation) {
+          FreeRotator myRotation = (FreeRotator) Decorator.getDecorator(outer,FreeRotator.class);
+          FreeRotator markerRotation = (FreeRotator) Decorator.getDecorator(marker,FreeRotator.class);
+          if (myRotation != null
+            && markerRotation != null) {
+            markerRotation.setAngle(myRotation.getAngle());
+            Point2D myPosition = getPosition().getLocation();
+            Point2D markerPosition = p.getLocation();
+            markerPosition = AffineTransform.getRotateInstance(myRotation.getAngleInRadians(),myPosition.getX(), myPosition.getY()).transform(markerPosition,null);
+            p = new Point((int)markerPosition.getX(),(int)markerPosition.getY());
+          }
+        }
+        p = getMap().snapTo(p);
+        c = getMap().placeOrMerge(marker,p);
+        KeyBuffer.getBuffer().remove(outer);
         KeyBuffer.getBuffer().add(marker);
         if (markerText != null && getMap() != null) {
-          GamePiece outer = getOutermost(this);
           if (!Boolean.TRUE.equals(outer.getProperty(Properties.OBSCURED_TO_OTHERS))
               && !Boolean.TRUE.equals(outer.getProperty(Properties.OBSCURED_TO_ME))
               && !Boolean.TRUE.equals(outer.getProperty(Properties.INVISIBLE_TO_OTHERS))) {
@@ -192,6 +213,9 @@ public class PlaceMarker extends Decorator implements EditablePiece {
     if ("null".equals(markerText)) {
       markerText = null;
     }
+    xOffset = st.nextInt(0);
+    yOffset = st.nextInt(0);
+    matchRotation = st.nextBoolean(false);
   }
 
   public PieceEditor getEditor() {
@@ -206,6 +230,9 @@ public class PlaceMarker extends Decorator implements EditablePiece {
     private String markerSlotPath;
     protected JButton defineButton = new JButton("Define Marker");
     protected JButton selectButton = new JButton("Select");
+    protected IntConfigurer xOffsetConfig = new IntConfigurer(null,"Horizontal offset");
+    protected IntConfigurer yOffsetConfig = new IntConfigurer(null,"Vertical offset");
+    protected BooleanConfigurer matchRotationConfig = new BooleanConfigurer(null,"Match Rotation");
 
     protected Ed(PlaceMarker piece) {
       keyInput = new KeySpecifier(piece.key);
@@ -248,6 +275,12 @@ public class PlaceMarker extends Decorator implements EditablePiece {
       });
       b.add(selectButton);
       p.add(b);
+      xOffsetConfig.setValue(new Integer(piece.xOffset));
+      p.add(xOffsetConfig.getControls());
+      yOffsetConfig.setValue(new Integer(piece.yOffset));
+      p.add(yOffsetConfig.getControls());
+      matchRotationConfig.setValue(new Boolean(piece.matchRotation));
+      p.add(matchRotationConfig.getControls());
     }
 
     public Component getControls() {
@@ -273,6 +306,9 @@ public class PlaceMarker extends Decorator implements EditablePiece {
         se.append(spec);
       }
       se.append("null"); // Older versions specified a text message to echo.  Now performed by the ReportState trait, but we remain backward-compatible.
+      se.append(xOffsetConfig.getValueString());
+      se.append(yOffsetConfig.getValueString());
+      se.append(matchRotationConfig.getValueString());
       return ID + se.getValue();
     }
 
