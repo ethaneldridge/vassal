@@ -13,7 +13,7 @@
  * Library General Public License for more details.
  *
  * You should have received a copy of the GNU Library General Public
- * License along with this library; if not, copies are available 
+ * License along with this library; if not, copies are available
  * at http://www.opensource.org.
  */
 package VASSAL.build.module;
@@ -21,16 +21,20 @@ package VASSAL.build.module;
 import VASSAL.build.Buildable;
 import VASSAL.build.GameModule;
 import VASSAL.build.Widget;
+import VASSAL.build.AutoConfigurable;
 import VASSAL.build.module.documentation.HelpFile;
 import VASSAL.build.widget.PanelWidget;
 import VASSAL.build.widget.TabWidget;
-import VASSAL.configure.Configurer;
 import VASSAL.preferences.PositionOption;
 import VASSAL.tools.LaunchButton;
+import VASSAL.configure.ConfigurerFactory;
+import VASSAL.configure.Configurer;
+import VASSAL.configure.IconConfigurer;
 
 import javax.swing.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.*;
 import java.io.File;
 import java.net.MalformedURLException;
 
@@ -39,25 +43,29 @@ import java.net.MalformedURLException;
  */
 public class ChartWindow extends Widget {
 
-  public static final String NAME = "label";
+  public static final String DEPRECATED_NAME = "label";
+  public static final String NAME = "name";
+  public static final String BUTTON_TEXT = "text";
+  public static final String ICON = "icon";
   public static final String HOTKEY = "hotkey";
 
   private LaunchButton launch;
-  private JFrame frame;
+  private JDialog frame;
+  private Container root;
 
   private String id;
 
   public ChartWindow() {
-    frame = new JFrame();
-
+    root = new JPanel();
     ActionListener al = new ActionListener() {
       public void actionPerformed(ActionEvent e) {
         frame.setVisible(!frame.isVisible());
       }
     };
-    launch = new LaunchButton(null, NAME, HOTKEY, al);
+    launch = new LaunchButton(null, BUTTON_TEXT, HOTKEY, ICON, al);
 
     setAttribute(NAME, "Charts");
+    setAttribute(BUTTON_TEXT, "Charts");
   }
 
   /**
@@ -68,7 +76,7 @@ public class ChartWindow extends Widget {
     rebuild();
     int count = 0;
     for (java.util.Enumeration e =
-      GameModule.getGameModule().getComponents(PieceWindow.class);
+        GameModule.getGameModule().getComponents(PieceWindow.class);
          e.hasMoreElements();) {
       count++;
       e.nextElement();
@@ -77,10 +85,16 @@ public class ChartWindow extends Widget {
     launch.setAlignmentY(0.0F);
     GameModule.getGameModule().getToolBar().add(launch);
 
+    frame = new JDialog(GameModule.getGameModule().getFrame());
+    while (root.getComponentCount() > 0) {
+      frame.getContentPane().add(root.getComponent(0));
+    }
+    root = frame.getContentPane();
+    frame.setTitle(launch.getAttributeValueString(DEPRECATED_NAME));
     id = "ChartWindow" + count;
     String key = PositionOption.key + id;
     GameModule.getGameModule().getPrefs().addOption
-      (new PositionOption(key, frame));
+        (new PositionOption(key, frame));
   }
 
   public void removeFrom(Buildable b) {
@@ -88,10 +102,16 @@ public class ChartWindow extends Widget {
   }
 
   public void setAttribute(String key, Object val) {
-    if (NAME.equals(key)) {
-      setConfigureName(launch.getText());
-      frame.setTitle((String) val);
-      launch.setAttribute(key, val);
+    if (DEPRECATED_NAME.equals(key)) {
+      setAttribute(NAME, val);
+      setAttribute(BUTTON_TEXT, val);
+    }
+    else if (NAME.equals(key)) {
+      setConfigureName((String) val);
+      launch.setToolTipText((String) val);
+      if (frame != null) {
+        frame.setTitle((String) val);
+      }
     }
     else {
       launch.setAttribute(key, val);
@@ -104,12 +124,17 @@ public class ChartWindow extends Widget {
    * <code>HOTKEY</code> for the hotkey equivalent for the button
    */
   public String[] getAttributeNames() {
-    String[] s = {NAME, HOTKEY};
+    String[] s = {NAME, BUTTON_TEXT, ICON, HOTKEY};
     return s;
   }
 
   public String getAttributeValueString(String name) {
-    return launch.getAttributeValueString(name);
+    if (NAME.equals(name)) {
+      return getConfigureName();
+    }
+    else {
+      return launch.getAttributeValueString(name);
+    }
   }
 
   public Class[] getAllowableConfigureComponents() {
@@ -118,20 +143,20 @@ public class ChartWindow extends Widget {
 
   public void add(Buildable b) {
     if (b instanceof Widget) {
-      frame.getContentPane().add(((Widget) b).getComponent());
+      root.add(((Widget) b).getComponent());
     }
     super.add(b);
   }
 
   public void remove(Buildable b) {
     if (b instanceof Widget) {
-      frame.getContentPane().remove(((Widget) b).getComponent());
+      root.remove(((Widget) b).getComponent());
     }
     super.remove(b);
   }
 
   public java.awt.Component getComponent() {
-    return frame;
+    return root;
   }
 
   public static String getConfigureTypeName() {
@@ -139,21 +164,28 @@ public class ChartWindow extends Widget {
   }
 
   public String[] getAttributeDescriptions() {
-    return new String[]{"Button text", "Hotkey"};
+    return new String[]{"Name", "Button text", "Button icon", "Hotkey"};
   }
 
   public Class[] getAttributeTypes() {
-    return new Class[]{String.class, KeyStroke.class};
+    return new Class[]{String.class, String.class, IconConfig.class, KeyStroke.class};
+  }
+
+  public static class IconConfig implements ConfigurerFactory {
+    public Configurer getConfigurer(AutoConfigurable c, String key, String name) {
+      return new IconConfigurer(key, name, "/images/chart.gif");
+    }
   }
 
   public HelpFile getHelpFile() {
-File dir = new File("docs");
-dir = new File(dir,"ReferenceManual");
-try {
-  return new HelpFile(null,new File(dir,"ChartWindow.htm"));
-}
-catch (MalformedURLException ex) {
-  return null;
-}  }
+    File dir = VASSAL.build.module.Documentation.getDocumentationBaseDir();
+    dir = new File(dir, "ReferenceManual");
+    try {
+      return new HelpFile(null, new File(dir, "ChartWindow.htm"));
+    }
+    catch (MalformedURLException ex) {
+      return null;
+    }
+  }
 }
 

@@ -13,26 +13,34 @@
  * Library General Public License for more details.
  *
  * You should have received a copy of the GNU Library General Public
- * License along with this library; if not, copies are available 
+ * License along with this library; if not, copies are available
  * at http://www.opensource.org.
  */
 package VASSAL.counters;
 
+import VASSAL.Info;
 import VASSAL.build.GameModule;
 import VASSAL.build.module.documentation.HelpFile;
+import VASSAL.command.ChangeTracker;
 import VASSAL.command.Command;
-import VASSAL.command.TrackPiece;
+import VASSAL.tools.DataArchive;
 import VASSAL.tools.SequenceEncoder;
 
 import javax.swing.*;
 import javax.swing.event.ListSelectionListener;
 import java.awt.*;
 import java.awt.event.*;
-import java.util.Enumeration;
-import java.util.Vector;
+import java.awt.geom.Area;
 import java.io.File;
 import java.net.MalformedURLException;
+import java.util.Enumeration;
+import java.util.Vector;
 
+/**
+ * The "Layer" trait. Contains a list of images that the user may cycle through.
+ * The current image is superimposed over the inner piece.  The entire layer may
+ * be activated or deactivated.
+ */
 public class Embellishment extends Decorator implements EditablePiece {
   public static final String ID = "emb;";
 
@@ -46,7 +54,7 @@ public class Embellishment extends Decorator implements EditablePiece {
   protected int xOff, yOff;
   protected String imageName[];
   protected String commonName[];
-  protected Dimension size[];
+  protected Rectangle size[];
   protected boolean drawUnderneathWhenSelected = false;
 
   protected KeyCommand[] commands;
@@ -99,8 +107,8 @@ public class Embellishment extends Decorator implements EditablePiece {
     downKey = st.nextToken().toUpperCase();
     downCommand = st.nextToken();
 
-    xOff = Integer.parseInt(st.nextToken());
-    yOff = Integer.parseInt(st.nextToken());
+    xOff = st.nextInt(0);
+    yOff = st.nextInt(0);
 
     Vector v = new Vector();
     while (st.hasMoreTokens()) {
@@ -109,7 +117,7 @@ public class Embellishment extends Decorator implements EditablePiece {
     nValues = v.size();
     imageName = new String[v.size()];
     commonName = new String[v.size()];
-    size = new Dimension[imageName.length];
+    size = new Rectangle[imageName.length];
     for (int i = 0; i < imageName.length; ++i) {
       String sub = (String) v.elementAt(i);
       SequenceEncoder.Decoder subSt = new SequenceEncoder.Decoder(sub, ',');
@@ -130,10 +138,10 @@ public class Embellishment extends Decorator implements EditablePiece {
       if (st.hasMoreTokens()) {
         String second = st.nextToken();
         if (first.length() == 0) {
-          name = getInner().getName() + second;
+          name = piece.getName() + second;
         }
         else {
-          name = first + getInner().getName();
+          name = first + piece.getName();
         }
       }
       else {
@@ -141,7 +149,7 @@ public class Embellishment extends Decorator implements EditablePiece {
       }
     }
     else {
-      name = getInner().getName();
+      name = piece.getName();
     }
     return name;
   }
@@ -153,7 +161,7 @@ public class Embellishment extends Decorator implements EditablePiece {
     }
     else {
       SequenceEncoder.Decoder st = new SequenceEncoder.Decoder(s, ';');
-      value = Integer.parseInt(st.nextToken());
+      value = st.nextInt(1);
       activationStatus = st.hasMoreTokens() ? st.nextToken() : "";
     }
   }
@@ -161,13 +169,13 @@ public class Embellishment extends Decorator implements EditablePiece {
   public String myGetType() {
     SequenceEncoder se = new SequenceEncoder(null, ';');
     se.append(activateKey)
-      .append(drawUnderneathWhenSelected ? "_" + activateCommand : activateCommand)
-      .append(upKey)
-      .append(upCommand)
-      .append(downKey)
-      .append(downCommand)
-      .append("" + xOff)
-      .append("" + yOff);
+        .append(drawUnderneathWhenSelected ? "_" + activateCommand : activateCommand)
+        .append(upKey)
+        .append(upCommand)
+        .append(downKey)
+        .append(downCommand)
+        .append("" + xOff)
+        .append("" + yOff);
     for (int i = 0; i < nValues; ++i) {
       if (commonName[i] != null) {
         SequenceEncoder sub = new SequenceEncoder(imageName[i], ',');
@@ -190,7 +198,7 @@ public class Embellishment extends Decorator implements EditablePiece {
   }
 
   public void draw(Graphics g, int x, int y, Component obs, double zoom) {
-    getInner().draw(g, x, y, obs, zoom);
+    piece.draw(g, x, y, obs, zoom);
 
     if (value <= 0) {
       return;
@@ -198,20 +206,24 @@ public class Embellishment extends Decorator implements EditablePiece {
     try {
       Image im = getCurrentImage();
       if (im != null) {
-        Dimension d = getCurrentImageSize();
-        g.drawImage(im,
-                    x - (int) (zoom * (d.width / 2 - xOff)),
-                    y - (int) (zoom * (d.height / 2 - yOff)),
-                    (int) (zoom * d.width),
-                    (int) (zoom * d.height),
-                    obs);
+        Rectangle r = getCurrentImageBounds();
+        if (zoom == 1.0) {
+          g.drawImage(im, x + r.x, y + r.y, obs);
+        }
+        else {
+          Image scaled = GameModule.getGameModule().getDataArchive().getScaledImage(im, zoom);
+          g.drawImage(scaled,
+                      x + (int) (zoom * r.x),
+                      y + (int) (zoom * r.y),
+                      obs);
+        }
       }
     }
     catch (java.io.IOException ex) {
     }
     if (drawUnderneathWhenSelected
-      && Boolean.TRUE.equals(getProperty(Properties.SELECTED))) {
-      getInner().draw(g, x, y, obs, zoom);
+        && Boolean.TRUE.equals(getProperty(Properties.SELECTED))) {
+      piece.draw(g, x, y, obs, zoom);
     }
   }
 
@@ -244,7 +256,7 @@ public class Embellishment extends Decorator implements EditablePiece {
   public Command myKeyEvent(KeyStroke stroke) {
     char strokeChar = getMatchingActivationChar(stroke);
     if (strokeChar != 0) {
-      TrackPiece c = new TrackPiece(this);
+      ChangeTracker c = new ChangeTracker(this);
       int index = activationStatus.indexOf(strokeChar);
       if (index < 0) {
         activationStatus += strokeChar;
@@ -260,30 +272,27 @@ public class Embellishment extends Decorator implements EditablePiece {
       else {
         value = -Math.abs(value);
       }
-      c.finalize();
-      return c;
+      return c.getChangeCommand();
     }
     else {
       for (int i = 0; i < upKey.length(); ++i) {
         if (KeyStroke.getKeyStroke(upKey.charAt(i), InputEvent.CTRL_MASK).equals(stroke)) {
-          TrackPiece c = new TrackPiece(this);
+          ChangeTracker c = new ChangeTracker(this);
           int val = Math.abs(value);
           if (++val > nValues)
             val = 1;
           value = value > 0 ? val : -val;
-          c.finalize();
-          return c;
+          return c.getChangeCommand();
         }
       }
       for (int i = 0; i < downKey.length(); ++i) {
         if (KeyStroke.getKeyStroke(downKey.charAt(i), InputEvent.CTRL_MASK).equals(stroke)) {
-          TrackPiece c = new TrackPiece(this);
+          ChangeTracker c = new ChangeTracker(this);
           int val = Math.abs(value);
           if (--val < 1)
             val = nValues;
           value = value > 0 ? val : -val;
-          c.finalize();
-          return c;
+          return c.getChangeCommand();
         }
       }
     }
@@ -302,8 +311,8 @@ public class Embellishment extends Decorator implements EditablePiece {
   protected Image getCurrentImage() throws java.io.IOException {
     if (value > 0) {
       return GameModule.getGameModule() == null ? null
-        : GameModule.getGameModule().getDataArchive()
-        .getCachedImage(imageName[value - 1] + ".gif");
+          : GameModule.getGameModule().getDataArchive()
+          .getCachedImage(imageName[value - 1] + ".gif");
     }
     else {
       return null;
@@ -312,61 +321,66 @@ public class Embellishment extends Decorator implements EditablePiece {
 
   public Rectangle boundingBox() {
     if (value > 0) {
-      Dimension d = getCurrentImageSize();
-      Rectangle r = new Rectangle(getPosition(), d);
-      r.translate(xOff - d.width / 2,
-                  yOff - d.height / 2);
-      return r.union(getInner().boundingBox());
+      return getCurrentImageBounds().union(piece.boundingBox());
     }
     else {
-      return getInner().boundingBox();
+      return piece.boundingBox();
     }
   }
 
-  public Dimension getCurrentImageSize() {
+  public Rectangle getCurrentImageBounds() {
     if (value > 0) {
       if (size[value - 1] == null) {
         try {
           Image im = getCurrentImage();
           if (im != null) {
-            JLabel l = new JLabel();
-            l.setIcon(new ImageIcon(im));
-            size[value - 1] = l.getPreferredSize();
+            size[value - 1] = DataArchive.getImageBounds(im);
+            size[value - 1].translate(xOff, yOff);
           }
           else {
-            size[value - 1] = new Dimension(0, 0);
+            size[value - 1] = new Rectangle();
           }
         }
         catch (java.io.IOException e) {
-          size[value - 1] = new Dimension(0, 0);
+          size[value - 1] = new Rectangle();
         }
       }
       return size[value - 1];
     }
     else {
-      return new Dimension(0, 0);
+      return new Rectangle();
     }
   }
 
-  public Rectangle selectionBounds() {
+  public Shape getShape() {
     if (value > 0) {
-      Dimension d = getCurrentImageSize();
-      Rectangle r = new Rectangle(getPosition(), d);
-      r.translate(xOff - d.width / 2,
-                  yOff - d.height / 2);
-      return r.union(getInner().selectionBounds());
+      if (Info.is2dEnabled()) {
+        Area a = new Area(piece.getShape());
+        a.add(new Area(getCurrentImageBounds()));
+        return a;
+      }
+      else {
+        return piece.getShape().getBounds().union(getCurrentImageBounds());
+      }
     }
     else {
-      return getInner().selectionBounds();
+      return piece.getShape();
     }
   }
 
   public String getDescription() {
-    return "Layer";
+    if (imageName.length == 0
+        || imageName[0] == null
+        || imageName[0].length() == 0) {
+      return "Layer";
+    }
+    else {
+      return "Layer - " + imageName[0];
+    }
   }
 
   public HelpFile getHelpFile() {
-    File dir = new File("docs");
+    File dir = VASSAL.build.module.Documentation.getDocumentationBaseDir();
     dir = new File(dir, "ReferenceManual");
     try {
       return new HelpFile(null, new File(dir, "Layer.htm"));
@@ -387,7 +401,8 @@ public class Embellishment extends Decorator implements EditablePiece {
   public static Embellishment getLayerWithMatchingActivateCommand(GamePiece piece, KeyStroke stroke, boolean active) {
     for (Embellishment layer = (Embellishment) Decorator.getDecorator(piece, Embellishment.class);
          layer != null;
-         layer = (Embellishment) Decorator.getDecorator(layer.getInner(), Embellishment.class)) {
+         layer = (Embellishment) Decorator.getDecorator(layer.piece, Embellishment.class)
+        ) {
       for (int i = 0; i < layer.activateKey.length(); ++i) {
         if (stroke.equals(KeyStroke.getKeyStroke(layer.activateKey.charAt(i), InputEvent.CTRL_MASK))) {
           if (active && layer.isActive()) {
@@ -446,22 +461,22 @@ public class Embellishment extends Decorator implements EditablePiece {
 
       box = Box.createVerticalBox();
       alwaysActive.addItemListener
-        (new ItemListener() {
-          public void itemStateChanged(ItemEvent evt) {
-            if (alwaysActive.isSelected()) {
-              activateCommand.setText("");
-              activateKeyInput.setKey("");
-              activateCommand.setEnabled(false);
-              activateKeyInput.setEnabled(false);
+          (new ItemListener() {
+            public void itemStateChanged(ItemEvent evt) {
+              if (alwaysActive.isSelected()) {
+                activateCommand.setText("");
+                activateKeyInput.setKey("");
+                activateCommand.setEnabled(false);
+                activateKeyInput.setEnabled(false);
+              }
+              else {
+                activateCommand.setText("Activate");
+                activateKeyInput.setKey("A");
+                activateCommand.setEnabled(true);
+                activateKeyInput.setEnabled(true);
+              }
             }
-            else {
-              activateCommand.setText("Activate");
-              activateKeyInput.setKey("A");
-              activateCommand.setEnabled(true);
-              activateKeyInput.setEnabled(true);
-            }
-          }
-        });
+          });
       box.add(alwaysActive);
       box.add(drawUnderneath);
       box.add(p);
@@ -544,7 +559,7 @@ public class Embellishment extends Decorator implements EditablePiece {
 
       images.getList().addListSelectionListener(new ListSelectionListener() {
         public void valueChanged
-          (javax.swing.event.ListSelectionEvent evt) {
+            (javax.swing.event.ListSelectionEvent evt) {
           updateLevelName();
         }
       });
@@ -597,8 +612,8 @@ public class Embellishment extends Decorator implements EditablePiece {
         String imageName = (String) e.nextElement();
         String commonName = (String) names.elementAt(i);
         if (names.elementAt(i) != null
-          && commonName != null
-          && commonName.length() > 0) {
+            && commonName != null
+            && commonName.length() > 0) {
           SequenceEncoder sub = new SequenceEncoder(imageName, ',');
           if (PREFIX.equals(isPrefix.elementAt(i))) {
             commonName = new SequenceEncoder(commonName, '+').append("").getValue();
@@ -634,15 +649,15 @@ public class Embellishment extends Decorator implements EditablePiece {
       }
       SequenceEncoder se = new SequenceEncoder(activateKeyInput.getKey(), ';');
       se.append(command)
-        .append(upKeyInput.getKey())
-        .append(upCommand.getText())
-        .append(downKeyInput.getKey())
-        .append(downCommand.getText())
-        .append(xOffInput.getText())
-        .append(yOffInput.getText());
+          .append(upKeyInput.getKey())
+          .append(upCommand.getText())
+          .append(downKeyInput.getKey())
+          .append(downCommand.getText())
+          .append(xOffInput.getText())
+          .append(yOffInput.getText());
 
       String type = ID + se.getValue() + ';'
-        + (imageList.getValue() == null ? "" : imageList.getValue());
+          + (imageList.getValue() == null ? "" : imageList.getValue());
       return type;
     }
 

@@ -58,7 +58,7 @@ public class Restricted extends Decorator implements EditablePiece {
   }
 
   public HelpFile getHelpFile() {
-    File dir = new File("docs");
+    File dir = VASSAL.build.module.Documentation.getDocumentationBaseDir();
     dir = new File(dir,"ReferenceManual");
     try {
       return new HelpFile(null,new File(dir,"RestrictedAccess.htm"));
@@ -73,20 +73,20 @@ public class Restricted extends Decorator implements EditablePiece {
     side = StringArrayConfigurer.stringToArray(type);
   }
 
-  public Rectangle selectionBounds() {
-    return getInner().selectionBounds();
+  public Shape getShape() {
+    return piece.getShape();
   }
 
   public Rectangle boundingBox() {
-    return getInner().boundingBox();
+    return piece.boundingBox();
   }
 
   public void draw(Graphics g, int x, int y, Component obs, double zoom) {
-    getInner().draw(g, x, y, obs, zoom);
+    piece.draw(g, x, y, obs, zoom);
   }
 
   public String getName() {
-    return getInner().getName();
+    return piece.getName();
   }
 
   protected KeyCommand[] myGetKeyCommands() {

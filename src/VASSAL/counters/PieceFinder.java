@@ -13,7 +13,7 @@
  * Library General Public License for more details.
  *
  * You should have received a copy of the GNU Library General Public
- * License along with this library; if not, copies are available 
+ * License along with this library; if not, copies are available
  * at http://www.opensource.org.
  */
 /*
@@ -27,6 +27,7 @@
 package VASSAL.counters;
 
 import VASSAL.build.module.Map;
+import VASSAL.Info;
 
 import java.awt.*;
 import java.util.Enumeration;
@@ -51,112 +52,65 @@ public interface PieceFinder {
    * or a piece within that stack if expanded and overlapping the given point
    */
   public static final PieceFinder MOVABLE = new Movable();
+
 }
 
-class StackOnly implements PieceFinder {
-  private Rectangle[] bounds = new Rectangle[0];
-
+class StackOnly extends Movable {
   public GamePiece select(Map map, GamePiece piece, Point pt) {
+    GamePiece selected = null;
     if (piece instanceof Stack) {
-      Stack s = (Stack) piece;
-      if (bounds.length < s.getPieceCount()) {
-        bounds = new Rectangle[s.getPieceCount()];
+      selected = super.select(map, piece, pt);
+      if (selected != null
+          && !(selected instanceof Stack)) {
+        selected = selected.getParent();
       }
-      map.getStackMetrics().getContents(s, null, bounds, null, s.getPosition().x, s.getPosition().y);
-      for (Enumeration e = s.getPiecesInVisibleOrder();
-           e.hasMoreElements();) {
-        GamePiece child = (GamePiece) e.nextElement();
-        if (bounds[s.indexOf(child)].contains(pt)) {
-          return piece;
-        }
-      }
-      return null;
     }
-    else {
-      return null;
-    }
+    return selected;
   }
 }
 
-class PieceInStack implements PieceFinder {
-  private Rectangle[] bounds = new Rectangle[0];
-
+class PieceInStack extends Movable {
   public GamePiece select(Map map, GamePiece piece, Point pt) {
-    if (piece instanceof Stack) {
-      Stack s = (Stack) piece;
-      if (bounds.length < s.getPieceCount()) {
-        bounds = new Rectangle[s.getPieceCount()];
-      }
-      map.getStackMetrics().getContents(s, null, bounds, null, s.getPosition().x, s.getPosition().y);
-      for (Enumeration e = s.getPiecesInVisibleOrder();
-           e.hasMoreElements();) {
-        GamePiece child = (GamePiece) e.nextElement();
-        if (bounds[s.indexOf(child)].contains(pt)) {
-          return s.isExpanded() ? child : s.topPiece();
-        }
-      }
-      return null;
+    GamePiece selected = null;
+    selected = super.select(map, piece, pt);
+    if (selected != null
+        && piece instanceof Stack
+        && !((Stack) piece).isExpanded()) {
+      selected = ((Stack) piece).topPiece();
     }
-    else if (piece.selectionBounds().contains(pt)) {
-      return piece;
-    }
-    else {
-      return null;
-    }
+    return selected;
   }
 }
-
-/*
-class Movable implements PieceFinder {
-  public GamePiece select(Map map, GamePiece piece, Point pt) {
-    if (piece instanceof Stack) {
-      Stack s = (Stack) piece;
-      for (Enumeration e = s.getPiecesInVisibleOrder();
-           e.hasMoreElements();) {
-        GamePiece child = (GamePiece) e.nextElement();
-        if (map.selectionBoundsOf(child).contains(pt)) {
-          return s.isExpanded() ? child : s;
-        }
-      }
-      return null;
-    }
-    else if (piece.selectionBounds().contains(pt)) {
-      return piece;
-    }
-    else {
-      return null;
-    }
-
-  }
-}
-*/
 
 class Movable implements PieceFinder {
-  private Rectangle[] bounds = new Rectangle[0];
+  protected Shape[] shapes = new Shape[0];
 
   public GamePiece select(Map map, GamePiece piece, Point pt) {
+    GamePiece selected = null;
     if (piece instanceof Stack) {
       Stack s = (Stack) piece;
-      if (bounds.length < s.getPieceCount()) {
-        bounds = new Rectangle[s.getPieceCount()];
+      if (shapes.length < s.getPieceCount()) {
+        shapes = new Shape[s.getPieceCount()];
       }
-      map.getStackMetrics().getContents(s, null, bounds, null, s.getPosition().x, s.getPosition().y);
+      map.getStackMetrics().getContents(s, null, shapes, null, s.getPosition().x, s.getPosition().y);
       for (Enumeration e = s.getPiecesInVisibleOrder();
            e.hasMoreElements();) {
         GamePiece child = (GamePiece) e.nextElement();
-        if (bounds[s.indexOf(child)].contains(pt)) {
-          return s.isExpanded() ? child : s;
+        if (Info.is2dEnabled() ? shapes[s.indexOf(child)].contains(pt) : shapes[s.indexOf(child)].getBounds().contains(pt)) {
+          selected = s.isExpanded() ? child : s;
+          break;
         }
       }
-      return null;
-    }
-    else if (piece.selectionBounds().contains(pt)) {
-      return piece;
     }
     else {
-      return null;
+      Shape s = piece.getShape();
+      Point pos = piece.getPosition();
+      Point p = new Point(pt.x - pos.x, pt.y - pos.y);
+      if (Info.is2dEnabled() ? s.contains(p) : s.getBounds().contains(p)) {
+        selected = piece;
+      }
     }
-
+    return selected;
   }
 
 }

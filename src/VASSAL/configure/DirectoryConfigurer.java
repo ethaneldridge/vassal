@@ -29,7 +29,7 @@ public class DirectoryConfigurer extends FileConfigurer {
 
   public DirectoryConfigurer(String key, String name) {
     super(key, name);
-    setValue(new File(System.getProperty("user.dir")));
+    setValue(new File(System.getProperty("user.home")));
   }
 
   public void setValue(Object o) {
@@ -53,7 +53,6 @@ public class DirectoryConfigurer extends FileConfigurer {
 
   private static class Pan extends JFileChooser {
     private Pan() {
-      super(System.getProperty("user.dir"));
       setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
       setFileFilter(new javax.swing.filechooser.FileFilter() {
         public boolean accept(File f) {

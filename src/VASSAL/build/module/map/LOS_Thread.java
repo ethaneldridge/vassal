@@ -82,6 +82,13 @@ public class LOS_Thread extends AbstractConfigurable implements
       }
     };
     launch = new LaunchButton("Thread", LABEL, HOTKEY, al);
+    URL imageURL = getClass().getResource("/images/thread.gif");
+    if (imageURL != null) {
+      launch.setIcon(new ImageIcon(imageURL));
+    }
+    else {
+      launch.setText("overview");
+    }
   }
 
   /**
@@ -328,7 +335,7 @@ public class LOS_Thread extends AbstractConfigurable implements
   }
 
   public VASSAL.build.module.documentation.HelpFile getHelpFile() {
-    File dir = new File("docs");
+    File dir = VASSAL.build.module.Documentation.getDocumentationBaseDir();
     dir = new File(dir, "ReferenceManual");
     try {
       return new HelpFile(null, new File(dir, "Map.htm"), "#LOS");

@@ -13,7 +13,7 @@
  * Library General Public License for more details.
  *
  * You should have received a copy of the GNU Library General Public
- * License along with this library; if not, copies are available 
+ * License along with this library; if not, copies are available
  * at http://www.opensource.org.
  */
 package VASSAL.preferences;
@@ -29,15 +29,21 @@ public class PositionOption extends VASSAL.configure.Configurer
   private static Point initialPos = new Point(0, 0);
 
   protected Window theFrame;
-  protected Rectangle bounds = new Rectangle();
+  protected Rectangle bounds;
+  protected Rectangle defaultValue;
 
-  public PositionOption(String key, Window f) {
-    super(key, null);
-    bounds.translate(initialPos.x, initialPos.y);
+  public PositionOption(String key, Window f, Rectangle defaultValue) {
+    super(key, null, defaultValue);
     initialPos.translate(30, 30);
     theFrame = f;
     theFrame.pack();
+    setFrameBounds();
+    this.defaultValue = defaultValue;
     theFrame.addComponentListener(this);
+  }
+
+  public PositionOption(String key, Window f) {
+    this(key,f,new Rectangle(initialPos,new Dimension(0,0)));
   }
 
   public Object getValue() {
@@ -47,7 +53,11 @@ public class PositionOption extends VASSAL.configure.Configurer
   public void setValue(Object o) {
     if (o instanceof Rectangle) {
       bounds = new Rectangle((Rectangle)o);
+      if (theFrame != null) {
+        setFrameBounds();
+      }
     }
+    super.setValue(o);
   }
 
   public java.awt.Component getControls() {
@@ -62,7 +72,6 @@ public class PositionOption extends VASSAL.configure.Configurer
                              Integer.parseInt(st.nextToken()),
                              Integer.parseInt(st.nextToken()),
                              Integer.parseInt(st.nextToken())));
-      initializeSize();
     }
     catch (NumberFormatException e) {
     }
@@ -100,7 +109,7 @@ public class PositionOption extends VASSAL.configure.Configurer
   public void componentHidden(ComponentEvent e) {
   }
 
-  protected void initializeSize() {
+  protected void setFrameBounds() {
     Dimension maxSize = Toolkit.getDefaultToolkit().getScreenSize();
     if (bounds.width != 0 && bounds.height != 0) {
       theFrame.setSize(new Dimension(Math.abs(bounds.width),Math.abs(bounds.height)));

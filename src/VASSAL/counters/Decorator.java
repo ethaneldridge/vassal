@@ -30,7 +30,7 @@ import java.awt.*;
  * of wrapping around another instance of GamePiece (the 'inner' piece) and delegating some of the GamePiece methods to it
  */
 public abstract class Decorator implements GamePiece {
-  private GamePiece piece;
+  protected GamePiece piece;
   private Decorator dec;
 
   public Decorator() {
@@ -44,16 +44,15 @@ public abstract class Decorator implements GamePiece {
     }
   }
 
+  public void setMap(Map m) {
+    piece.setMap(m);
+  }
+
   /**
-   *
-   * @return the inner GamePiece
+   * @return the piece decorated by this Decorator
    */
   public GamePiece getInner() {
     return piece;
-  }
-
-  public void setMap(Map m) {
-    piece.setMap(m);
   }
 
   public Map getMap() {
@@ -134,11 +133,11 @@ public abstract class Decorator implements GamePiece {
     if (!myOldState.equals(myNewState)) {
       mySetState(myNewState);
     }
-    if (getInner() instanceof Decorator) {
-      ((Decorator)getInner()).mergeState(innerNewState,innerOldState);
+    if (piece instanceof Decorator) {
+      ((Decorator)piece).mergeState(innerNewState,innerOldState);
     }
     else {
-      getInner().setState(innerNewState);
+      piece.setState(innerNewState);
     }
   }
 
@@ -247,7 +246,7 @@ public abstract class Decorator implements GamePiece {
    */
   public static GamePiece getInnermost(GamePiece p) {
     while (p instanceof Decorator) {
-      p = ((Decorator) p).getInner();
+      p = ((Decorator) p).piece;
     }
     return p;
   }
@@ -261,7 +260,7 @@ public abstract class Decorator implements GamePiece {
       if (type.isInstance(p)) {
         return p;
       }
-      p = ((Decorator) p).getInner();
+      p = ((Decorator) p).piece;
     }
     return null;
   }

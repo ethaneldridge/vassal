@@ -31,7 +31,7 @@ public class FileConfigurer extends Configurer {
 
   protected JPanel p;
   protected JTextField tf;
-  private static final JFileChooser fc = new JFileChooser(System.getProperty("user.dir"));
+  private static final JFileChooser fc = new JFileChooser();
 
   public FileConfigurer(String key, String name) {
     super(key, name);

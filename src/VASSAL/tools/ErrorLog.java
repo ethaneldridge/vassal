@@ -13,7 +13,7 @@
  * Library General Public License for more details.
  *
  * You should have received a copy of the GNU Library General Public
- * License along with this library; if not, copies are available 
+ * License along with this library; if not, copies are available
  * at http://www.opensource.org.
  */
 package VASSAL.tools;
@@ -27,16 +27,18 @@ import java.awt.*;
 /**
  * Warns the user when an uncaught Exception occurs
  * Use this by calling System.setProperty("sun.awt.exception.handler","VASSAL.tools.ErrorLog");
+ * See Java code in  EventDispatchThread.handleException()
  */
 public class ErrorLog {
   private static boolean disabled = false;
 
   public void handle(Throwable t) {
-    if (!disabled) {
+    String logFile = System.getProperty("stderr");
+    if (!disabled && logFile != null) {
       String type = t.getClass().getName().substring(t.getClass().getName().lastIndexOf(".") + 1);
       String msg = t.getMessage();
       if (msg == null
-        || msg.length() == 0) {
+          || msg.length() == 0) {
         msg = type;
       }
       else {
@@ -45,18 +47,18 @@ public class ErrorLog {
       JButton okButton = new JButton("Ok");
       JButton disableButton = new JButton("Don't show this dialog again");
       String text = "An untrapped error has occurred.\n"
-        + msg + "\n"
-        + "Please send a report to support@vassalengine.org and attach the errorLog file.";
+          + msg + "\n"
+          + "Plaease send a report to support@vassalengine.org and attach the log file.\n" + logFile;
       if (t instanceof OutOfMemoryError) {
         text = "The application has run out of memory.\nTo decrease memory usage, try reducing the number of colors in your display.";
       }
       final JOptionPane pane = new JOptionPane
-        (text,
-         JOptionPane.DEFAULT_OPTION,
-         JOptionPane.ERROR_MESSAGE,
-         UIManager.getIcon("OptionPane.errorIcon"),
-         new Object[]{okButton, disableButton},
-         okButton);
+          (text,
+           JOptionPane.DEFAULT_OPTION,
+           JOptionPane.ERROR_MESSAGE,
+           UIManager.getIcon("OptionPane.errorIcon"),
+           new Object[]{okButton, disableButton},
+           okButton);
       Component comp = GameModule.getGameModule() == null ? null : GameModule.getGameModule().getFrame();
       final JDialog dialog = pane.createDialog(comp, "Error");
       okButton.addActionListener(new ActionListener() {

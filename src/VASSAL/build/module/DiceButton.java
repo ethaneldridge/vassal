@@ -19,13 +19,11 @@
 package VASSAL.build.module;
 
 import VASSAL.build.AbstractConfigurable;
+import VASSAL.build.AutoConfigurable;
 import VASSAL.build.Buildable;
 import VASSAL.build.GameModule;
 import VASSAL.build.module.documentation.HelpFile;
-import VASSAL.configure.AutoConfigurer;
-import VASSAL.configure.Configurer;
-import VASSAL.configure.ConfigurerWindow;
-import VASSAL.configure.VisibilityCondition;
+import VASSAL.configure.*;
 import VASSAL.tools.LaunchButton;
 
 import javax.swing.*;
@@ -33,7 +31,6 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
 import java.net.MalformedURLException;
-import java.net.URL;
 
 /**
  * This component places a button into the controls window toolbar.
@@ -46,7 +43,10 @@ public class DiceButton extends AbstractConfigurable {
   protected boolean promptAlways = false;
   protected LaunchButton launch;
 
-  public static final String LABEL = "label";
+  public static final String DEPRECATED_NAME = "label";
+  public static final String BUTTON_TEXT = "text";
+  public static final String NAME = "name";
+  public static final String ICON = "icon";
   public static final String N_DICE = "nDice";
   public static final String N_SIDES = "nSides";
   public static final String PLUS = "plus";
@@ -62,11 +62,15 @@ public class DiceButton extends AbstractConfigurable {
           // Remove label, hotkey, and prompt controls
           AutoConfigurer ac = (AutoConfigurer) getConfigurer();
           ConfigurerWindow w = new ConfigurerWindow(ac, true);
-          ac.getConfigurer(LABEL).getControls().setVisible(false);
+          ac.getConfigurer(NAME).getControls().setVisible(false);
+          ac.getConfigurer(BUTTON_TEXT).getControls().setVisible(false);
+          ac.getConfigurer(ICON).getControls().setVisible(false);
           ac.getConfigurer(HOTKEY).getControls().setVisible(false);
           ac.getConfigurer(PROMPT_ALWAYS).getControls().setVisible(false);
           w.setVisible(true);
-          ac.getConfigurer(LABEL).getControls().setVisible(true);
+          ac.getConfigurer(NAME).getControls().setVisible(true);
+          ac.getConfigurer(BUTTON_TEXT).getControls().setVisible(true);
+          ac.getConfigurer(ICON).getControls().setVisible(true);
           ac.getConfigurer(HOTKEY).getControls().setVisible(true);
           ac.getConfigurer(PROMPT_ALWAYS).getControls().setVisible(true);
           DR();
@@ -77,8 +81,9 @@ public class DiceButton extends AbstractConfigurable {
         }
       }
     };
-    launch = new LaunchButton(null, LABEL, HOTKEY, rollAction);
-    setAttribute(LABEL, "2d6");
+    launch = new LaunchButton(null, BUTTON_TEXT, HOTKEY, ICON, rollAction);
+    setAttribute(NAME, "2d6");
+    setAttribute(BUTTON_TEXT,"2d6");
   }
 
   public static String getConfigureTypeName() {
@@ -136,12 +141,14 @@ public class DiceButton extends AbstractConfigurable {
    * <code>REPORT_TOTALL</code> If true, add the results of the dice together and report the total.  Otherwise, report the individual results
    */
   public String[] getAttributeNames() {
-    String s[] = {LABEL, N_DICE, N_SIDES, PLUS, REPORT_TOTAL, HOTKEY, PROMPT_ALWAYS};
+    String s[] = {NAME, BUTTON_TEXT, ICON, N_DICE, N_SIDES, PLUS, REPORT_TOTAL, HOTKEY, PROMPT_ALWAYS};
     return s;
   }
 
   public String[] getAttributeDescriptions() {
-    return new String[]{"Button label",
+    return new String[]{"Name",
+                        "Button text",
+                        "Button icon",
                         "Number of dice",
                         "Number of sides per die",
                         "Add to each die",
@@ -150,8 +157,16 @@ public class DiceButton extends AbstractConfigurable {
                         "Prompt for values when button pushed"};
   }
 
+  public static class IconConfig implements ConfigurerFactory {
+    public Configurer getConfigurer(AutoConfigurable c, String key, String name) {
+      return new IconConfigurer(key,name,"/images/die.gif");
+    }
+  }
+
   public Class[] getAttributeTypes() {
     return new Class[]{String.class,
+                       String.class,
+                       IconConfig.class,
                        Integer.class,
                        Integer.class,
                        Integer.class,
@@ -195,9 +210,13 @@ public class DiceButton extends AbstractConfigurable {
   }
 
   public void setAttribute(String key, Object o) {
-    if (LABEL.equals(key)) {
+    if (DEPRECATED_NAME.equals(key)) { // Backward compatibility.  Before v1.3, name and button text were combined into one attribute
+      setAttribute(NAME,o);
+      setAttribute(BUTTON_TEXT,o);
+    }
+    else if (NAME.equals(key)) {
       setConfigureName((String) o);
-      launch.setAttribute(key, (String) o);
+      launch.setToolTipText((String) o);
     }
     else if (N_DICE.equals(key)) {
       if (o instanceof Integer) {
@@ -245,7 +264,10 @@ public class DiceButton extends AbstractConfigurable {
   }
 
   public String getAttributeValueString(String key) {
-    if (N_DICE.equals(key)) {
+    if (NAME.equals(key)) {
+      return getConfigureName();
+    }
+    else if (N_DICE.equals(key)) {
       return "" + nDice;
     }
     else if (N_SIDES.equals(key)) {
@@ -275,7 +297,7 @@ public class DiceButton extends AbstractConfigurable {
   }
 
   public HelpFile getHelpFile() {
-    File dir = new File("docs");
+    File dir = VASSAL.build.module.Documentation.getDocumentationBaseDir();
     dir = new File(dir, "ReferenceManual");
     try {
       return new HelpFile(null, new File(dir, "GameModule.htm"),"#DiceButton");

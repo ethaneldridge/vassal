@@ -18,6 +18,7 @@
  */
 package VASSAL.build;
 
+import VASSAL.Info;
 import VASSAL.build.module.*;
 import VASSAL.build.module.documentation.HelpFile;
 import VASSAL.command.Command;
@@ -39,7 +40,6 @@ import java.io.IOException;
 import java.net.MalformedURLException;
 import java.util.Enumeration;
 import java.util.Random;
-import java.util.StringTokenizer;
 import java.util.Vector;
 
 /**
@@ -68,8 +68,7 @@ public abstract class GameModule extends AbstractConfigurable implements Command
   protected JFileChooser fileChooser;
   protected FileDialog fileDialog;
 
-  protected JTextField status;
-  protected JPanel chatPanel = new JPanel();
+  protected JPanel controlPanel = new JPanel();
 
   private JToolBar toolBar = new JToolBar();
   private JMenu fileMenu = new JMenu("File");
@@ -111,22 +110,21 @@ public abstract class GameModule extends AbstractConfigurable implements Command
     fileMenu.setMnemonic('F');
     frame.getJMenuBar().add(fileMenu);
 
-    status = new JTextField();
-    status.setEditable(false);
-    frame.getContentPane().add(status, BorderLayout.NORTH);
-    chatPanel.setLayout(new BorderLayout());
-    chatPanel.add("North", toolBar);
+    toolBar.setAlignmentX(0.0F);
+    toolBar.setFloatable(false);
+    frame.getContentPane().add(toolBar, BorderLayout.NORTH);
+    controlPanel.setLayout(new BorderLayout());
     addKeyStrokeSource
       (new KeyStrokeSource
         (toolBar,
          JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT));
-    frame.getContentPane().add(chatPanel, BorderLayout.CENTER);
+    frame.getContentPane().add(controlPanel, BorderLayout.CENTER);
   }
 
   /**
    * Initialize the module
    */
-  protected abstract void build();
+  protected abstract void build() throws IOException;
 
   public void setAttribute(String name, Object value) {
     if (MODULE_NAME.equals(name)) {
@@ -138,8 +136,8 @@ public abstract class GameModule extends AbstractConfigurable implements Command
     }
     else if (VASSAL_VERSION_CREATED.equals(name)) {
       vassalVersionCreated = (String) value;
-      String runningVersion = System.getProperty(VASSAL_VERSION_RUNNING);
-      if (compareVersions(vassalVersionCreated, runningVersion) > 0) {
+      String runningVersion = Info.getVersion();
+      if (Info.compareVersions(vassalVersionCreated, runningVersion) > 0) {
         javax.swing.JOptionPane.showMessageDialog
           (null,
            "This module was created using version " + value
@@ -162,7 +160,7 @@ public abstract class GameModule extends AbstractConfigurable implements Command
       return vassalVersionCreated;
     }
     else if (VASSAL_VERSION_RUNNING.equals(name)) {
-      return System.getProperty(VASSAL_VERSION_RUNNING);
+      return Info.getVersion();
     }
     return null;
   }
@@ -171,56 +169,14 @@ public abstract class GameModule extends AbstractConfigurable implements Command
    *
    * A valid verson format is "w.x.y[bz]", where
    * 'w','x','y', and 'z' are integers.
+   * @deprecated use {@link Info#compareVersions}
    * @return a negative number if <code>v2</code> is a later version
    * the <code>v1</code>, a positive number if an earlier version,
    * or zero if the versions are the same.
    *
    */
   public static int compareVersions(String v1, String v2) {
-    try {
-      int beta1 = v1.indexOf("b");
-      int beta2 = v2.indexOf("b");
-      if (beta1 > 0) {
-        if (beta2 > 0) {
-          return compareVersions(v1.substring(0, beta1), v2.substring(0, beta2)) < 0 ?
-            -1 : Integer.parseInt(v1.substring(beta1 + 1))
-            - Integer.parseInt(v2.substring(beta2 + 1));
-        }
-        else {
-          return compareVersions(v1.substring(0, beta1), v2)
-            > 0 ? 1 : -1;
-        }
-      }
-      else if (beta2 > 0) {
-        return compareVersions(v1, v2.substring(0, beta2))
-          < 0 ? -1 : 1;
-      }
-      else {
-        StringTokenizer s1 = new StringTokenizer(v1, ".");
-        StringTokenizer s2 = new StringTokenizer(v2, ".");
-        while (s1.hasMoreTokens()
-          && s2.hasMoreTokens()) {
-          int comp = Integer.parseInt(s1.nextToken())
-            - Integer.parseInt(s2.nextToken());
-          if (comp != 0) {
-            return comp;
-          }
-        }
-        if (s1.hasMoreTokens()) {
-          return 1;
-        }
-        else if (s2.hasMoreTokens()) {
-          return -1;
-        }
-        else {
-          return 0;
-        }
-      }
-    }
-    catch (NumberFormatException ex) {
-      System.err.println("Invalid version format :" + v1 + ", " + v2);
-      return 0;
-    }
+    return Info.compareVersions(v1,v2);
   }
 
   public void addTo(Buildable b) {
@@ -236,7 +192,7 @@ public abstract class GameModule extends AbstractConfigurable implements Command
   }
 
   public HelpFile getHelpFile() {
-    File dir = new File("docs");
+    File dir = VASSAL.build.module.Documentation.getDocumentationBaseDir();
     dir = new File(dir, "ReferenceManual");
     try {
       return new HelpFile(null, new File(dir, "GameModule.htm"));
@@ -316,10 +272,6 @@ public abstract class GameModule extends AbstractConfigurable implements Command
    * @return the preferences for this module
    */
   public Prefs getPrefs() {
-    if (preferences == null) {
-      (new Prefs(System.getProperty("user.dir")
-                 + java.io.File.separator + "Preferences")).addTo(this);
-    }
     return preferences;
   }
 
@@ -328,7 +280,6 @@ public abstract class GameModule extends AbstractConfigurable implements Command
    * @return
    */
   public Prefs getGlobalPrefs() {
-    getPrefs();
     return globalPrefs;
   }
 
@@ -372,7 +323,8 @@ public abstract class GameModule extends AbstractConfigurable implements Command
    * Display the given text in the control window's status line
    */
   public void warn(String s) {
-    status.setText(s);
+//    status.setText(s);
+    chat.show(" - "+s);
   }
 
   /**
@@ -396,11 +348,11 @@ public abstract class GameModule extends AbstractConfigurable implements Command
    * set the object that displays chat text
    */
   public void setChatter(Chatter c) {
-    if (chat != null) {
-      chatPanel.remove(chat);
-    }
     chat = c;
-    chatPanel.add("Center", chat);
+  }
+
+  public JComponent getControlPanel() {
+    return controlPanel;
   }
 
   /**
@@ -412,7 +364,10 @@ public abstract class GameModule extends AbstractConfigurable implements Command
 
   public void setPrefs(Prefs p) {
     preferences = p;
-    globalPrefs = new Prefs(preferences,"VASSAL");
+  }
+
+  public void setGlobalPrefs(Prefs p) {
+    globalPrefs = p;
   }
 
   /**
@@ -565,6 +520,9 @@ public abstract class GameModule extends AbstractConfigurable implements Command
         }
       }
     }
+    catch (IOException ex) {
+      ex.printStackTrace();
+    }
     finally {
       if (!cancelled) {
         System.exit(0);
@@ -616,14 +574,7 @@ public abstract class GameModule extends AbstractConfigurable implements Command
     }
     else {
       theModule = module;
-      try {
-        theModule.build();
-      }
-      catch (Exception ex) {
-        ex.printStackTrace();
-        theModule = null;
-        throw new IOException(ex.getMessage());
-      }
+      theModule.build();
     }
     if (theModule.getDataArchive() instanceof ArchiveWriter) {
       theModule.lastSavedConfiguration = theModule.buildString();
@@ -670,7 +621,7 @@ public abstract class GameModule extends AbstractConfigurable implements Command
   }
 
   protected void save(boolean saveAs) {
-    vassalVersionCreated = System.getProperty(VASSAL_VERSION_RUNNING);
+    vassalVersionCreated = Info.getVersion();
     try {
       String save = buildString();
       getArchiveWriter().addFile

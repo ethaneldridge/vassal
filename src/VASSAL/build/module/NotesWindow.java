@@ -29,6 +29,7 @@ import VASSAL.command.*;
 
 import java.util.*;
 import java.awt.event.*;
+import java.awt.*;
 import java.net.URL;
 import java.net.MalformedURLException;
 import java.io.File;
@@ -52,22 +53,22 @@ public class NotesWindow extends AbstractConfigurable
   public NotesWindow() {
     frame = new NotesFrame();
     frame.setTitle("Notes");
-    frame.addWindowListener(new java.awt.event.WindowAdapter() {
-      public void windowClosing(java.awt.event.WindowEvent e) {
-        notesTable.put(GameModule.getGameModule().getUserId(),
-                       privateNotes.getValueString());
-        GameModule.getGameModule().sendAndLog(getRestoreCommand());
-        frame.setVisible(false);
-      }
-    });
     ActionListener al = new ActionListener() {
       public void actionPerformed(java.awt.event.ActionEvent e) {
         frame.setVisible(!frame.isShowing());
       }
     };
-    launch = new LaunchButton("Notes", null, null, al);
+    launch = new LaunchButton(null, null, null, "icon", al);
+    launch.setAttribute("icon","/images/notes.gif");
+    launch.setToolTipText("Notes");
     frame.pack();
     setup(false);
+  }
+
+  private void save() {
+    notesTable.put(GameModule.getGameModule().getUserId(),
+                   privateNotes.getValueString());
+    GameModule.getGameModule().sendAndLog(getRestoreCommand());
   }
 
   private class NotesFrame extends JFrame {
@@ -76,42 +77,35 @@ public class NotesWindow extends AbstractConfigurable
     }
 
     private void initComponents() {
+      setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
       jLabel1 = new javax.swing.JLabel();
       jScrollPane1 = new javax.swing.JScrollPane();
-      //            notes = new javax.swing.JTextArea (15,40);
       notes = new TextConfigurer(null, "Notes");
       jLabel3 = new javax.swing.JLabel();
       jScrollPane2 = new javax.swing.JScrollPane();
-      //privateNotes = new javax.swing.JTextArea (15,40);
       privateNotes = new TextConfigurer(null, "Private Notes");
       getContentPane().setLayout(new javax.swing.BoxLayout(getContentPane(), 1));
 
-      //            jLabel1.setText ("Notes:");
-      //            jLabel1.setHorizontalAlignment (javax.swing.SwingConstants.CENTER);
-      //            jLabel1.setHorizontalTextPosition (javax.swing.SwingConstants.CENTER);
-      //            getContentPane().add (jLabel1);
-      //            notes.setColumns (30);
-      //            notes.setRows (8);
-      //            jScrollPane1.setViewportView (notes);
-      //            getContentPane().add (jScrollPane1);
-
       getContentPane().add(notes.getControls());
 
-      //            jLabel3.setText ("Private Notes:");
-      //            jLabel3.setHorizontalAlignment (javax.swing.SwingConstants.CENTER);
-      //            jLabel3.setHorizontalTextPosition (javax.swing.SwingConstants.CENTER);
-      //            getContentPane().add (jLabel3);
-      //            privateNotes.setColumns (30);
-      //            privateNotes.setRows (8);
-      //            jScrollPane2.setViewportView (privateNotes);
-      //            getContentPane().add (jScrollPane2);
       getContentPane().add(privateNotes.getControls());
+
+      JPanel p = new JPanel();
+      JButton saveButton = new JButton("Save");
+      p.add(saveButton);
+      saveButton.addActionListener(new ActionListener() {
+        public void actionPerformed(ActionEvent e) {
+          save();
+          setVisible(false);
+        }
+      });
+      getContentPane().add(p);
     }
   }
 
 
   public HelpFile getHelpFile() {
-    File dir = new File("docs");
+    File dir = VASSAL.build.module.Documentation.getDocumentationBaseDir();
     dir = new File(dir, "ReferenceManual");
     try {
       return new HelpFile(null, new File(dir, "GameModule.htm"), "#NotesWindow");

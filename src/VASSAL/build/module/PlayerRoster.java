@@ -97,7 +97,7 @@ public class PlayerRoster implements Configurable, CommandEncoder, GameComponent
   }
 
   public HelpFile getHelpFile() {
-    File dir = new File("docs");
+    File dir = VASSAL.build.module.Documentation.getDocumentationBaseDir();
     dir = new File(dir, "ReferenceManual");
     try {
       return new HelpFile(null, new File(dir, "GameModule.htm"), "#Definition_of_Player_Sides");

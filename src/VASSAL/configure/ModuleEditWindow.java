@@ -71,7 +71,7 @@ public class ModuleEditWindow extends JFrame implements WindowListener {
       }
     });
     try {
-      File dir = new File("docs");
+      File dir = VASSAL.build.module.Documentation.getDocumentationBaseDir();
       dir = new File(dir, "ReferenceManual");
       Action a = new ShowHelpAction(helpWindow, HelpFile.toURL(new File(dir, "index.htm")), helpWindow.getClass().getResource("/images/Help16.gif"));
       a.putValue(Action.SHORT_DESCRIPTION, "Reference Manual");
@@ -93,7 +93,11 @@ public class ModuleEditWindow extends JFrame implements WindowListener {
   }
 
   protected void refreshTitle() {
-    setTitle("Edit "+GameModule.getGameModule().getConfigureName());
+    String configureName = GameModule.getGameModule().getConfigureName();
+    if (configureName == null) {
+      configureName = "Module";
+    }
+    setTitle("Edit "+configureName);
   }
 
   public void windowActivated(WindowEvent e) {

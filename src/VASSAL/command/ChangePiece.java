@@ -45,6 +45,7 @@ public class ChangePiece extends Command {
   /**
    * When using this constructor, the previous state will be set
    * to that of the piece when this Command is executed.
+   * @deprecated
    */
   public ChangePiece(String id, String newState) {
     this(id, null, newState);
