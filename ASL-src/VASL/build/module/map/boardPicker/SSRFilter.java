@@ -352,7 +352,7 @@ public class SSRFilter extends RGBImageFilter {
   }
 
   public Image recolor(Image oldImage, Component observer) {
-    return observer.createImage
+    return Toolkit.getDefaultToolkit().createImage
         (new FilteredImageSource(oldImage.getSource(), this));
   }
 }

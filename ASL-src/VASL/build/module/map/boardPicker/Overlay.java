@@ -175,6 +175,7 @@ public class Overlay implements Cloneable {
       Graphics2D g = ((BufferedImage)image).createGraphics();
       g.setColor(Color.black);
       g.drawString(msg, 5, fm.getHeight());
+      g.dispose();
     }
 
   }
