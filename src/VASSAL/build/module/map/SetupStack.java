@@ -93,7 +93,8 @@ public class SetupStack extends AbstractConfigurable implements GameComponent, C
 
   public Command decode(String command) {
     Command c = null;
-    if (command.startsWith(COMMAND_PREFIX+getId())) {
+    if ((getConfigureName() != null && getConfigureName().length() > 0 && command.startsWith(COMMAND_PREFIX+getConfigureName()))
+      || command.startsWith(COMMAND_PREFIX+getId())) {
       return new MarkInitialized(this);
     }
     return c;
@@ -102,7 +103,9 @@ public class SetupStack extends AbstractConfigurable implements GameComponent, C
   public String encode(Command c) {
     String s = null;
     if (c instanceof MarkInitialized) {
-      return COMMAND_PREFIX + ((MarkInitialized)c).target.getId();
+      MarkInitialized mark = (MarkInitialized)c;
+      return COMMAND_PREFIX + (mark.target.getConfigureName() != null && mark.target.getConfigureName().length() > 0 ?
+          mark.target.getConfigureName() : mark.target.getId());
     }
     return s;
   }
