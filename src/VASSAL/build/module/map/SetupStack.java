@@ -52,8 +52,8 @@ public class SetupStack extends AbstractConfigurable implements GameComponent, C
   public final static String X_POSITION = "x";
   public final static String Y_POSITION = "y";
   protected Map map;
-  private boolean stackInitialized;
   protected String owningBoardName;
+  private boolean stackInitialized;
   protected String id;
   public static final String NAME = "name";
   private PieceCloner cloner = new PieceCloner();
@@ -68,13 +68,26 @@ public class SetupStack extends AbstractConfigurable implements GameComponent, C
       }
       map.placeAt(s, p);
     }
-    else {
+    if (!gameStarting) {
       stackInitialized = false;
     }
   }
 
   public Command getRestoreCommand() {
     return new MarkInitialized(getId());
+  }
+
+  /**
+   * Return true if the stack that this component places on the map board
+   * has already been placed
+   * @return
+   */
+  public boolean isStackInitialized() {
+    return stackInitialized;
+  }
+
+  public void setStackInitialized(boolean stackInitialized) {
+    this.stackInitialized = stackInitialized;
   }
 
   public Command decode(String command) {
@@ -284,6 +297,10 @@ public class SetupStack extends AbstractConfigurable implements GameComponent, C
     }
   }
 
+  /**
+   * This command indicates that a Stack has been created already in a saved
+   * game, so there is no need to initialized a new one when the game is opened.
+   */
   public static class MarkInitialized extends Command {
     private String id;
 

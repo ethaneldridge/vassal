@@ -2,7 +2,7 @@
 /*
  * $Id$
  *
- * Copyright (c) 2000-2003 by Rodney Kinney
+ * Copyright (c) 2000-2004 by Rodney Kinney
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Library General Public
@@ -27,36 +27,23 @@ import VASSAL.build.module.Map;
 import VASSAL.build.module.documentation.HelpFile;
 import VASSAL.build.module.map.boardPicker.Board;
 import VASSAL.build.widget.CardSlot;
-import VASSAL.command.ChangeTracker;
 import VASSAL.command.Command;
 import VASSAL.configure.ColorConfigurer;
 import VASSAL.configure.StringEnum;
 import VASSAL.configure.VisibilityCondition;
-import VASSAL.counters.*;
+import VASSAL.counters.Deck;
+import VASSAL.counters.GamePiece;
+import VASSAL.counters.Stack;
 import VASSAL.tools.SequenceEncoder;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.MouseEvent;
 import java.io.File;
 import java.net.MalformedURLException;
 import java.util.Enumeration;
-import java.util.Vector;
 
 public class DrawPile extends SetupStack {
-  protected Deck contents;
-  protected Dimension size = new Dimension(40, 40);
-  protected boolean faceDown;
-  private String faceDownOption = ALWAYS;
-  private String shuffleOption = ALWAYS;
-  private boolean allowMultipleDraw = false;
-  private boolean allowSelectDraw = false;
-  private boolean reversible = false;
-  private boolean drawOutline = true;
-  private Color outlineColor = Color.black;
-  private Vector nextDraw;
-
-  protected Action faceDownAction;
+  protected Deck dummy = new Deck(); // Used for storing type information
 
   protected JPopupMenu buildPopup() {
     JPopupMenu popup = new JPopupMenu();
@@ -65,8 +52,6 @@ public class DrawPile extends SetupStack {
 
   public void addTo(Buildable b) {
     map = (Map) b;
-//    map.addDrawComponent(this);
-//    map.addLocalMouseListener(this);
     int count = 0;
     for (Enumeration e = GameModule.getGameModule().getComponents(Map.class); e.hasMoreElements();) {
       Map m = (Map) e.nextElement();
@@ -90,10 +75,6 @@ public class DrawPile extends SetupStack {
     if (map != b) {
       throw new IllegalBuildException("Parent is not " + b);
     }
-/*
-    map.removeDrawComponent(this);
-    map.removeLocalMouseListener(this);
-*/
     GameModule.getGameModule().removeCommandEncoder(this);
     GameModule.getGameModule().getGameState().removeGameComponent(this);
   }
@@ -175,31 +156,31 @@ public class DrawPile extends SetupStack {
 
   public String getAttributeValueString(String key) {
     if (WIDTH.equals(key)) {
-      return "" + size.width;
+      return "" + dummy.getSize().width;
     }
     else if (HEIGHT.equals(key)) {
-      return "" + size.height;
+      return "" + dummy.getSize().height;
     }
     else if (FACE_DOWN.equals(key)) {
-      return faceDownOption;
+      return dummy.getFaceDownOption();
     }
     else if (SHUFFLE.equals(key)) {
-      return shuffleOption;
+      return dummy.getShuffleOption();
     }
     else if (REVERSIBLE.equals(key)) {
-      return "" + reversible;
+      return "" + dummy.isReversible();
     }
     else if (ALLOW_MULTIPLE.equals(key)) {
-      return "" + allowMultipleDraw;
+      return "" + dummy.isAllowMultipleDraw();
     }
     else if (ALLOW_SELECT.equals(key)) {
-      return "" + allowSelectDraw;
+      return "" + dummy.isAllowSelectDraw();
     }
     else if (DRAW.equals(key)) {
-      return "" + drawOutline;
+      return "" + dummy.isDrawOutline();
     }
     else if (COLOR.equals(key)) {
-      return ColorConfigurer.colorToString(outlineColor);
+      return ColorConfigurer.colorToString(dummy.getOutlineColor());
     }
     else {
       return super.getAttributeValueString(key);
@@ -215,58 +196,57 @@ public class DrawPile extends SetupStack {
       if (value instanceof String) {
         value = new Integer((String) value);
       }
-      size.width = ((Integer) value).intValue();
+      dummy.getSize().width = ((Integer) value).intValue();
     }
     else if (HEIGHT.equals(key)) {
       if (value instanceof String) {
         value = new Integer((String) value);
       }
-      size.height = ((Integer) value).intValue();
+      dummy.getSize().height = ((Integer) value).intValue();
     }
     else if (FACE_DOWN.equals(key)) {
-      faceDownOption = (String) value;
-      faceDown = !faceDownOption.equals(NEVER);
+      dummy.setFaceDownOption((String) value);
     }
     else if (SHUFFLE.equals(key)) {
-      shuffleOption = (String) value;
+      dummy.setShuffleOption((String) value);
     }
     else if (REVERSIBLE.equals(key)) {
       if (value instanceof Boolean) {
-        reversible = Boolean.TRUE.equals(value);
+        dummy.setReversible(Boolean.TRUE.equals(value));
       }
       else {
-        reversible = "true".equals(value);
+        dummy.setReversible("true".equals(value));
       }
     }
     else if (ALLOW_MULTIPLE.equals(key)) {
       if (value instanceof Boolean) {
-        allowMultipleDraw = Boolean.TRUE.equals(value);
+        dummy.setAllowMultipleDraw(Boolean.TRUE.equals(value));
       }
       else {
-        allowMultipleDraw = "true".equals(value);
+        dummy.setAllowMultipleDraw("true".equals(value));
       }
     }
     else if (ALLOW_SELECT.equals(key)) {
       if (value instanceof Boolean) {
-        allowSelectDraw = Boolean.TRUE.equals(value);
+        dummy.setAllowSelectDraw(Boolean.TRUE.equals(value));
       }
       else {
-        allowSelectDraw = "true".equals(value);
+        dummy.setAllowSelectDraw("true".equals(value));
       }
     }
     else if (DRAW.equals(key)) {
       if (value instanceof Boolean) {
-        drawOutline = Boolean.TRUE.equals(value);
+        dummy.setDrawOutline(Boolean.TRUE.equals(value));
       }
       else {
-        drawOutline = "true".equals(value);
+        dummy.setDrawOutline("true".equals(value));
       }
     }
     else if (COLOR.equals(key)) {
       if (value instanceof String) {
         value = ColorConfigurer.stringToColor((String) value);
       }
-      outlineColor = (Color) value;
+      dummy.setOutlineColor((Color) value);
     }
     else {
       super.setAttribute(key, value);
@@ -277,7 +257,7 @@ public class DrawPile extends SetupStack {
     if (COLOR.equals(name)) {
       return new VisibilityCondition() {
         public boolean shouldBeVisible() {
-          return drawOutline;
+          return dummy.isDrawOutline();
         }
       };
     }
@@ -290,55 +270,6 @@ public class DrawPile extends SetupStack {
     return new Class[]{CardSlot.class};
   }
 
-/*
-  public void draw(java.awt.Graphics g, Map map) {
-    Point p = map.componentCoordinates(getPosition());
-    draw(g, p.x, p.y, map.getView(), map.getZoom());
-  }
-
-  public void draw(java.awt.Graphics g, int x, int y, Component obs, double zoom) {
-    int count = 0;
-    if (contents != null
-        && (count = contents.getPieceCount()) > 0) {
-      GamePiece top = contents.topPiece();
-      Rectangle r = top.getShape().getBounds();
-      r.setLocation(x + (int) (zoom * (r.x)), y + (int) (zoom * (r.y)));
-      r.setSize((int) (zoom * r.width), (int) (zoom * r.height));
-      count = count > 10 ? 10 : count;
-      for (int i = 0; i < count - 1; ++i) {
-        g.setColor(Color.white);
-        g.fillRect(r.x + (int) (zoom * 2 * i),
-                   r.y - (int) (zoom * 2 * i), r.width, r.height);
-        g.setColor(Color.black);
-        g.drawRect(r.x + (int) (zoom * 2 * i),
-                   r.y - (int) (zoom * 2 * i), r.width, r.height);
-      }
-      if (faceDown) {
-        Obscurable.setAllHidden(true);
-        Object oldValue = top.getProperty(Properties.OBSCURED_OWNER);
-        top.setProperty(Properties.OBSCURED_OWNER, "dummy");
-        top.draw(g, x + (int) (zoom * 2 * (count - 1)),
-                 y - (int) (zoom * 2 * (count - 1)), obs, zoom);
-        top.setProperty(Properties.OBSCURED_OWNER, oldValue);
-        Obscurable.setAllHidden(false);
-      }
-      else {
-        top.draw(g, x + (int) (zoom * 2 * (count - 1)),
-                 y - (int) (zoom * 2 * (count - 1)), obs, zoom);
-      }
-    }
-    else {
-      if (drawOutline) {
-        Rectangle r = boundingBox();
-        r.setLocation(x + (int) (zoom * (r.x - getPosition().x)), y + (int) (zoom * (r.y - getPosition().y)));
-        r.setSize((int) (zoom * r.width), (int) (zoom * r.height));
-        g.setColor(outlineColor);
-        g.drawRect(r.x, r.y, r.width, r.height);
-      }
-    }
-  }
-
-*/
   public Point getPosition() {
     Point p = new Point(pos);
     Board b = map.getBoardByName(owningBoardName);
@@ -348,161 +279,13 @@ public class DrawPile extends SetupStack {
     return p;
   }
 
-  /**
-   * The bounds of this deck in the {@link Map} window, adjusted for owning board, if any
-   * @return
-   */
-/*
-  public Rectangle boundingBox() {
-    Rectangle r = null;
-    if (contents != null
-        && contents.getPieceCount() > 0) {
-      GamePiece p = contents.topPiece();
-      r = p.getShape().getBounds();
-      r.translate(pos.x, pos.y);
-      for (int i = 0, n = Math.min(10, contents.getPieceCount()); i < n; ++i) {
-        r.setSize(r.width + 2, r.height + 2);
-        r.y -= 2;
-      }
-    }
-    else {
-      r = new Rectangle(pos.x - size.width / 2, pos.y - size.height / 2, size.width, size.height);
-    }
-    if (owningBoardName != null) {
-      for (Enumeration e = map.getAllBoards(); e.hasMoreElements();) {
-        Board b = (Board) e.nextElement();
-        if (owningBoardName.equals(b.getName())) {
-          r.translate(b.bounds().x, b.bounds().y);
-          break;
-        }
-      }
-    }
-    return r;
-  }
-*/
-
-  protected Command addToDragBuffer(GamePiece p) {
-    Command c = null;
-    if (faceDown) {
-      ChangeTracker tracker = new ChangeTracker(p);
-      p.setProperty(Properties.OBSCURED_BY, GameModule.getGameModule().getUserId());
-      c = tracker.getChangeCommand();
-    }
-    DragBuffer.getBuffer().add(p);
-    return c;
-  }
-
-
-  public void mousePressed(MouseEvent evt) {
-/*
-    if (isActive && boundingBox().contains(evt.getPoint())
-        && contents.getPieceCount() > 0) {
-      if (!evt.isMetaDown()) {
-        if (nextDraw != null) {
-          DragBuffer.getBuffer().clear();
-          for (Enumeration e = nextDraw.elements(); e.hasMoreElements();) {
-            GamePiece p = (GamePiece) e.nextElement();
-            if (p.getProperty(Properties.OBSCURED_OWNER) != null) {
-              p.setProperty(Properties.OBSCURED_OWNER, GameModule.getUserId());
-            }
-            DragBuffer.getBuffer().add(p);
-          }
-        }
-        else {
-          if (dragCount == 0) {
-            dragCount = 1;
-          }
-          GameModule.getGameModule().sendAndLog(addToDragBuffer(dragCount));
-        }
-      }
-    }
-    else {
-      dragCount = 0;
-      nextDraw = null;
-    }
-    */
-  }
-
-  public void mouseReleased(MouseEvent evt) {
-  /*
-    if (isActive && boundingBox().contains(evt.getPoint())) {
-      if (evt.isMetaDown()) {
-        JPopupMenu popup = buildPopup();
-        if (popup != null) {
-          Point p = map.componentCoordinates(evt.getPoint());
-          popup.show(map.getView(), p.x, p.y);
-        }
-      }
-      else {
-        GamePiece p = map.findPiece(evt.getPoint(), PieceFinder.MOVABLE);
-        if (p != null) {
-          String oldContents = contents.getState();
-          GameModule.getGameModule().sendAndLog
-              (addToContents(p).append
-               (new ChangePiece(contents.getId(),
-                                oldContents,
-                                contents.getState())));
-        }
-      }
-    }
-    if (!evt.isMetaDown()) {
-      dragCount = 0;
-    }
-*/
-  }
-
   public Map getMap() {
     return map;
   }
 
   public Command addToContents(GamePiece p) {
-/*
-    Command comm;
-    ChangeTracker contentsTracker = new ChangeTracker(contents);
-    if (p instanceof Stack) {
-      Command c = new NullCommand();
-      for (Enumeration e = ((Stack) p).getPieces();
-           e.hasMoreElements();) {
-        GamePiece sub = (GamePiece) e.nextElement();
-        c = c.append(addToContents(sub));
-      }
-      comm = c;
-    }
-    else {
-      contents.add(p);
-      comm = contentsTracker.getChangeCommand();
-    }
-    return comm;
-*/
     return map.placeOrMerge(p,getPosition());
   }
-
-  public void mouseEntered(MouseEvent e) {
-  }
-
-  public void mouseExited(MouseEvent e) {
-  }
-
-  public void mouseClicked(MouseEvent e) {
-  }
-
-/*
-  public void setup(boolean gameStarting) {
-    isActive = gameStarting && isOwningBoardActive();
-    if (isActive) {
-      map.addDrawComponent(this);
-    }
-    else {
-      map.removeDrawComponent(this);
-    }
-    if (!isActive) {
-      contents = null;
-    }
-    else if (contents == null) {
-      contents = (Deck)initializeContents();
-    }
-  }
-*/
 
   protected Stack initializeContents() {
     Stack s = super.initializeContents();
@@ -514,16 +297,7 @@ public class DrawPile extends SetupStack {
   }
 
   private String getDeckType() {
-      SequenceEncoder se = new SequenceEncoder(';');
-      se.append("" + drawOutline)
-          .append(ColorConfigurer.colorToString(outlineColor))
-          .append(size.width + "").append(size.height + "")
-          .append(faceDownOption)
-          .append(shuffleOption)
-          .append(allowMultipleDraw + "")
-          .append(allowSelectDraw + "")
-          .append(reversible+"");
-      return Deck.ID + se.getValue();
+    return dummy.getType();
   }
 
   public VASSAL.build.module.documentation.HelpFile getHelpFile() {
@@ -539,5 +313,56 @@ public class DrawPile extends SetupStack {
 
   public static String getConfigureTypeName() {
     return "Deck";
+  }
+
+  public Command decode(String s) {
+    if (s.startsWith(getId() + '\t')) {
+      SequenceEncoder.Decoder st = new SequenceEncoder.Decoder(s, '\t');
+      st.nextToken();
+      String contentsId = st.nextToken();
+      return new PlaceDeck(this, contentsId);
+    }
+    else {
+      return null;
+    }
+  }
+
+  public String encode(Command c) {
+    return null;
+  }
+
+  /** Only necessary for backward compatibility */
+  public static class PlaceDeck extends Command {
+    private DrawPile drawPile;
+    private String contentsId;
+
+    public PlaceDeck(DrawPile drawPile, String contentsId) {
+      this.drawPile = drawPile;
+      this.contentsId = contentsId;
+    }
+
+    // Replace the identified Stack with a Deck
+    public void executeCommand() {
+      Stack stack = (Stack) GameModule.getGameModule().getGameState().getPieceForId(contentsId);
+      if (stack != null) {
+        Deck deck = new Deck(drawPile.getDeckType());
+        for (Enumeration e = stack.getPieces(); e.hasMoreElements();) {
+          deck.add((GamePiece) e.nextElement());
+        }
+        Point p = new Point(drawPile.pos);
+        if (drawPile.owningBoardName != null) {
+          Rectangle r = drawPile.map.getBoardByName(drawPile.owningBoardName).bounds();
+          p.translate(r.x, r.y);
+        }
+        drawPile.map.placeAt(deck, p);
+        GameModule.getGameModule().getGameState().addPiece(deck);
+        GameModule.getGameModule().getGameState().removePiece(contentsId);
+        drawPile.setStackInitialized(true);
+      }
+    }
+
+    public Command myUndoCommand() {
+      return null;
+    }
   }
 }

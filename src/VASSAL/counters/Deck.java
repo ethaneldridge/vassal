@@ -19,6 +19,7 @@
 package VASSAL.counters;
 
 import VASSAL.build.GameModule;
+import VASSAL.build.module.Map;
 import VASSAL.command.ChangeTracker;
 import VASSAL.command.Command;
 import VASSAL.command.NullCommand;
@@ -81,6 +82,63 @@ public class Deck extends Stack {
     allowMultipleDraw = "true".equals(st.nextToken());
     allowSelectDraw = "true".equals(st.nextToken());
     reversible = "true".equals(st.nextToken());
+  }
+
+  public String getFaceDownOption() {
+    return faceDownOption;
+  }
+
+  public void setFaceDownOption(String faceDownOption) {
+    this.faceDownOption = faceDownOption;
+    faceDown = !faceDownOption.equals(NEVER);
+  }
+
+  public Dimension getSize() {
+    return size;
+  }
+
+  public void setSize(Dimension size) {
+    this.size = size;
+  }
+
+  public String getShuffleOption() {
+    return shuffleOption;
+  }
+
+  public void setShuffleOption(String shuffleOption) {
+    this.shuffleOption = shuffleOption;
+  }
+
+  public boolean isShuffle() {
+    return shuffle;
+  }
+
+  public void setShuffle(boolean shuffle) {
+    this.shuffle = shuffle;
+  }
+
+  public boolean isAllowMultipleDraw() {
+    return allowMultipleDraw;
+  }
+
+  public void setAllowMultipleDraw(boolean allowMultipleDraw) {
+    this.allowMultipleDraw = allowMultipleDraw;
+  }
+
+  public boolean isAllowSelectDraw() {
+    return allowSelectDraw;
+  }
+
+  public void setAllowSelectDraw(boolean allowSelectDraw) {
+    this.allowSelectDraw = allowSelectDraw;
+  }
+
+  public boolean isReversible() {
+    return reversible;
+  }
+
+  public void setReversible(boolean reversible) {
+    this.reversible = reversible;
   }
 
   public String getType() {
@@ -173,6 +231,9 @@ public class Deck extends Stack {
 
   public String getState() {
     SequenceEncoder se = new SequenceEncoder(';');
+    se.append(getMap() == null ? "null" : getMap().getId())
+          .append("" + getPosition().x)
+          .append("" + getPosition().y);
     se.append("" + faceDown);
     SequenceEncoder se2 = new SequenceEncoder(',');
     for (Enumeration e = getPieces(); e.hasMoreElements();) {
@@ -186,7 +247,26 @@ public class Deck extends Stack {
   }
 
   public void setState(String state) {
+    BoundsTracker tracker = new BoundsTracker();
+    tracker.addPiece(this);
     SequenceEncoder.Decoder st = new SequenceEncoder.Decoder(state, ';');
+    String mapId = st.nextToken();
+    setPosition(new Point(st.nextInt(0),st.nextInt(0)));
+    Map m = null;
+    if (!"null".equals(mapId)) {
+      m = Map.getMapById(mapId);
+      if (m == null) {
+        throw new RuntimeException("Could not find map " + mapId);
+      }
+    }
+    if (m != getMap()) {
+      if (m != null) {
+        m.addPiece(this);
+      }
+      else {
+        setMap(null);
+      }
+    }
     faceDown = "true".equals(st.nextToken());
     SequenceEncoder.Decoder st2 = new SequenceEncoder.Decoder(st.nextToken(), ',');
     ArrayList l = new ArrayList();
@@ -197,6 +277,8 @@ public class Deck extends Stack {
       }
     }
     setContents(l.iterator());
+    tracker.addPiece(this);
+    tracker.repaint();
   }
 
   public Command setContentsFaceDown(boolean value) {
@@ -218,6 +300,14 @@ public class Deck extends Stack {
 
   public boolean isDrawOutline() {
     return drawOutline;
+  }
+
+  public void setOutlineColor(Color outlineColor) {
+    this.outlineColor = outlineColor;
+  }
+
+  public void setDrawOutline(boolean drawOutline) {
+    this.drawOutline = drawOutline;
   }
 
   public Color getOutlineColor() {
@@ -266,7 +356,9 @@ public class Deck extends Stack {
   }
 
   public Rectangle boundingBox() {
-    Rectangle r = new Rectangle(getPosition(),size);
+    GamePiece top = topPiece();
+    Dimension d = top == null ? size : top.getShape().getBounds().getSize();
+    Rectangle r = new Rectangle(getPosition(),d);
     r.translate(-r.width/2,-r.height/2);
     return r;
   }
