@@ -1,314 +1,447 @@
+/*
+ * $Id$
+ *
+ * Copyright (c) 2000-2003 by Brent Easton
+ *
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Library General Public
+ * License (LGPL) as published by the Free Software Foundation.
+ *
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Library General Public License for more details.
+ *
+ * You should have received a copy of the GNU Library General Public
+ * License along with this library; if not, copies are available
+ * at http://www.opensource.org.
+ */
 package VASSAL.build.module;
 
-/*
- * @author Brent Easton
- *
- * Describes a Request for multiple Die Rolls.
- *
- */
 
 import java.awt.*;
-import java.awt.event.KeyAdapter;
-import java.awt.event.KeyEvent;
+import java.awt.event.*;
 
 import javax.swing.*;
-import javax.swing.event.*;
-import javax.swing.table.*;
+import javax.swing.border.*;
 
-import VASSAL.build.GameModule;
+/**
+ * @author Brent Easton
+ *
+ * Describes a request for multiple Die Rolls.
+ * For use with internet dice rollers
+ */
+public class MultiRoll extends JDialog {
 
-public class MultiRoll extends JDialog implements ListSelectionListener {
+  private JButton rollButton = new JButton("Roll");
+  private JButton canButton = new JButton("Cancel");
 
-    private final Boolean TRUE = new Boolean(true);
-    private final Boolean FALSE = new Boolean(false);
+  private JPanel topPanel;
+  private JPanel buttonPanel;
+  private JPanel descPanel;
+  private JPanel detailPanel;
+  protected JTextField descText;
+  protected int lastSelectedRow, lastSelectedCol;
 
-    private JButton rollButton = new JButton("Roll");
-    private JButton canButton = new JButton("Cancel");
+  protected RollRow[] rollRows;
 
-    private JPanel topPanel;
-    private JPanel buttonPanel;
-    private JPanel descPanel;
-    private JTable table;
-    private JScrollPane scrollPane;
-    protected JTextField descText;
-    protected int lastSelectedRow, lastSelectedCol;
+  public static final int COL_IDX = 0;
+  public static final int COL_ROLL = 1;
+  public static final int COL_DESC = 2;
+  public static final int COL_NDICE = 3;
+  public static final int COL_NSIDES = 4;
+  public static final int COL_ADD = 5;
+  public static final int COL_TOTAL = 6;
+  public static final int NUMCOLS = 7;
 
-    public static final int COL_IDX = 0;
-    public static final int COL_ROLL = 1;
-    public static final int COL_DESC = 2;
-    public static final int COL_NDICE = 3;
-    public static final int COL_NSIDES = 4;
-    public static final int COL_ADD = 5;
-    public static final int COL_TOTAL = 6;
-    public static final int NUMCOLS = 7;
+  public static final int MAX_ROLLS = 10;
+  public static final int ROW_HEIGHT = 20;
 
-    public static final int MAX_ROLLS = 10;
+  public static final int COL1_WIDTH = 31;
+  public static final int COL2_WIDTH = 30;
+  public static final int COL3_WIDTH = 137;
+  public static final int COL4_WIDTH = 50;
+  public static final int COL5_WIDTH = 50;
+  public static final int COL6_WIDTH = 25;
+  public static final int COL7_WIDTH = 35;
 
-    protected String description;
-    protected DieRoll[] rolls = new DieRoll[MAX_ROLLS];
-    protected boolean[] useDie = new boolean[MAX_ROLLS];
-    protected String verification = "";
-    protected boolean rollCancelled = false;
-    protected boolean singleRoll;
+  protected DieManager dieManager;
+  protected String description;
+  protected DieRoll[] rolls = new DieRoll[MAX_ROLLS];
+  protected boolean[] useDie = new boolean[MAX_ROLLS];
+  protected String verification = "";
+  protected boolean rollCancelled = false;
+  protected boolean singleRoll;
 
-    private static final String DESC = "description";
+  public MultiRoll(DieManager d, int dfltNDice, int dfltNSides) {
+    dieManager = d;
+    for (int i = 0; i < MAX_ROLLS; i++) {
+      rolls[i] = new DieRoll("", dfltNDice, dfltNSides);
+    }
+    initConfig(dfltNDice, dfltNSides);
+    clearDie();
+    setSingleRoll(false);
 
-    public MultiRoll(int dfltNDice, int dfltNSides) {
-        initConfig();
-        clearDie();
-        setSingleRoll(false);
-        for (int i = 0; i < MAX_ROLLS; i++) {
-            rolls[i] = new DieRoll("", dfltNDice, dfltNSides);
+  }
+
+  private void clearDie() {
+    for (int i = 0; i < MAX_ROLLS; i++) {
+      useDie[i] = false;
+    }
+  }
+
+  // Getters/Setters
+  public void setSingleRoll(String desc, int nd, int ns, int p, boolean r) {
+    clearDie();
+    rolls[0] = new DieRoll(desc, nd, ns, p, r);
+    useDie[0] = true;
+    singleRoll = true;
+    description = desc;
+  }
+
+  public void setSingleRoll(boolean b) {
+    singleRoll = b;
+  }
+
+  public boolean wasCancelled() {
+    return rollCancelled;
+  }
+
+  public void setDescription(String d) {
+    description = d;
+  }
+
+  public String getDescription() {
+    return description;
+  }
+
+  public boolean getSingleRoll() {
+    return singleRoll;
+  }
+
+  public int getMaxDescLength() {
+    int len = 0;
+    for (int i = 0; i < MAX_ROLLS; i++) {
+      if (useDie[i]) {
+        if (rolls[i].description.length() > len) {
+          len = rolls[i].description.length();
         }
+      }
+    }
+    return len;
+  }
+
+  public int getRollCount() {
+    int c = 0;
+    for (int i = 0; i < MAX_ROLLS; i++) {
+      if (useDie[i]) {
+        c++;
+      }
+    }
+    return c;
+  }
+
+  public void refresh() {
+    for (int i = 0; i < MAX_ROLLS; i++) {
+      rolls[i].refresh();
+    }
+  }
+
+  // Multi-roll Configuration code
+  private void initConfig(int nd, int ns) {
+
+    setModal(true);
+
+    setTitle("Multi Roller");
+    setSize(380, 206);
+    setBackground(Color.gray);
+
+    // Create a panel to hold all other components
+    topPanel = new JPanel();
+    topPanel.setLayout(new BoxLayout(topPanel, BoxLayout.PAGE_AXIS));
+
+    descPanel = new JPanel();
+    JLabel descLabel = new JLabel("Roll Description");
+    descText = new JTextField(26);
+    descText.setText(description);
+
+    descPanel.add(descLabel);
+    descPanel.add(descText);
+    topPanel.add(descPanel);
+
+    descText.addKeyListener(new KeyAdapter() {
+      public void keyReleased(KeyEvent evt) {
+        setDescription(descText.getText());
+      }
+    });
+
+    detailPanel = new JPanel();
+    detailPanel.setLayout(new BoxLayout(detailPanel, BoxLayout.PAGE_AXIS));
+    detailPanel.setBorder(BorderFactory.createLineBorder(Color.black));
+
+    detailPanel.add(new HeaderRow());
+
+    rollRows = new RollRow[MAX_ROLLS];
+    for (int i = 0; i < MAX_ROLLS; i++) {
+      rollRows[i] = new RollRow(i, nd, ns);
+      detailPanel.add(rollRows[i]);
     }
 
-    private void clearDie() {
-        for (int i = 0; i < MAX_ROLLS; i++) {
-            useDie[i] = false;
+    topPanel.add(detailPanel);
+
+    // Add Some buttons
+    buttonPanel = new JPanel();
+    rollButton.addActionListener(new java.awt.event.ActionListener() {
+      public void actionPerformed(java.awt.event.ActionEvent e) {
+        rollCancelled = false;
+        setVisible(false);
+      }
+    });
+    canButton.addActionListener(new java.awt.event.ActionListener() {
+      public void actionPerformed(java.awt.event.ActionEvent e) {
+        rollCancelled = true;
+        setVisible(false);
+      }
+    });
+
+    buttonPanel.add(rollButton);
+    buttonPanel.add(canButton);
+
+    getContentPane().add(topPanel, BorderLayout.PAGE_START);
+    getContentPane().add(buttonPanel, BorderLayout.PAGE_END);
+
+    pack();
+  }
+
+  class HeaderRow extends JPanel {
+
+    public HeaderRow() {
+
+      Border raisedbevel = BorderFactory.createRaisedBevelBorder();
+      Border myBorder = raisedbevel;
+
+      //setLayout(new BoxLayout(this, BoxLayout.LINE_AXIS));
+      //setBorder(blackline);
+
+      JLabel col1 = new JLabel("Roll");
+      col1.setPreferredSize(new Dimension(COL1_WIDTH, ROW_HEIGHT));
+      col1.setHorizontalAlignment(JTextField.CENTER);
+      col1.setBorder(myBorder);
+
+//			JLabel col2 = new JLabel("Roll");
+//			col2.setPreferredSize(new Dimension(COL2_WIDTH, ROW_HEIGHT));
+//			col2.setHorizontalAlignment(JTextField.CENTER);
+//            col2.setBorder(myBorder);
+
+      JLabel col3 = new JLabel("Description");
+      col3.setPreferredSize(new Dimension(COL3_WIDTH, ROW_HEIGHT));
+      col3.setBorder(myBorder);
+
+      JLabel col4 = new JLabel("nDice");
+      col4.setBorder(myBorder);
+      col4.setHorizontalAlignment(JTextField.CENTER);
+      col4.setPreferredSize(new Dimension(COL4_WIDTH, ROW_HEIGHT));
+
+      JLabel col5 = new JLabel("nSides");
+      col5.setBorder(myBorder);
+      col5.setHorizontalAlignment(JTextField.CENTER);
+      col5.setPreferredSize(new Dimension(COL5_WIDTH, ROW_HEIGHT));
+
+      JLabel col6 = new JLabel("add");
+      col6.setBorder(myBorder);
+      col6.setPreferredSize(new Dimension(COL6_WIDTH, ROW_HEIGHT));
+
+      JLabel col7 = new JLabel("Total");
+      col7.setBorder(myBorder);
+      col7.setPreferredSize(new Dimension(COL7_WIDTH, ROW_HEIGHT));
+
+      add(col1);
+      //add(col2);
+      add(col3);
+      add(col4);
+      add(col5);
+      add(col6);
+      add(col7);
+    }
+  }
+
+  class RollRow extends JPanel {
+
+    int myRow;
+    boolean selected;
+    String description;
+    int nDice, nSides, plus;
+    boolean reportTotal;
+    Dimension rowDim = new Dimension(40, ROW_HEIGHT);
+
+    StateButton col1;
+    JCheckBox col2, col7;
+    JComboBox col4, col5;
+    JTextField col3, col6;
+
+    Border blackline = BorderFactory.createLineBorder(Color.black);
+    Border raisedetched = BorderFactory.createEtchedBorder(EtchedBorder.RAISED);
+    Border loweredetched = BorderFactory.createEtchedBorder(EtchedBorder.LOWERED);
+    Border raisedbevel = BorderFactory.createRaisedBevelBorder();
+    Border loweredbevel = BorderFactory.createLoweredBevelBorder();
+    Border myBorder = raisedbevel;
+
+    public RollRow(int row, int nd, int ns) {
+
+      myRow = row;
+
+      //setLayout(new BoxLayout(this, BoxLayout.LINE_AXIS));
+
+      col1 = new StateButton((row + 1) + "");
+      col1.setPreferredSize(new Dimension(COL1_WIDTH, ROW_HEIGHT));
+      col1.setState(useDie[myRow]);
+      col1.addActionListener(new ActionListener() {
+        public void actionPerformed(ActionEvent e) {
+          col1.switchState();
+          useDie[myRow] = col1.getState();
         }
-    }
+      });
 
-    // Getters/Setters
-    public void setSingleRoll(String desc, int nd, int ns, int p, boolean r) {
-        clearDie();
-        rolls[0] = new DieRoll(desc, nd, ns, p, r);
-        useDie[0] = true;
-        singleRoll = true;
-        description = desc;
-    }
 
-    public void setSingleRoll(boolean b) {
-        singleRoll = b;
-    }
+      // Roll Number
+//            col1 = new JLabel((row + 1) + "");
+//            col1.setPreferredSize(new Dimension(COL1_WIDTH, ROW_HEIGHT));
+//            col1.setHorizontalAlignment(JTextField.CENTER);
+//            col1.setBorder(myBorder);
+//
+//            // Selection Checkbox
+//            col2 = new JCheckBox();
+//            col2.setBorder(myBorder);
+//            col2.setPreferredSize(new Dimension(COL2_WIDTH, ROW_HEIGHT));
+//            col2.setSelected(useDie[myRow]);
+//            col2.setHorizontalAlignment(JCheckBox.CENTER);
+//            col2.addItemListener(new ItemListener() {
+//                public void itemStateChanged(ItemEvent e) {
+//                    useDie[myRow] = (e.getStateChange() == ItemEvent.SELECTED);
+//                }
+//            });
 
-    public boolean wasCancelled() {
-        return rollCancelled;
-    }
-
-    public void setDescription(String d) {
-        description = d;
-    }
-
-    public String getDescription() {
-        return description;
-    }
-
-    public boolean getSingleRoll() {
-        return singleRoll;
-    }
-
-    public int getMaxDescLength() {
-        int len = 0;
-        for (int i = 0; i < MAX_ROLLS; i++) {
-            if (useDie[i]) {
-                if (rolls[i].description.length() > len) {
-                    len = rolls[i].description.length();
-                }
-            }
+      // Roll Description
+      col3 = new JTextField(12);
+      col3.setBorder(myBorder);
+      col3.setPreferredSize(new Dimension(COL3_WIDTH, ROW_HEIGHT));
+      col3.setText(rolls[myRow].description + "");
+      col3.addKeyListener(new java.awt.event.KeyAdapter() {
+        public void keyReleased(java.awt.event.KeyEvent e) {
+          rolls[myRow].description = col3.getText();
         }
-        return len;
+      });
+
+      // Number of Dice
+      int allowableDice[] = dieManager.getServer().getnDiceList();
+      String diceData[] = new String[allowableDice.length];
+      int defaultNDIdx = 0;
+      for (int i = 0; i < diceData.length; i++) {
+        diceData[i] = allowableDice[i] + "";
+        if (nd == allowableDice[i])
+          defaultNDIdx = i;
+      }
+      col4 = new JComboBox(diceData);
+      col4.setSelectedIndex(defaultNDIdx);
+      col4.setPreferredSize(new Dimension(COL4_WIDTH, ROW_HEIGHT));
+      col4.addActionListener(new ActionListener() {
+        public void actionPerformed(ActionEvent e) {
+          JComboBox cb = (JComboBox) e.getSource();
+          rolls[myRow].numDice = Integer.valueOf((String) cb.getSelectedItem()).intValue();
+        }
+      });
+
+      // Number of Sides
+      int[] allowableSides = dieManager.getServer().getnSideList();
+      String sideData[] = new String[allowableSides.length];
+      int defaultNSIdx = 0;
+      for (int i = 0; i < sideData.length; i++) {
+        sideData[i] = allowableSides[i] + "";
+        if (ns == allowableSides[i])
+          defaultNSIdx = i;
+      }
+      col5 = new JComboBox(sideData);
+      col5.setSelectedIndex(defaultNSIdx);
+      col5.setPreferredSize(new Dimension(COL5_WIDTH, ROW_HEIGHT));
+      col5.addActionListener(new ActionListener() {
+        public void actionPerformed(ActionEvent e) {
+          JComboBox cb = (JComboBox) e.getSource();
+          rolls[myRow].numSides = Integer.valueOf((String) cb.getSelectedItem()).intValue();
+        }
+      });
+
+      // Add to Total
+      col6 = new JTextField(2);
+      col6.setBorder(myBorder);
+      col6.setPreferredSize(new Dimension(COL6_WIDTH, ROW_HEIGHT));
+      col6.setText(rolls[myRow].plus + "");
+      col6.addKeyListener(new java.awt.event.KeyAdapter() {
+        public void keyReleased(java.awt.event.KeyEvent e) {
+          try {
+            rolls[myRow].plus = Integer.valueOf(col3.getText()).intValue();
+          }
+          catch (Exception ev) {
+            rolls[myRow].plus = 0;
+          }
+        }
+      });
+      // Report Total Only
+      col7 = new JCheckBox();
+      col7.setBorder(myBorder);
+      col7.setPreferredSize(new Dimension(COL7_WIDTH, ROW_HEIGHT));
+      col7.setHorizontalAlignment(JCheckBox.CENTER);
+      col7.setSelected(rolls[myRow].reportTotal);
+      col7.addItemListener(new ItemListener() {
+        public void itemStateChanged(ItemEvent e) {
+          rolls[myRow].reportTotal = (e.getStateChange() == ItemEvent.SELECTED);
+        }
+      });
+
+      add(col1);
+      //add(col2);
+      add(col3);
+      add(col4);
+      add(col5);
+      add(col6);
+      add(col7);
+
     }
+  }
 
-    public void refresh() {
-        table.repaint();
-    }
+  /*
+   * An on/off button that changes state to show it's status
+   */
+  class StateButton extends JButton {
+    boolean state = false;
 
-    // Multi-roll Configuration code
-    private void initConfig() {
-
-        setModal(true);
-
-        setTitle("Multi Roller");
-        setSize(380, 206);
-        setBackground(Color.gray);
-
-        // Create a panel to hold all other components
-        topPanel = new JPanel();
-        topPanel.setLayout(new BorderLayout());
-
-        // Create a new table instance
-        table = new JTable(new MyTableModel());
-
-        table.getColumnModel().getColumn(COL_IDX).setPreferredWidth(10);
-        table.getColumnModel().getColumn(COL_ROLL).setPreferredWidth(10);
-        table.getColumnModel().getColumn(COL_DESC).setPreferredWidth(100);
-        table.getColumnModel().getColumn(COL_NDICE).setPreferredWidth(30);
-        table.getColumnModel().getColumn(COL_NSIDES).setPreferredWidth(30);
-        table.getColumnModel().getColumn(COL_ADD).setPreferredWidth(30);
-        table.getColumnModel().getColumn(COL_TOTAL).setPreferredWidth(30);
-
-        // Is this neater?
-        //
-        //        TableColumn nDiceColumn = table.getColumnModel().getColumn(COL_NDICE);
-        //        JComboBox comboBox = new JComboBox();
-        //        comboBox.addItem("1");
-        //        comboBox.addItem("2");
-        //        comboBox.addItem("3");
-        //        comboBox.addItem("4");
-        //        comboBox.addItem("5");
-        //        comboBox.addItem("6");
-        //		comboBox.addItem("7");
-        //		comboBox.addItem("8");
-        //        nDiceColumn.setCellEditor(new DefaultCellEditor(comboBox));
-
-        // Handle the listener
-        ListSelectionModel selectionModel = table.getSelectionModel();
-        selectionModel.addListSelectionListener(this);
-
-        descPanel = new JPanel();
-        JLabel descLabel = new JLabel("Roll Description");
-        descText = new JTextField(30);
-        descText.setText(description);
-
-        descPanel.add(descLabel, BorderLayout.BEFORE_LINE_BEGINS);
-        descPanel.add(descText, BorderLayout.AFTER_LINE_ENDS);
-        topPanel.add(descPanel, BorderLayout.BEFORE_FIRST_LINE);
-
-        descText.addKeyListener(new KeyAdapter() {
-            public void keyReleased(KeyEvent evt) {
-                setDescription(descText.getText());
-            }
-        });
-
-        // Add the table to a scrolling pane
-        scrollPane = new JScrollPane(table, JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED, JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
-        scrollPane.setPreferredSize(new Dimension(360, 180));
-        topPanel.add(scrollPane, BorderLayout.CENTER);
-        // topPanel.add(table);
-
-        // Add Some buttons
-        buttonPanel = new JPanel();
-        rollButton.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent e) {
-                rollCancelled = false;
-                setVisible(false);
-            }
-        });
-        canButton.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent e) {
-                rollCancelled = true;
-                setVisible(false);
-            }
-        });
-        buttonPanel.add(rollButton);
-        buttonPanel.add(canButton);
-
-        getContentPane().add(topPanel, BorderLayout.BEFORE_FIRST_LINE);
-        getContentPane().add(buttonPanel, BorderLayout.AFTER_LAST_LINE);
-
-        pack();
-    }
-
-    class MyTableModel extends AbstractTableModel {
-
-        // Create columns names
-        private String columnNames[] = { "", "Roll", "Description", "nDice", "nSides", "add", "Total" };
-
-        public int getColumnCount() {
-            return 7;
-        }
-
-        public String getColumnName(int col) {
-            return columnNames[col];
-        }
-
-        public Class getColumnClass(int col) {
-            switch (col) {
-                case COL_IDX :
-                    return Integer.class;
-                case COL_ROLL :
-                    return Boolean.class;
-                case COL_DESC :
-                    return String.class;
-                case COL_NDICE :
-                    return Integer.class;
-                case COL_NSIDES :
-                    return Integer.class;
-                case COL_ADD :
-                    return Integer.class;
-                case COL_TOTAL :
-                    return Boolean.class;
-                default :
-                    return String.class;
-            }
-        }
-
-        public int getRowCount() {
-            return 10;
-        }
-
-        public Object getValueAt(int row, int col) {
-            Object val = null;
-
-            switch (col) {
-                case COL_IDX :
-                    return new Integer(row + 1);
-                case COL_ROLL :
-                    return new Boolean(useDie[row]);
-                case COL_DESC :
-                    return rolls[row].description;
-                case COL_NDICE :
-                    return new Integer(rolls[row].numDice);
-                case COL_NSIDES :
-                    return new Integer(rolls[row].numSides);
-                case COL_ADD :
-                    return new Integer(rolls[row].plus);
-                case COL_TOTAL :
-                    return new Boolean(rolls[row].reportTotal);
-                default :
-                    break;
-            }
-            return null;
-
-        }
-
-        public boolean isCellEditable(int row, int col) {
-            return (col > 0) ? true : false;
-        }
-
-        public void setValueAt(Object value, int row, int col) {
-            switch (col) {
-                case COL_ROLL :
-                    useDie[row] = ((Boolean) value).booleanValue();
-                    break;
-                case COL_DESC :
-                    rolls[row].description = (String) value;
-                    break;
-                case COL_NDICE :
-                    rolls[row].setNumDice(((Integer) value).intValue());
-                    break;
-                case COL_NSIDES :
-                    rolls[row].numSides = ((Integer) value).intValue();
-                    break;
-                case COL_ADD :
-                    rolls[row].plus = ((Integer) value).intValue();
-                    break;
-                case COL_TOTAL :
-                    rolls[row].reportTotal = ((Boolean) value).booleanValue();
-                    break;
-                default :
-                    break;
-            }
-            fireTableCellUpdated(row, col);
-        }
+    StateButton(String s, boolean b) {
+      super(s);
+      setHorizontalAlignment(JButton.CENTER);
+      setState(b);
 
     }
 
-    // Handler for list selection changes
-    public void valueChanged(ListSelectionEvent event) {
-        // See if this is a valid table selection
-        if (event.getSource() == table.getSelectionModel() && event.getFirstIndex() >= 0) {
-            // Get the data model for this table
-            TableModel model = (TableModel) table.getModel();
-
-            //			// Determine the selected item
-            //			String string = (String)model.getValueAt(
-            //									table.getSelectedRow(),
-            //									table.getSelectedColumn() );
-            //
-            //			// Display the selected item
-            //			System.out.println( "Value selected = " + string );
-        }
+    StateButton(String s) {
+      this(s, false);
     }
+
+    public void setState(boolean b) {
+      state = b;
+      if (state) {
+        setBorder(BorderFactory.createLoweredBevelBorder());
+      }
+      else {
+        setBorder(BorderFactory.createRaisedBevelBorder());
+      }
+    }
+
+    public boolean getState() {
+      return state;
+    }
+
+    public void switchState() {
+      setState(!state);
+    }
+  }
 
 }
