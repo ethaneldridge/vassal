@@ -13,14 +13,13 @@
  * Library General Public License for more details.
  *
  * You should have received a copy of the GNU Library General Public
- * License along with this library; if not, copies are available 
+ * License along with this library; if not, copies are available
  * at http://www.opensource.org.
  */
 package VASSAL.counters;
 
 import VASSAL.Info;
 
-import javax.swing.*;
 import java.awt.*;
 import java.awt.geom.AffineTransform;
 
@@ -38,26 +37,21 @@ public class ColoredBorder implements Highlighter {
   }
 
   public void draw(GamePiece p, Graphics g, int x, int y, Component obs, double zoom) {
-    if (Info.is2dEnabled() && g instanceof Graphics2D) {
+    if (Info.is2dEnabled()
+        && g instanceof Graphics2D) {
       Graphics2D g2d = (Graphics2D) g;
       Shape s = (Shape) p.getProperty(Properties.SHAPE);
       if (s != null) {
-        Rectangle r = ((JComponent)obs).getVisibleRect();
-        x -= r.x*zoom;
-        y -= r.y*zoom;
         Stroke str = g2d.getStroke();
-        AffineTransform t = g2d.getTransform();
         g2d.setStroke(new BasicStroke(thickness));
         g2d.setColor(c);
-        AffineTransform temp = AffineTransform.getTranslateInstance(x/zoom-p.getPosition().x,y/zoom-p.getPosition().y);
-        temp.scale(zoom,zoom);
-        g2d.setTransform(temp);
-        g2d.draw(s);
+        AffineTransform temp = AffineTransform.getTranslateInstance(x / zoom - p.getPosition().x, y / zoom - p.getPosition().y);
+        temp.scale(zoom, zoom);
+        g2d.draw(temp.createTransformedShape(s));
         g2d.setStroke(str);
-        g2d.setTransform(t);
       }
       else {
-        highlightSelectionBounds(p,g,x,y,obs,zoom);
+        highlightSelectionBounds(p, g, x, y, obs, zoom);
       }
     }
     else {
