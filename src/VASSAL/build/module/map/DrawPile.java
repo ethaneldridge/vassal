@@ -18,10 +18,10 @@
  */
 package VASSAL.build.module.map;
 
+import VASSAL.build.AutoConfigurable;
 import VASSAL.build.Buildable;
 import VASSAL.build.GameModule;
 import VASSAL.build.IllegalBuildException;
-import VASSAL.build.AutoConfigurable;
 import VASSAL.build.module.Map;
 import VASSAL.build.module.documentation.HelpFile;
 import VASSAL.build.module.map.boardPicker.Board;
@@ -63,8 +63,6 @@ public class DrawPile extends SetupStack implements Drawable, MouseListener {
   private boolean isActive;
   private Vector nextDraw;
 
-  private static final String HIDDEN_TO_ALL = "Yendor117";
-
   protected Action faceDownAction;
 
   protected JPopupMenu buildPopup() {
@@ -80,7 +78,7 @@ public class DrawPile extends SetupStack implements Drawable, MouseListener {
     if (USE_MENU.equals(faceDownOption)) {
       faceDownAction = new AbstractAction(faceDown ? "Face up" : "Face down") {
         public void actionPerformed(ActionEvent e) {
-          GameModule.getGameModule().sendAndLog(toggleFaceDown());
+          GameModule.getGameModule().sendAndLog(setFaceDown(!faceDown));
           map.repaint();
         }
       };
@@ -409,16 +407,25 @@ public class DrawPile extends SetupStack implements Drawable, MouseListener {
     return setContents(v.elements());
   }
 
-  public Command toggleFaceDown() {
+  public Command setFaceDown(boolean down) {
+    Command c;
     faceDown = !faceDown;
-    Command c = new NullCommand();
-    for (Enumeration e = contents.getPieces(); e.hasMoreElements();) {
-      GamePiece p = (GamePiece) e.nextElement();
-      ChangeTracker tracker = new ChangeTracker(p);
-      p.setProperty(Obscurable.ID, faceDown ? HIDDEN_TO_ALL : null);
-      c.append(tracker.getChangeCommand());
+    if (!faceDown) {
+      c = new NullCommand();
+      for (Enumeration e = contents.getPieces(); e.hasMoreElements();) {
+        GamePiece p = (GamePiece) e.nextElement();
+        if (p.getProperty(Obscurable.ID) != null) {
+          ChangeTracker tracker = new ChangeTracker(p);
+          p.setProperty(Obscurable.ID, null);
+          c.append(tracker.getChangeCommand());
+        }
+      }
+      return c = c.append(new SetContents(this, contents.getId(), faceDown));
     }
-    return c.append(new SetContents(this, contents.getId(), faceDown));
+    else {
+      c = new SetContents(this, contents.getId(), faceDown);
+    }
+    return c;
   }
 
   public Class[] getAllowableConfigureComponents() {
@@ -447,17 +454,12 @@ public class DrawPile extends SetupStack implements Drawable, MouseListener {
         g.drawRect(r.x + (int) (zoom * 2 * i),
                    r.y - (int) (zoom * 2 * i), r.width, r.height);
       }
-      if (faceDown && top.getProperty(Obscurable.ID) != null) {
-        Object oldValue = top.getProperty(Obscurable.ID);
-        top.setProperty(Obscurable.ID, HIDDEN_TO_ALL);
-        top.draw(g, x + (int) (zoom * 2 * (count - 1)),
-                 y - (int) (zoom * 2 * (count - 1)), obs, zoom);
-        top.setProperty(Obscurable.ID, oldValue);
+      if (faceDown) {
+        Obscurable.setAllHidden(true);
       }
-      else {
-        top.draw(g, x + (int) (zoom * 2 * (count - 1)),
-                 y - (int) (zoom * 2 * (count - 1)), obs, zoom);
-      }
+      top.draw(g, x + (int) (zoom * 2 * (count - 1)),
+               y - (int) (zoom * 2 * (count - 1)), obs, zoom);
+      Obscurable.setAllHidden(false);
     }
     else {
       if (drawOutline) {
@@ -513,7 +515,8 @@ public class DrawPile extends SetupStack implements Drawable, MouseListener {
   /**
    * Add the given number of GamePieces to the Drag buffer
    */
-  protected void addToDragBuffer(int count) {
+  protected Command addToDragBuffer(int count) {
+    Command c = new NullCommand();
     DragBuffer.getBuffer().clear();
     if (ALWAYS.equals(shuffleOption)) {
       Vector indices = new Vector();
@@ -526,22 +529,28 @@ public class DrawPile extends SetupStack implements Drawable, MouseListener {
         int index = ((Integer) indices.elementAt(i)).intValue();
         indices.removeElementAt(i);
         GamePiece p = contents.getPieceAt(index);
-        if (p.getProperty(Obscurable.ID) != null) {
-          p.setProperty(Obscurable.ID, GameModule.getGameModule().getUserId());
-        }
-        DragBuffer.getBuffer().add(p);
+        c = c.append(addToDragBuffer(p));
       }
     }
     else {
       Enumeration e = contents.getPiecesInReverseOrder();
       while (count-- > 0 && e.hasMoreElements()) {
         GamePiece p = (GamePiece) e.nextElement();
-        if (p.getProperty(Obscurable.ID) != null) {
-          p.setProperty(Obscurable.ID, GameModule.getUserId());
-        }
-        DragBuffer.getBuffer().add(p);
+        c = c.append(addToDragBuffer(p));
       }
     }
+    return c;
+  }
+
+  protected Command addToDragBuffer(GamePiece p) {
+    Command c = null;
+    if (faceDown) {
+      ChangeTracker tracker = new ChangeTracker(p);
+      p.setProperty(Obscurable.ID, GameModule.getGameModule().getUserId());
+      c = tracker.getChangeCommand();
+    }
+    DragBuffer.getBuffer().add(p);
+    return c;
   }
 
   public void promptForDragCount() {
@@ -579,7 +588,7 @@ public class DrawPile extends SetupStack implements Drawable, MouseListener {
           if (dragCount == 0) {
             dragCount = 1;
           }
-          addToDragBuffer(dragCount);
+          GameModule.getGameModule().sendAndLog(addToDragBuffer(dragCount));
         }
       }
     }
@@ -631,18 +640,6 @@ public class DrawPile extends SetupStack implements Drawable, MouseListener {
       }
       comm = c;
     }
-    else if (ALWAYS.equals(faceDownOption)) {
-      ChangeTracker tracker = new ChangeTracker(p);
-      p.setProperty(Obscurable.ID, HIDDEN_TO_ALL);
-      contents.add(p);
-      comm = tracker.getChangeCommand().append(contentsTracker.getChangeCommand());
-    }
-    else if (NEVER.equals(faceDownOption)) {
-      ChangeTracker tracker = new ChangeTracker(p);
-      p.setProperty(Obscurable.ID, null);
-      contents.add(p);
-      comm = tracker.getChangeCommand().append(contentsTracker.getChangeCommand());
-    }
     else {
       contents.add(p);
       comm = contentsTracker.getChangeCommand();
@@ -673,17 +670,6 @@ public class DrawPile extends SetupStack implements Drawable, MouseListener {
     else if (contents == null) {
       contents = initializeContents();
     }
-  }
-
-  protected Stack initializeContents() {
-    Stack s = super.initializeContents();
-    if (faceDown) {
-      for (Enumeration e = s.getPieces(); e.hasMoreElements();) {
-        GamePiece p = (GamePiece) e.nextElement();
-        p.setProperty(Obscurable.ID, DrawPile.HIDDEN_TO_ALL);
-      }
-    }
-    return s;
   }
 
   public Command getRestoreCommand() {

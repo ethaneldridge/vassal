@@ -35,6 +35,7 @@ import java.net.MalformedURLException;
 
 public class Hideable extends Decorator implements EditablePiece {
 
+  private static boolean allHidden;
   public static final String ID = "hide;";
   public static final String HIDDEN_BY = "hiddenBy";
 
@@ -108,12 +109,18 @@ public class Hideable extends Decorator implements EditablePiece {
     return hiddenBy == null ? "null" : hiddenBy;
   }
 
-  private boolean invisibleToMe() {
+  public boolean invisibleToMe() {
+    if (allHidden) {
+      return true;
+    }
     return hiddenBy != null
         && !hiddenBy.equals(GameModule.getUserId());
   }
 
-  private boolean invisibleToOthers() {
+  public boolean invisibleToOthers() {
+    if (allHidden) {
+      return true;
+    }
     return hiddenBy != null
         && hiddenBy.equals(GameModule.getUserId());
   }
@@ -224,6 +231,15 @@ public class Hideable extends Decorator implements EditablePiece {
 
   public PieceEditor getEditor() {
     return new Ed(this);
+  }
+
+  /**
+   * If true, then all pieces are considered obscured to all players.
+   * Used to temporarily draw pieces as they appear to other players
+   * @param allHidden
+   */
+  public static void setAllHidden(boolean allHidden) {
+    Hideable.allHidden = allHidden;
   }
 
   private static class Ed implements PieceEditor {

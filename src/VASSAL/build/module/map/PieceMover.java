@@ -222,8 +222,8 @@ public class PieceMover extends AbstractBuildable implements
       p = map.snapTo(p);
     }
 
-    String myId = GameModule.getUserId();
-    GameModule.setUserId("yendoR117");  // Don't report my hidden or concealed units
+    Hideable.setAllHidden(true);
+    Obscurable.setAllHidden(true);
     String origin = map.locationName(bottom.getPosition());
     StringBuffer moved = new StringBuffer();
     if (bottom.getMap() == map) {
@@ -236,7 +236,8 @@ public class PieceMover extends AbstractBuildable implements
       moved.append(bottom.getName());
       origin = OFFMAP;
     }
-    GameModule.setUserId(myId);
+    Hideable.setAllHidden(false);
+    Obscurable.setAllHidden(false);
 
     Command comm = new NullCommand();
     String destination;
@@ -262,7 +263,8 @@ public class PieceMover extends AbstractBuildable implements
 
     while (it.hasMoreElements()) {
       GamePiece next = it.nextPiece();
-      GameModule.setUserId("yendoR117");  // Don't report my hidden or concealed units
+      Hideable.setAllHidden(true);
+      Obscurable.setAllHidden(true);
       //if (next.getMap() == map) { // Make sure moved from offmap are reported
       if (next.getMap() == map || OFFMAP.equals(origin)) {
         if (next.getName().length() > 0) {
@@ -273,7 +275,8 @@ public class PieceMover extends AbstractBuildable implements
       else if (next.getMap() != null) {
         originMaps.add(next.getMap());
       }
-      GameModule.setUserId(myId);
+      Hideable.setAllHidden(false);
+      Obscurable.setAllHidden(false);
       String nextOrigin = map.locationName(next.getPosition());
       if (nextOrigin == null || !nextOrigin.equals(origin)) {
         origin = null;
@@ -295,7 +298,6 @@ public class PieceMover extends AbstractBuildable implements
       report.execute();
       comm = comm.append(report);
     }
-    GameModule.setUserId(myId);
     for (Iterator iterator = originMaps.iterator(); iterator.hasNext();) {
       ((Map) iterator.next()).repaint();
     }

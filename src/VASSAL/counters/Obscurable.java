@@ -37,6 +37,7 @@ import java.net.MalformedURLException;
 
 public class Obscurable extends Decorator implements EditablePiece {
   public static final String ID = "obs;";
+  private static boolean allHidden;
   protected static final char INSET = 'I';
   protected static final char BACKGROUND = 'B';
   protected static final char PEEK = 'P';
@@ -152,11 +153,19 @@ public class Obscurable extends Decorator implements EditablePiece {
   }
 
   public boolean obscuredToMe() {
-    return obscuredBy != null
+    if (allHidden) {
+      return true;
+    }
+    else {
+      return obscuredBy != null
         && !obscuredBy.equals(GameModule.getUserId());
+    }
   }
 
   public boolean obscuredToOthers() {
+    if (allHidden) {
+      return true;
+    }
     return obscuredBy != null
         && obscuredBy.equals(GameModule.getUserId());
   }
@@ -355,6 +364,15 @@ public class Obscurable extends Decorator implements EditablePiece {
     return new Ed(this);
   }
 
+  /**
+   * If true, then all pieces are considered obscured to all players.
+   * Used to temporarily draw pieces as they appear to other players
+   * @param allHidden
+   */
+  public static void setAllHidden(boolean allHidden) {
+    Obscurable.allHidden = allHidden;
+  }
+
   private static class Ed implements PieceEditor {
     private ImagePicker picker;
     private KeySpecifier obscureKeyInput;
@@ -388,7 +406,7 @@ public class Obscurable extends Decorator implements EditablePiece {
 	  maskNameInput = new StringConfigurer(null, "Name when masked", p.maskName);
 	  box.add(maskNameInput.getControls());
 	  controls.add(box);
-	  
+
       box = Box.createHorizontalBox();
       displayOption = new StringEnumConfigurer(null, "Display style", optionNames);
       for (int i = 0; i < optionNames.length; ++i) {
