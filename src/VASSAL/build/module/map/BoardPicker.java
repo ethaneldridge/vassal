@@ -30,10 +30,7 @@ import VASSAL.build.module.map.boardPicker.Board;
 import VASSAL.build.module.map.boardPicker.BoardSlot;
 import VASSAL.command.Command;
 import VASSAL.command.CommandEncoder;
-import VASSAL.configure.ConfigureTree;
-import VASSAL.configure.Configurer;
-import VASSAL.configure.ValidationReport;
-import VASSAL.configure.ValidityChecker;
+import VASSAL.configure.*;
 import VASSAL.tools.SequenceEncoder;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -47,6 +44,8 @@ import java.util.Enumeration;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.Vector;
+import java.beans.PropertyChangeListener;
+import java.beans.PropertyChangeEvent;
 
 /**
  * This class is responsible for maintaining the {@link Board}s on a
@@ -72,18 +71,30 @@ public class BoardPicker extends JDialog
   protected String version = "0.0";
   protected int nx = 1, ny = 1;
   protected JToolBar controls;
+  protected JButton addRowButton;
+  protected JButton addColumnButton;
   protected boolean allowMultiple;
-  protected String title;
+  protected int maxColumns;
+  protected String title = "Choose Boards";
+  protected String addRowButtonText = "Add row";
+  protected String addColumnButtonText = "Add column";
+  protected String boardPrompt = "Select board";
   protected String defaultSetup;
   protected Vector multipleButtons;
-  public final String SCALE = "slotScale";
-  public final String SLOT_HEIGHT = "slotHeight";
-  public final String SLOT_WIDTH = "slotWidth";
-  public final String SETUP = "setup";
+  public static final String SCALE = "slotScale";
+  public static final String SLOT_HEIGHT = "slotHeight";
+  public static final String SLOT_WIDTH = "slotWidth";
+  public static final String SETUP = "setup";
+  public static final String DIALOG_TITLE = "title";
+  public static final String ADD_ROW_BUTTON_TEXT = "addRowText";
+  public static final String ADD_COLUMN_BUTTON_TEXT = "addColumnText";
+  public static final String BOARD_PROMPT = "boardPrompt";
+  public static final String MAX_COLUMNS = "maxColumns";
+  private JButton clearButton;
+  private JButton okButton;
 
   public BoardPicker() {
     super((java.awt.Frame) null, true);
-    title = "Choose Boards";
     allowMultiple = false;
   }
 
@@ -98,11 +109,14 @@ public class BoardPicker extends JDialog
     controls = new JToolBar();
     controls.setFloatable(false);
     controls.setLayout(new BoxLayout(controls, BoxLayout.Y_AXIS));
-    addButton("Ok");
+    okButton = addButton("Ok");
     cancelButton = addButton("Cancel");
-    multipleButtons.addElement(addButton("Add row"));
-    multipleButtons.addElement(addButton("Add column"));
-    multipleButtons.addElement(addButton("Clear"));
+    addRowButton = addButton(addRowButtonText);
+    multipleButtons.addElement(addRowButton);
+    addColumnButton = addButton(addColumnButtonText);
+    multipleButtons.addElement(addColumnButton);
+    clearButton = addButton("Clear");
+    multipleButtons.addElement(clearButton);
     setAllowMultiple(allowMultiple);
     getContentPane().add("North", status);
     JPanel pp = new JPanel();
@@ -170,6 +184,28 @@ public class BoardPicker extends JDialog
         slotScale = Double.valueOf(e.getAttribute(SCALE)).doubleValue();
       }
       catch (Exception ex) {
+      }
+      try {
+        maxColumns = Integer.parseInt(e.getAttribute(MAX_COLUMNS));
+      }
+      catch (Exception ex) {
+        maxColumns = 0;
+      }
+      String value = e.getAttribute(DIALOG_TITLE);
+      if (value != null && value.length() > 0) {
+        title = value;
+      }
+      value = e.getAttribute(ADD_ROW_BUTTON_TEXT);
+      if (value != null && value.length() > 0) {
+        addRowButtonText = value;
+      }
+      value = e.getAttribute(ADD_COLUMN_BUTTON_TEXT);
+      if (value != null && value.length() > 0) {
+        addColumnButtonText = value;
+      }
+      value = e.getAttribute(BOARD_PROMPT);
+      if (value != null && value.length() > 0) {
+        boardPrompt = value;
       }
     }
   }
@@ -396,7 +432,7 @@ public class BoardPicker extends JDialog
   protected void addRow() {
     slotPanel.setLayout(new GridLayout(++ny, nx));
     for (int i = 0; i < nx; ++i) {
-      slotPanel.add(new BoardSlot(this), -1);
+      slotPanel.add(new BoardSlot(this, boardPrompt), -1);
     }
     slotPanel.revalidate();
     pack();
@@ -405,28 +441,32 @@ public class BoardPicker extends JDialog
   protected void addColumn() {
     slotPanel.setLayout(new GridLayout(ny, ++nx));
     for (int j = 0; j < ny; ++j) {
-      slotPanel.add(new BoardSlot(this), (j + 1) * nx - 1);
+      slotPanel.add(new BoardSlot(this, boardPrompt), (j + 1) * nx - 1);
     }
     slotPanel.revalidate();
     pack();
   }
 
   public void actionPerformed(ActionEvent e) {
-    String label = e.getActionCommand();
-    if ("Add column".equals(label)) {
-      addColumn();
+    if (addColumnButton == e.getSource()) {
+      if (maxColumns == 0 || nx < maxColumns) {
+        addColumn();
+      }
+      else {
+        addRow();
+      }
     }
-    else if ("Add row".equals(label)) {
+    else if (addRowButton == e.getSource()) {
       addRow();
     }
-    else if ("Clear".equals(label)) {
+    else if (clearButton == e.getSource()) {
       reset();
     }
-    else if ("Ok".equals(label)) {
+    else if (okButton == e.getSource()) {
       currentBoards = pickBoards();
       setVisible(false);
     }
-    else if ("Cancel".equals(label)) {
+    else if (cancelButton == e.getSource()) {
       GameModule.getGameModule().getGameState().setup(false);
       setVisible(false);
     }
@@ -456,7 +496,7 @@ public class BoardPicker extends JDialog
     else {
       warn("");
       removeAllBoards();
-      slotPanel.add(new BoardSlot(this), 0);
+      slotPanel.add(new BoardSlot(this, boardPrompt), 0);
       pack();
     }
   }
@@ -536,9 +576,16 @@ public class BoardPicker extends JDialog
 
   public org.w3c.dom.Element getBuildElement(org.w3c.dom.Document doc) {
     org.w3c.dom.Element el = doc.createElement(getClass().getName());
-    el.setAttribute(SLOT_WIDTH, "" + psize.width);
-    el.setAttribute(SLOT_HEIGHT, "" + psize.height);
-    el.setAttribute(SCALE, "" + getSlotScale());
+    el.setAttribute(SLOT_WIDTH, String.valueOf(psize.width));
+    el.setAttribute(SLOT_HEIGHT, String.valueOf(psize.height));
+    el.setAttribute(SCALE, String.valueOf(getSlotScale()));
+    el.setAttribute(DIALOG_TITLE,title);
+    el.setAttribute(ADD_ROW_BUTTON_TEXT, addRowButtonText);
+    el.setAttribute(ADD_COLUMN_BUTTON_TEXT, addColumnButtonText);
+    el.setAttribute(BOARD_PROMPT, boardPrompt);
+    if (maxColumns > 0) {
+      el.setAttribute(MAX_COLUMNS, String.valueOf(maxColumns));
+    }
     if (defaultSetup != null) {
       Element setupEl = doc.createElement(SETUP);
       setupEl.appendChild(doc.createTextNode(defaultSetup));
@@ -626,20 +673,83 @@ public class BoardPicker extends JDialog
   }
 
   private class Config extends Configurer {
+    private JPanel controls;
     private JButton selectButton;
+    private IntConfigurer width;
+    private IntConfigurer height;
+    private DoubleConfigurer scale;
+    private StringConfigurer title;
+    private StringConfigurer prompt;
 
     public Config() {
       super(null, null);
+      controls = new JPanel();
+      controls.setLayout(new BoxLayout(controls,BoxLayout.Y_AXIS));
+
+      title = new StringConfigurer(null,"Dialog Title:  ", BoardPicker.this.title);
+      title.addPropertyChangeListener(new PropertyChangeListener() {
+        public void propertyChange(PropertyChangeEvent evt) {
+          if (evt.getNewValue() != null) {
+            BoardPicker.this.title = (String)evt.getNewValue();
+            if (controls != null) {
+              setTitle(BoardPicker.this.title);
+            }
+          }
+        }
+      });
+      controls.add(title.getControls());
+
+      prompt = new StringConfigurer(null,"\"Select Boards\" prompt:  ", BoardPicker.this.boardPrompt);
+      prompt.addPropertyChangeListener(new PropertyChangeListener() {
+        public void propertyChange(PropertyChangeEvent evt) {
+          if (evt.getNewValue() != null) {
+            BoardPicker.this.boardPrompt = (String)evt.getNewValue();
+          }
+        }
+      });
+      controls.add(prompt.getControls());
+
+      scale = new DoubleConfigurer(null,"Cell scale factor:  ", new Double(slotScale));
+      scale.addPropertyChangeListener(new PropertyChangeListener() {
+        public void propertyChange(PropertyChangeEvent evt) {
+          if (evt.getNewValue() != null) {
+            slotScale = ((Double)evt.getNewValue()).doubleValue();
+          }
+        }
+      });
+      controls.add(scale.getControls());
+
+      width = new IntConfigurer(null,"Cell width:  ", new Integer(psize.width));
+      width.addPropertyChangeListener(new PropertyChangeListener() {
+        public void propertyChange(PropertyChangeEvent evt) {
+          if (evt.getNewValue() != null) {
+            psize.width = ((Integer)evt.getNewValue()).intValue();
+          }
+        }
+      });
+      controls.add(width.getControls());
+
+      height = new IntConfigurer(null,"Cell height:  ", new Integer(psize.height));
+      height.addPropertyChangeListener(new PropertyChangeListener() {
+        public void propertyChange(PropertyChangeEvent evt) {
+          if (evt.getNewValue() != null) {
+            psize.height = ((Integer)evt.getNewValue()).intValue();
+          }
+        }
+      });
+      controls.add(height.getControls());
+
       selectButton = new JButton("Select Default Board Setup");
       selectButton.addActionListener(new ActionListener() {
         public void actionPerformed(ActionEvent e) {
           selectBoards();
         }
       });
+      controls.add(selectButton);
     }
 
     public Component getControls() {
-      return selectButton;
+      return controls;
     }
 
     public String getValueString() {

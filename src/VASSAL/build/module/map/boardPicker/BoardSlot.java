@@ -29,7 +29,7 @@ import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 
 public class BoardSlot extends JPanel implements Icon, ActionListener {
-  public static final String NO_BOARD = "Select board";
+  private String prompt = "Select board";
 
   protected BoardPicker picker;
   protected Board board = null;
@@ -38,9 +38,13 @@ public class BoardSlot extends JPanel implements Icon, ActionListener {
   protected JCheckBox reverseCheckBox;
 
   public BoardSlot(BoardPicker bp) {
+    this(bp,"Select board");
+  }
+  public BoardSlot(BoardPicker bp, String prompt) {
+    this.prompt = prompt;
     picker = bp;
     boards = new JComboBox();
-    boards.addItem(NO_BOARD);
+    boards.addItem(prompt);
     String s[] = picker.getAllowableBoardNames();
     for (int i = 0; i < s.length; ++i) {
       boards.addItem(s[i]);
@@ -78,7 +82,7 @@ public class BoardSlot extends JPanel implements Icon, ActionListener {
   }
 
   public void actionPerformed(ActionEvent e) {
-    if (NO_BOARD.equals(boards.getSelectedItem())) {
+    if (prompt.equals(boards.getSelectedItem())) {
       setBoard(null);
     }
     else {
