@@ -341,8 +341,27 @@ public class DataArchive extends SecureClassLoader {
     if (archive == null) {
       throw new IOException("Must save before accessing contents");
     }
-    String archiveURL = HelpFile.toURL(new File(archive.getName())).toString();
-    return new URL("jar:" + archiveURL + "!/" + fileName);
+    URL url = null;
+    ZipEntry entry = archive.getEntry(fileName);
+    if (entry != null) {
+      String archiveURL = HelpFile.toURL(new File(archive.getName())).toString();
+      url = new URL("jar:" + archiveURL + "!/" + fileName);
+    }
+    else {
+      for (int i = 0; i < extensions.size() && url == null; ++i) {
+        DataArchive ext = (DataArchive) extensions.elementAt(i);
+        try {
+          url = ext.getURL(fileName);
+        }
+        catch (IOException e) {
+          // Not found in this extension.  Try the next.
+        }
+      }
+    }
+    if (url == null) {
+      throw new IOException("\'" + fileName + "\' not found in " + archive.getName());
+    }
+    return url;
   }
 
   /**
