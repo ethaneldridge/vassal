@@ -50,6 +50,7 @@ public class PieceWindow extends Widget {
   public static final String BUTTON_TEXT = "text";
   public static final String ICON = "icon";
   public static final String HOTKEY = "hotkey";
+  private static int instanceCount;
   private JComponent root;
   private ComponentSplitter.SplitPane mainWindowDock;
 
@@ -176,17 +177,10 @@ public class PieceWindow extends Widget {
    * Expects to be added to a {@link GameModule}.  When added, sets
    * the containing window to visible */
   public void addTo(Buildable parent) {
-    int count = 0;
-    for (java.util.Enumeration e =
-        GameModule.getGameModule().getComponents(PieceWindow.class);
-         e.hasMoreElements();) {
-      count++;
-      e.nextElement();
-    }
-    setId("PieceWindow" + count);
+    setId("PieceWindow" + instanceCount++);
 
     String key = PositionOption.key + getId();
-    if (count == 0 && GlobalOptions.getInstance().isUseSingleWindow()) {
+    if (instanceCount == 0 && GlobalOptions.getInstance().isUseSingleWindow()) {
       mainWindowDock = new ComponentSplitter().splitLeft(GameModule.getGameModule().getControlPanel(), root, false);
     }
     else {
@@ -202,6 +196,7 @@ public class PieceWindow extends Widget {
       root.getTopLevelAncestor().setVisible(false);
     }
     GameModule.getGameModule().getToolBar().remove(launch);
+    instanceCount--;
   }
 
   public String[] getAttributeDescriptions() {

@@ -55,6 +55,7 @@ public class DrawPile extends SetupStack {
       return dummy.getReshuffleCommand().length() > 0;
     }
   };
+  private static int instanceCount;
 
   protected JPopupMenu buildPopup() {
     JPopupMenu popup = new JPopupMenu();
@@ -63,20 +64,7 @@ public class DrawPile extends SetupStack {
 
   public void addTo(Buildable b) {
     map = (Map) b;
-    int count = 0;
-    for (Enumeration e = GameModule.getGameModule().getComponents(Map.class); e.hasMoreElements();) {
-      Map m = (Map) e.nextElement();
-      for (Enumeration e2 = m.getComponents(DrawPile.class); e2.hasMoreElements();) {
-        e2.nextElement();
-        count++;
-      }
-    }
-    // Our map isn't yet in the GameModule, so we need to count it explicitly
-    for (Enumeration e = map.getComponents(DrawPile.class); e.hasMoreElements();) {
-      e.nextElement();
-      count++;
-    }
-    setId("Deck" + count);
+    setId("Deck" + instanceCount++);
 
     GameModule.getGameModule().addCommandEncoder(this);
     GameModule.getGameModule().getGameState().addGameComponent(this);
@@ -88,6 +76,7 @@ public class DrawPile extends SetupStack {
     }
     GameModule.getGameModule().removeCommandEncoder(this);
     GameModule.getGameModule().getGameState().removeGameComponent(this);
+    instanceCount--;
   }
 
   /**

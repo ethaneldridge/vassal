@@ -62,6 +62,7 @@ public class Map extends AbstractConfigurable implements GameComponent,
   private String mapName = "";
 
   private static final String MAIN_WINDOW_HEIGHT = "mainWindowHeight";
+  private static int instanceCount;
 
   protected JPanel theMap;
 
@@ -368,14 +369,7 @@ public class Map extends AbstractConfigurable implements GameComponent,
    * @see #getId
    * @see DragBuffer */
   public void addTo(Buildable b) {
-    int mapCount = 0;
-    for (Enumeration e =
-        GameModule.getGameModule().getComponents(Map.class);
-         e.hasMoreElements();) {
-      mapCount++;
-      e.nextElement();
-    }
-    setID("Map" + mapCount);
+    setID("Map" + instanceCount++);
 
     if (Info.isDndEnabled()) {
       DragGestureListener dgl = new DragGestureListener() {
@@ -417,6 +411,7 @@ public class Map extends AbstractConfigurable implements GameComponent,
       w.dispose();
     }
     GameModule.getGameModule().getToolBar().remove(launchButton);
+    instanceCount--;
   }
 
   /**
