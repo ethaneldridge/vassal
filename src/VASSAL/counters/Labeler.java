@@ -29,6 +29,7 @@ import VASSAL.tools.SequenceEncoder;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.image.BufferedImage;
 import java.awt.event.InputEvent;
 import java.io.File;
 import java.net.MalformedURLException;
@@ -81,11 +82,8 @@ public class Labeler extends Decorator implements EditablePiece {
     if (st.hasMoreTokens()) {
       menuCommand = st.nextToken();
       font = new Font("Dialog", Font.PLAIN, Integer.parseInt(st.nextToken()));
+      textBg = ColorConfigurer.stringToColor(st.nextToken());
       Color c = ColorConfigurer.stringToColor(st.nextToken());
-      if (c != null) {
-        textBg = c;
-      }
-      c = ColorConfigurer.stringToColor(st.nextToken());
       if (c != null) {
         textFg = c;
       }
@@ -259,13 +257,15 @@ public class Labeler extends Decorator implements EditablePiece {
   protected Image createImage(Component obs) {
     lbl.setText(label);
     lbl.setSize(lbl.getPreferredSize());
-    Image im = obs.createImage(lbl.getWidth(), lbl.getHeight());
-    if ( im != null ) {
-      Graphics g = im.getGraphics();
+    int width = lbl.getWidth();
+    int height = lbl.getHeight();
+    BufferedImage im = new BufferedImage(width,height,BufferedImage.TYPE_4BYTE_ABGR);
+    Graphics g = im.createGraphics();
+    if (textBg != null) {
       g.setColor(textBg);
-      g.fillRect(0, 0, lbl.getWidth(), lbl.getHeight());
-      lbl.paint(g);
+      g.fillRect(0, 0, width, height);
     }
+    lbl.paint(g);
     return im;
   }
 
