@@ -7,7 +7,8 @@ http://www.opensource.org.
 standalone application.  The library is used by VASSAL
 (http://www.vassalengine.org), which is a standalone application.
 VASSAL is freeware, but not Open Source.  This release includes a
-binary distribution of VASSAL.
+binary distribution of VASSAL.  Terms of use of the binaries in this
+release (the .jar files) are described in the BinaryLicense.txt file.
 
   To run the application, include the "images" directory and all the
 .jar files in the "lib" directory in your classpath.  Start the VASSAL
