@@ -13,7 +13,7 @@
  * Library General Public License for more details.
  *
  * You should have received a copy of the GNU Library General Public
- * License along with this library; if not, copies are available 
+ * License along with this library; if not, copies are available
  * at http://www.opensource.org.
  */
 package VASSAL.counters;
@@ -39,9 +39,9 @@ public class PieceImage {
 
       Rectangle bbox = piece.boundingBox();
       im = new BufferedImage(bbox.width, bbox.height, BufferedImage.TYPE_4BYTE_ABGR);
-      ((BufferedImage)im).setRGB(0,0,bbox.width,bbox.height,new int[bbox.width*bbox.height],0,bbox.width);
+      ((BufferedImage) im).setRGB(0, 0, bbox.width, bbox.height, new int[bbox.width * bbox.height], 0, bbox.width);
 
-      piece.draw(((BufferedImage)im).createGraphics(),-bbox.x, -bbox.y, obs, 1.0);
+      piece.draw(((BufferedImage) im).createGraphics(), -bbox.x, -bbox.y, obs, 1.0);
     }
     return im;
   }
@@ -54,9 +54,11 @@ public class PieceImage {
     StringBuffer buf = new StringBuffer();
     for (GamePiece p = piece;
          p instanceof Decorator;
-         p = ((Decorator) p).piece
-        ) {
+         p = ((Decorator) p).piece) {
       buf.append(((Decorator) p).myGetState());
+      if (p instanceof Obscurable) {
+        buf.append(((Obscurable)p).isPeeking());
+      }
     }
     return buf.toString();
   }

@@ -90,10 +90,10 @@ public class Map extends AbstractConfigurable implements GameComponent,
   private boolean allowMultiple = false;
   private VisibilityCondition visibilityCondition;
   private DragGestureListener dragGestureListener;
-  private FormattedString format = new FormattedString();
   private String moveWithinFormat;
   private String moveToFormat;
   private String createFormat;
+  private String changeFormat;
 
   public Map() {
     getView();
@@ -118,6 +118,7 @@ public class Map extends AbstractConfigurable implements GameComponent,
   public static final String MOVE_WITHIN_FORMAT = "moveWithinFormat";
   public static final String MOVE_TO_FORMAT = "moveToFormat";
   public static final String CREATE_FORMAT = "createFormat";
+  public static final String CHANGE_FORMAT = "changeFormat";
 
   public void setAttribute(String key, Object value) {
     if (NAME.equals(key)) {
@@ -203,6 +204,9 @@ public class Map extends AbstractConfigurable implements GameComponent,
     else if (CREATE_FORMAT.equals(key)) {
       createFormat = (String) value;
     }
+    else if (CHANGE_FORMAT.equals(key)) {
+      changeFormat = (String) value;
+    }
     else {
       launchButton.setAttribute(key, value);
     }
@@ -251,6 +255,9 @@ public class Map extends AbstractConfigurable implements GameComponent,
     }
     else if (CREATE_FORMAT.equals(key)) {
       return getCreateFormat();
+    }
+    else if (CHANGE_FORMAT.equals(key)) {
+      return getChangeFormat();
     }
     else {
       return launchButton.getAttributeValueString(key);
@@ -1471,21 +1478,23 @@ public class Map extends AbstractConfigurable implements GameComponent,
                         "Include toolbar button to show/hide", "Toolbar button name", "Toolbar button icon", "Hotkey",
                         "Auto-report format for movement within this map",
                         "Auto-report format for movement to this map",
-                        "Auto-report format for units created in this map", };
+                        "Auto-report format for units created in this map",
+                        "Auto-report format for units modified on this map"};
   }
 
   public String[] getAttributeNames() {
-    return new String[]{NAME, MARK_MOVED, EDGE_WIDTH, EDGE_HEIGHT, ALLOW_MULTIPLE, HIGHLIGHT_COLOR, HIGHLIGHT_THICKNESS, USE_LAUNCH_BUTTON, BUTTON_NAME, ICON, HOTKEY, MOVE_WITHIN_FORMAT, MOVE_TO_FORMAT, CREATE_FORMAT, SUPPRESS_AUTO};
+    return new String[]{NAME, MARK_MOVED, EDGE_WIDTH, EDGE_HEIGHT, ALLOW_MULTIPLE, HIGHLIGHT_COLOR, HIGHLIGHT_THICKNESS, USE_LAUNCH_BUTTON, BUTTON_NAME, ICON, HOTKEY, MOVE_WITHIN_FORMAT, MOVE_TO_FORMAT, CREATE_FORMAT, CHANGE_FORMAT, SUPPRESS_AUTO};
   }
 
   public Class[] getAttributeTypes() {
-    return new Class[]{String.class, GlobalOptions.Prompt.class, Integer.class, Integer.class, Boolean.class, Color.class, Integer.class, Boolean.class, String.class, IconConfig.class, KeyStroke.class, MoveWithinFormatConfig.class, MoveToFormatConfig.class, CreateFormatConfig.class};
+    return new Class[]{String.class, GlobalOptions.Prompt.class, Integer.class, Integer.class, Boolean.class, Color.class, Integer.class, Boolean.class, String.class, IconConfig.class, KeyStroke.class, MoveWithinFormatConfig.class, MoveToFormatConfig.class, CreateFormatConfig.class, ChangeFormatConfig.class};
   }
 
   public static final String LOCATION = "location";
   public static final String OLD_LOCATION = "previousLocation";
   public static final String OLD_MAP = "previousMap";
   public static final String PIECE_NAME = "pieceName";
+  public static final String MESSAGE = "message";
 
   public static class IconConfig implements ConfigurerFactory {
     public Configurer getConfigurer(AutoConfigurable c, String key, String name) {
@@ -1517,6 +1526,12 @@ public class Map extends AbstractConfigurable implements GameComponent,
     }
   }
 
+  public static class ChangeFormatConfig implements ConfigurerFactory {
+    public Configurer getConfigurer(AutoConfigurable c, String key, String name) {
+      return new PlayerIdFormattedStringConfigurer(key, name, new String[]{MESSAGE});
+    }
+  }
+
   public String getCreateFormat() {
     if (createFormat != null) {
       return createFormat;
@@ -1528,6 +1543,23 @@ public class Map extends AbstractConfigurable implements GameComponent,
         if (b.getGrid() != null
             && b.getGrid().getGridNumbering() != null) {
           val = "$" + PIECE_NAME + "$ created in $" + LOCATION + "$";
+        }
+      }
+      return val;
+    }
+  }
+
+  public String getChangeFormat() {
+    if (changeFormat != null) {
+      return changeFormat;
+    }
+    else {
+      String val = "";
+      if (boards.size() > 0) {
+        Board b = (Board) boards.firstElement();
+        if (b.getGrid() != null
+            && b.getGrid().getGridNumbering() != null) {
+          val = "$" + MESSAGE + "$";
         }
       }
       return val;

@@ -28,25 +28,23 @@ package VASSAL.counters;
 
 import VASSAL.build.GameModule;
 import VASSAL.build.module.Chatter;
-import VASSAL.build.module.PlayerRoster;
-import VASSAL.build.module.GlobalOptions;
+import VASSAL.build.module.Map;
 import VASSAL.build.module.documentation.HelpFile;
 import VASSAL.build.module.map.MassKeyCommand;
-import VASSAL.command.Command;
 import VASSAL.command.ChangeTracker;
-import VASSAL.configure.FormattedStringConfigurer;
-import VASSAL.configure.StringConfigurer;
-import VASSAL.configure.StringArrayConfigurer;
+import VASSAL.command.Command;
 import VASSAL.configure.PlayerIdFormattedStringConfigurer;
+import VASSAL.configure.StringArrayConfigurer;
+import VASSAL.configure.StringConfigurer;
 import VASSAL.tools.FormattedString;
-import VASSAL.tools.SequenceEncoder;
 import VASSAL.tools.PlayerIdFormattedString;
+import VASSAL.tools.SequenceEncoder;
 
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.InputEvent;
-import java.awt.event.ItemListener;
 import java.awt.event.ItemEvent;
+import java.awt.event.ItemListener;
 import java.io.File;
 import java.net.MalformedURLException;
 
@@ -170,6 +168,12 @@ public class ReportState extends Decorator implements EditablePiece {
           format.setFormat(theFormat);
 
           String reportText = format.getText();
+
+          if (getMap() != null) {
+            format.setFormat(getMap().getChangeFormat());
+            format.setProperty(Map.MESSAGE,reportText);
+            reportText = format.getText();
+          }
 
           if (reportText.length() > 0) {
             Command display = new Chatter.DisplayText(GameModule.getGameModule().getChatter(), "* " + reportText);

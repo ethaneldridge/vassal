@@ -255,8 +255,9 @@ public class Embellishment extends Decorator implements EditablePiece {
 
   public Command myKeyEvent(KeyStroke stroke) {
     char strokeChar = getMatchingActivationChar(stroke);
+    ChangeTracker tracker = null;
     if (strokeChar != 0) {
-      ChangeTracker c = new ChangeTracker(this);
+      tracker = new ChangeTracker(this);
       int index = activationStatus.indexOf(strokeChar);
       if (index < 0) {
         activationStatus += strokeChar;
@@ -272,31 +273,32 @@ public class Embellishment extends Decorator implements EditablePiece {
       else {
         value = -Math.abs(value);
       }
-      return c.getChangeCommand();
     }
-    else {
-      for (int i = 0; i < upKey.length(); ++i) {
-        if (KeyStroke.getKeyStroke(upKey.charAt(i), InputEvent.CTRL_MASK).equals(stroke)) {
-          ChangeTracker c = new ChangeTracker(this);
-          int val = Math.abs(value);
-          if (++val > nValues)
-            val = 1;
-          value = value > 0 ? val : -val;
-          return c.getChangeCommand();
+    for (int i = 0; i < upKey.length(); ++i) {
+      if (KeyStroke.getKeyStroke(upKey.charAt(i), InputEvent.CTRL_MASK).equals(stroke)) {
+        if (tracker == null) {
+          tracker = new ChangeTracker(this);
         }
-      }
-      for (int i = 0; i < downKey.length(); ++i) {
-        if (KeyStroke.getKeyStroke(downKey.charAt(i), InputEvent.CTRL_MASK).equals(stroke)) {
-          ChangeTracker c = new ChangeTracker(this);
-          int val = Math.abs(value);
-          if (--val < 1)
-            val = nValues;
-          value = value > 0 ? val : -val;
-          return c.getChangeCommand();
-        }
+        int val = Math.abs(value);
+        if (++val > nValues)
+          val = 1;
+        value = value > 0 ? val : -val;
+        break;
       }
     }
-    return null;
+    for (int i = 0; i < downKey.length(); ++i) {
+      if (KeyStroke.getKeyStroke(downKey.charAt(i), InputEvent.CTRL_MASK).equals(stroke)) {
+        if (tracker == null) {
+          tracker = new ChangeTracker(this);
+        }
+        int val = Math.abs(value);
+        if (--val < 1)
+          val = nValues;
+        value = value > 0 ? val : -val;
+        break;
+      }
+    }
+    return tracker != null ? tracker.getChangeCommand() : null;
   }
 
   private char getMatchingActivationChar(KeyStroke stroke) {

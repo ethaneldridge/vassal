@@ -164,7 +164,7 @@ public class LayeredPieceCollection extends AbstractConfigurable {
     public Object visitStack(Stack s) {
       GamePiece top = s.topPiece();
       if (top == null) {
-        return new Integer[0];
+        return new Integer(layerOrder.length);
       }
       return visitDefault(top);
     }

@@ -241,6 +241,11 @@ public class Obscurable extends Decorator implements EditablePiece {
     }
   }
 
+  /** Return true if the piece is currently being "peeked at" */
+  public boolean isPeeking() {
+    return peeking;
+  }
+
   protected Rectangle bBoxObscuredToMe() {
     return obscuredToMeView.boundingBox();
   }
