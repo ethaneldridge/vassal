@@ -19,10 +19,7 @@
 package VASSAL.build.module;
 
 import VASSAL.Info;
-import VASSAL.build.AbstractConfigurable;
-import VASSAL.build.Buildable;
-import VASSAL.build.Configurable;
-import VASSAL.build.GameModule;
+import VASSAL.build.*;
 import VASSAL.build.module.documentation.HelpFile;
 import VASSAL.build.module.map.*;
 import VASSAL.build.module.map.boardPicker.Board;
@@ -30,9 +27,7 @@ import VASSAL.build.module.map.boardPicker.board.MapGrid;
 import VASSAL.command.AddPiece;
 import VASSAL.command.Command;
 import VASSAL.command.MoveTracker;
-import VASSAL.configure.ColorConfigurer;
-import VASSAL.configure.IntConfigurer;
-import VASSAL.configure.VisibilityCondition;
+import VASSAL.configure.*;
 import VASSAL.counters.*;
 import VASSAL.preferences.PositionOption;
 import VASSAL.tools.ComponentSplitter;
@@ -122,6 +117,7 @@ public class Map extends AbstractConfigurable implements GameComponent,
   public static final String ALLOW_MULTIPLE = "allowMultiple";
   public static final String USE_LAUNCH_BUTTON = "launch";
   public static final String BUTTON_NAME = "buttonName";
+  public static final String ICON = "icon";
   public static final String HOTKEY = "hotkey";
 
   public void setAttribute(String key, Object value) {
@@ -246,7 +242,7 @@ public class Map extends AbstractConfigurable implements GameComponent,
         }
       }
     };
-    launchButton = new LaunchButton("Map", BUTTON_NAME, HOTKEY, al);
+    launchButton = new LaunchButton("Map", BUTTON_NAME, HOTKEY, ICON, al);
     launchButton.setEnabled(false);
     launchButton.setVisible(false);
     if (e != null) {
@@ -1380,15 +1376,21 @@ public class Map extends AbstractConfigurable implements GameComponent,
   public String[] getAttributeDescriptions() {
     return new String[]{"Map Name", "Mark pieces that move (if they possess the proper trait)", "Horizontal Padding", "Vertical Padding", "Can contain multiple boards",
                         "Border color for selected counters", "Border thickness for selected counters",
-                        "Include toolbar button to show/hide", "Toolbar button name", "Hotkey"};
+                        "Include toolbar button to show/hide", "Toolbar button name", "Toolbar button icon", "Hotkey"};
   }
 
   public String[] getAttributeNames() {
-    return new String[]{NAME, MARK_MOVED, EDGE_WIDTH, EDGE_HEIGHT, ALLOW_MULTIPLE, HIGHLIGHT_COLOR, HIGHLIGHT_THICKNESS, USE_LAUNCH_BUTTON, BUTTON_NAME, HOTKEY};
+    return new String[]{NAME, MARK_MOVED, EDGE_WIDTH, EDGE_HEIGHT, ALLOW_MULTIPLE, HIGHLIGHT_COLOR, HIGHLIGHT_THICKNESS, USE_LAUNCH_BUTTON, BUTTON_NAME, ICON, HOTKEY};
   }
 
   public Class[] getAttributeTypes() {
-    return new Class[]{String.class, GlobalOptions.Prompt.class, Integer.class, Integer.class, Boolean.class, Color.class, Integer.class, Boolean.class, String.class, KeyStroke.class};
+    return new Class[]{String.class, GlobalOptions.Prompt.class, Integer.class, Integer.class, Boolean.class, Color.class, Integer.class, Boolean.class, String.class, IconConfig.class, KeyStroke.class};
+  }
+
+  public static class IconConfig implements ConfigurerFactory {
+    public Configurer getConfigurer(AutoConfigurable c, String key, String name) {
+      return new IconConfigurer(key,name,"/images/map.gif");
+    }
   }
 
   public Class[] getAllowableConfigureComponents() {

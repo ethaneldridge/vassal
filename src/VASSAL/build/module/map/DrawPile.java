@@ -205,17 +205,19 @@ public class DrawPile extends AbstractConfigurable implements Drawable, GameComp
   public static final String REVERSIBLE = "reversible";
   public static final String DRAW = "draw";
   public static final String COLOR = "color";
+  public static final String NAME="name";
 
   public static final String ALWAYS = "Always";
   public static final String NEVER = "Never";
   public static final String USE_MENU = "Via right-click Menu";
 
   public String[] getAttributeNames() {
-    return new String[]{OWNING_BOARD,X_POSITION, Y_POSITION, WIDTH, HEIGHT, ALLOW_MULTIPLE, ALLOW_SELECT, FACE_DOWN, SHUFFLE, REVERSIBLE, DRAW, COLOR};
+    return new String[]{NAME, OWNING_BOARD,X_POSITION, Y_POSITION, WIDTH, HEIGHT, ALLOW_MULTIPLE, ALLOW_SELECT, FACE_DOWN, SHUFFLE, REVERSIBLE, DRAW, COLOR};
   }
 
   public String[] getAttributeDescriptions() {
-    return new String[]{"Belongs to board",
+    return new String[]{"Name",
+                        "Belongs to board",
                         "X position",
                         "Y position",
                         "Width",
@@ -239,7 +241,8 @@ public class DrawPile extends AbstractConfigurable implements Drawable, GameComp
     if (map != null) {
       OwningBoardPrompt.picker = map.getBoardPicker();
     }
-    return new Class[]{OwningBoardPrompt.class,
+    return new Class[]{String.class,
+                       OwningBoardPrompt.class,
                        Integer.class,
                        Integer.class,
                        Integer.class,
@@ -254,7 +257,10 @@ public class DrawPile extends AbstractConfigurable implements Drawable, GameComp
   }
 
   public String getAttributeValueString(String key) {
-    if (OWNING_BOARD.equals(key)) {
+    if (NAME.equals(key)) {
+      return getConfigureName();
+    }
+    else if (OWNING_BOARD.equals(key)) {
       return owningBoardName;
     }
     else if (X_POSITION.equals(key)) {
@@ -300,7 +306,10 @@ public class DrawPile extends AbstractConfigurable implements Drawable, GameComp
     if (value == null) {
       return;
     }
-    if (OWNING_BOARD.equals(key)) {
+    if (NAME.equals(key)) {
+      setConfigureName((String) value);
+    }
+    else if (OWNING_BOARD.equals(key)) {
       if (OwningBoardPrompt.ANY.equals(value)) {
         owningBoardName = null;
       }

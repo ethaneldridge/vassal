@@ -30,6 +30,8 @@ import java.util.Enumeration;
 import java.util.Hashtable;
 import java.util.Vector;
 
+import e;
+
 /**
  * A Configurer for configuring Configurable components
  * (Is that as redundant as it sounds?)
@@ -104,6 +106,22 @@ public class AutoConfigurer extends Configurer
         catch (Exception e) {
           e.printStackTrace();
           config = new StringConfigurer(name[i], prompt[i]);
+        }
+      }
+      // Swamp Start
+	  else if (JButton.class.isAssignableFrom(type[i])) {
+		config = new ButtonConfigurer(name[i], prompt[i]);
+	  }
+      else if (ConfigurerFactory.class.isAssignableFrom(type[i])) {
+        try {
+          ConfigurerFactory f = (ConfigurerFactory) type[i].newInstance();
+          config = f.getConfigurer(target, name[i],prompt[i]);
+        }
+        catch (InstantiationException e) {
+          throw new IllegalArgumentException("Invalid class " + type[i].getName());
+        }
+        catch (IllegalAccessException e) {
+          throw new IllegalArgumentException("Invalid class " + type[i].getName());
         }
       }
       else {

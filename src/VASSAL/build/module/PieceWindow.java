@@ -18,10 +18,7 @@
  */
 package VASSAL.build.module;
 
-import VASSAL.build.Buildable;
-import VASSAL.build.Configurable;
-import VASSAL.build.GameModule;
-import VASSAL.build.Widget;
+import VASSAL.build.*;
 import VASSAL.build.module.documentation.HelpFile;
 import VASSAL.build.widget.*;
 import VASSAL.counters.GamePiece;
@@ -29,6 +26,9 @@ import VASSAL.preferences.PositionOption;
 import VASSAL.preferences.VisibilityOption;
 import VASSAL.tools.ComponentSplitter;
 import VASSAL.tools.LaunchButton;
+import VASSAL.configure.ConfigurerFactory;
+import VASSAL.configure.Configurer;
+import VASSAL.configure.IconConfigurer;
 
 import javax.swing.*;
 import java.awt.*;
@@ -45,7 +45,10 @@ import java.net.MalformedURLException;
 public class PieceWindow extends Widget {
   private String id;
   private LaunchButton launch;
-  public static final String WINDOW_NAME = "entryName";
+  public static final String DEPRECATED_NAME = "entryName";
+  public static final String NAME = "name";
+  public static final String BUTTON_TEXT = "text";
+  public static final String ICON = "icon";
   public static final String HOTKEY = "hotkey";
   private JComponent root;
   private ComponentSplitter.SplitPane mainWindowDock;
@@ -57,7 +60,7 @@ public class PieceWindow extends Widget {
         launchButtonPressed();
       }
     };
-    launch = new LaunchButton("Pieces", WINDOW_NAME, HOTKEY, al);
+    launch = new LaunchButton("Pieces", BUTTON_TEXT, HOTKEY, ICON, al);
     launch.setToolTipText("Show/Hide the Pieces window");
   }
 
@@ -202,27 +205,44 @@ public class PieceWindow extends Widget {
   }
 
   public String[] getAttributeDescriptions() {
-    return new String[]{"Name", "Hotkey to show/hide"};
+    return new String[]{"Name", "Button text", "Button icon","Hotkey to show/hide"};
   }
 
   public Class[] getAttributeTypes() {
-    return new Class[]{String.class, KeyStroke.class};
+    return new Class[]{String.class, String.class, IconConfig.class, KeyStroke.class};
+  }
+
+  public static class IconConfig implements ConfigurerFactory {
+    public Configurer getConfigurer(AutoConfigurable c, String key, String name) {
+      return new IconConfigurer(key,name,"/images/counter.gif");
+    }
   }
 
   public String[] getAttributeNames() {
-    return new String[]{WINDOW_NAME, HOTKEY};
+    return new String[]{NAME, BUTTON_TEXT, ICON, HOTKEY};
   }
 
   public void setAttribute(String name, Object value) {
-    launch.setAttribute(name, value);
-    if (WINDOW_NAME.equals(name)) {
+    if (DEPRECATED_NAME.equals(name)) {
+      setAttribute(NAME,value);
+      setAttribute(BUTTON_TEXT,value);
+    }
+    else if (NAME.equals(name)) {
       String s = (String) value;
       setConfigureName(s);
       launch.setToolTipText("Show/Hide the " + s + " window");
     }
+    else {
+      launch.setAttribute(name, value);
+    }
   }
 
   public String getAttributeValueString(String name) {
-    return launch.getAttributeValueString(name);
+    if (NAME.equals(name)) {
+      return getConfigureName();
+    }
+    else {
+      return launch.getAttributeValueString(name);
+    }
   }
 }

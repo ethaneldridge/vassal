@@ -29,6 +29,7 @@ import VASSAL.command.*;
 
 import java.util.*;
 import java.awt.event.*;
+import java.awt.*;
 import java.net.URL;
 import java.net.MalformedURLException;
 import java.io.File;
@@ -57,7 +58,9 @@ public class NotesWindow extends AbstractConfigurable
         frame.setVisible(!frame.isShowing());
       }
     };
-    launch = new LaunchButton("Notes", null, null, al);
+    launch = new LaunchButton(null, null, null, "icon", al);
+    launch.setAttribute("icon","/images/notes.gif");
+    launch.setToolTipText("Notes");
     frame.pack();
     setup(false);
   }
