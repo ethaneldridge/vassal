@@ -166,29 +166,13 @@ public class DataArchive extends ClassLoader {
    * Read all available bytes from the given InputStream
    */
   public static byte[] getBytes(InputStream in) throws IOException {
-/* -- This code doesn't work under JRE 1.3
-        byte[] buffer = new byte[100000];
-        byte[] data = new byte[0];
-        int count=0;
-        int length = 0;
-        while ((count = in.read(buffer)) > 0) {
-            length += count;
-            byte[] temp = new byte[length];
-            System.arraycopy(data,0,temp,0,length-count);
-            System.arraycopy(buffer,0,temp,length-count,count);
-            data = temp;
-        }
-	return data;
-	*/
-
-// David Miller's code
     BufferedInputStream bufIn = new BufferedInputStream(in);
     int nLen = bufIn.available();
     int nCurBytes = 0;
     byte buffer[] = null;
     byte abyte0[] = new byte[nLen];
 
-    while ((nCurBytes = bufIn.read(abyte0, 0, abyte0.length)) != -1) {
+    while ((nCurBytes = bufIn.read(abyte0, 0, abyte0.length)) > 0) {
       if (buffer == null) {
         buffer = new byte[nCurBytes];
         System.arraycopy(abyte0, 0, buffer, 0, nCurBytes);
@@ -202,7 +186,7 @@ public class DataArchive extends ClassLoader {
         System.arraycopy(abyte0, 0, buffer, oldbuf.length, nCurBytes);
       }
     }
-    return buffer;
+    return buffer != null ? buffer : new byte[0];
   }
 
   /**
