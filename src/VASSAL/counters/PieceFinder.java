@@ -16,14 +16,6 @@
  * License along with this library; if not, copies are available
  * at http://www.opensource.org.
  */
-/*
- * Created by IntelliJ IDEA.
- * User: rkinney
- * Date: May 22, 2002
- * Time: 10:25:53 PM
- * To change template for new interface use
- * Code Style | Class Templates options (Tools | IDE Options).
- */
 package VASSAL.counters;
 
 import VASSAL.build.module.Map;
@@ -53,42 +45,52 @@ public interface PieceFinder {
    */
   public static final PieceFinder MOVABLE = new Movable();
 
-}
-
-class StackOnly extends Movable {
-  public GamePiece select(Map map, GamePiece piece, Point pt) {
-    GamePiece selected = null;
-    if (piece instanceof Stack) {
-      selected = super.select(map, piece, pt);
+  public static class StackOnly extends Movable {
+    public Object visitStack(Stack s) {
+      GamePiece selected = (GamePiece) super.visitStack(s);
       if (selected != null
-          && !(selected instanceof Stack)) {
-        selected = selected.getParent();
+          && selected.getParent() == s) {
+        selected = s;
       }
+      return selected;
     }
-    return selected;
-  }
-}
 
-class PieceInStack extends Movable {
-  public GamePiece select(Map map, GamePiece piece, Point pt) {
-    GamePiece selected = null;
-    selected = super.select(map, piece, pt);
-    if (selected != null
-        && piece instanceof Stack
-        && !((Stack) piece).isExpanded()) {
-      selected = ((Stack) piece).topPiece();
+  }
+
+  public static class PieceInStack extends Movable {
+    public Object visitStack(Stack s) {
+      GamePiece selected = (GamePiece) super.visitStack(s);
+      if (selected == s
+          && !s.isExpanded()) {
+        selected = s.topPiece();
+      }
+      return selected;
     }
-    return selected;
   }
-}
 
-class Movable implements PieceFinder {
-  protected Shape[] shapes = new Shape[0];
+  public static class Movable implements PieceFinder, DeckVisitor {
+    protected Shape[] shapes = new Shape[0];
+    protected Map map;
+    protected Point pt;
+    protected DeckVisitorDispatcher dispatcher = new DeckVisitorDispatcher(this);
 
-  public GamePiece select(Map map, GamePiece piece, Point pt) {
-    GamePiece selected = null;
-    if (piece instanceof Stack) {
-      Stack s = (Stack) piece;
+    public Object visitDeck(Deck d) {
+      return null;
+    }
+
+    public Object visitDefault(GamePiece piece) {
+      GamePiece selected = null;
+      Shape s = piece.getShape();
+      Point pos = piece.getPosition();
+      Point p = new Point(pt.x - pos.x, pt.y - pos.y);
+      if (Info.is2dEnabled() ? s.contains(p) : s.getBounds().contains(p)) {
+        selected = piece;
+      }
+      return selected;
+    }
+
+    public Object visitStack(Stack s) {
+      GamePiece selected = null;
       if (shapes.length < s.getPieceCount()) {
         shapes = new Shape[s.getPieceCount()];
       }
@@ -101,16 +103,15 @@ class Movable implements PieceFinder {
           break;
         }
       }
+      return selected;
     }
-    else {
-      Shape s = piece.getShape();
-      Point pos = piece.getPosition();
-      Point p = new Point(pt.x - pos.x, pt.y - pos.y);
-      if (Info.is2dEnabled() ? s.contains(p) : s.getBounds().contains(p)) {
-        selected = piece;
-      }
-    }
-    return selected;
-  }
 
+    public GamePiece select(Map map, GamePiece piece, Point pt) {
+      this.map = map;
+      this.pt = pt;
+      return (GamePiece) dispatcher.accept(piece);
+    }
+
+  }
 }
+

@@ -18,26 +18,49 @@
  */
 package VASSAL.build.module.map;
 
-import VASSAL.counters.*;
-import VASSAL.build.*;
+import VASSAL.build.Buildable;
+import VASSAL.build.IllegalBuildException;
 import VASSAL.build.module.Map;
+import VASSAL.counters.*;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
 
-import java.awt.event.*;
-import java.awt.*;
-import java.util.Vector;
-import java.util.Enumeration;
 import javax.swing.*;
-
-import org.w3c.dom.*;
+import java.awt.*;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.util.ArrayList;
+import java.util.Iterator;
 
 public class MenuDisplayer extends MouseAdapter implements Buildable {
   public static Font POPUP_MENU_FONT = new Font("Dialog", 0, 10);
 
   protected Map map;
+  protected PieceFinder targetSelector;
 
   public void addTo(Buildable b) {
+    targetSelector = createTargetSelector();
     map = (Map) b;
     map.addLocalMouseListener(this);
+  }
+
+  /**
+   * Return a {@link PieceFinder} instance that will select a
+   * {@link GamePiece} whose menu will be displayed when the
+   * user clicks on the map
+   * @return
+   */
+  protected PieceFinder createTargetSelector() {
+    return new PieceFinder.PieceInStack() {
+      public Object visitDeck(Deck d) {
+        if (d.getShape().contains(pt)) {
+          return d;
+        }
+        else {
+          return null;
+        }
+      }
+    };
   }
 
   public void add(Buildable b) {
@@ -55,24 +78,26 @@ public class MenuDisplayer extends MouseAdapter implements Buildable {
     JPopupMenu popup = new JPopupMenu();
     KeyCommand c[] = (KeyCommand[]) target.getProperty(Properties.KEY_COMMANDS);
     if (c != null) {
-      Vector commands = new Vector();
-      Vector strokes = new Vector();
+      java.util.List commands = new ArrayList();
+      java.util.List strokes = new ArrayList();
       for (int i = 0; i < c.length; ++i) {
         KeyStroke stroke = c[i].getKeyStroke();
         if (strokes.contains(stroke)) {
-          KeyCommand command = (KeyCommand) commands.elementAt(strokes.indexOf(stroke));
+          KeyCommand command = (KeyCommand) commands.get(strokes.indexOf(stroke));
           if (command.getName().length() < c[i].getName().length()) {
-            commands.setElementAt(c[i], strokes.indexOf(stroke));
+            commands.set(strokes.indexOf(stroke), c[i]);
           }
         }
         else {
-          strokes.addElement(stroke);
-          commands.addElement(c[i]);
+          if (stroke != null) {
+            strokes.add(stroke);
+          }
+          commands.add(c[i]);
         }
       }
-      for (Enumeration enum = commands.elements();
-           enum.hasMoreElements();) {
-        popup.add((KeyCommand) enum.nextElement()).setFont(POPUP_MENU_FONT);
+      for (Iterator enum = commands.iterator();
+           enum.hasNext();) {
+        popup.add((KeyCommand) enum.next()).setFont(POPUP_MENU_FONT);
       }
     }
     return popup;
@@ -80,7 +105,7 @@ public class MenuDisplayer extends MouseAdapter implements Buildable {
 
   public void mouseReleased(MouseEvent e) {
     if (e.isMetaDown()) {
-      final GamePiece p = map.findPiece(e.getPoint(), PieceFinder.PIECE_IN_STACK);
+      final GamePiece p = map.findPiece(e.getPoint(), targetSelector);
       if (p != null
         && (e.isShiftDown()
         || !Boolean.TRUE.equals(p.getProperty(Properties.IMMOBILE)))) {

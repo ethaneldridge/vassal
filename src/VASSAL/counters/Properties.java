@@ -37,6 +37,12 @@ public interface Properties {
    * Return Boolean.TRUE if the piece's identity is not known to the user
    */
   public static final String OBSCURED_TO_ME = "Obscured";
+  /**
+   * If a piece is obscured to other players, return a String
+   * identifying the player who obscured it
+   * @see VASSAL.build.GameModule.getUserId()
+   */
+  public static final String OBSCURED_BY = Obscurable.ID;
 
   /**
    * Return Boolean.TRUE if the piece cannot move;

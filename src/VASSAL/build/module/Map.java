@@ -821,7 +821,7 @@ public class Map extends AbstractConfigurable implements GameComponent,
       GamePiece[] stack = pieces.getPieces();
       for (int i = 0; i < stack.length; ++i) {
         Point pt = componentCoordinates(stack[i].getPosition());
-        if (stack[i] instanceof Stack) {
+        if (stack[i].getClass() == Stack.class) {
           getStackMetrics().draw((Stack) stack[i], pt, g, this, getZoom(), visibleRect);
         }
         else {
@@ -1226,10 +1226,14 @@ public class Map extends AbstractConfigurable implements GameComponent,
    */
   public Command placeOrMerge(GamePiece p, Point pt) {
     GamePiece[] stack = pieces.getPieces();
-    for (int i = 0; i < stack.length; ++i) {
-      if (stack[i].getPosition().equals(pt)
-        && (!(stack[i] instanceof Stack) || ((Stack)stack[i]).getPieceCount() > 0)) {
-        return getStackMetrics().merge(stack[i], p);
+    if (getStackMetrics().isStackingEnabled()
+        && !Boolean.TRUE.equals(p.getProperty(Properties.NO_STACK))) {
+      for (int i = 0; i < stack.length; ++i) {
+        if (stack[i].getPosition().equals(pt)
+            && !Boolean.TRUE.equals(stack[i].getProperty(Properties.NO_STACK))
+            && (!(stack[i] instanceof Stack) || ((Stack) stack[i]).getPieceCount() > 0)) {
+          return getStackMetrics().merge(stack[i], p);
+        }
       }
     }
     return placeAt(p, pt);

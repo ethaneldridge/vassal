@@ -66,6 +66,7 @@ public class CounterDetailViewer extends AbstractConfigurable implements Drawabl
   protected boolean textVisible = false;
   protected MouseEvent currentMousePosition;
   protected GamePiece currentPiece;
+  protected PieceVisitorDispatcher enumBuilder;
 
   protected boolean alwaysShowLoc = false;
   protected boolean showGraph = true;
@@ -76,6 +77,7 @@ public class CounterDetailViewer extends AbstractConfigurable implements Drawabl
   protected double zoomLevel = 1.0;
 
   public void addTo(Buildable b) {
+    enumBuilder = createEnumBuilder();
     map = (Map) b;
     Enumeration e = map.getComponents(getClass());
     while (e.hasMoreElements()) {
@@ -92,6 +94,42 @@ public class CounterDetailViewer extends AbstractConfigurable implements Drawabl
     map.getView().addKeyListener(this);
   }
 
+  private DeckVisitorDispatcher createEnumBuilder() {
+    DeckVisitor v = new DeckVisitor() {
+      public Object visitDeck(Deck d) {
+        return new Enumeration() {
+          public boolean hasMoreElements() {
+            return false;
+          }
+
+          public Object nextElement() {
+            return null;
+          }
+        };
+      }
+
+      public Object visitStack(Stack s) {
+        return s.getPieces();
+      }
+
+      public Object visitDefault(GamePiece p) {
+        return new Enumeration() {
+          boolean finished = false;
+
+          public boolean hasMoreElements() {
+            return !finished;
+          }
+
+          public Object nextElement() {
+            finished = true;
+            return currentPiece;
+          }
+        };
+      }
+    };
+    return new DeckVisitorDispatcher(v);
+  }
+
   public void draw(Graphics g, Map map) {
     if (currentMousePosition != null) {
       draw(g, currentMousePosition.getPoint(), map.getView());
@@ -104,7 +142,7 @@ public class CounterDetailViewer extends AbstractConfigurable implements Drawabl
 //      return;
 //    }
     if (!graphicsVisible && !textVisible) {
-    	return;
+      return;
     }
 
     PieceIterator pi;
@@ -121,27 +159,7 @@ public class CounterDetailViewer extends AbstractConfigurable implements Drawabl
   }
 
   private Enumeration buildPieceEnum() {
-
-    Enumeration pieces;
-
-    if (currentPiece instanceof Stack) {
-      pieces = ((Stack) currentPiece).getPieces();
-    }
-    else {
-      pieces = new Enumeration() {
-        boolean finished = false;
-
-        public boolean hasMoreElements() {
-          return !finished;
-        }
-
-        public Object nextElement() {
-          finished = true;
-          return currentPiece;
-        }
-      };
-    }
-    return pieces;
+    return (Enumeration) enumBuilder.accept(currentPiece);
   }
 
   protected void drawGraphics(Graphics g, Point pt, JComponent comp, PieceIterator pi) {
@@ -191,38 +209,36 @@ public class CounterDetailViewer extends AbstractConfigurable implements Drawabl
      * name above the centre of the first piece in the stack.
      */
     String locationName = null;
-	
+
     while (pi.hasMoreElements()) {
-		Rectangle viewport = map.getView().bounds();
-		Rectangle vis = map.getView().getVisibleRect();
       GamePiece piece = pi.nextPiece();
       if (locationName == null) {
         locationName = map.locationName(piece.getPosition());
       }
     }
 
-	if (locationName == null) {
-		Point mapPt = map.mapCoordinates(currentMousePosition.getPoint());
-		Point snapPt = map.snapTo(mapPt);
-		locationName = map.locationName(snapPt);
-	}
-	drawLabel(g, pt, locationName);
+    if (locationName == null) {
+      Point mapPt = map.mapCoordinates(currentMousePosition.getPoint());
+      Point snapPt = map.snapTo(mapPt);
+      locationName = map.locationName(snapPt);
+    }
+    drawLabel(g, pt, locationName);
   }
 
   protected void drawLabel(Graphics g, Point pt, String locationName) {
-  	
-  	if (locationName != null) {
-	   Color outline = map.getHighlighter() instanceof ColoredBorder ? ((ColoredBorder) map.getHighlighter()).getColor() : Color.black;
-	   Color background = new Color(255 - outline.getRed(), 255 - outline.getGreen(), 255 - outline.getBlue());
 
-	   Labeler.drawLabel(g, locationName,
-					     pt.x, pt.y - 5,
-					     new Font("Dialog", Font.PLAIN, 9),
-					     Labeler.RIGHT, Labeler.BOTTOM,
-					     outline, background, outline);
-     }
+    if (locationName != null) {
+      Color outline = map.getHighlighter() instanceof ColoredBorder ? ((ColoredBorder) map.getHighlighter()).getColor() : Color.black;
+      Color background = new Color(255 - outline.getRed(), 255 - outline.getGreen(), 255 - outline.getBlue());
+
+      Labeler.drawLabel(g, locationName,
+                        pt.x, pt.y - 5,
+                        new Font("Dialog", Font.PLAIN, 9),
+                        Labeler.RIGHT, Labeler.BOTTOM,
+                        outline, background, outline);
+    }
   }
-  
+
   public void run() {
     while (System.currentTimeMillis() < expirationTime) {
       try {
@@ -241,11 +257,11 @@ public class CounterDetailViewer extends AbstractConfigurable implements Drawabl
      *   Stack         - Depends on setting of showGraphics/showText
      *   Single Unit   - Depends on setting of showGraphics/showText and showGraphicsSingle/showTextSingle
      *                   and stack must not be expanded.
-     *   Empty space   - Depends on setting of 
+     *   Empty space   - Depends on setting of
      */
     if (currentPiece == null) {
-   		textVisible = (showRef && map.getZoom() < zoomLevel);
-   		graphicsVisible = false;
+      textVisible = (showRef && map.getZoom() < zoomLevel);
+      graphicsVisible = false;
     }
     else {
       if (map.getZoom() < 0.75) {
@@ -402,22 +418,22 @@ public class CounterDetailViewer extends AbstractConfigurable implements Drawabl
         showTextSingle = "true".equals(value);
       }
     }
-	else if (SHOW_REF.equals(name)) {
-	  if (value instanceof Boolean) {
-		showRef = ((Boolean) value).booleanValue();
-	  }
-	  else if (value instanceof String) {
-		showRef = "true".equals(value);
-	  }
-	}
-	else if (ZOOM_LEVEL.equals(name)) {
-		if (value instanceof String) {
-		  value = new Double((String) value);
-		}
-		zoomLevel = ((Double) value).doubleValue();
-	}
+    else if (SHOW_REF.equals(name)) {
+      if (value instanceof Boolean) {
+        showRef = ((Boolean) value).booleanValue();
+      }
+      else if (value instanceof String) {
+        showRef = "true".equals(value);
+      }
+    }
+    else if (ZOOM_LEVEL.equals(name)) {
+      if (value instanceof String) {
+        value = new Double((String) value);
+      }
+      zoomLevel = ((Double) value).doubleValue();
+    }
   }
-  
+
 
   public String getAttributeValueString(String name) {
     if (DELAY.equals(name)) {
@@ -435,12 +451,12 @@ public class CounterDetailViewer extends AbstractConfigurable implements Drawabl
     else if (SHOW_TEXT_SINGLE.equals(name)) {
       return "" + showTextSingle;
     }
-	else if (SHOW_REF.equals(name)) {
-	  return "" + showRef;
-	}
-	else if (ZOOM_LEVEL.equals(name)) {
-	  return "" + zoomLevel;
-	}
+    else if (SHOW_REF.equals(name)) {
+      return "" + showRef;
+    }
+    else if (ZOOM_LEVEL.equals(name)) {
+      return "" + zoomLevel;
+    }
     else
       return null;
   }

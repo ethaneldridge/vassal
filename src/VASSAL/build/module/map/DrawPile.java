@@ -1,3 +1,4 @@
+
 /*
  * $Id$
  *
@@ -26,10 +27,8 @@ import VASSAL.build.module.Map;
 import VASSAL.build.module.documentation.HelpFile;
 import VASSAL.build.module.map.boardPicker.Board;
 import VASSAL.build.widget.CardSlot;
-import VASSAL.command.ChangePiece;
 import VASSAL.command.ChangeTracker;
 import VASSAL.command.Command;
-import VASSAL.command.NullCommand;
 import VASSAL.configure.ColorConfigurer;
 import VASSAL.configure.StringEnum;
 import VASSAL.configure.VisibilityCondition;
@@ -38,21 +37,16 @@ import VASSAL.tools.SequenceEncoder;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
-import java.awt.event.MouseListener;
 import java.io.File;
 import java.net.MalformedURLException;
 import java.util.Enumeration;
 import java.util.Vector;
 
-public class DrawPile extends SetupStack implements Drawable, MouseListener {
-  protected Stack contents;
+public class DrawPile extends SetupStack {
+  protected Deck contents;
   protected Dimension size = new Dimension(40, 40);
-  protected int dragCount = 0;
-  protected boolean shuffle = true;
-  protected boolean faceDown = false;
+  protected boolean faceDown;
   private String faceDownOption = ALWAYS;
   private String shuffleOption = ALWAYS;
   private boolean allowMultipleDraw = false;
@@ -60,98 +54,19 @@ public class DrawPile extends SetupStack implements Drawable, MouseListener {
   private boolean reversible = false;
   private boolean drawOutline = true;
   private Color outlineColor = Color.black;
-  private boolean isActive;
   private Vector nextDraw;
 
   protected Action faceDownAction;
 
   protected JPopupMenu buildPopup() {
     JPopupMenu popup = new JPopupMenu();
-    if (USE_MENU.equals(shuffleOption)) {
-      popup.add(new AbstractAction("Shuffle") {
-        public void actionPerformed(ActionEvent e) {
-          GameModule.getGameModule().sendAndLog(shuffle());
-          map.repaint();
-        }
-      }).setFont(MenuDisplayer.POPUP_MENU_FONT);
-    }
-    if (USE_MENU.equals(faceDownOption)) {
-      faceDownAction = new AbstractAction(faceDown ? "Face up" : "Face down") {
-        public void actionPerformed(ActionEvent e) {
-          GameModule.getGameModule().sendAndLog(setFaceDown(!faceDown));
-          map.repaint();
-        }
-      };
-      popup.add(faceDownAction).setFont(MenuDisplayer.POPUP_MENU_FONT);
-    }
-    if (reversible) {
-      popup.add(new AbstractAction("Reverse order") {
-        public void actionPerformed(ActionEvent e) {
-          GameModule.getGameModule().sendAndLog(reverse());
-          map.repaint();
-        }
-      }).setFont(MenuDisplayer.POPUP_MENU_FONT);
-    }
-    if (allowMultipleDraw) {
-      popup.add(new AbstractAction("Draw multiple cards") {
-        public void actionPerformed(ActionEvent e) {
-          promptForDragCount();
-        }
-      }).setFont(MenuDisplayer.POPUP_MENU_FONT);
-    }
-    if (allowSelectDraw) {
-      popup.add(new AbstractAction("Draw specific cards") {
-        public void actionPerformed(ActionEvent e) {
-          promptForNextDraw();
-        }
-      }).setFont(MenuDisplayer.POPUP_MENU_FONT);
-    }
     return popup.getComponentCount() > 0 ? popup : null;
-  }
-
-  private void promptForNextDraw() {
-    final JDialog d = new JDialog((Frame) SwingUtilities.getAncestorOfClass(Frame.class, map.getView()), true);
-    d.setTitle("Draw");
-    d.getContentPane().setLayout(new BoxLayout(d.getContentPane(), BoxLayout.Y_AXIS));
-    final String[] pieces = new String[contents.getPieceCount()];
-    for (int i = 0; i < pieces.length; ++i) {
-      pieces[pieces.length - i - 1] = Decorator.getInnermost(contents.getPieceAt(i)).getName();
-    }
-    final JList list = new JList(pieces);
-    list.setSelectionMode(ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
-    d.getContentPane().add(new JScrollPane(list));
-    d.getContentPane().add(new JLabel("Select cards to draw"));
-    d.getContentPane().add(new JLabel("Then click and drag from the deck."));
-    Box box = Box.createHorizontalBox();
-    JButton b = new JButton("Ok");
-    b.addActionListener(new ActionListener() {
-      public void actionPerformed(ActionEvent e) {
-        nextDraw = new Vector();
-        int[] selection = list.getSelectedIndices();
-        for (int i = 0; i < selection.length; ++i) {
-          nextDraw.addElement(contents.getPieceAt(pieces.length - selection[i] - 1));
-        }
-        d.dispose();
-      }
-    });
-    box.add(b);
-    b = new JButton("Cancel");
-    b.addActionListener(new ActionListener() {
-      public void actionPerformed(ActionEvent e) {
-        d.dispose();
-      }
-    });
-    box.add(b);
-    d.getContentPane().add(box);
-    d.pack();
-    d.setLocationRelativeTo(d.getOwner());
-    d.setVisible(true);
   }
 
   public void addTo(Buildable b) {
     map = (Map) b;
-    map.addDrawComponent(this);
-    map.addLocalMouseListener(this);
+//    map.addDrawComponent(this);
+//    map.addLocalMouseListener(this);
     int count = 0;
     for (Enumeration e = GameModule.getGameModule().getComponents(Map.class); e.hasMoreElements();) {
       Map m = (Map) e.nextElement();
@@ -160,7 +75,7 @@ public class DrawPile extends SetupStack implements Drawable, MouseListener {
         count++;
       }
     }
-    // Our map doesn't yet appear in the GameModule
+    // Our map isn't yet in the GameModule, so we need to count it explicitly
     for (Enumeration e = map.getComponents(DrawPile.class); e.hasMoreElements();) {
       e.nextElement();
       count++;
@@ -175,8 +90,10 @@ public class DrawPile extends SetupStack implements Drawable, MouseListener {
     if (map != b) {
       throw new IllegalBuildException("Parent is not " + b);
     }
+/*
     map.removeDrawComponent(this);
     map.removeLocalMouseListener(this);
+*/
     GameModule.getGameModule().removeCommandEncoder(this);
     GameModule.getGameModule().getGameState().removeGameComponent(this);
   }
@@ -369,69 +286,11 @@ public class DrawPile extends SetupStack implements Drawable, MouseListener {
     }
   }
 
-  /** Shuffle the contents of the Deck */
-  public Command shuffle() {
-    Vector indices = new Vector();
-    for (int i = 0; i < contents.getPieceCount(); ++i) {
-      indices.addElement(new Integer(i));
-    }
-    Vector newContents = new Vector();
-    DragBuffer.getBuffer().clear();
-    for (int count = contents.getPieceCount(); count > 0; --count) {
-      int i = (int) (GameModule.getGameModule().getRNG().nextFloat()
-          * indices.size());
-      int index = ((Integer) indices.elementAt(i)).intValue();
-      indices.removeElementAt(i);
-      newContents.addElement(contents.getPieceAt(index));
-    }
-    return setContents(newContents.elements());
-  }
-
-  /** Set the contents of this Deck to an Enumeration of GamePieces */
-  protected Command setContents(Enumeration e) {
-    ChangeTracker track = new ChangeTracker(contents);
-    contents.removeAll();
-    while (e.hasMoreElements()) {
-      contents.add((GamePiece) e.nextElement());
-    }
-    return track.getChangeCommand();
-  }
-
-  /** Reverse the order of the contents of the Deck */
-  public Command reverse() {
-    Vector v = new Vector();
-    for (Enumeration e = contents.getPiecesInReverseOrder();
-         e.hasMoreElements();) {
-      v.addElement(e.nextElement());
-    }
-    return setContents(v.elements());
-  }
-
-  public Command setFaceDown(boolean down) {
-    Command c;
-    faceDown = !faceDown;
-    if (!faceDown) {
-      c = new NullCommand();
-      for (Enumeration e = contents.getPieces(); e.hasMoreElements();) {
-        GamePiece p = (GamePiece) e.nextElement();
-        if (p.getProperty(Obscurable.ID) != null) {
-          ChangeTracker tracker = new ChangeTracker(p);
-          p.setProperty(Obscurable.ID, null);
-          c.append(tracker.getChangeCommand());
-        }
-      }
-      return c = c.append(new SetContents(this, contents.getId(), faceDown));
-    }
-    else {
-      c = new SetContents(this, contents.getId(), faceDown);
-    }
-    return c;
-  }
-
   public Class[] getAllowableConfigureComponents() {
     return new Class[]{CardSlot.class};
   }
 
+/*
   public void draw(java.awt.Graphics g, Map map) {
     Point p = map.componentCoordinates(getPosition());
     draw(g, p.x, p.y, map.getView(), map.getZoom());
@@ -456,11 +315,11 @@ public class DrawPile extends SetupStack implements Drawable, MouseListener {
       }
       if (faceDown) {
         Obscurable.setAllHidden(true);
-        Object oldValue = top.getProperty(Obscurable.ID);
-        top.setProperty(Obscurable.ID, "dummy");
+        Object oldValue = top.getProperty(Properties.OBSCURED_OWNER);
+        top.setProperty(Properties.OBSCURED_OWNER, "dummy");
         top.draw(g, x + (int) (zoom * 2 * (count - 1)),
                  y - (int) (zoom * 2 * (count - 1)), obs, zoom);
-        top.setProperty(Obscurable.ID, oldValue);
+        top.setProperty(Properties.OBSCURED_OWNER, oldValue);
         Obscurable.setAllHidden(false);
       }
       else {
@@ -479,6 +338,7 @@ public class DrawPile extends SetupStack implements Drawable, MouseListener {
     }
   }
 
+*/
   public Point getPosition() {
     Point p = new Point(pos);
     Board b = map.getBoardByName(owningBoardName);
@@ -492,6 +352,7 @@ public class DrawPile extends SetupStack implements Drawable, MouseListener {
    * The bounds of this deck in the {@link Map} window, adjusted for owning board, if any
    * @return
    */
+/*
   public Rectangle boundingBox() {
     Rectangle r = null;
     if (contents != null
@@ -518,66 +379,22 @@ public class DrawPile extends SetupStack implements Drawable, MouseListener {
     }
     return r;
   }
-
-  /**
-   * Add the given number of GamePieces to the Drag buffer
-   */
-  protected Command addToDragBuffer(int count) {
-    Command c = new NullCommand();
-    DragBuffer.getBuffer().clear();
-    if (ALWAYS.equals(shuffleOption)) {
-      Vector indices = new Vector();
-      for (int i = 0; i < contents.getPieceCount(); ++i) {
-        indices.addElement(new Integer(i));
-      }
-      while (count-- > 0) {
-        int i = (int) (GameModule.getGameModule().getRNG().nextFloat()
-            * indices.size());
-        int index = ((Integer) indices.elementAt(i)).intValue();
-        indices.removeElementAt(i);
-        GamePiece p = contents.getPieceAt(index);
-        c = c.append(addToDragBuffer(p));
-      }
-    }
-    else {
-      Enumeration e = contents.getPiecesInReverseOrder();
-      while (count-- > 0 && e.hasMoreElements()) {
-        GamePiece p = (GamePiece) e.nextElement();
-        c = c.append(addToDragBuffer(p));
-      }
-    }
-    return c;
-  }
+*/
 
   protected Command addToDragBuffer(GamePiece p) {
     Command c = null;
     if (faceDown) {
       ChangeTracker tracker = new ChangeTracker(p);
-      p.setProperty(Obscurable.ID, GameModule.getGameModule().getUserId());
+      p.setProperty(Properties.OBSCURED_BY, GameModule.getGameModule().getUserId());
       c = tracker.getChangeCommand();
     }
     DragBuffer.getBuffer().add(p);
     return c;
   }
 
-  public void promptForDragCount() {
-    while (true) {
-      String s = JOptionPane.showInputDialog("Enter number to grab.\nThen click and drag to draw that number.");
-      if (s != null) {
-        try {
-          dragCount = Integer.parseInt(s);
-          dragCount = Math.min(dragCount, contents.getPieceCount());
-          if (dragCount >= 0) {
-            break;
-          }
-        }
-        catch (NumberFormatException ex) {
-        }
-      }
-    }
-  }
 
   public void mousePressed(MouseEvent evt) {
+/*
     if (isActive && boundingBox().contains(evt.getPoint())
         && contents.getPieceCount() > 0) {
       if (!evt.isMetaDown()) {
@@ -585,8 +402,8 @@ public class DrawPile extends SetupStack implements Drawable, MouseListener {
           DragBuffer.getBuffer().clear();
           for (Enumeration e = nextDraw.elements(); e.hasMoreElements();) {
             GamePiece p = (GamePiece) e.nextElement();
-            if (p.getProperty(Obscurable.ID) != null) {
-              p.setProperty(Obscurable.ID, GameModule.getUserId());
+            if (p.getProperty(Properties.OBSCURED_OWNER) != null) {
+              p.setProperty(Properties.OBSCURED_OWNER, GameModule.getUserId());
             }
             DragBuffer.getBuffer().add(p);
           }
@@ -603,9 +420,11 @@ public class DrawPile extends SetupStack implements Drawable, MouseListener {
       dragCount = 0;
       nextDraw = null;
     }
+    */
   }
 
   public void mouseReleased(MouseEvent evt) {
+  /*
     if (isActive && boundingBox().contains(evt.getPoint())) {
       if (evt.isMetaDown()) {
         JPopupMenu popup = buildPopup();
@@ -629,6 +448,7 @@ public class DrawPile extends SetupStack implements Drawable, MouseListener {
     if (!evt.isMetaDown()) {
       dragCount = 0;
     }
+*/
   }
 
   public Map getMap() {
@@ -636,6 +456,7 @@ public class DrawPile extends SetupStack implements Drawable, MouseListener {
   }
 
   public Command addToContents(GamePiece p) {
+/*
     Command comm;
     ChangeTracker contentsTracker = new ChangeTracker(contents);
     if (p instanceof Stack) {
@@ -652,6 +473,8 @@ public class DrawPile extends SetupStack implements Drawable, MouseListener {
       comm = contentsTracker.getChangeCommand();
     }
     return comm;
+*/
+    return map.placeOrMerge(p,getPosition());
   }
 
   public void mouseEntered(MouseEvent e) {
@@ -663,6 +486,7 @@ public class DrawPile extends SetupStack implements Drawable, MouseListener {
   public void mouseClicked(MouseEvent e) {
   }
 
+/*
   public void setup(boolean gameStarting) {
     isActive = gameStarting && isOwningBoardActive();
     if (isActive) {
@@ -675,62 +499,31 @@ public class DrawPile extends SetupStack implements Drawable, MouseListener {
       contents = null;
     }
     else if (contents == null) {
-      contents = initializeContents();
+      contents = (Deck)initializeContents();
     }
   }
+*/
 
-  public Command getRestoreCommand() {
-    return new SetContents(this, contents == null ? "null" : contents.getId(), faceDown);
+  protected Stack initializeContents() {
+    Stack s = super.initializeContents();
+    Deck d = new Deck(getDeckType());
+    for (Enumeration e = s.getPieces(); e.hasMoreElements();) {
+      d.add((GamePiece) e.nextElement());
+    }
+    return d;
   }
 
-  public static class SetContents extends Command {
-    private DrawPile deck;
-    private String contentsId;
-    private boolean faceDown;
-
-    public SetContents(DrawPile deck, String contentsId, boolean faceDown) {
-      this.deck = deck;
-      this.contentsId = contentsId;
-      this.faceDown = faceDown;
-    }
-
-    public void executeCommand() {
-      deck.contents = (Stack) GameModule.getGameModule().getGameState().getPieceForId(contentsId);
-      deck.faceDown = faceDown;
-      if (deck.map != null) {
-        deck.map.repaint();
-      }
-    }
-
-    public Command myUndoCommand() {
-      return null;
-    }
-  }
-
-  public Command decode(String s) {
-    if (s.startsWith(getId() + '\t')) {
-      SequenceEncoder.Decoder st = new SequenceEncoder.Decoder(s, '\t');
-      st.nextToken();
-      String contentsId = st.nextToken();
-      boolean faceDown = st.hasMoreTokens() && "true".equals(st.nextToken());
-      return new SetContents(this, contentsId, faceDown);
-    }
-    else {
-      return null;
-    }
-  }
-
-  public String encode(Command c) {
-    if (c instanceof SetContents
-        && ((SetContents) c).deck == this) {
-      SequenceEncoder se = new SequenceEncoder(getId(), '\t');
-      se.append(((SetContents) c).contentsId);
-      se.append("" + ((SetContents) c).faceDown);
-      return se.getValue();
-    }
-    else {
-      return null;
-    }
+  private String getDeckType() {
+      SequenceEncoder se = new SequenceEncoder(';');
+      se.append("" + drawOutline)
+          .append(ColorConfigurer.colorToString(outlineColor))
+          .append(size.width + "").append(size.height + "")
+          .append(faceDownOption)
+          .append(shuffleOption)
+          .append(allowMultipleDraw + "")
+          .append(allowSelectDraw + "")
+          .append(reversible+"");
+      return Deck.ID + se.getValue();
   }
 
   public VASSAL.build.module.documentation.HelpFile getHelpFile() {
@@ -747,5 +540,4 @@ public class DrawPile extends SetupStack implements Drawable, MouseListener {
   public static String getConfigureTypeName() {
     return "Deck";
   }
-
 }

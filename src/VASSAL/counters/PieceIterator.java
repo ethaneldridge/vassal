@@ -19,6 +19,7 @@
 package VASSAL.counters;
 
 import java.util.Enumeration;
+import java.util.Iterator;
 
 /**
  * An iterator for GamePieces.  Takes an optional PieceFilter to extract GamePiece instances from an Enumeration
@@ -36,6 +37,18 @@ public class PieceIterator {
     enum = e;
     filter = f;
     next = next();
+  }
+
+  public PieceIterator(final Iterator it) {
+    this(new Enumeration() {
+      public boolean hasMoreElements() {
+        return it.hasNext();
+      }
+
+      public Object nextElement() {
+        return it.next();
+      }
+    });
   }
 
   private GamePiece next() {

@@ -32,6 +32,8 @@ import javax.swing.*;
 import java.awt.event.KeyEvent;
 import java.util.Enumeration;
 import java.util.Vector;
+import java.util.ArrayList;
+import java.util.Iterator;
 import java.net.MalformedURLException;
 import java.io.File;
 
@@ -567,16 +569,9 @@ public class StackMetrics extends AbstractConfigurable {
    */
   public Command merge(GamePiece fixed, GamePiece add) {
     Command comm;
-    if (!isStackingEnabled()) {
-      comm = fixed.getMap().placeAt(add, fixed.getPosition());
-    }
-    else if (fixed instanceof Stack
+    if (fixed instanceof Stack
         && ((Stack) fixed).topPiece() != null) {
       comm = merge(((Stack) fixed).topPiece(), add);
-    }
-    else if (Boolean.TRUE.equals(add.getProperty(Properties.NO_STACK))
-        || Boolean.TRUE.equals(fixed.getProperty(Properties.NO_STACK))) {
-      comm = fixed.getMap().placeAt(add, fixed.getPosition());
     }
     else {
       MoveTracker tracker = new MoveTracker(add);
@@ -603,14 +598,14 @@ public class StackMetrics extends AbstractConfigurable {
           comm = comm.append(new AddPiece(add));
         }
         if (add instanceof Stack) {
-          Vector v = new Vector();
+          java.util.List l = new ArrayList();
           for (Enumeration e = ((Stack) add).getPieces();
                e.hasMoreElements();) {
-            v.addElement(e.nextElement());
+            l.add(e.nextElement());
           }
-          for (Enumeration e = v.elements();
-               e.hasMoreElements();) {
-            GamePiece p = (GamePiece) e.nextElement();
+          for (Iterator it = l.iterator();
+               it.hasNext();) {
+            GamePiece p = (GamePiece) it.next();
             MoveTracker t = new MoveTracker(p);
             fixedParent.insert(p, index++);
             comm = comm.append(t.getMoveCommand());
@@ -624,64 +619,6 @@ public class StackMetrics extends AbstractConfigurable {
           comm = comm.append(tracker.getMoveCommand());
         }
       }
-/*
-      comm = new NullCommand();
-      Stack fixedParent = fixed.getParent();
-      String fixedParentOldState = fixedParent == null ? null : fixedParent.getState();
-      int index = fixedParent == null ? 1 : fixedParent.indexOf(fixed) + 1;
-      if (add != fixed
-        && add != fixed.getParent()) {
-        boolean isNewPiece = GameModule.getGameModule().getGameState()
-          .getPieceForId(add.getId()) == null;
-        if (isNewPiece) {
-          GameModule.getGameModule().getGameState().addPiece(add);
-          comm = comm.append(new AddPiece(add));
-        }
-        if (fixedParent == null) {
-          fixedParent = createStack(fixed);
-          GameModule.getGameModule().getGameState().addPiece(fixedParent);
-          fixed.getMap().addPiece(fixedParent);
-        }
-        if (add instanceof Stack) {
-          Vector v = new Vector();
-          for (Enumeration e = ((Stack) add).getPieces();
-               e.hasMoreElements();) {
-            v.addElement(e.nextElement());
-          }
-          Command c = new RemovePiece(add);
-          c.execute();
-          comm = comm.append(c);
-          for (Enumeration e = v.elements();
-               e.hasMoreElements();) {
-            GamePiece p = (GamePiece) e.nextElement();
-            fixedParent.insert(p, index++);
-          }
-        }
-        else {
-          Stack removedFrom = add.getParent();
-          String oldState = null;
-          if (add.getParent() == fixedParent && fixedParent != null) {
-            index--;
-          }
-          else if (removedFrom != null) {
-            oldState = removedFrom.getState();
-          }
-          fixedParent.insert(add, index);
-          if (oldState != null) {
-            comm = comm.append(new ChangePiece(removedFrom.getId(),
-                                               oldState, removedFrom.getState()));
-          }
-        }
-        if (fixedParentOldState != null) {
-          comm = comm.append(new ChangePiece(fixedParent.getId(),
-                                             fixedParentOldState,
-                                             fixedParent.getState()));
-        }
-        else if (fixedParent != null) {
-          comm = comm.append(new AddPiece(fixedParent));
-        }
-      }
-*/
     }
     return comm;
   }

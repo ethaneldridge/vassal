@@ -19,7 +19,6 @@
 package VASSAL.counters;
 
 import VASSAL.build.GameModule;
-import VASSAL.build.module.map.MenuDisplayer;
 import VASSAL.command.ChangeTracker;
 import VASSAL.command.Command;
 import VASSAL.command.NullCommand;
@@ -33,7 +32,6 @@ import java.awt.event.ActionListener;
 import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.Iterator;
-import java.util.Vector;
 
 /**
  * A collection of pieces that behaves like a deck, i.e.:
@@ -47,6 +45,7 @@ public class Deck extends Stack {
   public static final String ALWAYS = "Always";
   public static final String NEVER = "Never";
   public static final String USE_MENU = "Via right-click Menu";
+  private static final String NO_USER = "null"; // Dummy user ID for turning cards face down
 
   private boolean drawOutline = true;
   private Color outlineColor = Color.black;
@@ -115,6 +114,53 @@ public class Deck extends Stack {
     return setContents(newContents.iterator());
   }
 
+  /**
+   * Return an iterator of pieces to be drawn from the Deck.
+   * Normally, a random piece will be drawn, but if the Deck supports it,
+   * the user may have specified a particular set of pieces or a
+   * fixed number of pieces to select with the next draw.
+   */
+  public PieceIterator drawCards() {
+    PieceIterator it;
+    if (nextDraw != null) {
+      it = new PieceIterator(nextDraw.iterator());
+    }
+    else {
+      int count = Math.max(dragCount,Math.min(1,getPieceCount()));
+      ArrayList pieces = new ArrayList();
+      if (ALWAYS.equals(shuffleOption)) {
+        ArrayList indices = new ArrayList();
+        for (int i = 0; i < getPieceCount(); ++i) {
+          indices.add(new Integer(i));
+        }
+        while (count-- > 0) {
+          int i = GameModule.getGameModule().getRNG().nextInt(indices.size());
+          int index = ((Integer) indices.get(i)).intValue();
+          indices.remove(i);
+          GamePiece p = getPieceAt(index);
+          if (faceDown) {
+            p.setProperty(Properties.OBSCURED_BY,NO_USER);
+          }
+          pieces.add(p);
+        }
+      }
+      else {
+        Enumeration e = getPiecesInReverseOrder();
+        while (count-- > 0 && e.hasMoreElements()) {
+          GamePiece p = (GamePiece) e.nextElement();
+          if (faceDown) {
+            p.setProperty(Properties.OBSCURED_BY,NO_USER);
+          }
+          pieces.add(p);
+        }
+      }
+      it = new PieceIterator(pieces.iterator());
+    }
+    dragCount = 0;
+    nextDraw = null;
+    return it;
+  }
+
   /** Set the contents of this Deck to an Enumeration of GamePieces */
   protected Command setContents(Iterator it) {
     ChangeTracker track = new ChangeTracker(this);
@@ -133,7 +179,10 @@ public class Deck extends Stack {
       GamePiece p = (GamePiece) e.nextElement();
       se2.append(p.getId());
     }
-    return se.append(se2.getValue()).getValue();
+    if (se2.getValue() != null) {
+      se.append(se2.getValue());
+    }
+    return se.getValue();
   }
 
   public void setState(String state) {
@@ -154,16 +203,6 @@ public class Deck extends Stack {
     ChangeTracker t = new ChangeTracker(this);
     Command c = new NullCommand();
     faceDown = value;
-    if (!faceDown) {
-      for (Enumeration e = getPieces(); e.hasMoreElements();) {
-        GamePiece p = (GamePiece) e.nextElement();
-        if (p.getProperty(Obscurable.ID) != null) {
-          ChangeTracker tracker = new ChangeTracker(p);
-          p.setProperty(Obscurable.ID, null);
-          c.append(tracker.getChangeCommand());
-        }
-      }
-    }
     return t.getChangeCommand().append(c);
   }
 
@@ -181,26 +220,21 @@ public class Deck extends Stack {
     return drawOutline;
   }
 
-  public void setDrawOutline(boolean drawOutline) {
-    this.drawOutline = drawOutline;
-  }
-
   public Color getOutlineColor() {
     return outlineColor;
   }
 
-  public void setOutlineColor(Color outlineColor) {
-    this.outlineColor = outlineColor;
+  public boolean isFaceDown() {
+    return faceDown;
   }
 
   public void draw(java.awt.Graphics g, int x, int y, Component obs, double zoom) {
-    int count = 0;
+    int count = Math.min(getPieceCount(),10);
     GamePiece top = topPiece();
     if (top != null) {
       Rectangle r = top.getShape().getBounds();
       r.setLocation(x + (int) (zoom * (r.x)), y + (int) (zoom * (r.y)));
       r.setSize((int) (zoom * r.width), (int) (zoom * r.height));
-      count = count > 10 ? 10 : count;
       for (int i = 0; i < count - 1; ++i) {
         g.setColor(Color.white);
         g.fillRect(r.x + (int) (zoom * 2 * i),
@@ -210,12 +244,12 @@ public class Deck extends Stack {
                    r.y - (int) (zoom * 2 * i), r.width, r.height);
       }
       if (faceDown) {
-        Obscurable.setAllHidden(true);
+        top.setProperty(Properties.OBSCURED_BY,NO_USER);
         top.draw(g, x + (int) (zoom * 2 * (count - 1)),
                  y - (int) (zoom * 2 * (count - 1)), obs, zoom);
-        Obscurable.setAllHidden(false);
       }
       else {
+        top.setProperty(Properties.OBSCURED_BY,null);
         top.draw(g, x + (int) (zoom * 2 * (count - 1)),
                  y - (int) (zoom * 2 * (count - 1)), obs, zoom);
       }
@@ -231,9 +265,19 @@ public class Deck extends Stack {
     }
   }
 
+  public Rectangle boundingBox() {
+    Rectangle r = new Rectangle(getPosition(),size);
+    r.translate(-r.width/2,-r.height/2);
+    return r;
+  }
+
+  public Shape getShape() {
+    return boundingBox();
+  }
+
   public Object getProperty(Object key) {
     Object value = null;
-    if (Properties.IMMOBILE.equals(key)) {
+    if (Properties.NO_STACK.equals(key)) {
       value = Boolean.TRUE;
     }
     else if (Properties.KEY_COMMANDS.equals(key)) {
@@ -289,7 +333,7 @@ public class Deck extends Stack {
         };
         l.add(c);
       }
-      commands = (KeyCommand[]) l.toArray(new Object[l.size()]);
+      commands = (KeyCommand[]) l.toArray(new KeyCommand[l.size()]);
     }
     return commands;
   }

@@ -209,11 +209,6 @@ public class GlobalMap extends JPanel implements MouseListener,
       Point p = componentCoordinates(stack[i].getPosition());
       stack[i].draw(g, p.x, p.y, this, scale);
     }
-    for (Enumeration e = map.getComponents(DrawPile.class); e.hasMoreElements();) {
-      DrawPile deck = (DrawPile) e.nextElement();
-      Point p = componentCoordinates(deck.getPosition());
-      deck.draw(g, p.x, p.y, this, scale);
-    }
     mouseOverViewer.draw(g, map);
 
     // Draw a rectangle indicating the present viewing area

@@ -60,7 +60,7 @@ import java.io.IOException;
  * This is a MouseListener that moves pieces onto a Map window
  */
 public class PieceMover extends AbstractBuildable implements
-    MouseListener, GameComponent, PieceFinder, Sort.Comparator {
+    MouseListener, GameComponent, Sort.Comparator {
 
   /** The Preferences key for autoreporting moves.  */
   public static final String AUTO_REPORT = "autoReport";
@@ -69,17 +69,176 @@ public class PieceMover extends AbstractBuildable implements
 
   protected Map map;
   protected Point dragBegin;
+  private GamePiece dragging;
   protected JButton markUnmovedButton;
-  public static final String ICON_NAME="icon";
+  public static final String ICON_NAME = "icon";
   private String iconName;
+  protected PieceFinder dragTargetSelector; // Selects drag target from mouse click on the Map
+  protected PieceFinder dropTargetSelector; // Selects piece to merge with at the drop destination
+  protected PieceVisitorDispatcher selectionProcessor; // Processes drag target after having been selected
 
   public void addTo(Buildable b) {
+    dragTargetSelector = createDragTargetSelector();
+    dropTargetSelector = createDropTargetSelector();
+    selectionProcessor = createSelectionProcessor();
     map = (Map) b;
     map.addLocalMouseListener(this);
     GameModule.getGameModule().getGameState().addGameComponent(this);
     if (Info.isDndEnabled()) {
       map.setDragGestureListener(DragHandler.getTheDragHandler());
     }
+  }
+
+  /**
+   * When the user completes a drag-drop operation, the pieces being
+   * dragged will either be combined with an existing piece on the
+   * map or else placed on the map without stack.  This method returns
+   *  a {@link PieceFinder} instance that determines which
+   * {@link GamePiece} (if any) to combine the being-dragged pieces with.
+   * @return
+   */
+  protected PieceFinder createDropTargetSelector() {
+    return new PieceFinder.Movable() {
+      public Object visitDeck(Deck d) {
+        if (d.getShape().contains(pt)) {
+          return d;
+        }
+        else {
+          return null;
+        }
+      }
+
+      public Object visitDefault(GamePiece piece) {
+        GamePiece selected = null;
+        if (map.getStackMetrics().isStackingEnabled()
+            && !Boolean.TRUE.equals(dragging.getProperty(Properties.NO_STACK))
+            && !Boolean.TRUE.equals(piece.getProperty(Properties.INVISIBLE_TO_ME))
+            && !Boolean.TRUE.equals(piece.getProperty(Properties.NO_STACK))) {
+          Board b = map.findBoard(pt);
+          if (b == null || b.getGrid() == null) {
+            selected = (GamePiece) super.visitDefault(piece);
+          }
+          else {
+            Point snap = map.snapTo(pt);
+            if (piece.getPosition().equals(snap)) {
+              selected = piece;
+            }
+          }
+        }
+        if (selected != null
+            && DragBuffer.getBuffer().contains(selected)
+            && selected.getParent() != null
+            && selected.getParent().topPiece() == selected) {
+          selected = null;
+        }
+        return selected;
+      }
+
+      public Object visitStack(Stack s) {
+        GamePiece selected = null;
+        if (map.getStackMetrics().isStackingEnabled()
+            && !Boolean.TRUE.equals(dragging.getProperty(Properties.NO_STACK))
+            && !DragBuffer.getBuffer().contains(s)
+            && s.topPiece() != null) {
+          Board b = map.findBoard(pt);
+          if (b == null || b.getGrid() == null) {
+            selected = (GamePiece) super.visitStack(s);
+          }
+          else {
+            pt = map.snapTo(pt);
+            if (s.isExpanded()) {
+              selected = (GamePiece) super.visitStack(s);
+            }
+            else if (s.getPosition().equals(pt) && s.topPiece() != null) {
+              selected = s;
+            }
+          }
+        }
+        return selected;
+      }
+    };
+  }
+
+  /**
+   * When the user clicks on the map, a piece from the map is selected
+   * by the dragTargetSelector.  What happens to that piece is
+   * determined by the {@link PieceVisitorDispatcher} instance returned by this method.
+   * @see #createDragTargetSelector
+   * @return
+   */
+  protected PieceVisitorDispatcher createSelectionProcessor() {
+    return new DeckVisitorDispatcher(new DeckVisitor() {
+      public Object visitDeck(Deck d) {
+        DragBuffer.getBuffer().clear();
+        for (PieceIterator it = d.drawCards(); it.hasMoreElements();) {
+          DragBuffer.getBuffer().add(it.nextPiece());
+        }
+        return null;
+      }
+
+      public Object visitStack(Stack s) {
+        processPiece(s);
+        return null;
+      }
+
+      public Object visitDefault(GamePiece p) {
+        processPiece(p);
+        return null;
+      }
+
+      private void processPiece(GamePiece p) {
+        if (p == null) {
+          DragBuffer.getBuffer().clear();
+        }
+        else if (Boolean.TRUE.equals(p.getProperty(Properties.IMMOBILE))) {
+          DragBuffer.getBuffer().clear();
+
+          if (KeyBuffer.getBuffer().contains(p)) {
+            DragBuffer.getBuffer().add(p);
+          }
+          else {
+            p = null;
+          }
+        }
+        else if (Boolean.TRUE.equals(p.getProperty(Properties.NO_STACK))) {
+          DragBuffer.getBuffer().clear();
+          DragBuffer.getBuffer().add(p);
+        }
+        else {
+          DragBuffer.getBuffer().clear();
+          if (KeyBuffer.getBuffer().contains(p)) { // If clicking on a selected piece, put all selected pieces into the drag buffer
+            DragBuffer.getBuffer().add(p);
+            for (Enumeration enum = KeyBuffer.getBuffer().getPieces(); enum.hasMoreElements();) {
+              GamePiece piece = (GamePiece) enum.nextElement();
+              if (piece != p && piece.getParent() != p) {
+                DragBuffer.getBuffer().add(piece);
+              }
+            }
+          }
+          else { // Otherwise, only put the clicked-on piece into the drag buffer
+            DragBuffer.getBuffer().add(p);
+          }
+        }
+      }
+    });
+  }
+
+  /**
+   * Returns the {@link PieceFinder} instance that will select a {@link GamePiece}
+   * for processing when the user clicks on the map.
+   * @return
+   */
+  protected PieceFinder createDragTargetSelector() {
+    return new PieceFinder.Movable() {
+      public Object visitDeck(Deck d) {
+        if (d.getShape().contains(pt)) {
+          return d;
+        }
+        else {
+          return null;
+        }
+      }
+    };
   }
 
   public void setup(boolean gameStarting) {
@@ -171,6 +330,7 @@ public class PieceMover extends AbstractBuildable implements
 
   /** Invoked after a piece has been moved */
   protected Command movedPiece(GamePiece p, Point loc) {
+    Command c = null;
     if (p instanceof Stack) {
       GamePiece top = ((Stack) p).topPiece();
       if (top != null) {
@@ -178,11 +338,15 @@ public class PieceMover extends AbstractBuildable implements
       }
     }
     if (!loc.equals(p.getPosition())) {
-      return markMoved(p, true);
+      c = markMoved(p, true);
     }
-    else {
-      return null;
+    if (p.getParent() instanceof Deck) {
+      Deck d = (Deck) p.getParent();
+      ChangeTracker tracker = new ChangeTracker(p);
+      p.setProperty(Properties.OBSCURED_BY, d.isFaceDown() ? GameModule.getUserId() : null);
+      c = c == null ? tracker.getChangeCommand() : c.append(tracker.getChangeCommand());
     }
+    return c;
   }
 
   public Command markMoved(GamePiece p, boolean hasMoved) {
@@ -240,9 +404,8 @@ public class PieceMover extends AbstractBuildable implements
     KeyBuffer.getBuffer().clear();
 
     GamePiece mergeWith = null;
-    if (!Boolean.TRUE.equals(bottom.getProperty(Properties.NO_STACK))) {
-      mergeWith = map.findPiece(p, this);
-    }
+    dragging = bottom;
+    mergeWith = map.findPiece(p, dropTargetSelector);
 
     if (!Boolean.TRUE.equals(bottom.getProperty(Properties.IGNORE_GRID))) {
       p = map.snapTo(p);
@@ -268,7 +431,7 @@ public class PieceMover extends AbstractBuildable implements
     Command comm = new NullCommand();
     String destination;
 
-    //String origin = map.locationName(bottom.getPosition()); // Moved up
+//String origin = map.locationName(bottom.getPosition()); // Moved up
 
     if (mergeWith == null) {
       comm = comm.append(movedPiece(bottom, p));
@@ -291,7 +454,6 @@ public class PieceMover extends AbstractBuildable implements
       GamePiece next = it.nextPiece();
       Hideable.setAllHidden(true);
       Obscurable.setAllHidden(true);
-      //if (next.getMap() == map) { // Make sure moved from offmap are reported
       if (next.getMap() == map || OFFMAP.equals(origin)) {
         if (next.getName().length() > 0) {
           moved.append(',');
@@ -353,45 +515,12 @@ public class PieceMover extends AbstractBuildable implements
   /** Place the clicked-on piece into the {@link DragBuffer} */
   protected void selectMovablePieces(Point point) {
 
-    GamePiece p = map.findPiece(point, PieceFinder.MOVABLE);
+    GamePiece p = map.findPiece(point, dragTargetSelector);
     dragBegin = point;
 
-    if (p == null) {
-      DragBuffer.getBuffer().clear();
-    }
-    else if (Boolean.TRUE.equals(p.getProperty(Properties.IMMOBILE))) {
-      DragBuffer.getBuffer().clear();
+    selectionProcessor.accept(p);
 
-      if (KeyBuffer.getBuffer().contains(p)) {
-        DragBuffer.getBuffer().add(p);
-      }
-      else {
-        p = null;
-      }
-    }
-    else if (Boolean.TRUE.equals(p.getProperty(Properties.NO_STACK))) {
-      DragBuffer.getBuffer().clear();
-      DragBuffer.getBuffer().add(p);
-    }
-    else {
-      DragBuffer.getBuffer().clear();
-      if (KeyBuffer.getBuffer().contains(p)) {
-        DragBuffer.getBuffer().add(p);
-        // If clicking on a selected piece, put all selected pieces into the drag buffer
-        for (Enumeration enum = KeyBuffer.getBuffer().getPieces(); enum.hasMoreElements();) {
-          GamePiece piece = (GamePiece) enum.nextElement();
-          if (piece != p && piece.getParent() != p) {
-            DragBuffer.getBuffer().add(piece);
-          }
-        }
-      }
-      else {
-        // Otherwise, only put the clicked-on piece into the drag buffer
-        DragBuffer.getBuffer().add(p);
-      }
-    }
-
-    // show/hide selection boxes
+// show/hide selection boxes
     map.repaint();
   }
 
@@ -462,60 +591,6 @@ public class PieceMover extends AbstractBuildable implements
   public void mouseClicked(MouseEvent e) {
   }
 
-  /**
-   * Implements PieceFinder to determine which piece to stack with when
-   * completing a drag
-   */
-  public GamePiece select(Map map, GamePiece piece, Point pt) {
-    if (!map.getStackMetrics().isStackingEnabled()) {
-      return null;
-    }
-    GamePiece selected = null;
-    Board b = map.findBoard(pt);
-    if (b == null || b.getGrid() == null) {
-      selected = PieceFinder.MOVABLE.select(map, piece, pt);
-    }
-    else {
-      Point snap = map.snapTo(pt);
-      if (piece instanceof Stack) {
-        Stack s = (Stack) piece;
-        if (s.isExpanded()) {
-          Shape[] bounds = new Shape[s.getPieceCount()];
-          map.getStackMetrics().getContents(s, null, bounds, null, s.getPosition().x, s.getPosition().y);
-          for (Enumeration e = s.getPiecesInVisibleOrder(); e.hasMoreElements();) {
-            GamePiece child = (GamePiece) e.nextElement();
-            if (bounds[s.indexOf(child)].contains(pt)) {
-              selected = child;
-              break;
-            }
-          }
-        }
-        else if (s.getPosition().equals(snap) && s.topPiece() != null) {
-          selected = s;
-        }
-      }
-      else if (piece.getPosition().equals(snap) && !Boolean.TRUE.equals(piece.getProperty(Properties.INVISIBLE_TO_ME))) {
-        selected = piece;
-      }
-    }
-    if (selected != null && Boolean.TRUE.equals(selected.getProperty(Properties.NO_STACK))) {
-      selected = null;
-    }
-    if (selected != null && DragBuffer.getBuffer().contains(selected)) {
-      /* If clicking and dragging to within the outline of the same piece,
-      ignore this piece if it's a stack or the only visible piece in a stack */
-      if (selected.getParent() == null) {
-        selected = null;
-      }
-      else {
-        Enumeration e = selected.getParent().getPiecesInVisibleOrder();
-        if (e.hasMoreElements() && e.nextElement() == selected && !e.hasMoreElements()) {
-          selected = null;
-        }
-      }
-    }
-    return selected;
-  }
 
   /**
    * Implement Comparator to sort the contents of the drag buffer before completing the drag.
@@ -557,7 +632,7 @@ public class PieceMover extends AbstractBuildable implements
    * @version 0.4.2
    *
    */
-  // NOTE: DragSource.isDragImageSupported() returns false for j2sdk1.4.2_02 on Windows 2000
+// NOTE: DragSource.isDragImageSupported() returns false for j2sdk1.4.2_02 on Windows 2000
 
   static public class DragHandler implements DragGestureListener, DragSourceListener,
       DragSourceMotionListener, DropTargetListener {
@@ -912,4 +987,5 @@ public class PieceMover extends AbstractBuildable implements
         forward.dropActionChanged(event);
     }
   }
+
 }

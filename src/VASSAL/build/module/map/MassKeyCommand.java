@@ -48,7 +48,7 @@ import java.util.Enumeration;
 /** Adds a button to a map window toolbar.  Hitting the button applies a particular key command to all pieces
  * on that map with a given name.
  */
-public class MassKeyCommand extends AbstractConfigurable {
+public class MassKeyCommand extends AbstractConfigurable implements PieceVisitor {
   public static final String DEPRECATED_NAME = "text";
   public static final String NAME = "name";
   public static final String ICON = "icon";
@@ -69,7 +69,10 @@ public class MassKeyCommand extends AbstractConfigurable {
   private String condition = ALWAYS;
   protected String checkProperty;
   protected String checkValue;
+  protected PieceVisitorDispatcher dispatcher = new PieceVisitorDispatcher(this);
   private Map map;
+  private Command keyCommand;
+  private BoundsTracker tracker;
 
   public MassKeyCommand() {
     ActionListener al = new ActionListener() {
@@ -86,22 +89,28 @@ public class MassKeyCommand extends AbstractConfigurable {
   }
 
   public void apply() {
-    Command c = new NullCommand();
-    BoundsTracker tracker = new BoundsTracker();
+    keyCommand = new NullCommand();
+    tracker = new BoundsTracker();
     GamePiece[] p = map.getPieces();
     for (int i = 0; i < p.length; ++i) {
-      if ((p[i] instanceof Stack)) {
-        Stack s = (Stack) p[i];
-        for (Enumeration e = s.getPieces(); e.hasMoreElements();) {
-          apply((GamePiece) e.nextElement(), c, tracker);
-        }
-      }
-      else {
-        apply(p[i], c, tracker);
-      }
+      dispatcher.accept(p[i]);
     }
     tracker.repaint();
-    GameModule.getGameModule().sendAndLog(c);
+    GameModule.getGameModule().sendAndLog(keyCommand);
+  }
+
+  /* We don't treat {@link Deck}s any differently than {@link Stack}s, so
+  no need to implement {@link DeckVisitor */
+  public Object visitStack(Stack s) {
+    for (Enumeration e = s.getPieces(); e.hasMoreElements();) {
+      apply((GamePiece) e.nextElement(), keyCommand, tracker);
+    }
+    return null;
+  }
+
+  public Object visitDefault(GamePiece p) {
+    apply(p, keyCommand, tracker);
+    return null;
   }
 
   private void apply(GamePiece p, Command c, BoundsTracker tracker) {
