@@ -32,14 +32,18 @@ import VASSAL.build.module.PlayerRoster;
 import VASSAL.build.module.documentation.HelpFile;
 import VASSAL.build.module.map.MassKeyCommand;
 import VASSAL.command.Command;
+import VASSAL.command.ChangeTracker;
 import VASSAL.configure.FormattedStringConfigurer;
 import VASSAL.configure.StringConfigurer;
+import VASSAL.configure.StringArrayConfigurer;
 import VASSAL.tools.FormattedString;
 import VASSAL.tools.SequenceEncoder;
 
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.InputEvent;
+import java.awt.event.ItemListener;
+import java.awt.event.ItemEvent;
 import java.io.File;
 import java.net.MalformedURLException;
 
@@ -50,7 +54,11 @@ import java.net.MalformedURLException;
 public class ReportState extends Decorator implements EditablePiece {
   public static final String ID = "report;";
   private String keys = "";
-  private FormattedString format = new FormattedString("$" + LOCATION_NAME + "$: $" + NEW_UNIT_NAME + "$ *");
+  private FormattedString format = new FormattedString();
+  private String reportFormat;
+  private String[] cycleReportFormat;
+  private String cycleDownKeys;
+  private int cycleIndex = -1;
 
   public ReportState() {
     this(ID, null);
@@ -78,13 +86,12 @@ public class ReportState extends Decorator implements EditablePiece {
   }
 
   public String myGetState() {
-    return "";
+    return cycleIndex + "";
   }
 
   public String myGetType() {
     SequenceEncoder se = new SequenceEncoder(';');
-    se.append(keys);
-    se.append(format.getFormat());
+    se.append(keys).append(reportFormat).append(cycleDownKeys).append(StringArrayConfigurer.arrayToString(cycleReportFormat));
     return ID + se.getValue();
   }
 
@@ -126,9 +133,9 @@ public class ReportState extends Decorator implements EditablePiece {
     //     command was executed.
 
     if (!MassKeyCommand.suppressTraitReporting() && (isVisible || wasVisible)) {
-
-      for (int i = 0; i < keys.length(); ++i) {
-        if (stroke.equals(KeyStroke.getKeyStroke(keys.charAt(i), InputEvent.CTRL_MASK))) {
+      String allKeys = keys + cycleDownKeys;
+      for (int i = 0; i < allKeys.length(); ++i) {
+        if (stroke.equals(KeyStroke.getKeyStroke(allKeys.charAt(i), InputEvent.CTRL_MASK))) {
 
           //
           // Find the Command Name
@@ -142,7 +149,21 @@ public class ReportState extends Decorator implements EditablePiece {
             }
           }
 
+          ChangeTracker tracker = new ChangeTracker(this);
+
           format.setProperty(COMMAND_NAME, commandName);
+
+          String theFormat = reportFormat;
+          if (cycleIndex >= 0) {
+            if (i < keys.length()) {
+              cycleIndex = (cycleIndex + 1) % cycleReportFormat.length;
+            }
+            else {
+              cycleIndex = (cycleIndex + cycleReportFormat.length - 1) % cycleReportFormat.length;
+            }
+            theFormat = cycleReportFormat[cycleIndex];
+          }
+          format.setFormat(theFormat);
 
           String reportText = format.getText();
 
@@ -151,6 +172,7 @@ public class ReportState extends Decorator implements EditablePiece {
             display.execute();
             c = c == null ? display : c.append(display);
           }
+          c = tracker.getChangeCommand().append(c);
           break;
         }
       }
@@ -175,6 +197,12 @@ public class ReportState extends Decorator implements EditablePiece {
   }
 
   public void mySetState(String newState) {
+    if (newState.length() > 0) {
+      cycleIndex = Integer.parseInt(newState);
+    }
+    else {
+      cycleIndex = -1;
+    }
   }
 
   public Shape getShape() {
@@ -200,13 +228,10 @@ public class ReportState extends Decorator implements EditablePiece {
     // keys = type.length() <= ID.length() ? "" : type.substring(ID.length());
     SequenceEncoder.Decoder st = new SequenceEncoder.Decoder(type, ';');
     st.nextToken();
-    if (st.hasMoreTokens()) {
-      keys = st.nextToken();
-    }
-    if (st.hasMoreTokens()) {
-      format.setFormat(st.nextToken());
-      System.err.println("Format is "+format.getFormat());
-    }
+    keys = st.nextToken("");
+    reportFormat = st.nextToken("$" + LOCATION_NAME + "$: $" + NEW_UNIT_NAME + "$ *");
+    cycleDownKeys = st.nextToken("");
+    cycleReportFormat = StringArrayConfigurer.stringToArray(st.nextToken(""));
   }
 
   public PieceEditor getEditor() {
@@ -234,19 +259,42 @@ public class ReportState extends Decorator implements EditablePiece {
 
   public static class Ed implements PieceEditor {
 
-    StringConfigurer tf;
-    StringConfigurer fmt;
+    private StringConfigurer keys;
+    private StringConfigurer format;
+    private JCheckBox cycle;
+    private StringArrayConfigurer cycleFormat;
+    private StringConfigurer cycleDownKeys;
     private JPanel box;
 
     public Ed(ReportState piece) {
 
       box = new JPanel();
       box.setLayout(new BoxLayout(box, BoxLayout.Y_AXIS));
-      tf = new StringConfigurer(null, "Report when player presses CTRL-", piece.keys);
-      fmt = new FormattedStringConfigurer(null, "Report format", getFormatParameters());
-      fmt.setValue(piece.format.getFormat());
-      box.add(tf.getControls());
-      box.add(fmt.getControls());
+      keys = new StringConfigurer(null, "Report when player presses CTRL-", piece.keys);
+      box.add(keys.getControls());
+      cycle = new JCheckBox("Cycle through different messages");
+      box.add(cycle);
+      format = new FormattedStringConfigurer(null, "Report format", getFormatParameters());
+      format.setValue(piece.reportFormat);
+      box.add(format.getControls());
+      cycleFormat = new StringArrayConfigurer(null, "Message formats", piece.cycleReportFormat);
+      box.add(cycleFormat.getControls());
+      cycleDownKeys = new StringConfigurer(null, "Report previous message when player presses CTRL-", piece.cycleDownKeys);
+      box.add(cycleDownKeys.getControls());
+      ItemListener l = new ItemListener() {
+        public void itemStateChanged(ItemEvent e) {
+          format.getControls().setVisible(!cycle.isSelected());
+          cycleFormat.getControls().setVisible(cycle.isSelected());
+          cycleDownKeys.getControls().setVisible(cycle.isSelected());
+          Window w = SwingUtilities.getWindowAncestor(box);
+          if (w != null) {
+            w.pack();
+          }
+        }
+      };
+      l.itemStateChanged(null);
+      cycle.addItemListener(l);
+      cycle.setSelected(piece.cycleReportFormat.length > 0);
     }
 
     public Component getControls() {
@@ -254,12 +302,17 @@ public class ReportState extends Decorator implements EditablePiece {
     }
 
     public String getState() {
-      return "";
+      return cycle.isSelected() ? "0" : "-1";
     }
 
     public String getType() {
       SequenceEncoder se = new SequenceEncoder(';');
-      se.append(tf.getValueString()).append(fmt.getValueString());
+      if (cycle.isSelected() && cycleFormat.getStringArray().length > 0) {
+        se.append(keys.getValueString()).append("").append(cycleDownKeys.getValueString()).append(cycleFormat.getValueString());
+      }
+      else {
+        se.append(keys.getValueString()).append(format.getValueString()).append("").append("");
+      }
       return ID + se.getValue();
     }
   }
