@@ -216,29 +216,21 @@ public class ASLBoard extends Board {
       return;
     }
     boardImage = GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice().getDefaultConfiguration().createCompatibleImage(boundaries.width, boundaries.height, Transparency.BITMASK);
-    Graphics g = ((BufferedImage) boardImage).createGraphics();
+    Graphics2D g = ((BufferedImage) boardImage).createGraphics();
     if (reversed) {
-      g.drawImage(im, 0, 0, boundaries.width, boundaries.height,
-                  cropBounds.x + boundaries.width, cropBounds.y + boundaries.height, cropBounds.x, cropBounds.y, map);
+      g.translate(cropBounds.x,cropBounds.y);
+      g.rotate(Math.PI,boundaries.width/2,boundaries.height/2);
     }
     else {
-      g.drawImage(im, -cropBounds.x, -cropBounds.y, map);
+      g.translate(-cropBounds.x,-cropBounds.y);
     }
+    g.drawImage(im, 0, 0, map);
 
     for (int i = 0; i < overlays.size(); ++i) {
       Overlay o = (Overlay) overlays.elementAt(i);
       o.setImage(this, map);
-      if (reversed) {
-        Point p = globalCoordinates(o.bounds().getLocation());
-        g.drawImage(o.getImage(),
-                    p.x, p.y, p.x - o.bounds().width, p.y - o.bounds().height,
-                    0, 0, o.bounds().width, o.bounds().height,
-                    map);
-      }
-      else {
-        g.drawImage(o.getImage(), o.bounds().x - cropBounds.x,
-                    o.bounds().y - cropBounds.y, map);
-      }
+      g.drawImage(o.getImage(), o.bounds().x,
+                  o.bounds().y, map);
       if (o.getTerrain() != terrain && o.getTerrain() != null) {
         SSROverlay ssrOverlay;
         for (Enumeration e = o.getTerrain().getOverlays(); e.hasMoreElements();) {
@@ -247,31 +239,19 @@ public class ASLBoard extends Board {
           if (ssrOverlay.getImage() != null) {
             Rectangle r = ssrOverlay.bounds();
             if (o.getOrientation(this) == 'a') {
-              if (reversed) {
-                Point p = globalCoordinates(new Point(r.x + o.bounds().x, r.y + o.bounds().y));
-                g.drawImage(ssrOverlay.getImage(), p.x, p.y, p.x - r.width, p.y - r.height, 0, 0, r.width, r.height, map);
-              }
-              else {
-                g.drawImage(ssrOverlay.getImage(), r.x + o.bounds().x - cropBounds.x,
-                            r.y + o.bounds().y - cropBounds.y, map);
-              }
+              g.drawImage(ssrOverlay.getImage(), r.x + o.bounds().x,
+                          r.y + o.bounds().y, map);
             }
             else {
               try {
                 Point p1 = o.offset(o.getOrientation(this), this);
                 Point p2 = o.offset('a', this);
-                Point p = globalCoordinates(new Point(p1.x + p2.x + o.bounds().x, p1.y + p2.y + o.bounds().y));
-                if (reversed) {
-                  p.translate(r.x, r.y);
-                  g.drawImage(ssrOverlay.getImage(), p.x, p.y, map);
-                }
-                else {
-                  p.translate(-r.x, -r.y);
-                  g.drawImage(ssrOverlay.getImage(),
-                              p.x, p.y,
-                              p.x - r.width, p.y - r.height,
-                              0, 0, r.width, r.height, map);
-                }
+                Point p = new Point(p1.x + p2.x + o.bounds().x, p1.y + p2.y + o.bounds().y);
+                p.translate(-r.x, -r.y);
+                g.drawImage(ssrOverlay.getImage(),
+                            p.x, p.y,
+                            p.x - r.width, p.y - r.height,
+                            0, 0, r.width, r.height, map);
               }
               catch (BoardException e1) {
                 e1.printStackTrace();
