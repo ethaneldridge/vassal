@@ -25,6 +25,7 @@ import VASSAL.build.Buildable;
 import VASSAL.build.GameModule;
 import VASSAL.build.module.Map;
 import VASSAL.build.module.map.GlobalMap;
+import VASSAL.build.module.map.BoardPicker;
 import VASSAL.counters.GamePiece;
 
 import javax.swing.*;
@@ -167,6 +168,7 @@ public class BoardSwapper extends AbstractBuildable {
     }
 
     public void save() {
+      new BoardPicker.SetBoards(map.getBoardPicker(),currentBoards).execute();
       for (Enumeration e = GameModule.getGameModule().getGameState().getGameComponentsEnum();
            e.hasMoreElements();) {
         Object o = e.nextElement();
