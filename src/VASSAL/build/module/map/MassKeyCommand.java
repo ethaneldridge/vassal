@@ -13,7 +13,7 @@
  * Library General Public License for more details.
  *
  * You should have received a copy of the GNU Library General Public
- * License along with this library; if not, copies are available 
+ * License along with this library; if not, copies are available
  * at http://www.opensource.org.
  */
 /*
@@ -29,14 +29,14 @@ package VASSAL.build.module.map;
 import VASSAL.build.AbstractConfigurable;
 import VASSAL.build.Buildable;
 import VASSAL.build.GameModule;
+import VASSAL.build.AutoConfigurable;
 import VASSAL.build.module.documentation.HelpFile;
 import VASSAL.build.module.Map;
-import VASSAL.configure.HotKeyConfigurer;
-import VASSAL.configure.StringArrayConfigurer;
-import VASSAL.configure.StringEnum;
+import VASSAL.configure.*;
 import VASSAL.counters.*;
 import VASSAL.command.Command;
 import VASSAL.command.NullCommand;
+import VASSAL.tools.LaunchButton;
 
 import javax.swing.*;
 import java.awt.event.ActionListener;
@@ -50,28 +50,35 @@ import java.io.File;
  * on that map with a given name.
  */
 public class MassKeyCommand extends AbstractConfigurable {
-  public static final String TEXT = "text";
-  public static final String HOTKEY = "hotkey";
+  public static final String DEPRECATED_NAME = "text";
+  public static final String NAME = "name";
+  public static final String ICON = "icon";
+  public static final String BUTTON_TEXT = "buttonText";
+  public static final String HOTKEY = "buttonHotkey";
+  public static final String KEY_COMMAND = "hotkey";
   public static final String NAMES = "names";
   public static final String CONDITION = "condition";
   private static final String IF_ACTIVE = "If layer is active";
   private static final String IF_INACTIVE = "If layer is inactive";
   private static final String ALWAYS = "Always";
 
-  private JButton launch = new JButton();
+  private LaunchButton launch;
   private KeyStroke stroke = KeyStroke.getKeyStroke(0, 0);
   private String[] names = new String[0];
   private String condition = ALWAYS;
   private Map map;
 
-  public void addTo(Buildable parent) {
-    map = (Map) parent;
-    launch.setAlignmentY(0.0F);
-    launch.addActionListener(new ActionListener() {
+  public MassKeyCommand() {
+    ActionListener al = new ActionListener() {
       public void actionPerformed(ActionEvent e) {
         apply();
       }
-    });
+    };
+    launch = new LaunchButton("CTRL", BUTTON_TEXT, HOTKEY, ICON, al);
+  }
+
+  public void addTo(Buildable parent) {
+    map = (Map) parent;
     map.getToolBar().add(launch);
   }
 
@@ -140,11 +147,11 @@ public class MassKeyCommand extends AbstractConfigurable {
   }
 
   public String[] getAttributeDescriptions() {
-    return new String[]{"Button text", "Key Command", "Pieces affected", "Apply command"};
+    return new String[]{"Description", "Key Command", "Pieces affected", "Apply command", "Button text", "Button Icon", "Hotkey"};
   }
 
   public String[] getAttributeNames() {
-    return new String[]{TEXT, HOTKEY, NAMES, CONDITION};
+    return new String[]{NAME, KEY_COMMAND, NAMES, CONDITION, BUTTON_TEXT, ICON, HOTKEY};
   }
 
   public static class Prompt extends StringEnum {
@@ -154,14 +161,20 @@ public class MassKeyCommand extends AbstractConfigurable {
   }
 
   public Class[] getAttributeTypes() {
-    return new Class[]{String.class, KeyStroke.class, String[].class, Prompt.class};
+    return new Class[]{String.class, KeyStroke.class, String[].class, Prompt.class, String.class, IconConfig.class, KeyStroke.class, };
+  }
+
+  public static class IconConfig implements ConfigurerFactory {
+    public Configurer getConfigurer(AutoConfigurable c, String key, String name) {
+      return new IconConfigurer(key, name, "/images/keyCommand.gif");
+    }
   }
 
   public String getAttributeValueString(String key) {
-    if (TEXT.equals(key)) {
-      return launch.getText();
+    if (NAME.equals(key)) {
+      return getConfigureName();
     }
-    else if (HOTKEY.equals(key)) {
+    else if (KEY_COMMAND.equals(key)) {
       return HotKeyConfigurer.encode(stroke);
     }
     else if (NAMES.equals(key)) {
@@ -171,7 +184,7 @@ public class MassKeyCommand extends AbstractConfigurable {
       return condition;
     }
     else {
-      return null;
+      return launch.getAttributeValueString(key);
     }
   }
 
@@ -180,7 +193,7 @@ public class MassKeyCommand extends AbstractConfigurable {
   }
 
   public HelpFile getHelpFile() {
-    File dir = new File("docs");
+    File dir = VASSAL.build.module.Documentation.getDocumentationBaseDir();
     dir = new File(dir, "ReferenceManual");
     try {
       return new HelpFile(null, new File(dir, "Map.htm"), "#GlobalKeyCommand");
@@ -195,10 +208,15 @@ public class MassKeyCommand extends AbstractConfigurable {
   }
 
   public void setAttribute(String key, Object value) {
-    if (TEXT.equals(key)) {
-      launch.setText((String) value);
+    if (DEPRECATED_NAME.equals(key)) {
+      setAttribute(NAME, value);
+      setAttribute(BUTTON_TEXT,value);
     }
-    else if (HOTKEY.equals(key)) {
+    else if (NAME.equals(key)) {
+      setConfigureName((String) value);
+      launch.setToolTipText((String) value);
+    }
+    else if (KEY_COMMAND.equals(key)) {
       if (value instanceof String) {
         value = HotKeyConfigurer.decode((String) value);
       }
@@ -212,6 +230,9 @@ public class MassKeyCommand extends AbstractConfigurable {
     }
     else if (CONDITION.equals(key)) {
       condition = (String) value;
+    }
+    else {
+      launch.setAttribute(key, value);
     }
   }
 }

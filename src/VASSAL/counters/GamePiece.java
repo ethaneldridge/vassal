@@ -32,28 +32,45 @@ import java.awt.*;
  */
 public interface GamePiece {
 
+  /** Each GamePiece belongs to a single {@link Map} */
   public void setMap(Map map);
 
   public Map getMap();
 
+  /**
+   * Draw this GamePiece
+   * @param g
+   * @param x x-location of the center of the piece
+   * @param y y-location of the center of the piece
+   * @param obs the Component on which this piece is being drawn
+   * @param zoom the scaling factor.
+   */
   public void draw(Graphics g, int x, int y, Component obs, double zoom);
 
+  /**
+   * @return the location of this piece on its owning {@link Map}
+   */
   public Point getPosition();
 
   public void setPosition(Point p);
 
   /**
    * The area which this GamePiece occupies when
-   * drawn at the point given by getPosition().
+   * drawn at the point (0,0)
    */
   public Rectangle boundingBox();
 
   /**
-   * The area which is considered part of this GamePiece
-   * for purposes of selecting it with the mouse
+   * The shape of the piece from the user's viewpoint.  This defines the area
+   * in which the user must click to select or move the piece, for example.
+   * Like {@link #boundingBox}, it assumes the position is (0,0) and must be translated
+   * to the actual location where the piece is being drawn.
    */
-  public Rectangle selectionBounds();
+  public Shape getShape();
 
+  /**
+   * @return the {@link Stack} to which this piece belongs, or null if it doesn't belong to a stack.
+   */
   public Stack getParent();
 
   public void setParent(Stack s);
@@ -96,12 +113,10 @@ public interface GamePiece {
   public void setState(String newState);
 
   /**
-   * The GamePiece should store properties for retrieval (e.g in a Hashtable)
-   * It is not necessary that properties stored with this method be
-   * retained in the piece's {@link #getState} method.  */
+   * Other properties, possibly game-specific, can be associated with a piece.
+   * The properties may or may not need to be encoded
+   * in the piece's {@link #getState} method.  */
   public void setProperty(Object key, Object val);
 
   public Object getProperty(Object key);
-
-
 }

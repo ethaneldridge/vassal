@@ -26,8 +26,10 @@ import VASSAL.command.*;
 import VASSAL.counters.*;
 import VASSAL.tools.SequenceEncoder;
 
+import java.awt.*;
+
 /** A {@link CommandEncoder} that handles the basic commands: {@link
- * AddPiece}, {@link RemovePiece}, {@link ChangePiece}. If a module
+ * AddPiece}, {@link RemovePiece}, {@link ChangePiece}, {@link MovePiece}. If a module
  * defines custom {@link GamePiece} classes, then this class may be
  * overriden and imported into the module. Subclasses should override the
  * {@link #createDecorator} method or, less often, the {@link
@@ -67,6 +69,9 @@ public class BasicCommandEncoder implements CommandEncoder, Buildable {
     else if (type.startsWith(FreeRotator.ID)) {
       return new FreeRotator(type, inner);
     }
+    else if (type.startsWith(NonRectangular.ID)) {
+      return new NonRectangular(type, inner);
+    }
     else if (type.startsWith(Marker.ID)) {
       return new Marker(type, inner);
     }
@@ -87,6 +92,9 @@ public class BasicCommandEncoder implements CommandEncoder, Buildable {
     }
     else if (type.startsWith(ReturnToDeck.ID)) {
       return new ReturnToDeck(type, inner);
+    }
+    else if (type.startsWith(SendToLocation.ID)) {
+      return new SendToLocation(type, inner);
     }
     return null;
   }
@@ -146,6 +154,7 @@ public class BasicCommandEncoder implements CommandEncoder, Buildable {
   private static final String ADD = "+" + PARAM_SEPARATOR;
   private static final String REMOVE = "-" + PARAM_SEPARATOR;
   private static final String CHANGE = "D" + PARAM_SEPARATOR;
+  private static final String MOVE = "M" + PARAM_SEPARATOR;
 
   public Command decode(String command) {
     if (command.length() == 0) {
@@ -155,10 +164,7 @@ public class BasicCommandEncoder implements CommandEncoder, Buildable {
     if (command.startsWith(ADD)) {
       command = command.substring(ADD.length());
       st = new SequenceEncoder.Decoder(command, PARAM_SEPARATOR);
-      String id = st.nextToken();
-      if ("null".equals(id)) {
-        id = null;
-      }
+      String id = unwrapNull(st.nextToken());
       String type = st.nextToken();
       String state = st.nextToken();
       GamePiece p = createPiece(type);
@@ -188,9 +194,31 @@ public class BasicCommandEncoder implements CommandEncoder, Buildable {
       String oldState = st.hasMoreTokens() ? st.nextToken() : null;
       return new ChangePiece(id,oldState,newState);
     }
+    else if (command.startsWith(MOVE)) {
+      command = command.substring(MOVE.length());
+      st = new SequenceEncoder.Decoder(command, PARAM_SEPARATOR);
+      String id = unwrapNull(st.nextToken());
+      String newMapId = unwrapNull(st.nextToken());
+      int newX = Integer.parseInt(st.nextToken());
+      int newY = Integer.parseInt(st.nextToken());
+      String newUnderId = unwrapNull(st.nextToken());
+      String oldMapId = unwrapNull(st.nextToken());
+      int oldX = Integer.parseInt(st.nextToken());
+      int oldY = Integer.parseInt(st.nextToken());
+      String oldUnderId = unwrapNull(st.nextToken());
+      return new MovePiece(id,newMapId, new Point(newX,newY),newUnderId,oldMapId,new Point(oldX,oldY),oldUnderId);
+    }
     else {
       return null;
     }
+  }
+
+  private String wrapNull(String s) {
+    return s == null ? "null" : s;
+  }
+
+  private String unwrapNull(String s) {
+    return "null".equals(s) ? null : s;
   }
 
   public String encode(Command c) {
@@ -198,7 +226,7 @@ public class BasicCommandEncoder implements CommandEncoder, Buildable {
     if (c instanceof AddPiece) {
       AddPiece a = (AddPiece) c;
       return ADD
-        + se.append(a.getTarget().getId() == null ? "null" : a.getTarget().getId())
+        + se.append(wrapNull(a.getTarget().getId()))
         .append(a.getTarget().getType())
         .append(a.getState()).getValue();
     }
@@ -212,6 +240,19 @@ public class BasicCommandEncoder implements CommandEncoder, Buildable {
         se.append(cp.getOldState());
       }
       return CHANGE + se.getValue();
+    }
+    else if (c instanceof MovePiece) {
+      MovePiece mp = (MovePiece) c;
+      se.append(mp.getId())
+          .append(wrapNull(mp.getNewMapId()))
+          .append(mp.getNewPosition().x+"")
+          .append(mp.getNewPosition().y+"")
+          .append(wrapNull(mp.getNewUnderneathId()))
+          .append(wrapNull(mp.getOldMapId()))
+          .append(mp.getOldPosition().x+"")
+          .append(mp.getOldPosition().y+"")
+          .append(wrapNull(mp.getOldUnderneathId()));
+      return MOVE+se.getValue();
     }
     else if (c instanceof NullCommand) {
       return "";

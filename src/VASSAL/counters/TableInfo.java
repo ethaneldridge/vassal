@@ -68,28 +68,28 @@ public class TableInfo extends Decorator implements EditablePiece {
   public void mySetType(String s) {
     s = s.substring(ID.length());
     SequenceEncoder.Decoder st = new SequenceEncoder.Decoder(s, ';');
-    nRows = Integer.parseInt(st.nextToken());
-    nCols = Integer.parseInt(st.nextToken());
+    nRows = st.nextInt(2);
+    nCols = st.nextInt(2);
     command = st.nextToken();
-    launchKey = st.nextToken().charAt(0);
+    launchKey = st.nextChar('\0');
     frame = null;
     table = null;
   }
 
   public void draw(java.awt.Graphics g, int x, int y, java.awt.Component obs, double zoom) {
-    getInner().draw(g, x, y, obs, zoom);
+    piece.draw(g, x, y, obs, zoom);
   }
 
   public String getName() {
-    return getInner().getName();
+    return piece.getName();
   }
 
   public java.awt.Rectangle boundingBox() {
-    return getInner().boundingBox();
+    return piece.boundingBox();
   }
 
-  public java.awt.Rectangle selectionBounds() {
-    return getInner().selectionBounds();
+  public Shape getShape() {
+    return piece.getShape();
   }
 
   public String myGetState() {
@@ -189,7 +189,7 @@ public class TableInfo extends Decorator implements EditablePiece {
   }
 
   public VASSAL.build.module.documentation.HelpFile getHelpFile() {
-    File dir = new File("docs");
+    File dir = VASSAL.build.module.Documentation.getDocumentationBaseDir();
     dir = new File(dir,"ReferenceManual");
     try {
       return new HelpFile(null,new File(dir,"Spreadsheet.htm"));

@@ -29,7 +29,7 @@ public class DirectoryConfigurer extends FileConfigurer {
 
   public DirectoryConfigurer(String key, String name) {
     super(key, name);
-    setValue(new File(System.getProperty("user.dir")));
+    setValue(new File(System.getProperty("user.home")));
   }
 
   public void setValue(Object o) {

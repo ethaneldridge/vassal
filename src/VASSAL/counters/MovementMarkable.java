@@ -30,8 +30,8 @@ import VASSAL.build.GameModule;
 import VASSAL.build.module.GlobalOptions;
 import VASSAL.build.module.Map;
 import VASSAL.build.module.documentation.HelpFile;
+import VASSAL.command.ChangeTracker;
 import VASSAL.command.Command;
-import VASSAL.command.TrackPiece;
 import VASSAL.configure.Configurer;
 import VASSAL.configure.ImageConfigurer;
 import VASSAL.configure.IntConfigurer;
@@ -78,8 +78,8 @@ public class MovementMarkable extends Decorator implements EditablePiece {
     SequenceEncoder.Decoder st = new SequenceEncoder.Decoder(type, ';');
     st.nextToken();
     markImage = st.nextToken();
-    xOffset = Integer.parseInt(st.nextToken());
-    yOffset = Integer.parseInt(st.nextToken());
+    xOffset = st.nextInt(0);
+    yOffset = st.nextInt(0);
   }
 
   public void mySetState(String newState) {
@@ -102,45 +102,45 @@ public class MovementMarkable extends Decorator implements EditablePiece {
 
   public Command myKeyEvent(javax.swing.KeyStroke stroke) {
     if (stroke.equals(markStroke)) {
-      TrackPiece c = new TrackPiece(this);
+      ChangeTracker c = new ChangeTracker(this);
       hasMoved = !hasMoved;
-      c.finalize();
-      return c;
+      return c.getChangeCommand();
     }
     else {
       return null;
     }
   }
 
-  public Rectangle selectionBounds() {
-    return getInner().selectionBounds();
+  public Shape getShape() {
+    return piece.getShape();
   }
 
   public Rectangle boundingBox() {
-    Rectangle r = getInner().boundingBox();
-    Rectangle r2 = getInner().selectionBounds();
+    Rectangle r = piece.boundingBox();
+    Rectangle r2 = piece.getShape().getBounds();
     if (imageSize != null) {
-      Rectangle r3 = new Rectangle(getPosition().x + xOffset, getPosition().y + yOffset, imageSize.width, imageSize.height);
+      Rectangle r3 = new Rectangle(xOffset, yOffset, imageSize.width, imageSize.height);
       r2 = r2.union(r3);
     }
     return r.union(r2);
   }
 
   public String getName() {
-    return getInner().getName();
+    return piece.getName();
   }
 
   public void draw(Graphics g, int x, int y, Component obs, double zoom) {
-    getInner().draw(g, x, y, obs, zoom);
+    piece.draw(g, x, y, obs, zoom);
     if (hasMoved) {
       try {
         Image im =
           GameModule.getGameModule().getDataArchive().getCachedImage(markImage);
+        if (zoom != 1.0) {
+          im = GameModule.getGameModule().getDataArchive().getScaledImage(im,zoom);
+        }
         g.drawImage(im,
                     x + (int) Math.round(zoom * xOffset),
                     y + (int) Math.round(zoom * yOffset),
-                    (int) Math.round(zoom * im.getWidth(obs)),
-                    (int) Math.round(zoom * im.getHeight(obs)),
                     obs);
         if (imageSize == null) {
           JLabel l = new JLabel();
@@ -159,7 +159,7 @@ public class MovementMarkable extends Decorator implements EditablePiece {
   }
 
   public VASSAL.build.module.documentation.HelpFile getHelpFile() {
-    File dir = new File("docs");
+    File dir = VASSAL.build.module.Documentation.getDocumentationBaseDir();
     dir = new File(dir,"ReferenceManual");
     try {
       return new HelpFile(null,new File(dir,"MarkMoved.htm"));

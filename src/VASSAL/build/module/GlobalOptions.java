@@ -33,6 +33,7 @@ import VASSAL.build.IllegalBuildException;
 import VASSAL.build.module.documentation.HelpFile;
 import VASSAL.configure.BooleanConfigurer;
 import VASSAL.configure.StringEnum;
+import VASSAL.Info;
 
 import java.io.File;
 import java.net.MalformedURLException;
@@ -47,6 +48,8 @@ public class GlobalOptions extends AbstractConfigurable {
   public static final String ALWAYS = "Always";
   public static final String NEVER = "Never";
   public static final String PROMPT = "Use Preferences Setting";
+  public static final String SINGLE_WINDOW = "singleWindow";
+  public static final String SCALER_ALGORITHM = "scalerAlgorithm";
 
   private String promptString = "Opponents can unmask my pieces";
   private String nonOwnerUnmaskable = NEVER;
@@ -54,12 +57,22 @@ public class GlobalOptions extends AbstractConfigurable {
   private String autoReport = NEVER;
   private String markMoved = NEVER;
   private static GlobalOptions instance;
+  private boolean useSingleWindow;
+	private boolean scalerAlgorithm;
 
   public void addTo(Buildable parent) {
     if (GameModule.getGameModule().getComponents(GlobalOptions.class).hasMoreElements()) {
       throw new IllegalBuildException("Only one Global Options allowed");
     }
     instance = this;
+
+    BooleanConfigurer config = new BooleanConfigurer(SINGLE_WINDOW, "Use combined application window (requires restart)",Boolean.TRUE);
+    GameModule.getGameModule().getPrefs().addOption(config);
+    useSingleWindow = !Boolean.FALSE.equals(config.getValue());
+
+		config = new BooleanConfigurer(SCALER_ALGORITHM, "Smooth image scaling",Boolean.TRUE);
+		GameModule.getGameModule().getPrefs().addOption(config);
+		scalerAlgorithm = !Boolean.FALSE.equals(config.getValue());
   }
 
   public static GlobalOptions getInstance() {
@@ -67,6 +80,14 @@ public class GlobalOptions extends AbstractConfigurable {
       instance = new GlobalOptions();
     }
     return instance;
+  }
+
+  public boolean isUseSingleWindow() {
+    return useSingleWindow && Info.is2dEnabled();
+  }
+
+  public boolean isAveragedScaling() {
+		return scalerAlgorithm;
   }
 
   public static String getConfigureTypeName() {
@@ -91,7 +112,7 @@ public class GlobalOptions extends AbstractConfigurable {
   }
 
   public String[] getAttributeNames() {
-    return new String[]{NON_OWNER_UNMASKABLE, PROMPT_STRING, CENTER_ON_MOVE, AUTO_REPORT};
+    return new String[]{NON_OWNER_UNMASKABLE, PROMPT_STRING, CENTER_ON_MOVE, AUTO_REPORT };
   }
 
   public Class[] getAttributeTypes() {
@@ -120,7 +141,7 @@ public class GlobalOptions extends AbstractConfigurable {
   }
 
   public HelpFile getHelpFile() {
-    File dir = new File("docs");
+    File dir = VASSAL.build.module.Documentation.getDocumentationBaseDir();
     dir = new File(dir, "ReferenceManual");
     try {
       return new HelpFile(null, new File(dir, "GameModule.htm"), "#GlobalOptions");

@@ -13,7 +13,7 @@
  * Library General Public License for more details.
  *
  * You should have received a copy of the GNU Library General Public
- * License along with this library; if not, copies are available 
+ * License along with this library; if not, copies are available
  * at http://www.opensource.org.
  */
 package VASSAL.preferences;
@@ -22,17 +22,15 @@ import VASSAL.build.GameModule;
 import VASSAL.configure.Configurer;
 import VASSAL.tools.ArchiveWriter;
 
-import java.io.BufferedReader;
-import java.io.InputStreamReader;
+import java.io.ByteArrayOutputStream;
 import java.util.Enumeration;
 import java.util.Hashtable;
 import java.util.Properties;
-import java.util.StringTokenizer;
 
 public class Prefs {
   private ArchiveWriter archive;
   private Hashtable options = new Hashtable();
-  private Properties initialValues = new Properties();
+  private Properties storedValues = new Properties();
   private PrefsEditor editor;
   private String filename;
   private Prefs child;
@@ -46,12 +44,12 @@ public class Prefs {
     parent.child = this;
     archive = parent.archive;
     editor = parent.editor;
-    read(fileName);
+    init(fileName);
   }
 
   public void addTo(GameModule theModule) {
     theModule.setPrefs(this);
-    read(theModule.getGameName());
+    init(theModule.getGameName());
   }
 
   public PrefsEditor getEditor() {
@@ -77,15 +75,12 @@ public class Prefs {
    */
   public void addOption(String category, Configurer o, String prompt) {
     if (o != null
-      && options.get(o.getKey()) == null) {
+        && options.get(o.getKey()) == null) {
       options.put(o.getKey(), o);
-      for (Enumeration e = initialValues.keys(); e.hasMoreElements();) {
-        String key = (String) e.nextElement();
-        if (key.equals(o.getKey())) {
-          o.setValue(initialValues.getProperty(key));
-          prompt = null;
-          break;
-        }
+      String val = storedValues.getProperty(o.getKey());
+      if (val != null) {
+        o.setValue(val);
+        prompt = null;
       }
       if (category != null && o.getControls() != null) {
         editor.addOption(category, o, prompt);
@@ -108,44 +103,25 @@ public class Prefs {
    * @return the value for the option that was read from the Preferences file at startup
    */
   public String getStoredValue(String key) {
-    return (String) initialValues.get(key);
+    return storedValues.getProperty(key);
   }
 
-  private void read(String moduleName) {
+  public void init(String moduleName) {
     filename = moduleName;
     try {
       archive.getFileStream(filename);
-    }
-    catch (java.io.IOException e) {
-      return;
-    }
-    try {
-      BufferedReader file =
-        new BufferedReader(new InputStreamReader(archive.getFileStream(filename)));
-      String line;
-      initialValues.clear();
-      while ((line = file.readLine()) != null) {
-        // Check to make sure this option exists
-        StringTokenizer st = new StringTokenizer(line, "\t");
-        String key = st.nextToken();
-        String value = st.nextToken("").substring(1);
-        Enumeration e;
-        for (e = options.elements(); e.hasMoreElements();) {
-          Configurer c = (Configurer) e.nextElement();
-          if (key.equals(c.getKey())) {
-            c.setValue(value);
-            break;
-          }
-        }
-        if (!e.hasMoreElements()) {
-          // Save the initial value in case the Option gets created later
-          initialValues.put(key, value);
+      storedValues.clear();
+      storedValues.load(archive.getFileStream(filename));
+      for (Enumeration e = storedValues.keys(); e.hasMoreElements();) {
+        String key = (String) e.nextElement();
+        String value = storedValues.getProperty(key);
+        Configurer c = (Configurer) options.get(key);
+        if (c != null) {
+          c.setValue(value);
         }
       }
-      file.close();
     }
-    catch (Exception e) {
-      e.printStackTrace();
+    catch (java.io.IOException e) {
     }
   }
 
@@ -153,23 +129,24 @@ public class Prefs {
     if (child != null) {
       child.write();
     }
-    String line = "";
     for (Enumeration e = options.elements(); e.hasMoreElements();) {
       Configurer c = (Configurer) e.nextElement();
-      line = line.concat(c.getKey() + '\t' + c.getValueString() + '\n');
+      storedValues.put(c.getKey(), c.getValueString());
     }
-    archive.addFile(filename,
-                    new java.io.ByteArrayInputStream(line.getBytes()));
     try {
+      ByteArrayOutputStream out = new ByteArrayOutputStream();
+      storedValues.store(out, null);
+      archive.addFile(filename,
+                      new java.io.ByteArrayInputStream(out.toByteArray()));
       archive.write();
     }
     catch (Exception e) {
       e.printStackTrace();
       javax.swing.JOptionPane.showMessageDialog
-        (null,
-         e.getMessage(),
-         "Error writing preferences",
-         javax.swing.JOptionPane.ERROR_MESSAGE);
+          (null,
+           e.getMessage(),
+           "Error writing preferences",
+           javax.swing.JOptionPane.ERROR_MESSAGE);
     }
   }
 

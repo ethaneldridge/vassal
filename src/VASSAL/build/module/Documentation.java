@@ -13,7 +13,7 @@
  * Library General Public License for more details.
  *
  * You should have received a copy of the GNU Library General Public
- * License along with this library; if not, copies are available 
+ * License along with this library; if not, copies are available
  * at http://www.opensource.org.
  */
 package VASSAL.build.module;
@@ -25,6 +25,7 @@ import VASSAL.build.IllegalBuildException;
 import VASSAL.build.module.documentation.AboutScreen;
 import VASSAL.build.module.documentation.HelpFile;
 import VASSAL.configure.Configurer;
+import VASSAL.configure.DirectoryConfigurer;
 import org.w3c.dom.Element;
 
 import java.io.File;
@@ -34,6 +35,9 @@ import java.net.MalformedURLException;
  * Represents the <code>Help</code> menu of the controls window
  */
 public class Documentation extends AbstractConfigurable {
+  /** Preferences key for the directory where VASSAL documentation is stored */
+  public static final String DOCS_DIR="docsDirectory";
+
   private javax.swing.JMenu controls;
 
   public Documentation() {
@@ -76,10 +80,15 @@ public class Documentation extends AbstractConfigurable {
     }
   }
 
+  public static File getDocumentationBaseDir() {
+    return (File)GameModule.getGameModule().getGlobalPrefs().getValue(DOCS_DIR);
+  }
+
   public void addTo(Buildable b) {
     if (GameModule.getGameModule().getComponents(getClass()).hasMoreElements()) {
       throw new IllegalBuildException("Only one Help menu allowed");
     }
+    GameModule.getGameModule().getGlobalPrefs().addOption(null,new DirectoryConfigurer(DOCS_DIR,null));
     GameModule.getGameModule().getFrame().getJMenuBar().add(controls);
   }
 
@@ -112,7 +121,7 @@ public class Documentation extends AbstractConfigurable {
   }
 
   public HelpFile getHelpFile() {
-    File dir = new File("docs");
+    File dir = VASSAL.build.module.Documentation.getDocumentationBaseDir();
     dir = new File(dir, "ReferenceManual");
     try {
       return new HelpFile(null, new File(dir, "HelpMenu.htm"));

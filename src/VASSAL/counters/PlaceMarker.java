@@ -28,8 +28,8 @@ package VASSAL.counters;
 
 import VASSAL.build.GameModule;
 import VASSAL.build.module.documentation.HelpFile;
-import VASSAL.build.widget.PieceSlot;
 import VASSAL.build.widget.CardSlot;
+import VASSAL.build.widget.PieceSlot;
 import VASSAL.command.AddPiece;
 import VASSAL.command.Command;
 import VASSAL.configure.ConfigurerWindow;
@@ -43,8 +43,6 @@ import java.awt.event.ActionListener;
 import java.awt.event.InputEvent;
 import java.io.File;
 import java.net.MalformedURLException;
-
-import VASSAL.configure.ChooseComponentDialog;
 
 /**
  * This Decorator defines a key command to places another counter on top of this one.
@@ -65,15 +63,15 @@ public class PlaceMarker extends Decorator implements EditablePiece {
   }
 
   public Rectangle boundingBox() {
-    return getInner().boundingBox();
+    return piece.boundingBox();
   }
 
   public void draw(Graphics g, int x, int y, Component obs, double zoom) {
-    getInner().draw(g, x, y, obs, zoom);
+    piece.draw(g, x, y, obs, zoom);
   }
 
   public String getName() {
-    return getInner().getName();
+    return piece.getName();
   }
 
   protected KeyCommand[] myGetKeyCommands() {
@@ -110,8 +108,8 @@ public class PlaceMarker extends Decorator implements EditablePiece {
   public void mySetState(String newState) {
   }
 
-  public Rectangle selectionBounds() {
-    return getInner().selectionBounds();
+  public Shape getShape() {
+    return piece.getShape();
   }
 
   public String getDescription() {
@@ -119,7 +117,7 @@ public class PlaceMarker extends Decorator implements EditablePiece {
   }
 
   public HelpFile getHelpFile() {
-    File dir = new File("docs");
+    File dir = VASSAL.build.module.Documentation.getDocumentationBaseDir();
     dir = new File(dir,"ReferenceManual");
     try {
       return new HelpFile(null,new File(dir,"Marker.htm"));
@@ -133,7 +131,7 @@ public class PlaceMarker extends Decorator implements EditablePiece {
     SequenceEncoder.Decoder st = new SequenceEncoder.Decoder(type, ';');
     st.nextToken();
     String name = st.nextToken();
-    key = st.nextToken().charAt(0);
+    key = st.nextChar('\0');
     command = new KeyCommand(name, KeyStroke.getKeyStroke(key, InputEvent.CTRL_MASK), this);
     markerSpec = st.nextToken();
     if ("null".equals(markerSpec)) {

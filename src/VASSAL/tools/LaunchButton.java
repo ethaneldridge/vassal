@@ -13,7 +13,7 @@
  * Library General Public License for more details.
  *
  * You should have received a copy of the GNU Library General Public
- * License along with this library; if not, copies are available 
+ * License along with this library; if not, copies are available
  * at http://www.opensource.org.
  */
 package VASSAL.tools;
@@ -32,15 +32,24 @@ import java.awt.event.*;
 public class LaunchButton extends JButton {
   private String nameAtt;
   private String keyAtt;
+  private String iconAtt;
+  private IconConfigurer iconConfig;
   private String toolTipText;
   private KeyStrokeListener keyListener;
   private Configurer nameConfig, keyConfig;
 
   public LaunchButton(String name, String nameAttribute,
                       String hotkeyAttribute, ActionListener al) {
+                      this(name,nameAttribute,hotkeyAttribute,null,al);
+  }
+
+  public LaunchButton(String name, String nameAttribute,
+                      String hotkeyAttribute, String iconAttribute, ActionListener al) {
     super(name);
     nameAtt = nameAttribute;
     keyAtt = hotkeyAttribute;
+    iconAtt = iconAttribute;
+    iconConfig = new IconConfigurer(iconAtt,null,null);
     setAlignmentY(0.0F);
     keyListener = new KeyStrokeListener(al);
     GameModule.getGameModule().addKeyStrokeListener(keyListener);
@@ -55,12 +64,19 @@ public class LaunchButton extends JButton {
     return keyAtt;
   }
 
+  public String getIconAttribute() {
+    return iconAtt;
+  }
+
   public String getAttributeValueString(String key) {
     if (key.equals(nameAtt)) {
       return getText();
     }
     else if (key.equals(keyAtt)) {
       return HotKeyConfigurer.encode(keyListener.getKeyStroke());
+    }
+    else if (key.equals(iconAtt)) {
+      return iconConfig.getValueString();
     }
     else {
       return null;
@@ -77,6 +93,12 @@ public class LaunchButton extends JButton {
       }
       keyListener.setKeyStroke((KeyStroke) value);
       setToolTipText(toolTipText);
+    }
+    else if (key.equals(iconAtt)) {
+      if (value instanceof String) {
+        iconConfig.setValue((String)value);
+        setIcon(iconConfig.getIconValue());
+      }
     }
   }
 

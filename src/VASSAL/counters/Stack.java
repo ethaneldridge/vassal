@@ -23,8 +23,10 @@ import VASSAL.build.module.Map;
 import VASSAL.build.module.map.StackMetrics;
 import VASSAL.command.Command;
 import VASSAL.tools.SequenceEncoder;
+import VASSAL.Info;
 
 import java.awt.*;
+import java.awt.geom.Area;
 import java.util.Enumeration;
 import java.util.Vector;
 
@@ -79,6 +81,8 @@ public class Stack implements GamePiece {
   }
 
   public Enumeration getPiecesInReverseOrder() {
+    final GamePiece[] clone = new GamePiece[pieceCount];
+    System.arraycopy(contents, 0, clone, 0, pieceCount);
     return new Enumeration() {
       private int index = pieceCount - 1;
 
@@ -87,7 +91,7 @@ public class Stack implements GamePiece {
       }
 
       public Object nextElement() {
-        return contents[index--];
+        return clone[index--];
       }
     };
   }
@@ -166,18 +170,10 @@ public class Stack implements GamePiece {
     pos = Math.min(pos, pieceCount);
     if (indexOf(p) >= 0) {
       if (pos > indexOf(p)) {
-/*
-        pieces.insertElementAt(p, pos + 1);
-        pieces.removeElement(p);
-*/
         insertPieceAt(p, pos + 1);
         removePieceAt(indexOf(p));
       }
       else {
-/*
-        pieces.removeElement(p);
-        pieces.insertElementAt(p, pos);
-*/
         removePieceAt(indexOf(p));
         insertPieceAt(p, pos);
       }
@@ -208,9 +204,6 @@ public class Stack implements GamePiece {
    * @see StackMetrics#draw
    * @see #getDefaultMetrics */
   public void draw(Graphics g, int x, int y, Component obs, double zoom) {
-    if (topPiece() == bottomPiece()) {
-      expanded = false;
-    }
     if (obs instanceof Map.View) {
       ((Map.View) obs).getMap().getStackMetrics().draw(this, g, x, y, obs, zoom);
     }
@@ -237,10 +230,9 @@ public class Stack implements GamePiece {
   }
 
   public Rectangle boundingBox() {
-    Point pt = getPosition();
-    Rectangle r = new Rectangle(pt, new Dimension(0, 0));
+    Rectangle r = new Rectangle();
     Rectangle[] childBounds = new Rectangle[getPieceCount()];
-    getMap().getStackMetrics().getContents(this, null, null, childBounds, pt.x, pt.y);
+    getMap().getStackMetrics().getContents(this, null, null, childBounds, 0, 0);
     for (PieceIterator e = PieceIterator.visible(getPieces());
          e.hasMoreElements();) {
       GamePiece p = e.nextPiece();
@@ -249,17 +241,29 @@ public class Stack implements GamePiece {
     return r;
   }
 
-  public Rectangle selectionBounds() {
-    Point pt = getPosition();
-    Rectangle r = new Rectangle(pt, new Dimension(0, 0));
-    Rectangle[] childBounds = new Rectangle[getPieceCount()];
-    getMap().getStackMetrics().getContents(this, null, childBounds, null, pt.x, pt.y);
-    for (PieceIterator e = PieceIterator.visible(getPieces());
-         e.hasMoreElements();) {
-      GamePiece p = e.nextPiece();
-      r = r.union(childBounds[indexOf(p)]);
+  public Shape getShape() {
+    if (Info.is2dEnabled()) {
+      Area a = new Area();
+      Shape[] childBounds = new Shape[getPieceCount()];
+      getMap().getStackMetrics().getContents(this, null, childBounds, null, 0, 0);
+      for (PieceIterator e = PieceIterator.visible(getPieces());
+           e.hasMoreElements();) {
+        GamePiece p = e.nextPiece();
+        a.add(new Area(childBounds[indexOf(p)]));
+      }
+      return a;
     }
-    return r;
+    else {
+      Rectangle r = new Rectangle();
+      Shape[] childBounds = new Shape[getPieceCount()];
+      getMap().getStackMetrics().getContents(this, null, childBounds, null, 0, 0);
+      for (PieceIterator e = PieceIterator.visible(getPieces());
+           e.hasMoreElements();) {
+        GamePiece p = e.nextPiece();
+        r = r.union(childBounds[indexOf(p)].getBounds());
+      }
+      return r;
+    }
   }
 
   public void selectNext(GamePiece c) {
@@ -315,7 +319,7 @@ public class Stack implements GamePiece {
   }
 
   public void setExpanded(boolean b) {
-    expanded = b;
+    expanded = b && topPiece() != bottomPiece();
   }
 
   public String getState() {
@@ -334,8 +338,7 @@ public class Stack implements GamePiece {
     tracker.addPiece(this);
     SequenceEncoder.Decoder st = new SequenceEncoder.Decoder(s, ';');
     String mapId = st.nextToken();
-    setPosition(new Point(Integer.parseInt(st.nextToken()),
-                          Integer.parseInt(st.nextToken())));
+    setPosition(new Point(st.nextInt(0),st.nextInt(0)));
     pieceCount = 0;
     while (st.hasMoreTokens()) {
       String id = st.nextToken();
@@ -343,14 +346,7 @@ public class Stack implements GamePiece {
     }
     Map m = null;
     if (!"null".equals(mapId)) {
-      for (Enumeration e = GameModule.getGameModule().getComponents(Map.class);
-           e.hasMoreElements();) {
-        Map next = (Map) e.nextElement();
-        if (mapId.equals(next.getId())) {
-          m = next;
-          break;
-        }
-      }
+      m = Map.getMapById(mapId);
       if (m == null) {
         throw new RuntimeException("Could not find map " + mapId);
       }
@@ -397,7 +393,7 @@ public class Stack implements GamePiece {
         String id = getPieceAt(i).getId();
         if (!newContents.contains(id)
           && !oldContents.contains(id)) {
-          int index = i == 0 ? -1 : newContents.indexOf(getPieceAt(-1).getId());
+          int index = i == 0 ? -1 : newContents.indexOf(getPieceAt(i-1).getId());
           newContents.insertElementAt(id, index + 1);
         }
       }

@@ -58,7 +58,7 @@ public class PlayerHand extends PrivateMap {
   }
 
   public HelpFile getHelpFile() {
-    File dir = new File("docs");
+    File dir = VASSAL.build.module.Documentation.getDocumentationBaseDir();
     dir = new File(dir, "ReferenceManual");
     try {
       return new HelpFile(null, new File(dir, "PlayerHand.htm"));
@@ -79,7 +79,7 @@ public class PlayerHand extends PrivateMap {
   }
 
   public Dimension mapSize() {
-    if (stack.length > 0 && stack[0] != null) {
+    if (nstacks > 0 && stack[0] != null) {
       return boundingBoxOf(stack[0]).getSize();
     }
     else {
@@ -90,8 +90,9 @@ public class PlayerHand extends PrivateMap {
   public Command placeAt(GamePiece piece, Point pt) {
     Command c = null;
     if (nstacks == 0) {
-      pt = new Point(-piece.boundingBox().x + piece.getPosition().x,
-                     -piece.boundingBox().y + piece.getPosition().y);
+      Rectangle r = piece.getShape().getBounds();
+      pt = new Point(-r.x,
+                     -r.y);
       c = super.placeAt(piece, pt);
     }
     else if (stack[0] instanceof Stack) {
@@ -106,12 +107,5 @@ public class PlayerHand extends PrivateMap {
     }
     getView().revalidate();
     return c;
-  }
-
-  public void addPiece(GamePiece p) {
-    super.addPiece(p);
-    if (p instanceof Stack) {
-      ((Stack) p).setExpanded(true);
-    }
   }
 }

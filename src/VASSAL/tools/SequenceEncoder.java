@@ -18,6 +18,8 @@
  */
 package VASSAL.tools;
 
+import java.util.NoSuchElementException;
+
 /**
  * Encodes a sequence of Strings into a single String with a given delimiter.
  * Escapes the delimiter character if it occurs in the element strings.
@@ -104,7 +106,7 @@ public class SequenceEncoder {
 
     public String nextToken() {
       if (!hasMoreTokens()) {
-        throw new java.util.NoSuchElementException();
+        throw new NoSuchElementException();
       }
       String value = val;
       int i = val.indexOf(delimit);
@@ -140,6 +142,38 @@ public class SequenceEncoder {
         value = value.substring(1, value.length() - 1);
       }
       return value;
+    }
+
+    /**
+     * Parse the next token into an integer
+     * @param defaultValue Return this value if no more tokens, or next token doesn't parse to an integer
+     * @return
+     */
+    public int nextInt(int defaultValue) {
+      try {
+        return Integer.parseInt(nextToken());
+      }
+      catch (NumberFormatException e) {
+        return defaultValue;
+      }
+      catch (NoSuchElementException e) {
+        return defaultValue;
+      }
+    }
+
+    /**
+     * Return the first character of the next token
+     * @param defaultValue Return this value if no more tokens, or if next token has zero length
+     * @return
+     */
+    public char nextChar(char defaultValue) {
+      try {
+        String s = nextToken();
+        return s.length() > 0 ? s.charAt(0) : defaultValue;
+      }
+      catch (NoSuchElementException e) {
+        return defaultValue;
+      }
     }
   }
 

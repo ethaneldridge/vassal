@@ -13,14 +13,15 @@
  * Library General Public License for more details.
  *
  * You should have received a copy of the GNU Library General Public
- * License along with this library; if not, copies are available 
+ * License along with this library; if not, copies are available
  * at http://www.opensource.org.
  */
 package VASSAL.counters;
 
+import VASSAL.build.GameModule;
 import VASSAL.build.module.documentation.HelpFile;
+import VASSAL.command.ChangeTracker;
 import VASSAL.command.Command;
-import VASSAL.command.TrackPiece;
 import VASSAL.configure.ColorConfigurer;
 import VASSAL.configure.IntConfigurer;
 import VASSAL.configure.StringConfigurer;
@@ -63,7 +64,7 @@ public class Labeler extends Decorator implements EditablePiece {
   private int horizontalOffset = 0;
 
   public Labeler() {
-    this(ID + " ", null);
+    this(ID, null);
   }
 
   public Labeler(String s, GamePiece d) {
@@ -76,8 +77,7 @@ public class Labeler extends Decorator implements EditablePiece {
     commands = null;
     SequenceEncoder.Decoder st = new SequenceEncoder.Decoder(type, ';');
     st.nextToken();
-    String lkey = st.nextToken().toUpperCase().trim();
-    labelKey = lkey.length() > 0 ? lkey.charAt(0) : (char) 0;
+    labelKey = st.nextChar('\0');
     if (st.hasMoreTokens()) {
       menuCommand = st.nextToken();
       font = new Font("Dialog", Font.PLAIN, Integer.parseInt(st.nextToken()));
@@ -89,12 +89,12 @@ public class Labeler extends Decorator implements EditablePiece {
       if (c != null) {
         textFg = c;
       }
-      verticalPos = st.nextToken().charAt(0);
-      verticalOffset = Integer.parseInt(st.nextToken());
-      horizontalPos = st.nextToken().charAt(0);
-      horizontalOffset = Integer.parseInt(st.nextToken());
-      verticalJust = st.nextToken().charAt(0);
-      horizontalJust = st.nextToken().charAt(0);
+      verticalPos = st.nextChar('t');
+      verticalOffset = st.nextInt(0);
+      horizontalPos = st.nextChar('c');
+      horizontalOffset = st.nextInt(0);
+      verticalJust = st.nextChar('b');
+      horizontalJust = st.nextChar('c');
     }
     lbl.setForeground(textFg);
     lbl.setFont(font);
@@ -130,10 +130,10 @@ public class Labeler extends Decorator implements EditablePiece {
 
   public String getName() {
     if (label.length() == 0) {
-      return getInner().getName();
+      return piece.getName();
     }
     else {
-      return getInner().getName() + " (" + label + ")";
+      return piece.getName() + " (" + label + ")";
     }
   }
 
@@ -179,40 +179,44 @@ public class Labeler extends Decorator implements EditablePiece {
     if (labelImage == null && label != null && label.length() > 0) {
       labelImage = createImage(obs);
     }
-    getInner().draw(g, x, y, obs, zoom);
+    piece.draw(g, x, y, obs, zoom);
 
     if (labelImage != null) {
       Point p = getLabelPosition();
       x += (int) (zoom * p.x);
       y += (int) (zoom * p.y);
-
-      g.drawImage(labelImage, x, y,
-                  (int) (zoom * lbl.getWidth()),
-                  (int) (zoom * lbl.getHeight()),
-                  obs);
+      if (zoom != 1.0) {
+        Image scaled = labelImage;
+        scaled = GameModule.getGameModule().getDataArchive().getScaledImage(labelImage, zoom);
+        g.drawImage(scaled, x, y, obs);
+      }
+      else {
+        g.drawImage(labelImage, x, y, obs);
+      }
     }
   }
 
-  /** return the relative position of the upper-left corner     * of the label, for a piece with position (0,0)     */
+  /**
+   * Return the relative position of the upper-left corner of the label, for a piece at position (0,0)
+   */
   private Point getLabelPosition() {
     int x = horizontalOffset;
     int y = verticalOffset;
 
-    Rectangle selBnds = getInner().selectionBounds();
-    Point innerPos = getInner().getPosition();
+    Rectangle selBnds = piece.getShape().getBounds();
     switch (verticalPos) {
       case 't':
-        y += selBnds.y - innerPos.y;
+        y += selBnds.y;
         break;
       case 'b':
-        y += selBnds.y - innerPos.y + selBnds.height;
+        y += selBnds.y + selBnds.height;
     }
     switch (horizontalPos) {
       case 'l':
-        x += selBnds.x - innerPos.x;
+        x += selBnds.x;
         break;
       case 'r':
-        x += selBnds.x - innerPos.x + selBnds.width;
+        x += selBnds.x + selBnds.width;
     }
     switch (verticalJust) {
       case 'b':
@@ -268,17 +272,15 @@ public class Labeler extends Decorator implements EditablePiece {
   }
 
   public Rectangle boundingBox() {
-    Rectangle r = getInner().boundingBox();
-    Rectangle r2 = getInner().selectionBounds();
-    Point p = getPosition();
+    Rectangle r = piece.boundingBox();
+    Rectangle r2 = piece.getShape().getBounds();
     Point p2 = getLabelPosition();
-    p2.translate(p.x, p.y);
     Rectangle r3 = new Rectangle(p2, lbl.getSize());
     return r.union(r2).union(r3);
   }
 
-  public Rectangle selectionBounds() {
-    return getInner().selectionBounds();
+  public Shape getShape() {
+    return piece.getShape();
   }
 
   public KeyCommand[] myGetKeyCommands() {
@@ -300,22 +302,22 @@ public class Labeler extends Decorator implements EditablePiece {
     myGetKeyCommands();
     Command c = null;
     if (commands.length > 0
-      && commands[0].matches(stroke)) {
-      c = new TrackPiece(this);
+        && commands[0].matches(stroke)) {
+      ChangeTracker tracker = new ChangeTracker(this);
       String s = (String) JOptionPane.showInputDialog
-        (getMap() == null ? null : getMap().getView(),
-         commands[0].getName(),
-         null,
-         JOptionPane.QUESTION_MESSAGE,
-         null,
-         null,
-         label);
+          (getMap() == null ? null : getMap().getView(),
+           commands[0].getName(),
+           null,
+           JOptionPane.QUESTION_MESSAGE,
+           null,
+           null,
+           label);
       if (s == null) {
-        c = null;
+        tracker = null;
       }
       else {
         setLabel(s);
-        ((TrackPiece) c).finalize();
+        c = tracker.getChangeCommand();
       }
     }
     return c;
@@ -326,10 +328,10 @@ public class Labeler extends Decorator implements EditablePiece {
   }
 
   public HelpFile getHelpFile() {
-    File dir = new File("docs");
-    dir = new File(dir,"ReferenceManual");
+    File dir = VASSAL.build.module.Documentation.getDocumentationBaseDir();
+    dir = new File(dir, "ReferenceManual");
     try {
-      return new HelpFile(null,new File(dir,"Label.htm"));
+      return new HelpFile(null, new File(dir, "Label.htm"));
     }
     catch (MalformedURLException ex) {
       return null;
@@ -432,7 +434,7 @@ public class Labeler extends Decorator implements EditablePiece {
 
       Integer i = (Integer) font.getValue();
       if (i == null
-        || i.intValue() < 0) {
+          || i.intValue() < 0) {
         i = new Integer(10);
       }
       se.append(i.toString());

@@ -42,6 +42,7 @@ public class SoundConfigurer extends Configurer {
   private JPanel controls;
   private JTextField textField;
   private Method clipFactory;
+  private final String NO_VALUE = "<disabled>";
 
   public SoundConfigurer(String key, String name, String defaultResource) {
     super(key, name);
@@ -98,7 +99,7 @@ public class SoundConfigurer extends Configurer {
   }
 
   public String getValueString() {
-    String s = null;
+    String s = NO_VALUE;
     if (clipName != null) {
       s = clipName;
     }
@@ -117,6 +118,9 @@ public class SoundConfigurer extends Configurer {
         textField.setText(defaultResource);
       }
     }
+    else if (NO_VALUE.equals(s)) {
+      clipName = s;
+    }
     else if (s != null) {
       try {
         url = HelpFile.toURL(new File(s));
@@ -126,9 +130,9 @@ public class SoundConfigurer extends Configurer {
         e.printStackTrace();
         clipName = null;
       }
-      if (textField != null) {
-        textField.setText(clipName);
-      }
+    }
+    if (textField != null) {
+      textField.setText(clipName);
     }
     if (url != null) {
       try {
@@ -158,7 +162,7 @@ public class SoundConfigurer extends Configurer {
     fc.showOpenDialog(GameModule.getGameModule().getFrame());
     File f = fc.getSelectedFile();
     if (f == null) {
-      setValue((String) null);
+      setValue(NO_VALUE);
     }
     else {
       setValue(f.getName());

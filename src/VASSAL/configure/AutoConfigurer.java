@@ -13,7 +13,7 @@
  * Library General Public License for more details.
  *
  * You should have received a copy of the GNU Library General Public
- * License along with this library; if not, copies are available 
+ * License along with this library; if not, copies are available
  * at http://www.opensource.org.
  */
 package VASSAL.configure;
@@ -104,6 +104,18 @@ public class AutoConfigurer extends Configurer
         catch (Exception e) {
           e.printStackTrace();
           config = new StringConfigurer(name[i], prompt[i]);
+        }
+      }
+      else if (ConfigurerFactory.class.isAssignableFrom(type[i])) {
+        try {
+          ConfigurerFactory f = (ConfigurerFactory) type[i].newInstance();
+          config = f.getConfigurer(target, name[i],prompt[i]);
+        }
+        catch (InstantiationException e) {
+          throw new IllegalArgumentException("Invalid class " + type[i].getName());
+        }
+        catch (IllegalAccessException e) {
+          throw new IllegalArgumentException("Invalid class " + type[i].getName());
         }
       }
       else {

@@ -63,7 +63,7 @@ public class MassPieceDefiner extends PieceDefiner {
     Vector types = new Vector();
     while (p instanceof Decorator) {
       types.addElement(p.getClass());
-      p = ((Decorator) p).getInner();
+      p = ((Decorator) p).piece;
     }
     types.addElement(p.getClass());
     return types;
@@ -76,7 +76,7 @@ public class MassPieceDefiner extends PieceDefiner {
       if (p.getClass() != e.nextElement()) {
         return false;
       }
-      p = ((Decorator) p).getInner();
+      p = ((Decorator) p).piece;
     }
     return e.hasMoreElements() ?
       p.getClass() == e.nextElement() && !e.hasMoreElements()

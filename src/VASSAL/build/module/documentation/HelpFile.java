@@ -122,8 +122,12 @@ public class HelpFile extends AbstractConfigurable {
           contents = getClass().getResource(fileName);
         }
         else if (LOCAL_FILE.equals(fileType)) {
+          File f = new File(fileName);
+          if (fileName.startsWith("docs/")) {
+            f = new File(Documentation.getDocumentationBaseDir(),fileName.substring("docs/".length()));
+          }
           try {
-            contents = toURL(new File(fileName));
+            contents = toURL(f);
           }
           catch (MalformedURLException e) {
             e.printStackTrace();
