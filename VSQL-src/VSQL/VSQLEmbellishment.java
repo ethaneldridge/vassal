@@ -18,8 +18,35 @@
  */
 package VSQL;
 
+import javax.swing.KeyStroke;
+
+import VASSAL.command.Command;
 import VASSAL.counters.Embellishment;
+import VASSAL.counters.GamePiece;
 
 public class VSQLEmbellishment extends Embellishment {
   
+  protected static final String CA_PREFIX = "+ CA = ";
+  
+  public VSQLEmbellishment() {
+    super();
+  }
+  
+  public VSQLEmbellishment(String type, GamePiece d) {
+    super(type, d);
+  }
+  
+  public Command myKeyEvent(KeyStroke stroke) {
+    
+    int oldValue = value;
+    
+    Command c = super.myKeyEvent(stroke);
+    
+    String name = commonName[Math.abs(value)-1];
+    if (value != oldValue && name.startsWith(CA_PREFIX)) {
+      String ca = name.substring(CA_PREFIX.length());
+      setProperty(VSQLFootprint.VEHICLE_CA_PROPERTY, ca);
+    }
+    return c;
+  }
 }

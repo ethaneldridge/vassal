@@ -21,6 +21,7 @@ package VSQL;
 import VASL.build.module.ASLCommandEncoder;
 import VASSAL.build.Buildable;
 import VASSAL.counters.Decorator;
+import VASSAL.counters.Embellishment;
 import VASSAL.counters.GamePiece;
 
 /**
@@ -46,6 +47,9 @@ public class VSQLCommandEncoder extends ASLCommandEncoder {
     }
     else if (type.startsWith(VSQLMarkMoved.ID)) {
       return new VSQLMarkMoved(type, inner);
+    }
+    else if (type.startsWith(Embellishment.ID)) {
+      return new VSQLEmbellishment(type, inner);
     }
     else {
       return super.createDecorator(type, inner);
