@@ -635,10 +635,11 @@ public class DieManager extends AbstractConfigurable {
             if (j < nDice - 1)
               val += ",";
           }
-
-          if (reportTotal)
-            val += total;
         }
+
+        if (reportTotal)
+            val += total;
+        
         val += getReportSuffix();
         GameModule.getGameModule().getChatter().send(val);
       }
