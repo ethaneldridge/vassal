@@ -74,7 +74,10 @@ public class PieceCloner {
       clone = ((AddPiece) GameModule.getGameModule().decode
           (GameModule.getGameModule().encode
            (new AddPiece(piece)))).getTarget();
+      Map m = piece.getMap();
+      piece.setMap(null); // Temporarily set map to null so that clone won't be added to map
       clone.setState(piece.getState());
+      piece.setMap(m);
     }
     return clone;
   }

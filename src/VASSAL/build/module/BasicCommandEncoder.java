@@ -109,6 +109,9 @@ public class BasicCommandEncoder implements CommandEncoder, Buildable {
     else if (type.startsWith(Delete.ID)) {
       return new Delete(type, inner);
     }
+    else if (type.startsWith(SubMenu.ID)) {
+      return new SubMenu(type, inner);
+    }
     return null;
   }
 
