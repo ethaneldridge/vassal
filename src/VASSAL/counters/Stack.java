@@ -23,10 +23,10 @@ import VASSAL.build.module.Map;
 import VASSAL.build.module.map.StackMetrics;
 import VASSAL.command.Command;
 import VASSAL.tools.SequenceEncoder;
+import VASSAL.Info;
 
 import java.awt.*;
 import java.awt.geom.Area;
-import java.awt.geom.AffineTransform;
 import java.util.Enumeration;
 import java.util.Vector;
 
@@ -120,9 +120,6 @@ public class Stack implements GamePiece {
         contents[i] = contents[i + 1];
       }
     }
-    if (pieceCount <= 1) {
-      expanded = false;
-    }
   }
 
   private void insertPieceAt(GamePiece p, int index) {
@@ -207,9 +204,6 @@ public class Stack implements GamePiece {
    * @see StackMetrics#draw
    * @see #getDefaultMetrics */
   public void draw(Graphics g, int x, int y, Component obs, double zoom) {
-    if (topPiece() == bottomPiece()) {
-      expanded = false;
-    }
     if (obs instanceof Map.View) {
       ((Map.View) obs).getMap().getStackMetrics().draw(this, g, x, y, obs, zoom);
     }
@@ -249,16 +243,28 @@ public class Stack implements GamePiece {
   }
 
   public Shape getShape() {
-    Point pt = getPosition();
-    Area a = new Area();
-    Shape[] childBounds = new Shape[getPieceCount()];
-    getMap().getStackMetrics().getContents(this, null, childBounds, null, 0, 0);
-    for (PieceIterator e = PieceIterator.visible(getPieces());
-         e.hasMoreElements();) {
-      GamePiece p = e.nextPiece();
-      a.add(new Area(childBounds[indexOf(p)]));
+    if (Info.is2dEnabled()) {
+      Area a = new Area();
+      Shape[] childBounds = new Shape[getPieceCount()];
+      getMap().getStackMetrics().getContents(this, null, childBounds, null, 0, 0);
+      for (PieceIterator e = PieceIterator.visible(getPieces());
+           e.hasMoreElements();) {
+        GamePiece p = e.nextPiece();
+        a.add(new Area(childBounds[indexOf(p)]));
+      }
+      return a;
     }
-    return AffineTransform.getTranslateInstance(pt.x,pt.y).createTransformedShape(a);
+    else {
+      Rectangle r = new Rectangle();
+      Shape[] childBounds = new Shape[getPieceCount()];
+      getMap().getStackMetrics().getContents(this, null, childBounds, null, 0, 0);
+      for (PieceIterator e = PieceIterator.visible(getPieces());
+           e.hasMoreElements();) {
+        GamePiece p = e.nextPiece();
+        r = r.union(childBounds[indexOf(p)].getBounds());
+      }
+      return r;
+    }
   }
 
   public void selectNext(GamePiece c) {
@@ -314,7 +320,7 @@ public class Stack implements GamePiece {
   }
 
   public void setExpanded(boolean b) {
-    expanded = b && pieceCount > 1;
+    expanded = b && topPiece() != bottomPiece();
   }
 
   public String getState() {

@@ -409,7 +409,14 @@ public class StackMetrics extends AbstractConfigurable {
         }
         if (shapes != null) {
           Shape s = child.getShape();
-          s = AffineTransform.getTranslateInstance(nextPos.x,nextPos.y).createTransformedShape(s);
+          if (Info.is2dEnabled()) {
+            s = AffineTransform.getTranslateInstance(nextPos.x,nextPos.y).createTransformedShape(s);
+          }
+          else {
+            Rectangle r = s.getBounds();
+            r.translate(nextPos.x,nextPos.y);
+            s = r;
+          }
           shapes[index] = s;
         }
         currentPos = nextPos;
@@ -419,7 +426,7 @@ public class StackMetrics extends AbstractConfigurable {
     return count;
   }
 
-  private void nextPosition(Point currentPos, Rectangle currentBounds, Point nextPos, Rectangle nextBounds, int dx, int dy) {
+  protected void nextPosition(Point currentPos, Rectangle currentBounds, Point nextPos, Rectangle nextBounds, int dx, int dy) {
     int deltaX,deltaY;
     if (dx > 0) {
       deltaX = currentBounds.x + dx - nextBounds.x;

@@ -104,7 +104,7 @@ public class CounterDetailViewer
         };
       }
       PieceIterator pi = PieceIterator.visible(pieces);
-      Rectangle bounds = new Rectangle(pt.x, pt.y, 0, 0);
+      Rectangle bounds = new Rectangle(pt.x,pt.y,0,0);
       Vector v = new Vector();
       while (pi.hasMoreElements()) {
         GamePiece piece = pi.nextPiece();
@@ -114,9 +114,9 @@ public class CounterDetailViewer
         bounds.height = Math.max(bounds.height, pieceBounds.height);
       }
       if (bounds.width > 0) {
-        Rectangle r = comp.getVisibleRect();
-        bounds.x = Math.min(bounds.x, r.x + r.width - bounds.width);
-        bounds.y = Math.min(bounds.y, r.y + r.height - bounds.height);
+        Rectangle visibleRect = comp.getVisibleRect();
+        bounds.x = Math.min(bounds.x, visibleRect.x + visibleRect.width - bounds.width);
+        bounds.y = Math.min(bounds.y, visibleRect.y + visibleRect.height - bounds.height);
         Color outline = map.getHighlighter() instanceof ColoredBorder ? ((ColoredBorder) map.getHighlighter()).getColor() : Color.black;
         Color background = new Color(255 - outline.getRed(), 255 - outline.getGreen(), 255 - outline.getBlue());
         g.setColor(background);
@@ -130,8 +130,8 @@ public class CounterDetailViewer
           // pt is the location of the left edge of the piece
           GamePiece piece = pi.nextPiece();
           Rectangle pieceBounds = piece.getShape().getBounds();
-          piece.draw(g, bounds.x + piece.getPosition().x - pieceBounds.x,
-                     bounds.y + piece.getPosition().y - pieceBounds.y, comp, 1.0);
+          piece.draw(g, bounds.x - pieceBounds.x,
+                     bounds.y - pieceBounds.y, comp, 1.0);
 
           bounds.translate(pieceBounds.width, 0);
         }
@@ -159,7 +159,7 @@ public class CounterDetailViewer
   protected boolean shouldBeVisible() {
     boolean val = false;
     if (currentPiece != null) {
-      if (map.getZoom() < 0.5) {
+      if (map.getZoom() < 0.75) {
         val = !Boolean.TRUE.equals(currentPiece.getProperty(Properties.IMMOBILE));
       }
       else if (currentPiece instanceof Stack) {

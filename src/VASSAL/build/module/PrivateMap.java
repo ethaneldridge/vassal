@@ -31,6 +31,7 @@ import VASSAL.build.GameModule;
 import VASSAL.build.IllegalBuildException;
 import VASSAL.build.module.documentation.HelpFile;
 import VASSAL.configure.StringArrayConfigurer;
+import VASSAL.Info;
 
 import javax.swing.*;
 import java.awt.event.*;
@@ -266,7 +267,9 @@ public class PrivateMap extends Map {
       for (Enumeration e = mouseMotionListeners.elements(); e.hasMoreElements();) {
         removeMouseMotionListener((MouseMotionListener) e.nextElement());
       }
-      super.setDropTarget(null);
+      if (Info.isDndEnabled()) {
+        super.setDropTarget(null);
+      }
     }
 
     /**
@@ -282,7 +285,9 @@ public class PrivateMap extends Map {
       for (Enumeration e = mouseMotionListeners.elements(); e.hasMoreElements();) {
         super.addMouseMotionListener((MouseMotionListener) e.nextElement());
       }
-      super.setDropTarget(dropTarget);
+      if (Info.isDndEnabled()) {
+        super.setDropTarget(dropTarget);
+      }
     }
   }
 }

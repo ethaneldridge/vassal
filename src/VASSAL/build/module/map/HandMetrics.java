@@ -13,17 +13,10 @@
  * Library General Public License for more details.
  *
  * You should have received a copy of the GNU Library General Public
- * License along with this library; if not, copies are available 
+ * License along with this library; if not, copies are available
  * at http://www.opensource.org.
  */
-/*
- * Created by IntelliJ IDEA.
- * User: rkinney
- * Date: Jun 30, 2002
- * Time: 9:16:23 PM
- * To change template for new class use 
- * Code Style | Class Templates options (Tools | IDE Options).
- */
+
 package VASSAL.build.module.map;
 
 import VASSAL.counters.Stack;
@@ -32,31 +25,27 @@ import VASSAL.counters.GamePiece;
 import java.awt.*;
 import java.util.Enumeration;
 
+/**
+ * Handles the drawing of cards in a {@link VASSAL.build.module.PlayerHand}.
+ * Lays out the cards horizontally with no overlap and even spacing.
+ */
 public class HandMetrics extends StackMetrics {
-    public HandMetrics() {
-        super(false,12,0,12,0);
-    }
+  public HandMetrics() {
+    super(false, 12, 0, 12, 0);
+  }
 
-    public Point relativePosition(Stack parent, GamePiece c) {
-        Point pt = new Point(0,0);
-        for (Enumeration e = parent.getPieces();e.hasMoreElements();) {
-            GamePiece child = (GamePiece) e.nextElement();
-/*
-            if (pt == null) {
-                pt = new Point(0,0);
-                if (child == c) {
-                    break; // Relative position is 0,0 for first piece in stack
-                }
-            }
-            */
-            Rectangle r = child.boundingBox();
-//            pt.translate(child.getPosition().x-r.x,0);
-            if (child == c) {
-                break;
-            }
-//            pt.translate(r.x+r.width-child.getPosition().x+exSepX,0);
-            pt.translate(r.width+exSepX,0);
-        }
-        return pt;
-    }
+  public Stack createStack(GamePiece p) {
+    return new Stack(p) {
+      public boolean isExpanded() {
+        return true;
+      }
+    };
+  }
+
+  protected void nextPosition(Point currentPos, Rectangle currentBounds, Point nextPos, Rectangle nextBounds, int dx, int dy) {
+    int x = currentPos.x + currentBounds.width + dx;
+    int y = -nextBounds.y;
+    nextBounds.setLocation(x, y);
+    nextPos.setLocation(x, y);
+  }
 }

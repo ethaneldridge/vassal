@@ -23,6 +23,8 @@ import VASSAL.build.module.documentation.HelpFile;
 import VASSAL.command.Command;
 import VASSAL.command.ChangeTracker;
 import VASSAL.tools.SequenceEncoder;
+import VASSAL.tools.DataArchive;
+import VASSAL.Info;
 
 import javax.swing.*;
 import javax.swing.event.ListSelectionListener;
@@ -34,6 +36,11 @@ import java.net.MalformedURLException;
 import java.util.Enumeration;
 import java.util.Vector;
 
+/**
+ * The "Layer" trait. Contains a list of images that the user may cycle through.
+ * The current image is superimposed over the inner piece.  The entire layer may
+ * be activated or deactivated.
+ */
 public class Embellishment extends Decorator implements EditablePiece {
   public static final String ID = "emb;";
 
@@ -47,7 +54,7 @@ public class Embellishment extends Decorator implements EditablePiece {
   protected int xOff, yOff;
   protected String imageName[];
   protected String commonName[];
-  protected Dimension size[];
+  protected Rectangle size[];
   protected boolean drawUnderneathWhenSelected = false;
 
   protected KeyCommand[] commands;
@@ -110,7 +117,7 @@ public class Embellishment extends Decorator implements EditablePiece {
     nValues = v.size();
     imageName = new String[v.size()];
     commonName = new String[v.size()];
-    size = new Dimension[imageName.length];
+    size = new Rectangle[imageName.length];
     for (int i = 0; i < imageName.length; ++i) {
       String sub = (String) v.elementAt(i);
       SequenceEncoder.Decoder subSt = new SequenceEncoder.Decoder(sub, ',');
@@ -199,12 +206,12 @@ public class Embellishment extends Decorator implements EditablePiece {
     try {
       Image im = getCurrentImage();
       if (im != null) {
-        Dimension d = getCurrentImageSize();
+        Rectangle r = getCurrentImageBounds();
         g.drawImage(im,
-                    x - (int) (zoom * (d.width / 2 - xOff)),
-                    y - (int) (zoom * (d.height / 2 - yOff)),
-                    (int) (zoom * d.width),
-                    (int) (zoom * d.height),
+                    x + (int) (zoom * r.x),
+                    y + (int) (zoom * r.y),
+                    (int) (zoom * r.width),
+                    (int) (zoom * r.height),
                     obs);
       }
     }
@@ -310,51 +317,47 @@ public class Embellishment extends Decorator implements EditablePiece {
 
   public Rectangle boundingBox() {
     if (value > 0) {
-      Dimension d = getCurrentImageSize();
-      Rectangle r = new Rectangle(new Point(), d);
-      r.translate(xOff - d.width / 2,
-                  yOff - d.height / 2);
-      return r.union(piece.boundingBox());
+      return getCurrentImageBounds().union(piece.boundingBox());
     }
     else {
       return piece.boundingBox();
     }
   }
 
-  public Dimension getCurrentImageSize() {
+  public Rectangle getCurrentImageBounds() {
     if (value > 0) {
       if (size[value - 1] == null) {
         try {
           Image im = getCurrentImage();
           if (im != null) {
-            JLabel l = new JLabel();
-            l.setIcon(new ImageIcon(im));
-            size[value - 1] = l.getPreferredSize();
+            size[value - 1] = DataArchive.getImageBounds(im);
+            size[value-1].translate(xOff,yOff);
           }
           else {
-            size[value - 1] = new Dimension(0, 0);
+            size[value - 1] = new Rectangle();
           }
         }
         catch (java.io.IOException e) {
-          size[value - 1] = new Dimension(0, 0);
+          size[value - 1] = new Rectangle();
         }
       }
       return size[value - 1];
     }
     else {
-      return new Dimension(0, 0);
+      return new Rectangle();
     }
   }
 
   public Shape getShape() {
     if (value > 0) {
-      Shape s = piece.getShape();
-      Dimension d = getCurrentImageSize();
-      Rectangle myShape = new Rectangle(0,0,d.width,d.height);
-      myShape.translate(xOff-d.width/2,yOff-d.height/2);
-      Area a = new Area(s);
-      a.add(new Area(myShape));
-      return a;
+      if (Info.is2dEnabled()) {
+        Area a = new Area(piece.getShape());
+        a.add(new Area(getCurrentImageBounds()));
+        return a;
+      }
+      else {
+        return piece.getShape().getBounds().union(getCurrentImageBounds());
+      }
     }
     else {
       return piece.getShape();

@@ -198,20 +198,19 @@ public class Labeler extends Decorator implements EditablePiece {
     int y = verticalOffset;
 
     Rectangle selBnds = piece.getShape().getBounds();
-    Point innerPos = piece.getPosition();
     switch (verticalPos) {
       case 't':
-        y += selBnds.y - innerPos.y;
+        y += selBnds.y;
         break;
       case 'b':
-        y += selBnds.y - innerPos.y + selBnds.height;
+        y += selBnds.y + selBnds.height;
     }
     switch (horizontalPos) {
       case 'l':
-        x += selBnds.x - innerPos.x;
+        x += selBnds.x;
         break;
       case 'r':
-        x += selBnds.x - innerPos.x + selBnds.width;
+        x += selBnds.x + selBnds.width;
     }
     switch (verticalJust) {
       case 'b':

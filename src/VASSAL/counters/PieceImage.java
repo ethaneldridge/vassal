@@ -39,10 +39,6 @@ public class PieceImage {
     if (isChanged()) {
       lastState = currentState();
 
-      // First draw the inner piece so we can know the size
-      piece.draw(obs.getGraphics(), 0, 0, obs, 0.0);
-
-      // Now the boundingBox should be correct
       Rectangle bbox = piece.boundingBox();
       im = obs.createImage(bbox.width, bbox.height);
       Graphics g = im.getGraphics();

@@ -13,36 +13,34 @@
  * Library General Public License for more details.
  *
  * You should have received a copy of the GNU Library General Public
- * License along with this library; if not, copies are available 
+ * License along with this library; if not, copies are available
  * at http://www.opensource.org.
  */
 package VASSAL.tools;
 
 import VASSAL.build.module.documentation.HelpFile;
 
+import javax.swing.*;
 import java.awt.*;
-import java.awt.image.PixelGrabber;
-import java.awt.image.ImageObserver;
-import java.awt.geom.Area;
 import java.io.*;
+import java.net.URL;
+import java.util.Enumeration;
 import java.util.Hashtable;
 import java.util.Vector;
-import java.util.Enumeration;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 import java.util.zip.ZipInputStream;
-import java.net.URL;
 
 /**
  * Wrapper around a Zip archive with methods to cache images
  */
-public class DataArchive extends ClassLoader implements ImageObserver {
+public class DataArchive extends ClassLoader {
   protected ZipFile archive = null;
   protected Vector extensions = new Vector();
   private Hashtable imageCache = new Hashtable();
-  private Hashtable imageShapes = new Hashtable();
   protected String[] imageNames;
   public static final String IMAGE_DIR = "images/";
+  MediaTracker tracker = new MediaTracker(new JLabel());
 
   protected DataArchive() {
   }
@@ -109,19 +107,26 @@ public class DataArchive extends ClassLoader implements ImageObserver {
     }
   }
 
-  public Shape getImageShape(String imageName) {
+  /**
+   *
+   * @param im
+   * @return the boundaries of this image, where (0,0) is the center of the image
+   */
+  public static Rectangle getImageBounds(Image im) {
+    ImageIcon icon = new ImageIcon(im);
+    return new Rectangle(-icon.getIconWidth()/2,-icon.getIconHeight()/2,icon.getIconWidth(),icon.getIconHeight());
+  }
+
+/*
+  private Shape getImageShape(String imageName) {
     Shape s = (Shape) imageShapes.get(imageName);
     if (s == null) {
       Area a = new Area();
       try {
         Image im = getCachedImage(imageName);
-        int width = im.getWidth(this);
-        int height = im.getHeight(this);
-        while (width < 0 || height < 0) {
-          synchronized(this) {
-            wait(100);
-          }
-        }
+        ImageIcon icon = new ImageIcon(im);
+        int width = icon.getIconWidth();
+        int height = icon.getIconHeight();
         int[] pixels = new int[width * height];
         PixelGrabber pg = new PixelGrabber(im, 0, 0, width, height, pixels, 0, width);
         long time = System.currentTimeMillis();
@@ -140,22 +145,17 @@ public class DataArchive extends ClassLoader implements ImageObserver {
       catch (IOException e) {
       }
       catch (InterruptedException e) {
+
       }
       s = a;
       imageShapes.put(imageName,s);
     }
     return s;
   }
-
-  public synchronized boolean imageUpdate(Image img, int infoflags,
-                             int x, int y, int width, int height) {
-    notifyAll();
-    return img.getWidth(null) >= 0 && img.getHeight(null) >= 0;
-  }
+*/
 
   public void unCacheImage(String file) {
     imageCache.remove(IMAGE_DIR + file);
-    imageShapes.remove(file);
   }
 
   public static Image getImage(InputStream in) throws IOException {

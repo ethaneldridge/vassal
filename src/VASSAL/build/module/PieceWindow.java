@@ -13,7 +13,7 @@
  * Library General Public License for more details.
  *
  * You should have received a copy of the GNU Library General Public
- * License along with this library; if not, copies are available 
+ * License along with this library; if not, copies are available
  * at http://www.opensource.org.
  */
 package VASSAL.build.module;
@@ -42,7 +42,7 @@ import java.net.MalformedURLException;
  * clicking and dragging from the PieceWindow.  The actual GamePieces
  * are contained in {@link PieceSlot} components.  PieceWindow extends
  * {@link Widget}, so it may be composed of various tabs, lists, etc.  */
-public class PieceWindow extends Widget{
+public class PieceWindow extends Widget {
   private String id;
   private LaunchButton launch;
   public static final String WINDOW_NAME = "entryName";
@@ -57,24 +57,41 @@ public class PieceWindow extends Widget{
         launchButtonPressed();
       }
     };
-    launch = new LaunchButton("Pieces",WINDOW_NAME,HOTKEY,al);
+    launch = new LaunchButton("Pieces", WINDOW_NAME, HOTKEY, al);
     launch.setToolTipText("Show/Hide the Pieces window");
   }
 
   private Window initFrame() {
-    final JDialog d = new JDialog(GameModule.getGameModule().getFrame());
-    d.getContentPane().add(root);
-    d.setDefaultCloseOperation(WindowConstants.HIDE_ON_CLOSE);
-    d.setTitle(getConfigureName());
-    addPropertyChangeListener(new java.beans.PropertyChangeListener() {
-      public void propertyChange(java.beans.PropertyChangeEvent e) {
-        if (Configurable.NAME_PROPERTY
-          .equals(e.getPropertyName())) {
-          d.setTitle((String) e.getNewValue());
+    if (GlobalOptions.getInstance().isUseSingleWindow()) {
+      final JDialog d = new JDialog(GameModule.getGameModule().getFrame());
+      d.getContentPane().add(root);
+      d.setDefaultCloseOperation(WindowConstants.HIDE_ON_CLOSE);
+      d.setTitle(getConfigureName());
+      addPropertyChangeListener(new java.beans.PropertyChangeListener() {
+        public void propertyChange(java.beans.PropertyChangeEvent e) {
+          if (Configurable.NAME_PROPERTY
+              .equals(e.getPropertyName())) {
+            d.setTitle((String) e.getNewValue());
+          }
         }
-      }
-    });
-    return d;
+      });
+      return d;
+    }
+    else {
+      final JFrame d = new JFrame();
+      d.getContentPane().add(root);
+      d.setDefaultCloseOperation(WindowConstants.HIDE_ON_CLOSE);
+      d.setTitle(getConfigureName());
+      addPropertyChangeListener(new java.beans.PropertyChangeListener() {
+        public void propertyChange(java.beans.PropertyChangeEvent e) {
+          if (Configurable.NAME_PROPERTY
+              .equals(e.getPropertyName())) {
+            d.setTitle((String) e.getNewValue());
+          }
+        }
+      });
+      return d;
+    }
   }
 
   public void launchButtonPressed() {
@@ -158,7 +175,7 @@ public class PieceWindow extends Widget{
   public void addTo(Buildable parent) {
     int count = 0;
     for (java.util.Enumeration e =
-      GameModule.getGameModule().getComponents(PieceWindow.class);
+        GameModule.getGameModule().getComponents(PieceWindow.class);
          e.hasMoreElements();) {
       count++;
       e.nextElement();
@@ -167,10 +184,10 @@ public class PieceWindow extends Widget{
 
     String key = PositionOption.key + getId();
     if (count == 0 && GlobalOptions.getInstance().isUseSingleWindow()) {
-      mainWindowDock = new ComponentSplitter().splitLeft(GameModule.getGameModule().getControlPanel(),root, false);
+      mainWindowDock = new ComponentSplitter().splitLeft(GameModule.getGameModule().getControlPanel(), root, false);
     }
     else {
-      Window w =initFrame();
+      Window w = initFrame();
       final PositionOption pos = new VisibilityOption(key, w);
       GameModule.getGameModule().getPrefs().addOption(pos);
     }
@@ -185,11 +202,11 @@ public class PieceWindow extends Widget{
   }
 
   public String[] getAttributeDescriptions() {
-    return new String[]{"Name","Hotkey to show/hide"};
+    return new String[]{"Name", "Hotkey to show/hide"};
   }
 
   public Class[] getAttributeTypes() {
-    return new Class[]{String.class,KeyStroke.class};
+    return new Class[]{String.class, KeyStroke.class};
   }
 
   public String[] getAttributeNames() {
@@ -197,7 +214,7 @@ public class PieceWindow extends Widget{
   }
 
   public void setAttribute(String name, Object value) {
-    launch.setAttribute(name,value);
+    launch.setAttribute(name, value);
     if (WINDOW_NAME.equals(name)) {
       String s = (String) value;
       setConfigureName(s);

@@ -13,7 +13,7 @@
  * Library General Public License for more details.
  *
  * You should have received a copy of the GNU Library General Public
- * License along with this library; if not, copies are available 
+ * License along with this library; if not, copies are available
  * at http://www.opensource.org.
  */
 package VASSAL.counters;
@@ -27,14 +27,14 @@ import VASSAL.command.ChangePiece;
 import VASSAL.command.Command;
 import VASSAL.command.RemovePiece;
 import VASSAL.tools.SequenceEncoder;
+import VASSAL.tools.DataArchive;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.geom.AffineTransform;
-import java.awt.geom.Rectangle2D;
 import java.awt.event.InputEvent;
 import java.awt.event.MouseEvent;
 import java.io.File;
+import java.io.IOException;
 import java.net.MalformedURLException;
 import java.util.Enumeration;
 import java.util.Hashtable;
@@ -50,7 +50,8 @@ public class BasicPiece implements EditablePiece {
   private static Highlighter highlighter;
 
   public static Font POPUP_MENU_FONT = new Font("Dialog", 0, 11);
-  protected Dimension imageSize;// = new Dimension(-1,-1);
+  protected Image image;
+  protected Rectangle imageBounds;
   protected JPopupMenu popup;
 
   private Map map;
@@ -80,16 +81,20 @@ public class BasicPiece implements EditablePiece {
     imageName = st.nextToken();
     commonName = st.nextToken();
 
-    Image im = myImage();
-    if (im != null) {
-      JLabel l = new JLabel();
-      l.setIcon(new ImageIcon(im));
-      imageSize = l.getPreferredSize();
+    if (imageName.trim().length() > 0) {
+      try {
+        image = GameModule.getGameModule().getDataArchive().getCachedImage(imageName + ".gif");
+        imageBounds = DataArchive.getImageBounds(image);
+      }
+      catch (IOException e) {
+        System.err.println("Unable to locate image "+imageName);
+        imageBounds = new Rectangle();
+      }
     }
     else {
-      imageSize = new Dimension(0, 0);
+      image = null;
+      imageBounds = new Rectangle();
     }
-
     commands = null;
   }
 
@@ -133,39 +138,13 @@ public class BasicPiece implements EditablePiece {
     return GameModule.getGameModule().getPrefs().getValue(s);
   }
 
-  protected Image myImage() {
-    try {
-      return GameModule.getGameModule() == null ? null
-        : GameModule.getGameModule().getDataArchive().getCachedImage(imageName + ".gif");
-    }
-    catch (java.io.IOException ex) {
-      return null;
-    }
-  }
-
-  public static void verifySize(Dimension d, Image i, Component obs) {
-    if ((d.width < 0 || d.height < 0)
-      && i != null) {
-      MediaTracker mt = new MediaTracker(obs);
-      mt.addImage(i, 0);
-      try {
-        mt.waitForAll();
-      }
-      catch (Exception e) {
-      }
-      d.setSize(i.getWidth(obs),
-                i.getHeight(obs));
-    }
-  }
-
   public void draw(Graphics g, int x, int y, Component obs, double zoom) {
-    Image im = myImage();
-    if (im != null) {
-      g.drawImage(im,
-                  x - (int) (zoom * imageSize.width / 2),
-                  y - (int) (zoom * imageSize.height / 2),
-                  (int) (zoom * imageSize.width),
-                  (int) (zoom * imageSize.height),
+    if (image != null) {
+      g.drawImage(image,
+                  x + (int) (zoom * imageBounds.x),
+                  y + (int) (zoom * imageBounds.y),
+                  (int) (zoom * imageBounds.width),
+                  (int) (zoom * imageBounds.height),
                   obs);
     }
   }
@@ -245,14 +224,11 @@ public class BasicPiece implements EditablePiece {
   }
 
   public Rectangle boundingBox() {
-    return getShape().getBounds();
+    return new Rectangle(imageBounds.x,imageBounds.y,imageBounds.width,imageBounds.height);
   }
 
   public Shape getShape() {
-    Dimension d = imageSize.width < 0 ? new Dimension(0, 0) : imageSize;
-    Rectangle r = new Rectangle(new Point(), d);
-    r.translate(-r.width / 2, -r.height / 2);
-    return r;
+    return new Rectangle(imageBounds.x,imageBounds.y,imageBounds.width,imageBounds.height);
   }
 
   public boolean equals(GamePiece c) {

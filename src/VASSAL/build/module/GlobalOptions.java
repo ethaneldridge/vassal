@@ -33,6 +33,7 @@ import VASSAL.build.IllegalBuildException;
 import VASSAL.build.module.documentation.HelpFile;
 import VASSAL.configure.BooleanConfigurer;
 import VASSAL.configure.StringEnum;
+import VASSAL.Info;
 
 import java.io.File;
 import java.net.MalformedURLException;
@@ -75,7 +76,7 @@ public class GlobalOptions extends AbstractConfigurable {
   }
 
   public boolean isUseSingleWindow() {
-    return useSingleWindow;
+    return useSingleWindow && Info.is2dEnabled();
   }
 
   public static String getConfigureTypeName() {

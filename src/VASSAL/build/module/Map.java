@@ -61,7 +61,7 @@ import java.util.Vector;
  * Components which are added directly to a Map are contained in the
  * <code>VASSAL.build.module.map</code> package */
 public class Map extends AbstractConfigurable implements GameComponent,
-    FocusListener, MouseListener, MouseMotionListener, DragGestureListener, DragSourceListener, DropTargetListener,
+    FocusListener, MouseListener, MouseMotionListener,
     Configurable {
   /*
    ** The map consists of the empty board and an array of stacks
@@ -90,7 +90,7 @@ public class Map extends AbstractConfigurable implements GameComponent,
   protected String markMovedOption;
 
   protected MouseListener multicaster = null;
-  protected Vector mouseListenerStack;
+  protected Vector mouseListenerStack = new Vector();
 
   protected Vector boards = new Vector();
 
@@ -389,8 +389,8 @@ public class Map extends AbstractConfigurable implements GameComponent,
     setID("Map" + mapCount);
 
     if (Info.isDndEnabled()) {
-      DragSource.getDefaultDragSource().createDefaultDragGestureRecognizer(theMap,DnDConstants.ACTION_MOVE,this);
-      theMap.setDropTarget(new DropTarget(theMap,DnDConstants.ACTION_MOVE,this));
+      DragSource.getDefaultDragSource().createDefaultDragGestureRecognizer(theMap,DnDConstants.ACTION_MOVE,new DGL());
+      theMap.setDropTarget(new DropTarget(theMap,DnDConstants.ACTION_MOVE,new DT()));
     }
     else {
       DragBuffer.getBuffer().addDropTarget(theMap, this);
@@ -613,9 +613,6 @@ public class Map extends AbstractConfigurable implements GameComponent,
    * MouseListeners on a map may be pushed and popped onto a stack.
    * Only the top listener on the stack receives mouse events */
   public void pushMouseListener(MouseListener l) {
-    if (mouseListenerStack == null) {
-      mouseListenerStack = new Vector();
-    }
     mouseListenerStack.addElement(l);
   }
 
@@ -641,7 +638,7 @@ public class Map extends AbstractConfigurable implements GameComponent,
    * @see #popMouseListener
    * @see #addLocalMouseListener*/
   public void mouseClicked(MouseEvent e) {
-    if (mouseListenerStack != null && mouseListenerStack.size() > 0) {
+    if (mouseListenerStack.size() > 0) {
       Point p = mapCoordinates(e.getPoint());
       e.translatePoint(p.x - e.getX(), p.y - e.getY());
       ((MouseListener) mouseListenerStack.lastElement()).mouseClicked(e);
@@ -662,7 +659,7 @@ public class Map extends AbstractConfigurable implements GameComponent,
    * @see #popMouseListener
    * @see #addLocalMouseListener*/
   public void mousePressed(MouseEvent e) {
-    if (mouseListenerStack != null && mouseListenerStack.size() > 0) {
+    if (mouseListenerStack.size() > 0) {
       Point p = mapCoordinates(e.getPoint());
       e.translatePoint(p.x - e.getX(), p.y - e.getY());
       ((MouseListener) mouseListenerStack.lastElement()).mousePressed(e);
@@ -687,7 +684,7 @@ public class Map extends AbstractConfigurable implements GameComponent,
     p.translate(theMap.getLocation().x, theMap.getLocation().y);
 
     if (theMap.getBounds().contains(p)) {
-      if (mouseListenerStack != null && mouseListenerStack.size() > 0) {
+      if (mouseListenerStack.size() > 0) {
         p = mapCoordinates(e.getPoint());
         e.translatePoint(p.x - e.getX(), p.y - e.getY());
         ((MouseListener) mouseListenerStack.lastElement()).mouseReleased(e);
@@ -707,8 +704,9 @@ public class Map extends AbstractConfigurable implements GameComponent,
   }
 
   public void dragGestureRecognized(DragGestureEvent dge) {
-    if (DragBuffer.getBuffer().getIterator().hasMoreElements()) {
-      dge.startDrag(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR),new StringSelection(""),this);
+    if (mouseListenerStack.size() == 0
+        && DragBuffer.getBuffer().getIterator().hasMoreElements()) {
+      dge.startDrag(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR),new StringSelection(""),new DSL());
     }
   }
 
@@ -919,7 +917,7 @@ public class Map extends AbstractConfigurable implements GameComponent,
    * Returns the selection bounding box of a GamePiece accounting for
    * the offset of a piece within a stack
    * @deprecated
-   * @see GamePiece#selectionBounds
+   * @see GamePiece#getShape
    */
   public Rectangle selectionBoundsOf(GamePiece p) {
     if (p.getMap() != this) {
@@ -1493,6 +1491,55 @@ public class Map extends AbstractConfigurable implements GameComponent,
 
     public Map getMap() {
       return map;
+    }
+  }
+  private class DGL implements DragGestureListener {
+    public void dragGestureRecognized(DragGestureEvent dge) {
+      Map.this.dragGestureRecognized(dge);
+    }
+  }
+
+  private class DSL implements DragSourceListener {
+    public void dragEnter(DragSourceDragEvent dsde) {
+      Map.this.dragEnter(dsde);
+    }
+
+    public void dragOver(DragSourceDragEvent dsde) {
+      Map.this.dragOver(dsde);
+    }
+
+    public void dropActionChanged(DragSourceDragEvent dsde) {
+      Map.this.dropActionChanged(dsde);
+    }
+
+    public void dragExit(DragSourceEvent dse) {
+      Map.this.dragExit(dse);
+    }
+
+    public void dragDropEnd(DragSourceDropEvent dsde) {
+      Map.this.dragDropEnd(dsde);
+    }
+  }
+
+  private class DT implements DropTargetListener {
+    public void dragEnter(DropTargetDragEvent dtde) {
+      Map.this.dragEnter(dtde);
+    }
+
+    public void dragOver(DropTargetDragEvent dtde) {
+      Map.this.dragOver(dtde);
+    }
+
+    public void dropActionChanged(DropTargetDragEvent dtde) {
+      Map.this.dropActionChanged(dtde);
+    }
+
+    public void dragExit(DropTargetEvent dte) {
+      Map.this.dragExit(dte);
+    }
+
+    public void drop(DropTargetDropEvent dtde) {
+      Map.this.drop(dtde);
     }
   }
 }

@@ -30,6 +30,7 @@ import VASSAL.configure.VisibilityCondition;
 import VASSAL.counters.GamePiece;
 import VASSAL.counters.Properties;
 import VASSAL.tools.LaunchButton;
+import VASSAL.Info;
 import org.w3c.dom.Element;
 
 import javax.swing.*;
@@ -81,11 +82,20 @@ public class GlobalMap extends JPanel implements MouseListener,
       JFrame owner = ancestor instanceof JFrame ? (JFrame) ancestor : null;
       f = new JWindow(owner);
       f.getContentPane().add(this);
-      map.getView().addHierarchyBoundsListener(new HierarchyBoundsAdapter() {
-        public void ancestorMoved(HierarchyEvent e) {
-          adjustWindowLocation();
-        }
-      });
+      if (Info.is2dEnabled()) {
+        map.getView().addHierarchyBoundsListener(new HierarchyBoundsAdapter() {
+          public void ancestorMoved(HierarchyEvent e) {
+            adjustWindowLocation();
+          }
+        });
+      }
+      else {
+        map.getView().addComponentListener(new ComponentAdapter() {
+          public void componentMoved(ComponentEvent e) {
+            adjustWindowLocation();
+          }
+        });
+      }
     }
   }
 

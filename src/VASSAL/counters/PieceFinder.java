@@ -27,6 +27,7 @@
 package VASSAL.counters;
 
 import VASSAL.build.module.Map;
+import VASSAL.Info;
 
 import java.awt.*;
 import java.util.Enumeration;
@@ -95,7 +96,7 @@ class Movable implements PieceFinder {
         for (Enumeration e = s.getPiecesInVisibleOrder();
              e.hasMoreElements();) {
           GamePiece child = (GamePiece) e.nextElement();
-          if (shapes[s.indexOf(child)].contains(pt)) {
+          if (Info.is2dEnabled() ? shapes[s.indexOf(child)].contains(pt) : shapes[s.indexOf(child)].getBounds().contains(pt)) {
             selected = s.isExpanded() ? child : s;
             break;
           }

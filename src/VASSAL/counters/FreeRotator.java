@@ -92,17 +92,11 @@ public class FreeRotator extends Decorator implements EditablePiece, MouseListen
     if (getAngle() == 0.0) {
       return piece.boundingBox();
     }
-    else {
+    else if (Info.is2dEnabled()) {
       return AffineTransform.getRotateInstance(-Math.PI * getAngle() / 180.0).createTransformedShape(piece.boundingBox()).getBounds();
-/*
-      Rectangle r = getRotatedBounds();
-      if (r == null) {
-        return piece.boundingBox();
-      }
-      else {
-        return r;
-      }
-*/
+    }
+    else {
+      return getRotatedBounds();
     }
   }
 
@@ -115,15 +109,22 @@ public class FreeRotator extends Decorator implements EditablePiece, MouseListen
   }
 
   public Rectangle getRotatedBounds() {
-    return (Rectangle) bounds.get(new Double(getAngle()));
+    Rectangle r = (Rectangle) bounds.get(new Double(getAngle()));
+    if (r == null) {
+      r = piece.boundingBox();
+    }
+    return r;
   }
 
   public Shape getShape() {
     if (getAngle() == 0.0) {
       return piece.getShape();
     }
-    else {
+    else if (Info.is2dEnabled()) {
       return AffineTransform.getRotateInstance(getAngleInRadians()).createTransformedShape(piece.getShape());
+    }
+    else {
+      return getRotatedBounds();
     }
   }
 
@@ -164,17 +165,9 @@ public class FreeRotator extends Decorator implements EditablePiece, MouseListen
     if (Info.is2dEnabled()) {
       Graphics2D g2d = (Graphics2D) g;
       AffineTransform oldT = g2d.getTransform();
-      AffineTransform t = AffineTransform.getRotateInstance(getAngleInRadians(),x,y);
-      oldT.concatenate(t);
+      g2d.transform(AffineTransform.getRotateInstance(getAngleInRadians(), x, y));
+      piece.draw(g, x, y, obs, zoom);
       g2d.setTransform(oldT);
-      piece.draw(g,x,y,obs,zoom);
-      try {
-        oldT.concatenate(t.createInverse());
-        g2d.setTransform(oldT);
-      }
-      catch (NoninvertibleTransformException e) {
-        e.printStackTrace();
-      }
     }
     else {
       Image rotated = getRotatedImage(getAngle(), obs);
@@ -291,22 +284,24 @@ public class FreeRotator extends Decorator implements EditablePiece, MouseListen
     myGetKeyCommands();
     Command c = null;
     if (setAngleCommand.matches(stroke)) {
-/*
-      ChangeTracker tracker = new ChangeTracker(this);
-      String s = JOptionPane.showInputDialog(null, setAngleText);
-      if (s != null) {
-        try {
-          setAngle(-Double.valueOf(s).doubleValue());
-          c = tracker.getChangeCommand();
-        }
-        catch (NumberFormatException ex) {
+      if (Info.is2dEnabled()) {
+        getMap().pushMouseListener(this);
+        getMap().addDrawComponent(this);
+        getMap().getView().addMouseMotionListener(this);
+        getMap().getView().setCursor(Cursor.getPredefinedCursor(Cursor.CROSSHAIR_CURSOR));
+      }
+      else {
+        ChangeTracker tracker = new ChangeTracker(this);
+        String s = JOptionPane.showInputDialog(getMap().getView().getTopLevelAncestor(), setAngleText);
+        if (s != null) {
+          try {
+            setAngle(-Double.valueOf(s).doubleValue());
+            c = tracker.getChangeCommand();
+          }
+          catch (NumberFormatException ex) {
+          }
         }
       }
-*/
-      getMap().pushMouseListener(this);
-      getMap().addDrawComponent(this);
-      getMap().getView().addMouseMotionListener(this);
-      getMap().getView().setCursor(Cursor.getPredefinedCursor(Cursor.CROSSHAIR_CURSOR));
     }
     else if (rotateCWCommand.matches(stroke)) {
       ChangeTracker tracker = new ChangeTracker(this);
