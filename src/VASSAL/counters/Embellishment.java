@@ -186,8 +186,8 @@ public class Embellishment extends Decorator implements EditablePiece {
         .append(upCommand)
         .append(downKey)
         .append(downCommand)
-        .append("" + xOff)
-        .append("" + yOff);
+        .append(xOff)
+        .append(yOff);
     for (int i = 0; i < nValues; ++i) {
       if (commonName[i] != null) {
         SequenceEncoder sub = new SequenceEncoder(imageName[i], ',');

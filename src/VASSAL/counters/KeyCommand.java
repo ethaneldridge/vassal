@@ -41,7 +41,7 @@ public class KeyCommand extends AbstractAction {
   }
 
   public boolean matches(KeyStroke key) {
-    return isEnabled() && key == stroke;
+    return isEnabled() && key != null && key.equals(stroke);
   }
 
   public KeyStroke getKeyStroke() {

@@ -18,18 +18,18 @@
  */
 package VASSAL.counters;
 
+import VASSAL.Info;
 import VASSAL.build.GameModule;
 import VASSAL.build.module.documentation.HelpFile;
-import VASSAL.command.Command;
 import VASSAL.command.ChangeTracker;
+import VASSAL.command.Command;
 import VASSAL.configure.ColorConfigurer;
+import VASSAL.configure.HotKeyConfigurer;
 import VASSAL.tools.SequenceEncoder;
-import VASSAL.Info;
 
 import javax.swing.*;
 import java.awt.*;
 import java.awt.geom.AffineTransform;
-import java.awt.event.InputEvent;
 import java.io.File;
 import java.net.MalformedURLException;
 
@@ -40,7 +40,7 @@ public class Hideable extends Decorator implements EditablePiece {
   public static final String HIDDEN_BY = "hiddenBy";
 
   private String hiddenBy;
-  private char hideKey;
+  private KeyStroke hideKey;
   private String command = "Invisible";
 
   private Color bgColor;
@@ -84,16 +84,9 @@ public class Hideable extends Decorator implements EditablePiece {
   public void mySetType(String type) {
     SequenceEncoder.Decoder st = new SequenceEncoder.Decoder(type, ';');
     st.nextToken();
-    hideKey = st.nextChar('I');
-    if (st.hasMoreTokens()) {
-      command = st.nextToken();
-    }
-    if (st.hasMoreTokens()) {
-      bgColor = ColorConfigurer.stringToColor(st.nextToken());
-    }
-    else {
-      bgColor = null;
-    }
+    hideKey = st.nextKeyStroke('I');
+    command = st.nextToken("Invisible");
+    bgColor = st.nextColor(null);
     commands = null;
   }
 
@@ -102,10 +95,11 @@ public class Hideable extends Decorator implements EditablePiece {
   }
 
   public String myGetType() {
-    return command == null ?
-        ID + hideKey
-        : ID + hideKey + ';' + command
-        + (bgColor == null ? ";" : ';' + ColorConfigurer.colorToString(bgColor));
+    SequenceEncoder se = new SequenceEncoder(';');
+    se.append(hideKey)
+        .append(command)
+        .append(bgColor);
+    return ID + se.getValue();
   }
 
   public String myGetState() {
@@ -190,15 +184,14 @@ public class Hideable extends Decorator implements EditablePiece {
   public KeyCommand[] myGetKeyCommands() {
     if (commands == null) {
       commands = new KeyCommand[1];
-      commands[0] = new KeyCommand(command,
-                                   KeyStroke.getKeyStroke(hideKey, InputEvent.CTRL_MASK),
-                                   Decorator.getOutermost(this));
+      commands[0] = new KeyCommand(command,hideKey, Decorator.getOutermost(this));
     }
     return commands;
   }
 
   public Command myKeyEvent(KeyStroke stroke) {
-    if (KeyStroke.getKeyStroke(hideKey, InputEvent.CTRL_MASK) == stroke) {
+    myGetKeyCommands();
+    if (commands[0].matches(stroke)) {
       ChangeTracker tracker = new ChangeTracker(this);
       if (invisibleToOthers()) {
         hiddenBy = null;
@@ -240,7 +233,7 @@ public class Hideable extends Decorator implements EditablePiece {
   }
 
   private static class Ed implements PieceEditor {
-    private KeySpecifier hideKeyInput;
+    private HotKeyConfigurer hideKeyInput;
     private JTextField hideCommandInput;
     private ColorConfigurer colorConfig;
     private JPanel controls;
@@ -249,14 +242,10 @@ public class Hideable extends Decorator implements EditablePiece {
       controls = new JPanel();
       controls.setLayout(new BoxLayout(controls, BoxLayout.Y_AXIS));
 
-      Box b = Box.createHorizontalBox();
-      hideKeyInput = new KeySpecifier('H');
-      hideKeyInput.setKey(p.hideKey);
-      b.add(new JLabel("Key command:  "));
-      b.add(hideKeyInput);
-      controls.add(b);
+      hideKeyInput = new HotKeyConfigurer(null, "Keyboard command:  ", p.hideKey);
+      controls.add(hideKeyInput.getControls());
 
-      b = Box.createHorizontalBox();
+      Box b = Box.createHorizontalBox();
       hideCommandInput = new JTextField(16);
       hideCommandInput.setMaximumSize(hideCommandInput.getPreferredSize());
       hideCommandInput.setText(p.command);
@@ -273,8 +262,11 @@ public class Hideable extends Decorator implements EditablePiece {
     }
 
     public String getType() {
-      return ID + hideKeyInput.getKey() + ";" + hideCommandInput.getText()
-          + (colorConfig.getValue() == null ? "" : ";" + colorConfig.getValueString());
+      SequenceEncoder se = new SequenceEncoder(';');
+      se.append((KeyStroke) hideKeyInput.getValue())
+          .append(hideCommandInput.getText())
+          .append(colorConfig.getValue() == null ? "" : ";" + colorConfig.getValueString());
+      return ID + se.getValue();
     }
 
     public Component getControls() {

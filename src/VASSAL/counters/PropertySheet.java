@@ -169,7 +169,7 @@ public class PropertySheet extends Decorator implements EditablePiece {
     String blue = backgroundColor == null ? "" : Integer.toString(backgroundColor.getBlue());
     String commit = Integer.toString(commitStyle);
 
-    se.append(m_definition).append(menuName).append("" + launchKey).append(commit).
+    se.append(m_definition).append(menuName).append(launchKey).append(commit).
         append(red).append(green).append(blue);
 
 

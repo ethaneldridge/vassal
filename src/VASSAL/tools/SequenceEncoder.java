@@ -13,12 +13,18 @@
  * Library General Public License for more details.
  *
  * You should have received a copy of the GNU Library General Public
- * License along with this library; if not, copies are available 
+ * License along with this library; if not, copies are available
  * at http://www.opensource.org.
  */
 package VASSAL.tools;
 
+import VASSAL.configure.HotKeyConfigurer;
+import VASSAL.configure.ColorConfigurer;
+
+import javax.swing.*;
 import java.util.NoSuchElementException;
+import java.awt.event.InputEvent;
+import java.awt.*;
 
 /**
  * Encodes a sequence of Strings into a single String with a given delimiter.
@@ -84,6 +90,16 @@ public class SequenceEncoder {
     return append(String.valueOf(b));
   }
 
+  public SequenceEncoder append(KeyStroke stroke) {
+    String s = HotKeyConfigurer.encode(stroke);
+    return append(s != null ? s : "");
+  }
+
+  public SequenceEncoder append(Color color) {
+    String s = ColorConfigurer.colorToString(color);
+    return append(s != null ? s : "");
+  }
+
   public String getValue() {
     return buffer != null ? buffer.toString() : null;
   }
@@ -100,9 +116,9 @@ public class SequenceEncoder {
     }
     buffer.append(s.substring(begin));
     if (s.endsWith("\\")
-      || (s.startsWith("\'")
-      && s.endsWith("\'"))) {
-      buffer.insert(length,"'").append("'");
+        || (s.startsWith("\'")
+        && s.endsWith("\'"))) {
+      buffer.insert(length, "'").append("'");
     }
   }
 
@@ -153,7 +169,7 @@ public class SequenceEncoder {
         }
       }
       if (value.startsWith("'")
-        && value.endsWith("'")) {
+          && value.endsWith("'")) {
         value = value.substring(1, value.length() - 1);
       }
       return value;
@@ -190,7 +206,40 @@ public class SequenceEncoder {
     public char nextChar(char defaultValue) {
       if (val != null) {
         String s = nextToken();
-        defaultValue =  s.length() > 0 ? s.charAt(0) : defaultValue;
+        defaultValue = s.length() > 0 ? s.charAt(0) : defaultValue;
+      }
+      return defaultValue;
+    }
+
+    public KeyStroke nextKeyStroke(char defaultValue) {
+      return nextKeyStroke(KeyStroke.getKeyStroke(defaultValue, InputEvent.CTRL_MASK));
+    }
+
+    public Color nextColor(Color defaultValue) {
+      if (val != null) {
+        String s = nextToken();
+        if (s.length() > 0) {
+          defaultValue = ColorConfigurer.stringToColor(s);
+        }
+        else {
+          defaultValue = null;
+        }
+      }
+      return defaultValue;
+    }
+
+    public KeyStroke nextKeyStroke(KeyStroke defaultValue) {
+      if (val != null) {
+        String s = nextToken();
+        if (s.length() == 0) {
+          defaultValue = null;
+        }
+        else if (s.indexOf(',') < 0) {
+          defaultValue = KeyStroke.getKeyStroke(s.charAt(0), InputEvent.CTRL_MASK);
+        }
+        else {
+          defaultValue = HotKeyConfigurer.decode(s);
+        }
       }
       return defaultValue;
     }

@@ -1,13 +1,11 @@
 package VASSAL.counters;
 
-import VASSAL.build.GameModule;
-import VASSAL.build.module.Chatter;
-import VASSAL.build.module.GlobalOptions;
 import VASSAL.build.module.Map;
 import VASSAL.build.module.documentation.HelpFile;
 import VASSAL.build.module.map.boardPicker.Board;
 import VASSAL.command.Command;
 import VASSAL.configure.ChooseComponentDialog;
+import VASSAL.configure.HotKeyConfigurer;
 import VASSAL.configure.IntConfigurer;
 import VASSAL.configure.StringConfigurer;
 import VASSAL.tools.SequenceEncoder;
@@ -16,7 +14,6 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.event.InputEvent;
 import java.io.File;
 import java.net.MalformedURLException;
 
@@ -47,7 +44,7 @@ public class SendToLocation extends Decorator implements EditablePiece {
   public static final String ID = "sendto;";
   private KeyCommand[] command;
   private String commandName;
-  private char key;
+  private KeyStroke key;
   private String mapId;
   private String boardName;
   private int x;
@@ -66,8 +63,7 @@ public class SendToLocation extends Decorator implements EditablePiece {
     type = type.substring(ID.length());
     SequenceEncoder.Decoder st = new SequenceEncoder.Decoder(type, ';');
     commandName = st.nextToken();
-    String s = st.nextToken();
-    key = s.length() > 0 ? s.charAt(0) : 0;
+    key = st.nextKeyStroke(null);
     mapId = st.nextToken();
     boardName = st.nextToken();
     x = st.nextInt(0);
@@ -77,7 +73,7 @@ public class SendToLocation extends Decorator implements EditablePiece {
   public String myGetType() {
     SequenceEncoder se = new SequenceEncoder(';');
     se.append(commandName)
-        .append(key == 0 ? "" : "" + key)
+        .append(key)
         .append(mapId)
         .append(boardName)
         .append(x + "")
@@ -88,9 +84,8 @@ public class SendToLocation extends Decorator implements EditablePiece {
   protected KeyCommand[] myGetKeyCommands() {
     if (command == null) {
       if (commandName.length() > 0
-          && key != 0) {
-        command = new KeyCommand[]{new KeyCommand(commandName, KeyStroke.getKeyStroke(key, InputEvent.CTRL_MASK),
-                                                  Decorator.getOutermost(this))};
+          && key != null) {
+        command = new KeyCommand[]{new KeyCommand(commandName, key, Decorator.getOutermost(this))};
       }
       else {
         command = new KeyCommand[0];
@@ -166,7 +161,7 @@ public class SendToLocation extends Decorator implements EditablePiece {
 
   public static class Ed implements PieceEditor {
     private StringConfigurer nameInput;
-    private KeySpecifier keyInput;
+    private HotKeyConfigurer keyInput;
     private JTextField mapIdInput;
     private JTextField boardNameInput;
     private IntConfigurer xInput;
@@ -181,8 +176,8 @@ public class SendToLocation extends Decorator implements EditablePiece {
       nameInput = new StringConfigurer(null, "Command name:  ", p.commandName);
       controls.add(nameInput.getControls());
 
-      keyInput = new KeySpecifier(p.key);
-      controls.add(keyInput);
+      keyInput = new HotKeyConfigurer(null,"Keyboard Command:  ",p.key);
+      controls.add(keyInput.getControls());
 
       Box b = Box.createHorizontalBox();
       mapIdInput = new JTextField(12);
@@ -271,7 +266,7 @@ public class SendToLocation extends Decorator implements EditablePiece {
     public String getType() {
       SequenceEncoder se = new SequenceEncoder(';');
       se.append(nameInput.getValueString())
-          .append(keyInput.getKey())
+          .append((KeyStroke)keyInput.getValue())
           .append(map == null ? "" : map.getIdentifier())
           .append(boardNameInput.getText())
           .append(xInput.getValueString())

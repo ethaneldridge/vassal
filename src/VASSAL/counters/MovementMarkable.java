@@ -91,7 +91,7 @@ public class MovementMarkable extends Decorator implements EditablePiece {
 
   public String myGetType() {
     SequenceEncoder se = new SequenceEncoder(';');
-    se.append(movedIcon.getValueString()).append("" + xOffset).append("" + yOffset);
+    se.append(movedIcon.getValueString()).append(xOffset).append(yOffset);
     return ID + se.getValue();
   }
 

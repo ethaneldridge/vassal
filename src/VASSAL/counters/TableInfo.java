@@ -24,6 +24,7 @@ import VASSAL.command.ChangePiece;
 import VASSAL.command.Command;
 import VASSAL.configure.IntConfigurer;
 import VASSAL.configure.StringConfigurer;
+import VASSAL.configure.HotKeyConfigurer;
 import VASSAL.tools.SequenceEncoder;
 
 import javax.swing.*;
@@ -43,7 +44,7 @@ public class TableInfo extends Decorator implements EditablePiece {
   protected String oldState;
   protected int nRows, nCols;
   protected String command;
-  protected char launchKey;
+  protected KeyStroke launchKey;
   protected KeyCommand launch;
   protected JTable table;
   protected JDialog frame;
@@ -71,7 +72,7 @@ public class TableInfo extends Decorator implements EditablePiece {
     nRows = st.nextInt(2);
     nCols = st.nextInt(2);
     command = st.nextToken();
-    launchKey = st.nextChar('\0');
+    launchKey = st.nextKeyStroke(null);
     frame = null;
     table = null;
   }
@@ -132,15 +133,13 @@ public class TableInfo extends Decorator implements EditablePiece {
 
   public String myGetType() {
     SequenceEncoder se = new SequenceEncoder(';');
-    se.append("" + nRows).append("" + nCols).append(command).append("" + launchKey);
+    se.append(nRows).append(nCols).append(command).append(launchKey);
     return ID + se.getValue();
   }
 
   protected KeyCommand[] myGetKeyCommands() {
     if (launch == null) {
-      launch = new KeyCommand(command,
-                              KeyStroke.getKeyStroke(launchKey, java.awt.event.InputEvent.CTRL_MASK),
-                              Decorator.getOutermost(this));
+      launch = new KeyCommand(command, launchKey, Decorator.getOutermost(this));
     }
     return new KeyCommand[]{launch};
   }
@@ -207,22 +206,19 @@ public class TableInfo extends Decorator implements EditablePiece {
     private IntConfigurer rowConfig = new IntConfigurer(null, "Number of rows: ");
     private IntConfigurer colConfig = new IntConfigurer(null, "Number of columns: ");
     private StringConfigurer commandConfig = new StringConfigurer(null, "Menu Command");
-    private KeySpecifier keyConfig;
+    private HotKeyConfigurer keyConfig;
     private JPanel panel;
 
     public Ed(TableInfo p) {
       rowConfig.setValue(new Integer(p.nRows));
       colConfig.setValue(new Integer(p.nCols));
       commandConfig.setValue(p.command);
-      keyConfig = new KeySpecifier(p.launchKey);
+      keyConfig = new HotKeyConfigurer(null,"Keyboard Command:  ",p.launchKey);
 
       panel = new JPanel();
       panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
       panel.add(commandConfig.getControls());
-      Box b = Box.createHorizontalBox();
-      b.add(new JLabel("Command to show: "));
-      b.add(keyConfig);
-      panel.add(b);
+      panel.add(keyConfig.getControls());
       panel.add(rowConfig.getControls());
       panel.add(colConfig.getControls());
     }
@@ -236,7 +232,7 @@ public class TableInfo extends Decorator implements EditablePiece {
       se.append(rowConfig.getValueString())
         .append(colConfig.getValueString())
         .append(commandConfig.getValueString())
-        .append(keyConfig.getKey());
+        .append((KeyStroke)keyConfig.getValue());
       return ID + se.getValue();
     }
 

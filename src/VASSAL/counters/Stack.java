@@ -363,8 +363,8 @@ public class Stack implements GamePiece, StateMergeable {
   public String getState() {
     SequenceEncoder se = new SequenceEncoder(';');
     se.append(getMap() == null ? "null" : getMap().getIdentifier())
-      .append("" + getPosition().x)
-      .append("" + getPosition().y);
+      .append(getPosition().x)
+      .append(getPosition().y);
     for (int i = 0; i < pieceCount; ++i) {
       se.append(contents[i].getId());
     }

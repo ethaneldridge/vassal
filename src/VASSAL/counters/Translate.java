@@ -21,16 +21,16 @@ package VASSAL.counters;
 import VASSAL.build.module.documentation.HelpFile;
 import VASSAL.command.Command;
 import VASSAL.command.MoveTracker;
+import VASSAL.configure.BooleanConfigurer;
+import VASSAL.configure.HotKeyConfigurer;
 import VASSAL.configure.IntConfigurer;
 import VASSAL.configure.StringConfigurer;
-import VASSAL.configure.BooleanConfigurer;
 import VASSAL.tools.SequenceEncoder;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.geom.Point2D;
 import java.awt.geom.AffineTransform;
-import java.awt.event.InputEvent;
+import java.awt.geom.Point2D;
 import java.io.File;
 import java.net.MalformedURLException;
 
@@ -39,10 +39,10 @@ import java.net.MalformedURLException;
  * optionally tracking the current rotation of the piece.
  */
 public class Translate extends Decorator implements EditablePiece {
-  public static final String ID = "transate;";
-  private KeyCommand[] commands = new KeyCommand[1];
+  public static final String ID = "translate;";
+  private KeyCommand[] commands;
   private String menuCommand;
-  private char keyCommand;
+  private KeyStroke keyCommand;
   private int xDist;
   private int yDist;
   private boolean moveStack;
@@ -64,16 +64,25 @@ public class Translate extends Decorator implements EditablePiece {
     type = type.substring(ID.length());
     SequenceEncoder.Decoder st = new SequenceEncoder.Decoder(type, ';');
     menuCommand = st.nextToken("Move Forward");
-    keyCommand = st.nextChar('M');
-    commands[0] = new KeyCommand(menuCommand, KeyStroke.getKeyStroke(keyCommand, InputEvent.CTRL_MASK),
-                                 Decorator.getOutermost(this));
+    keyCommand = st.nextKeyStroke('M');
     xDist = st.nextInt(0);
     yDist = st.nextInt(60);
     moveStack = st.nextBoolean(true);
+    commands = null;
   }
 
   protected KeyCommand[] myGetKeyCommands() {
-    commands[0].setEnabled(getMap() != null);
+    if (commands == null) {
+      if (menuCommand.length() > 0) {
+        commands = new KeyCommand[]{new KeyCommand(menuCommand, keyCommand, Decorator.getOutermost(this))};
+      }
+      else {
+        commands = new KeyCommand[0];
+      }
+    }
+    if (commands.length > 0) {
+      commands[0].setEnabled(getMap() != null);
+    }
     return commands;
   }
 
@@ -152,7 +161,7 @@ public class Translate extends Decorator implements EditablePiece {
     private IntConfigurer xDist;
     private IntConfigurer yDist;
     private StringConfigurer name;
-    private KeySpecifier key;
+    private HotKeyConfigurer key;
     private JPanel controls;
     private BooleanConfigurer moveStack;
 
@@ -161,11 +170,8 @@ public class Translate extends Decorator implements EditablePiece {
       controls.setLayout(new BoxLayout(controls, BoxLayout.Y_AXIS));
       name = new StringConfigurer(null, "Command Name:  ", t.menuCommand);
       controls.add(name.getControls());
-      Box b = Box.createHorizontalBox();
-      b.add(new JLabel("Keyboard shortcut:  "));
-      key = new KeySpecifier(t.keyCommand);
-      b.add(key);
-      controls.add(b);
+      key = new HotKeyConfigurer(null, "Keyboard shortcut:  ", t.keyCommand);
+      controls.add(key.getControls());
       xDist = new IntConfigurer(null, "Distance to the right:  ", new Integer(t.xDist));
       controls.add(xDist.getControls());
       yDist = new IntConfigurer(null, "Distance upwards:  ", new Integer(t.yDist));
@@ -184,7 +190,7 @@ public class Translate extends Decorator implements EditablePiece {
 
     public String getType() {
       SequenceEncoder se = new SequenceEncoder(';');
-      se.append(name.getValueString()).append(key.getKey()).append(xDist.getValueString()).append(yDist.getValueString()).append(moveStack.getValueString());
+      se.append(name.getValueString()).append((KeyStroke) key.getValue()).append(xDist.getValueString()).append(yDist.getValueString()).append(moveStack.getValueString());
       return ID + se.getValue();
     }
   }

@@ -25,6 +25,7 @@ import VASSAL.command.Command;
 import VASSAL.command.ChangeTracker;
 import VASSAL.configure.StringConfigurer;
 import VASSAL.configure.StringEnumConfigurer;
+import VASSAL.configure.HotKeyConfigurer;
 import VASSAL.tools.SequenceEncoder;
 
 import javax.swing.*;
@@ -44,7 +45,8 @@ public class Obscurable extends Decorator implements EditablePiece {
   protected static final char IMAGE = 'G';
 
   protected char obscureKey;
-  protected char peekKey = 'P';
+  protected KeyStroke keyCommand;
+  protected KeyStroke peekKey;
   protected String imageName;
   protected String obscuredToOthersImage;
   protected String obscuredBy;
@@ -73,7 +75,7 @@ public class Obscurable extends Decorator implements EditablePiece {
   public void mySetType(String in) {
     SequenceEncoder.Decoder st = new SequenceEncoder.Decoder(in, ';');
     st.nextToken();
-    obscureKey = st.nextChar('\0');
+    keyCommand = st.nextKeyStroke(null);
     imageName = st.nextToken();
     obscuredToMeView = new BasicPiece(BasicPiece.ID + ";;" + imageName + ";;");
     if (st.hasMoreTokens()) {
@@ -85,11 +87,16 @@ public class Obscurable extends Decorator implements EditablePiece {
       switch (displayStyle) {
         case PEEK:
           if (s.length() > 1) {
-            peekKey = s.charAt(1);
+            if (s.length() == 2) {
+              peekKey = KeyStroke.getKeyStroke(s.charAt(1),InputEvent.CTRL_MASK);
+            }
+            else {
+              peekKey = HotKeyConfigurer.decode(s.substring(1));
+            }
             peeking = false;
           }
           else {
-            peekKey = 0;
+            peekKey = null;
             peeking = true;
           }
           break;
@@ -109,16 +116,21 @@ public class Obscurable extends Decorator implements EditablePiece {
 
   public String myGetType() {
     SequenceEncoder se = new SequenceEncoder(';');
-    se.append(obscureKey == 0 ? "" : obscureKey + "").append(imageName).append(hideCommand);
+    se.append(keyCommand).append(imageName).append(hideCommand);
     switch (displayStyle) {
       case PEEK:
-        se.append(peekKey == 0 ? displayStyle + "" : displayStyle + "" + peekKey);
+        if (peekKey == null) {
+          se.append(displayStyle);
+        }
+        else {
+          se.append(displayStyle + HotKeyConfigurer.encode(peekKey));
+        }
         break;
       case IMAGE:
         se.append(displayStyle + obscuredToOthersImage);
         break;
       default:
-        se.append("" + displayStyle);
+        se.append(displayStyle);
     }
     se.append(maskName);
     return ID + se.getValue();
@@ -170,7 +182,7 @@ public class Obscurable extends Decorator implements EditablePiece {
       }
     }
     else if (Properties.SELECTED.equals(key)) {
-      if (!Boolean.TRUE.equals(val) && peekKey != 0) {
+      if (!Boolean.TRUE.equals(val) && peekKey != null) {
         peeking = false;
       }
       super.setProperty(key, val);
@@ -296,17 +308,16 @@ public class Obscurable extends Decorator implements EditablePiece {
   public KeyCommand[] myGetKeyCommands() {
     if (commands == null) {
       commands = new KeyCommand[2];
-      commands[0] = new KeyCommand(hideCommand,
-                                   KeyStroke.getKeyStroke(obscureKey, InputEvent.CTRL_MASK),
-                                   Decorator.getOutermost(this));
-      commands[1] = new KeyCommand("Peek",
-                                   KeyStroke.getKeyStroke(peekKey, InputEvent.CTRL_MASK),
-                                   Decorator.getOutermost(this));
+      if (keyCommand == null) { // Backwards compatibility with VASL classes
+        keyCommand = KeyStroke.getKeyStroke(obscureKey, InputEvent.CTRL_MASK);
+      }
+      commands[0] = new KeyCommand(hideCommand, keyCommand, Decorator.getOutermost(this));
+      commands[1] = new KeyCommand("Peek", peekKey, Decorator.getOutermost(this));
     }
     commands[0].setEnabled(isMaskableBy(GameModule.getUserId()));
     if (obscuredToOthers()
         && displayStyle == PEEK
-        && peekKey != 0) {
+        && peekKey != null) {
       return commands;
     }
     else {
@@ -345,7 +356,7 @@ public class Obscurable extends Decorator implements EditablePiece {
     // Therefore, un-select the piece if turning it face down
     if (retVal != null
       && PEEK == displayStyle
-      && peekKey == 0
+      && peekKey == null
       && obscuredToOthers()) {
       Runnable runnable = new Runnable() {
         public void run() {
@@ -387,10 +398,10 @@ public class Obscurable extends Decorator implements EditablePiece {
 
   private static class Ed implements PieceEditor {
     private ImagePicker picker;
-    private KeySpecifier obscureKeyInput;
+    private HotKeyConfigurer obscureKeyInput;
     private StringConfigurer obscureCommandInput, maskNameInput;
     private StringEnumConfigurer displayOption;
-    private KeySpecifier peekKeyInput;
+    private HotKeyConfigurer peekKeyInput;
     private JPanel controls = new JPanel();
     private String[] optionNames = new String[]{"Background", "Plain", "Inset", "Use Image"};
     private char[] optionChars = new char[]{BACKGROUND, PEEK, INSET, IMAGE};
@@ -402,9 +413,8 @@ public class Obscurable extends Decorator implements EditablePiece {
       Box box = Box.createHorizontalBox();
       obscureCommandInput = new StringConfigurer(null, "Mask Command", p.hideCommand);
       box.add(obscureCommandInput.getControls());
-      obscureKeyInput = new KeySpecifier(p.obscureKey);
-      box.add(new JLabel("Key to hide: "));
-      box.add(obscureKeyInput);
+      obscureKeyInput = new HotKeyConfigurer(null,"Keyboard Command:  ",p.keyCommand);
+      box.add(obscureKeyInput.getControls());
       controls.add(box);
 
       box = Box.createHorizontalBox();
@@ -464,12 +474,9 @@ public class Obscurable extends Decorator implements EditablePiece {
       box.add(showDisplayOption);
       controls.add(box);
 
-      final Box peekBox = Box.createHorizontalBox();
-      peekBox.add(new JLabel("Peek Command"));
-      peekKeyInput = new KeySpecifier(p.peekKey);
-      peekBox.setVisible(p.displayStyle == PEEK);
-      peekBox.add(peekKeyInput);
-      controls.add(peekBox);
+      peekKeyInput = new HotKeyConfigurer(null,"Peek Command:  ",p.peekKey);
+      peekKeyInput.getControls().setVisible(p.displayStyle == PEEK);
+      controls.add(peekKeyInput.getControls());
 
       imagePicker = new ImagePicker();
       imagePicker.setImageName(p.obscuredToOthersImage);
@@ -479,7 +486,7 @@ public class Obscurable extends Decorator implements EditablePiece {
       displayOption.addPropertyChangeListener(new PropertyChangeListener() {
         public void propertyChange(PropertyChangeEvent evt) {
           showDisplayOption.repaint();
-          peekBox.setVisible(optionNames[1].equals(evt.getNewValue()));
+          peekKeyInput.getControls().setVisible(optionNames[1].equals(evt.getNewValue()));
           imagePicker.setVisible(optionNames[3].equals(evt.getNewValue()));
           Window w = (Window) SwingUtilities.getAncestorOfClass(Window.class, controls);
           if (w != null) {
@@ -495,7 +502,7 @@ public class Obscurable extends Decorator implements EditablePiece {
 
     public String getType() {
       SequenceEncoder se = new SequenceEncoder(';');
-      se.append("" + obscureKeyInput.getKey())
+      se.append((KeyStroke)obscureKeyInput.getValue())
           .append(picker.getImageName())
           .append(obscureCommandInput.getValueString());
       char optionChar = INSET;
@@ -507,13 +514,19 @@ public class Obscurable extends Decorator implements EditablePiece {
       }
       switch (optionChar) {
         case PEEK:
-          se.append(optionChar + peekKeyInput.getKey());
+          String valueString = peekKeyInput.getValueString();
+          if (valueString != null) {
+            se.append(optionChar + valueString);
+          }
+          else {
+            se.append(optionChar);
+          }
           break;
         case IMAGE:
           se.append(optionChar + imagePicker.getImageName());
           break;
         default:
-          se.append("" + optionChar);
+          se.append(optionChar);
       }
       se.append(maskNameInput.getValueString());
       return ID + se.getValue();

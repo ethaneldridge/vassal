@@ -44,11 +44,10 @@ import javax.swing.event.TreeSelectionEvent;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.TreePath;
 import java.awt.*;
-import java.awt.geom.AffineTransform;
-import java.awt.geom.Point2D;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.event.InputEvent;
+import java.awt.geom.AffineTransform;
+import java.awt.geom.Point2D;
 import java.io.File;
 import java.net.MalformedURLException;
 
@@ -58,7 +57,7 @@ import java.net.MalformedURLException;
 public class PlaceMarker extends Decorator implements EditablePiece {
   public static final String ID = "placemark;";
   protected KeyCommand command;
-  protected char key;
+  protected KeyStroke key;
   protected String markerSpec;
   protected String markerText = "";
   protected int xOffset=0;
@@ -99,11 +98,11 @@ public class PlaceMarker extends Decorator implements EditablePiece {
   public String myGetType() {
     SequenceEncoder se = new SequenceEncoder(';');
     se.append(command.getName());
-    se.append(key != 0 ? "" + key : "");
+    se.append(key);
     se.append(markerSpec == null ? "null" : markerSpec);
     se.append(markerText == null ? "null" : markerText);
-    se.append(Integer.toString(xOffset)).append(yOffset+"");
-    se.append(matchRotation+"");
+    se.append(xOffset).append(yOffset);
+    se.append(matchRotation);
     return ID + se.getValue();
   }
 
@@ -205,8 +204,8 @@ public class PlaceMarker extends Decorator implements EditablePiece {
     SequenceEncoder.Decoder st = new SequenceEncoder.Decoder(type, ';');
     st.nextToken();
     String name = st.nextToken();
-    key = st.nextChar('\0');
-    command = new KeyCommand(name, KeyStroke.getKeyStroke(key, InputEvent.CTRL_MASK), this);
+    key = st.nextKeyStroke(null);
+    command = new KeyCommand(name, key, this);
     markerSpec = st.nextToken();
     if ("null".equals(markerSpec)) {
       markerSpec = null;
@@ -225,7 +224,7 @@ public class PlaceMarker extends Decorator implements EditablePiece {
   }
 
   protected static class Ed implements PieceEditor {
-    private KeySpecifier keyInput;
+    private HotKeyConfigurer keyInput;
     private StringConfigurer commandInput;
     private PieceSlot pieceInput;
     private JPanel p = new JPanel();
@@ -237,7 +236,7 @@ public class PlaceMarker extends Decorator implements EditablePiece {
     protected BooleanConfigurer matchRotationConfig = new BooleanConfigurer(null,"Match Rotation");
 
     protected Ed(PlaceMarker piece) {
-      keyInput = new KeySpecifier(piece.key);
+      keyInput = new HotKeyConfigurer(null,"Keyboard Command:  ",piece.key);
       commandInput = new StringConfigurer(null, "Command: ", piece.command.getName());
       GamePiece marker = piece.createMarker();
       pieceInput = new PieceSlot(marker);
@@ -247,11 +246,8 @@ public class PlaceMarker extends Decorator implements EditablePiece {
       p = new JPanel();
       p.setLayout(new BoxLayout(p, BoxLayout.Y_AXIS));
       p.add(commandInput.getControls());
+      p.add(keyInput.getControls());
       Box b = Box.createHorizontalBox();
-      b.add(new JLabel("Key:  "));
-      b.add(keyInput);
-      p.add(b);
-      b = Box.createHorizontalBox();
       b.add(pieceInput.getComponent());
       defineButton.addActionListener(new ActionListener() {
         public void actionPerformed(ActionEvent e) {
@@ -296,7 +292,7 @@ public class PlaceMarker extends Decorator implements EditablePiece {
     public String getType() {
       SequenceEncoder se = new SequenceEncoder(';');
       se.append(commandInput.getValueString());
-      se.append(keyInput.getKey());
+      se.append((KeyStroke)keyInput.getValue());
       if (pieceInput.getPiece() == null) {
         se.append("null");
       }

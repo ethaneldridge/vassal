@@ -21,6 +21,7 @@ package VASSAL.counters;
 import VASSAL.build.module.documentation.HelpFile;
 import VASSAL.build.module.map.DrawPile;
 import VASSAL.command.Command;
+import VASSAL.configure.HotKeyConfigurer;
 import VASSAL.configure.StringConfigurer;
 import VASSAL.tools.SequenceEncoder;
 import VASSAL.tools.UniqueIdManager;
@@ -29,7 +30,6 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.event.InputEvent;
 import java.io.File;
 import java.net.MalformedURLException;
 
@@ -40,7 +40,7 @@ public class ReturnToDeck extends Decorator implements EditablePiece {
   public static final String ID = "return;";
   private String deckId;
   private String returnCommand;
-  private char returnKey;
+  private KeyStroke returnKey;
   private DrawPile deck;
 
   private KeyCommand[] commands;
@@ -56,9 +56,7 @@ public class ReturnToDeck extends Decorator implements EditablePiece {
 
   protected KeyCommand[] myGetKeyCommands() {
     if (commands == null) {
-      commands = new KeyCommand[]{new KeyCommand(returnCommand,
-                                                 KeyStroke.getKeyStroke(returnKey, InputEvent.CTRL_MASK),
-                                                 Decorator.getOutermost(this))};
+      commands = new KeyCommand[]{new KeyCommand(returnCommand, returnKey, Decorator.getOutermost(this))};
     }
     return commands;
   }
@@ -71,13 +69,13 @@ public class ReturnToDeck extends Decorator implements EditablePiece {
     s = s.substring(ID.length());
     SequenceEncoder.Decoder st = new SequenceEncoder.Decoder(s, ';');
     returnCommand = st.nextToken();
-    returnKey = st.nextChar('\0');
+    returnKey = st.nextKeyStroke(null);
     deckId = st.nextToken();
   }
 
   public String myGetType() {
     SequenceEncoder se = new SequenceEncoder(';');
-    return ID + se.append(returnCommand).append("" + returnKey).append(deckId).getValue();
+    return ID + se.append(returnCommand).append(returnKey).append(deckId).getValue();
   }
 
   public Command myKeyEvent(KeyStroke stroke) {
@@ -141,7 +139,7 @@ public class ReturnToDeck extends Decorator implements EditablePiece {
 
   private static class Ed implements PieceEditor {
     private StringConfigurer menuName;
-    private KeySpecifier menuKey;
+    private HotKeyConfigurer menuKey;
     private JPanel controls;
     private String deckId;
     private final JTextField tf = new JTextField(12);
@@ -151,12 +149,9 @@ public class ReturnToDeck extends Decorator implements EditablePiece {
       controls.setLayout(new BoxLayout(controls, BoxLayout.Y_AXIS));
       menuName = new StringConfigurer(null, "Menu Text", p.returnCommand);
       controls.add(menuName.getControls());
-      menuKey = new KeySpecifier(p.returnKey);
+      menuKey = new HotKeyConfigurer(null,"Keyboard Command:  ",p.returnKey);
       deckId = p.deckId;
-      Box b = Box.createHorizontalBox();
-      b.add(new JLabel("Key Command:  "));
-      b.add(menuKey);
-      controls.add(b);
+      controls.add(menuKey.getControls());
       JButton select = new JButton("Select Deck");
       tf.setEditable(false);
       updateDeckName();
@@ -192,7 +187,7 @@ public class ReturnToDeck extends Decorator implements EditablePiece {
 
     public String getType() {
       SequenceEncoder se = new SequenceEncoder(';');
-      return ID + se.append(menuName.getValueString()).append(menuKey.getKey()).append(deckId).getValue();
+      return ID + se.append(menuName.getValueString()).append((KeyStroke)menuKey.getValue()).append(deckId).getValue();
     }
   }
 }

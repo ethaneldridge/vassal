@@ -408,7 +408,7 @@ public class BasicPiece implements EditablePiece, StateMergeable {
     String mapName = map == null ? "null" : map.getIdentifier();
     se.append(mapName);
     Point p = getPosition();
-    se.append("" + p.x).append("" + p.y);
+    se.append(p.x).append(p.y);
     return se.getValue();
   }
 

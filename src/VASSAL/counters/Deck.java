@@ -243,7 +243,7 @@ public class Deck extends Stack {
 
   public String getType() {
     SequenceEncoder se = new SequenceEncoder(';');
-    se.append("" + drawOutline)
+    se.append(drawOutline)
         .append(ColorConfigurer.colorToString(outlineColor))
         .append(String.valueOf(size.width)).append(String.valueOf(size.height))
         .append(faceDownOption)
@@ -343,9 +343,9 @@ public class Deck extends Stack {
   public String getState() {
     SequenceEncoder se = new SequenceEncoder(';');
     se.append(getMap() == null ? "null" : getMap().getIdentifier())
-        .append("" + getPosition().x)
-        .append("" + getPosition().y);
-    se.append("" + faceDown);
+        .append(getPosition().x)
+        .append(getPosition().y);
+    se.append(faceDown);
     SequenceEncoder se2 = new SequenceEncoder(',');
     for (Enumeration e = getPieces(); e.hasMoreElements();) {
       GamePiece p = (GamePiece) e.nextElement();

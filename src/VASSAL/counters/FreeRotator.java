@@ -27,6 +27,7 @@ import VASSAL.command.ChangeTracker;
 import VASSAL.command.Command;
 import VASSAL.configure.BooleanConfigurer;
 import VASSAL.configure.IntConfigurer;
+import VASSAL.configure.HotKeyConfigurer;
 import VASSAL.tools.RotateFilter;
 import VASSAL.tools.SequenceEncoder;
 
@@ -54,11 +55,11 @@ public class FreeRotator extends Decorator implements EditablePiece, MouseListen
   private KeyCommand rotateCWCommand;
   private KeyCommand rotateCCWCommand;
   private KeyCommand[] commands;
-  private char setAngleKey = 'R';
+  private KeyStroke setAngleKey;
   private String setAngleText = "Rotate";
-  private char rotateCWKey = ']';
+  private KeyStroke rotateCWKey;
   private String rotateCWText = "Rotate CW";
-  private char rotateCCWKey = '[';
+  private KeyStroke rotateCCWKey;
   private String rotateCCWText = "Rotate CCW";
 
   private double[] validAngles = new double[]{0.0};
@@ -155,20 +156,16 @@ public class FreeRotator extends Decorator implements EditablePiece, MouseListen
       validAngles[i] = -i * (360.0 / validAngles.length);
     }
     if (validAngles.length == 1) {
-      setAngleKey = st.nextChar('\0');
+      setAngleKey = st.nextKeyStroke(null);
       if (st.hasMoreTokens()) {
         setAngleText = st.nextToken();
       }
     }
     else {
-      String s = st.nextToken();
-      rotateCWKey = s.length() > 0 ? s.charAt(0) : '\0';
-      s = st.nextToken();
-      rotateCCWKey = s.length() > 0 ? s.charAt(0) : '\0';
-      if (st.hasMoreTokens()) {
-        rotateCWText = st.nextToken();
-        rotateCCWText = st.nextToken();
-      }
+      rotateCWKey = st.nextKeyStroke(null);
+      rotateCCWKey = st.nextKeyStroke(null);
+      rotateCWText = st.nextToken("");
+      rotateCCWText = st.nextToken("");
     }
     commands = null;
   }
@@ -205,14 +202,14 @@ public class FreeRotator extends Decorator implements EditablePiece, MouseListen
 
   public String myGetType() {
     SequenceEncoder se = new SequenceEncoder(';');
-    se.append("" + validAngles.length);
+    se.append(validAngles.length);
     if (validAngles.length == 1) {
-      se.append("" + setAngleKey);
+      se.append(setAngleKey);
       se.append(setAngleText);
     }
     else {
-      se.append(rotateCWKey == 0 ? "" : "" + rotateCWKey)
-          .append(rotateCCWKey == 0 ? "" : "" + rotateCCWKey)
+      se.append(rotateCWKey)
+          .append(rotateCCWKey)
           .append(rotateCWText)
           .append(rotateCCWText);
     }
@@ -240,21 +237,12 @@ public class FreeRotator extends Decorator implements EditablePiece, MouseListen
   public KeyCommand[] myGetKeyCommands() {
     if (commands == null) {
       setAngleCommand = new KeyCommand
-          (setAngleText,
-           KeyStroke.getKeyStroke(setAngleKey,
-                                  java.awt.event.InputEvent.CTRL_MASK),
-           Decorator.getOutermost(this));
+          (setAngleText,setAngleKey, Decorator.getOutermost(this));
       rotateCWCommand = new KeyCommand
-          (rotateCWText,
-           KeyStroke.getKeyStroke(rotateCWKey,
-                                  java.awt.event.InputEvent.CTRL_MASK),
-           Decorator.getOutermost(this));
+          (rotateCWText,rotateCWKey,Decorator.getOutermost(this));
 
       rotateCCWCommand = new KeyCommand
-          (rotateCCWText,
-           KeyStroke.getKeyStroke(rotateCCWKey,
-                                  java.awt.event.InputEvent.CTRL_MASK),
-           Decorator.getOutermost(this));
+          (rotateCCWText,rotateCCWKey,Decorator.getOutermost(this));
 
       if (validAngles.length == 1) {
         if (setAngleText.length() > 0) {
@@ -452,10 +440,10 @@ public class FreeRotator extends Decorator implements EditablePiece, MouseListen
   private static class Ed implements PieceEditor,
       java.beans.PropertyChangeListener {
     private BooleanConfigurer anyConfig;
-    private KeySpecifier anyKeyConfig;
+    private HotKeyConfigurer anyKeyConfig;
     private IntConfigurer facingsConfig;
-    private KeySpecifier cwKeyConfig;
-    private KeySpecifier ccwKeyConfig;
+    private HotKeyConfigurer cwKeyConfig;
+    private HotKeyConfigurer ccwKeyConfig;
     private JTextField anyCommand;
     private JTextField cwCommand;
     private JTextField ccwCommand;
@@ -466,12 +454,12 @@ public class FreeRotator extends Decorator implements EditablePiece, MouseListen
     private JPanel panel;
 
     public Ed(FreeRotator p) {
-      cwKeyConfig = new KeySpecifier(p.rotateCWKey);
-      ccwKeyConfig = new KeySpecifier(p.rotateCCWKey);
+      cwKeyConfig = new HotKeyConfigurer(null,"Command to rotate clockwise:  ",p.rotateCWKey);
+      ccwKeyConfig = new HotKeyConfigurer(null,"Command to rorate counterclockwise:  ",p.rotateCCWKey);
       anyConfig = new BooleanConfigurer
           (null, "Allow arbitrary rotations",
            new Boolean(p.validAngles.length == 1));
-      anyKeyConfig = new KeySpecifier(p.setAngleKey);
+      anyKeyConfig = new HotKeyConfigurer(null,"Command to rotate:  ",p.setAngleKey);
       facingsConfig = new IntConfigurer
           (null, "Number of allowed facings :",
            new Integer(p.validAngles.length == 1 ? 6 : p.validAngles.length));
@@ -481,8 +469,7 @@ public class FreeRotator extends Decorator implements EditablePiece, MouseListen
 
       panel.add(facingsConfig.getControls());
       cwControls = Box.createHorizontalBox();
-      cwControls.add(new JLabel("Command to rotate clockwise:"));
-      cwControls.add(cwKeyConfig);
+      cwControls.add(cwKeyConfig.getControls());
       cwControls.add(new JLabel("Menu text:"));
       cwCommand = new JTextField(12);
       cwCommand.setMaximumSize(cwCommand.getPreferredSize());
@@ -491,8 +478,7 @@ public class FreeRotator extends Decorator implements EditablePiece, MouseListen
       panel.add(cwControls);
 
       ccwControls = Box.createHorizontalBox();
-      ccwControls.add(new JLabel("Command to rotate counterclockwise:"));
-      ccwControls.add(ccwKeyConfig);
+      ccwControls.add(ccwKeyConfig.getControls());
       ccwControls.add(new JLabel("Menu text:"));
       ccwCommand = new JTextField(12);
       ccwCommand.setMaximumSize(ccwCommand.getPreferredSize());
@@ -502,8 +488,7 @@ public class FreeRotator extends Decorator implements EditablePiece, MouseListen
 
       panel.add(anyConfig.getControls());
       anyControls = Box.createHorizontalBox();
-      anyControls.add(new JLabel("Command to rotate :"));
-      anyControls.add(anyKeyConfig);
+      anyControls.add(anyKeyConfig.getControls());
       anyControls.add(new JLabel("Menu text:"));
       anyCommand = new JTextField(12);
       anyCommand.setMaximumSize(anyCommand.getPreferredSize());
@@ -532,14 +517,14 @@ public class FreeRotator extends Decorator implements EditablePiece, MouseListen
       SequenceEncoder se = new SequenceEncoder(';');
       if (Boolean.TRUE.equals(anyConfig.getValue())) {
         se.append("1");
-        se.append(anyKeyConfig.getKey());
+        se.append((KeyStroke)anyKeyConfig.getValue());
         se.append(anyCommand.getText() == null ?
                   "" : anyCommand.getText().trim());
       }
       else {
         se.append(facingsConfig.getValueString());
-        se.append(cwKeyConfig.getKey());
-        se.append(ccwKeyConfig.getKey());
+        se.append((KeyStroke)cwKeyConfig.getValue());
+        se.append((KeyStroke)ccwKeyConfig.getValue());
         se.append(cwCommand.getText() == null ?
                   "" : cwCommand.getText().trim());
         se.append(ccwCommand.getText() == null ?

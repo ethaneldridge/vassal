@@ -106,8 +106,17 @@ public class KeyBufferer extends MouseAdapter implements Buildable, MouseMotionL
           return null;
         }
 
-        public Object visitStack(Stack s) {
-          if (selection.contains(s.getPosition())) {
+      public Object visitStack(Stack s) {
+          if (s.isExpanded()) {
+            Point[] pos = new Point[s.getPieceCount()];
+            map.getStackMetrics().getContents(s, pos, null, null, s.getPosition().x, s.getPosition().y);
+            for (int i=0;i<pos.length;++i) {
+              if (selection.contains(pos[i])) {
+                KeyBuffer.getBuffer().add(s.getPieceAt(i));
+              }
+            }
+          }
+          else if (selection.contains(s.getPosition())) {
             return s.topPiece();
           }
           return null;

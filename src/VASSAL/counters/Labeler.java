@@ -22,17 +22,13 @@ import VASSAL.build.GameModule;
 import VASSAL.build.module.documentation.HelpFile;
 import VASSAL.command.ChangeTracker;
 import VASSAL.command.Command;
-import VASSAL.configure.ColorConfigurer;
-import VASSAL.configure.IntConfigurer;
-import VASSAL.configure.StringConfigurer;
-import VASSAL.configure.FormattedStringConfigurer;
-import VASSAL.tools.SequenceEncoder;
+import VASSAL.configure.*;
 import VASSAL.tools.FormattedString;
+import VASSAL.tools.SequenceEncoder;
 
 import javax.swing.*;
 import java.awt.*;
 import java.awt.image.BufferedImage;
-import java.awt.event.InputEvent;
 import java.io.File;
 import java.net.MalformedURLException;
 
@@ -52,7 +48,7 @@ public class Labeler extends Decorator implements EditablePiece {
   public static int VERTICAL_ALIGNMENT = TOP;
 
   private String label = "";
-  private char labelKey = 'L';
+  private KeyStroke labelKey;
   private String menuCommand = "Change Label";
   private Font font = new Font("Dialog", 0, 10);
   private KeyCommand[] commands;
@@ -83,7 +79,7 @@ public class Labeler extends Decorator implements EditablePiece {
     commands = null;
     SequenceEncoder.Decoder st = new SequenceEncoder.Decoder(type, ';');
     st.nextToken();
-    labelKey = st.nextChar('\0');
+    labelKey = st.nextKeyStroke(null);
     if (st.hasMoreTokens()) {
       menuCommand = st.nextToken();
       font = new Font("Dialog", Font.PLAIN, Integer.parseInt(st.nextToken()));
@@ -106,9 +102,9 @@ public class Labeler extends Decorator implements EditablePiece {
 
   public String myGetType() {
     SequenceEncoder se = new SequenceEncoder(';');
-    se.append(labelKey == 0 ? "" : "" + labelKey);
+    se.append(labelKey);
     se.append(menuCommand);
-    se.append("" + font.getSize());
+    se.append(font.getSize());
     String s = ColorConfigurer.colorToString(textBg);
     se.append(s == null ? "" : s);
     s = ColorConfigurer.colorToString(textFg);
@@ -294,14 +290,12 @@ public class Labeler extends Decorator implements EditablePiece {
 
   public KeyCommand[] myGetKeyCommands() {
     if (commands == null) {
-      if (labelKey == 0) {
+      if (labelKey == null) {
         commands = new KeyCommand[0];
       }
       else {
         commands = new KeyCommand[1];
-        commands[0] = new KeyCommand(menuCommand,
-                                     KeyStroke.getKeyStroke(labelKey, InputEvent.CTRL_MASK),
-                                     Decorator.getOutermost(this));
+        commands[0] = new KeyCommand(menuCommand, labelKey, Decorator.getOutermost(this));
       }
     }
     return commands;
@@ -352,7 +346,7 @@ public class Labeler extends Decorator implements EditablePiece {
   }
 
   private static class Ed implements PieceEditor {
-    private KeySpecifier labelKeyInput;
+    private HotKeyConfigurer labelKeyInput;
     private JPanel controls = new JPanel();
     private StringConfigurer command;
     private StringConfigurer initialValue;
@@ -375,11 +369,8 @@ public class Labeler extends Decorator implements EditablePiece {
       command = new StringConfigurer(null, "Menu Command", l.menuCommand);
       controls.add(command.getControls());
 
-      Box b = Box.createHorizontalBox();
-      labelKeyInput = new KeySpecifier(l.labelKey);
-      b.add(new JLabel("Menu key command: "));
-      b.add(labelKeyInput);
-      controls.add(b);
+      labelKeyInput = new HotKeyConfigurer(null,"Keyboard Command:  ",l.labelKey);
+      controls.add(labelKeyInput.getControls());
 
       font = new IntConfigurer(null, "Font size", new Integer(l.font.getSize()));
       controls.add(font.getControls());
@@ -400,7 +391,7 @@ public class Labeler extends Decorator implements EditablePiece {
                                               new Character('t'),
                                               new Character('b')};
 
-      b = Box.createHorizontalBox();
+      Box b = Box.createHorizontalBox();
       b.add(new JLabel("Vertical position:  "));
       vPos = new JComboBox(topBottom);
       vPos.setRenderer(renderer);
@@ -443,7 +434,7 @@ public class Labeler extends Decorator implements EditablePiece {
 
     public String getType() {
       SequenceEncoder se = new SequenceEncoder(';');
-      se.append(labelKeyInput.getKey());
+      se.append((KeyStroke)labelKeyInput.getValue());
       se.append(command.getValueString());
 
       Integer i = (Integer) font.getValue();
