@@ -52,7 +52,8 @@ public class Turreted extends Embellishment implements EditablePiece {
 
   public void mySetType(String type) {
     String embType;
-    if (type.startsWith(Embellishment.ID)) {
+    if (type.startsWith(Embellishment.ID)
+      || type.startsWith(Embellishment.OLD_ID)) {
       embType = type;
     }
     else {
@@ -60,7 +61,7 @@ public class Turreted extends Embellishment implements EditablePiece {
       st.nextToken();
       front = st.nextToken();
       back = st.nextToken();
-      embType = ID + ";_;" + st.nextToken() + ";Rotate TCA Right;"
+      embType = Embellishment.OLD_ID + ";_;" + st.nextToken() + ";Rotate TCA Right;"
           + st.nextToken() + ";Rotate TCA Left;0;0";
       if (st.hasMoreTokens()) {
         rotateWithCounter = true;
