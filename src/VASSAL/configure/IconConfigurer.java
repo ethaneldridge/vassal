@@ -106,11 +106,12 @@ public class IconConfigurer extends Configurer {
   }
 
   private void selectImage() {
-    if (GameModule.getGameModule().getFileChooser().showOpenDialog(controls) == JFileChooser.CANCEL_OPTION) {
+    JFileChooser fc = GameModule.getGameModule().getFileChooser();
+    if (fc.showOpenDialog(controls) == JFileChooser.CANCEL_OPTION) {
       setValue(null);
     }
     else {
-      File f = GameModule.getGameModule().getFileChooser().getSelectedFile();
+      File f = fc.getSelectedFile();
       if (f != null
         && f.exists()) {
         GameModule.getGameModule().getArchiveWriter().addImage(f.getPath(),f.getName());

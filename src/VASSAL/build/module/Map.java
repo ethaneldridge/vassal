@@ -77,7 +77,7 @@ public class Map extends AbstractConfigurable implements GameComponent,
   protected Dimension edgeBuffer = new Dimension(0, 0);
   protected LaunchButton launchButton;
   protected boolean useLaunchButton = false;
-  protected String markMovedOption;
+  protected String markMovedOption = GlobalOptions.ALWAYS;
 
   protected MouseListener multicaster = null;
   protected Vector mouseListenerStack = new Vector();
