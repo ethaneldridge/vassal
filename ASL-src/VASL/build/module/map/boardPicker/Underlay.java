@@ -144,7 +144,7 @@ public class Underlay extends SSROverlay {
     catch (Exception e2) {
     }
 
-    image = map.createImage(new FilteredImageSource
+    image = Toolkit.getDefaultToolkit().createImage(new FilteredImageSource
         (replacement.getSource(),
          new HolePunch(new int[]{0})));
     replacement = null;
