@@ -75,7 +75,7 @@ public class AboutScreen extends AbstractConfigurable {
       return;
     }
     ImageIcon icon = new ImageIcon(image);
-    JWindow w = new JWindow();
+    JWindow w = new JWindow(GameModule.getGameModule() != null ? GameModule.getGameModule().getFrame() : null);
     w.getContentPane().setBackground(Color.black);
     w.getContentPane().setLayout(new BoxLayout(w.getContentPane(), BoxLayout.Y_AXIS));
     JLabel l = new JLabel(icon);
