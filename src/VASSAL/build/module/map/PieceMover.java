@@ -1,7 +1,7 @@
 /*
  * $Id$
  *
- * Copyright (c) 2000-2003 by Rodney Kinney
+ * Copyright (c) 2000-2003 by Rodney Kinney, Jim Urbas
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Library General Public
@@ -36,8 +36,6 @@ import VASSAL.Info;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.image.BufferedImage;
-import java.awt.image.WritableRaster;
 import java.awt.datatransfer.StringSelection;
 import java.awt.dnd.*;
 import java.awt.event.ActionEvent;
@@ -47,18 +45,15 @@ import java.awt.event.MouseListener;
 import java.net.URL;
 import java.util.Enumeration;
 
+import java.awt.image.*;
+
+
 /**
- * This is a MouseListener that moves pieces on a Map window
+ * This is a MouseListener that moves pieces onto a Map window
  */
 public class PieceMover extends AbstractBuildable implements
     MouseListener, GameComponent, PieceFinder, Sort.Comparator {
-  /* Test cases for moving pieces:
-  - Simple click on piece -> no move
-  - Click and drag piece to within its own outline:  move if to new grid snap point or > 5 pixels away
-  */
-  /**
-   * The Preferences key for autoreporting moves.
-   */
+  /** The Preferences key for autoreporting moves.  */
   public static final String AUTO_REPORT = "autoReport";
 
   protected Map map;
@@ -214,6 +209,12 @@ public class PieceMover extends AbstractBuildable implements
     GamePiece bottom = it.nextPiece();
     KeyBuffer.getBuffer().clear();
 
+// Position or snap using the drag cursor shape (as opposed to the mouse release point)
+    if (Info.is2dEnabled() && map.getDragGestureListener() instanceof
+        DragHandler) {
+      ((DragHandler) map.getDragGestureListener()).convertDropPoint(p);
+    }
+
     if (!Boolean.TRUE.equals(bottom.getProperty(Properties.IGNORE_GRID))) {
       p = m.snapTo(p);
     }
@@ -291,7 +292,8 @@ public class PieceMover extends AbstractBuildable implements
   public void mousePressed(MouseEvent e) {
     if (canHandleEvent(e)) {
       selectMovablePieces(e.getPoint());
-      if (!Info.isDndEnabled() && DragBuffer.getBuffer().getIterator().hasMoreElements()) {
+      if (!Info.isDndEnabled()
+          && DragBuffer.getBuffer().getIterator().hasMoreElements()) {
         map.getView().setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
       }
     }
@@ -322,7 +324,8 @@ public class PieceMover extends AbstractBuildable implements
       if (KeyBuffer.getBuffer().contains(p)) {
         DragBuffer.getBuffer().add(p);
         // If clicking on a selected piece, put all selected pieces into the drag buffer
-        for (Enumeration enum = KeyBuffer.getBuffer().getPieces(); enum.hasMoreElements();) {
+        for (Enumeration enum = KeyBuffer.getBuffer().getPieces();
+             enum.hasMoreElements();) {
           GamePiece piece = (GamePiece) enum.nextElement();
           if (piece != p
               && piece.getParent() != p) {
@@ -416,7 +419,8 @@ public class PieceMover extends AbstractBuildable implements
         Stack s = (Stack) piece;
         if (s.isExpanded()) {
           Shape[] bounds = new Shape[s.getPieceCount()];
-          map.getStackMetrics().getContents(s, null, bounds, null, s.getPosition().x, s.getPosition().y);
+          map.getStackMetrics().getContents(s, null, bounds, null,
+                                            s.getPosition().x, s.getPosition().y);
           for (Enumeration e = s.getPiecesInVisibleOrder();
                e.hasMoreElements();) {
             GamePiece child = (GamePiece) e.nextElement();
@@ -491,81 +495,158 @@ public class PieceMover extends AbstractBuildable implements
     return result;
   }
 
+  /** DragHandler renders a psuedo cursor into an image JLabel. It is then made
+   transparent.
+   * The cursor is rendered once at the beginning of each drag operation.
+   *
+   * @author jimu
+   * @version 0.3.1
+   */
   private class DragHandler implements DragSourceListener, DragGestureListener {
+
+    final int CURSOR_ALPHA = 127;
 
     JLabel dragCursor;
 
     Point cursorOffset = new Point(); // translates event coords to local drawing coords
+    Component source;
 
+    private boolean isValid = false;
+    private Point mouseDownPosition;
+    private Point piecePosition;
 
-    public void dragGestureRecognized( DragGestureEvent dge ) {
-      System.out.println( "PieceMover.DragHandler.dragGestureRecognized()" );
+    /** Fires after user begins moving the mouse several pixels over a Map
+     */
+    public void dragGestureRecognized(DragGestureEvent dge) {
+      if (DragBuffer.getBuffer().getIterator().hasMoreElements()) {
 
-      if ( DragBuffer.getBuffer().getIterator().hasMoreElements() ) {
+        if (Info.is2dEnabled()) {
+          // get the piece(s) our cursor will be based on
+          GamePiece piece = DragBuffer.getBuffer().getIterator().nextPiece();
 
-        // get the piece(s) our cursor will be based on
-        GamePiece piece = DragBuffer.getBuffer().getIterator().nextPiece();
+          // create the cursor if necessary
+          JPanel eventWin = (JPanel) dge.getComponent();
+          RootPaneContainer topWin = (RootPaneContainer) eventWin.getTopLevelAncestor();
+          JLayeredPane drawWin = topWin.getLayeredPane();
 
-        // create the cursor if necessary
-        JFrame gmFrame = GameModule.getGameModule().getFrame();
-        if ( dragCursor == null ) {
-          dragCursor = new JLabel();
-          dragCursor.setVisible(false);
-          gmFrame.getLayeredPane().add( dragCursor, javax.swing.JLayeredPane.DRAG_LAYER );
+          if (dragCursor == null) {
+            dragCursor = new JLabel();
+            dragCursor.setVisible(false);
+            drawWin.add(dragCursor, JLayeredPane.DRAG_LAYER);
+          }
+
+          // Record sizing info and resize our cursor
+          final int EXTRA_BORDER = 4;
+          Rectangle box = piece.getShape().getBounds();
+          int width = box.width + EXTRA_BORDER * 2;
+          int height = box.height + EXTRA_BORDER * 2;
+
+          // cursorOffset represents the offset of both
+          // a) the center of the piece and the mouse click, and
+          // b) the mouse-event and drawing-window coordinate systems
+
+          piecePosition = piece.getPosition();    // local coordinate system, center of piece
+          mouseDownPosition = dge.getDragOrigin();
+          isValid = true;
+          cursorOffset.x = mouseDownPosition.x - box.x - piecePosition.x +
+              EXTRA_BORDER;
+          cursorOffset.y = mouseDownPosition.y - box.y - piecePosition.y +
+              EXTRA_BORDER;
+          SwingUtilities.convertPointToScreen(cursorOffset, drawWin);
+          dragCursor.setSize(width, height);
+
+          // make sure the original piece has selection indicator before we start drawing
+          Rectangle invalidateRegion = (Rectangle) box.clone();
+          invalidateRegion.translate(piece.getPosition().x - EXTRA_BORDER,
+                                     piece.getPosition().y - EXTRA_BORDER);
+          invalidateRegion.grow(EXTRA_BORDER * 2, EXTRA_BORDER * 2);
+          map.repaint(invalidateRegion);
+
+          // render the pieces into a buffered bitmap
+          BufferedImage cursorImage = new BufferedImage(width, height,
+                                                        BufferedImage.TYPE_4BYTE_ABGR);
+          piece.draw(cursorImage.createGraphics(), EXTRA_BORDER - box.x,
+                     EXTRA_BORDER - box.y, dragCursor, 1.0);
+
+          // Make bitmap 50% transparent
+          WritableRaster alphaRaster = cursorImage.getAlphaRaster();
+          int size = width * height;
+          int[] alphaArray = new int[size];
+          alphaArray = alphaRaster.getPixels(0, 0, width, height, alphaArray);
+          for (int i = 0; i < size; ++i) {
+            if (alphaArray[i] == 255)
+              alphaArray[i] = CURSOR_ALPHA;
+          }
+
+          // ... feather the cursor, since traits can extend arbitraily far out from bounds
+          final int FEATHER_WIDTH = EXTRA_BORDER;
+          for (int f = 0; f < FEATHER_WIDTH; ++f) {
+            int limRow = (f + 1) * width - f;   // for horizontal (North/South) runs
+            int alpha = CURSOR_ALPHA * (f + 1) / FEATHER_WIDTH;
+            for (int i = f * (width + 1); i < limRow; ++i) {
+              if (alphaArray[i] > 0)        // North
+                alphaArray[i] = alpha;
+              if (alphaArray[size - i - 1] > 0)   // South
+                alphaArray[size - i - 1] = alpha;
+            }
+            int limVert = size - (f + 1) * width;
+            for (int i = (f + 1) * width + f; i < limVert; i += width) {
+              if (alphaArray[i] > 0)   // West
+                alphaArray[i] = alpha;
+              if (alphaArray[size - i - 1] > 0)
+                alphaArray[size - i - 1] = alpha;
+            }
+          }
+          // ... apply the alpha to the image
+          alphaRaster.setPixels(0, 0, width, height, alphaArray);
+
+          // store the bitmap in the cursor
+          dragCursor.setIcon(new ImageIcon(cursorImage));
         }
-
-        // Record sizing info and resize our cursor
-        Rectangle box  = piece.boundingBox();
-        int width      = box.width  + 4;
-        int height     = box.height + 4;
-        Point piecePos = piece.getPosition();    // local coordinate system, center of piece
-        Point mousePos = dge.getDragOrigin();    // local coordinate system
-        cursorOffset.x = width  / 2 + gmFrame.getX() + gmFrame.getContentPane().getX() - piecePos.x + mousePos.x + 4;
-        cursorOffset.y = height / 2 + gmFrame.getY() + gmFrame.getContentPane().getY() - piecePos.y + mousePos.y;
-        dragCursor.setSize( width, height );
-
-        // render the pieces into a buffered bitmap
-        BufferedImage cursorImage = new BufferedImage( width, height, BufferedImage.TYPE_4BYTE_ABGR );
-        piece.draw( cursorImage.createGraphics(), width / 2, height / 2, dragCursor, 1.0 );
-
-        // Make bitmap 50% transparent
-        WritableRaster alphaRaster = cursorImage.getAlphaRaster();
-        int size = width * height;
-        int[] alphaArray = new int[ size ];
-        alphaArray = alphaRaster.getPixels( 0, 0, width, height, alphaArray );
-        for ( int i = 0; i < size; ++i ) {
-          if ( alphaArray[ i ] == 255 )
-            alphaArray[ i ] = 127;
-        }
-        alphaRaster.setPixels( 0, 0, width, height, alphaArray );
-
-        // store the bitmap in the cursor
-        dragCursor.setIcon( new ImageIcon( cursorImage ));
 
         // begin dragging
-        dge.startDrag( Cursor.getPredefinedCursor( Cursor.HAND_CURSOR ), new StringSelection(""), this );
+        dge.startDrag(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR), new
+            StringSelection(""), this);
       }
     }
 
-
-    public void dragEnter( DragSourceDragEvent dsde ) {
-      dragCursor.setLocation( dsde.getX() - cursorOffset.x, dsde.getY() - cursorOffset.y );
-      dragCursor.setVisible(true);
+    public void dragEnter(DragSourceDragEvent dsde) {
+      // note: dsde returns SCREEN coordinates
+      if (Info.is2dEnabled()) {
+        dragCursor.setLocation(dsde.getX() - cursorOffset.x, dsde.getY() -
+                                                             cursorOffset.y);
+        dragCursor.setVisible(true);
+      }
     }
 
-    public void dragOver( DragSourceDragEvent dsde ) {
-      dragCursor.setLocation( dsde.getX() - cursorOffset.x, dsde.getY() - cursorOffset.y );
+    public void dragOver(DragSourceDragEvent dsde) {
+      if (Info.is2dEnabled()) {
+        dragCursor.setLocation(dsde.getX() - cursorOffset.x, dsde.getY() -
+                                                             cursorOffset.y);
+      }
     }
 
-    public void dropActionChanged( DragSourceDragEvent dsde ) {
+    public void dropActionChanged(DragSourceDragEvent dsde) {
     }
 
-    public void dragExit( DragSourceEvent dse ) {
-      dragCursor.setVisible(false);
+    public void dragExit(DragSourceEvent dse) {
+      if (Info.is2dEnabled()) {
+        dragCursor.setVisible(false);
+      }
     }
 
-    public void dragDropEnd( DragSourceDropEvent dsde ) {
-      map.repaint();
+    public void dragDropEnd(DragSourceDropEvent dsde) {
+      if (Info.is2dEnabled()) {
+        isValid = false;
+        map.repaint();
+      }
+    }
+
+    public void convertDropPoint(Point p) {
+      if (isValid) {
+        p.translate(piecePosition.x - mouseDownPosition.x, piecePosition.y -
+                                                           mouseDownPosition.y);
+      }
     }
   }
 }
