@@ -101,7 +101,7 @@ public class Clone extends Decorator implements EditablePiece {
       newPiece.setState(outer.getState());
       c = new AddPiece(newPiece);
       if (getMap() != null) {
-        c.append(getMap().getStackMetrics().merge(outer, newPiece));
+        c.append(getMap().placeOrMerge(newPiece,outer.getPosition()));
         KeyBuffer.getBuffer().remove(outer);
         KeyBuffer.getBuffer().add(newPiece);
       }
