@@ -41,11 +41,13 @@ public class RegionGrid extends AbstractConfigurable implements MapGrid {
   // AreaList is the table of Map areas
   // pointList is a cross-reference of points to Area names
 
-  private Vector regionList = new Vector();
-  private Hashtable pointList = new Hashtable();
+  private Hashtable regionList = new Hashtable();
   private Board board;
   private boolean visible = false;
+  private static boolean inConfig = false;
   private int fontSize = 9; // Size square to display when configuring
+  private boolean snapTo = true;
+  private Config regionConfigurer;
 
   private GridNumbering gridNumbering;
   RegionGrid me = this;
@@ -58,23 +60,15 @@ public class RegionGrid extends AbstractConfigurable implements MapGrid {
     return board;
   }
 
-  public void addRegionPoint(Point p, String name) {
-
-    pointList.put(p, name);
-  }
-
-  public void addRegionPoint(int x, int y, String name) {
-    addRegionPoint(new Point(x, y), name);
-  }
-
   public void addRegion(Region a) {
-    regionList.addElement(a);
-    addRegionPoint(a.getOrigin(), a.getName());
+    regionList.put(a.getOrigin(), a);
+    if (inConfig) {
+        regionConfigurer.view.repaint();
+    }
   }
 
   public void removeRegion(Region a) {
-    regionList.removeElement(a);
-    pointList.remove(a.getOrigin());
+    regionList.remove(a.getOrigin());
   }
 
   public GridNumbering getGridNumbering() {
@@ -89,21 +83,23 @@ public class RegionGrid extends AbstractConfigurable implements MapGrid {
     return fontSize;
   }
 
+  public static final String SNAPTO = "snapto";
   public static final String VISIBLE = "visible";
   public static final String FONT_SIZE = "fontsize";
 
   public String[] getAttributeNames() {
-    return new String[]{VISIBLE, FONT_SIZE};
+    return new String[]{SNAPTO, VISIBLE, FONT_SIZE};
   }
 
   public String[] getAttributeDescriptions() {
     return new String[]{
+      "Snap to defined point?",
       "Draw region names",
       "Font Size"};
   }
 
   public Class[] getAttributeTypes() {
-    return new Class[]{Boolean.class, Integer.class};
+    return new Class[]{Boolean.class, Boolean.class, Integer.class};
   }
 
   public Configurer getConfigurer() {
@@ -158,6 +154,9 @@ public class RegionGrid extends AbstractConfigurable implements MapGrid {
     else if (FONT_SIZE.equals(key)) {
       return "" + fontSize;
     }
+	else if (SNAPTO.equals(key)) {
+	  return "" + snapTo;
+	}
     return null;
   }
 
@@ -192,14 +191,24 @@ public class RegionGrid extends AbstractConfigurable implements MapGrid {
       }
       fontSize = ((Integer) val).intValue();
     }
+	else if (SNAPTO.equals(key)) {
+		if (val instanceof Boolean) {
+			snapTo = ((Boolean) val).booleanValue();
+		} else if (val instanceof String) {
+			snapTo = "true".equals(val);
+		}
+	}
   }
 
   public void configureRegions() {
-    new Config(board).setVisible(true);
+  	inConfig = true;
+  	regionConfigurer = new Config(board);
+  	regionConfigurer.setVisible(true);
   }
 
+  // Force Regions to be drawn when configuring
   public boolean isVisible() {
-    return visible;
+    return (visible || inConfig);
   }
 
   public void setVisible(boolean b) {
@@ -224,19 +233,29 @@ public class RegionGrid extends AbstractConfigurable implements MapGrid {
   //
   public Point snapTo(Point p) {
 
-    double distSq, minDistSq = 999999999;
-    Point snapPoint, checkPoint;
     //
-    // Need at least one point to snap to.
+    // Need at least one point to snap to and snapping needs to be pn.
     //
-    if (pointList.isEmpty()) {
+    if (!snapTo || regionList.isEmpty()) {
       return p;
     }
+    
+    return doSnap(p);
+  }
+  
+  // 
+  // Internal routine to find closest point for region name reporting
+  //
+  protected Point doSnap(Point p) {
+  	
+	double distSq, minDistSq = 999999999;
+	Point snapPoint, checkPoint;
+	
     //
     // Enumerate through each grid point and determine the closest.
     //
     snapPoint = p;
-    Enumeration e = pointList.keys();
+    Enumeration e = regionList.keys();
     while (e.hasMoreElements()) {
       checkPoint = (Point) e.nextElement();
       distSq =
@@ -252,7 +271,25 @@ public class RegionGrid extends AbstractConfigurable implements MapGrid {
   }
 
   public String locationName(Point p) {
-    return pointList.isEmpty() ? null : (String) pointList.get(p);
+  	
+  	Point checkPoint;
+  	
+  	if (regionList.isEmpty()) {
+  		return null;
+  	}
+  	
+  	//
+  	// If snap-to is turned off, then p has not been snapped to a grid point yet
+  	//
+  	if (snapTo) {
+  		checkPoint = p;
+  	}
+    else {
+    	checkPoint = doSnap(p);
+    }
+    
+    return ((Region) regionList.get(checkPoint)).getName();
+
   }
 
   /**
@@ -343,6 +380,7 @@ public class RegionGrid extends AbstractConfigurable implements MapGrid {
       JButton okButton = new JButton("Ok");
       okButton.addActionListener(new ActionListener() {
         public void actionPerformed(ActionEvent e) {
+          inConfig = false;
           Config.this.setVisible(false);
         }
       });
@@ -525,6 +563,14 @@ public class RegionGrid extends AbstractConfigurable implements MapGrid {
         r.addTo(grid);
         grid.add(r);
         select(r);
+		Action a = new EditPropertiesAction(selectedRegion, null, this);
+		if (a != null) {
+		  a.actionPerformed(
+			  new ActionEvent(
+				  e.getSource(),
+				  ActionEvent.ACTION_PERFORMED,
+				  "Edit"));
+		}
         view.repaint();
       }
       else if (command.equals("Delete Region")) {

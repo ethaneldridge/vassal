@@ -29,7 +29,7 @@ import javax.swing.JComponent;
 
 public class Region extends AbstractConfigurable {
 
-  private String name = "New Region";
+  private String name = "";
   private Point origin = new Point(0, 0);
 
   private RegionGrid myGrid;
@@ -133,6 +133,7 @@ public class Region extends AbstractConfigurable {
     if (NAME.equals(key)) {
       name = (String) val;
       setConfigureName(name);
+      if (myGrid != null) myGrid.addRegion(this);
     }
     else if (X.equals(key)) {
       if (val instanceof String) {
