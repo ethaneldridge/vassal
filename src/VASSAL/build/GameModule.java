@@ -13,7 +13,7 @@
  * Library General Public License for more details.
  *
  * You should have received a copy of the GNU Library General Public
- * License along with this library; if not, copies are available 
+ * License along with this library; if not, copies are available
  * at http://www.opensource.org.
  */
 package VASSAL.build;
@@ -115,9 +115,9 @@ public abstract class GameModule extends AbstractConfigurable implements Command
     frame.getContentPane().add(toolBar, BorderLayout.NORTH);
     controlPanel.setLayout(new BorderLayout());
     addKeyStrokeSource
-      (new KeyStrokeSource
-        (toolBar,
-         JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT));
+        (new KeyStrokeSource
+            (toolBar,
+             JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT));
     frame.getContentPane().add(controlPanel, BorderLayout.CENTER);
   }
 
@@ -139,12 +139,12 @@ public abstract class GameModule extends AbstractConfigurable implements Command
       String runningVersion = Info.getVersion();
       if (Info.compareVersions(vassalVersionCreated, runningVersion) > 0) {
         javax.swing.JOptionPane.showMessageDialog
-          (null,
-           "This module was created using version " + value
-           + " of the VASSAL engine\nYou are using version "
-           + runningVersion + "\nIt's recommended you upgrade to the latest version of the VASSAL engine.",
-           "Older version in use",
-           javax.swing.JOptionPane.ERROR_MESSAGE);
+            (null,
+             "This module was created using version " + value
+             + " of the VASSAL engine\nYou are using version "
+             + runningVersion + "\nIt's recommended you upgrade to the latest version of the VASSAL engine.",
+             "Older version in use",
+             javax.swing.JOptionPane.ERROR_MESSAGE);
       }
     }
   }
@@ -176,7 +176,7 @@ public abstract class GameModule extends AbstractConfigurable implements Command
    *
    */
   public static int compareVersions(String v1, String v2) {
-    return Info.compareVersions(v1,v2);
+    return Info.compareVersions(v1, v2);
   }
 
   public void addTo(Buildable b) {
@@ -231,7 +231,7 @@ public abstract class GameModule extends AbstractConfigurable implements Command
     keyStrokeSources.addElement(src);
     for (int i = 0; i < keyStrokeListeners.size(); ++i) {
       ((KeyStrokeListener) keyStrokeListeners.elementAt(i))
-        .addKeyStrokeSource(src);
+          .addKeyStrokeSource(src);
     }
   }
 
@@ -246,7 +246,7 @@ public abstract class GameModule extends AbstractConfigurable implements Command
     keyStrokeListeners.addElement(l);
     for (int i = 0; i < keyStrokeSources.size(); ++i) {
       l.addKeyStrokeSource
-        ((KeyStrokeSource) keyStrokeSources.elementAt(i));
+          ((KeyStrokeSource) keyStrokeSources.elementAt(i));
     }
   }
 
@@ -292,8 +292,8 @@ public abstract class GameModule extends AbstractConfigurable implements Command
    */
   public void addCommandEncoder(CommandEncoder ce) {
     CommandEncoder[] oldValue = commandEncoders;
-    commandEncoders = new CommandEncoder[oldValue.length+1];
-    System.arraycopy(oldValue,0,commandEncoders,0,oldValue.length);
+    commandEncoders = new CommandEncoder[oldValue.length + 1];
+    System.arraycopy(oldValue, 0, commandEncoders, 0, oldValue.length);
     commandEncoders[oldValue.length] = ce;
   }
 
@@ -306,13 +306,13 @@ public abstract class GameModule extends AbstractConfigurable implements Command
    * @see #encode
    */
   public void removeCommandEncoder(CommandEncoder ce) {
-    for (int i=0;i<commandEncoders.length;++i) {
+    for (int i = 0; i < commandEncoders.length; ++i) {
       if (ce.equals(commandEncoders[i])) {
         CommandEncoder[] oldValue = commandEncoders;
-        commandEncoders = new CommandEncoder[oldValue.length-1];
-        System.arraycopy(oldValue,0,commandEncoders,0,i);
-        if (i < commandEncoders.length-1) {
-          System.arraycopy(oldValue,i+1,commandEncoders,i,oldValue.length-i-1);
+        commandEncoders = new CommandEncoder[oldValue.length - 1];
+        System.arraycopy(oldValue, 0, commandEncoders, 0, i);
+        if (i < commandEncoders.length - 1) {
+          System.arraycopy(oldValue, i + 1, commandEncoders, i, oldValue.length - i - 1);
         }
         break;
       }
@@ -324,7 +324,7 @@ public abstract class GameModule extends AbstractConfigurable implements Command
    */
   public void warn(String s) {
 //    status.setText(s);
-    chat.show(" - "+s);
+    chat.show(" - " + s);
   }
 
   /**
@@ -381,7 +381,7 @@ public abstract class GameModule extends AbstractConfigurable implements Command
     }
     else {
       Command c = null;
-      for (int i=0;i<commandEncoders.length && c == null;++i) {
+      for (int i = 0; i < commandEncoders.length && c == null; ++i) {
         c = commandEncoders[i].decode(command);
       }
       if (c == null) {
@@ -399,7 +399,7 @@ public abstract class GameModule extends AbstractConfigurable implements Command
       return null;
     }
     String s = null;
-    for (int i=0;i<commandEncoders.length && s == null;++i) {
+    for (int i = 0; i < commandEncoders.length && s == null; ++i) {
       s = commandEncoders[i].encode(c);
     }
     if (s == null) {
@@ -465,13 +465,13 @@ public abstract class GameModule extends AbstractConfigurable implements Command
    */
   public void appendToTitle(String s) {
     if (s == null) {
-      frame.setTitle(gameName+" controls");
+      frame.setTitle(gameName + " controls");
     }
     else {
-      frame.setTitle(frame.getTitle()+s);
+      frame.setTitle(frame.getTitle() + s);
     }
     for (Enumeration e = getComponents(Map.class); e.hasMoreElements();) {
-      ((Map)e.nextElement()).appendToTitle(s);
+      ((Map) e.nextElement()).appendToTitle(s);
     }
   }
 
@@ -483,8 +483,8 @@ public abstract class GameModule extends AbstractConfigurable implements Command
     try {
       if (getGameState().isModified()) {
         switch (JOptionPane.showConfirmDialog
-          (null, "Save Game?",
-           "", JOptionPane.YES_NO_CANCEL_OPTION)) {
+            (null, "Save Game?",
+             "", JOptionPane.YES_NO_CANCEL_OPTION)) {
           case JOptionPane.YES_OPTION:
             getGameState().saveGame();
             break;
@@ -494,7 +494,7 @@ public abstract class GameModule extends AbstractConfigurable implements Command
       }
       if (!cancelled) {
         if (fileDialog != null
-          && fileDialog.getDirectory() != null) {
+            && fileDialog.getDirectory() != null) {
           getPrefs().getOption(SAVE_DIR).setValue(fileDialog.getDirectory());
         }
         else if (fileChooser != null) {
@@ -502,10 +502,10 @@ public abstract class GameModule extends AbstractConfigurable implements Command
         }
         getPrefs().write();
         if (getDataArchive() instanceof ArchiveWriter
-          && !buildString().equals(lastSavedConfiguration)) {
+            && !buildString().equals(lastSavedConfiguration)) {
           switch (JOptionPane.showConfirmDialog
-            (frame, "Save Module?",
-             "", JOptionPane.YES_NO_CANCEL_OPTION)) {
+              (frame, "Save Module?",
+               "", JOptionPane.YES_NO_CANCEL_OPTION)) {
             case JOptionPane.YES_OPTION:
               save();
               break;
@@ -575,8 +575,15 @@ public abstract class GameModule extends AbstractConfigurable implements Command
     }
     else {
       theModule = module;
-      theModule.build();
+      try {
+        theModule.build();
+      }
+      catch (IOException e) {
+        theModule = null;
+        throw e;
+      }
     }
+
     if (theModule.getDataArchive() instanceof ArchiveWriter) {
       theModule.lastSavedConfiguration = theModule.buildString();
     }
@@ -614,6 +621,7 @@ public abstract class GameModule extends AbstractConfigurable implements Command
   public void saveAs() {
     save(true);
   }
+
   /**
    * If the module is being edited, write the module data
    */
@@ -626,8 +634,8 @@ public abstract class GameModule extends AbstractConfigurable implements Command
     try {
       String save = buildString();
       getArchiveWriter().addFile
-        ("buildFile",
-         new java.io.ByteArrayInputStream(save.getBytes()));
+          ("buildFile",
+           new java.io.ByteArrayInputStream(save.getBytes()));
       if (saveAs) {
         getArchiveWriter().saveAs();
       }
@@ -639,10 +647,10 @@ public abstract class GameModule extends AbstractConfigurable implements Command
     catch (IOException err) {
       err.printStackTrace();
       JOptionPane.showMessageDialog
-        (frame,
-         "Couldn't save module.\n" + err.getMessage(),
-         "Unable to save",
-         JOptionPane.ERROR_MESSAGE);
+          (frame,
+           "Couldn't save module.\n" + err.getMessage(),
+           "Unable to save",
+           JOptionPane.ERROR_MESSAGE);
     }
   }
 
