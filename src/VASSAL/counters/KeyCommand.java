@@ -54,10 +54,15 @@ public class KeyCommand extends AbstractAction {
   }
 
   public void actionPerformed(java.awt.event.ActionEvent evt) {
+    BoundsTracker t = new BoundsTracker();
+    GamePiece outer = Decorator.getOutermost(target);
+    t.addPiece(outer);
     Command c = target.keyEvent(stroke);
     if (target.getId() != null) {
       GameModule.getGameModule().sendAndLog(c);
     }
+    t.addPiece(outer);
+    t.repaint();
   }
 }
 
