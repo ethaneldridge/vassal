@@ -92,7 +92,7 @@ public class Footprint extends MovementMarkable {
   public void mySetState(String newState) {
     pointList.clear();
     SequenceEncoder.Decoder ss = new SequenceEncoder.Decoder(newState, ';');
-    globalVisibility = (ss.nextToken(initiallyVisible + "").equals("true"));
+    globalVisibility = ss.nextBoolean(initiallyVisible);
     startMapId = ss.nextToken("");
     int items = ss.nextInt(0);
     for (int i = 0; i < items; i++) {
@@ -108,7 +108,7 @@ public class Footprint extends MovementMarkable {
 
   public String myGetState() {
     SequenceEncoder se = new SequenceEncoder(';');
-    se.append(globalVisibility + "").append(startMapId).append(pointList.size() + "");
+    se.append(globalVisibility).append(startMapId).append(pointList.size());
     Enumeration e = getPointList();
     while (e.hasMoreElements()) {
       Point p = (Point) e.nextElement();
@@ -202,6 +202,8 @@ public class Footprint extends MovementMarkable {
   protected void clearTrail() {
     pointList.clear();
     myBoundingBox = null;
+    localVisibility = initiallyVisible;
+    globalVisibility = initiallyVisible;
   }
 
   /**
@@ -550,11 +552,9 @@ public class Footprint extends MovementMarkable {
       controls = new JPanel();
       controls.setLayout(new BoxLayout(controls, BoxLayout.Y_AXIS));
 
-      Box b = Box.createHorizontalBox();
+      Box b;
       trailKeyInput = new HotKeyConfigurer(null, "Key Command:  ", p.trailKey);
-      b.add(new JLabel("Key command:  "));
-      b.add(trailKeyInput.getControls());
-      controls.add(b);
+      controls.add(trailKeyInput.getControls());
 
       mc = new StringConfigurer(null, "Menu Command", p.menuCommand);
       controls.add(mc.getControls());
