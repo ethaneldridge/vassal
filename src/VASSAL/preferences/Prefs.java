@@ -46,12 +46,12 @@ public class Prefs {
     parent.child = this;
     archive = parent.archive;
     editor = parent.editor;
-    read(fileName);
+    init(fileName);
   }
 
   public void addTo(GameModule theModule) {
     theModule.setPrefs(this);
-    read(theModule.getGameName());
+    init(theModule.getGameName());
   }
 
   public PrefsEditor getEditor() {
@@ -111,7 +111,7 @@ public class Prefs {
     return (String) initialValues.get(key);
   }
 
-  private void read(String moduleName) {
+  public void init(String moduleName) {
     filename = moduleName;
     try {
       archive.getFileStream(filename);

@@ -63,7 +63,9 @@ public class PrefsEditor extends JDialog implements ActionListener {
     };
     launch.addActionListener(al);
     launch.setMnemonic('P');
-    GameModule.getGameModule().getFileMenu().add(launch);
+    if (GameModule.getGameModule() != null) {
+      GameModule.getGameModule().getFileMenu().add(launch);
+    }
 
     JPanel pan = new JPanel();
     pan.add(save);
