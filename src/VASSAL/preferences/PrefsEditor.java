@@ -23,8 +23,7 @@ import VASSAL.tools.ArchiveWriter;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
+import java.awt.event.*;
 import java.io.IOException;
 import java.util.Enumeration;
 import java.util.Hashtable;
@@ -60,7 +59,7 @@ public class PrefsEditor {
 
     prefs = new Vector();
 
-    save = new JButton("Save");
+    save = new JButton("OK");
     save.addActionListener(new ActionListener() {
       public void actionPerformed(ActionEvent e) {
         save();
@@ -84,6 +83,13 @@ public class PrefsEditor {
       dialog.setTitle("Preferences");
       dialog.setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
 
+      //Handle window closing correctly.
+      dialog.addWindowListener(new WindowAdapter() {
+      	public void windowClosing(WindowEvent we) {
+      		cancel();
+      	}
+      });
+      
       dialog.getContentPane().setLayout
         (new BoxLayout(dialog.getContentPane(), BoxLayout.Y_AXIS));
       dialog.getContentPane().add(optionsTab);
@@ -206,3 +212,4 @@ public class PrefsEditor {
     archive.write();
   }
 }
+
