@@ -19,6 +19,7 @@
 package VASSAL.tools;
 
 import VASSAL.build.module.documentation.HelpFile;
+import VASSAL.build.module.GlobalOptions;
 
 import javax.swing.*;
 import java.awt.*;
@@ -40,6 +41,7 @@ public class DataArchive extends ClassLoader {
   private Hashtable imageCache = new Hashtable();
   protected String[] imageNames;
   public static final String IMAGE_DIR = "images/";
+  private Scaler scaler = new Scaler();
   MediaTracker tracker = new MediaTracker(new JLabel());
 
   protected DataArchive() {
@@ -73,7 +75,7 @@ public class DataArchive extends ClassLoader {
   }
 
   public static Image findImage(File dir, String zip, String file)
-    throws IOException {
+      throws IOException {
     /*
      ** Looks for entry "file" in ZipFile "zip" in directory "dir"
      ** If no such zipfile, look for "file" in "dir"
@@ -83,7 +85,7 @@ public class DataArchive extends ClassLoader {
     }
     else if ((new File(dir, file)).exists()) {
       return Toolkit.getDefaultToolkit().getImage
-        (dir.getPath() + File.separatorChar + file);
+          (dir.getPath() + File.separatorChar + file);
     }
     else {
       throw new IOException("Image " + file + " not found in " + dir
@@ -107,6 +109,10 @@ public class DataArchive extends ClassLoader {
     }
   }
 
+  public Image getScaledImage(String file, double scale) throws IOException {
+    return scaler.scale(getCachedImage(file),scale,null);
+  }
+
   /**
    *
    * @param im
@@ -114,7 +120,7 @@ public class DataArchive extends ClassLoader {
    */
   public static Rectangle getImageBounds(Image im) {
     ImageIcon icon = new ImageIcon(im);
-    return new Rectangle(-icon.getIconWidth()/2,-icon.getIconHeight()/2,icon.getIconWidth(),icon.getIconHeight());
+    return new Rectangle(-icon.getIconWidth() / 2, -icon.getIconHeight() / 2, icon.getIconWidth(), icon.getIconHeight());
   }
 
 /*
@@ -327,7 +333,7 @@ public class DataArchive extends ClassLoader {
     if (archive != null) {
       try {
         ZipInputStream zis
-          = new ZipInputStream(new FileInputStream(archive.getName()));
+            = new ZipInputStream(new FileInputStream(archive.getName()));
 
         ZipEntry entry = null;
         while ((entry = zis.getNextEntry()) != null) {
@@ -342,6 +348,123 @@ public class DataArchive extends ClassLoader {
     }
     for (Enumeration e = extensions.elements(); e.hasMoreElements();) {
       ((DataArchive) e.nextElement()).listImageNames(v);
+    }
+  }
+
+  public static class Scaler {
+    static final int IMAGE_ID = 0;
+    public static final int SCALE_AREA_AVERAGING = 16;
+    public static final int SCALE_SMOOTH = 4;
+    public static final int SCALE_FAST = 2;
+
+    private Hashtable scaledImageCache = new Hashtable();
+
+    private int scalingMethod;
+
+    public Scaler() {
+    }
+
+    public void clearCache() {
+      scaledImageCache.clear();
+    }
+
+    private void setScalingMethod() {
+      // this can be 16,8,4 or 2 depending on scaling alg
+      if (GlobalOptions.getInstance().isAveragedScaling()) {
+        scalingMethod = SCALE_AREA_AVERAGING;
+      }
+      else {
+        scalingMethod = SCALE_FAST;
+      }
+    }
+
+    public Image scale(Image img, double zoom, Component obs) {
+      return scaleImage(img, zoom, obs);
+    }
+
+    public Image scale(Image img, String pieceID, double zoom, Component obs) {
+      if (pieceID != null) {
+        // Check whether the scaled image is in the cache
+        String hashKey = pieceID + String.valueOf(zoom);
+        if (scaledImageCache.containsKey(hashKey)) {
+          return (Image) scaledImageCache.get(hashKey);
+        }
+        img = scaleImage(img, zoom, obs);
+        scaledImageCache.put(hashKey, img);
+      }
+      else {
+        img = scaleImage(img, zoom, obs);
+      }
+      return img;
+    }
+
+/*
+	private Image JAIscaleImage( Image img,  double zoom, Component obs  )
+	{
+
+		// Create an RGB color model
+		int[] bits = { 8, 8, 8 };
+		ColorModel colorModel = new
+				ComponentColorModel(
+					ColorSpace.getInstance(ColorSpace.CS_sRGB),
+						bits,	false, false,
+						Transparency.OPAQUE,
+						DataBuffer.TYPE_BYTE);
+
+		// Possible Interpolation methods are (in order of quality):
+		// INTERP_NEAREST, INTERP_BILINEAR, INTERP_BICUBIC, INTERP_BICUBIC2
+		Interpolation interp = Interpolation.getInstance(
+									Interpolation.INTERP_BICUBIC);
+		ParameterBlock pb = new ParameterBlock();
+		pb.add(img);
+		PlanarImage image1 = (PlanarImage)JAI.create("awtImage", pb);
+
+		//		Create the ParameterBlock.
+		pb = new ParameterBlock();
+		pb.addSource(image1).add(colorModel);
+		//		Perform the color conversion.
+		PlanarImage image2 = JAI.create("ColorConvert", pb);
+
+				ParameterBlock params = new ParameterBlock();
+		params.addSource(image2);
+		params.add(new Float(zoom)); // x scale factor
+		params.add(new Float(zoom)); // y scale factor
+		params.add(0.0F); // x translate
+		params.add(0.0F); // y translate
+		params.add(interp); // interpolation method
+
+		PlanarImage image3 = (PlanarImage)JAI.create("scale", params);
+		img = (Image)image3.getAsBufferedImage();
+		return img;
+	}
+*/
+    private Image scaleImage(Image img, double zoom, Component obs) {
+      setScalingMethod();
+      int width = img.getWidth(obs);
+      int height = img.getHeight(obs);
+      MediaTracker t = new MediaTracker(obs);
+      Image scaled = img;
+      try {
+        scaled = scaled.getScaledInstance(
+            (int) (zoom * width),
+            (int) (zoom * height),
+            scalingMethod);
+
+        t.addImage(scaled, IMAGE_ID);
+        try {
+          t.waitForID(IMAGE_ID);
+        }
+        catch (InterruptedException e) {
+        }
+      }
+      catch (IllegalArgumentException c) {
+      }
+      try {
+        Thread.sleep(2);
+      }
+      catch (InterruptedException e) {
+      }
+      return scaled;
     }
   }
 }
