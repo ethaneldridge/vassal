@@ -33,7 +33,6 @@ import java.awt.Shape;
 import java.awt.event.InputEvent;
 import java.util.Enumeration;
 import java.util.Vector;
-import java.awt.geom.*; 
 
 import javax.swing.Box;
 import javax.swing.BoxLayout;
