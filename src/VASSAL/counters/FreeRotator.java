@@ -37,6 +37,7 @@ import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
 import java.awt.geom.AffineTransform;
+import java.awt.geom.Point2D;
 import java.awt.image.BufferedImage;
 import java.awt.image.FilteredImageSource;
 import java.awt.image.ImageProducer;
@@ -44,6 +45,7 @@ import java.io.File;
 import java.net.MalformedURLException;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.ArrayList;
 
 /**
  * A Decorator that rotates a GamePiece to an arbitrary angle
@@ -70,6 +72,7 @@ public class FreeRotator extends Decorator implements EditablePiece, MouseListen
   private PieceImage unrotated;
 
   private double tempAngle, startAngle;
+  private Point pivot;
   private boolean drawGhost;
 
   public FreeRotator() {
@@ -113,11 +116,11 @@ public class FreeRotator extends Decorator implements EditablePiece, MouseListen
     else {
       // Find nearest valid angle
       int newIndex = angleIndex;
-      double minDist = Math.abs(validAngles[angleIndex]-angle);
+      double minDist = Math.abs((validAngles[angleIndex]-angle+360) % 360);
       for (int i=0;i<validAngles.length;++i) {
-        if (minDist > Math.abs(validAngles[i]-angle)) {
+        if (minDist > Math.abs((validAngles[i]-angle+360) % 360)) {
           newIndex = i;
-          minDist = Math.abs(validAngles[i]-angle);
+          minDist = Math.abs((validAngles[i]-angle+360) % 360);
         }
       }
       angleIndex = newIndex;
@@ -188,7 +191,7 @@ public class FreeRotator extends Decorator implements EditablePiece, MouseListen
     if (drawGhost
         && Info.is2dEnabled()
         && g instanceof Graphics2D) {
-      Point p = map.componentCoordinates(getPosition());
+      Point p = map.componentCoordinates(getGhostPosition());
       Graphics2D g2d = (Graphics2D) g;
       AffineTransform t = g2d.getTransform();
       g2d.transform(AffineTransform.getRotateInstance(-Math.PI * tempAngle / 180., p.x, p.y));
@@ -198,6 +201,13 @@ public class FreeRotator extends Decorator implements EditablePiece, MouseListen
       piece.draw(g, p.x, p.y, map.getView(), map.getZoom());
       g2d.setTransform(t);
     }
+  }
+
+  private Point getGhostPosition() {
+    AffineTransform t = AffineTransform.getRotateInstance(-Math.PI*tempAngle/180. - getAngleInRadians(), pivot.x, pivot.y);
+    Point2D newPos2D = new Point2D.Float(getPosition().x,getPosition().y);
+    t.transform(newPos2D, newPos2D);
+    return new Point((int) Math.round(newPos2D.getX()),(int) Math.round(newPos2D.getY()));
   }
 
   public String myGetType() {
@@ -236,6 +246,7 @@ public class FreeRotator extends Decorator implements EditablePiece, MouseListen
 
   public KeyCommand[] myGetKeyCommands() {
     if (commands == null) {
+      java.util.List l = new ArrayList();
       setAngleCommand = new KeyCommand
           (setAngleText,setAngleKey, Decorator.getOutermost(this));
       rotateCWCommand = new KeyCommand
@@ -246,10 +257,9 @@ public class FreeRotator extends Decorator implements EditablePiece, MouseListen
 
       if (validAngles.length == 1) {
         if (setAngleText.length() > 0) {
-          commands = new KeyCommand[]{setAngleCommand};
+          l.add(setAngleCommand);
         }
         else {
-          commands = new KeyCommand[0];
           setAngleCommand.setEnabled(false);
         }
         rotateCWCommand.setEnabled(false);
@@ -258,18 +268,20 @@ public class FreeRotator extends Decorator implements EditablePiece, MouseListen
       else {
         if (rotateCWText.length() > 0
             && rotateCCWText.length() > 0) {
-          commands = new KeyCommand[]{rotateCWCommand, rotateCCWCommand};
+          l.add(rotateCWCommand);
+          l.add(rotateCCWCommand);
         }
         else if (rotateCWText.length() > 0) {
-          commands = new KeyCommand[]{rotateCWCommand};
+          l.add(rotateCWCommand);
           rotateCCWCommand.setEnabled(false);
         }
         else if (rotateCCWText.length() > 0) {
-          commands = new KeyCommand[]{rotateCCWCommand};
+          l.add(rotateCCWCommand);
           rotateCWCommand.setEnabled(false);
         }
         setAngleCommand.setEnabled(false);
       }
+      commands = (KeyCommand[]) l.toArray(new KeyCommand[l.size()]);
     }
     setAngleCommand.setEnabled(getMap() != null && validAngles.length == 1 && setAngleText.length() > 0);
     return commands;
@@ -280,10 +292,7 @@ public class FreeRotator extends Decorator implements EditablePiece, MouseListen
     Command c = null;
     if (setAngleCommand.matches(stroke)) {
       if (Info.is2dEnabled()) {
-        getMap().pushMouseListener(this);
-        getMap().addDrawComponent(this);
-        getMap().getView().addMouseMotionListener(this);
-        getMap().getView().setCursor(Cursor.getPredefinedCursor(Cursor.CROSSHAIR_CURSOR));
+        beginInteractiveRotate();
       }
       else {
         ChangeTracker tracker = new ChangeTracker(this);
@@ -311,6 +320,19 @@ public class FreeRotator extends Decorator implements EditablePiece, MouseListen
     return c;
   }
 
+  public void beginInteractiveRotate() {
+    getMap().pushMouseListener(this);
+    getMap().addDrawComponent(this);
+    getMap().getView().addMouseMotionListener(this);
+    getMap().getView().setCursor(Cursor.getPredefinedCursor(Cursor.CROSSHAIR_CURSOR));
+    pivot = getPosition();
+  }
+
+  /** The point around which the piece will pivot while rotating interactively */
+  public void setPivot(int x, int y) {
+    pivot = new Point(x,y);
+  }
+
   public void mouseClicked(MouseEvent e) {
   }
 
@@ -327,9 +349,18 @@ public class FreeRotator extends Decorator implements EditablePiece, MouseListen
 
   public void mouseReleased(MouseEvent e) {
     try {
+      Point ghostPosition = getGhostPosition();
+      Command c = null;
       ChangeTracker tracker = new ChangeTracker(this);
+      if (!getPosition().equals(ghostPosition)) {
+        GamePiece outer = Decorator.getOutermost(this);
+        c = getMap().placeOrMerge(outer,getMap().snapTo(ghostPosition));
+        outer.setProperty(Properties.MOVED, Boolean.TRUE);
+      }
       setAngle(tempAngle);
-      GameModule.getGameModule().sendAndLog(tracker.getChangeCommand());
+      c = tracker.getChangeCommand().append(c);
+
+      GameModule.getGameModule().sendAndLog(c);
     }
     finally {
       getMap().getView().setCursor(null);
@@ -342,8 +373,7 @@ public class FreeRotator extends Decorator implements EditablePiece, MouseListen
   public void mouseDragged(MouseEvent e) {
     if (drawGhost) {
       Point mousePos = getMap().mapCoordinates(e.getPoint());
-      Point origin = getPosition();
-      double myAngle = getRelativeAngle(mousePos, origin);
+      double myAngle = getRelativeAngle(mousePos, pivot);
       tempAngle = getAngle() + -180. * (myAngle-startAngle) / Math.PI;
     }
     getMap().repaint();

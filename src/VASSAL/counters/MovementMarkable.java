@@ -34,6 +34,8 @@ import VASSAL.command.ChangeTracker;
 import VASSAL.command.Command;
 import VASSAL.configure.IconConfigurer;
 import VASSAL.configure.IntConfigurer;
+import VASSAL.configure.StringConfigurer;
+import VASSAL.configure.HotKeyConfigurer;
 import VASSAL.tools.SequenceEncoder;
 
 import javax.swing.*;
@@ -50,9 +52,10 @@ import java.util.Enumeration;
 public class MovementMarkable extends Decorator implements EditablePiece {
   public static final String ID = "markmoved;";
 
-  private static final KeyStroke markStroke = KeyStroke.getKeyStroke('M', java.awt.event.InputEvent.CTRL_MASK);
   private int xOffset = 0;
   private int yOffset = 0;
+  private String command;
+  private KeyStroke key;
   private IconConfigurer movedIcon = new IconConfigurer(null, "Marker Image", "/images/moved.gif");
   private boolean hasMoved = false;
 
@@ -79,6 +82,8 @@ public class MovementMarkable extends Decorator implements EditablePiece {
     movedIcon.setValue(st.nextToken());
     xOffset = st.nextInt(0);
     yOffset = st.nextInt(0);
+    command = st.nextToken("Mark Moved");
+    key = st.nextKeyStroke('M');
   }
 
   public void mySetState(String newState) {
@@ -91,16 +96,16 @@ public class MovementMarkable extends Decorator implements EditablePiece {
 
   public String myGetType() {
     SequenceEncoder se = new SequenceEncoder(';');
-    se.append(movedIcon.getValueString()).append(xOffset).append(yOffset);
+    se.append(movedIcon.getValueString()).append(xOffset).append(yOffset).append(command).append(key);
     return ID + se.getValue();
   }
 
   protected KeyCommand[] myGetKeyCommands() {
-    return new KeyCommand[]{new KeyCommand("Mark Moved", markStroke, Decorator.getOutermost(this))};
+    return new KeyCommand[]{new KeyCommand(command, key, Decorator.getOutermost(this))};
   }
 
   public Command myKeyEvent(javax.swing.KeyStroke stroke) {
-    if (stroke.equals(markStroke)) {
+    if (stroke.equals(key)) {
       ChangeTracker c = new ChangeTracker(this);
       hasMoved = !hasMoved;
       return c.getChangeCommand();
@@ -187,11 +192,17 @@ public class MovementMarkable extends Decorator implements EditablePiece {
     private IconConfigurer iconConfig;
     private IntConfigurer xOff;
     private IntConfigurer yOff;
+    private StringConfigurer command;
+    private HotKeyConfigurer key;
     private Box box;
 
     private Ed(MovementMarkable p) {
       iconConfig = p.movedIcon;
       box = Box.createVerticalBox();
+      command = new StringConfigurer(null,"Command:  ",p.command);
+      box.add(command.getControls());
+      key = new HotKeyConfigurer(null,"Keyboard command:  ",p.key);
+      box.add(key.getControls());
       box.add(iconConfig.getControls());
       xOff = new IntConfigurer(null, "Horizontal Offset:  ", new Integer(p.xOffset));
       yOff = new IntConfigurer(null, "Vertical Offset:  ", new Integer(p.yOffset));
@@ -221,7 +232,11 @@ public class MovementMarkable extends Decorator implements EditablePiece {
 
     public String getType() {
       SequenceEncoder se = new SequenceEncoder(';');
-      se.append(iconConfig.getValueString()).append(xOff.getValueString()).append(yOff.getValueString());
+      se.append(iconConfig.getValueString())
+          .append(xOff.getValueString())
+          .append(yOff.getValueString())
+          .append(command.getValueString())
+          .append((KeyStroke)key.getValue());
       return ID + se.getValue();
     }
 

@@ -21,6 +21,7 @@ package VASSAL.counters;
 import VASSAL.build.module.documentation.HelpFile;
 import VASSAL.command.Command;
 import VASSAL.command.MoveTracker;
+import VASSAL.command.ChangeTracker;
 import VASSAL.configure.BooleanConfigurer;
 import VASSAL.configure.HotKeyConfigurer;
 import VASSAL.configure.IntConfigurer;
@@ -119,6 +120,9 @@ public class Translate extends Decorator implements EditablePiece {
       p = getMap().snapTo(p);
       getMap().placeOrMerge(target, p);
       c = t.getMoveCommand();
+      ChangeTracker ct = new ChangeTracker(outer);
+      outer.setProperty(Properties.MOVED, Boolean.TRUE);
+      c = c.append(ct.getChangeCommand());
     }
     return c;
   }

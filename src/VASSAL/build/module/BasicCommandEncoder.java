@@ -73,6 +73,9 @@ public class BasicCommandEncoder implements CommandEncoder, Buildable {
     else if (type.startsWith(FreeRotator.ID)) {
       return new FreeRotator(type, inner);
     }
+    else if (type.startsWith(Pivot.ID)) {
+      return new Pivot(type, inner);
+    }
     else if (type.startsWith(NonRectangular.ID)) {
       return new NonRectangular(type, inner);
     }
