@@ -162,22 +162,9 @@ public class SetupStack extends AbstractConfigurable implements GameComponent, C
     }
   }
 
+  private static int instanceCount = 0;
   public void addTo(Buildable parent) {
-    map = (Map) parent;
-    int count = 0;
-    for (Enumeration e = GameModule.getGameModule().getComponents(Map.class); e.hasMoreElements();) {
-      Map m = (Map) e.nextElement();
-      for (Enumeration e2 = m.getComponents(SetupStack.class); e2.hasMoreElements();) {
-        e2.nextElement();
-        count++;
-      }
-    }
-    // Our map doesn't yet appear in the GameModule
-    for (Enumeration e = map.getComponents(SetupStack.class); e.hasMoreElements();) {
-      e.nextElement();
-      count++;
-    }
-    setId("SetupStack" + count);
+    setId("SetupStack"+instanceCount++);
 
     GameModule.getGameModule().addCommandEncoder(this);
     GameModule.getGameModule().getGameState().addGameComponent(this);
@@ -204,6 +191,7 @@ public class SetupStack extends AbstractConfigurable implements GameComponent, C
   }
 
   public void removeFrom(Buildable parent) {
+    instanceCount--;
   }
 
   protected boolean isOwningBoardActive() {
