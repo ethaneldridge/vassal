@@ -133,7 +133,7 @@ public class ReportState extends Decorator implements EditablePiece {
     //  2. The piece is visible to all players either before or after the trait
     //     command was executed.
 
-    if (!MassKeyCommand.suppressTraitReporting() && (isVisible || wasVisible)) {
+    if (isVisible || wasVisible) {
       String allKeys = keys + cycleDownKeys;
       for (int i = 0; i < allKeys.length(); ++i) {
         if (stroke.equals(KeyStroke.getKeyStroke(allKeys.charAt(i), InputEvent.CTRL_MASK))) {
@@ -246,11 +246,11 @@ public class ReportState extends Decorator implements EditablePiece {
     return new Ed(this);
   }
 
-  private static final String OLD_UNIT_NAME = "oldPieceName";
-  private static final String NEW_UNIT_NAME = "newPieceName";
-  private static final String MAP_NAME = "mapName";
-  private static final String LOCATION_NAME = "location";
-  private static final String COMMAND_NAME = "menuCommand";
+  public static final String OLD_UNIT_NAME = "oldPieceName";
+  public static final String NEW_UNIT_NAME = "newPieceName";
+  public static final String MAP_NAME = "mapName";
+  public static final String LOCATION_NAME = "location";
+  public static final String COMMAND_NAME = "menuCommand";
 
   public static class Ed implements PieceEditor {
 

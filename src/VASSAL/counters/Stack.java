@@ -46,21 +46,12 @@ public class Stack implements GamePiece {
 
   protected Map map;
   private static StackMetrics defaultMetrics;
-  private AllPieceEnum allPieceEnum = new AllPieceEnum();
-  private ReversePieceEnum reversePieceEnum = new ReversePieceEnum();
-  private VisibleOrderEnum visibleOrderEnum = new VisibleOrderEnum();
-  private PieceIterator visibleFilter;
 
   public Stack() {
     this(null);
   }
 
   public Stack(GamePiece p) {
-    visibleFilter = new PieceIterator(new PieceFilter() {
-      public boolean accept(GamePiece piece) {
-        return !Boolean.TRUE.equals(piece.getProperty(Properties.INVISIBLE_TO_ME));
-      }
-    });
     if (p != null) {
       setMap(p.getMap());
       setPosition(new Point(p.getPosition()));
@@ -74,21 +65,18 @@ public class Stack implements GamePiece {
    * during read won't affect it.
    */
   public Enumeration getPieces() {
-    allPieceEnum.reset();
-    return allPieceEnum;
+    return new AllPieceEnum();
   }
 
   public Enumeration getPiecesInReverseOrder() {
-    reversePieceEnum.reset();
-    return reversePieceEnum;
+    return new ReversePieceEnum();
   }
 
   /**
    * Returns pieces in the order in which they are visible to the player -- topmost first
    * In other words, selected pieces first, then unselected pieces from the top to the bottom */
   public Enumeration getPiecesInVisibleOrder() {
-    visibleOrderEnum.reset();
-    return visibleOrderEnum;
+    return new VisibleOrderEnum();
   }
 
   public void remove(GamePiece p) {
@@ -204,7 +192,7 @@ public class Stack implements GamePiece {
    */
   public String getName() {
     String val = "";
-    visibleFilter.reset(getPiecesInReverseOrder());
+    PieceIterator visibleFilter = PieceIterator.visible(getPiecesInReverseOrder());
     while (visibleFilter.hasMoreElements()) {
       GamePiece p = visibleFilter.nextPiece();
       String s = p.getName();
@@ -220,7 +208,7 @@ public class Stack implements GamePiece {
     Rectangle r = new Rectangle();
     Rectangle[] childBounds = new Rectangle[getPieceCount()];
     getMap().getStackMetrics().getContents(this, null, null, childBounds, 0, 0);
-    visibleFilter.reset(getPieces());
+    PieceIterator visibleFilter = PieceIterator.visible(getPieces());
     while (visibleFilter.hasMoreElements()) {
       GamePiece p = visibleFilter.nextPiece();
       r = r.union(childBounds[indexOf(p)]);
@@ -233,7 +221,7 @@ public class Stack implements GamePiece {
       Area a = new Area();
       Shape[] childBounds = new Shape[getPieceCount()];
       getMap().getStackMetrics().getContents(this, null, childBounds, null, 0, 0);
-      visibleFilter.reset(getPieces());
+      PieceIterator visibleFilter = PieceIterator.visible(getPieces());
       while (visibleFilter.hasMoreElements()) {
         GamePiece p = visibleFilter.nextPiece();
         a.add(new Area(childBounds[indexOf(p)]));
@@ -244,7 +232,7 @@ public class Stack implements GamePiece {
       Rectangle r = new Rectangle();
       Shape[] childBounds = new Shape[getPieceCount()];
       getMap().getStackMetrics().getContents(this, null, childBounds, null, 0, 0);
-      visibleFilter.reset(getPieces());
+      PieceIterator visibleFilter = PieceIterator.visible(getPieces());
       while (visibleFilter.hasMoreElements()) {
         GamePiece p = visibleFilter.nextPiece();
         r = r.union(childBounds[indexOf(p)].getBounds());
@@ -269,14 +257,22 @@ public class Stack implements GamePiece {
 
   /** @return the top visible piece in this stack */
   public GamePiece topPiece() {
-    visibleFilter.reset(getPiecesInReverseOrder());
-    return visibleFilter.hasMoreElements() ? visibleFilter.nextPiece() : null;
+    for (int i=pieceCount-1;i>=0;--i) {
+      if (!Boolean.TRUE.equals(contents[i].getProperty(Properties.INVISIBLE_TO_ME))) {
+        return contents[i];
+      }
+    }
+    return null;
   }
 
   /** @return the bottom visible piece in this stack */
   public GamePiece bottomPiece() {
-    visibleFilter.reset(getPieces());
-    return visibleFilter.hasMoreElements() ? visibleFilter.nextPiece() : null;
+    for (int i=0;i<pieceCount;++i) {
+      if (!Boolean.TRUE.equals(contents[i].getProperty(Properties.INVISIBLE_TO_ME))) {
+        return contents[i];
+      }
+    }
+    return null;
   }
 
   /**
@@ -284,7 +280,7 @@ public class Stack implements GamePiece {
    */
   protected int nVisible() {
     int nv = 0;
-    visibleFilter.reset(getPieces());
+    PieceIterator visibleFilter = PieceIterator.visible(getPieces());
     while (visibleFilter.hasMoreElements()) {
       visibleFilter.nextPiece();
       nv++;
@@ -455,9 +451,6 @@ public class Stack implements GamePiece {
     private boolean doingSelected;
 
     public VisibleOrderEnum() {
-    }
-
-    public void reset() {
       doingSelected = true;
       index = pieceCount-1;
       next = findNext();
@@ -492,24 +485,21 @@ public class Stack implements GamePiece {
   }
 
   private class AllPieceEnum implements Enumeration {
-    private int i;
+    private int index;
     private GamePiece[] p;
 
     public AllPieceEnum() {
-    }
-
-    public void reset() {
-      i=0;
+      index=0;
       p = new GamePiece[pieceCount];
       System.arraycopy(contents, 0, p, 0, pieceCount);
     }
 
     public boolean hasMoreElements() {
-      return i < p.length;
+      return index < p.length;
     }
 
     public Object nextElement() {
-      return p[i++];
+      return p[index++];
     }
   }
 
@@ -518,9 +508,6 @@ public class Stack implements GamePiece {
     private GamePiece[] clone;
 
     public ReversePieceEnum() {
-    }
-
-    public void reset() {
       clone = new GamePiece[pieceCount];
       System.arraycopy(contents, 0, clone, 0, pieceCount);
       index = pieceCount-1;

@@ -35,20 +35,12 @@ public class PieceIterator {
 
   public PieceIterator(Enumeration e, PieceFilter f) {
     this(f);
-    reset(e);
+    enum = e;
+    next = next();
   }
 
   public PieceIterator(PieceFilter f) {
     filter = f;
-  }
-
-  /** This supports having the same instance of an Iterator be usable many times,
-   * cutting down on 'new' overhead
-   * @param e
-   */
-  public void reset(Enumeration e) {
-    enum = e;
-    next = next();
   }
 
   public PieceIterator(final Iterator it) {

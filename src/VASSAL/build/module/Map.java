@@ -93,7 +93,7 @@ public class Map extends AbstractConfigurable implements GameComponent,
   private String moveWithinFormat;
   private String moveToFormat;
   private String createFormat;
-  private String changeFormat;
+  private String changeFormat="$"+MESSAGE+"$";
 
   public Map() {
     getView();
@@ -1528,7 +1528,12 @@ public class Map extends AbstractConfigurable implements GameComponent,
 
   public static class ChangeFormatConfig implements ConfigurerFactory {
     public Configurer getConfigurer(AutoConfigurable c, String key, String name) {
-      return new PlayerIdFormattedStringConfigurer(key, name, new String[]{MESSAGE});
+      return new PlayerIdFormattedStringConfigurer(key, name, new String[]{MESSAGE,
+                                                                           ReportState.COMMAND_NAME,
+                                                                           ReportState.OLD_UNIT_NAME,
+                                                                           ReportState.NEW_UNIT_NAME,
+                                                                           ReportState.MAP_NAME,
+                                                                           ReportState.LOCATION_NAME});
     }
   }
 
@@ -1550,20 +1555,7 @@ public class Map extends AbstractConfigurable implements GameComponent,
   }
 
   public String getChangeFormat() {
-    if (changeFormat != null) {
-      return changeFormat;
-    }
-    else {
-      String val = "";
-      if (boards.size() > 0) {
-        Board b = (Board) boards.firstElement();
-        if (b.getGrid() != null
-            && b.getGrid().getGridNumbering() != null) {
-          val = "$" + MESSAGE + "$";
-        }
-      }
-      return val;
-    }
+    return changeFormat;
   }
 
   public String getMoveToFormat() {

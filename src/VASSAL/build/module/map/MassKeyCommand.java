@@ -30,11 +30,9 @@ import VASSAL.build.AbstractConfigurable;
 import VASSAL.build.AutoConfigurable;
 import VASSAL.build.Buildable;
 import VASSAL.build.GameModule;
+import VASSAL.build.module.Chatter;
 import VASSAL.build.module.Map;
 import VASSAL.build.module.documentation.HelpFile;
-import VASSAL.build.module.Chatter;
-import VASSAL.build.module.PlayerRoster;
-import VASSAL.build.module.GlobalOptions;
 import VASSAL.command.Command;
 import VASSAL.command.NullCommand;
 import VASSAL.configure.*;
@@ -81,7 +79,6 @@ public class MassKeyCommand extends AbstractConfigurable implements PieceVisitor
   private Command keyCommand;
   private BoundsTracker tracker;
   protected boolean reportSingle;
-  protected static boolean suppressTraitReports = false;
   protected FormattedString reportFormat = new PlayerIdFormattedString("");
 
   public MassKeyCommand() {
@@ -99,10 +96,10 @@ public class MassKeyCommand extends AbstractConfigurable implements PieceVisitor
   }
 
   public void apply() {
-
-    suppressTraitReports = reportSingle;
-
-    reportFormat.setProperty(COMMAND_NAME, getConfigureName());
+    String mapFormat = map.getChangeFormat();
+    if (reportSingle) {
+      map.setAttribute(Map.CHANGE_FORMAT,"");
+    }
     String reportText = reportFormat.getText();
     if (reportText.length() > 0) {
       keyCommand = new Chatter.DisplayText(GameModule.getGameModule().getChatter(), "*" + reportText);
@@ -118,8 +115,9 @@ public class MassKeyCommand extends AbstractConfigurable implements PieceVisitor
     }
     tracker.repaint();
     GameModule.getGameModule().sendAndLog(keyCommand);
-
-    suppressTraitReports = false;
+    if (reportSingle) {
+      map.setAttribute(Map.CHANGE_FORMAT,mapFormat);
+    }
   }
 
   /* We don't treat {@link Deck}s any differently than {@link Stack}s, so
@@ -185,20 +183,13 @@ public class MassKeyCommand extends AbstractConfigurable implements PieceVisitor
     return affected;
   }
 
-  /**
-   * Return true if a Global Command is currently in action
-   */
-  public static boolean suppressTraitReporting() {
-    return suppressTraitReports;
-  }
-
   public Class[] getAllowableConfigureComponents() {
     return new Class[0];
   }
 
   public String[] getAttributeDescriptions() {
-    return new String[]{"Description", "Key Command", "Apply to pieces whose property", "is equal to this value", "Apply command", "Button text", "Button Icon", "Hotkey",
-                        "Report as single Command", "Report Format"};
+    return new String[]{"Description", "Key Command", "Apply to pieces whose property", "is equal to the value", "Apply command", "Button text", "Button Icon", "Hotkey",
+                        "Suppress individual reports", "Report Format"};
   }
 
   public String[] getAttributeNames() {
@@ -223,11 +214,9 @@ public class MassKeyCommand extends AbstractConfigurable implements PieceVisitor
     }
   }
 
-  public static final String COMMAND_NAME = "commandName";
-
   public static class ReportFormatConfig implements ConfigurerFactory {
     public Configurer getConfigurer(AutoConfigurable c, String key, String name) {
-      return new PlayerIdFormattedStringConfigurer(key, name, new String[]{COMMAND_NAME});
+      return new PlayerIdFormattedStringConfigurer(key, name, new String[0]);
     }
   }
 
