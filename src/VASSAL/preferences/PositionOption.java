@@ -34,12 +34,23 @@ public class PositionOption extends VASSAL.configure.Configurer
 
   public PositionOption(String key, Window f, Rectangle defaultValue) {
     super(key, null, defaultValue);
-    initialPos.translate(30, 30);
+    adjustInitialOffset();
     theFrame = f;
     theFrame.pack();
     setFrameBounds();
     this.defaultValue = defaultValue;
     theFrame.addComponentListener(this);
+  }
+
+  private static void adjustInitialOffset() {
+    Dimension d = Toolkit.getDefaultToolkit().getScreenSize();
+    if (initialPos.x >= d.width-30
+      || initialPos.y >= d.height-30) {
+      initialPos.move(0,0);
+    }
+    else {
+      initialPos.translate(30, 30);
+    }
   }
 
   public PositionOption(String key, Window f) {

@@ -13,7 +13,7 @@
  * Library General Public License for more details.
  *
  * You should have received a copy of the GNU Library General Public
- * License along with this library; if not, copies are available 
+ * License along with this library; if not, copies are available
  * at http://www.opensource.org.
  */
 /*
@@ -32,15 +32,14 @@ import VASSAL.build.module.Map;
 import VASSAL.build.module.documentation.HelpFile;
 import VASSAL.command.ChangeTracker;
 import VASSAL.command.Command;
-import VASSAL.configure.Configurer;
-import VASSAL.configure.ImageConfigurer;
+import VASSAL.configure.IconConfigurer;
 import VASSAL.configure.IntConfigurer;
 import VASSAL.tools.SequenceEncoder;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.geom.AffineTransform;
 import java.io.File;
-import java.io.IOException;
 import java.net.MalformedURLException;
 import java.util.Enumeration;
 
@@ -52,10 +51,9 @@ public class MovementMarkable extends Decorator implements EditablePiece {
   public static final String ID = "markmoved;";
 
   private static final KeyStroke markStroke = KeyStroke.getKeyStroke('M', java.awt.event.InputEvent.CTRL_MASK);
-  private String markImage;
   private int xOffset = 0;
   private int yOffset = 0;
-  private Dimension imageSize;
+  private IconConfigurer movedIcon = new IconConfigurer(null, "Marker Image", "/images/moved.gif");
   private boolean hasMoved = false;
 
   public MovementMarkable() {
@@ -78,8 +76,7 @@ public class MovementMarkable extends Decorator implements EditablePiece {
   public void mySetType(String type) {
     SequenceEncoder.Decoder st = new SequenceEncoder.Decoder(type, ';');
     st.nextToken();
-    markImage = st.nextToken();
-    imageSize = null;
+    movedIcon.setValue(st.nextToken());
     xOffset = st.nextInt(0);
     yOffset = st.nextInt(0);
   }
@@ -94,7 +91,7 @@ public class MovementMarkable extends Decorator implements EditablePiece {
 
   public String myGetType() {
     SequenceEncoder se = new SequenceEncoder(';');
-    se.append(markImage).append("" + xOffset).append("" + yOffset);
+    se.append(movedIcon.getValueString()).append("" + xOffset).append("" + yOffset);
     return ID + se.getValue();
   }
 
@@ -132,35 +129,21 @@ public class MovementMarkable extends Decorator implements EditablePiece {
 
   public void draw(Graphics g, int x, int y, Component obs, double zoom) {
     piece.draw(g, x, y, obs, zoom);
-    if (hasMoved) {
-      try {
-        Image im =
-          GameModule.getGameModule().getDataArchive().getCachedImage(markImage);
-        if (zoom != 1.0) {
-          im = GameModule.getGameModule().getDataArchive().getScaledImage(im,zoom);
-        }
-        g.drawImage(im,
-                    x + (int) Math.round(zoom * xOffset),
-                    y + (int) Math.round(zoom * yOffset),
-                    obs);
-      }
-      catch (java.io.IOException ex) {
-        ex.printStackTrace();
-      }
+    if (hasMoved
+        && movedIcon.getIconValue() != null) {
+      Graphics2D g2d = (Graphics2D) g;
+      AffineTransform transform = g2d.getTransform();
+      g2d.scale(zoom, zoom);
+      movedIcon.getIconValue().paintIcon(obs, g,
+                                         (int) Math.round(x / zoom) + xOffset,
+                                         (int) Math.round(y / zoom) + yOffset);
+      g2d.setTransform(transform);
     }
   }
 
   private Dimension getImageSize() {
-    if (imageSize == null) {
-      JLabel l = new JLabel();
-      try {
-        l.setIcon(new ImageIcon(GameModule.getGameModule().getDataArchive().getCachedImage(markImage)));
-      }
-      catch (IOException e) {
-      }
-      imageSize = l.getPreferredSize();
-    }
-    return imageSize;
+    Icon icon = movedIcon.getIconValue();
+    return icon != null ? new Dimension(icon.getIconWidth(), icon.getIconHeight()) : new Dimension();
   }
 
   public String getDescription() {
@@ -169,9 +152,9 @@ public class MovementMarkable extends Decorator implements EditablePiece {
 
   public VASSAL.build.module.documentation.HelpFile getHelpFile() {
     File dir = VASSAL.build.module.Documentation.getDocumentationBaseDir();
-    dir = new File(dir,"ReferenceManual");
+    dir = new File(dir, "ReferenceManual");
     try {
-      return new HelpFile(null,new File(dir,"MarkMoved.htm"));
+      return new HelpFile(null, new File(dir, "MarkMoved.htm"));
     }
     catch (MalformedURLException ex) {
       return null;
@@ -201,18 +184,17 @@ public class MovementMarkable extends Decorator implements EditablePiece {
   }
 
   private static class Ed implements PieceEditor {
-    private ImageConfigurer image;
+    private IconConfigurer iconConfig;
     private IntConfigurer xOff;
     private IntConfigurer yOff;
     private Box box;
 
     private Ed(MovementMarkable p) {
+      iconConfig = p.movedIcon;
       box = Box.createVerticalBox();
-      image = new ImageConfigurer(null, "Marker Image:  ", GameModule.getGameModule().getArchiveWriter());
-      ((Configurer) image).setValue(p.markImage);
+      box.add(iconConfig.getControls());
       xOff = new IntConfigurer(null, "Horizontal Offset:  ", new Integer(p.xOffset));
       yOff = new IntConfigurer(null, "Vertical Offset:  ", new Integer(p.yOffset));
-      box.add(image.getControls());
       box.add(xOff.getControls());
       box.add(yOff.getControls());
     }
@@ -223,8 +205,8 @@ public class MovementMarkable extends Decorator implements EditablePiece {
         Map m = (Map) e.nextElement();
         String value = m.getAttributeValueString(Map.MARK_MOVED);
         enabled = enabled
-          || GlobalOptions.ALWAYS.equals(value)
-          || GlobalOptions.PROMPT.equals(value);
+            || GlobalOptions.ALWAYS.equals(value)
+            || GlobalOptions.PROMPT.equals(value);
       }
       if (!enabled) {
         Runnable runnable = new Runnable() {
@@ -239,7 +221,7 @@ public class MovementMarkable extends Decorator implements EditablePiece {
 
     public String getType() {
       SequenceEncoder se = new SequenceEncoder(';');
-      se.append(image.getValueString()).append(xOff.getValueString()).append(yOff.getValueString());
+      se.append(iconConfig.getValueString()).append(xOff.getValueString()).append(yOff.getValueString());
       return ID + se.getValue();
     }
 

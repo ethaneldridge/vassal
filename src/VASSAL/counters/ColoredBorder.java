@@ -42,7 +42,7 @@ public class ColoredBorder implements Highlighter {
       Graphics2D g2d = (Graphics2D) g;
       Shape s = p.getShape();
       Stroke str = g2d.getStroke();
-      g2d.setStroke(new BasicStroke(thickness));
+      g2d.setStroke(new BasicStroke(Math.max(1,Math.round(zoom*thickness))));
       g2d.setColor(c);
       AffineTransform t = AffineTransform.getScaleInstance(zoom,zoom);
       t.translate(x/zoom,y/zoom);

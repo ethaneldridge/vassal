@@ -20,14 +20,14 @@ package VASSAL.counters;
 
 import VASSAL.build.module.documentation.HelpFile;
 import VASSAL.command.Command;
-import VASSAL.tools.SequenceEncoder;
 import VASSAL.configure.StringConfigurer;
+import VASSAL.tools.SequenceEncoder;
 
 import javax.swing.*;
+import java.awt.*;
 import java.io.File;
 import java.net.MalformedURLException;
-import java.util.Vector;
-import java.awt.*;
+import java.util.ArrayList;
 
 /**
  * A generic Decorator that retains in its state the value of a
@@ -56,14 +56,13 @@ public class Marker extends Decorator implements EditablePiece {
   public void mySetType(String s) {
     s = s.substring(ID.length());
     SequenceEncoder.Decoder st = new SequenceEncoder.Decoder(s, ',');
-    Vector v = new Vector();
+    ArrayList v = new ArrayList();
     while (st.hasMoreTokens()) {
-      v.addElement(st.nextToken());
+      v.add(st.nextToken());
     }
-    keys = new String[v.size()];
+    keys = (String[])v.toArray(new String[v.size()]);
     values = new String[keys.length];
     for (int i = 0; i < keys.length; ++i) {
-      keys[i] = (String) v.elementAt(i);
       values[i] = "";
     }
   }
