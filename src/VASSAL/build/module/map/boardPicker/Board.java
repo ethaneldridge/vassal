@@ -40,6 +40,7 @@ import java.net.MalformedURLException;
 import java.util.Enumeration;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.Hashtable;
 
 public class Board extends AbstractConfigurable {
   /**
@@ -54,6 +55,9 @@ public class Board extends AbstractConfigurable {
   public static final String REVERSIBLE = "reversible";
 
   protected Image boardImage;
+
+  /** @deprecated */
+  protected Hashtable scaledCache = new Hashtable();
 
   protected Point pos = new Point(0, 0);
   protected Rectangle boundaries = new Rectangle(0, 0, 500, 500);
