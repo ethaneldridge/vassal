@@ -262,7 +262,7 @@ public class CounterDetailViewer extends AbstractConfigurable implements Drawabl
       graphicsVisible = false;
     }
     else {
-      if (map.getZoom() < 0.75) {
+      if (map.getZoom() < zoomLevel) {
         boolean val = !Boolean.TRUE.equals(currentPiece.getProperty(Properties.IMMOBILE));
         graphicsVisible = (showGraph && val);
         textVisible = (showText && val);
