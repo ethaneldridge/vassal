@@ -13,62 +13,41 @@
  * Library General Public License for more details.
  *
  * You should have received a copy of the GNU Library General Public
- * License along with this library; if not, copies are available 
+ * License along with this library; if not, copies are available
  * at http://www.opensource.org.
  */
 package VASSAL.build.module.map;
 
 import VASSAL.counters.GamePiece;
 import VASSAL.counters.Properties;
+import VASSAL.counters.Deck;
+import VASSAL.counters.Stack;
 
 /**
  * Default implementation of {@link PieceCollection} separates pieces into
  * two layers:  stacking pieces always above non-stacking pieces
  */
-public class DefaultPieceCollection implements PieceCollection {
-  private SimplePieceCollection stacking = new SimplePieceCollection();
-  private SimplePieceCollection nonstacking = new SimplePieceCollection();
+public class DefaultPieceCollection extends CompoundPieceCollection {
+  public DefaultPieceCollection() {
+    super(2);
+  }
 
-  protected PieceCollection getCollectionForPiece(GamePiece p) {
-    if (Boolean.TRUE.equals(p.getProperty(Properties.NO_STACK))) {
-      return nonstacking;
+  public boolean canMerge(GamePiece p1, GamePiece p2) {
+    boolean canMerge = false;
+    if (p1 == null
+      || p2 == null) {
+      return false;
     }
-    else {
-      return stacking;
+    if (p1 instanceof Deck || p2 instanceof Deck) {
+      canMerge = true;
     }
+    else if (p1 instanceof Stack) {
+
+    }
+    return canMerge;
   }
 
-  public void add(GamePiece p) {
-    getCollectionForPiece(p).add(p);
-  }
-
-  public void clear() {
-    stacking.clear();
-    nonstacking.clear();
-  }
-
-  public GamePiece[] getPieces() {
-    GamePiece[] top = stacking.getPieces();
-    GamePiece[] bottom = nonstacking.getPieces();
-    GamePiece[] all = new GamePiece[bottom.length+top.length];
-    System.arraycopy(bottom,0,all,0,bottom.length);
-    System.arraycopy(top,0,all,bottom.length,top.length);
-    return all;
-  }
-
-  public int indexOf(GamePiece p) {
-    return getCollectionForPiece(p).indexOf(p);
-  }
-
-  public void remove(GamePiece p) {
-    getCollectionForPiece(p).remove(p);
-  }
-
-  public void moveToBack(GamePiece p) {
-    getCollectionForPiece(p).moveToBack(p);
-  }
-
-  public void moveToFront(GamePiece p) {
-    getCollectionForPiece(p).moveToFront(p);
+  protected int getLayerForPiece(GamePiece p) {
+    return Boolean.TRUE.equals(p.getProperty(Properties.NO_STACK)) ? 0 : 1;
   }
 }

@@ -163,6 +163,10 @@ public class PieceMover extends AbstractBuildable implements
    * When the user clicks on the map, a piece from the map is selected
    * by the dragTargetSelector.  What happens to that piece is
    * determined by the {@link PieceVisitorDispatcher} instance returned by this method.
+   * The default implementation does the following:
+   * If a Deck, add the top piece to the drag buffer
+   * If a stack, add it to the drag buffer
+   * Otherwise, add the piece and any other multi-selected pieces to the drag buffer
    * @see #createDragTargetSelector
    * @return
    */
@@ -226,6 +230,8 @@ public class PieceMover extends AbstractBuildable implements
   /**
    * Returns the {@link PieceFinder} instance that will select a {@link GamePiece}
    * for processing when the user clicks on the map.
+   * The default implementation is to return the first piece
+   * whose shape contains the point clicked on.
    * @return
    */
   protected PieceFinder createDragTargetSelector() {
@@ -753,9 +759,6 @@ public class PieceMover extends AbstractBuildable implements
     protected void moveDragCursor(int dragX, int dragY) {
       if (drawWin != null) {
         dragCursor.setLocation(dragX - drawOffset.x, dragY - drawOffset.y);
-        if (dropWin instanceof Map.View) {
-          Map map = ((Map.View) dropWin).getMap();
-        }
       }
     }
 
@@ -909,7 +912,6 @@ public class PieceMover extends AbstractBuildable implements
 
           // Pieces in an expanded stack need to be offset
           if (piece.getParent() != null && piece.getParent().isExpanded() && map != null) {
-            StackMetrics metrics = map == null ? piece.getParent().getDefaultMetrics() : map.getStackMetrics();
             Point offset = piece.getMap().getStackMetrics().relativePosition(piece.getParent(), piece);
             piecePosition.translate(offset.x, offset.y);
           }

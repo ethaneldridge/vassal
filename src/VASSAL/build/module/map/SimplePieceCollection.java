@@ -36,6 +36,10 @@ public class SimplePieceCollection implements PieceCollection {
     return -1;
   }
 
+  public boolean canMerge(GamePiece p1, GamePiece p2) {
+    return true;
+  }
+
   public void add(GamePiece p) {
     if (pieceCount >= capacity) {
       capacity += incr;
