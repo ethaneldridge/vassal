@@ -35,7 +35,7 @@ import java.util.Vector;
  */
 public class Stack implements GamePiece {
   public static final String TYPE = "stack";
-  private static final int INCR = 5;
+  protected static final int INCR = 5;
   protected GamePiece[] contents = new GamePiece[INCR];
   protected int pieceCount = 0;
 
@@ -122,7 +122,7 @@ public class Stack implements GamePiece {
     }
   }
 
-  private void insertPieceAt(GamePiece p, int index) {
+  protected void insertPieceAt(GamePiece p, int index) {
     if (pieceCount >= contents.length) {
       GamePiece[] newContents = new GamePiece[contents.length + INCR];
       System.arraycopy(contents, 0, newContents, 0, pieceCount);
