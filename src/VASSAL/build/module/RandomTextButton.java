@@ -22,6 +22,7 @@ import VASSAL.build.AutoConfigurable;
 import VASSAL.build.GameModule;
 import VASSAL.build.module.documentation.HelpFile;
 import VASSAL.configure.*;
+import VASSAL.tools.FormattedString;
 
 import java.io.File;
 import java.net.MalformedURLException;
@@ -50,7 +51,7 @@ public class RandomTextButton extends DiceButton {
    * method of the {@link Chatter} of the {@link GameModule}.  Format is
    * prefix+[comma-separated roll list]+suffix */
   protected void DR() {
-    String val = getReportPrefix();
+    StringBuffer result = new StringBuffer();
     int total = 0;
     for (int i = 0; i < nDice; ++i) {
       int roll = (int) (ran.nextFloat() * nSides + 1);
@@ -66,20 +67,20 @@ public class RandomTextButton extends DiceButton {
       }
       else {
         if (!isNumeric)
-          val += m_faces[roll - 1];
+          result.append(m_faces[roll - 1]);
         else
-          val += roll;
+          result.append(roll);
         if (i < nDice - 1)
-          val += ",";
+          result.append(",");
       }
     }
 
     // totals only if no text output
     if (reportTotal && isNumeric)
-      val += total;
+      result.append(total);
 
-    val += getReportSuffix();
-    GameModule.getGameModule().getChatter().send(val);
+    String msg = formatResult(result.toString());
+    GameModule.getGameModule().getChatter().send(msg);
   }
 
   public VisibilityCondition getAttributeVisibility(String name) {

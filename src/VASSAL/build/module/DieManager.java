@@ -28,6 +28,7 @@ import VASSAL.configure.StringConfigurer;
 import VASSAL.configure.StringEnumConfigurer;
 import VASSAL.preferences.Prefs;
 import VASSAL.tools.BackgroundTask;
+import VASSAL.tools.FormattedString;
 
 import javax.swing.*;
 import javax.swing.event.ListDataEvent;
@@ -235,7 +236,7 @@ public class DieManager extends AbstractConfigurable {
     return myMultiRoll;
   }
 
-  public void roll(int nDice, int nSides, int plus, boolean reportTotal, String description) {
+  public void roll(int nDice, int nSides, int plus, boolean reportTotal, String description, FormattedString format) {
     MultiRoll mroll = getMultiRoll();
     getPrefs();
 
@@ -289,7 +290,7 @@ public class DieManager extends AbstractConfigurable {
     GameModule.getGameModule().getChatter().getInputField().setText("");
     rollSet.setDescription(desc);
 
-    server.roll(rollSet);
+    server.roll(rollSet, format);
   }
 
   /*
@@ -471,7 +472,7 @@ public class DieManager extends AbstractConfigurable {
      * Internet Die Servers should always implement roll by calling back to
      * {@link #doInternetRoll}
      */
-    public abstract void roll(RollSet mr);
+    public abstract void roll(RollSet mr, FormattedString format);
 
     public DieServer() {
       ran = GameModule.getGameModule().getRNG();
@@ -590,7 +591,7 @@ public class DieManager extends AbstractConfigurable {
     /*
      * Internet Servers will call this routine to do their dirty work.
      */
-    public void doInternetRoll(final RollSet mroll) {
+    public void doInternetRoll(final RollSet mroll, final FormattedString format) {
       BackgroundTask task = new BackgroundTask() {
         private IOException error;
 
@@ -605,7 +606,7 @@ public class DieManager extends AbstractConfigurable {
 
         public void doLater() {
           if (error == null) {
-            reportResult(mroll);
+            reportResult(mroll, format);
           }
           else {
             String s = "- Internet dice roll attempt " + mroll.getDescription() + " failed.";
@@ -616,14 +617,26 @@ public class DieManager extends AbstractConfigurable {
       task.start();
     }
 
-    public void reportResult(RollSet mroll) {
+    /**
+     * Use the configured FormattedString to format the result of a roll
+     * @param result
+     * @return
+     */
+    protected String formatResult(String result, FormattedString format) {
+      format.setProperty(DiceButton.RESULT, result);
+      String report = "*"+format.getText();
+      return report;
+    }
+
+
+    public void reportResult(RollSet mroll, FormattedString format) {
       DieRoll[] rolls = mroll.getDieRolls();
       for (int i = 0; i < rolls.length; i++) {
         DieRoll roll = rolls[i];
         int nDice = roll.getNumDice();
         boolean reportTotal = roll.isReportTotal();
 
-        String val = getReportPrefix(roll.getDescription());
+        String val = "";
         int total = 0;
 
         for (int j = 0; j < nDice; j++) {
@@ -641,7 +654,7 @@ public class DieManager extends AbstractConfigurable {
         if (reportTotal)
             val += total;
         
-        val += getReportSuffix();
+        val = formatResult(val,format);
         GameModule.getGameModule().getChatter().send(val);
       }
     }
@@ -703,7 +716,7 @@ public class DieManager extends AbstractConfigurable {
     public void parseInternetRollString(RollSet rollSet, Vector results) {
     }
 
-    public void roll(RollSet mr) {
+    public void roll(RollSet mr, FormattedString format) {
       super.doInbuiltRoll(mr);
     }
 
@@ -772,8 +785,8 @@ public class DieManager extends AbstractConfigurable {
       }
     }
 
-    public void roll(RollSet mr) {
-      super.doInternetRoll(mr);
+    public void roll(RollSet mr, FormattedString format) {
+      super.doInternetRoll(mr, format);
     }
 
     /*
@@ -816,8 +829,8 @@ public class DieManager extends AbstractConfigurable {
     public void parseInternetRollString(RollSet toss, Vector results) {
     }
 
-    public void roll(RollSet mr) {
-      super.doInternetRoll(mr);
+    public void roll(RollSet mr, FormattedString format) {
+      super.doInternetRoll(mr, format);
     }
 
     /*
@@ -952,8 +965,8 @@ public class DieManager extends AbstractConfigurable {
       }
     }
 
-    public void roll(RollSet mr) {
-      super.doInternetRoll(mr);
+    public void roll(RollSet mr, FormattedString format) {
+      super.doInternetRoll(mr, format);
     }
 
   }

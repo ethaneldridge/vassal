@@ -138,12 +138,22 @@ public class DiceButton extends AbstractConfigurable {
     if (reportTotal)
       val += total;
 
+    String report = formatResult(val);
+    GameModule.getGameModule().getChatter().send(report);
+  }
+
+  /**
+   * Use the configured FormattedString to format the result of a roll
+   * @param result
+   * @return
+   */
+  protected String formatResult(String result) {
     reportFormat.setProperty(PLAYER_NAME, (String) GameModule.getGameModule().getPrefs().getValue(GameModule.REAL_NAME));
     reportFormat.setProperty(PLAYER_SIDE,PlayerRoster.getMySide());
     reportFormat.setProperty(REPORT_NAME, getConfigureName());
-    reportFormat.setProperty(RESULT, val);
+    reportFormat.setProperty(RESULT, result);
     String report = "*"+reportFormat.getText();
-    GameModule.getGameModule().getChatter().send(report);
+    return report;
   }
 
   public String[] getAttributeNames() {
