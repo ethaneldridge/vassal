@@ -2550,7 +2550,7 @@ try{
 			false);
 	}
 
-	private boolean isBlindHex(
+	protected boolean isBlindHex(
 		int 		sourceElevation,
 		int 		targetElevation,
 		int 		rangeToSource,
