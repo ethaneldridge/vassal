@@ -260,10 +260,12 @@ public class Labeler extends Decorator implements EditablePiece {
     lbl.setText(label);
     lbl.setSize(lbl.getPreferredSize());
     Image im = obs.createImage(lbl.getWidth(), lbl.getHeight());
-    Graphics g = im.getGraphics();
-    g.setColor(textBg);
-    g.fillRect(0, 0, lbl.getWidth(), lbl.getHeight());
-    lbl.paint(g);
+    if ( im != null ) {
+      Graphics g = im.getGraphics();
+      g.setColor(textBg);
+      g.fillRect(0, 0, lbl.getWidth(), lbl.getHeight());
+      lbl.paint(g);
+    }
     return im;
   }
 
