@@ -349,7 +349,12 @@ public class VSQLFootprint extends MarkMoved {
           y1 = (int) (lastP.y * zoom);
           x2 = (int) (p.x * zoom);
           y2 = (int) (p.y * zoom);     
-          g.drawLine(x1, y1, x2, y2);
+          
+          double dist = getDistance(x1, y1, x2, y2);
+          int xDiff = (int) ((CIRCLE_RADIUS * (x2 - x1)) / dist);
+          int yDiff = (int) ((CIRCLE_RADIUS * (y2 - y1)) / dist);
+          
+          g.drawLine(x1+xDiff, y1+yDiff, x2-xDiff, y2-yDiff);
         }
         lastP = p;
       }
@@ -358,7 +363,12 @@ public class VSQLFootprint extends MarkMoved {
         y1 = (int) (lastP.y * zoom);
         x2 = (int) (here.x * zoom);
         y2 = (int) (here.y * zoom);
-        g.drawLine(x1, y1, x2, y2);
+        
+        double dist = getDistance(x1, y1, x2, y2);
+        int xDiff = (int) ((CIRCLE_RADIUS * (x2 - x1)) / dist);
+        int yDiff = (int) ((CIRCLE_RADIUS * (y2 - y1)) / dist);
+        
+        g.drawLine(x1+xDiff, y1+yDiff, x2-xDiff, y2-yDiff);
       }
 
       int step = 0;
@@ -383,7 +393,7 @@ public class VSQLFootprint extends MarkMoved {
            * For a vehicled, draw an arrow showing the CA of the vehicle
            * as it entered the hex.
            */
-          if (isVehicle() && lastValue > 0) {
+          if (isVehicle() && lastValue > 0 && selected) {
             
             try {
               Image im = getCAImage(lastValue);
@@ -404,7 +414,7 @@ public class VSQLFootprint extends MarkMoved {
            * For a leader counter, display the number of squads or crews
            * that moved into the hex stacked with the leader. (+1 for the leader)
            */
-          else if (leader && lastValue > 0) {
+          else if (leader && lastValue > 0 && selected) {
            
             Labeler.drawLabel(g, lastValue + 1 + "", x1, y1, f, Labeler.CENTER,
                Labeler.CENTER, CIRCLE_COLOR, null, null);
@@ -421,6 +431,21 @@ public class VSQLFootprint extends MarkMoved {
     }
   }
 
+  protected double getDistance(int x1, int y1, int x2, int y2) {
+    double lastSqrt = -1;
+    int lastDistSq = -1;
+    
+    int distSq = (x2 - x1) * (x2 - x1) + (y2 - y1) * (y2 - y1);
+    if (distSq == lastDistSq) {
+       return lastSqrt;
+    }
+    
+    lastDistSq = distSq;
+    lastSqrt = Math.sqrt(distSq);
+    return lastSqrt;
+    
+  }
+  
   protected Image getCAImage(int ca) throws java.io.IOException {
 
     if (caImages[ca - 1] == null) {
