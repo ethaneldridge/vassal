@@ -18,18 +18,17 @@
  */
 package VASSAL.build.module.documentation;
 
-import VASSAL.build.Buildable;
-import VASSAL.build.Builder;
 import VASSAL.build.AbstractConfigurable;
+import VASSAL.build.Buildable;
 import VASSAL.build.GameModule;
 import VASSAL.build.module.Documentation;
-import org.w3c.dom.Element;
-import org.w3c.dom.Document;
+import VASSAL.configure.BooleanConfigurer;
+import VASSAL.configure.VisibilityCondition;
 
 import javax.swing.*;
-import java.io.*;
 import java.awt.event.ActionEvent;
-import java.awt.*;
+import java.io.*;
+import java.net.MalformedURLException;
 
 /**
  * Provides tutorial functionality by reading in a logfile
@@ -38,10 +37,14 @@ public class Tutorial extends AbstractConfigurable {
   public static final String FILE_NAME = "logfile";
   public static final String NAME = "name";
   public static final String LAUNCH_ON_STARTUP = "launchOnStartup";
+  public static final String PROMPT_MESSAGE = "promptMessage";
+  public static final String WELCOME_MESSAGE = "welcomeMessage";
   private String fileName;
   private Action launch;
   private JMenuItem item;
   private boolean launchOnFirstStartup;
+  private String welcomeMessage = "Hit the \"Step forward\" button in the toolbar to step through the tutorial";
+  private String promptMessage = "Load the tutorial?";
 
   public Tutorial() {
     launch = new AbstractAction("Tutorial") {
@@ -70,8 +73,11 @@ public class Tutorial extends AbstractConfigurable {
       if (tmp.renameTo(renamed)) {
         tmp = renamed;
       }
+      if (welcomeMessage != null
+        && welcomeMessage.length() > 0) {
+        GameModule.getGameModule().warn(welcomeMessage);
+      }
       GameModule.getGameModule().getGameState().loadGame(tmp);
-      GameModule.getGameModule().warn("Hit the \"Step forward\" button in the toolbar to step through the tutorial");
     }
     catch (IOException e1) {
       String msg = "Unable to launch tutorial " + name;
@@ -83,15 +89,26 @@ public class Tutorial extends AbstractConfigurable {
   }
 
   public String[] getAttributeDescriptions() {
-    return new String[]{"Name", "Logfile", "Launch automatically on first startup"};
+    return new String[]{"Menu Text", "Logfile", "Launch automatically on first startup","Auto-launch confirm message","Welcome message"};
   }
 
   public Class[] getAttributeTypes() {
-    return new Class[]{String.class, File.class, Boolean.class};
+    return new Class[]{String.class, File.class, Boolean.class,String.class,String.class};
   }
 
   public String[] getAttributeNames() {
-    return new String[]{NAME, FILE_NAME, LAUNCH_ON_STARTUP};
+    return new String[]{NAME, FILE_NAME, LAUNCH_ON_STARTUP,PROMPT_MESSAGE,WELCOME_MESSAGE};
+  }
+
+  public VisibilityCondition getAttributeVisibility(String name) {
+    if (name.equals(PROMPT_MESSAGE)) {
+      return new VisibilityCondition() {
+        public boolean shouldBeVisible() {
+          return launchOnFirstStartup;
+        }
+      };
+    }
+    return null;
   }
 
   public String getAttributeValueString(String key) {
@@ -103,6 +120,12 @@ public class Tutorial extends AbstractConfigurable {
     }
     else if (LAUNCH_ON_STARTUP.equals(key)) {
       return "" + launchOnFirstStartup;
+    }
+    else if (PROMPT_MESSAGE.equals(key)) {
+      return promptMessage;
+    }
+    else if (WELCOME_MESSAGE.equals(key)) {
+      return welcomeMessage;
     }
     else {
       return null;
@@ -126,17 +149,32 @@ public class Tutorial extends AbstractConfigurable {
       }
       launchOnFirstStartup = ((Boolean) value).booleanValue();
     }
+    else if (PROMPT_MESSAGE.equals(key)) {
+      promptMessage = (String) value;
+    }
+    else if (WELCOME_MESSAGE.equals(key)) {
+      welcomeMessage = (String) value;
+    }
   }
 
   public void addTo(Buildable parent) {
     item = ((Documentation) parent).getHelpMenu().add(launch);
-    if (launchOnFirstStartup) {
-      if (JOptionPane.YES_OPTION == JOptionPane.showConfirmDialog(GameModule.getGameModule().getFrame(),
-                                                                  "Load the tutorial?",
-                                                                  "First startup",
-                                                                  JOptionPane.YES_NO_OPTION)) {
-        launch();
-      }
+    final String key = "viewedTutorial"+getConfigureName();
+    GameModule.getGameModule().getPrefs().addOption(null,new BooleanConfigurer(key,null,Boolean.FALSE));
+    if (launchOnFirstStartup
+      && !Boolean.TRUE.equals(GameModule.getGameModule().getPrefs().getValue(key))) {
+      Runnable runnable = new Runnable() {
+        public void run() {
+          if (JOptionPane.YES_OPTION == JOptionPane.showConfirmDialog(GameModule.getGameModule().getFrame(),
+                                                                      promptMessage,
+                                                                      "Initial startup",
+                                                                      JOptionPane.YES_NO_OPTION)) {
+            launch();
+            GameModule.getGameModule().getPrefs().setValue(key,Boolean.TRUE);
+          }
+        }
+      };
+      SwingUtilities.invokeLater(runnable);
     }
   }
 
@@ -145,7 +183,14 @@ public class Tutorial extends AbstractConfigurable {
   }
 
   public HelpFile getHelpFile() {
-    return null;
+    File dir = VASSAL.build.module.Documentation.getDocumentationBaseDir();
+    dir = new File(dir, "ReferenceManual");
+    try {
+      return new HelpFile(null, new File(dir, "HelpMenu.htm"), "#Tutorial");
+    }
+    catch (MalformedURLException ex) {
+      return null;
+    }
   }
 
   public void removeFrom(Buildable parent) {
