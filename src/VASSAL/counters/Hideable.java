@@ -91,6 +91,9 @@ public class Hideable extends Decorator implements EditablePiece {
     if (st.hasMoreTokens()) {
       bgColor = ColorConfigurer.stringToColor(st.nextToken());
     }
+    else {
+      bgColor = null;
+    }
     commands = null;
   }
 

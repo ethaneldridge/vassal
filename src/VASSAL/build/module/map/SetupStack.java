@@ -164,6 +164,7 @@ public class SetupStack extends AbstractConfigurable implements GameComponent, C
 
   private static int instanceCount = 0;
   public void addTo(Buildable parent) {
+    map = (Map)parent;
     setId("SetupStack"+instanceCount++);
 
     GameModule.getGameModule().addCommandEncoder(this);

@@ -180,7 +180,7 @@ public class PieceWindow extends Widget {
     setId("PieceWindow" + instanceCount++);
 
     String key = PositionOption.key + getId();
-    if (instanceCount == 0 && GlobalOptions.getInstance().isUseSingleWindow()) {
+    if (instanceCount == 1 && GlobalOptions.getInstance().isUseSingleWindow()) {
       mainWindowDock = new ComponentSplitter().splitLeft(GameModule.getGameModule().getControlPanel(), root, false);
     }
     else {
