@@ -13,29 +13,34 @@
  * Library General Public License for more details.
  *
  * You should have received a copy of the GNU Library General Public
- * License along with this library; if not, copies are available 
+ * License along with this library; if not, copies are available
  * at http://www.opensource.org.
  */
 package VASSAL.build.module;
 
-import VASSAL.build.module.documentation.HelpFile;
 import VASSAL.build.AbstractConfigurable;
-import VASSAL.build.Configurable;
 import VASSAL.build.Buildable;
+import VASSAL.build.Configurable;
 import VASSAL.build.GameModule;
-import VASSAL.tools.*;
-import VASSAL.configure.*;
-import VASSAL.command.*;
+import VASSAL.build.module.documentation.HelpFile;
+import VASSAL.command.Command;
+import VASSAL.command.CommandEncoder;
+import VASSAL.configure.Configurer;
+import VASSAL.configure.TextConfigurer;
+import VASSAL.configure.StringConfigurer;
+import VASSAL.tools.LaunchButton;
+import VASSAL.tools.SequenceEncoder;
 
-import java.util.*;
+import javax.swing.*;
+import javax.swing.border.TitledBorder;
 import java.awt.event.*;
 import java.awt.*;
-import java.net.URL;
-import java.net.MalformedURLException;
 import java.io.File;
-import javax.swing.*;
-
-import org.w3c.dom.*;
+import java.net.MalformedURLException;
+import java.util.Enumeration;
+import java.util.Hashtable;
+import java.beans.PropertyChangeListener;
+import java.beans.PropertyChangeEvent;
 
 /**
  * This is a {@link GameComponent} that allows players to type and
@@ -44,11 +49,20 @@ import org.w3c.dom.*;
  * him
  */
 public class NotesWindow extends AbstractConfigurable
-  implements GameComponent, CommandEncoder {
+    implements GameComponent, CommandEncoder {
 
   private JFrame frame;
   private Hashtable notesTable = new Hashtable();
+  private MutableComboBoxModel secretNotes;
+  private SecretNotesControls secretControls;
   private LaunchButton launch;
+  private TextConfigurer notes;
+  private TextConfigurer privateNotes;
+  private static final String NOTES = "NOTES\t";
+  private static final String PRIVATE_NOTE = "PNOTE\t";
+  private static final String SECRET_NOTE = "SNOTE\t";
+  private static final String REVEAL_NOTE = "RNOTE\t";
+
 
   public NotesWindow() {
     frame = new NotesFrame();
@@ -59,7 +73,7 @@ public class NotesWindow extends AbstractConfigurable
       }
     };
     launch = new LaunchButton(null, null, null, "icon", al);
-    launch.setAttribute("icon","/images/notes.gif");
+    launch.setAttribute("icon", "/images/notes.gif");
     launch.setToolTipText("Notes");
     frame.pack();
     setup(false);
@@ -77,21 +91,42 @@ public class NotesWindow extends AbstractConfigurable
     }
 
     private void initComponents() {
+      getContentPane().setLayout(new BoxLayout(getContentPane(), BoxLayout.Y_AXIS));
       setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
-      jLabel1 = new javax.swing.JLabel();
-      jScrollPane1 = new javax.swing.JScrollPane();
-      notes = new TextConfigurer(null, "Notes");
-      jLabel3 = new javax.swing.JLabel();
-      jScrollPane2 = new javax.swing.JScrollPane();
-      privateNotes = new TextConfigurer(null, "Private Notes");
-      getContentPane().setLayout(new javax.swing.BoxLayout(getContentPane(), 1));
+      addWindowListener(new WindowAdapter() {
+        public void windowClosing(WindowEvent e) {
+          save();
+          setVisible(false);
+        }
+      });
 
-      getContentPane().add(notes.getControls());
+      notes = new TextConfigurer(null, null);
+      privateNotes = new TextConfigurer(null, null);
+      JTabbedPane tab = new JTabbedPane();
+      getContentPane().add(tab);
 
-      getContentPane().add(privateNotes.getControls());
+      Box b = Box.createVerticalBox();
+      b.add(new JLabel("Visible to all"));
+      b.add(notes.getControls());
+      tab.addTab("Public", b);
+
+      b = Box.createVerticalBox();
+      b.add(new JLabel("Invisible to others"));
+      b.add(privateNotes.getControls());
+      tab.addTab("Private", b);
+
+      secretNotes = new DefaultComboBoxModel();
+      secretControls = new SecretNotesControls(secretNotes);
+
+      b = Box.createVerticalBox();
+      JLabel l = new JLabel("Visible once revealed");
+      l.setAlignmentX(0.0F);
+      b.add(l);
+      b.add(secretControls);
+      tab.addTab("Delayed", b);
 
       JPanel p = new JPanel();
-      JButton saveButton = new JButton("Save");
+      JButton saveButton = new JButton("Ok");
       p.add(saveButton);
       saveButton.addActionListener(new ActionListener() {
         public void actionPerformed(ActionEvent e) {
@@ -126,9 +161,6 @@ public class NotesWindow extends AbstractConfigurable
     return null;
   }
 
-  private static final String NOTES = "NOTES\t";
-  private static final String PRIVATE_NOTE = "PNOTE\t";
-
   public String encode(Command c) {
     String s = null;
     if (c instanceof SetNote) {
@@ -137,9 +169,22 @@ public class NotesWindow extends AbstractConfigurable
     else if (c instanceof SetPrivate) {
       SequenceEncoder se = new SequenceEncoder('\t');
       s = PRIVATE_NOTE +
-        se.append(((SetPrivate) c).player)
-        .append(((SetPrivate) c).msg)
-        .getValue();
+          se.append(((SetPrivate) c).player)
+          .append(((SetPrivate) c).msg)
+          .getValue();
+    }
+    else if (c instanceof AddSecretNote) {
+      SecretNote note = ((AddSecretNote) c).note;
+      SequenceEncoder se = new SequenceEncoder('\t');
+      s = SECRET_NOTE
+          + se.append(note.getName())
+          .append(note.getOwner())
+          .append(note.isHidden() + "")
+          .append(TextConfigurer.escapeNewlines(note.getText()))
+          .getValue();
+    }
+    else if (c instanceof RevealNote) {
+      s = REVEAL_NOTE + ((RevealNote) c).index;
     }
     return s;
   }
@@ -150,10 +195,23 @@ public class NotesWindow extends AbstractConfigurable
     }
     else if (command.startsWith(PRIVATE_NOTE)) {
       SequenceEncoder.Decoder st = new SequenceEncoder.Decoder
-        (command.substring(PRIVATE_NOTE.length()), '\t');
+          (command.substring(PRIVATE_NOTE.length()), '\t');
       String player = st.nextToken();
       String msg = st.hasMoreTokens() ? st.nextToken() : "";
       return new SetPrivate(player, msg);
+    }
+    else if (command.startsWith(SECRET_NOTE)) {
+      SequenceEncoder.Decoder st = new SequenceEncoder.Decoder
+          (command.substring(SECRET_NOTE.length()), '\t');
+      String name = st.nextToken();
+      String owner = st.nextToken();
+      boolean hidden = "true".equals(st.nextToken());
+      String text = TextConfigurer.restoreNewlines(st.nextToken());
+      return new AddSecretNote(name, owner, hidden, text);
+    }
+    else if (command.startsWith(REVEAL_NOTE)) {
+      int index = Integer.parseInt(command.substring(REVEAL_NOTE.length()));
+      return new RevealNote(index);
     }
     else {
       return null;
@@ -207,6 +265,9 @@ public class NotesWindow extends AbstractConfigurable
       notesTable.clear();
       notes.setValue("");
       privateNotes.setValue("");
+      while (secretNotes.getSize() > 0) {
+        secretNotes.removeElementAt(0);
+      }
     }
   }
 
@@ -217,19 +278,12 @@ public class NotesWindow extends AbstractConfigurable
       String player = (String) e.nextElement();
       c.append(new SetPrivate(player, (String) notesTable.get(player)));
     }
+    for (int i = 0,n = secretNotes.getSize(); i < n; ++i) {
+      SecretNote note = (SecretNote) secretNotes.getElementAt(i);
+      c.append(new AddSecretNote(note.name, note.owner, note.hidden, note.text));
+    }
     return c;
   }
-
-  // Variables declaration - do not modify//GEN-BEGIN:variables
-  private javax.swing.JLabel jLabel1;
-  private javax.swing.JScrollPane jScrollPane1;
-  //    private javax.swing.JTextArea notes;
-  private TextConfigurer notes;
-  private javax.swing.JLabel jLabel3;
-  private javax.swing.JScrollPane jScrollPane2;
-  //    private javax.swing.JTextArea privateNotes;
-  private TextConfigurer privateNotes;
-  // End of variables declaration//GEN-END:variables
 
   private class SetNote extends Command {
     private String msg;
@@ -260,6 +314,209 @@ public class NotesWindow extends AbstractConfigurable
       notesTable.put(player, msg);
       if (player.equals(GameModule.getUserId())) {
         privateNotes.setValue(msg);
+      }
+    }
+
+    protected Command myUndoCommand() {
+      return null;
+    }
+  }
+
+  public static class SecretNote {
+    private String owner;
+    private String name;
+    private String text;
+    private boolean hidden = true;
+
+    public SecretNote(String name, String owner, String text) {
+      this.name = name;
+      this.owner = owner;
+      this.text = text;
+    }
+
+    public void reveal() {
+      hidden = false;
+    }
+
+    public boolean isHidden() {
+      return hidden;
+    }
+
+    public String getName() {
+      return name;
+    }
+
+    public String getOwner() {
+      return owner;
+    }
+
+    public String getText() {
+      return text;
+    }
+  }
+
+  private class SecretNotesControls extends JPanel implements ItemListener {
+    private MutableComboBoxModel model;
+    private JComboBox box;
+    private JCheckBox status;
+    private JTextArea text;
+
+    public SecretNotesControls(MutableComboBoxModel model) {
+      this.model = model;
+      setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
+      JButton newButton = new JButton("New");
+      newButton.addActionListener(new ActionListener() {
+        public void actionPerformed(ActionEvent e) {
+          createNewNote();
+        }
+      });
+      box = new JComboBox(model);
+      box.addItemListener(this);
+      box.setRenderer(new DefaultListCellRenderer() {
+        public Component getListCellRendererComponent(
+            JList list,
+            Object value,
+            int index,
+            boolean isSelected,
+            boolean cellHasFocus) {
+          if (value instanceof SecretNote) {
+            value = ((SecretNote) value).getName();
+          }
+          return super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
+        }
+      });
+      Box b = Box.createHorizontalBox();
+      b.setAlignmentX(0.0F);
+      b.add(newButton);
+      b.add(box);
+      status = new JCheckBox("Revealed");
+      status.addActionListener(new ActionListener() {
+        public void actionPerformed(ActionEvent e) {
+          revealSelectedNote();
+        }
+      });
+      b.add(status);
+      add(b);
+      text = new JTextArea(6, 20);
+      text.setEditable(false);
+      JScrollPane scroll = new JScrollPane(text);
+      scroll.setBorder(new TitledBorder("Text"));
+      add(scroll);
+    }
+
+    private void revealSelectedNote() {
+      int index = box.getSelectedIndex();
+      if (index >= 0) {
+        SecretNote note = (SecretNote) model.getElementAt(index);
+        String msg = " - " + GameModule.getGameModule().getChatter().getHandle() + " has revealed message \'" + note.getName() + "\'";
+        Command c = new Chatter.DisplayText(GameModule.getGameModule().getChatter(), msg);
+        c.append(new RevealNote(index));
+        c.execute();
+        GameModule.getGameModule().sendAndLog(c);
+      }
+    }
+
+    public void createNewNote() {
+      Frame parent = (Frame) SwingUtilities.getAncestorOfClass(Frame.class, this);
+      final JDialog d = new JDialog(parent, true);
+      d.setTitle("Delayed Note");
+      final StringConfigurer name = new StringConfigurer(null, "Name");
+      final TextConfigurer text = new TextConfigurer(null, "Text");
+      d.getContentPane().setLayout(new BoxLayout(d.getContentPane(), BoxLayout.Y_AXIS));
+      d.getContentPane().add(name.getControls());
+      d.getContentPane().add(text.getControls());
+      Box buttonPanel = Box.createHorizontalBox();
+      final JButton okButton = new JButton("Ok");
+      okButton.addActionListener(new ActionListener() {
+        public void actionPerformed(ActionEvent e) {
+          String msg = " - " + GameModule.getGameModule().getChatter().getHandle() + " has created message \'" + name.getValueString() + "\'";
+          Command c = new Chatter.DisplayText(GameModule.getGameModule().getChatter(), msg);
+          c.append(new AddSecretNote(name.getValueString(), GameModule.getUserId(), true, (String) text.getValue()));
+          c.execute();
+          GameModule.getGameModule().sendAndLog(c);
+          d.dispose();
+        }
+      });
+      PropertyChangeListener l = new PropertyChangeListener() {
+        public void propertyChange(PropertyChangeEvent evt) {
+          okButton.setEnabled(name.getValueString() != null
+                              && name.getValueString().length() > 0
+                              && text.getValueString() != null
+                              && text.getValueString().length() > 0);
+        }
+      };
+      name.addPropertyChangeListener(l);
+      text.addPropertyChangeListener(l);
+      okButton.setEnabled(false);
+      buttonPanel.add(okButton);
+      JButton cancelButton = new JButton("Cancel");
+      cancelButton.addActionListener(new ActionListener() {
+        public void actionPerformed(ActionEvent e) {
+          d.dispose();
+        }
+      });
+      d.getContentPane().add(buttonPanel);
+      d.pack();
+      d.setLocationRelativeTo(d.getOwner());
+      d.setVisible(true);
+    }
+
+    public void itemStateChanged(ItemEvent e) {
+      displaySelected();
+    }
+
+    private void displaySelected() {
+      int index = box.getSelectedIndex();
+      if (index >= 0) {
+        SecretNote note = (SecretNote) model.getElementAt(index);
+        status.setSelected(!note.isHidden());
+        if (note.getOwner().equals(GameModule.getUserId())) {
+          text.setText(note.getText());
+          status.setEnabled(note.isHidden());
+        }
+        else {
+          text.setText(note.isHidden() ? "<message not revealed>" : note.getText());
+          status.setEnabled(false);
+        }
+      }
+      else {
+        text.setText("");
+        status.setEnabled(false);
+      }
+    }
+  }
+
+  private class AddSecretNote extends Command {
+    private SecretNote note;
+
+    public AddSecretNote(String name, String owner, boolean hidden, String text) {
+      note = new SecretNote(name,owner,text);
+      if (!hidden) {
+        note.reveal();
+      }
+    }
+
+    protected void executeCommand() {
+      secretNotes.addElement(note);
+    }
+
+    protected Command myUndoCommand() {
+      return null;
+    }
+  }
+
+  private class RevealNote extends Command {
+    int index;
+
+    public RevealNote(int index) {
+      this.index = index;
+    }
+
+    protected void executeCommand() {
+      if (index >= 0 && index < secretNotes.getSize()) {
+        SecretNote note = (SecretNote) secretNotes.getElementAt(index);
+        note.reveal();
+        secretControls.displaySelected();
       }
     }
 

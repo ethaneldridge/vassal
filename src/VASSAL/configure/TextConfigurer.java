@@ -42,8 +42,12 @@ public class TextConfigurer extends Configurer {
   }
 
   public String getValueString() {
+    return escapeNewlines((String) getValue());
+  }
+
+  public static String escapeNewlines(String s) {
     SequenceEncoder se = new SequenceEncoder('|');
-    StringTokenizer st = new StringTokenizer((String) getValue(), "\n\r");
+    StringTokenizer st = new StringTokenizer(s, "\n\r");
     while (st.hasMoreTokens()) {
       se.append(st.nextToken());
     }
@@ -51,6 +55,14 @@ public class TextConfigurer extends Configurer {
   }
 
   public void setValue(String s) {
+    String text = restoreNewlines(s);
+    setValue((Object) text);
+    if (!noUpdate && textArea != null) {
+      textArea.setText(text);
+    }
+  }
+
+  public static String restoreNewlines(String s) {
     SequenceEncoder.Decoder st = new SequenceEncoder.Decoder(s, '|');
     String text = "";
     while (st.hasMoreTokens()) {
@@ -59,10 +71,7 @@ public class TextConfigurer extends Configurer {
         text += "\n";
       }
     }
-    setValue((Object) text);
-    if (!noUpdate && textArea != null) {
-      textArea.setText(text);
-    }
+    return text;
   }
 
   public java.awt.Component getControls() {
@@ -77,7 +86,9 @@ public class TextConfigurer extends Configurer {
       });
       textArea.setText((String) getValue());
       JScrollPane scroll = new JScrollPane(textArea);
-      scroll.setBorder(new TitledBorder(name));
+      if (name != null) {
+        scroll.setBorder(new TitledBorder(name));
+      }
       p.add(scroll);
     }
     return p;
