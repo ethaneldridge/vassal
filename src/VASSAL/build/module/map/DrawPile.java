@@ -1,8 +1,7 @@
-
 /*
  * $Id$
  *
- * Copyright (c) 2000-2004 by Rodney Kinney
+ * Copyright (c) 2000-2004 by Rodney Kinney and Michael Blumoehr
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Library General Public
@@ -41,9 +40,21 @@ import java.awt.*;
 import java.io.File;
 import java.net.MalformedURLException;
 import java.util.Enumeration;
+import java.util.ArrayList;
 
 public class DrawPile extends SetupStack {
   protected Deck dummy = new Deck(); // Used for storing type information
+  private String mostRecentReshuffleCommand = "Re-shuffle"; // Maintained independent of the Deck because setting the Deck's value to null disables reshuffling
+  private VisibilityCondition colorVisibleCondition = new VisibilityCondition() {
+    public boolean shouldBeVisible() {
+      return dummy.isDrawOutline();
+    }
+  };
+  private VisibilityCondition reshuffleVisibleCondition = new VisibilityCondition() {
+    public boolean shouldBeVisible() {
+      return dummy.getReshuffleCommand().length() > 0;
+    }
+  };
 
   protected JPopupMenu buildPopup() {
     JPopupMenu popup = new JPopupMenu();
@@ -92,7 +103,7 @@ public class DrawPile extends SetupStack {
       for (Enumeration e2 = m.getComponents(DrawPile.class); e2.hasMoreElements();) {
         DrawPile p = (DrawPile) e2.nextElement();
         if (p.getId().equals(id)
-          || p.getConfigureName().equals(id)) {
+            || p.getConfigureName().equals(id)) {
           return p;
         }
       }
@@ -110,13 +121,19 @@ public class DrawPile extends SetupStack {
   public static final String REVERSIBLE = "reversible";
   public static final String DRAW = "draw";
   public static final String COLOR = "color";
+  public static final String RESHUFFLABLE = "reshufflable";
+  public static final String RESHUFFLE_COMMAND = "reshuffleCommand";
+  public static final String RESHUFFLE_TARGET = "reshuffleTarget";
+  public static final String RESHUFFLE_MESSAGE = "reshuffleMessage";
 
   public static final String ALWAYS = "Always";
   public static final String NEVER = "Never";
   public static final String USE_MENU = "Via right-click Menu";
 
   public String[] getAttributeNames() {
-    return new String[]{NAME, OWNING_BOARD, X_POSITION, Y_POSITION, WIDTH, HEIGHT, ALLOW_MULTIPLE, ALLOW_SELECT, FACE_DOWN, SHUFFLE, REVERSIBLE, DRAW, COLOR};
+    return new String[]{NAME, OWNING_BOARD, X_POSITION, Y_POSITION, WIDTH, HEIGHT, ALLOW_MULTIPLE,
+                        ALLOW_SELECT, FACE_DOWN, SHUFFLE, REVERSIBLE, DRAW, COLOR,
+                        RESHUFFLABLE, RESHUFFLE_COMMAND, RESHUFFLE_MESSAGE, RESHUFFLE_TARGET};
   }
 
   public String[] getAttributeDescriptions() {
@@ -132,7 +149,11 @@ public class DrawPile extends SetupStack {
                         "Re-shuffle",
                         "Reversible",
                         "Draw Outline when empty",
-                        "Color"};
+                        "Color",
+                        "Include command to send entire deck to another deck",
+                        "Menu text",
+                        "Message to echo to chat area",
+                        "Name of deck to send to"};
   }
 
   public static class Prompt extends StringEnum {
@@ -140,6 +161,42 @@ public class DrawPile extends SetupStack {
       return new String[]{ALWAYS, NEVER, USE_MENU};
     }
   }
+
+  /**
+   * generates a prompt with the names of all decks already defined
+   */
+  public static class AssignedDeckPrompt extends StringEnum {
+    public static final String NONE = "<none>";
+
+    public AssignedDeckPrompt() {
+      // do nothing
+    }
+
+    /**
+     * looks for the names of all decks already defined
+     */
+    public String[] getValidValues(AutoConfigurable target) {
+      String[] values;
+      DrawPile dp;
+      Map m;
+
+      ArrayList l = new ArrayList();
+      l.add(NONE);
+      for (Enumeration e = GameModule.getGameModule().getComponents(Map.class); e.hasMoreElements();) {
+        m = (Map) e.nextElement();
+        if (m != null) {
+          for (Enumeration e1 = m.getComponents(DrawPile.class); e1.hasMoreElements();) {
+            dp = (DrawPile) e1.nextElement();
+            if (dp.getConfigureName() != null)
+              l.add(dp.getConfigureName());
+          }
+        }
+      }
+      values = (String[]) l.toArray(new String[l.size()]);
+      return values;
+    }
+  }
+
 
   public Class[] getAttributeTypes() {
     return new Class[]{String.class,
@@ -154,7 +211,11 @@ public class DrawPile extends SetupStack {
                        Prompt.class,
                        Boolean.class,
                        Boolean.class,
-                       Color.class};
+                       Color.class,
+                       Boolean.class,
+                       String.class,
+                       String.class,
+                       AssignedDeckPrompt.class};
   }
 
   public String getAttributeValueString(String key) {
@@ -184,6 +245,18 @@ public class DrawPile extends SetupStack {
     }
     else if (COLOR.equals(key)) {
       return ColorConfigurer.colorToString(dummy.getOutlineColor());
+    }
+    else if (RESHUFFLABLE.equals(key)) {
+      return "" + (dummy.getReshuffleCommand().length() > 0);
+    }
+    else if (RESHUFFLE_COMMAND.equals(key)) {
+      return dummy.getReshuffleCommand();
+    }
+    else if (RESHUFFLE_TARGET.equals(key)) {
+      return dummy.getReshuffleTarget();
+    }
+    else if (RESHUFFLE_MESSAGE.equals(key)) {
+      return dummy.getReshuffleMessage();
     }
     else {
       return super.getAttributeValueString(key);
@@ -251,18 +324,38 @@ public class DrawPile extends SetupStack {
       }
       dummy.setOutlineColor((Color) value);
     }
+    else if (RESHUFFLABLE.equals(key)) {
+      boolean b = "true".equals(value) || Boolean.TRUE.equals(value);
+      dummy.setReshuffleCommand(b ? mostRecentReshuffleCommand : "");
+    }
+    else if (RESHUFFLE_COMMAND.equals(key)) {
+      String s = (String) value;
+      if (s != null
+        && s.length() > 0) {
+        mostRecentReshuffleCommand = s;
+      }
+      dummy.setReshuffleCommand(mostRecentReshuffleCommand);
+    }
+    else if (RESHUFFLE_TARGET.equals(key)) {
+      dummy.setReshuffleTarget((String) value);
+    }
+    else if (RESHUFFLE_MESSAGE.equals(key)) {
+      dummy.setReshuffleMessage((String) value);
+    }
     else {
       super.setAttribute(key, value);
     }
   }
 
+
   public VisibilityCondition getAttributeVisibility(String name) {
     if (COLOR.equals(name)) {
-      return new VisibilityCondition() {
-        public boolean shouldBeVisible() {
-          return dummy.isDrawOutline();
-        }
-      };
+      return colorVisibleCondition;
+    }
+    else if (RESHUFFLE_COMMAND.equals(name)
+        || RESHUFFLE_MESSAGE.equals(name)
+        || RESHUFFLE_TARGET.equals(name)) {
+      return reshuffleVisibleCondition;
     }
     else {
       return null;
@@ -287,7 +380,7 @@ public class DrawPile extends SetupStack {
   }
 
   public Command addToContents(GamePiece p) {
-    return map.placeOrMerge(p,getPosition());
+    return map.placeOrMerge(p, getPosition());
   }
 
   protected Stack initializeContents() {
@@ -324,7 +417,7 @@ public class DrawPile extends SetupStack {
       SequenceEncoder.Decoder st = new SequenceEncoder.Decoder(s, '\t');
       st.nextToken();
       String contentsId = st.nextToken();
-      return new PlaceDeck(this, contentsId,st.hasMoreTokens() && "true".equals(st.nextToken()));
+      return new PlaceDeck(this, contentsId, st.hasMoreTokens() && "true".equals(st.nextToken()));
     }
     else {
       return null;

@@ -20,6 +20,8 @@ package VASSAL.counters;
 
 import VASSAL.build.GameModule;
 import VASSAL.build.module.Map;
+import VASSAL.build.module.Chatter;
+import VASSAL.build.module.map.DrawPile;
 import VASSAL.command.ChangeTracker;
 import VASSAL.command.Command;
 import VASSAL.command.NullCommand;
@@ -57,6 +59,9 @@ public class Deck extends Stack {
   private boolean allowMultipleDraw = false;
   private boolean allowSelectDraw = false;
   private boolean reversible = false;
+  private String reshuffleCommand = "";
+  private String reshuffleTarget;
+  private String reshuffleMessage;
 
   private boolean faceDown;
   protected int dragCount = 0;
@@ -64,7 +69,7 @@ public class Deck extends Stack {
   private KeyCommand[] commands;
 
   public Deck() {
-    this(ID + "true;0,0,0;40;40;Always;Always;false;false;false");
+    this(ID + "true;0,0,0;40;40;Always;Always;false;false;false;;;");
   }
 
   public Deck(String type) {
@@ -82,6 +87,9 @@ public class Deck extends Stack {
     allowMultipleDraw = "true".equals(st.nextToken());
     allowSelectDraw = "true".equals(st.nextToken());
     reversible = "true".equals(st.nextToken());
+    reshuffleCommand = st.nextToken();
+    reshuffleTarget = st.nextToken();
+    reshuffleMessage = st.nextToken();
   }
 
   public String getFaceDownOption() {
@@ -141,6 +149,42 @@ public class Deck extends Stack {
     this.reversible = reversible;
   }
 
+  /**
+   * The popup menu text for the command that sends the entire deck to another deck
+   * @return
+   */
+  public String getReshuffleCommand() {
+    return reshuffleCommand;
+  }
+
+  public void setReshuffleCommand(String reshuffleCommand) {
+    this.reshuffleCommand = reshuffleCommand;
+  }
+
+  /**
+   * The name of the {@link VASSAL.build.module.map.DrawPile} to which the contents of this deck
+   * will be sent when the reshuffle command is selected
+   */
+  public String getReshuffleTarget() {
+    return reshuffleTarget;
+  }
+
+  public void setReshuffleTarget(String reshuffleTarget) {
+    this.reshuffleTarget = reshuffleTarget;
+  }
+
+  /**
+   * The message to send to the chat window when the deck is reshuffled to another deck
+   * @return
+   */
+  public String getReshuffleMessage() {
+    return reshuffleMessage;
+  }
+
+  public void setReshuffleMessage(String reshuffleMessage) {
+    this.reshuffleMessage = reshuffleMessage;
+  }
+
   public String getType() {
     SequenceEncoder se = new SequenceEncoder(';');
     se.append("" + drawOutline)
@@ -150,7 +194,10 @@ public class Deck extends Stack {
         .append(shuffleOption)
         .append(allowMultipleDraw + "")
         .append(allowSelectDraw + "")
-        .append(reversible + "");
+        .append(reversible + "")
+        .append(reshuffleCommand)
+        .append(reshuffleTarget)
+        .append(reshuffleMessage);
     return ID + se.getValue();
   }
 
@@ -346,8 +393,8 @@ public class Deck extends Stack {
                    y - (int) (zoom * 2 * i), obs, zoom);
         }
         else {
-          getPieceAt(count-i-1).draw(g, x + (int) (zoom * 2 * i),
-                   y - (int) (zoom * 2 * i), obs, zoom);
+          getPieceAt(count - i - 1).draw(g, x + (int) (zoom * 2 * i),
+                                         y - (int) (zoom * 2 * i), obs, zoom);
         }
       }
       top.draw(g, x + (int) (zoom * 2 * (count - 1)),
@@ -409,6 +456,15 @@ public class Deck extends Stack {
         c = new KeyCommand("Shuffle", null, this) {
           public void actionPerformed(ActionEvent e) {
             GameModule.getGameModule().sendAndLog(shuffle());
+            map.repaint();
+          }
+        };
+        l.add(c);
+      }
+      if (reshuffleCommand.length() > 0) {
+        c = new KeyCommand(reshuffleCommand, null, this) {
+          public void actionPerformed(ActionEvent evt) {
+            GameModule.getGameModule().sendAndLog(sendToDeck());
             map.repaint();
           }
         };
@@ -507,6 +563,30 @@ public class Deck extends Stack {
     d.pack();
     d.setLocationRelativeTo(d.getOwner());
     d.setVisible(true);
+  }
+
+  /**
+   * Combine the contents of this Deck with the contents of the
+   * deck specified by {@link #reshuffleTarget}
+   */
+  public Command sendToDeck() {
+    Command c = null;
+    DrawPile target = DrawPile.findDrawPile(reshuffleTarget);
+    if (target != null) {
+      if (reshuffleMessage.length() > 0) {
+        c = new Chatter.DisplayText(GameModule.getGameModule().getChatter(), "*** " + reshuffleMessage + " ***");
+        c.execute();
+      }
+      else {
+        c = new NullCommand();
+      }
+      // move cards to deck
+      int cnt = getPieceCount() - 1;
+      for (int i = cnt; i >= 0; i--) {
+        c.append(target.addToContents(getPieceAt(i)));
+      }
+    }
+    return c;
   }
 
   public boolean isExpanded() {
