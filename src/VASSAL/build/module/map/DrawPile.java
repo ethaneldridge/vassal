@@ -621,6 +621,7 @@ public class DrawPile extends SetupStack implements Drawable, MouseListener {
 
   public Command addToContents(GamePiece p) {
     Command comm;
+    ChangeTracker contentsTracker = new ChangeTracker(contents);
     if (p instanceof Stack) {
       Command c = new NullCommand();
       for (Enumeration e = ((Stack) p).getPieces();
@@ -631,24 +632,20 @@ public class DrawPile extends SetupStack implements Drawable, MouseListener {
       comm = c;
     }
     else if (ALWAYS.equals(faceDownOption)) {
-      String oldState = p.getState();
+      ChangeTracker tracker = new ChangeTracker(p);
       p.setProperty(Obscurable.ID, HIDDEN_TO_ALL);
       contents.add(p);
-      comm = new ChangePiece(p.getId(),
-                             oldState,
-                             p.getState());
+      comm = contentsTracker.getChangeCommand().append(tracker.getChangeCommand());
     }
     else if (NEVER.equals(faceDownOption)) {
-      String oldState = p.getState();
+      ChangeTracker tracker = new ChangeTracker(p);
       p.setProperty(Obscurable.ID, null);
       contents.add(p);
-      comm = new ChangePiece(p.getId(),
-                             oldState,
-                             p.getState());
+      comm = contentsTracker.getChangeCommand().append(tracker.getChangeCommand());
     }
     else {
       contents.add(p);
-      comm = new NullCommand();
+      comm = contentsTracker.getChangeCommand();
     }
     return comm;
   }
