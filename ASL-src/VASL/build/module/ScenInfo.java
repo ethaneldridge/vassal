@@ -142,6 +142,12 @@ public class ScenInfo extends AbstractBuildable implements GameComponent, Comman
     });
     p.add(saveButton);
     frame.getContentPane().add(p);
+    frame.addWindowListener(new WindowAdapter() {
+      public void windowClosing(WindowEvent e) {
+        save();
+        frame.setVisible(false);
+      }
+    });
 
     frame.pack();
   }
