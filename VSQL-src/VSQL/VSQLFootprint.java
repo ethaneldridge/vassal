@@ -394,6 +394,7 @@ public class VSQLFootprint extends MarkMoved {
       commands = new KeyCommand[1];
       commands[0] = new KeyCommand(command, KeyStroke.getKeyStroke(trailKey, InputEvent.CTRL_MASK), Decorator
           .getOutermost(this));
+      commands[0].setEnabled(getMap() != null);
     }
     return commands;
   }
