@@ -574,10 +574,6 @@ public class StackMetrics extends AbstractConfigurable {
         && ((Stack) fixed).topPiece() != null) {
       comm = merge(((Stack) fixed).topPiece(), add);
     }
-    else if (fixed instanceof Stack
-          && ((Stack)fixed).getPieceCount() == 0) {
-      comm = fixed.getMap().placeAt(add,fixed.getPosition());
-    }
     else if (Boolean.TRUE.equals(add.getProperty(Properties.NO_STACK))
         || Boolean.TRUE.equals(fixed.getProperty(Properties.NO_STACK))) {
       comm = fixed.getMap().placeAt(add, fixed.getPosition());

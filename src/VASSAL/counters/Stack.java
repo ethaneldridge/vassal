@@ -13,7 +13,7 @@
  * Library General Public License for more details.
  *
  * You should have received a copy of the GNU Library General Public
- * License along with this library; if not, copies are available 
+ * License along with this library; if not, copies are available
  * at http://www.opensource.org.
  */
 package VASSAL.counters;
@@ -264,6 +264,7 @@ public class Stack implements GamePiece {
   }
 
   public void selectNext(GamePiece c) {
+    KeyBuffer.getBuffer().remove(c);
     if (pieceCount > 1 && indexOf(c) >= 0) {
       int newSelectedIndex = indexOf(c) == pieceCount - 1 ?
         pieceCount - 2 : indexOf(c) + 1;

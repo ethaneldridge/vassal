@@ -292,7 +292,13 @@ public class PieceMover extends AbstractBuildable implements
         s = "* " + s + " moves " + destination + " * ";
       }
       else {
-        s = "* " + s + " moves " + origin + " -> " + destination + " * ";
+        if (origin.equals(OFFMAP)) {
+          s = "* " + s + " created in " + destination + " * ";
+
+        }
+        else {
+          s = "* " + s + " moves " + origin + " -> " + destination + " * ";
+        }
       }
       Command report = new Chatter.DisplayText(GameModule.getGameModule().getChatter(), s);
       report.execute();

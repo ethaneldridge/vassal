@@ -1228,7 +1228,8 @@ public class Map extends AbstractConfigurable implements GameComponent,
   public Command placeOrMerge(GamePiece p, Point pt) {
     GamePiece[] stack = pieces.getPieces();
     for (int i = 0; i < stack.length; ++i) {
-      if (stack[i].getPosition().equals(pt)) {
+      if (stack[i].getPosition().equals(pt)
+        && (!(stack[i] instanceof Stack) || ((Stack)stack[i]).getPieceCount() > 0)) {
         return getStackMetrics().merge(stack[i], p);
       }
     }

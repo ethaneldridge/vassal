@@ -46,7 +46,7 @@ import java.util.NoSuchElementException;
  * </pre>
  */
 public class SequenceEncoder {
-  private String value;
+  private StringBuffer buffer;
   private char delimit;
 
   public SequenceEncoder(char delimiter) {
@@ -55,40 +55,43 @@ public class SequenceEncoder {
 
   public SequenceEncoder(String val, char delimiter) {
     delimit = delimiter;
-    value = val == null ? null : insertBackslash(val);
+    if (val != null) {
+      append(val);
+    }
   }
 
   public SequenceEncoder append(String s) {
-    if (value == null) {
-      value = insertBackslash(s);
+    if (buffer == null) {
+      buffer = new StringBuffer();
+      appendEscapedString(s);
     }
     else {
-      value += delimit + insertBackslash(s);
+      buffer.append(delimit);
+      appendEscapedString(s);
     }
     return this;
   }
 
   public String getValue() {
-    return value;
+    return buffer != null ? buffer.toString() : null;
   }
 
-  private String insertBackslash(String s) {
+  private void appendEscapedString(String s) {
     int begin = 0;
     int end = s.indexOf(delimit);
+    int length = buffer.length();
 
-    String val = "";
     while (begin <= end) {
-      val = val.concat(s.substring(begin, end)) + '\\';
+      buffer.append(s.substring(begin, end)).append('\\');
       begin = end;
       end = s.indexOf(delimit, end + 1);
     }
-    val = val.concat(s.substring(begin));
-    if (val.endsWith("\\")
-      || (val.startsWith("'")
-      && val.endsWith("'"))) {
-      val = "'".concat(val).concat("'");
+    buffer.append(s.substring(begin));
+    if (buffer.toString().endsWith("\\")
+      || (length > 0 && buffer.charAt(length-1) == '\''
+      && buffer.charAt(buffer.length()-1) == '\'')) {
+      buffer.insert(length,"'").append("'");
     }
-    return val;
   }
 
   public static class Decoder {
