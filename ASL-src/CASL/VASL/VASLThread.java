@@ -19,9 +19,7 @@
 package CASL.VASL;
 
 import CASL.Map.*;
-import CASL.Scenario.*;
-import CASL.Unit.*;
-import CASL.Unit.*;
+import CASL.Scenario.Scenario;
 import VASL.build.module.map.ASLThread;
 import VASL.build.module.map.HindranceKeeper;
 import VASL.build.module.map.boardPicker.ASLBoard;
@@ -43,11 +41,8 @@ import java.awt.*;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.awt.event.MouseEvent;
-import java.util.Enumeration;
-import java.util.StringTokenizer;
-import java.beans.PropertyChangeListener;
-import java.beans.PropertyChangeEvent;
 import java.io.IOException;
+import java.util.Enumeration;
 
 /**
  * Extends the LOS thread to take advantage of CASL's LOS logic and report
@@ -79,13 +74,6 @@ public class VASLThread
   private Scenario scenario;
   private ASLBoard upperLeftBoard;
 
-  // movement stuff
-  private Image unitImage;
-  private MovementLogic moveLogic;
-  private Unit unit;
-  private int unitSize = 48;
-  private MovementResult moveResult;
-
   // LOS colors
   private Color LOSColor;
   private Color hindranceColor;
@@ -103,10 +91,6 @@ public class VASLThread
       System.err.println("LOS checking turned off:  Java version " + System.getProperty("java.version"));
       status = DISABLED;
       freeResources();
-    }
-    else {
-//            moveLogic = new MovementLogic();
-//            unit = new Infantry((Location) null);
     }
   }
 
@@ -541,13 +525,13 @@ public class VASLThread
             drawString(g,
                        sourceLOSPoint.x - 20,
                        sourceLOSPoint.y + (shiftSourceText ? shift : 0) - g.getFontMetrics().getDescent(),
-                       source.getName() + "  (Level " + ((int) source.getBaseHeight() + source.getHex().getBaseHeight() + ")"));
+                       source.getName() + "  (Level " + (source.getBaseHeight() + source.getHex().getBaseHeight() + ")"));
           }
           else if (source.getBaseHeight() != 0) {
             drawString(g,
                        sourceLOSPoint.x - 20,
                        sourceLOSPoint.y + (shiftSourceText ? shift : 0) - g.getFontMetrics().getDescent(),
-                       "Level " + ((int) source.getBaseHeight() + source.getHex().getBaseHeight()));
+                       "Level " + (source.getBaseHeight() + source.getHex().getBaseHeight()));
           }
           // draw the target elevation
           switch (target.getBaseHeight() + target.getHex().getBaseHeight()) {
@@ -571,13 +555,13 @@ public class VASLThread
             drawString(g,
                        targetLOSPoint.x - 20,
                        targetLOSPoint.y + (shiftSourceText ? 0 : shift) - g.getFontMetrics().getDescent(),
-                       target.getName() + "  (Level " + ((int) target.getBaseHeight() + target.getHex().getBaseHeight() + ")"));
+                       target.getName() + "  (Level " + (target.getBaseHeight() + target.getHex().getBaseHeight() + ")"));
           }
           else if (target.getBaseHeight() != 0) {
             drawString(g,
                        targetLOSPoint.x - 20,
                        targetLOSPoint.y + (shiftSourceText ? 0 : shift) - g.getFontMetrics().getDescent(),
-                       "Level " + ((int) target.getBaseHeight() + target.getHex().getBaseHeight()));
+                       "Level " + (target.getBaseHeight() + target.getHex().getBaseHeight()));
           }
           // draw the results string
           if (verbose) {
@@ -650,32 +634,6 @@ public class VASLThread
         }
       }
     }
-    //moveUnit(e);
-  }
-
-  private void moveUnit(KeyEvent e) {
-    int code = e.getKeyCode();
-    // do movement if not zoomed
-    if (map.getZoom() == 1.0 &&
-        (code == KeyEvent.VK_NUMPAD0 ||
-        code == KeyEvent.VK_NUMPAD1 ||
-        code == KeyEvent.VK_NUMPAD2 ||
-        code == KeyEvent.VK_NUMPAD3 ||
-        code == KeyEvent.VK_NUMPAD4 ||
-        code == KeyEvent.VK_NUMPAD5 ||
-        code == KeyEvent.VK_NUMPAD6 ||
-        code == KeyEvent.VK_NUMPAD7 ||
-        code == KeyEvent.VK_NUMPAD8 ||
-        code == KeyEvent.VK_NUMPAD9)) {
-      doMovement(e);
-      map.repaint();
-      e.consume();
-      // force the map to scroll if necessary
-      Point p = mapCASLPointToScreen(unit.getLocation().getLOSPoint());
-      if (!map.getView().getVisibleRect().contains(p)) {
-        map.centerAt(p);
-      }
-    }
   }
 
   /******************************
@@ -716,9 +674,6 @@ public class VASLThread
     g.drawString(s, x, y);
   }
 
-  private void setResultsString() {
-  }
-
   private void doLOS() {
     // do the LOS
     CASLMap.LOS(source, useAuxSourceLOSPoint, target, useAuxTargetLOSPoint, result, scenario);
@@ -747,7 +702,7 @@ public class VASLThread
       for (int i = 0; i < p.length; ++i) {
         if (p[i] instanceof VASSAL.counters.Stack) {
           for (PieceIterator pi = new PieceIterator(((VASSAL.counters.Stack) p[i]).getPieces()); pi.hasMoreElements();) {
-            loadPiece((GamePiece) pi.nextPiece());
+            loadPiece(pi.nextPiece());
           }
         }
         else {
@@ -795,19 +750,19 @@ public class VASLThread
         CASLMap.addSmoke(new Smoke(Smoke.SMOKE, h.getCenterLocation()));
       }
       else if (piece.getName().equals("Wreck")) {
-        scenario.addUnit((CASL.Unit.Unit) new CASL.Unit.Vehicle(h.getCenterLocation()), Scenario.ALLIES);
+        scenario.addUnit(new CASL.Unit.Vehicle(h.getCenterLocation()), Scenario.ALLIES);
       }
       // vehicle hindrances
       else if (Decorator.getDecorator(piece, TextInfo.class) != null) {
-        scenario.addUnit((CASL.Unit.Unit) new CASL.Unit.Vehicle(h.getCenterLocation()), Scenario.ALLIES);
+        scenario.addUnit(new CASL.Unit.Vehicle(h.getCenterLocation()), Scenario.ALLIES);
       }
       else if (piece.getName().equals("Stone Rubble")) {
-        CASLMap.setGridTerrain((Shape) h.getHexBorder(), CASLMap.getTerrain(Terrain.STONE_RUBBLE));
-        CASLMap.setHexTerrain((Shape) h.getHexBorder(), CASLMap.getTerrain(Terrain.STONE_RUBBLE));
+        CASLMap.setGridTerrain(h.getHexBorder(), CASLMap.getTerrain(Terrain.STONE_RUBBLE));
+        CASLMap.setHexTerrain(h.getHexBorder(), CASLMap.getTerrain(Terrain.STONE_RUBBLE));
       }
       else if (piece.getName().equals("Wooden Rubble")) {
-        CASLMap.setGridTerrain((Shape) h.getHexBorder(), CASLMap.getTerrain(Terrain.WOODEN_RUBBLE));
-        CASLMap.setHexTerrain((Shape) h.getHexBorder(), CASLMap.getTerrain(Terrain.WOODEN_RUBBLE));
+        CASLMap.setGridTerrain(h.getHexBorder(), CASLMap.getTerrain(Terrain.WOODEN_RUBBLE));
+        CASLMap.setHexTerrain(h.getHexBorder(), CASLMap.getTerrain(Terrain.WOODEN_RUBBLE));
       }
     }
   }
@@ -899,134 +854,6 @@ public class VASLThread
     // remove edge buffer
     p.translate(-map.getEdgeBuffer().width, -map.getEdgeBuffer().height);
     return p;
-  }
-
-  private void doMovement(KeyEvent e) {
-    MovementResult newMove = getMovementResult(e, moveResult);
-    // legal?
-    if (newMove != null && newMove.isLegal() && newMove.getEndLocation() != null) {
-      // set the current movement result
-      moveResult = newMove;
-      // if unit has moved into the center of a new hex containing a shellhole,
-      // ask if they want to move directly into that shellhole
-      if (moveResult.crossedHexside() &&
-          moveResult.getEndLocation().isCenterLocation() &&
-          moveResult.getEndLocation().getDownLocation() != null &&
-          moveResult.getEndLocation().getDownLocation().getTerrain().getType() == Terrain.SHELL_HOLES) {
-        int response = JOptionPane.showConfirmDialog(null, "Move directly INTO the shellholes?", "Select move Option", JOptionPane.YES_NO_OPTION);
-        if (response == JOptionPane.YES_OPTION) {
-          moveResult.setEndLocation(moveResult.getEndLocation().getDownLocation());
-        }
-      }
-      // if unit has moved into the center of a new hex containing rice paddies,
-      // ask if they want to move directly into the rice paddy
-      else if (moveResult.crossedHexside() &&
-          moveResult.getEndLocation().isCenterLocation() &&
-          moveResult.getEndLocation().getTerrain().isRicePaddy()) {
-        int response = JOptionPane.showConfirmDialog(null, "Move directly INTO the rice paddy?", "Select move option", JOptionPane.YES_NO_OPTION);
-        if (response == JOptionPane.NO_OPTION) {
-          moveResult.setEndLocation(moveResult.getEndLocation().getUpLocation());
-        }
-      }
-      // apply movement logic
-      moveLogic.moveUnit(unit, moveResult);
-      // error?
-      if (!moveResult.isLegal()) {
-        if (moveResult.getEnterLocation() != null) {
-          unit.setLocation(moveResult.getEndLocation());
-        }
-      }
-      else {
-        // move the unit
-        unit.setLocation(moveResult.getEndLocation());
-      }
-    }
-  }
-
-  private MovementResult getMovementResult(KeyEvent e, MovementResult previousMove) {
-    int code = e.getKeyCode();
-    String modifiers = e.getKeyModifiersText(e.getModifiers());
-    // north
-    if (code == KeyEvent.VK_NUMPAD8) {
-      if (modifiers.equals(""))
-        return CASLMap.getMovementResult(unit.getLocation(), 0, 0, previousMove);
-      else if (modifiers.equals("Alt"))
-        return CASLMap.getMovementResult(unit.getLocation(), 0, 2, previousMove);
-      else if (modifiers.equals("Ctrl"))
-        return CASLMap.getMovementResult(unit.getLocation(), 0, 1, previousMove);
-      // bad modifier string, ignore
-      else
-        return null;
-    }
-    // south
-    else if (code == KeyEvent.VK_NUMPAD5) {
-      if (modifiers.equals(""))
-        return CASLMap.getMovementResult(unit.getLocation(), 3, 0, previousMove);
-      else if (modifiers.equals("Alt"))
-        return CASLMap.getMovementResult(unit.getLocation(), 3, 2, previousMove);
-      else if (modifiers.equals("Ctrl"))
-        return CASLMap.getMovementResult(unit.getLocation(), 3, 1, previousMove);
-      // bad modifier string, ignore
-      else
-        return null;
-    }
-    // northwest
-    else if (code == KeyEvent.VK_NUMPAD7) {
-      if (modifiers.equals(""))
-        return CASLMap.getMovementResult(unit.getLocation(), 5, 0, previousMove);
-      else if (modifiers.equals("Alt"))
-        return CASLMap.getMovementResult(unit.getLocation(), 5, 2, previousMove);
-      else if (modifiers.equals("Ctrl"))
-        return CASLMap.getMovementResult(unit.getLocation(), 5, 1, previousMove);
-      // bad modifier string, ignore
-      else
-        return null;
-    }
-    // northeast
-    else if (code == KeyEvent.VK_NUMPAD9) {
-      if (modifiers.equals(""))
-        return CASLMap.getMovementResult(unit.getLocation(), 1, 0, previousMove);
-      else if (modifiers.equals("Alt"))
-        return CASLMap.getMovementResult(unit.getLocation(), 1, 2, previousMove);
-      else if (modifiers.equals("Ctrl"))
-        return CASLMap.getMovementResult(unit.getLocation(), 1, 1, previousMove);
-      // bad modifier string, ignore
-      else
-        return null;
-    }
-    // southwest
-    else if (code == KeyEvent.VK_NUMPAD4) {
-      if (modifiers.equals(""))
-        return CASLMap.getMovementResult(unit.getLocation(), 4, 0, previousMove);
-      else if (modifiers.equals("Alt"))
-        return CASLMap.getMovementResult(unit.getLocation(), 4, 2, previousMove);
-      else if (modifiers.equals("Ctrl"))
-        return CASLMap.getMovementResult(unit.getLocation(), 4, 1, previousMove);
-      // bad modifier string, ignore
-      else
-        return null;
-    }
-    // southeast
-    else if (code == KeyEvent.VK_NUMPAD6) {
-      if (modifiers.equals(""))
-        return CASLMap.getMovementResult(unit.getLocation(), 2, 0, previousMove);
-      else if (modifiers.equals("Alt"))
-        return CASLMap.getMovementResult(unit.getLocation(), 2, 2, previousMove);
-      else if (modifiers.equals("Ctrl"))
-        return CASLMap.getMovementResult(unit.getLocation(), 2, 1, previousMove);
-      // bad modifier string, ignore
-      else
-        return null;
-    }
-    // up/down
-    else if (code == KeyEvent.VK_NUMPAD2) {
-      // up or down?
-      if (modifiers.equals("Alt"))
-        return CASLMap.getMovementResult(unit.getLocation(), 7, 0, previousMove);
-      else if (modifiers.equals("")) return CASLMap.getMovementResult(unit.getLocation(), 6, 0, previousMove);
-    }
-    // ignore other keys
-    return null;
   }
 }
 

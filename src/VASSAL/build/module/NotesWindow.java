@@ -52,14 +52,6 @@ public class NotesWindow extends AbstractConfigurable
   public NotesWindow() {
     frame = new NotesFrame();
     frame.setTitle("Notes");
-    frame.addWindowListener(new java.awt.event.WindowAdapter() {
-      public void windowClosing(java.awt.event.WindowEvent e) {
-        notesTable.put(GameModule.getGameModule().getUserId(),
-                       privateNotes.getValueString());
-        GameModule.getGameModule().sendAndLog(getRestoreCommand());
-        frame.setVisible(false);
-      }
-    });
     ActionListener al = new ActionListener() {
       public void actionPerformed(java.awt.event.ActionEvent e) {
         frame.setVisible(!frame.isShowing());
@@ -70,42 +62,41 @@ public class NotesWindow extends AbstractConfigurable
     setup(false);
   }
 
+  private void save() {
+    notesTable.put(GameModule.getGameModule().getUserId(),
+                   privateNotes.getValueString());
+    GameModule.getGameModule().sendAndLog(getRestoreCommand());
+  }
+
   private class NotesFrame extends JFrame {
     private NotesFrame() {
       initComponents();
     }
 
     private void initComponents() {
+      setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
       jLabel1 = new javax.swing.JLabel();
       jScrollPane1 = new javax.swing.JScrollPane();
-      //            notes = new javax.swing.JTextArea (15,40);
       notes = new TextConfigurer(null, "Notes");
       jLabel3 = new javax.swing.JLabel();
       jScrollPane2 = new javax.swing.JScrollPane();
-      //privateNotes = new javax.swing.JTextArea (15,40);
       privateNotes = new TextConfigurer(null, "Private Notes");
       getContentPane().setLayout(new javax.swing.BoxLayout(getContentPane(), 1));
 
-      //            jLabel1.setText ("Notes:");
-      //            jLabel1.setHorizontalAlignment (javax.swing.SwingConstants.CENTER);
-      //            jLabel1.setHorizontalTextPosition (javax.swing.SwingConstants.CENTER);
-      //            getContentPane().add (jLabel1);
-      //            notes.setColumns (30);
-      //            notes.setRows (8);
-      //            jScrollPane1.setViewportView (notes);
-      //            getContentPane().add (jScrollPane1);
-
       getContentPane().add(notes.getControls());
 
-      //            jLabel3.setText ("Private Notes:");
-      //            jLabel3.setHorizontalAlignment (javax.swing.SwingConstants.CENTER);
-      //            jLabel3.setHorizontalTextPosition (javax.swing.SwingConstants.CENTER);
-      //            getContentPane().add (jLabel3);
-      //            privateNotes.setColumns (30);
-      //            privateNotes.setRows (8);
-      //            jScrollPane2.setViewportView (privateNotes);
-      //            getContentPane().add (jScrollPane2);
       getContentPane().add(privateNotes.getControls());
+
+      JPanel p = new JPanel();
+      JButton saveButton = new JButton("Save");
+      p.add(saveButton);
+      saveButton.addActionListener(new ActionListener() {
+        public void actionPerformed(ActionEvent e) {
+          save();
+          setVisible(false);
+        }
+      });
+      getContentPane().add(p);
     }
   }
 
