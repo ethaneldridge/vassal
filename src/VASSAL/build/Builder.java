@@ -21,6 +21,9 @@ package VASSAL.build;
 import VASSAL.tools.DataArchive;
 import org.w3c.dom.*;
 
+import java.io.IOException;
+import java.io.OutputStreamWriter;
+
 /**
  * This class holds static convenience methods for building {@link Buildable}
  * objects
@@ -123,8 +126,10 @@ public abstract class Builder {
   /**
    * Write an XML document to an OutputStream
    */
-  public static void writeDocument(Document doc, java.io.OutputStream out) {
-    throw new RuntimeException("Not implemented");
+  public static void writeDocument(Document doc, java.io.OutputStream out) throws IOException {
+    OutputStreamWriter writer = new OutputStreamWriter(out);
+    writer.write(toString(doc));
+    writer.close();
   }
 
   /**
