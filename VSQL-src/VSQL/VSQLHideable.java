@@ -1,7 +1,7 @@
 /*
  * $Id$
  *
- * Copyright (c) 2000-2003 by Rodney Kinney, Brent Easton
+ * Copyright (c) 2000-2005 by Rodney Kinney, Brent Easton
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Library General Public
@@ -16,34 +16,34 @@
  * License along with this library; if not, copies are available
  * at http://www.opensource.org.
  */
-package VSQL;
+ 
+ package VSQL;
 
-import VASL.counters.Turreted;
-import VASSAL.counters.Decorator;
-import VASSAL.counters.Embellishment;
 import VASSAL.counters.GamePiece;
-
-public class VSQLTurreted extends Turreted {
-
-  public VSQLTurreted() {
-    super();
-  }
-
-  public VSQLTurreted(String type, GamePiece p) {
-    super(type, p);
-  }
-
-  protected int getVehicleCA() {
-
-    for (GamePiece p = piece; p instanceof Decorator; p = ((Decorator) p).getInner()) {
-      if (p instanceof Embellishment
-          && p.getType().indexOf("Rotate") >= 0) {
-        return ((Embellishment) p).getValue() + 1;
-      }
-    }
-
-    return -1;
-  }
-
-  
-}
+import VASSAL.counters.Hideable;
+ 
+ public class VSQLHideable extends Hideable {
+   
+   public VSQLHideable() {
+     super();
+   }
+   
+   public VSQLHideable(String type, GamePiece p) {
+     super(type, p);
+   }
+   
+   public Object getProperty(Object key) {
+     if ("Location".equals(key)) {
+       if (invisibleToMe() || invisibleToOthers()) {
+         return new Boolean(true);
+       }
+       else {
+         return null;
+       }
+     }
+     else {
+       return super.getProperty(key);
+     }
+   }
+   
+ }

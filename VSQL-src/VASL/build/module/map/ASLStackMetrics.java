@@ -1,7 +1,7 @@
 /*
  * $Id$
  *
- * Copyright (c) 2000-2003 by Rodney Kinney, Brent Easton
+ * Copyright (c) 2000-2003 by Rodney Kinney
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Library General Public
@@ -16,34 +16,22 @@
  * License along with this library; if not, copies are available
  * at http://www.opensource.org.
  */
-package VSQL;
+package VASL.build.module.map;
 
-import VASL.counters.Turreted;
-import VASSAL.counters.Decorator;
-import VASSAL.counters.Embellishment;
+import VASL.counters.ASLProperties;
+import VASSAL.build.module.map.StackMetrics;
 import VASSAL.counters.GamePiece;
 
-public class VSQLTurreted extends Turreted {
+import java.awt.*;
 
-  public VSQLTurreted() {
-    super();
-  }
-
-  public VSQLTurreted(String type, GamePiece p) {
-    super(type, p);
-  }
-
-  protected int getVehicleCA() {
-
-    for (GamePiece p = piece; p instanceof Decorator; p = ((Decorator) p).getInner()) {
-      if (p instanceof Embellishment
-          && p.getType().indexOf("Rotate") >= 0) {
-        return ((Embellishment) p).getValue() + 1;
-      }
+public class ASLStackMetrics extends StackMetrics {
+  protected void drawUnexpanded(GamePiece p, Graphics g,
+                                int x, int y, Component obs, double zoom) {
+    if (p.getProperty(ASLProperties.LOCATION) != null) {
+      p.draw(g, x - (int) (zoom * 15), y, obs, zoom);
     }
-
-    return -1;
+    else {
+      super.drawUnexpanded(p, g, x, y, obs, zoom);
+    }
   }
-
-  
 }

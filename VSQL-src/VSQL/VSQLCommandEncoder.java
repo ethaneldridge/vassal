@@ -23,6 +23,7 @@ import VASSAL.build.Buildable;
 import VASSAL.counters.Decorator;
 import VASSAL.counters.Embellishment;
 import VASSAL.counters.GamePiece;
+import VASSAL.counters.Hideable;
 
 /**
  * @author Brent Easton
@@ -53,6 +54,9 @@ public class VSQLCommandEncoder extends ASLCommandEncoder {
     }
     else if (type.startsWith(VSQLTurreted.ID)) {
       return new VSQLTurreted(type, inner);
+    }
+    else if (type.startsWith(Hideable.ID)) {
+      return new VSQLHideable(type, inner);
     }
     else {
       return super.createDecorator(type, inner);
