@@ -74,7 +74,7 @@ public class Tutorial extends AbstractConfigurable {
         tmp = renamed;
       }
       if (welcomeMessage != null
-        && welcomeMessage.length() > 0) {
+          && welcomeMessage.length() > 0) {
         GameModule.getGameModule().warn(welcomeMessage);
       }
       GameModule.getGameModule().getGameState().loadGame(tmp);
@@ -89,15 +89,15 @@ public class Tutorial extends AbstractConfigurable {
   }
 
   public String[] getAttributeDescriptions() {
-    return new String[]{"Menu Text", "Logfile", "Launch automatically on first startup","Auto-launch confirm message","Welcome message"};
+    return new String[]{"Menu Text", "Logfile", "Launch automatically on first startup", "Auto-launch confirm message", "Welcome message"};
   }
 
   public Class[] getAttributeTypes() {
-    return new Class[]{String.class, File.class, Boolean.class,String.class,String.class};
+    return new Class[]{String.class, File.class, Boolean.class, String.class, String.class};
   }
 
   public String[] getAttributeNames() {
-    return new String[]{NAME, FILE_NAME, LAUNCH_ON_STARTUP,PROMPT_MESSAGE,WELCOME_MESSAGE};
+    return new String[]{NAME, FILE_NAME, LAUNCH_ON_STARTUP, PROMPT_MESSAGE, WELCOME_MESSAGE};
   }
 
   public VisibilityCondition getAttributeVisibility(String name) {
@@ -159,18 +159,20 @@ public class Tutorial extends AbstractConfigurable {
 
   public void addTo(Buildable parent) {
     item = ((Documentation) parent).getHelpMenu().add(launch);
-    final String key = "viewedTutorial"+getConfigureName();
-    GameModule.getGameModule().getPrefs().addOption(null,new BooleanConfigurer(key,null,Boolean.FALSE));
+    final String key = "viewedTutorial" + getConfigureName();
+    GameModule.getGameModule().getPrefs().addOption(null, new BooleanConfigurer(key, null, Boolean.FALSE));
     if (launchOnFirstStartup
-      && !Boolean.TRUE.equals(GameModule.getGameModule().getPrefs().getValue(key))) {
+        && !Boolean.TRUE.equals(GameModule.getGameModule().getPrefs().getValue(key))) {
       Runnable runnable = new Runnable() {
         public void run() {
-          if (JOptionPane.YES_OPTION == JOptionPane.showConfirmDialog(GameModule.getGameModule().getFrame(),
-                                                                      promptMessage,
-                                                                      "Initial startup",
-                                                                      JOptionPane.YES_NO_OPTION)) {
-            launch();
-            GameModule.getGameModule().getPrefs().setValue(key,Boolean.TRUE);
+          String[] options = new String[]{"Yes", "No", "Don't ask me again"};
+          switch (JOptionPane.showOptionDialog(GameModule.getGameModule().getFrame(), promptMessage, getConfigureName(),
+                                               JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE, null, options, options[0])) {
+            case 0: // Yes
+              launch();
+            case 2: // Don't ask again
+              GameModule.getGameModule().getPrefs().setValue(key, Boolean.TRUE);
+              break;
           }
         }
       };
