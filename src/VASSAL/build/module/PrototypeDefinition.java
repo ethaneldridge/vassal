@@ -1,11 +1,17 @@
 package VASSAL.build.module;
 
-import VASSAL.build.*;
+import VASSAL.build.Buildable;
+import VASSAL.build.Builder;
+import VASSAL.build.Configurable;
+import VASSAL.build.GameModule;
 import VASSAL.build.module.documentation.HelpFile;
 import VASSAL.command.AddPiece;
 import VASSAL.configure.Configurer;
 import VASSAL.configure.StringConfigurer;
+import VASSAL.configure.ValidationReport;
+import VASSAL.configure.ValidityChecker;
 import VASSAL.counters.*;
+import VASSAL.tools.UniqueIdManager;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
@@ -13,7 +19,6 @@ import javax.swing.*;
 import java.awt.*;
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
-import java.util.Enumeration;
 import java.io.File;
 import java.net.MalformedURLException;
 
@@ -37,10 +42,11 @@ import java.net.MalformedURLException;
  */
 
 
-public class PrototypeDefinition implements Configurable {
+public class PrototypeDefinition implements Configurable, UniqueIdManager.Identifyable, ValidityChecker {
   private String name = "Prototype";
   private GamePiece piece;
   private String pieceDefinition;
+  private static UniqueIdManager idMgr = new UniqueIdManager("prototype-");
 
   private PropertyChangeSupport propSupport = new PropertyChangeSupport(this);
 
@@ -82,6 +88,7 @@ public class PrototypeDefinition implements Configurable {
   }
 
   public void remove(Buildable child) {
+    idMgr.remove(this);
   }
 
   public void removeFrom(Buildable parent) {
@@ -90,27 +97,19 @@ public class PrototypeDefinition implements Configurable {
   public void add(Buildable child) {
   }
 
+  public String getId() {
+    return null;
+  }
+
+  public void setId(String id) {
+  }
+
+  public void validate(Buildable target, ValidationReport report) {
+    idMgr.validate(this,report);
+  }
+
   public void addTo(Buildable parent) {
-    if (parent instanceof AbstractBuildable) {
-      for (Enumeration e = ((AbstractBuildable) parent).getComponents(getClass());
-           e.hasMoreElements();) {
-        PrototypeDefinition d = (PrototypeDefinition) e.nextElement();
-        if (d.name.equals(name)) {
-          int count = 1;
-          String prefix = name;
-          int index = name.indexOf('-');
-          if (index > 0) {
-            try {
-              count = Integer.parseInt(name.substring(index + 1));
-              prefix = name.substring(0, index);
-            }
-            catch (NumberFormatException ex) {
-            }
-          }
-          setConfigureName(prefix + "-" + (count + 1));
-        }
-      }
-    }
+    idMgr.add(this);
   }
 
   public GamePiece getPiece() {

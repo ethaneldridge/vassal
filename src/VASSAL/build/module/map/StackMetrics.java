@@ -612,7 +612,7 @@ public class StackMetrics extends AbstractConfigurable {
       MoveTracker tracker = new MoveTracker(moving);
       comm = new NullCommand();
       Stack fixedParent = fixed.getParent();
-      int index = fixedParent == null ? 1 : fixedParent.indexOf(fixed) + 1;
+      int index = fixedParent == null ? 0 : fixedParent.indexOf(fixed) + 1;
       if (moving != fixed
           && moving != fixedParent) {
         boolean isNewPiece = GameModule.getGameModule().getGameState()

@@ -506,23 +506,8 @@ public class PieceMover extends AbstractBuildable implements
       bottom = next;
     }
 
-    if 	// At least one unit moved somwhere
-    (comm != null && !comm.isNull() &&
-
-        // There is a source or a destination to report
-        (origin != null || destination != null) &&
-
-        // Not a unit creation in a restricted visibility window
-        (origin == null || !origin.equals(OFFMAP) || map.isVisibleToAll()) &&
-
-        // Not Movement within a restricted visibilty window
-        (fromMap == null || !fromMap.equals(map) || fromMap.isVisibleToAll()) &&
-
-        // There is a unit to report
-        movedPieceNames.length() > 0 &&
-
-        //Auto-reporting moves enabled
-        GlobalOptions.getInstance().autoReportEnabled()) {
+    if (comm != null && !comm.isNull() // At least one unit moved somwhere
+        && GlobalOptions.getInstance().autoReportEnabled()) { //Auto-reporting moves enabled
       format.clearProperties();
       if (fromMap == null) {
         format.setFormat(map.getCreateFormat());

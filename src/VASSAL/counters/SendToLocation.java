@@ -54,7 +54,7 @@ public class SendToLocation extends Decorator implements EditablePiece {
   private int y;
 
   public SendToLocation() {
-    this(ID+";;;;0;0",null);
+    this(ID + ";;;;0;0", null);
   }
 
   public SendToLocation(String type, GamePiece inner) {
@@ -64,7 +64,7 @@ public class SendToLocation extends Decorator implements EditablePiece {
 
   public void mySetType(String type) {
     type = type.substring(ID.length());
-    SequenceEncoder.Decoder st = new SequenceEncoder.Decoder(type,';');
+    SequenceEncoder.Decoder st = new SequenceEncoder.Decoder(type, ';');
     commandName = st.nextToken();
     String s = st.nextToken();
     key = s.length() > 0 ? s.charAt(0) : 0;
@@ -77,19 +77,19 @@ public class SendToLocation extends Decorator implements EditablePiece {
   public String myGetType() {
     SequenceEncoder se = new SequenceEncoder(';');
     se.append(commandName)
-      .append(key == 0 ? "" : ""+key)
-      .append(mapId)
-      .append(boardName)
-      .append(x+"")
-      .append(y+"");
-    return ID+se.getValue();
+        .append(key == 0 ? "" : "" + key)
+        .append(mapId)
+        .append(boardName)
+        .append(x + "")
+        .append(y + "");
+    return ID + se.getValue();
   }
 
   protected KeyCommand[] myGetKeyCommands() {
     if (command == null) {
       if (commandName.length() > 0
-        && key != 0) {
-        command = new KeyCommand[]{new KeyCommand(commandName,KeyStroke.getKeyStroke(key,InputEvent.CTRL_MASK),
+          && key != 0) {
+        command = new KeyCommand[]{new KeyCommand(commandName, KeyStroke.getKeyStroke(key, InputEvent.CTRL_MASK),
                                                   Decorator.getOutermost(this))};
       }
       else {
@@ -115,20 +115,12 @@ public class SendToLocation extends Decorator implements EditablePiece {
         m = getMap();
       }
       if (m != null) {
-        Point dest = new Point(x,y);
+        Point dest = new Point(x, y);
         Board b = m.getBoardByName(boardName);
         if (b != null) {
-          dest.translate(b.bounds().x,b.bounds().y);
+          dest.translate(b.bounds().x, b.bounds().y);
         }
-        c = m.placeOrMerge(Decorator.getOutermost(this),dest);
-
-		if (GlobalOptions.getInstance().autoReportEnabled()) {
-		   String s = "* " + getName() + " sent to " + commandName + " * ";
-		   Command report = new Chatter.DisplayText(GameModule.getGameModule().getChatter(), s);
-		   report.execute();
-		   c = c.append(report);
-		}
-
+        c = m.placeOrMerge(Decorator.getOutermost(this), dest);
       }
     }
     return c;
@@ -142,7 +134,7 @@ public class SendToLocation extends Decorator implements EditablePiece {
   }
 
   public void draw(Graphics g, int x, int y, Component obs, double zoom) {
-    piece.draw(g,x,y,obs,zoom);
+    piece.draw(g, x, y, obs, zoom);
   }
 
   public String getName() {
@@ -184,9 +176,9 @@ public class SendToLocation extends Decorator implements EditablePiece {
 
     public Ed(SendToLocation p) {
       controls = new JPanel();
-      controls.setLayout(new BoxLayout(controls,BoxLayout.Y_AXIS));
+      controls.setLayout(new BoxLayout(controls, BoxLayout.Y_AXIS));
 
-      nameInput = new StringConfigurer(null,"Command name:  ",p.commandName);
+      nameInput = new StringConfigurer(null, "Command name:  ", p.commandName);
       controls.add(nameInput.getControls());
 
       keyInput = new KeySpecifier(p.key);
@@ -238,10 +230,10 @@ public class SendToLocation extends Decorator implements EditablePiece {
       b.add(clear);
       controls.add(b);
 
-      xInput = new IntConfigurer(null,"X Position:  ", new Integer(p.x));
+      xInput = new IntConfigurer(null, "X Position:  ", new Integer(p.x));
       controls.add(xInput.getControls());
 
-      yInput = new IntConfigurer(null,"Y Position:  ", new Integer(p.y));
+      yInput = new IntConfigurer(null, "Y Position:  ", new Integer(p.y));
       controls.add(yInput.getControls());
     }
 
@@ -255,7 +247,7 @@ public class SendToLocation extends Decorator implements EditablePiece {
     }
 
     private void selectBoard() {
-      ChooseComponentDialog d = new ChooseComponentDialog((Frame) SwingUtilities.getAncestorOfClass(Frame.class,controls),Board.class);
+      ChooseComponentDialog d = new ChooseComponentDialog((Frame) SwingUtilities.getAncestorOfClass(Frame.class, controls), Board.class);
       d.setVisible(true);
       if (d.getTarget() != null) {
         Board b = (Board) d.getTarget();
@@ -264,7 +256,7 @@ public class SendToLocation extends Decorator implements EditablePiece {
     }
 
     private void selectMap() {
-      ChooseComponentDialog d = new ChooseComponentDialog((Frame) SwingUtilities.getAncestorOfClass(Frame.class,controls),Map.class);
+      ChooseComponentDialog d = new ChooseComponentDialog((Frame) SwingUtilities.getAncestorOfClass(Frame.class, controls), Map.class);
       d.setVisible(true);
       if (d.getTarget() != null) {
         map = (Map) d.getTarget();
@@ -279,12 +271,12 @@ public class SendToLocation extends Decorator implements EditablePiece {
     public String getType() {
       SequenceEncoder se = new SequenceEncoder(';');
       se.append(nameInput.getValueString())
-        .append(keyInput.getKey())
-        .append(map == null ? "" : map.getIdentifier())
-        .append(boardNameInput.getText())
-        .append(xInput.getValueString())
-        .append(yInput.getValueString());
-      return ID+se.getValue();
+          .append(keyInput.getKey())
+          .append(map == null ? "" : map.getIdentifier())
+          .append(boardNameInput.getText())
+          .append(xInput.getValueString())
+          .append(yInput.getValueString());
+      return ID + se.getValue();
     }
 
     public String getState() {
