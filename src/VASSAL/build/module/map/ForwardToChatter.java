@@ -13,7 +13,7 @@
  * Library General Public License for more details.
  *
  * You should have received a copy of the GNU Library General Public
- * License along with this library; if not, copies are available 
+ * License along with this library; if not, copies are available
  * at http://www.opensource.org.
  */
 package VASSAL.build.module.map;
@@ -29,35 +29,40 @@ import javax.swing.KeyStroke;
  * {@link VASSAL.build.module.Chatter} The event is forwarded only if
  * not consumed
  *
- * @see VASSAL.build.module.Chatter#keyCommand 
+ * @see VASSAL.build.module.Chatter#keyCommand
  * @see InputEvent#isConsumed */
 public class ForwardToChatter implements Buildable, KeyListener {
-    public void build(org.w3c.dom.Element e) {
-    }
+  public void build(org.w3c.dom.Element e) {
+  }
 
-    public void addTo(Buildable parent) {
-	Map map = (Map)parent;
-	map.getView().addKeyListener(this);
-    }
-    public void add(Buildable b) {
-	throw new IllegalBuildException("Cannot contain children");
-    }
+  public void addTo(Buildable parent) {
+    Map map = (Map) parent;
+    map.getView().addKeyListener(this);
+  }
 
-    public org.w3c.dom.Element getBuildElement(org.w3c.dom.Document doc) {
-	return doc.createElement(getClass().getName());
+  public void add(Buildable b) {
+    throw new IllegalBuildException("Cannot contain children");
+  }
+
+  public org.w3c.dom.Element getBuildElement(org.w3c.dom.Document doc) {
+    return doc.createElement(getClass().getName());
+  }
+
+  public void keyPressed(KeyEvent e) {
+    process(e);
+  }
+
+  public void keyReleased(KeyEvent e) {
+    process(e);
+  }
+
+  public void keyTyped(KeyEvent e) {
+    process(e);
+  }
+
+  private void process(KeyEvent e) {
+    if (!e.isConsumed()) {
+      GameModule.getGameModule().getChatter().keyCommand(KeyStroke.getKeyStrokeForEvent(e));
     }
-    public void keyPressed(KeyEvent e) {
-	process(e);
-    }
-    public void keyReleased(KeyEvent e) {
-	process(e);
-    }
-    public void keyTyped(KeyEvent e) {
-	process(e);
-    }
-    private void process(KeyEvent e) {
-	if (!e.isConsumed()) {
-	GameModule.getGameModule().getChatter().keyCommand(KeyStroke.getKeyStrokeForEvent(e));
-	}
-    }
+  }
 }

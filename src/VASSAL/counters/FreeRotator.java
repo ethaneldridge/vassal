@@ -67,7 +67,7 @@ public class FreeRotator extends Decorator implements EditablePiece, MouseListen
   private Hashtable bounds = new Hashtable();
   private PieceImage unrotated;
 
-  private double tempAngle;
+  private double tempAngle, startAngle;
   private boolean drawGhost;
 
   public FreeRotator() {
@@ -333,8 +333,7 @@ public class FreeRotator extends Decorator implements EditablePiece, MouseListen
 
   public void mousePressed(MouseEvent e) {
     drawGhost = true;
-//    trans = new Transparent(this);
-//    trans.setAlpha(0.5);
+    startAngle = getRelativeAngle(getMap().mapCoordinates(e.getPoint()),getPosition());
   }
 
   public void mouseReleased(MouseEvent e) {
@@ -353,21 +352,26 @@ public class FreeRotator extends Decorator implements EditablePiece, MouseListen
 
   public void mouseDragged(MouseEvent e) {
     if (drawGhost) {
-      Point p = getMap().mapCoordinates(e.getPoint());
-      Point p2 = getPosition();
-      double myAngle;
-      if (p.y == p2.y) {
-        myAngle = p.x < p2.x ? Math.PI / 2 : -Math.PI / 2;
-      }
-      else {
-        myAngle = Math.atan((float) (p.x - p2.x) / (float) (p2.y - p.y));
-        if (p2.y < p.y) {
-          myAngle += Math.PI;
-        }
-      }
-      tempAngle = -180. * myAngle / Math.PI;
+      Point mousePos = getMap().mapCoordinates(e.getPoint());
+      Point origin = getPosition();
+      double myAngle = getRelativeAngle(mousePos, origin);
+      tempAngle = getAngle() + -180. * (myAngle-startAngle) / Math.PI;
     }
     getMap().repaint();
+  }
+
+  private double getRelativeAngle(Point p, Point origin) {
+    double myAngle;
+    if (p.y == origin.y) {
+      myAngle = p.x < origin.x ? Math.PI / 2 : -Math.PI / 2;
+    }
+    else {
+      myAngle = Math.atan((float) (p.x - origin.x) / (float) (origin.y - p.y));
+      if (origin.y < p.y) {
+        myAngle += Math.PI;
+      }
+    }
+    return myAngle;
   }
 
   public void mouseMoved(MouseEvent e) {
