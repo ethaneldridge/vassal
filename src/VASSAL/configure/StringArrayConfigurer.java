@@ -29,6 +29,7 @@ package VASSAL.configure;
 import VASSAL.tools.SequenceEncoder;
 
 import javax.swing.*;
+import javax.swing.border.TitledBorder;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -90,7 +91,6 @@ public class StringArrayConfigurer extends Configurer {
       Box buttonBox = Box.createHorizontalBox();
       Box leftBox = Box.createVerticalBox();
       panel.setLayout(new BoxLayout(panel, BoxLayout.X_AXIS));
-      leftBox.add(new JLabel(name));
       model = new DefaultListModel();
       updateModel();
       list = new JList(model);
@@ -124,6 +124,7 @@ public class StringArrayConfigurer extends Configurer {
       leftBox.add(buttonBox);
       panel.add(leftBox);
       panel.add(new JScrollPane(list));
+      panel.setBorder(new TitledBorder(name));
     }
     return panel;
   }
