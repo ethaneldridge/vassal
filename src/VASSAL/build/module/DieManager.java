@@ -19,7 +19,8 @@ package VASSAL.build.module;
 
 import java.awt.Component;
 import java.awt.Container;
-import java.awt.event.ActionEvent;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 import java.io.*;
 import java.net.*;
 import java.util.Enumeration;
@@ -27,7 +28,10 @@ import java.util.Hashtable;
 import java.util.StringTokenizer;
 import java.util.Vector;
 
-import javax.swing.JButton;
+import javax.swing.DefaultListModel;
+import javax.swing.JList;
+import javax.swing.event.ListDataEvent;
+import javax.swing.event.ListDataListener;
 
 import VASSAL.build.AbstractConfigurable;
 import VASSAL.build.Buildable;
@@ -59,7 +63,7 @@ public class DieManager extends AbstractConfigurable {
   private DieServer server;
   private String lastServerName = "";
   private MultiRoll myMultiRoll;
-  private static String[] addressList = new String[] {};
+  final StringEnumConfigurer semail;
   
   public static final String USE_INTERNET_DICE = "useinternetdice";
   public static final String DICE_SERVER = "diceserver";
@@ -113,12 +117,40 @@ public class DieManager extends AbstractConfigurable {
 	GameModule.getGameModule().getPrefs().addOption(null, dieserver);
     GameModule.getGameModule().getPrefs().addOption(null, serverpw);
     GameModule.getGameModule().getPrefs().addOption(DIE_MANAGER, useemail);
-    	GameModule.getGameModule().getPrefs().addOption(DIE_MANAGER, abook);
-	addressList = (String[]) GameModule.getGameModule().getPrefs().getValue(ADDRESS_BOOK);
-    GameModule.getGameModule().getPrefs().addOption(DIE_MANAGER, pemail);
-	final StringEnumConfigurer semail = new StringEnumConfigurer(SECONDARY_EMAIL, "Secondary Email", addressList);
-    GameModule.getGameModule().getPrefs().addOption(DIE_MANAGER, semail);
-    GameModule.getGameModule().getPrefs().addOption(DIE_MANAGER, multiroll); 
+    
+	GameModule.getGameModule().getPrefs().addOption(DIE_MANAGER, abook);
+	String[] addressList = (String[]) GameModule.getGameModule().getPrefs().getValue(ADDRESS_BOOK);
+	semail = new StringEnumConfigurer(SECONDARY_EMAIL, "Secondary Email", addressList);
+	
+	GameModule.getGameModule().getPrefs().addOption(DIE_MANAGER, pemail);
+	GameModule.getGameModule().getPrefs().addOption(DIE_MANAGER, semail);
+    GameModule.getGameModule().getPrefs().addOption(DIE_MANAGER, multiroll);
+
+    setSemailValues();
+    
+	DefaultListModel m = abook.getModel();
+	ListDataListener ldl = new ListDataListener () {
+		
+        public void contentsChanged(ListDataEvent arg0) {
+			setSemailValues();           
+        }
+
+        public void intervalAdded(ListDataEvent arg0) {
+			setSemailValues();  
+        }
+
+        public void intervalRemoved(ListDataEvent arg0) {
+			setSemailValues();
+        }
+	};
+	m.addListDataListener(ldl);	
+  }
+  
+  public void setSemailValues() {
+	String currentSemail = (String) GameModule.getGameModule().getPrefs().getValue(SECONDARY_EMAIL); 
+	String[] addressBook = (String[]) GameModule.getGameModule().getPrefs().getValue(ADDRESS_BOOK);
+	semail.setValidValues(addressBook);
+	semail.setValue(currentSemail); 	
   }
   
   // Return names of all known Dice Servers

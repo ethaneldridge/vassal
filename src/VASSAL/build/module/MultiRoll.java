@@ -39,6 +39,8 @@ public class MultiRoll extends JDialog {
   private JButton rollButton = new JButton("Roll");
   private JButton canButton = new JButton("Cancel");
 
+  private JPanel statPanel;
+  private JLabel statLabel;
   private JPanel descPanel;
   private JTextField descText;
   private JPanel topPanel;
@@ -115,6 +117,15 @@ public class MultiRoll extends JDialog {
     return new DieManager.RollSet(getDescription(),rolls);
   }
 
+  /*
+   * Reset the status display before making visible in case preferences
+   * have been changed.
+   */
+  public void setVisible(boolean b) {
+  	statLabel.setText(getStatText());
+  	super.setVisible(b);
+  }
+  
   // Multi-roll Configuration code
   private void initConfig(int nd, int ns) {
 
@@ -128,6 +139,11 @@ public class MultiRoll extends JDialog {
     topPanel = new JPanel();
     topPanel.setLayout(new BoxLayout(topPanel, BoxLayout.PAGE_AXIS));
 
+	statPanel = new JPanel();
+	statLabel = new JLabel(getStatText());
+	statPanel.add(statLabel);
+	topPanel.add(statPanel);
+	
 	descPanel = new JPanel();
 	JLabel descLabel = new JLabel("Roll Description");
 	descText = new JTextField(20);
@@ -179,6 +195,17 @@ public class MultiRoll extends JDialog {
     pack();
   }
 
+  private String getStatText() {
+	String stat = "Server: " + dieManager.getServer().getName() + "  Email: ";
+	if (dieManager.getServer().getUseEmail()) {
+		stat += dieManager.getServer().getSecondaryEmail();
+	}
+	else {
+		stat += "Off";
+	}
+	return stat;
+  }
+  
   class HeaderRow extends JPanel {
 
     public HeaderRow() {
@@ -295,6 +322,13 @@ public class MultiRoll extends JDialog {
       col3.addKeyListener(new java.awt.event.KeyAdapter() {
         public void keyReleased(java.awt.event.KeyEvent e) {
           rolls[myRow].setDescription(col3.getText());
+        }
+      });
+      col3.addMouseListener(new MouseAdapter(){
+        public void mousePressed(MouseEvent e) {
+        	if (!col3.hasFocus()) {
+        	   col3.selectAll();
+        	}
         }
       });
 
