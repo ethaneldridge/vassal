@@ -50,7 +50,6 @@ import java.util.ArrayList;
 public class DrawPile extends SetupStack {
   protected Deck dummy = new Deck(); // Used for storing type information
   private Deck myDeck;
-  private String reportFormat = "";
   private String mostRecentReshuffleCommand = "Re-shuffle"; // Maintained independent of the Deck because setting the Deck's value to null disables reshuffling
   private VisibilityCondition colorVisibleCondition = new VisibilityCondition() {
     public boolean shouldBeVisible() {
@@ -60,6 +59,21 @@ public class DrawPile extends SetupStack {
   private VisibilityCondition reshuffleVisibleCondition = new VisibilityCondition() {
     public boolean shouldBeVisible() {
       return dummy.getReshuffleCommand().length() > 0;
+    }
+  };
+  private VisibilityCondition faceDownFormatVisibleCondition = new VisibilityCondition() {
+    public boolean shouldBeVisible() {
+      return dummy.getFaceDownOption().equals(USE_MENU);
+    }
+  };
+  private VisibilityCondition reverseFormatVisibleCondition = new VisibilityCondition() {
+    public boolean shouldBeVisible() {
+      return dummy.isReversible();
+    }
+  };
+  private VisibilityCondition shuffleFormatVisibleCondition = new VisibilityCondition() {
+    public boolean shouldBeVisible() {
+      return dummy.getShuffleOption().equals(USE_MENU);
     }
   };
   private static UniqueIdManager idMgr = new UniqueIdManager("Deck");
@@ -113,8 +127,11 @@ public class DrawPile extends SetupStack {
   public static final String ALLOW_MULTIPLE = "allowMultiple";
   public static final String ALLOW_SELECT = "allowSelect";
   public static final String FACE_DOWN = "faceDown";
+  public static final String FACE_DOWN_REPORT_FORMAT = "faceDownFormat";
   public static final String SHUFFLE = "shuffle";
+  public static final String SHUFFLE_REPORT_FORMAT = "shuffleFormat";
   public static final String REVERSIBLE = "reversible";
+  public static final String REVERSE_REPORT_FORMAT = "reverseFormat";
   public static final String DRAW = "draw";
   public static final String COLOR = "color";
   public static final String RESHUFFLABLE = "reshufflable";
@@ -126,34 +143,6 @@ public class DrawPile extends SetupStack {
   public static final String ALWAYS = "Always";
   public static final String NEVER = "Never";
   public static final String USE_MENU = "Via right-click Menu";
-
-  public String[] getAttributeNames() {
-    return new String[]{NAME, OWNING_BOARD, X_POSITION, Y_POSITION, WIDTH, HEIGHT, ALLOW_MULTIPLE,
-                        ALLOW_SELECT, FACE_DOWN, SHUFFLE, REVERSIBLE, DRAW, COLOR,
-                        RESHUFFLABLE, RESHUFFLE_COMMAND, RESHUFFLE_MESSAGE, RESHUFFLE_TARGET,
-                        REPORT_FORMAT};
-  }
-
-  public String[] getAttributeDescriptions() {
-    return new String[]{"Name",
-                        "Belongs to board",
-                        "X position",
-                        "Y position",
-                        "Width",
-                        "Height",
-                        "Allow Multiple Cards to be Drawn",
-                        "Allow Specific Cards to be Drawn",
-                        "Contents are Face-down",
-                        "Re-shuffle",
-                        "Reversible",
-                        "Draw Outline when empty",
-                        "Color",
-                        "Include command to send entire deck to another deck",
-                        "Menu text",
-                        "Message to echo to chat area",
-                        "Name of deck to send to",
-                        "Report Format"};
-  }
 
   public static class Prompt extends StringEnum {
     public String[] getValidValues(AutoConfigurable target) {
@@ -196,6 +185,35 @@ public class DrawPile extends SetupStack {
     }
   }
 
+  public String[] getAttributeNames() {
+    return new String[]{NAME, OWNING_BOARD, X_POSITION, Y_POSITION, WIDTH, HEIGHT, ALLOW_MULTIPLE,
+                        ALLOW_SELECT, FACE_DOWN, FACE_DOWN_REPORT_FORMAT, SHUFFLE, SHUFFLE_REPORT_FORMAT,
+                        REVERSIBLE, REVERSE_REPORT_FORMAT, DRAW, COLOR,
+                        RESHUFFLABLE, RESHUFFLE_COMMAND, RESHUFFLE_MESSAGE, RESHUFFLE_TARGET};
+  }
+
+  public String[] getAttributeDescriptions() {
+    return new String[]{"Name",
+                        "Belongs to board",
+                        "X position",
+                        "Y position",
+                        "Width",
+                        "Height",
+                        "Allow Multiple Cards to be Drawn",
+                        "Allow Specific Cards to be Drawn",
+                        "Contents are Face-down",
+                        "Face-down Report Format",
+                        "Re-shuffle",
+                        "Re-shuffle Report Format",
+                        "Reversible",
+                        "Reverse Report Format",
+                        "Draw Outline when empty",
+                        "Color",
+                        "Include command to send entire deck to another deck",
+                        "Menu text",
+                        "Report Format",
+                        "Name of deck to send to"};
+  }
 
   public Class[] getAttributeTypes() {
     return new Class[]{String.class,
@@ -207,15 +225,17 @@ public class DrawPile extends SetupStack {
                        Boolean.class,
                        Boolean.class,
                        Prompt.class,
+                       FormattedStringConfig.class,
                        Prompt.class,
+                       FormattedStringConfig.class,
                        Boolean.class,
+                       FormattedStringConfig.class,
                        Boolean.class,
                        Color.class,
                        Boolean.class,
                        String.class,
                        FormattedStringConfig.class,
-                       AssignedDeckPrompt.class,
-                       FormattedStringConfig.class};
+                       AssignedDeckPrompt.class};
   }
 
   public static class FormattedStringConfig implements ConfigurerFactory {
@@ -265,10 +285,16 @@ public class DrawPile extends SetupStack {
       return dummy.getReshuffleTarget();
     }
     else if (RESHUFFLE_MESSAGE.equals(key)) {
-      return dummy.getReshuffleMessage();
+      return dummy.getReshuffleMsgFormat();
     }
-    else if (REPORT_FORMAT.equals(key)) {
-      return reportFormat;
+    else if (SHUFFLE_REPORT_FORMAT.equals(key)) {
+      return dummy.getShuffleMsgFormat();
+    }
+    else if (REVERSE_REPORT_FORMAT.equals(key)) {
+      return dummy.getReverseMsgFormat();
+    }
+    else if (FACE_DOWN_REPORT_FORMAT.equals(key)) {
+      return dummy.getFaceDownMsgFormat();
     }
     else {
       return super.getAttributeValueString(key);
@@ -352,10 +378,20 @@ public class DrawPile extends SetupStack {
       dummy.setReshuffleTarget((String) value);
     }
     else if (RESHUFFLE_MESSAGE.equals(key)) {
-      dummy.setReshuffleMessage((String) value);
+      dummy.setReshuffleMsgFormat((String) value);
     }
-    else if (REPORT_FORMAT.equals(key)) {
-      reportFormat = ((String) value);
+    else if (REVERSE_REPORT_FORMAT.equals(key)) {
+      dummy.setReverseMsgFormat((String) value);
+    }
+    else if (SHUFFLE_REPORT_FORMAT.equals(key)) {
+      dummy.setShuffleMsgFormat((String) value);
+    }
+    else if (FACE_DOWN_REPORT_FORMAT.equals(key)) {
+      dummy.setFaceDownMsgFormat((String) value);
+    }
+    else if (NAME.equals(key)) {
+      dummy.setDeckName((String) value);
+      super.setAttribute(key, value);
     }
     else {
       super.setAttribute(key, value);
@@ -371,6 +407,15 @@ public class DrawPile extends SetupStack {
         || RESHUFFLE_MESSAGE.equals(name)
         || RESHUFFLE_TARGET.equals(name)) {
       return reshuffleVisibleCondition;
+    }
+    else if (FACE_DOWN_REPORT_FORMAT.equals(name)) {
+      return faceDownFormatVisibleCondition;
+    }
+    else if (SHUFFLE_REPORT_FORMAT.equals(name)) {
+      return shuffleFormatVisibleCondition;
+    }
+    else if (REVERSE_REPORT_FORMAT.equals(name)) {
+      return reverseFormatVisibleCondition;
     }
     else {
       return null;
@@ -405,8 +450,6 @@ public class DrawPile extends SetupStack {
   protected Stack initializeContents() {
     Stack s = super.initializeContents();
     myDeck = new Deck(getDeckType());
-    myDeck.setDeckName(getConfigureName());
-    myDeck.setReportFormat(reportFormat);
     for (Enumeration e = s.getPieces(); e.hasMoreElements();) {
       myDeck.add((GamePiece) e.nextElement());
     }

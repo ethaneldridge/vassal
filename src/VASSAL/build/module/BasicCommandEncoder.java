@@ -124,7 +124,7 @@ public class BasicCommandEncoder implements CommandEncoder, Buildable {
       return new BasicPiece(type);
     }
     else if (type.startsWith(Deck.ID)) {
-      return new Deck();
+      return new Deck(type);
     }
     return null;
   }

@@ -63,9 +63,12 @@ public class Deck extends Stack {
   private boolean reversible = false;
   private String reshuffleCommand = "";
   private String reshuffleTarget;
-  private String reshuffleMessage;
+  private String reshuffleMsgFormat;
+  private String reverseMsgFormat;
+  private String shuffleMsgFormat;
+  private String faceDownMsgFormat;
+
   private String deckName;
-  private FormattedString reportFormat = new FormattedString();
 
   private boolean faceDown;
   protected int dragCount = 0;
@@ -85,7 +88,7 @@ public class Deck extends Stack {
     st.nextToken();
     drawOutline = "true".equals(st.nextToken());
     outlineColor = ColorConfigurer.stringToColor(st.nextToken());
-    size.setSize(Integer.parseInt(st.nextToken()), Integer.parseInt(st.nextToken()));
+    size.setSize(st.nextInt(40), st.nextInt(40));
     faceDownOption = st.nextToken();
     shuffleOption = st.nextToken();
     allowMultipleDraw = "true".equals(st.nextToken());
@@ -93,7 +96,11 @@ public class Deck extends Stack {
     reversible = "true".equals(st.nextToken());
     reshuffleCommand = st.nextToken();
     reshuffleTarget = st.nextToken();
-    reshuffleMessage = st.nextToken();
+    reshuffleMsgFormat = st.nextToken();
+    deckName = st.nextToken("Deck");
+    shuffleMsgFormat = st.nextToken("");
+    reverseMsgFormat = st.nextToken("");
+    faceDownMsgFormat = st.nextToken("");
   }
 
   public String getFaceDownOption() {
@@ -123,6 +130,30 @@ public class Deck extends Stack {
 
   public boolean isShuffle() {
     return shuffle;
+  }
+
+  public String getFaceDownMsgFormat() {
+    return faceDownMsgFormat;
+  }
+
+  public void setFaceDownMsgFormat(String faceDownMsgFormat) {
+    this.faceDownMsgFormat = faceDownMsgFormat;
+  }
+
+  public String getReverseMsgFormat() {
+    return reverseMsgFormat;
+  }
+
+  public void setReverseMsgFormat(String reverseMsgFormat) {
+    this.reverseMsgFormat = reverseMsgFormat;
+  }
+
+  public String getShuffleMsgFormat() {
+    return shuffleMsgFormat;
+  }
+
+  public void setShuffleMsgFormat(String shuffleMsgFormat) {
+    this.shuffleMsgFormat = shuffleMsgFormat;
   }
 
   public void setShuffle(boolean shuffle) {
@@ -161,10 +192,6 @@ public class Deck extends Stack {
     return deckName;
   }
 
-  public void setReportFormat(String s) {
-    reportFormat.setFormat(s);
-  }
-
   /**
    * The popup menu text for the command that sends the entire deck to another deck
    * @return
@@ -193,12 +220,12 @@ public class Deck extends Stack {
    * The message to send to the chat window when the deck is reshuffled to another deck
    * @return
    */
-  public String getReshuffleMessage() {
-    return reshuffleMessage;
+  public String getReshuffleMsgFormat() {
+    return reshuffleMsgFormat;
   }
 
-  public void setReshuffleMessage(String reshuffleMessage) {
-    this.reshuffleMessage = reshuffleMessage;
+  public void setReshuffleMsgFormat(String reshuffleMsgFormat) {
+    this.reshuffleMsgFormat = reshuffleMsgFormat;
   }
 
   public String getType() {
@@ -213,7 +240,11 @@ public class Deck extends Stack {
         .append(reversible + "")
         .append(reshuffleCommand)
         .append(reshuffleTarget)
-        .append(reshuffleMessage);
+        .append(reshuffleMsgFormat)
+        .append(deckName)
+          .append(shuffleMsgFormat)
+        .append(reverseMsgFormat)
+        .append(faceDownMsgFormat);
     return ID + se.getValue();
   }
 
@@ -232,7 +263,7 @@ public class Deck extends Stack {
       indices.remove(i);
       newContents.add(getPieceAt(index));
     }
-    return setContents(newContents.iterator());
+    return setContents(newContents.iterator()).append(reportCommand(shuffleMsgFormat, "Shuffle"));
   }
 
   /**
@@ -349,7 +380,7 @@ public class Deck extends Stack {
     ChangeTracker t = new ChangeTracker(this);
     Command c = new NullCommand();
     faceDown = value;
-    return t.getChangeCommand().append(c);
+    return t.getChangeCommand().append(c).append(reportCommand(faceDownMsgFormat, value ? "Face Down" : "Face Up"));
   }
 
   /** Reverse the order of the contents of the Deck */
@@ -359,7 +390,7 @@ public class Deck extends Stack {
          e.hasMoreElements();) {
       list.add(e.nextElement());
     }
-    return setContents(list.iterator());
+    return setContents(list.iterator()).append(reportCommand(reverseMsgFormat, "Reverse"));
   }
 
   public boolean isDrawOutline() {
@@ -472,12 +503,7 @@ public class Deck extends Stack {
       if (USE_MENU.equals(shuffleOption)) {
         c = new KeyCommand("Shuffle", null, this) {
           public void actionPerformed(ActionEvent e) {
-            Command c = shuffle();
-            Command rep = reportCommand("Shuffle");
-            if (rep != null) {
-              c.append(rep);
-            }
-            GameModule.getGameModule().sendAndLog(c);
+            GameModule.getGameModule().sendAndLog(shuffle());
             map.repaint();
           }
         };
@@ -496,10 +522,6 @@ public class Deck extends Stack {
         KeyCommand faceDownAction = new KeyCommand(faceDown ? "Face up" : "Face down", null, this) {
           public void actionPerformed(ActionEvent e) {
             Command c = setContentsFaceDown(!faceDown);
-            Command rep = reportCommand(!faceDown ? "Face up" : "Face down");
-            if (rep != null) {
-              c.append(rep);
-            }
             GameModule.getGameModule().sendAndLog(c);
             map.repaint();
           }
@@ -510,10 +532,6 @@ public class Deck extends Stack {
         c = new KeyCommand("Reverse order", null, this) {
           public void actionPerformed(ActionEvent e) {
             Command c = reverse();
-            Command rep = reportCommand("Reverse order");
-            if (rep != null) {
-              c.append(rep);
-            }
             GameModule.getGameModule().sendAndLog(c);
             map.repaint();
           }
@@ -538,22 +556,29 @@ public class Deck extends Stack {
       }
       commands = (KeyCommand[]) l.toArray(new KeyCommand[l.size()]);
     }
+    for (int i=0;i<commands.length;++i) {
+      if ("Face up".equals(commands[i].getValue(Action.NAME)) && !faceDown) {
+        commands[i].putValue(Action.NAME,"Face down");
+      }
+      else if ("Face down".equals(commands[i].getValue(Action.NAME)) && faceDown) {
+        commands[i].putValue(Action.NAME,"Face up");
+      }
+    }
     return commands;
   }
 
   /*
    * Format command report as per module designers setup.
    */
-  private Command reportCommand(String commandName) {
-
+  private Command reportCommand(String format, String commandName) {
     Command c = null;
-
+    FormattedString reportFormat = new FormattedString(format);
     reportFormat.setProperty(GlobalOptions.PLAYER_NAME, (String) GameModule.getGameModule().getPrefs().getValue(GameModule.REAL_NAME));
     reportFormat.setProperty(GlobalOptions.DECK_NAME, getDeckName());
     reportFormat.setProperty(GlobalOptions.COMMAND_NAME, commandName);
     String rep = reportFormat.getText();
     if (rep.length() > 0) {
-      c = new Chatter.DisplayText(GameModule.getGameModule().getChatter(), "* " + reportFormat.getText());
+      c = new Chatter.DisplayText(GameModule.getGameModule().getChatter(), "* " + rep);
       c.execute();
     }
 
@@ -624,13 +649,11 @@ public class Deck extends Stack {
     Command c = null;
     DrawPile target = DrawPile.findDrawPile(reshuffleTarget);
     if (target != null) {
-      if (reshuffleMessage.length() > 0) {
-		FormattedString fmt = new FormattedString(reshuffleMessage);
-		fmt.setProperty(GlobalOptions.PLAYER_NAME, (String) GameModule.getGameModule().getPrefs().getValue(GameModule.REAL_NAME));
-		fmt.setProperty(GlobalOptions.DECK_NAME, getDeckName());
-		fmt.setProperty(GlobalOptions.COMMAND_NAME, reshuffleCommand);
-		c = new Chatter.DisplayText(GameModule.getGameModule().getChatter(), "*" + fmt.getText());
-		c.execute();
+      if (reshuffleMsgFormat.length() > 0) {
+        c = reportCommand(reshuffleMsgFormat, reshuffleCommand);
+        if (c == null) {
+          c = new NullCommand();
+        }
       }
       else {
         c = new NullCommand();

@@ -446,10 +446,6 @@ public class Map extends AbstractConfigurable implements GameComponent,
       ComponentSplitter splitter = new ComponentSplitter();
       mainWindowDock = splitter.splitBottom(splitter.getSplitAncestor(GameModule.getGameModule().getControlPanel(), -1), root, true);
     }
-
-    if (boards.size() <= 1) {
-      locationFormat.setFormat("$"+GRID_LOCATION+"$");
-    }
   }
 
   public void removeFrom(Buildable b) {
