@@ -74,7 +74,7 @@ public class PrototypeDefinition implements Configurable {
     File dir = VASSAL.build.module.Documentation.getDocumentationBaseDir();
     dir = new File(dir, "ReferenceManual");
     try {
-      return new HelpFile(null, new File(dir, "GameModule.htm"),"#Definition");
+      return new HelpFile(null, new File(dir, "GameModule.htm"), "#Definition");
     }
     catch (MalformedURLException ex) {
       return null;
@@ -96,7 +96,18 @@ public class PrototypeDefinition implements Configurable {
            e.hasMoreElements();) {
         PrototypeDefinition d = (PrototypeDefinition) e.nextElement();
         if (d.name.equals(name)) {
-          throw new IllegalBuildException("Must have unique name");
+          int count = 1;
+          String prefix = name;
+          int index = name.indexOf('-');
+          if (index > 0) {
+            try {
+              count = Integer.parseInt(name.substring(index + 1));
+              prefix = name.substring(0, index);
+            }
+            catch (NumberFormatException ex) {
+            }
+          }
+          setConfigureName(prefix + "-" + (count + 1));
         }
       }
     }
@@ -186,7 +197,7 @@ public class PrototypeDefinition implements Configurable {
             Plain plain = new Plain();
             Object outer = inner.getProperty(Properties.OUTER);
             if (outer instanceof Decorator) {
-              ((Decorator)outer).setInner(plain);
+              ((Decorator) outer).setInner(plain);
             }
             piece = Decorator.getOutermost(plain);
           }

@@ -13,11 +13,12 @@
  * Library General Public License for more details.
  *
  * You should have received a copy of the GNU Library General Public
- * License along with this library; if not, copies are available 
+ * License along with this library; if not, copies are available
  * at http://www.opensource.org.
  */
 package VASSAL.counters;
 
+import VASSAL.build.module.Map;
 import VASSAL.tools.Sort;
 
 import javax.swing.*;
@@ -34,6 +35,7 @@ public class DragBuffer {
   private MouseEvent lastRelease;
   private Component dropTarget;
   private MouseListener dropHandler;
+  private Map dragFromMap;
 
   private DragBuffer() {
     pieces = new Vector();
@@ -53,8 +55,8 @@ public class DragBuffer {
 
   public void add(GamePiece p) {
     if (p != null
-      && !pieces.contains(p)
-      && !Boolean.TRUE.equals(p.getProperty(Properties.RESTRICTED))) {
+        && !pieces.contains(p)
+        && !Boolean.TRUE.equals(p.getProperty(Properties.RESTRICTED))) {
       if (p instanceof Stack) {
         for (Enumeration e = ((Stack) p).getPieces(); e.hasMoreElements();) {
           if (Boolean.TRUE.equals(((GamePiece) e.nextElement()).getProperty(Properties.RESTRICTED))) {
@@ -66,7 +68,12 @@ public class DragBuffer {
       else {
         pieces.addElement(p);
       }
+      dragFromMap = p.getMap();
     }
+  }
+
+  public Map getFromMap() {
+    return dragFromMap;
   }
 
   public void clear() {
@@ -125,7 +132,7 @@ public class DragBuffer {
 
   private boolean isCloseEnough(Point p1, Point p2) {
     return Math.abs(p1.x - p2.x) < 3
-      && Math.abs(p1.y - p2.y) < 3;
+        && Math.abs(p1.y - p2.y) < 3;
   }
 
   public void remove(GamePiece p) {

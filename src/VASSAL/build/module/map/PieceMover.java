@@ -16,6 +16,11 @@
  * License along with this library; if not, copies are available
  * at http://www.opensource.org.
  */
+
+/*
+ * Who                 Date   Req Id Details
+ * Brent Easton   12-Mar-04   914553 Use correct maps when coomparing clicks
+ */
 package VASSAL.build.module.map;
 
 import VASSAL.build.AbstractBuildable;
@@ -387,8 +392,10 @@ public class PieceMover extends AbstractBuildable implements
     if (dragBegin != null) {
       Board b = map.findBoard(pt);
       if (b != null && b.getGrid() != null) {
-        if (map.snapTo(pt).equals(map.snapTo(dragBegin))) {
-          isClick = true;
+        if (map.equals(DragBuffer.getBuffer().getFromMap())) {
+          if (map.snapTo(pt).equals(map.snapTo(dragBegin))) {
+            isClick = true;
+          }
         }
       }
       else {

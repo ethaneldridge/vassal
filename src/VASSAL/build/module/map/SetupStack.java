@@ -64,7 +64,7 @@ public class SetupStack extends AbstractConfigurable implements GameComponent, C
       Point p = new Point(pos);
       if (owningBoardName != null) {
         Rectangle r = map.getBoardByName(owningBoardName).bounds();
-        p.translate(r.x,r.y);
+        p.translate(r.x, r.y);
       }
       map.placeAt(s, p);
     }
@@ -211,9 +211,13 @@ public class SetupStack extends AbstractConfigurable implements GameComponent, C
       PieceSlot slot = (PieceSlot) c[i];
       GamePiece p = slot.getPiece();
       p = cloner.clonePiece(p);
+      p.setMap(map);
+      p.setPosition(pos);
       GameModule.getGameModule().getGameState().addPiece(p);
       s.add(p);
     }
+    s.setMap(map);
+    s.setPosition(pos);
     GameModule.getGameModule().getGameState().addPiece(s);
     return s;
   }
