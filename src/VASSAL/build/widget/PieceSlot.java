@@ -18,27 +18,31 @@
  */
 package VASSAL.build.widget;
 
+import VASSAL.Info;
 import VASSAL.build.*;
 import VASSAL.build.module.documentation.HelpFile;
-import VASSAL.build.module.documentation.HelpWindowExtension;
 import VASSAL.build.module.documentation.HelpWindow;
+import VASSAL.build.module.documentation.HelpWindowExtension;
 import VASSAL.build.module.map.MenuDisplayer;
+import VASSAL.build.module.PrototypeDefinition;
 import VASSAL.command.AddPiece;
 import VASSAL.command.Command;
 import VASSAL.configure.Configurer;
 import VASSAL.counters.*;
-import VASSAL.Info;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.datatransfer.StringSelection;
-import java.awt.dnd.*;
+import java.awt.dnd.DnDConstants;
+import java.awt.dnd.DragGestureEvent;
+import java.awt.dnd.DragGestureListener;
+import java.awt.dnd.DragSource;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.io.File;
 import java.net.MalformedURLException;
+import java.util.Enumeration;
 
 /**
  * A Component that displays a GamePiece.
@@ -157,24 +161,68 @@ public class PieceSlot extends Widget implements MouseListener, KeyListener {
 
   // Puts counter in DragBuffer. Call when mouse gesture recognized
   protected void startDrag() {
-    
+
     // Recenter piece; panel may have been resized at some point resulting
-    // in pieces with inaccurate positional information. 
-    getPiece().setPosition( new Point( panel.getSize().width / 2, panel.getSize().height / 2 ));
-    
-    // Erase selection border to avoid leaving selected after mouse dragged out 
+    // in pieces with inaccurate positional information.
+    getPiece().setPosition(new Point(panel.getSize().width / 2, panel.getSize().height / 2));
+
+    // Erase selection border to avoid leaving selected after mouse dragged out
     getPiece().setProperty(Properties.SELECTED, null);
     panel.repaint();
-    
+
     if (getPiece() != null) {
       DragBuffer.getBuffer().clear();
-      GamePiece newPiece
-          = ((AddPiece) GameModule.getGameModule().decode
-          (GameModule.getGameModule().encode
-           (new AddPiece(getPiece())))).getTarget();
+      GamePiece newPiece = clonePiece(getPiece());
       newPiece.setState(getPiece().getState());
       DragBuffer.getBuffer().add(newPiece);
     }
+  }
+
+  /**
+   * Create a new instance that is a clone of the piece defined in this slot
+   * @return the new instance
+   */
+  public GamePiece clonePiece(GamePiece piece) {
+    GamePiece clone = null;
+    if (piece instanceof BasicPiece) {
+      clone = new BasicPiece(piece.getType());
+      clone.setState(piece.getState());
+    }
+    else if (piece instanceof UsePrototype) {
+      String prototypeName = ((UsePrototype)piece).getPrototypeName();
+      for (Enumeration e = GameModule.getGameModule().getComponents(PrototypeDefinition.class); e.hasMoreElements();) {
+        PrototypeDefinition def = (PrototypeDefinition)e.nextElement();
+        if (def.getConfigureName().equals(prototypeName)) {
+          clone = clonePiece(def.getPiece());
+          ((Decorator)Decorator.getInnermost(clone).getProperty(Properties.OUTER)).setInner(clonePiece(((UsePrototype)piece).getInner()));
+          break;
+        }
+      }
+      if (clone == null) {
+        throw new RuntimeException("No prototype \'"+prototypeName+"\'");
+      }
+    }
+    else if (piece instanceof EditablePiece
+        && piece instanceof Decorator) {
+      try {
+        clone = (GamePiece) piece.getClass().newInstance();
+        ((EditablePiece) clone).mySetType(((Decorator) piece).myGetType());
+        ((Decorator) clone).mySetState(((Decorator) piece).myGetState());
+        ((Decorator) clone).setInner(clonePiece(((Decorator) piece).getInner()));
+      }
+      catch (InstantiationException e) {
+        throw new RuntimeException(e);
+      }
+      catch (IllegalAccessException e) {
+        throw new RuntimeException(e);
+      }
+    }
+    else {
+      clone = ((AddPiece) GameModule.getGameModule().decode
+          (GameModule.getGameModule().encode
+           (new AddPiece(piece)))).getTarget();
+    }
+    return clone;
   }
 
   public void mouseReleased(MouseEvent e) {
@@ -198,8 +246,8 @@ public class PieceSlot extends Widget implements MouseListener, KeyListener {
       });
       popup.show(panel, e.getX(), e.getY());
     }
-    
-    
+
+
   }
 
   public void mouseClicked(MouseEvent e) {
@@ -266,15 +314,15 @@ public class PieceSlot extends Widget implements MouseListener, KeyListener {
 
   public void addTo(Buildable parent) {
     if (Info.isDndEnabled()) {
-      panel.setDropTarget( VASSAL.build.module.map.PieceMover.DragHandler.makeDropTarget( panel, DnDConstants.ACTION_MOVE, null ));
+      panel.setDropTarget(VASSAL.build.module.map.PieceMover.DragHandler.makeDropTarget(panel, DnDConstants.ACTION_MOVE, null));
 
       DragGestureListener dragGestureListener = new DragGestureListener() {
         public void dragGestureRecognized(DragGestureEvent dge) {
           startDrag();
-          VASSAL.build.module.map.PieceMover.DragHandler.getTheDragHandler().dragGestureRecognized( dge );
+          VASSAL.build.module.map.PieceMover.DragHandler.getTheDragHandler().dragGestureRecognized(dge);
         }
       };
-      DragSource.getDefaultDragSource().createDefaultDragGestureRecognizer(panel, DnDConstants.ACTION_MOVE, dragGestureListener );
+      DragSource.getDefaultDragSource().createDefaultDragGestureRecognizer(panel, DnDConstants.ACTION_MOVE, dragGestureListener);
     }
     else {
       DragBuffer.getBuffer().addDragSource(getComponent());

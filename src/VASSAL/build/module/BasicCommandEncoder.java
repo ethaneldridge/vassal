@@ -37,16 +37,17 @@ import java.awt.*;
  * of the custom {@link GamePiece} classes.
  */
 public class BasicCommandEncoder implements CommandEncoder, Buildable {
-
-
   public BasicCommandEncoder() {
   }
 
-  /**     Creates a {@link Decorator} instance @param type the
-   *     type of the Decorator to be created.  Once created, the
-   *     Decorator should return this value from its {@link *
-   *     Decorator#myGetType} method.  @param inner the inner
-   *     piece of the Decorator @see Decorator  */
+  /**
+   * Creates a {@link Decorator} instance
+   *
+   * @param type the type of the Decorator to be created.  Once created, the
+   * Decorator should return this value from its {@link Decorator#myGetType} method.
+   *
+   * @param inner the inner piece of the Decorator @see Decorator
+   */
   protected Decorator createDecorator(String type, GamePiece inner) {
     if (type.startsWith(Immobilized.ID)) {
       return new Immobilized(inner, type);
@@ -98,6 +99,9 @@ public class BasicCommandEncoder implements CommandEncoder, Buildable {
     }
     else if (type.startsWith(SendToLocation.ID)) {
       return new SendToLocation(type, inner);
+    }
+    else if (type.startsWith(UsePrototype.ID)) {
+      return new UsePrototype(type,inner);
     }
     return null;
   }
