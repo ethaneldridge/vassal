@@ -98,15 +98,20 @@ public class GlobalMap extends JPanel implements MouseListener,
 
     map.getToolBar().add(launch);
 
-    f = new JWindow(); // Dummy window until the parent map is added to a Window of its own
-    map.getView().addHierarchyListener(new HierarchyListener() {
-      public void hierarchyChanged(HierarchyEvent e) {
-        if (SwingUtilities.getWindowAncestor(map.getView()) != null) {
-          initWindow();
-          map.getView().removeHierarchyListener(this);
+    if (SwingUtilities.getWindowAncestor(map.getView()) != null) {
+      initWindow();
+    }
+    else {
+      f = new JWindow(); // Dummy window until the parent map is added to a Window of its own
+      map.getView().addHierarchyListener(new HierarchyListener() {
+        public void hierarchyChanged(HierarchyEvent e) {
+          if (SwingUtilities.getWindowAncestor(map.getView()) != null) {
+            initWindow();
+            map.getView().removeHierarchyListener(this);
+          }
         }
-      }
-    });
+      });
+    }
   }
 
   public void add(Buildable b) {
