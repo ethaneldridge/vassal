@@ -45,7 +45,7 @@ import java.util.Vector;
  * Basic class for representing a physical component of the game
  * Can be a counter, a card, or an overlay
  */
-public class BasicPiece implements EditablePiece {
+public class BasicPiece implements EditablePiece, StateMergeable {
 
   public static final String ID = "piece;";
   private static Highlighter highlighter;
@@ -440,6 +440,12 @@ public class BasicPiece implements EditablePiece {
       else {
         setMap(null);
       }
+    }
+  }
+
+  public void mergeState(String newState, String oldState) {
+    if (!newState.equals(oldState)) {
+      setState(newState);
     }
   }
 

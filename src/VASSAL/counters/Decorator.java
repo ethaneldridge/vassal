@@ -29,7 +29,7 @@ import java.awt.*;
  * The abstract class describing a generic 'trait' of a GamePiece.  Follows the Decorator design pattern
  * of wrapping around another instance of GamePiece (the 'inner' piece) and delegating some of the GamePiece methods to it
  */
-public abstract class Decorator implements GamePiece {
+public abstract class Decorator implements GamePiece, StateMergeable {
   protected GamePiece piece;
   private Decorator dec;
 
@@ -133,8 +133,8 @@ public abstract class Decorator implements GamePiece {
     if (!myOldState.equals(myNewState)) {
       mySetState(myNewState);
     }
-    if (piece instanceof Decorator) {
-      ((Decorator)piece).mergeState(innerNewState,innerOldState);
+    if (piece instanceof StateMergeable) {
+      ((StateMergeable)piece).mergeState(innerNewState,innerOldState);
     }
     else {
       piece.setState(innerNewState);

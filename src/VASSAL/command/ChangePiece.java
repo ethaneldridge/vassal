@@ -60,11 +60,8 @@ public class ChangePiece extends Command {
       BoundsTracker bounds = new BoundsTracker();
       bounds.addPiece(target);
       if (oldState != null) {
-        if (target instanceof Stack) {
-          ((Stack) target).mergeState(newState, oldState);
-        }
-        else if (target instanceof Decorator) {
-          ((Decorator) target).mergeState(newState, oldState);
+        if (target instanceof StateMergeable) {
+          ((StateMergeable) target).mergeState(newState, oldState);
         }
         else {
           target.setState(newState);

@@ -35,7 +35,7 @@ import java.util.List;
 /**
  * A collection of GamePieces which can be moved as a single unit
  */
-public class Stack implements GamePiece {
+public class Stack implements GamePiece, StateMergeable {
   public static final String TYPE = "stack";
   protected static final int INCR = 5;
   protected GamePiece[] contents = new GamePiece[INCR];
