@@ -13,7 +13,7 @@
  * Library General Public License for more details.
  *
  * You should have received a copy of the GNU Library General Public
- * License along with this library; if not, copies are available 
+ * License along with this library; if not, copies are available
  * at http://www.opensource.org.
  */
 /*
@@ -27,6 +27,7 @@
 package VASSAL.counters;
 
 import VASSAL.build.GameModule;
+import VASSAL.build.module.Chatter;
 import VASSAL.build.module.documentation.HelpFile;
 import VASSAL.build.widget.CardSlot;
 import VASSAL.build.widget.PieceSlot;
@@ -35,6 +36,7 @@ import VASSAL.command.Command;
 import VASSAL.configure.ConfigurerWindow;
 import VASSAL.configure.StringConfigurer;
 import VASSAL.tools.SequenceEncoder;
+import VASSAL.counters.*;
 
 import javax.swing.*;
 import java.awt.*;
@@ -52,9 +54,10 @@ public class PlaceMarker extends Decorator implements EditablePiece {
   protected KeyCommand command;
   protected char key;
   protected String markerSpec;
+  protected String markerText = "";
 
   public PlaceMarker() {
-    this(ID + "Place Marker;M;null", null);
+    this(ID + "Place Marker;M;null;null", null);
   }
 
   public PlaceMarker(String type, GamePiece inner) {
@@ -88,7 +91,8 @@ public class PlaceMarker extends Decorator implements EditablePiece {
     SequenceEncoder se = new SequenceEncoder(';');
     se.append(command.getName());
     se.append(key != 0 ? "" + key : "");
-    se.append(markerSpec == null ? "null " : markerSpec);
+    se.append(markerSpec == null ? "null" : markerSpec);
+    se.append(markerText == null ? "null" : markerText);
     return ID + se.getValue();
   }
 
@@ -98,6 +102,19 @@ public class PlaceMarker extends Decorator implements EditablePiece {
       GamePiece marker = ((AddPiece) GameModule.getGameModule().decode(markerSpec)).getTarget();
       Command c = getMap().getStackMetrics().merge(Decorator.getOutermost(this), marker);
       KeyBuffer.getBuffer().add(marker);
+      if (markerText != null && getMap() != null) {
+        GamePiece outer = getOutermost(this);
+        if (!Boolean.TRUE.equals(outer.getProperty(Properties.OBSCURED_TO_OTHERS))
+            && !Boolean.TRUE.equals(outer.getProperty(Properties.OBSCURED_TO_ME))
+            && !Boolean.TRUE.equals(outer.getProperty(Properties.INVISIBLE_TO_OTHERS))) {
+          String location = getMap().locationName(getPosition());
+          if (location != null) {
+            Command display = new Chatter.DisplayText(GameModule.getGameModule().getChatter(), " * " + location + ":  " + outer.getName() + " " + markerText + " * ");
+            display.execute();
+            c = c == null ? display : c.append(display);
+          }
+        }
+      }
       return c;
     }
     else {
@@ -118,9 +135,9 @@ public class PlaceMarker extends Decorator implements EditablePiece {
 
   public HelpFile getHelpFile() {
     File dir = VASSAL.build.module.Documentation.getDocumentationBaseDir();
-    dir = new File(dir,"ReferenceManual");
+    dir = new File(dir, "ReferenceManual");
     try {
-      return new HelpFile(null,new File(dir,"Marker.htm"));
+      return new HelpFile(null, new File(dir, "Marker.htm"));
     }
     catch (MalformedURLException ex) {
       return null;
@@ -137,6 +154,12 @@ public class PlaceMarker extends Decorator implements EditablePiece {
     if ("null".equals(markerSpec)) {
       markerSpec = null;
     }
+    if (st.hasMoreTokens()) {
+      markerText = st.nextToken();
+      if ("null".equals(markerText)) {
+        markerText = null;
+      }
+    }
   }
 
   public PieceEditor getEditor() {
@@ -150,12 +173,13 @@ public class PlaceMarker extends Decorator implements EditablePiece {
     private JPanel p = new JPanel();
     protected JButton defineButton = new JButton("Define Marker");
     protected JButton selectButton = new JButton("Select");
+    private JTextField pieceText = new JTextField(20);
 
     protected Ed(PlaceMarker piece) {
       keyInput = new KeySpecifier(piece.key);
       commandInput = new StringConfigurer(null, "Command: ", piece.command.getName());
       GamePiece marker = piece.markerSpec == null ? null
-        : ((AddPiece) GameModule.getGameModule().decode(piece.markerSpec)).getTarget();
+          : ((AddPiece) GameModule.getGameModule().decode(piece.markerSpec)).getTarget();
       pieceInput = new PieceSlot(marker);
 
       p = new JPanel();
@@ -175,21 +199,26 @@ public class PlaceMarker extends Decorator implements EditablePiece {
       b.add(defineButton);
       selectButton.addActionListener(new ActionListener() {
         public void actionPerformed(ActionEvent e) {
-          VASSAL.configure.ChooseComponentDialog d = new VASSAL.configure.ChooseComponentDialog((Frame) SwingUtilities.getAncestorOfClass(Frame.class,p),PieceSlot.class) {
+          VASSAL.configure.ChooseComponentDialog d = new VASSAL.configure.ChooseComponentDialog((Frame) SwingUtilities.getAncestorOfClass(Frame.class, p), PieceSlot.class) {
             protected boolean isValidTarget(Object selected) {
               return super.isValidTarget(selected) || CardSlot.class.isInstance(selected);
             }
           };
           d.setVisible(true);
           if (d.getTarget() instanceof PieceSlot) {
-            pieceInput.setPiece(((PieceSlot)d.getTarget()).getPiece());
+            pieceInput.setPiece(((PieceSlot) d.getTarget()).getPiece());
           }
           else if (d.getTarget() instanceof CardSlot) {
-            pieceInput.setPiece(((CardSlot)d.getTarget()).getPiece());
+            pieceInput.setPiece(((CardSlot) d.getTarget()).getPiece());
           }
         }
       });
       b.add(selectButton);
+      p.add(b);
+      b = Box.createHorizontalBox();
+      b.add(new JLabel("Report Text:"));
+      pieceText.setText(piece.markerText);
+      b.add(pieceText);
       p.add(b);
     }
 
@@ -211,6 +240,12 @@ public class PlaceMarker extends Decorator implements EditablePiece {
       else {
         String spec = GameModule.getGameModule().encode(new AddPiece(pieceInput.getPiece()));
         se.append(spec);
+      }
+      if (pieceText.getText().length() == 0) {
+        se.append("null");
+      }
+      else {
+        se.append(pieceText.getText());
       }
       return ID + se.getValue();
     }
