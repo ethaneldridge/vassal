@@ -312,6 +312,9 @@ public class PieceMover extends AbstractBuildable implements MouseListener, Game
           DragBuffer.getBuffer().add(p);
         }
       }
+      if (DragBuffer.getBuffer().getIterator().hasMoreElements()) {
+        map.getView().setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+      }
     }
   }
 

@@ -1,17 +1,12 @@
 package VASSAL.build.module.map;
 
 import VASSAL.build.Buildable;
-import VASSAL.build.GameModule;
 import VASSAL.build.module.Map;
 import VASSAL.counters.*;
-import VASSAL.command.Command;
-import VASSAL.command.AddPiece;
-import VASSAL.command.ChangeTracker;
 
-import java.awt.event.MouseMotionListener;
-import java.awt.event.MouseEvent;
 import java.awt.*;
-import java.util.Enumeration;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseMotionListener;
 
 /*
  * $Id$
@@ -33,13 +28,14 @@ import java.util.Enumeration;
  */
 
 /**
- * A class for moving and rotating pieces, as for mineatures-based games
+ * A class for moving pieces, as for mineatures-based games
  */
 public class FreePieceMover extends PieceMover implements MouseMotionListener, Drawable {
   protected GamePiece dragging;
   protected Transparent trans;
   protected Point anchor;
   protected Point arrow;
+  private Color lineColor = Color.black;
 
   public void addTo(Buildable b) {
     super.addTo(b);
@@ -53,19 +49,20 @@ public class FreePieceMover extends PieceMover implements MouseMotionListener, D
     if (pi.hasMoreElements()) {
       dragging = pi.nextPiece();
       anchor = map.componentCoordinates(dragging.getPosition());
-      if (dragging instanceof Stack) {
-        for (Enumeration enum = ((Stack) dragging).getPieces(); enum.hasMoreElements();) {
-          dragging = (GamePiece) enum.nextElement();
-          break;
-        }
-      }
       trans = new Transparent(dragging);
       trans.setAlpha(0.5);
+      if (map.getHighlighter() instanceof ColoredBorder) {
+        lineColor = ((ColoredBorder)map.getHighlighter()).getColor();
+      }
       arrow = null;
     }
     else {
       clear();
     }
+  }
+
+  protected boolean isMultipleSelectionEvent(MouseEvent e) {
+    return false;
   }
 
   protected void clear() {
@@ -77,7 +74,7 @@ public class FreePieceMover extends PieceMover implements MouseMotionListener, D
   public void draw(Graphics g, Map map) {
     if (anchor != null
         && arrow != null) {
-      g.setColor(Color.black);
+      g.setColor(lineColor);
       Point p2 = getDragDestination(map.mapCoordinates(anchor), map.mapCoordinates(arrow));
       if (p2 != null) {
         p2 = map.componentCoordinates(p2);

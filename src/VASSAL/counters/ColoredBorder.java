@@ -20,6 +20,7 @@ package VASSAL.counters;
 
 import VASSAL.Info;
 
+import javax.swing.*;
 import java.awt.*;
 import java.awt.geom.AffineTransform;
 
@@ -41,6 +42,9 @@ public class ColoredBorder implements Highlighter {
       Graphics2D g2d = (Graphics2D) g;
       Shape s = (Shape) p.getProperty(Properties.SHAPE);
       if (s != null) {
+        Rectangle r = ((JComponent)obs).getVisibleRect();
+        x -= r.x*zoom;
+        y -= r.y*zoom;
         Stroke str = g2d.getStroke();
         AffineTransform t = g2d.getTransform();
         g2d.setStroke(new BasicStroke(thickness));

@@ -149,6 +149,7 @@ public class PieceSlot extends Widget implements MouseListener, KeyListener {
            (new AddPiece(getPiece())))).getTarget();
         newPiece.setState(getPiece().getState());
         DragBuffer.getBuffer().add(newPiece);
+        panel.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
       }
     }
   }
