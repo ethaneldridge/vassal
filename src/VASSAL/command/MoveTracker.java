@@ -28,7 +28,6 @@ import java.awt.*;
  * @see ChangeTracker
  */
 public class MoveTracker {
-  private String id;
   private String oldMapId;
   private Point oldPosition;
   private String oldUnderneathId;
@@ -36,7 +35,6 @@ public class MoveTracker {
 
   public MoveTracker(GamePiece piece) {
     this.piece = piece;
-    id = piece.getId();
     oldMapId = getMapId();
     oldPosition = piece.getPosition();
     oldUnderneathId = getUnderneathId();
@@ -58,6 +56,6 @@ public class MoveTracker {
   }
 
   public Command getMoveCommand() {
-    return new MovePiece(id,getMapId(),piece.getPosition(),getUnderneathId(),oldMapId,oldPosition,oldUnderneathId);
+    return new MovePiece(piece.getId(),getMapId(),piece.getPosition(),getUnderneathId(),oldMapId,oldPosition,oldUnderneathId);
   }
 }
