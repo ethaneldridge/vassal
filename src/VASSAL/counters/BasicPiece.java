@@ -63,12 +63,12 @@ public class BasicPiece implements EditablePiece {
   private String id;
   private Hashtable props;
 
-  private char cloneKey, deleteKey;
+  private char cloneKey, deleteKey; // Moved into independent traits, but retained for backward compatibility
   protected String imageName;
   private String commonName;
 
   public BasicPiece() {
-    this(ID + "C;X;;;");
+    this(ID + ";;;;");
   }
 
   public BasicPiece(String type) {
@@ -506,21 +506,22 @@ public class BasicPiece implements EditablePiece {
 
     private Ed(BasicPiece p) {
       state = p.getState();
-      initComponents();
-      reset(p);
+      initComponents(p);
     }
 
-    private void initComponents() {
+    private void initComponents(BasicPiece p) {
       panel = new JPanel();
       panel.setLayout(new BoxLayout(panel, BoxLayout.X_AXIS));
 
       picker = new ImagePicker();
+      picker.setImageName(p.imageName);
       panel.add(picker);
 
-      cloneKeyInput = new KeySpecifier('C');
-      deleteKeyInput = new KeySpecifier('X');
+      cloneKeyInput = new KeySpecifier(p.cloneKey);
+      deleteKeyInput = new KeySpecifier(p.deleteKey);
 
       pieceName = new JTextField(12);
+      pieceName.setText(p.commonName);
       pieceName.setMaximumSize(pieceName.getPreferredSize());
 
       Box col = Box.createVerticalBox();
@@ -529,24 +530,24 @@ public class BasicPiece implements EditablePiece {
       row.add(pieceName);
       col.add(row);
 
-      row = Box.createHorizontalBox();
-      row.add(new JLabel("To Clone:  "));
-      row.add(cloneKeyInput);
-      col.add(row);
+      if (p.cloneKey != 0) {
+        row = Box.createHorizontalBox();
+        row.add(new JLabel("To Clone:  "));
+        row.add(cloneKeyInput);
+        col.add(row);
+      }
 
-      row = Box.createHorizontalBox();
-      row.add(new JLabel("To Delete:  "));
-      row.add(deleteKeyInput);
-      col.add(row);
+      if (p.deleteKey != 0) {
+        row = Box.createHorizontalBox();
+        row.add(new JLabel("To Delete:  "));
+        row.add(deleteKeyInput);
+        col.add(row);
+      }
 
       panel.add(col);
     }
 
     public void reset(BasicPiece p) {
-      cloneKeyInput.setKey(p.cloneKey);
-      deleteKeyInput.setKey(p.deleteKey);
-      pieceName.setText(p.commonName);
-      picker.setImageName(p.imageName);
     }
 
     public Component getControls() {

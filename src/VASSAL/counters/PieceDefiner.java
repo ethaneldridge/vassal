@@ -51,6 +51,8 @@ public class PieceDefiner extends javax.swing.JPanel implements HelpWindowExtens
     if (availableModel == null) {
       availableModel = new DefaultListModel();
       availableModel.addElement(new BasicPiece());
+      availableModel.addElement(new Delete());
+      availableModel.addElement(new Clone());
       availableModel.addElement(new Embellishment());
       availableModel.addElement(new UsePrototype());
       availableModel.addElement(new Labeler());

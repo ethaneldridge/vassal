@@ -103,6 +103,12 @@ public class BasicCommandEncoder implements CommandEncoder, Buildable {
     else if (type.startsWith(UsePrototype.ID)) {
       return new UsePrototype(type,inner);
     }
+	else if (type.startsWith(Clone.ID)) {
+	  return new Clone(type,inner);
+	}
+	else if (type.startsWith(Delete.ID)) {
+	  return new Delete(type,inner);
+	}
     return null;
   }
 

@@ -73,7 +73,12 @@ public class KeySpecifier extends JPanel implements KeyListener {
   }
 
   public void setKey(char c) {
-    setKey("" + c);
+    if (Character.isDefined(c)) {
+      setKey("" + c);
+    }
+    else {
+      setKey("");
+    }
   }
 
   public void setKey(String s) {
