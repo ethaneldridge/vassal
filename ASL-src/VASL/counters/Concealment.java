@@ -23,6 +23,7 @@ import VASSAL.build.module.ObscurableOptions;
 import VASSAL.command.ChangePiece;
 import VASSAL.command.Command;
 import VASSAL.counters.*;
+import VASSAL.tools.SequenceEncoder;
 
 import javax.swing.*;
 import java.awt.*;
@@ -34,6 +35,7 @@ public class Concealment extends Decorator implements EditablePiece {
   public static final String ID = "concealment;";
 
   private KeyCommand[] commands;
+  private String nation;
   private String owner;
 
   public Concealment() {
@@ -46,11 +48,19 @@ public class Concealment extends Decorator implements EditablePiece {
   }
 
   public void mySetType(String type) {
-    if (type.length() > ID.length()) {
-      owner = type.substring(ID.length());
+    SequenceEncoder.Decoder st = new SequenceEncoder.Decoder(type.substring(ID.length()),';');
+    if (st.hasMoreTokens()) {
+      owner = st.nextToken();
+      if (st.hasMoreTokens()) {
+        nation = st.nextToken();
+      }
+      else {
+        nation = null;
+      }
     }
     else {
       owner = null;
+      nation = null;
     }
   }
 
@@ -69,7 +79,13 @@ public class Concealment extends Decorator implements EditablePiece {
   }
 
   public String myGetType() {
-    return ID + owner;
+    SequenceEncoder se = new SequenceEncoder(';');
+    se.append(owner == null ? "null" : owner);
+    String n = getNationality();
+    if (n != null) {
+      se.append(n);
+    }
+    return ID + se.getValue();
   }
 
   protected KeyCommand[] myGetKeyCommands() {
@@ -154,28 +170,19 @@ public class Concealment extends Decorator implements EditablePiece {
       return false;
     }
     else {
-      ColoredBox myNation = (ColoredBox) Decorator.getDecorator(this, ColoredBox.class);
-      ColoredBox pNation = (ColoredBox) Decorator.getDecorator(p, ColoredBox.class);
-      if (!compareColors(myNation, pNation)) {
-        return false;
-      }
-      else {
-        myNation = (ColoredBox) Decorator.getDecorator(myNation.getInner(), ColoredBox.class);
-        if (myNation == null) {
-          return true;
-        }
-        else {
-          return compareColors(myNation, (ColoredBox) Decorator.getDecorator(pNation.getInner(), ColoredBox.class));
-        }
-      }
+      return getNationality().equals(c.getProperty(ASLProperties.NATIONALITY));
     }
   }
 
-  protected static boolean compareColors(ColoredBox c1, ColoredBox c2) {
-    if (c1 == null || c2 == null) {
-      return false;
+  private String getNationality() {
+    String value = nation;
+    if (value == null) {
+      ColoredBox b = (ColoredBox) Decorator.getDecorator(this,ColoredBox.class);
+      if (b != null) {
+        value = b.getColorId();
+      }
     }
-    return c1.getColor().equals(c2.getColor());
+    return value;
   }
 
   public Shape getShape() {

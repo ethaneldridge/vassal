@@ -283,6 +283,9 @@ public class Concealable extends Obscurable implements EditablePiece {
         && obscuredToMe()) {
       return null;
     }
+    else if (ASLProperties.NATIONALITY.equals(key)) {
+      return nation;
+    }
     else {
       return super.getProperty(key);
     }

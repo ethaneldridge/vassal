@@ -91,6 +91,10 @@ public class ColoredBox extends Decorator implements EditablePiece {
     return (Color) GameModule.getGameModule().getPrefs().getValue(colorId);
   }
 
+  public String getColorId() {
+    return colorId;
+  }
+
   public void draw(Graphics g, int x, int y, Component obs, double zoom) {
     piece.draw(g, x, y, obs, zoom);
     g.setColor(getColor());

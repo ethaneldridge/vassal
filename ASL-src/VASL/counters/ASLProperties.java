@@ -28,4 +28,5 @@ public interface ASLProperties {
   /** The piece is an LOS hindrance */
   public static final String HINDRANCE = "Hindrance";
 
+  public static final String NATIONALITY = "Nation";
 }
