@@ -76,7 +76,7 @@ public class MapCenterer extends AbstractBuildable implements MouseListener {
           found = null;
         }
       }
-      if (found != null) {
+      if (found == null) {
         Map.View m = (Map.View) e.getSource();
         m.getMap().centerAt(e.getPoint());
       }
