@@ -1,6 +1,9 @@
 package VASSAL.counters;
 
+import VASSAL.build.GameModule;
+import VASSAL.build.module.GlobalOptions;
 import VASSAL.build.module.Map;
+import VASSAL.build.module.Chatter;
 import VASSAL.build.module.documentation.HelpFile;
 import VASSAL.build.module.map.boardPicker.Board;
 import VASSAL.command.Command;
@@ -116,6 +119,14 @@ public class SendToLocation extends Decorator implements EditablePiece {
           dest.translate(b.bounds().x,b.bounds().y);
         }
         c = m.placeOrMerge(Decorator.getOutermost(this),dest);
+        
+		if (GlobalOptions.getInstance().autoReportEnabled()) {
+		   String s = "* " + getName() + " sent to " + commandName + " * ";
+		   Command report = new Chatter.DisplayText(GameModule.getGameModule().getChatter(), s);
+		   report.execute();
+		   c = c.append(report);
+		}
+		
       }
     }
     return c;

@@ -19,7 +19,9 @@
 package VASSAL.counters;
 
 import VASSAL.build.GameModule;
+import VASSAL.build.module.GlobalOptions;
 import VASSAL.build.module.Map;
+import VASSAL.build.module.Chatter;
 import VASSAL.build.module.documentation.HelpFile;
 import VASSAL.build.module.map.MenuDisplayer;
 import VASSAL.command.AddPiece;
@@ -87,7 +89,7 @@ public class BasicPiece implements EditablePiece {
         imageBounds = DataArchive.getImageBounds(image);
       }
       catch (IOException e) {
-        System.err.println("Unable to locate image "+imageName);
+        System.err.println("Unable to locate image " + imageName);
         imageBounds = new Rectangle();
       }
     }
@@ -101,7 +103,7 @@ public class BasicPiece implements EditablePiece {
   public String getType() {
     SequenceEncoder se = new SequenceEncoder(cloneKey > 0 ? "" + cloneKey : "", ';');
     return ID + se.append(deleteKey > 0 ? "" + deleteKey : "")
-      .append(imageName).append(commonName).getValue();
+        .append(imageName).append(commonName).getValue();
   }
 
   public void setMap(Map map) {
@@ -140,16 +142,16 @@ public class BasicPiece implements EditablePiece {
 
   public void draw(Graphics g, int x, int y, Component obs, double zoom) {
     if (image != null) {
-        if (zoom == 1.0) {
-          g.drawImage(image,x+imageBounds.x,y+imageBounds.y,obs);
-        }
-        else {
-          Image scaledImage = GameModule.getGameModule().getDataArchive().getScaledImage(image,zoom);
-          g.drawImage(scaledImage,
-                      x + (int) (zoom * imageBounds.x),
-                      y + (int) (zoom * imageBounds.y),
-                      obs);
-        }
+      if (zoom == 1.0) {
+        g.drawImage(image, x + imageBounds.x, y + imageBounds.y, obs);
+      }
+      else {
+        Image scaledImage = GameModule.getGameModule().getDataArchive().getScaledImage(image, zoom);
+        g.drawImage(scaledImage,
+                    x + (int) (zoom * imageBounds.x),
+                    y + (int) (zoom * imageBounds.y),
+                    obs);
+      }
     }
   }
 
@@ -172,8 +174,8 @@ public class BasicPiece implements EditablePiece {
     }
     GamePiece outer = Decorator.getOutermost(this);
     boolean canAdjustPosition = outer.getMap() != null &&
-      outer.getParent() != null
-      && outer.getParent().topPiece() != getParent().bottomPiece();
+        outer.getParent() != null
+        && outer.getParent().topPiece() != getParent().bottomPiece();
     enableCommand("Move up", canAdjustPosition);
     enableCommand("Move down", canAdjustPosition);
     enableCommand("Move to top", canAdjustPosition);
@@ -209,12 +211,12 @@ public class BasicPiece implements EditablePiece {
 
   public void setPosition(Point p) {
     if (getMap() != null
-      && getParent() == null) {
+        && getParent() == null) {
       getMap().repaint(getMap().boundingBoxOf(Decorator.getOutermost(this)));
     }
     pos = p;
     if (getMap() != null
-      && getParent() == null) {
+        && getParent() == null) {
       getMap().repaint(getMap().boundingBoxOf(Decorator.getOutermost(this)));
     }
   }
@@ -228,11 +230,11 @@ public class BasicPiece implements EditablePiece {
   }
 
   public Rectangle boundingBox() {
-    return new Rectangle(imageBounds.x,imageBounds.y,imageBounds.width,imageBounds.height);
+    return new Rectangle(imageBounds.x, imageBounds.y, imageBounds.width, imageBounds.height);
   }
 
   public Shape getShape() {
-    return new Rectangle(imageBounds.x,imageBounds.y,imageBounds.width,imageBounds.height);
+    return new Rectangle(imageBounds.x, imageBounds.y, imageBounds.width, imageBounds.height);
   }
 
   public boolean equals(GamePiece c) {
@@ -254,9 +256,9 @@ public class BasicPiece implements EditablePiece {
     GamePiece outer = Decorator.getOutermost(this);
     if (KeyStroke.getKeyStroke(cloneKey, InputEvent.CTRL_MASK).equals(stroke)) {
       GamePiece newPiece
-        = ((AddPiece) GameModule.getGameModule().decode
-        (GameModule.getGameModule().encode
-         (new AddPiece(outer)))).getTarget();
+          = ((AddPiece) GameModule.getGameModule().decode
+          (GameModule.getGameModule().encode
+           (new AddPiece(outer)))).getTarget();
       newPiece.setId(null);
       GameModule.getGameModule().getGameState().addPiece(newPiece);
       newPiece.setState(outer.getState());
@@ -265,14 +267,42 @@ public class BasicPiece implements EditablePiece {
         comm.append(getMap().getStackMetrics().merge(outer, newPiece));
         KeyBuffer.getBuffer().remove(outer);
         KeyBuffer.getBuffer().add(newPiece);
+
+        if (GlobalOptions.getInstance().autoReportEnabled()) {
+          String s = "* " + outer.getName();
+          String loc = getMap().locationName(outer.getPosition());
+          if (loc != null) {
+            s += " cloned in " + loc + " * ";
+          }
+          else {
+            s += "cloned *";
+          }
+          Command report = new Chatter.DisplayText(GameModule.getGameModule().getChatter(), s);
+          report.execute();
+          comm = comm.append(report);
+        }
       }
     }
     else if (KeyStroke.getKeyStroke(deleteKey, InputEvent.CTRL_MASK).equals(stroke)) {
       comm = new RemovePiece(outer);
+
+      if (getMap() != null && GlobalOptions.getInstance().autoReportEnabled()) {
+        String s = "* " + outer.getName();
+        String loc = getMap().locationName(outer.getPosition());
+        if (loc != null) {
+          s += " deleted from " + loc + " * ";
+        }
+        else {
+          s += " deleted *";
+        }
+        Command report = new Chatter.DisplayText(GameModule.getGameModule().getChatter(), s);
+        comm = comm.append(report);
+      }
+
       comm.execute();
     }
     else if (getMap() != null &&
-      stroke.equals(getMap().getStackMetrics().getMoveUpKey())) {
+        stroke.equals(getMap().getStackMetrics().getMoveUpKey())) {
       if (parent != null) {
         String oldState = parent.getState();
         int index = parent.indexOf(outer);
@@ -289,7 +319,7 @@ public class BasicPiece implements EditablePiece {
       }
     }
     else if (getMap() != null &&
-      stroke.equals(getMap().getStackMetrics().getMoveDownKey())) {
+        stroke.equals(getMap().getStackMetrics().getMoveDownKey())) {
       if (parent != null) {
         String oldState = parent.getState();
         int index = parent.indexOf(outer);
@@ -306,7 +336,7 @@ public class BasicPiece implements EditablePiece {
       }
     }
     else if (getMap() != null &&
-      stroke.equals(getMap().getStackMetrics().getMoveTopKey())) {
+        stroke.equals(getMap().getStackMetrics().getMoveTopKey())) {
       parent = outer.getParent();
       if (parent != null) {
         String oldState = parent.getState();
@@ -323,7 +353,7 @@ public class BasicPiece implements EditablePiece {
       }
     }
     else if (getMap() != null &&
-      stroke.equals(getMap().getStackMetrics().getMoveBottomKey())) {
+        stroke.equals(getMap().getStackMetrics().getMoveBottomKey())) {
       parent = getParent();
       if (parent != null) {
         String oldState = parent.getState();
@@ -357,17 +387,17 @@ public class BasicPiece implements EditablePiece {
       final Component target = (Component) e.getSource();
       popup.addPopupMenuListener(new javax.swing.event.PopupMenuListener() {
         public void popupMenuCanceled
-          (javax.swing.event.PopupMenuEvent evt) {
+            (javax.swing.event.PopupMenuEvent evt) {
           target.repaint();
         }
 
         public void popupMenuWillBecomeInvisible
-          (javax.swing.event.PopupMenuEvent evt) {
+            (javax.swing.event.PopupMenuEvent evt) {
           target.repaint();
         }
 
         public void popupMenuWillBecomeVisible
-          (javax.swing.event.PopupMenuEvent evt) {
+            (javax.swing.event.PopupMenuEvent evt) {
         }
       });
       popup.show(target, p.x, p.y);
@@ -402,7 +432,7 @@ public class BasicPiece implements EditablePiece {
         return;
       }
     }
-    Point newPos = new Point(st.nextInt(0),st.nextInt(0));
+    Point newPos = new Point(st.nextInt(0), st.nextInt(0));
     setPosition(newPos);
     if (newMap != oldMap) {
       if (newMap != null) {
@@ -530,8 +560,8 @@ public class BasicPiece implements EditablePiece {
     public String getType() {
       SequenceEncoder se = new SequenceEncoder(cloneKeyInput.getKey(), ';');
       String type = se.append(deleteKeyInput.getKey())
-        .append(picker.getImageName())
-        .append(pieceName.getText()).getValue();
+          .append(picker.getImageName())
+          .append(pieceName.getText()).getValue();
       return BasicPiece.ID + type;
     }
   }

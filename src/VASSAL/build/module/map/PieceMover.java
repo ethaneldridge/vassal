@@ -59,6 +59,8 @@ public class PieceMover extends AbstractBuildable implements
   /** The Preferences key for autoreporting moves.  */
   public static final String AUTO_REPORT = "autoReport";
 
+  protected static final String OFFMAP = "offmap";
+
   protected Map map;
   protected Point dragBegin;
   private JButton markUnmovedButton;
@@ -222,6 +224,7 @@ public class PieceMover extends AbstractBuildable implements
 
     String myId = GameModule.getUserId();
     GameModule.setUserId("yendoR117");  // Don't report my hidden or concealed units
+    String origin = map.locationName(bottom.getPosition());
     StringBuffer moved = new StringBuffer();
     if (bottom.getMap() == map) {
       moved.append(bottom.getName());
@@ -229,11 +232,17 @@ public class PieceMover extends AbstractBuildable implements
     else if (bottom.getMap() != null) {
       originMaps.add(bottom.getMap());
     }
+    else {
+      moved.append(bottom.getName());
+      origin = OFFMAP;
+    }
     GameModule.setUserId(myId);
 
     Command comm = new NullCommand();
     String destination;
-    String origin = map.locationName(bottom.getPosition());
+
+    //String origin = map.locationName(bottom.getPosition()); // Moved up
+
     if (mergeWith == null) {
       comm = comm.append(movedPiece(bottom, p));
       comm = comm.append(map.placeAt(bottom, p));
@@ -254,7 +263,8 @@ public class PieceMover extends AbstractBuildable implements
     while (it.hasMoreElements()) {
       GamePiece next = it.nextPiece();
       GameModule.setUserId("yendoR117");  // Don't report my hidden or concealed units
-      if (next.getMap() == map) {
+      //if (next.getMap() == map) { // Make sure moved from offmap are reported
+      if (next.getMap() == map || origin.equals(OFFMAP)) {
         if (next.getName().length() > 0) {
           moved.append(',');
           moved.append(next.getName());
@@ -721,7 +731,7 @@ public class PieceMover extends AbstractBuildable implements
           GamePiece piece = DragBuffer.getBuffer().getIterator().nextPiece();
           Point mousePosition = map == null ? dge.getDragOrigin() : map.componentCoordinates(dge.getDragOrigin());
           Point piecePosition = map == null ? piece.getPosition() : map.componentCoordinates(piece.getPosition());
-          
+
           // If DragBuffer holds a piece with invalid coordinates (for example, a card drawn from a deck),
           // drag from center of piece
           if (piecePosition.x <= 0 || piecePosition.y <= 0) {
@@ -729,10 +739,10 @@ public class PieceMover extends AbstractBuildable implements
           }
 
           // Pieces in an expanded stack need to be offset
-          if ( piece.getParent() != null && piece.getParent().isExpanded() && map != null ) {
+          if (piece.getParent() != null && piece.getParent().isExpanded() && map != null) {
             StackMetrics metrics = map == null ? piece.getParent().getDefaultMetrics() : map.getStackMetrics();
-            Point offset = piece.getMap().getStackMetrics().relativePosition( piece.getParent(), piece );
-            piecePosition.translate( offset.x, offset.y );
+            Point offset = piece.getMap().getStackMetrics().relativePosition(piece.getParent(), piece);
+            piecePosition.translate(offset.x, offset.y);
           }
 
           dragPieceOffCenterX = piecePosition.x - mousePosition.x; // dragging from UL results in positive offsets
