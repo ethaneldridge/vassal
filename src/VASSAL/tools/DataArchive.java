@@ -143,6 +143,9 @@ public class DataArchive extends SecureClassLoader {
   private Image getScaledInstance(Image im, Dimension size) {
     if (smoothPrefs == null) {
       smoothPrefs = (BooleanConfigurer) GameModule.getGameModule().getPrefs().getOption(GlobalOptions.SCALER_ALGORITHM);
+      if (smoothPrefs == null) {
+        smoothPrefs = new BooleanConfigurer(null,null,Boolean.TRUE);
+      }
       smoothPrefs.addPropertyChangeListener(new PropertyChangeListener() {
         public void propertyChange(PropertyChangeEvent evt) {
           scaledImageCache.clear();
