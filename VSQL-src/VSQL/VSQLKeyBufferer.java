@@ -36,7 +36,7 @@ import java.awt.event.MouseMotionListener;
  *
  * @see Map#addLocalMouseListener
  */
-public class KeyBufferer extends MouseAdapter implements Buildable, MouseMotionListener, Drawable {
+public class VSQLKeyBufferer extends MouseAdapter implements Buildable, MouseMotionListener, Drawable {
   protected Map map;
   protected Rectangle selection;
   protected Point anchor;
@@ -123,7 +123,8 @@ public class KeyBufferer extends MouseAdapter implements Buildable, MouseMotionL
         }
 
         public Object visitDefault(GamePiece p) {
-          if (!Boolean.TRUE.equals(p.getProperty(Properties.TERRAIN))
+          if (!Boolean.TRUE.equals(p.getProperty(Properties.TERRAIN)) &&
+              !Boolean.TRUE.equals(p.getProperty(Properties.NO_STACK))
               && selection.contains(p.getPosition())) {
             return p;
           }
