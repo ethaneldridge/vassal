@@ -28,6 +28,8 @@ import javax.swing.*;
 import java.awt.*;
 import java.util.ArrayList;
 import java.util.Iterator;
+import java.io.File;
+import java.net.MalformedURLException;
 
 /** A trait that groups menu items of other traits into a sub-menu */
 public class SubMenu extends Decorator implements EditablePiece {
@@ -53,7 +55,14 @@ public class SubMenu extends Decorator implements EditablePiece {
   }
 
   public HelpFile getHelpFile() {
-    return null;
+    File dir = VASSAL.build.module.Documentation.getDocumentationBaseDir();
+    dir = new File(dir, "ReferenceManual");
+    try {
+      return new HelpFile(null, new File(dir, "SubMenu.htm"));
+    }
+    catch (MalformedURLException ex) {
+      return null;
+    }
   }
 
   public PieceEditor getEditor() {

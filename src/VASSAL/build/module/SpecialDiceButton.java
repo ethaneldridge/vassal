@@ -86,7 +86,6 @@ public class SpecialDiceButton extends AbstractConfigurable implements CommandEn
   public static final String NONE = "<none>";
 
   private static final int[] EMPTY = new int[0];
-  private Icon defaultIcon;
 
   public SpecialDiceButton() {
     dialog = new JDialog(GameModule.getGameModule().getFrame());
@@ -100,7 +99,6 @@ public class SpecialDiceButton extends AbstractConfigurable implements CommandEn
       }
     };
     launch = new LaunchButton(null, BUTTON_TEXT, HOTKEY, ICON, rollAction);
-    defaultIcon = launch.getIcon();
     setAttribute(NAME, "Symbols");
     setAttribute(BUTTON_TEXT, "Sym");
   }
@@ -372,9 +370,6 @@ public class SpecialDiceButton extends AbstractConfigurable implements CommandEn
       reportResultInButton = getBoolVal(o);
       if (reportResultInButton) {
         launch.setIcon(resultsIcon);
-      }
-      else {
-        launch.setIcon(defaultIcon);
       }
     }
     else if (RESULT_WINDOW.equals(key)) {
