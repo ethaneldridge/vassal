@@ -146,6 +146,8 @@ public class HexGridNumbering extends RegularGridNumbering {
         // Convert from map co-ordinates to board co-ordinates
         gridp.translate(-bounds.x, -bounds.y);
         grid.rotateIfSideways(gridp);
+        gridp.x = (int) Math.round(gridp.x/scale);
+        gridp.y = (int) Math.round(gridp.y/scale);
 
         Labeler.drawLabel(g, getName(getRow(gridp), getColumn(gridp)),
                           p.x,
@@ -161,6 +163,8 @@ public class HexGridNumbering extends RegularGridNumbering {
         // Convert from map co-ordinates to board co-ordinates
         gridp.translate(-bounds.x, -bounds.y);
         grid.rotateIfSideways(gridp);
+        gridp.x = (int) Math.round(gridp.x/scale);
+        gridp.y = (int) Math.round(gridp.y/scale);
 
         Labeler.drawLabel(g, getName(getRow(gridp), getColumn(gridp)),
                           p.x,
