@@ -30,6 +30,7 @@ import VASSAL.build.module.map.CounterDetailViewer;
 import VASSAL.counters.GamePiece;
 import VASSAL.counters.PieceFilter;
 import VASSAL.counters.PieceIterator;
+import VASSAL.counters.Properties;
 import VASSAL.counters.Stack;
 
 public class VSQLCounterDetailViewer extends CounterDetailViewer {
@@ -57,7 +58,63 @@ public class VSQLCounterDetailViewer extends CounterDetailViewer {
     }
   }
 
+  protected void showDetails() {
+    currentPiece = findPieceAtMousePosition();
+    /*
+     * Visibility Rules:
+     *   Stack         - Depends on setting of showGraphics/showText
+     *   Single Unit   - Depends on setting of showGraphics/showText and showGraphicsSingle/showTextSingle
+     *                   and stack must not be expanded.
+     *   Empty space   - Depends on setting of showText
+     */
+    
+    // Count number of pieces on all layers
+    int pieceCount = 0;
+    PieceIterator pi = new PieceIterator(new MapPieceServer(map), new Selector(currentMousePosition.getPoint()));
+    while (pi.hasMoreElements()) {
+      pieceCount++;
+      pi.nextPiece();
+    }
+    
+    // No pieces
+    if (currentPiece == null) {
+      textVisible = (showRef && map.getZoom() < zoomLevel);
+      graphicsVisible = false;
+    }
+    else {
+      // Below zoom specified zoom level
+      if (map.getZoom() < zoomLevel) {
+        boolean val = !Boolean.TRUE.equals(currentPiece.getProperty(Properties.TERRAIN));
+        graphicsVisible = (showGraph && val);
+        textVisible = (showText && val);
+      }
+      // One piece only
+      else if (pieceCount == 1) {
+        graphicsVisible = (showGraph && showGraphSingle);
+        textVisible = (showText && showTextSingle);
+      }
+      else {
+        // Multiple pieces, Stack on top.
+        if (currentPiece instanceof Stack) {
+           Stack s = (Stack) currentPiece;
+           graphicsVisible = (showGraph && !s.isExpanded());
+           textVisible = (showText && !s.isExpanded());
+        }
+        //Multiple single pieces
+        else {
+          graphicsVisible = showGraph;
+          textVisible = showText;
+        }
+      }
+    }
+
+    map.repaint();
+  }
   
+  /**
+   * Serve up all pieces on a Map indiviually as an Enumeration
+   * 
+   * */
   protected class MapPieceServer implements Enumeration {
 
     protected GamePiece[] pieces;
@@ -117,7 +174,10 @@ public class VSQLCounterDetailViewer extends CounterDetailViewer {
     }    
   }
   
-  
+  /**
+   * Filter to select pieces which contain the given point within their perimeter
+   * @author Brent Easton
+   */
   protected class Selector implements PieceFilter {
 
     protected Point point;
@@ -127,9 +187,9 @@ public class VSQLCounterDetailViewer extends CounterDetailViewer {
     }
     
     public boolean accept(GamePiece piece) {
-       Rectangle r = piece.boundingBox();
+       Rectangle r = piece.getShape().getBounds();
        Point pos = piece.getPosition();
-       r.translate(pos.x, pos.y);
+       r.translate((int) (pos.x*map.getZoom()), (int) (pos.y*map.getZoom()));
        return r.contains(point);
     }
     
