@@ -487,16 +487,18 @@ public class PieceMover extends AbstractBuildable implements
       bottom = next;
     }
 
-    String toLocation = map.getFullLocationName(p, false);
-    String toId = GlobalOptions.formatLocationId(toLocation, map.getConfigureName());
-
-    String fromLocation = (fromMap == null) ? "" : fromMap.getFullLocationName(fromPos, false);
-    String fromMapId = "";
-    if (fromMap != null && !fromMap.equals(map)) {
-      fromMapId = fromMap.getConfigureName();
+    String toId = map.getDeckName(p);
+    if (toId == null) {
+      toId = map.locationName(p);
     }
 
-    String fromId = GlobalOptions.formatLocationId(fromLocation, fromMapId);
+    String fromId = "";
+    if (fromMap != null && !fromMap.equals(map)) {
+      fromId = map.getDeckName(p);
+      if (fromId == null) {
+        fromId = fromMap.locationName(fromPos);
+      }
+    }
 
     String s = moved.toString();
     if 	// At least one unit moved somwhere

@@ -85,4 +85,7 @@ public interface Properties {
 
   /** Return Boolean.TRUE if this piece has been moved */
   public static final String MOVED = "Moved";
+
+  /** Used to store a duplicate of the target piece at some point in time */
+  public static final String SNAPSHOT = "snapshot";
 }

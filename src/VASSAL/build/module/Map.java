@@ -32,6 +32,7 @@ import VASSAL.preferences.PositionOption;
 import VASSAL.tools.ComponentSplitter;
 import VASSAL.tools.KeyStrokeSource;
 import VASSAL.tools.LaunchButton;
+import VASSAL.tools.FormattedString;
 import org.w3c.dom.Element;
 
 import javax.swing.*;
@@ -93,6 +94,7 @@ public class Map extends AbstractConfigurable implements GameComponent,
   private boolean allowMultiple = false;
   private VisibilityCondition visibilityCondition;
   private DragGestureListener dragGestureListener;
+  private FormattedString locationFormat = new FormattedString();
 
   public Map() {
     getView();
@@ -114,6 +116,7 @@ public class Map extends AbstractConfigurable implements GameComponent,
   public static final String ICON = "icon";
   public static final String HOTKEY = "hotkey";
   public static final String SUPPRESS_AUTO = "suppressAuto";
+  public static final String LOCATION_FORMAT = "locationFormat";
 
   public void setAttribute(String key, Object value) {
     if (NAME.equals(key)) {
@@ -188,6 +191,9 @@ public class Map extends AbstractConfigurable implements GameComponent,
       }
       suppressAutoReportWithin = ((Boolean) value).booleanValue();
     }
+    else if (LOCATION_FORMAT.equals(key)) {
+      locationFormat.setFormat((String) value);
+    }
     else {
       launchButton.setAttribute(key, value);
     }
@@ -230,6 +236,9 @@ public class Map extends AbstractConfigurable implements GameComponent,
     }
     else if (SUPPRESS_AUTO.equals(key)) {
       return "" + suppressAutoReportWithin;
+    }
+    else if (LOCATION_FORMAT.equals(key)) {
+      return locationFormat.getFormat();
     }
     else {
       return launchButton.getAttributeValueString(key);
@@ -584,7 +593,7 @@ public class Map extends AbstractConfigurable implements GameComponent,
    */
   public String locationName(Point p) {
     String gridRef = "offboard";
-    String boardName = "";
+    String boardName = null;
     Board b = findBoard(p);
     if (b != null) {
       gridRef = b.locationName(new Point(p.x - b.bounds().x,
@@ -594,11 +603,11 @@ public class Map extends AbstractConfigurable implements GameComponent,
           && boards.size() > 1
           && b.getName() != null) {
         boardName = b.getName();
-        //name = b.getName() + name;
       }
-      gridRef = GlobalOptions.formatGridReference(gridRef, boardName);
     }
-    return gridRef;
+    locationFormat.setProperty(BOARD_NAME, boardName);
+    locationFormat.setProperty(GRID_LOCATION, gridRef);
+    return locationFormat.getText();
   }
 
   /**
@@ -650,21 +659,16 @@ public class Map extends AbstractConfigurable implements GameComponent,
   public String getDeckName(Point p) {
 
     String deck = null;
-    if (p == null) {
-      return deck;
-    }
-
-    Enumeration e = buildComponents.elements();
-    while (e.hasMoreElements()) {
-      Object o = e.nextElement();
-      if (o instanceof DrawPile) {
-        DrawPile d = (DrawPile) o;
+    if (p != null) {
+      Enumeration e = getComponents(DrawPile.class);
+      while (e.hasMoreElements()) {
+        DrawPile d = (DrawPile) e.nextElement();
         if (d.boundingBox().contains(p)) {
-          return d.getConfigureName();
+          deck = d.getConfigureName();
+          break;
         }
       }
     }
-
     return deck;
   }
 
@@ -1450,15 +1454,25 @@ public class Map extends AbstractConfigurable implements GameComponent,
     return new String[]{"Map Name", "Mark pieces that move (if they possess the proper trait)", "Horizontal Padding", "Vertical Padding", "Can contain multiple boards",
                         "Border color for selected counters", "Border thickness for selected counters",
                         "Include toolbar button to show/hide", "Toolbar button name", "Toolbar button icon", "Hotkey",
-                        "Suppress auto-reporting for movement within this window"};
+                        "Suppress auto-reporting for movement within this window",
+                        "Location format"};
   }
 
   public String[] getAttributeNames() {
-    return new String[]{NAME, MARK_MOVED, EDGE_WIDTH, EDGE_HEIGHT, ALLOW_MULTIPLE, HIGHLIGHT_COLOR, HIGHLIGHT_THICKNESS, USE_LAUNCH_BUTTON, BUTTON_NAME, ICON, HOTKEY, SUPPRESS_AUTO};
+    return new String[]{NAME, MARK_MOVED, EDGE_WIDTH, EDGE_HEIGHT, ALLOW_MULTIPLE, HIGHLIGHT_COLOR, HIGHLIGHT_THICKNESS, USE_LAUNCH_BUTTON, BUTTON_NAME, ICON, HOTKEY, SUPPRESS_AUTO, LOCATION_FORMAT};
   }
 
   public Class[] getAttributeTypes() {
     return new Class[]{String.class, GlobalOptions.Prompt.class, Integer.class, Integer.class, Boolean.class, Color.class, Integer.class, Boolean.class, String.class, IconConfig.class, KeyStroke.class, Boolean.class};
+  }
+
+  public static final String BOARD_NAME = "boardName";
+  public static final String GRID_LOCATION = "gridLocation";
+
+  public static class LocationFormatConfig implements ConfigurerFactory {
+    public Configurer getConfigurer(AutoConfigurable c, String key, String name) {
+      return new FormattedStringConfigurer(key, name, new String[]{BOARD_NAME, GRID_LOCATION});
+    }
   }
 
   public static class IconConfig implements ConfigurerFactory {

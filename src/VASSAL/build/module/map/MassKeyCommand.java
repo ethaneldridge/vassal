@@ -30,10 +30,10 @@ import VASSAL.build.AbstractConfigurable;
 import VASSAL.build.AutoConfigurable;
 import VASSAL.build.Buildable;
 import VASSAL.build.GameModule;
-import VASSAL.build.module.GlobalOptions;
 import VASSAL.build.module.Map;
 import VASSAL.build.module.documentation.HelpFile;
 import VASSAL.build.module.Chatter;
+import VASSAL.build.module.PlayerRoster;
 import VASSAL.command.Command;
 import VASSAL.command.NullCommand;
 import VASSAL.configure.*;
@@ -81,6 +81,7 @@ public class MassKeyCommand extends AbstractConfigurable implements PieceVisitor
   protected boolean reportSingle;
   protected static boolean suppressTraitReports = false;
   protected FormattedString reportFormat = new FormattedString("");
+  private PieceCloner cloner = new PieceCloner();
 
   public MassKeyCommand() {
     ActionListener al = new ActionListener() {
@@ -100,8 +101,9 @@ public class MassKeyCommand extends AbstractConfigurable implements PieceVisitor
 
     suppressTraitReports = reportSingle;
 
-    reportFormat.setProperty(GlobalOptions.COMMAND_NAME, getConfigureName());
-    reportFormat.setProperty(GlobalOptions.PLAYER_ID, GlobalOptions.getPlayerId());
+    reportFormat.setProperty(COMMAND_NAME, getConfigureName());
+    reportFormat.setProperty(PLAYER_NAME, (String) GameModule.getGameModule().getPrefs().getValue(GameModule.REAL_NAME));
+    reportFormat.setProperty(PLAYER_SIDE, PlayerRoster.getMySide());
     String reportText = reportFormat.getText();
     if (reportText.length() > 0) {
       keyCommand = new Chatter.DisplayText(GameModule.getGameModule().getChatter(), "*" + reportText);
@@ -138,7 +140,7 @@ public class MassKeyCommand extends AbstractConfigurable implements PieceVisitor
   private void apply(GamePiece p, Command c, BoundsTracker tracker) {
     if (isValidTarget(p)) {
       tracker.addPiece(p);
-      BasicPiece.setInitialState(p);
+      p.setProperty(Properties.SNAPSHOT,cloner.clonePiece(p));
       c.append(p.keyEvent(stroke));
       tracker.addPiece(p);
     }
@@ -222,9 +224,20 @@ public class MassKeyCommand extends AbstractConfigurable implements PieceVisitor
     }
   }
 
+  public static final String PLAYER_NAME="playerName";
+  public static final String PLAYER_SIDE="playerSide";
+  public static final String COMMAND_NAME="commandName";
+
+  // Options for Global Key Report
+  private static final String[] getFormatParameters() {
+    return new String[]{PLAYER_NAME,
+                        PLAYER_SIDE,
+                        COMMAND_NAME};
+  }
+
   public static class ReportFormatConfig implements ConfigurerFactory {
     public Configurer getConfigurer(AutoConfigurable c, String key, String name) {
-      return new FormattedStringConfigurer(key, name, GlobalOptions.getMassKeyOptions());
+      return new FormattedStringConfigurer(key, name, getFormatParameters());
     }
   }
 

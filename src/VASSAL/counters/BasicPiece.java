@@ -19,9 +19,9 @@
 package VASSAL.counters;
 
 import VASSAL.build.GameModule;
+import VASSAL.build.module.Chatter;
 import VASSAL.build.module.GlobalOptions;
 import VASSAL.build.module.Map;
-import VASSAL.build.module.Chatter;
 import VASSAL.build.module.documentation.HelpFile;
 import VASSAL.build.module.map.MenuDisplayer;
 import VASSAL.command.AddPiece;
@@ -39,7 +39,7 @@ import java.io.File;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.util.Enumeration;
-import java.util.Hashtable;
+import java.util.HashMap;
 import java.util.Vector;
 
 /**
@@ -61,7 +61,7 @@ public class BasicPiece implements EditablePiece {
   private Stack parent;
   private Point pos = new Point(0, 0);
   private String id;
-  private Hashtable props;
+  private HashMap props;
 
   private char cloneKey, deleteKey; // Moved into independent traits, but retained for backward compatibility
   protected String imageName;
@@ -126,30 +126,13 @@ public class BasicPiece implements EditablePiece {
 
   public void setProperty(Object key, Object val) {
     if (props == null) {
-      props = new Hashtable();
+      props = new HashMap();
     }
     if (val == null) {
       props.remove(key);
     }
     else {
       props.put(key, val);
-    }
-  }
-
-  // Save the current location, name and Invisibility status of a unit as
-  // properties of the GamePiece
-  public static void setInitialState(GamePiece outer) {
-    Map map = outer.getMap();
-    if (map != null) {
-      String location = GlobalOptions.formatLocationId(map.locationName(outer.getPosition()), map.getConfigureName());
-      outer.setProperty(GlobalOptions.INITIAL_LOCATION, location);
-      Boolean initialInvisibility = (Boolean) outer.getProperty(VASSAL.counters.Properties.INVISIBLE_TO_OTHERS);
-      outer.setProperty(GlobalOptions.INITIAL_INVISIBILITY, (initialInvisibility == null) ? Boolean.FALSE : initialInvisibility);
-      Hideable.setAllHidden(true);
-      Obscurable.setAllHidden(true);
-      outer.setProperty(GlobalOptions.INITIAL_NAME, outer.getName());
-      Hideable.setAllHidden(false);
-      Obscurable.setAllHidden(false);
     }
   }
 

@@ -28,7 +28,7 @@ package VASSAL.counters;
 
 import VASSAL.build.GameModule;
 import VASSAL.build.module.Chatter;
-import VASSAL.build.module.GlobalOptions;
+import VASSAL.build.module.PlayerRoster;
 import VASSAL.build.module.documentation.HelpFile;
 import VASSAL.build.module.map.MassKeyCommand;
 import VASSAL.command.Command;
@@ -50,8 +50,8 @@ import java.net.MalformedURLException;
 public class ReportState extends Decorator implements EditablePiece {
   public static final String ID = "report;";
   private String keys = "";
-  private String format1 = "$"+GlobalOptions.MAP_REF+"$: $"+GlobalOptions.NEW_UNIT_NAME+"$ *";
-  private String format2 = "$"+GlobalOptions.MAP_REF+"$: $"+GlobalOptions.NEW_UNIT_NAME+"$ *";
+  private String formatNameUnchanged = "$"+LOCATION_NAME+"$: $"+NEW_UNIT_NAME+"$ *";
+  private String formatNameChanged = "$"+LOCATION_NAME+"$: $"+NEW_UNIT_NAME+"$ *";
 
   public ReportState() {
     this(ID, null);
@@ -83,7 +83,7 @@ public class ReportState extends Decorator implements EditablePiece {
   }
 
   public String myGetType() {
-    return ID + keys + ";" + format1 + ";" + format2;
+    return ID + keys + ";" + formatNameUnchanged + ";" + formatNameChanged;
   }
 
   public Command myKeyEvent(KeyStroke stroke) {
@@ -94,44 +94,41 @@ public class ReportState extends Decorator implements EditablePiece {
 
     FormattedString format = new FormattedString();
 
-    String playerId = GlobalOptions.getPlayerId();
+    GamePiece outer = getOutermost(this);
 
     // Retrieve the name, location and visibilty of the unit prior to the
     // trait being executed if it is outside this one.
 
-    String oldUnitName = (String) getProperty(GlobalOptions.INITIAL_NAME);
-    String initialLoc = (String) getProperty(GlobalOptions.INITIAL_LOCATION);
-    boolean isInitiallyInvisible = ((Boolean) getProperty(GlobalOptions.INITIAL_INVISIBILITY)).booleanValue();
+    GamePiece oldPiece = (GamePiece) getProperty(Properties.SNAPSHOT);
+    Hideable.setAllHidden(true);
+    Obscurable.setAllHidden(true);
+    String oldUnitName = oldPiece.getName();
+    String newUnitName = outer.getName();
+    Hideable.setAllHidden(false);
+    Obscurable.setAllHidden(false);
+
+    boolean wasVisible = !Boolean.TRUE.equals(oldPiece.getProperty(Properties.INVISIBLE_TO_OTHERS));
+    boolean isVisible = !Boolean.TRUE.equals(outer.getProperty(Properties.INVISIBLE_TO_OTHERS));
+
+    if (oldUnitName.equals(newUnitName)) {
+      format.setFormat(formatNameUnchanged);
+    }
+    else {
+      format.setFormat(formatNameChanged);
+    }
 
     // The following line will execute the trait if it is inside this one
     Command c = super.keyEvent(stroke);
-
-    Boolean isInvis = (Boolean) getOutermost(this).getProperty(Properties.INVISIBLE_TO_OTHERS);
-    boolean isFinallyInvisible = (isInvis == null) ? false : isInvis.booleanValue();
 
     // Only make a report if:
     //  1. It's not part of a global command with Single Reporting on
     //  2. The piece is visible to all players either before or after the trait
     //     command was executed.
 
-    if (!MassKeyCommand.suppressTraitReporting() && (!isInitiallyInvisible || !isFinallyInvisible)) {
-      GamePiece outer = getOutermost(this);
+    if (!MassKeyCommand.suppressTraitReporting() && (isVisible || wasVisible)) {
 
-      String location = "Offmap";
-      if (getMap() != null) {
-        location = GlobalOptions.formatLocationId(getMap().locationName(getPosition()), getMap().getConfigureName());
-      }
-      if (location != null) {
         for (int i = 0; i < keys.length(); ++i) {
           if (stroke.equals(KeyStroke.getKeyStroke(keys.charAt(i), InputEvent.CTRL_MASK))) {
-
-            String newUnitName = getPieceName();
-            if (oldUnitName.equals(newUnitName)) {
-              format.setFormat(format1);
-            }
-            else {
-              format.setFormat(format2);
-            }
 
             //
             // Find the Command Name
@@ -145,14 +142,13 @@ public class ReportState extends Decorator implements EditablePiece {
               }
             }
 
-            format.setProperty(GlobalOptions.PLAYER_ID, GlobalOptions.getPlayerId());
-            format.setProperty(GlobalOptions.OLD_UNIT_NAME, oldUnitName);
-            format.setProperty(GlobalOptions.UNIT_NAME, oldUnitName);
-            format.setProperty(GlobalOptions.NEW_UNIT_NAME, newUnitName);
-            format.setProperty(GlobalOptions.MAP_REF, initialLoc);
-            format.setProperty(GlobalOptions.FROM_MAP_REF, initialLoc);
-            format.setProperty(GlobalOptions.TO_MAP_REF, location);
-            format.setProperty(GlobalOptions.COMMAND_NAME, commandName);
+            format.setProperty(PLAYER_NAME, (String) GameModule.getGameModule().getPrefs().getOption(GameModule.REAL_NAME).getValue());
+            format.setProperty(PLAYER_SIDE,PlayerRoster.getMySide());
+            format.setProperty(OLD_UNIT_NAME, oldUnitName);
+            format.setProperty(NEW_UNIT_NAME, newUnitName);
+            format.setProperty(MAP_NAME, getMap().getConfigureName());
+            format.setProperty(LOCATION_NAME, getMap().locationName(getPosition()));
+            format.setProperty(COMMAND_NAME, commandName);
 
             String reportText = format.getText();
 
@@ -164,7 +160,6 @@ public class ReportState extends Decorator implements EditablePiece {
             break;
           }
         }
-      }
     }
 
     return c;
@@ -215,15 +210,34 @@ public class ReportState extends Decorator implements EditablePiece {
       keys = st.nextToken();
     }
     if (st.hasMoreTokens()) {
-      format1 = st.nextToken();
+      formatNameUnchanged = st.nextToken();
     }
     if (st.hasMoreTokens()) {
-      format2 = st.nextToken();
+      formatNameChanged = st.nextToken();
     }
   }
 
   public PieceEditor getEditor() {
     return new Ed(this);
+  }
+
+  private static final String PLAYER_NAME="playerName";
+  private static final String PLAYER_SIDE="playerSide";
+  private static final String OLD_UNIT_NAME="oldPieceName";
+  private static final String NEW_UNIT_NAME="newPieceName";
+  private static final String MAP_NAME="mapName";
+  private static final String LOCATION_NAME="locationName";
+  private static final String COMMAND_NAME="menuCommand";
+
+  // Options for Trait Command Report
+  private static final String[] getFormatParameters() {
+    return new String[]{PLAYER_NAME,
+                        PLAYER_SIDE,
+                        OLD_UNIT_NAME,
+                        NEW_UNIT_NAME,
+                        MAP_NAME,
+                        LOCATION_NAME,
+                        COMMAND_NAME};
   }
 
   public static class Ed implements PieceEditor {
@@ -237,10 +251,10 @@ public class ReportState extends Decorator implements EditablePiece {
       box = new JPanel();
       box.setLayout(new BoxLayout(box, BoxLayout.Y_AXIS));
       tf = new StringConfigurer(null, "Report when player presses CTRL-", piece.keys);
-      fmt = new FormattedStringConfigurer(null, "Report format, piece name unchanged", GlobalOptions.getTraitOptions());
-      fmt.setValue(piece.format1);
-      fmt2 = new FormattedStringConfigurer(null, "Report format, piece name changes", GlobalOptions.getTraitOptions());
-      fmt2.setValue(piece.format2);
+      fmt = new FormattedStringConfigurer(null, "Report format, piece name unchanged", getFormatParameters());
+      fmt.setValue(piece.formatNameUnchanged);
+      fmt2 = new FormattedStringConfigurer(null, "Report format, piece name changes", getFormatParameters());
+      fmt2.setValue(piece.formatNameChanged);
       box.add(tf.getControls());
       box.add(fmt.getControls());
       box.add(fmt2.getControls());
@@ -255,7 +269,9 @@ public class ReportState extends Decorator implements EditablePiece {
     }
 
     public String getType() {
-      return ID + tf.getValueString() + ";" + fmt.getValueString() + ";" + fmt2.getValueString();
+      SequenceEncoder se = new SequenceEncoder(';');
+      se.append(tf.getValueString()).append(fmt.getValueString()).append(fmt2.getValueString());
+      return ID + se.getValue();
     }
   }
 }
