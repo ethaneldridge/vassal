@@ -42,7 +42,7 @@ public class DiceButton extends AbstractConfigurable {
   protected int nSides = 6, nDice = 2, plus = 0;
   protected boolean reportTotal = false;
   protected boolean promptAlways = false;
-  protected FormattedString reportFormat = new FormattedString("*** $"+GlobalOptions.TEXT+"$ *** $"+GlobalOptions.PLAYER_ID+"$");
+  protected FormattedString reportFormat = new FormattedString("** $"+RESULT+"$ *** <$"+PLAYER_NAME+"$>");
   protected LaunchButton launch;
 
   public static final String DEPRECATED_NAME = "label";
@@ -56,6 +56,13 @@ public class DiceButton extends AbstractConfigurable {
   public static final String REPORT_TOTAL = "reportTotal";
   public static final String PROMPT_ALWAYS = "prompt";
   public static final String REPORT_FORMAT = "reportFormat";
+
+  /** Variable name for reporting format */
+  public static final String PLAYER_NAME="playerName";
+  /** Variable name for reporting format */
+  public static final String PLAYER_SIDE="playerSide";
+  /** Variable name for reporting format */
+  public static final String RESULT="result";
 
   public DiceButton() {
     ActionListener rollAction = new ActionListener() {
@@ -133,9 +140,10 @@ public class DiceButton extends AbstractConfigurable {
 
     //val += getReportSuffix();
 
-    reportFormat.setProperty(GlobalOptions.PLAYER_ID, GlobalOptions.getPlayerId());
-    reportFormat.setProperty(GlobalOptions.TEXT, val);
-    String report = reportFormat.getText();
+    reportFormat.setProperty(PLAYER_NAME, (String) GameModule.getGameModule().getPrefs().getValue(GameModule.REAL_NAME));
+    reportFormat.setProperty(PLAYER_SIDE,PlayerRoster.getMySide());
+    reportFormat.setProperty(RESULT, val);
+    String report = "*"+reportFormat.getText();
     GameModule.getGameModule().getChatter().send(report);
   }
 
@@ -174,7 +182,7 @@ public class DiceButton extends AbstractConfigurable {
 
   public static class ReportFormatConfig implements ConfigurerFactory {
     public Configurer getConfigurer(AutoConfigurable c, String key, String name) {
-      return new FormattedStringConfigurer(key, name, GlobalOptions.getChatOptions());
+      return new FormattedStringConfigurer(key, name, new String[]{PLAYER_NAME,PLAYER_SIDE,RESULT});
     }
   }
 

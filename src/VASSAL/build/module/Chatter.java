@@ -23,10 +23,9 @@ import VASSAL.build.GameModule;
 import VASSAL.build.IllegalBuildException;
 import VASSAL.command.Command;
 import VASSAL.command.CommandEncoder;
-import VASSAL.configure.FontConfigurer;
 import VASSAL.configure.ColorConfigurer;
+import VASSAL.configure.FontConfigurer;
 import VASSAL.tools.KeyStrokeSource;
-import VASSAL.tools.ComponentSplitter;
 
 import javax.swing.*;
 import javax.swing.plaf.basic.BasicTextAreaUI;
@@ -106,11 +105,6 @@ public class Chatter extends JPanel implements CommandEncoder, Buildable {
 
   public String getHandle() {
     return handle;
-  }
-
-  protected String handle() {
-    //return "<" + getHandle() + "> - ";
-    return GlobalOptions.getPlayerId();
   }
 
   /**
@@ -223,7 +217,7 @@ public class Chatter extends JPanel implements CommandEncoder, Buildable {
       switch (e.getKeyCode()) {
         case KeyEvent.VK_ENTER:
           if (input.getText().length() > 0)
-            send(handle() + input.getText());
+            send(GlobalOptions.formatChat(input.getText()));
           input.setText("");
           break;
         case KeyEvent.VK_BACK_SPACE:
@@ -303,7 +297,7 @@ public class Chatter extends JPanel implements CommandEncoder, Buildable {
             col = (Color) GameModule.getGameModule().getGlobalPrefs().getValue(SYS_MSG_COLOR);
             break;
           default:
-            if (s.startsWith(GlobalOptions.getPlayerId())) {
+            if (s.startsWith(GlobalOptions.formatChat(""))) {
               col = (Color) GameModule.getGameModule().getGlobalPrefs().getValue(MY_CHAT_COLOR);
             }
             else {

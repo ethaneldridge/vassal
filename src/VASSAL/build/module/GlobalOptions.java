@@ -49,7 +49,6 @@ public class GlobalOptions extends AbstractConfigurable {
 
   public static final String PLAYER_NAME = "playerName";
   public static final String PLAYER_SIDE = "playerSide";
-  public static final String PLAYER_ID = "playerId";
   public static final String GRID_REF = "gridRef";
   public static final String MAP_NAME = "mapName";
   public static final String BOARD_NAME = "boardName";
@@ -63,10 +62,6 @@ public class GlobalOptions extends AbstractConfigurable {
   public static final String DECK_NAME = "deckName";
   public static final String TEXT = "text";
 
-  public static final String PLAYER_ID_FMT_1 = "pidfmt1";
-  public static final String PLAYER_ID_FMT_2 = "pidfmt2";
-  public static final String MAP_REF_FMT_1 = "mapfmt1";
-  public static final String MAP_REF_FMT_2 = "mapfmt2";
   public static final String CHAT_FMT = "chatfmt";
   public static final String MOVE_FMT = "movefmt";
   public static final String CREATE_FMT = "createfmt";
@@ -78,8 +73,6 @@ public class GlobalOptions extends AbstractConfigurable {
   private String markMoved = NEVER;
 
   // Default Report Formats
-  private static String playerIdFmt1 = "<$"+PLAYER_NAME+"$($"+PLAYER_SIDE+"$)>";
-  private static String playerIdFmt2 = "<$"+PLAYER_NAME+"$>";
   private static String chatFmt = "$"+PLAYER_NAME+"$ - $"+TEXT+"$";
   private static String moveFmt = "$"+UNIT_NAME+"$"+" moves $"+FROM_MAP_REF+"$ -> $"+TO_MAP_REF+"$ *";
   private static String createFmt = "$"+UNIT_NAME+"$ created in $"+TO_MAP_REF+"$";
@@ -137,8 +130,6 @@ public class GlobalOptions extends AbstractConfigurable {
                         null,
                         "Center on opponent's moves",
                         "Auto-report moves",
-                        "Player Id format with sides selected",
-                        "Player Id format without sides selected",
                         "Chat Line Format",
                         "Move report format",
                         "Create Piece report format"};
@@ -146,13 +137,12 @@ public class GlobalOptions extends AbstractConfigurable {
 
   public String[] getAttributeNames() {
     return new String[]{NON_OWNER_UNMASKABLE, PROMPT_STRING, CENTER_ON_MOVE, AUTO_REPORT,
-                        PLAYER_ID_FMT_1, PLAYER_ID_FMT_2, CHAT_FMT,
+                        CHAT_FMT,
                         MOVE_FMT, CREATE_FMT};
   }
 
   public Class[] getAttributeTypes() {
     return new Class[]{Prompt.class, null, Prompt.class, Prompt.class,
-                       PlayerIdFormatConfig.class, PlayerIdFormatConfig.class,
                        ChatFormatConfig.class,
                        MoveReportFormatConfig.class, MoveReportFormatConfig.class};
   }
@@ -172,12 +162,6 @@ public class GlobalOptions extends AbstractConfigurable {
     }
     else if (MARK_MOVED.equals(key)) {
       return markMoved;
-    }
-    else if (PLAYER_ID_FMT_1.equals(key)) {
-      return playerIdFmt1;
-    }
-    else if (PLAYER_ID_FMT_2.equals(key)) {
-      return playerIdFmt2;
     }
     else if (CHAT_FMT.equals(key)) {
       return chatFmt;
@@ -247,12 +231,6 @@ public class GlobalOptions extends AbstractConfigurable {
         GameModule.getGameModule().getPrefs().addOption(config);
       }
     }
-    else if (PLAYER_ID_FMT_1.equals(key)) {
-      playerIdFmt1 = (String) value;
-    }
-    else if (PLAYER_ID_FMT_2.equals(key)) {
-      playerIdFmt2 = (String) value;
-    }
     else if (CHAT_FMT.equals(key)) {
       chatFmt = (String) value;
     }
@@ -288,37 +266,12 @@ public class GlobalOptions extends AbstractConfigurable {
     }
   }
 
-  // Format the player Id
-  public static String getPlayerId() {
-
-    String id = "", playerName = "", playerSide = "", formatString;
-
-    playerName = (String) GameModule.getGameModule().getPrefs().getOption(GameModule.REAL_NAME).getValue();
-
-    if (PlayerRoster.isActive() && PlayerRoster.getMySide() != null) {
-      playerSide = PlayerRoster.getMySide();
-    }
-
-    if (playerSide.length() > 0) {
-      formatString = playerIdFmt1;
-    }
-    else {
-      formatString = playerIdFmt2;
-    }
-
-    FormattedString fmt = new FormattedString(formatString);
-    fmt.setProperty(PLAYER_NAME, playerName);
-    fmt.setProperty(PLAYER_SIDE, playerSide);
-    id = fmt.getText();
-
-    return id;
-  }
-
   // Format the Chat Line
   public static String formatChat(String chatText) {
     String id = "";
     FormattedString fmt = new FormattedString(chatFmt);
-    fmt.setProperty(PLAYER_ID, getPlayerId());
+    fmt.setProperty(PLAYER_NAME, (String)GameModule.getGameModule().getPrefs().getValue(GameModule.REAL_NAME));
+    fmt.setProperty(PLAYER_SIDE, PlayerRoster.getMySide());
     fmt.setProperty(TEXT, chatText);
     id = fmt.getText();
     return id;
@@ -328,7 +281,8 @@ public class GlobalOptions extends AbstractConfigurable {
   public static String formatMove(String unitName, String from, String to) {
     String id = "";
     FormattedString fmt = new FormattedString(moveFmt);
-    fmt.setProperty(PLAYER_ID, getPlayerId());
+    fmt.setProperty(PLAYER_NAME, (String)GameModule.getGameModule().getPrefs().getValue(GameModule.REAL_NAME));
+    fmt.setProperty(PLAYER_SIDE, PlayerRoster.getMySide());
     fmt.setProperty(UNIT_NAME, unitName);
     fmt.setProperty(FROM_MAP_REF, from);
     fmt.setProperty(TO_MAP_REF, to);
@@ -341,7 +295,8 @@ public class GlobalOptions extends AbstractConfigurable {
   public static String formatCreate(String unitName, String loc) {
     String id = "";
     FormattedString fmt = new FormattedString(createFmt);
-    fmt.setProperty(PLAYER_ID, getPlayerId());
+    fmt.setProperty(PLAYER_NAME, (String)GameModule.getGameModule().getPrefs().getValue(GameModule.REAL_NAME));
+    fmt.setProperty(PLAYER_SIDE, PlayerRoster.getMySide());
     fmt.setProperty(UNIT_NAME, unitName);
     fmt.setProperty(FROM_MAP_REF, "Off Map");
     fmt.setProperty(TO_MAP_REF, loc);
@@ -350,38 +305,14 @@ public class GlobalOptions extends AbstractConfigurable {
     return id;
   }
 
-  // Options for Player Id format
-  public static final String[] getIdOptions() {
-    return new String[]{GlobalOptions.PLAYER_NAME,
-                        GlobalOptions.PLAYER_SIDE};
-  }
-
   // Options for Move Report
   public static final String[] getMoveOptions() {
-    return new String[]{GlobalOptions.PLAYER_ID,
+    return new String[]{GlobalOptions.PLAYER_NAME,
+                          PLAYER_SIDE,
                         GlobalOptions.UNIT_NAME,
                         GlobalOptions.MAP_REF,
                         GlobalOptions.FROM_MAP_REF,
                         GlobalOptions.TO_MAP_REF};
-  }
-
-  // options for Deck Command Report
-  public static final String[] getDeckOptions() {
-    return new String[]{GlobalOptions.PLAYER_ID,
-                        GlobalOptions.DECK_NAME,
-                        GlobalOptions.COMMAND_NAME};
-  }
-
-  // Options for Chat Line, Dice line etc.
-  public static final String[] getChatOptions() {
-    return new String[]{GlobalOptions.PLAYER_ID,
-                        GlobalOptions.TEXT};
-  }
-
-  public static class PlayerIdFormatConfig implements ConfigurerFactory {
-    public Configurer getConfigurer(AutoConfigurable c, String key, String name) {
-      return new FormattedStringConfigurer(key, name, getIdOptions());
-    }
   }
 
   public static class MoveReportFormatConfig implements ConfigurerFactory {
@@ -392,7 +323,8 @@ public class GlobalOptions extends AbstractConfigurable {
 
   public static class ChatFormatConfig implements ConfigurerFactory {
     public Configurer getConfigurer(AutoConfigurable c, String key, String name) {
-      return new FormattedStringConfigurer(key, name, getChatOptions());
+      return new FormattedStringConfigurer(key, name, new String[]{GlobalOptions.PLAYER_NAME,PLAYER_SIDE,
+                                    GlobalOptions.TEXT});
     }
   }
 }

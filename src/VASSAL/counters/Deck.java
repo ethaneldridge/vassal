@@ -389,7 +389,6 @@ public class Deck extends Stack {
   public void draw(java.awt.Graphics g, int x, int y, Component obs, double zoom) {
     int count = Math.min(getPieceCount(), 10);
     GamePiece top = topPiece();
-    BasicPiece p = new BasicPiece();
 
     if (top != null) {
       top.setProperty(Properties.OBSCURED_BY, faceDown ? NO_USER : null);
@@ -549,7 +548,7 @@ public class Deck extends Stack {
 
     Command c = null;
 
-    reportFormat.setProperty(GlobalOptions.PLAYER_ID, GlobalOptions.getPlayerId());
+    reportFormat.setProperty(GlobalOptions.PLAYER_NAME, (String) GameModule.getGameModule().getPrefs().getValue(GameModule.REAL_NAME));
     reportFormat.setProperty(GlobalOptions.DECK_NAME, getDeckName());
     reportFormat.setProperty(GlobalOptions.COMMAND_NAME, commandName);
     String rep = reportFormat.getText();
@@ -627,7 +626,7 @@ public class Deck extends Stack {
     if (target != null) {
       if (reshuffleMessage.length() > 0) {
 		FormattedString fmt = new FormattedString(reshuffleMessage);
-		fmt.setProperty(GlobalOptions.PLAYER_ID, GlobalOptions.getPlayerId());
+		fmt.setProperty(GlobalOptions.PLAYER_NAME, (String) GameModule.getGameModule().getPrefs().getValue(GameModule.REAL_NAME));
 		fmt.setProperty(GlobalOptions.DECK_NAME, getDeckName());
 		fmt.setProperty(GlobalOptions.COMMAND_NAME, reshuffleCommand);
 		c = new Chatter.DisplayText(GameModule.getGameModule().getChatter(), "*" + fmt.getText());
