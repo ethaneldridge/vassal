@@ -550,10 +550,56 @@ public class StackMetrics extends AbstractConfigurable {
       comm = merge(((Stack) fixed).topPiece(), add);
     }
     else if (Boolean.TRUE.equals(add.getProperty(Properties.NO_STACK))
-      || Boolean.TRUE.equals(fixed.getProperty(Properties.NO_STACK))) {
+        || Boolean.TRUE.equals(fixed.getProperty(Properties.NO_STACK))) {
       comm = fixed.getMap().placeAt(add, fixed.getPosition());
     }
     else {
+      MoveTracker tracker = new MoveTracker(add);
+      comm = new NullCommand();
+      Stack fixedParent = fixed.getParent();
+      int index = fixedParent == null ? 1 : fixedParent.indexOf(fixed) + 1;
+      if (add != fixed
+          && add != fixed.getParent()) {
+        boolean isNewPiece = GameModule.getGameModule().getGameState()
+            .getPieceForId(add.getId()) == null;
+        if (fixedParent == null) {
+          if (fixed instanceof Stack) {
+            fixedParent = (Stack) fixed;
+          }
+          else {
+            fixedParent = createStack(fixed);
+            GameModule.getGameModule().getGameState().addPiece(fixedParent);
+            fixed.getMap().addPiece(fixedParent);
+            comm = comm.append(new AddPiece(fixedParent));
+          }
+        }
+        if (isNewPiece) {
+          GameModule.getGameModule().getGameState().addPiece(add);
+          comm = comm.append(new AddPiece(add));
+        }
+        if (add instanceof Stack) {
+          Vector v = new Vector();
+          for (Enumeration e = ((Stack) add).getPieces();
+               e.hasMoreElements();) {
+            v.addElement(e.nextElement());
+          }
+          for (Enumeration e = v.elements();
+               e.hasMoreElements();) {
+            GamePiece p = (GamePiece) e.nextElement();
+            MoveTracker t = new MoveTracker(p);
+            fixedParent.insert(p, index++);
+            comm = comm.append(t.getMoveCommand());
+          }
+        }
+        else {
+          if (add.getParent() == fixedParent && fixedParent != null) {
+            index--;
+          }
+          fixedParent.insert(add, index);
+          comm = comm.append(tracker.getMoveCommand());
+        }
+      }
+/*
       comm = new NullCommand();
       Stack fixedParent = fixed.getParent();
       String fixedParentOldState = fixedParent == null ? null : fixedParent.getState();
@@ -610,6 +656,7 @@ public class StackMetrics extends AbstractConfigurable {
           comm = comm.append(new AddPiece(fixedParent));
         }
       }
+*/
     }
     return comm;
   }

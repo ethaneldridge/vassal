@@ -177,6 +177,11 @@ public abstract class GameModule extends AbstractConfigurable implements Command
    *
    */
   public static int compareVersions(String v1, String v2) {
+    if (v1.startsWith("1.3")
+      || v2.startsWith("1.3")) {
+      // Short-circuit version warnings with VASSAL 1.3.x
+      return 0;
+    }
     try {
       int beta1 = v1.indexOf("b");
       int beta2 = v2.indexOf("b");
