@@ -384,7 +384,13 @@ public class ASLBoard extends Board {
   }
 
   public String locationName(Point p) {
-    return getName()+super.locationName(p);
+    if (getMap() != null
+      && getMap().getBoardCount() > 1) {
+      return getName()+super.locationName(p);
+    }
+    else {
+      return super.locationName(p);
+    }
   }
 
   public Point localCoordinates(Point p1) {
