@@ -146,8 +146,9 @@ public class VASLThread
       Enumeration boardList = map.getAllBoards();
 
       // determine the VASL map dimensions
+	  ASLBoard b = null;
       while (boardList.hasMoreElements()) {
-        ASLBoard b = (ASLBoard) boardList.nextElement();
+        b = (ASLBoard) boardList.nextElement();
         mapWidth = Math.max(b.relativePosition().x, mapWidth);
         mapHeight = Math.max(b.relativePosition().y, mapHeight);
       }
@@ -162,13 +163,17 @@ public class VASLThread
 
       // create the map
       //CASLMap = new GameMap(mapWidth * 32 + 1, mapHeight * 10);
-      CASLMap = createCASLMap(mapWidth * 32 + 1, mapHeight * 10);
+      //CASLMap = createCASLMap(mapWidth * 32 + 1, mapHeight * 10);
+	  CASLMap = createCASLMap(mapWidth  * (int) Math.round(b.getUncroppedSize().getWidth()/56.25) + 1, 
+	  						  mapHeight * (int) Math.round(b.getUncroppedSize().getHeight()/64.5));
 
+	  
+	  
       // load the CASL maps
       boolean mapFound = false;
       while (boardList.hasMoreElements()) {
 
-        ASLBoard b = (ASLBoard) boardList.nextElement();
+        b = (ASLBoard) boardList.nextElement();
         String boardName = b.getName().startsWith("r") ? b.getName().substring(1) : b.getName();
 
         // set the upper left board
@@ -184,12 +189,12 @@ public class VASLThread
         }
         catch (IOException e) {
           freeResources();
-          return "Board " + boardName + " does not support LOS checking";
+          return "LOS engine disabled... Board " + boardName + " does not support LOS checking";
         }
 
         if (newCASLMap == null) {
           freeResources();
-          return "Could not read bd" + boardName + ".map.  LOS Checking disabled";
+          return "LOS engine disabled... Could not read bd" + boardName + ".map";
         }
 
         else {
@@ -201,11 +206,12 @@ public class VASLThread
           }
 
           // add to map
-          if (!CASLMap.insertGEOMap(newCASLMap, CASLMap.getHex(b.relativePosition().x * 32, b.relativePosition().y * 10))) {
-            System.err.println("LOS checking turned off... Error building map");
+//          if (!CASLMap.insertGEOMap(newCASLMap, CASLMap.getHex(b.relativePosition().x * 32, b.relativePosition().y * 10))) {
+		if (!CASLMap.insertGEOMap(newCASLMap, CASLMap.getHex(b.relativePosition().x * ((int) (Math.round(b.getUncroppedSize().getWidth()/56.25))), b.relativePosition().y * ((int) (Math.round(b.getUncroppedSize().getHeight()/64.5)))))) {
+            System.err.println("LOS engine disabled... Error building map");
             newCASLMap = null;
             freeResources();
-            return "Real LOS disabled! Error building map";
+            return "LOS engine disabled... Error building map";
           }
 
           // clean up to try to reuse the same memory
@@ -216,16 +222,16 @@ public class VASLThread
 
       // found no boards?
       if (!mapFound) {
-        System.err.println("LOS checking turned off... No board found");
+        System.err.println("LOS engine disabled... No board found");
         freeResources();
-        return "LOS checking turned off... No board found";
+        return "LOS engine disabled... No board found";
       }
     }
         // give up with any exception
     catch (Exception e) {
       freeResources();
       e.printStackTrace();
-      return "LOS checking turned off... " + e.getMessage();
+      return "LOS engine disabled... " + e.getMessage();
     }
     return null;
   }
