@@ -19,8 +19,8 @@
 package VASSAL.build.module.map;
 
 import VASSAL.build.AutoConfigurable;
-import VASSAL.build.GameModule;
 import VASSAL.build.Buildable;
+import VASSAL.build.GameModule;
 import VASSAL.build.module.Map;
 import VASSAL.build.module.documentation.HelpFile;
 import VASSAL.build.module.map.boardPicker.Board;
@@ -38,12 +38,11 @@ import java.io.File;
 import java.net.MalformedURLException;
 import java.util.ArrayList;
 import java.util.Enumeration;
-import java.util.Iterator;
 
 public class DrawPile extends SetupStack {
   protected Deck dummy = new Deck(); // Used for storing type information
+  private boolean reshufflable;
   private Deck myDeck;
-  private String mostRecentReshuffleCommand = "Re-shuffle"; // Maintained independent of the Deck because setting the Deck's value to null disables reshuffling
   private VisibilityCondition colorVisibleCondition = new VisibilityCondition() {
     public boolean shouldBeVisible() {
       return dummy.isDrawOutline();
@@ -51,7 +50,7 @@ public class DrawPile extends SetupStack {
   };
   private VisibilityCondition reshuffleVisibleCondition = new VisibilityCondition() {
     public boolean shouldBeVisible() {
-      return dummy.getReshuffleCommand().length() > 0;
+      return reshufflable;
     }
   };
   private VisibilityCondition faceDownFormatVisibleCondition = new VisibilityCondition() {
@@ -335,16 +334,13 @@ public class DrawPile extends SetupStack {
       dummy.setOutlineColor((Color) value);
     }
     else if (RESHUFFLABLE.equals(key)) {
-      boolean b = "true".equals(value) || Boolean.TRUE.equals(value);
-      dummy.setReshuffleCommand(b ? mostRecentReshuffleCommand : "");
+      reshufflable = "true".equals(value) || Boolean.TRUE.equals(value);
+      if (!reshufflable) {
+        dummy.setReshuffleCommand("");
+      }
     }
     else if (RESHUFFLE_COMMAND.equals(key)) {
-      String s = (String) value;
-      if (s != null
-          && s.length() > 0) {
-        mostRecentReshuffleCommand = s;
-      }
-      dummy.setReshuffleCommand(mostRecentReshuffleCommand);
+      dummy.setReshuffleCommand((String) value);
     }
     else if (RESHUFFLE_TARGET.equals(key)) {
       dummy.setReshuffleTarget((String) value);

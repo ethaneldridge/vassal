@@ -23,6 +23,8 @@ import VASSAL.build.Buildable;
 import VASSAL.build.module.Map;
 import VASSAL.counters.PieceFinder;
 import VASSAL.counters.Deck;
+import VASSAL.counters.GamePiece;
+import VASSAL.counters.Properties;
 
 import java.awt.event.MouseListener;
 import java.awt.event.MouseEvent;
@@ -68,10 +70,14 @@ public class MapCenterer extends AbstractBuildable implements MouseListener {
   }
 
   public void mouseReleased(MouseEvent e) {
-    if (e.isMetaDown()
-        && map.findPiece(e.getPoint(), finder) == null) {
-      Map.View m = (Map.View) e.getSource();
-      m.getMap().centerAt(e.getPoint());
+    if (e.isMetaDown()) {
+      GamePiece found = map.findPiece(e.getPoint(), finder);
+      if (found == null
+          || (Boolean.TRUE.equals(found.getProperty(Properties.IMMOBILE))
+          && !e.isShiftDown())) {
+        Map.View m = (Map.View) e.getSource();
+        m.getMap().centerAt(e.getPoint());
+      }
     }
   }
 

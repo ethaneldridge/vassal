@@ -109,7 +109,7 @@ public class Obscurable extends Decorator implements EditablePiece {
 
   public String myGetType() {
     SequenceEncoder se = new SequenceEncoder(';');
-    se.append(obscureKey + "").append(imageName).append(hideCommand);
+    se.append(obscureKey == 0 ? "" : obscureKey + "").append(imageName).append(hideCommand);
     switch (displayStyle) {
       case PEEK:
         se.append(peekKey == 0 ? displayStyle + "" : displayStyle + "" + peekKey);

@@ -41,7 +41,7 @@ import java.awt.image.FilteredImageSource;
 import java.awt.image.ImageProducer;
 import java.io.File;
 import java.net.MalformedURLException;
-import java.util.Hashtable;
+import java.util.HashMap;
 import java.util.Iterator;
 
 /**
@@ -64,8 +64,8 @@ public class FreeRotator extends Decorator implements EditablePiece, MouseListen
   private double[] validAngles = new double[]{0.0};
   private int angleIndex = 0;
 
-  private Hashtable images = new Hashtable();
-  private Hashtable bounds = new Hashtable();
+  private java.util.Map images = new HashMap();
+  private java.util.Map bounds = new HashMap();
   private PieceImage unrotated;
 
   private double tempAngle, startAngle;
