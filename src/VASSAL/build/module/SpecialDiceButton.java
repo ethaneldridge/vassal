@@ -80,8 +80,8 @@ public class SpecialDiceButton extends AbstractConfigurable implements CommandEn
       }
     };
     launch = new LaunchButton(null, BUTTON_TEXT, HOTKEY, ICON, rollAction);
-    setAttribute(NAME, "SpecialDiceButton");
-    setAttribute(BUTTON_TEXT, "SD6");
+    setAttribute(NAME, "Symbols");
+    setAttribute(BUTTON_TEXT, "Sym");
   }
 
   public static String getConfigureTypeName() {
@@ -110,7 +110,6 @@ public class SpecialDiceButton extends AbstractConfigurable implements CommandEn
    * additionally a command for every die is generated
    */
   protected void DR() {
-
     GameModule theModule = GameModule.getGameModule();
     String strVal = getReportPrefix();
     int nTotal = 0;
@@ -362,6 +361,12 @@ public class SpecialDiceButton extends AbstractConfigurable implements CommandEn
     }
     else if (RESULT_BUTTON.equals(key)) {
       bResultInButton = getBoolVal(o);
+      if (bResultInButton) {
+        launch.setIcon(null);
+      }
+      else {
+        launch.setAttribute(ICON,getAttributeValueString(ICON));
+      }
     }
     else if (RESULT_WINDOW.equals(key)) {
       bResultInWindow = getBoolVal(o);

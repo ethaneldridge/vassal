@@ -28,32 +28,28 @@ import java.awt.event.ActionListener;
 import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
 
-import javax.swing.JComboBox;
+import javax.swing.*;
 
 public class FormattedStringConfigurer
     extends StringConfigurer
     implements ActionListener, FocusListener {
 
-  protected String[] optionList = new String[0];
-  JComboBox dropList;
+  private DefaultComboBoxModel optionsModel;
+  private JComboBox dropList;
 
   public FormattedStringConfigurer(String key, String name) {
-    super(key, name);
+    this(key, name, new String[0]);
   }
 
   public FormattedStringConfigurer(
       String key,
       String name,
       String[] options) {
-    this(key, name);
-    setOptions(options);
-  }
-
-  public void setOptions(String[] t) {
-    optionList = new String[t.length + 1];
-    optionList[0] = "Insert";
-    for (int i = 1; i < optionList.length; i++) {
-      optionList[i] = t[i - 1];
+    super(key, name);
+    optionsModel = new DefaultComboBoxModel();
+    optionsModel.addElement("Insert");
+    for (int i = 0; i < options.length; i++) {
+      optionsModel.addElement(options[i]);
     }
   }
 
@@ -62,15 +58,22 @@ public class FormattedStringConfigurer
       super.getControls();
 
       nameField.addFocusListener(this);
-      dropList = new JComboBox((String[]) optionList);
+      dropList = new JComboBox(optionsModel);
       dropList.setSelectedIndex(0);
       dropList.setEnabled(false);
       dropList.addActionListener(this);
 
       p.add(dropList);
     }
-
     return p;
+  }
+
+  public void addOption(String s) {
+    optionsModel.addElement(s);
+  }
+
+  public void removeOption(String s) {
+    optionsModel.removeElement(s);
   }
 
   /*
@@ -79,10 +82,10 @@ public class FormattedStringConfigurer
   public void actionPerformed(ActionEvent arg0) {
     String item = "";
 
-    int selectedItem = dropList.getSelectedIndex();
+    int selectedIndex = dropList.getSelectedIndex();
 
-    if (selectedItem > 0) {
-      item = '$' + optionList[selectedItem] + '$';
+    if (selectedIndex > 0) {
+      item = "$" + optionsModel.getElementAt(selectedIndex) + "$";
       String work = nameField.getText();
 
       // Cut out any selected text
@@ -94,7 +97,7 @@ public class FormattedStringConfigurer
       int pos = nameField.getCaretPosition();
       String news = work.substring(0, pos) + item + work.substring(pos);
       nameField.setText(news);
-      nameField.setCaretPosition(pos+item.length());
+      nameField.setCaretPosition(pos + item.length());
 
       // Update the text field and repaint it
       noUpdate = true;

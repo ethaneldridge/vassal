@@ -1,16 +1,19 @@
 package VASSAL.build.module;
 
-import java.util.Vector;
-import java.util.Enumeration;
+import VASSAL.build.AbstractConfigurable;
+import VASSAL.build.Buildable;
+import VASSAL.build.GameModule;
+import VASSAL.build.module.documentation.HelpFile;
+
 import java.io.File;
 import java.net.MalformedURLException;
-
-import VASSAL.build.*;
-import VASSAL.build.module.documentation.HelpFile;
+import java.util.ArrayList;
+import java.util.Enumeration;
+import java.util.List;
 
 public class SpecialDie extends AbstractConfigurable {
 
-  private Vector dieFaceList = new Vector();
+  private List dieFaceList = new ArrayList();
   protected boolean bNumeric = false;
 
   public static final String NAME = "name";
@@ -42,11 +45,11 @@ public class SpecialDie extends AbstractConfigurable {
   }
 
   public void addFace(SpecialDieFace f) {
-    dieFaceList.addElement(f);
+    dieFaceList.add(f);
   }
 
   public void removeFace(SpecialDieFace f) {
-    dieFaceList.removeElement(f);
+    dieFaceList.remove(f);
   }
 
   public static String getConfigureTypeName() {

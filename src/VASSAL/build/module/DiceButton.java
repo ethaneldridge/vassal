@@ -152,7 +152,8 @@ public class DiceButton extends AbstractConfigurable {
     reportFormat.setProperty(PLAYER_SIDE,PlayerRoster.getMySide());
     reportFormat.setProperty(REPORT_NAME, getConfigureName());
     reportFormat.setProperty(RESULT, result);
-    String report = "*"+reportFormat.getText();
+    String text = reportFormat.getText();
+    String report = text.startsWith("*") ? "*"+text : "* "+text;
     return report;
   }
 
