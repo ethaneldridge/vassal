@@ -41,7 +41,7 @@ public class SpecialDie extends AbstractConfigurable {
   public static final String NAME = "name";
   public static final String FORMAT = "format";
   public static final String RESULT = "result";
-  public static final String NUMERICAL_VALUE = "intValue";
+  public static final String NUMERICAL_VALUE = "numericalValue";
 
 
   public void addFace(SpecialDieFace f) {

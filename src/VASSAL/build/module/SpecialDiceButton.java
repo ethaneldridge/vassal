@@ -438,7 +438,7 @@ public class SpecialDiceButton extends AbstractConfigurable implements CommandEn
     File dir = VASSAL.build.module.Documentation.getDocumentationBaseDir();
     dir = new File(dir, "ReferenceManual");
     try {
-      return new HelpFile(null, new File(dir, "GameModule.htm"), "#SpecialDiceButton");
+      return new HelpFile(null, new File(dir, "SpecialDiceButton"));
     }
     catch (MalformedURLException ex) {
       return null;

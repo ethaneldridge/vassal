@@ -83,8 +83,9 @@ public class ReportState extends Decorator implements EditablePiece {
 
   public String myGetType() {
     SequenceEncoder se = new SequenceEncoder(';');
+    se.append(keys);
     se.append(format.getFormat());
-    return ID + keys + se.getValue();
+    return ID + se.getValue();
   }
 
   public Command myKeyEvent(KeyStroke stroke) {
@@ -97,6 +98,10 @@ public class ReportState extends Decorator implements EditablePiece {
     // Retrieve the name, location and visibilty of the unit prior to the
     // trait being executed if it is outside this one.
 
+    format.setProperty(PLAYER_NAME, (String) GameModule.getGameModule().getPrefs().getOption(GameModule.REAL_NAME).getValue());
+    format.setProperty(PLAYER_SIDE, PlayerRoster.getMySide());
+    format.setProperty(MAP_NAME, getMap() == null ? null : getMap().getConfigureName());
+    format.setProperty(LOCATION_NAME, getMap() == null ? null : getMap().locationName(getPosition()));
 
     // The following line will execute the trait if it is inside this one
     Command c = super.keyEvent(stroke);
@@ -109,7 +114,9 @@ public class ReportState extends Decorator implements EditablePiece {
     Hideable.setAllHidden(true);
     Obscurable.setAllHidden(true);
     String oldUnitName = oldPiece.getName();
+    format.setProperty(OLD_UNIT_NAME, oldUnitName);
     String newUnitName = outer.getName();
+    format.setProperty(NEW_UNIT_NAME, newUnitName);
     Hideable.setAllHidden(false);
     Obscurable.setAllHidden(false);
 
@@ -135,12 +142,6 @@ public class ReportState extends Decorator implements EditablePiece {
             }
           }
 
-          format.setProperty(PLAYER_NAME, (String) GameModule.getGameModule().getPrefs().getOption(GameModule.REAL_NAME).getValue());
-          format.setProperty(PLAYER_SIDE, PlayerRoster.getMySide());
-          format.setProperty(OLD_UNIT_NAME, oldUnitName);
-          format.setProperty(NEW_UNIT_NAME, newUnitName);
-          format.setProperty(MAP_NAME, getMap().getConfigureName());
-          format.setProperty(LOCATION_NAME, getMap().locationName(getPosition()));
           format.setProperty(COMMAND_NAME, commandName);
 
           String reportText = format.getText();
@@ -204,6 +205,7 @@ public class ReportState extends Decorator implements EditablePiece {
     }
     if (st.hasMoreTokens()) {
       format.setFormat(st.nextToken());
+      System.err.println("Format is "+format.getFormat());
     }
   }
 
