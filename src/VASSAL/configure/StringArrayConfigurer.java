@@ -55,6 +55,10 @@ public class StringArrayConfigurer extends Configurer {
     super(key, name);
   }
 
+  public DefaultListModel getModel() {
+    return model;
+  }
+
   public void addValue(String s) {
     if (value == null) {
       setValue(new String[]{s});

@@ -82,6 +82,11 @@ public class StringEnumConfigurer extends Configurer {
     return validValues;
   }
 
+  public void setValidValues(String[] s) {
+  	validValues = s;
+	box.setModel(new DefaultComboBoxModel(validValues));
+  }
+  
   public void setValue(Object o) {
     if (validValues == null
         || isValidValue(o)) {
@@ -93,7 +98,7 @@ public class StringEnumConfigurer extends Configurer {
   }
 
   public String getValueString() {
-    return box != null ? (String) box.getSelectedItem() : (validValues.length > 0 ? validValues[0] : "");
+    return box != null ? (String) box.getSelectedItem() : validValues[0];
   }
 
   public void setValue(String s) {
