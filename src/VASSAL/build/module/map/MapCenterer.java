@@ -13,7 +13,7 @@
  * Library General Public License for more details.
  *
  * You should have received a copy of the GNU Library General Public
- * License along with this library; if not, copies are available 
+ * License along with this library; if not, copies are available
  * at http://www.opensource.org.
  */
 package VASSAL.build.module.map;
@@ -26,6 +26,7 @@ import VASSAL.counters.Deck;
 
 import java.awt.event.MouseListener;
 import java.awt.event.MouseEvent;
+import java.awt.*;
 
 /**
  * Centers the map when user right-clicks on an empty hex
@@ -33,6 +34,7 @@ import java.awt.event.MouseEvent;
 public class MapCenterer extends AbstractBuildable implements MouseListener {
   private Map map;
   private PieceFinder finder;
+
   public void addTo(Buildable b) {
     finder = createPieceFinder();
     map = (Map) b;
@@ -47,7 +49,9 @@ public class MapCenterer extends AbstractBuildable implements MouseListener {
   protected PieceFinder createPieceFinder() {
     return new PieceFinder.PieceInStack() {
       public Object visitDeck(Deck d) {
-        return d.getShape().contains(pt) ? d : null;
+        Point pos = d.getPosition();
+        Point p = new Point(pt.x - pos.x, pt.y - pos.y);
+        return d.getShape().contains(p) ? d : null;
       }
     };
   }
@@ -65,7 +69,7 @@ public class MapCenterer extends AbstractBuildable implements MouseListener {
 
   public void mouseReleased(MouseEvent e) {
     if (e.isMetaDown()
-      && map.findPiece(e.getPoint(), finder) == null) {
+        && map.findPiece(e.getPoint(), finder) == null) {
       Map.View m = (Map.View) e.getSource();
       m.getMap().centerAt(e.getPoint());
     }

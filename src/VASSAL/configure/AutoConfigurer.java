@@ -96,6 +96,9 @@ public class AutoConfigurer extends Configurer
       else if (String[].class.isAssignableFrom(type[i])) {
         config = new StringArrayConfigurer(name[i], prompt[i]);
       }
+      else if (Icon.class.isAssignableFrom(type[i])) {
+        config = new IconConfigurer(name[i],prompt[i],null);
+      }
       else if (StringEnum.class.isAssignableFrom(type[i])) {
         try {
           String[] validValues = ((StringEnum) type[i].newInstance()).getValidValues(target);

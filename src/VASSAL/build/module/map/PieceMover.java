@@ -100,7 +100,9 @@ public class PieceMover extends AbstractBuildable implements
   protected PieceFinder createDropTargetSelector() {
     return new PieceFinder.Movable() {
       public Object visitDeck(Deck d) {
-        if (d.getShape().contains(pt)) {
+        Point pos = d.getPosition();
+      Point p = new Point(pt.x - pos.x, pt.y - pos.y);
+        if (d.getShape().contains(p)) {
           return d;
         }
         else {
@@ -111,7 +113,7 @@ public class PieceMover extends AbstractBuildable implements
       public Object visitDefault(GamePiece piece) {
         GamePiece selected = null;
         if (this.map.getStackMetrics().isStackingEnabled()
-            && this.map.getPieceCollection().canMerge(dragging,piece)) {
+            && this.map.getPieceCollection().canMerge(dragging, piece)) {
           Board b = this.map.findBoard(pt);
           if (b == null || b.getGrid() == null) {
             selected = (GamePiece) super.visitDefault(piece);
@@ -135,7 +137,7 @@ public class PieceMover extends AbstractBuildable implements
       public Object visitStack(Stack s) {
         GamePiece selected = null;
         if (this.map.getStackMetrics().isStackingEnabled()
-            && this.map.getPieceCollection().canMerge(dragging,s)
+            && this.map.getPieceCollection().canMerge(dragging, s)
             && !DragBuffer.getBuffer().contains(s)
             && s.topPiece() != null) {
           Board b = this.map.findBoard(pt);
@@ -235,7 +237,9 @@ public class PieceMover extends AbstractBuildable implements
   protected PieceFinder createDragTargetSelector() {
     return new PieceFinder.Movable() {
       public Object visitDeck(Deck d) {
-        if (d.getShape().contains(pt)) {
+        Point pos = d.getPosition();
+        Point p = new Point(pt.x - pos.x, pt.y - pos.y);
+        if (d.getShape().contains(p)) {
           return d;
         }
         else {

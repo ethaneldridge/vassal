@@ -452,7 +452,7 @@ public class Deck extends Stack {
     else {
       if (drawOutline) {
         Rectangle r = boundingBox();
-        r.setLocation(x + (int) (zoom * (r.x - getPosition().x)), y + (int) (zoom * (r.y - getPosition().y)));
+        r.setLocation(x + (int) (zoom * r.x), y + (int) (zoom * r.y));
         r.setSize((int) (zoom * r.width), (int) (zoom * r.height));
         g.setColor(outlineColor);
         g.drawRect(r.x, r.y, r.width, r.height);
@@ -477,7 +477,7 @@ public class Deck extends Stack {
   public Rectangle boundingBox() {
     GamePiece top = topPiece();
     Dimension d = top == null ? size : top.getShape().getBounds().getSize();
-    Rectangle r = new Rectangle(getPosition(), d);
+    Rectangle r = new Rectangle(new Point(), d);
     r.translate(-r.width / 2, -r.height / 2);
     return r;
   }

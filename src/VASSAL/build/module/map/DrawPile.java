@@ -440,7 +440,7 @@ public class DrawPile extends SetupStack {
   }
 
   public Command addToContents(GamePiece p) {
-    return map.placeOrMerge(p, getPosition());
+    return map.placeOrMerge(p, myDeck == null ? getPosition() : myDeck.getPosition());
   }
 
   protected Stack initializeContents() {

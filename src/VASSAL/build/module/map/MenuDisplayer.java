@@ -55,7 +55,9 @@ public class MenuDisplayer extends MouseAdapter implements Buildable {
   protected PieceFinder createTargetSelector() {
     return new PieceFinder.PieceInStack() {
       public Object visitDeck(Deck d) {
-        if (d.getShape().contains(pt)) {
+        Point pos = d.getPosition();
+        Point p = new Point(pt.x - pos.x, pt.y - pos.y);
+        if (d.getShape().contains(p)) {
           return d;
         }
         else {
@@ -90,14 +92,14 @@ public class MenuDisplayer extends MouseAdapter implements Buildable {
         if (c[i] instanceof KeyCommandSubMenu) {
           JMenu subMenu = new JMenu(c[i].getName());
           subMenu.setFont(POPUP_MENU_FONT);
-          subMenus.put(c[i],subMenu);
+          subMenus.put(c[i], subMenu);
           item = subMenu;
           commands.add(item);
         }
         else {
           if (strokes.contains(stroke)) {
             JMenuItem command = (JMenuItem) commands.get(strokes.indexOf(stroke));
-            if (((String)command.getAction().getValue(Action.NAME)).length() < c[i].getName().length()) {
+            if (((String) command.getAction().getValue(Action.NAME)).length() < c[i].getName().length()) {
               item = new JMenuItem(c[i]);
               item.setFont(POPUP_MENU_FONT);
               commands.set(strokes.indexOf(stroke), item);
@@ -113,19 +115,19 @@ public class MenuDisplayer extends MouseAdapter implements Buildable {
           }
         }
         if (c[i].getName() != null
-          && c[i].getName().length() > 0
-          && item != null) {
+            && c[i].getName().length() > 0
+            && item != null) {
           List l = (List) commandNames.get(c[i].getName());
           if (l == null) {
             l = new ArrayList();
-            commandNames.put(c[i].getName(),l);
+            commandNames.put(c[i].getName(), l);
           }
           l.add(item);
         }
       }
       // Move commands from main menu into submenus
       for (Iterator it = subMenus.keySet().iterator(); it.hasNext();) {
-        KeyCommandSubMenu menuCommand = (KeyCommandSubMenu)it.next();
+        KeyCommandSubMenu menuCommand = (KeyCommandSubMenu) it.next();
         JMenu subMenu = (JMenu) subMenus.get(menuCommand);
         for (Iterator it2 = menuCommand.getCommands(); it2.hasNext();) {
           List matchingCommands = (List) commandNames.get(it2.next());
@@ -140,7 +142,7 @@ public class MenuDisplayer extends MouseAdapter implements Buildable {
       }
       for (Iterator it = commands.iterator();
            it.hasNext();) {
-        popup.add((JMenuItem)it.next());
+        popup.add((JMenuItem) it.next());
       }
     }
     return popup;
