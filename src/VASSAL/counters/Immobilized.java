@@ -51,13 +51,6 @@ public class Immobilized extends Decorator implements EditablePiece {
     }
   }
 
-  public void setMap(Map m) {
-    super.setMap(m);
-    if (m != null) {
-      m.reposition(Decorator.getOutermost(this), 0);
-    }
-  }
-
   public String getName() {
     return piece.getName();
   }

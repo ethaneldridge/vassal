@@ -79,7 +79,8 @@ public class PlayerHand extends PrivateMap {
   }
 
   public Dimension mapSize() {
-    if (nstacks > 0 && stack[0] != null) {
+    GamePiece[] stack = pieces.getPieces();
+    if (stack.length > 0 && stack[0] != null) {
       return boundingBoxOf(stack[0]).getSize();
     }
     else {
@@ -89,7 +90,8 @@ public class PlayerHand extends PrivateMap {
 
   public Command placeAt(GamePiece piece, Point pt) {
     Command c = null;
-    if (nstacks == 0) {
+    GamePiece[] stack = pieces.getPieces();
+    if (stack.length == 0) {
       Rectangle r = piece.getShape().getBounds();
       pt = new Point(-r.x,
                      -r.y);

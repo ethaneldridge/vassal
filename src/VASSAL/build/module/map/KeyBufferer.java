@@ -74,10 +74,10 @@ public class KeyBufferer extends MouseAdapter implements Buildable {
         KeyBuffer.getBuffer().add(p);
         if (!Boolean.TRUE.equals(p.getProperty(Properties.NO_STACK))) {
           if (p.getParent() != null) {
-            map.reposition(p.getParent(), map.getPieces().length - 1);
+            map.getPieceCollection().moveToFront(p.getParent());
           }
           else {
-            map.reposition(p, map.getPieces().length - 1);
+            map.getPieceCollection().moveToFront(p);
           }
         }
       }

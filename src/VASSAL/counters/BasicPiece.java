@@ -311,11 +311,11 @@ public class BasicPiece implements EditablePiece {
           comm = new ChangePiece(parent.getId(), oldState, parent.getState());
         }
         else {
-          getMap().reposition(parent, getMap().getPieces().length - 1);
+          getMap().getPieceCollection().moveToFront(parent);
         }
       }
       else {
-        getMap().reposition(outer, getMap().getPieces().length - 1);
+        getMap().getPieceCollection().moveToFront(outer);
       }
     }
     else if (getMap() != null &&
@@ -328,11 +328,11 @@ public class BasicPiece implements EditablePiece {
           comm = new ChangePiece(parent.getId(), oldState, parent.getState());
         }
         else {
-          getMap().reposition(parent, 0);
+          getMap().getPieceCollection().moveToBack(parent);
         }
       }
       else {
-        getMap().reposition(outer, 0);
+        getMap().getPieceCollection().moveToBack(outer);
       }
     }
     else if (getMap() != null &&
@@ -345,11 +345,11 @@ public class BasicPiece implements EditablePiece {
           comm = new ChangePiece(parent.getId(), oldState, parent.getState());
         }
         else {
-          getMap().reposition(parent, getMap().getPieces().length - 1);
+          getMap().getPieceCollection().moveToFront(parent);
         }
       }
       else {
-        getMap().reposition(outer, getMap().getPieces().length - 1);
+        getMap().getPieceCollection().moveToFront(outer);
       }
     }
     else if (getMap() != null &&
@@ -362,11 +362,11 @@ public class BasicPiece implements EditablePiece {
           comm = new ChangePiece(parent.getId(), oldState, parent.getState());
         }
         else {
-          getMap().reposition(parent, 0);
+          getMap().getPieceCollection().moveToBack(parent);
         }
       }
       else {
-        getMap().reposition(outer, 0);
+        getMap().getPieceCollection().moveToBack(outer);
       }
     }
     return comm;

@@ -57,11 +57,6 @@ import java.util.Vector;
 public class Map extends AbstractConfigurable implements GameComponent,
     FocusListener, MouseListener, MouseMotionListener, DropTargetListener, // jimu
     Configurable {
-  /*
-   ** The map consists of the empty board and an array of stacks
-   ** Movement of a stack is accomplished by clicking and dragging
-   ** Alterations to a stack are done by keyboard commands
-   */
 
   private String mapID = "";
   private String mapName = "";
@@ -88,9 +83,7 @@ public class Map extends AbstractConfigurable implements GameComponent,
 
   protected Vector boards = new Vector();
 
-  protected int maxStacks = 100, moreStacks = 25;
-  protected GamePiece stack[] = new GamePiece[maxStacks];
-  protected int nstacks;
+  protected PieceCollection pieces = new DefaultPieceCollection();
 
   protected Highlighter highlighter = new ColoredBorder();
 
@@ -394,7 +387,7 @@ public class Map extends AbstractConfigurable implements GameComponent,
         }
       };
       DragSource.getDefaultDragSource().createDefaultDragGestureRecognizer(theMap, DnDConstants.ACTION_MOVE, dgl);
-      theMap.setDropTarget( PieceMover.DragHandler.makeDropTarget( theMap, DnDConstants.ACTION_MOVE, this ));
+      theMap.setDropTarget(PieceMover.DragHandler.makeDropTarget(theMap, DnDConstants.ACTION_MOVE, this));
     }
     else {
       DragBuffer.getBuffer().addDropTarget(theMap, this);
@@ -734,7 +727,7 @@ public class Map extends AbstractConfigurable implements GameComponent,
   }
 
   public void drop(DropTargetDropEvent dtde) {
-    if ( dtde.getDropTargetContext().getComponent() == theMap ) { 
+    if (dtde.getDropTargetContext().getComponent() == theMap) {
       MouseEvent evt = new MouseEvent(theMap, MouseEvent.MOUSE_RELEASED, System.currentTimeMillis(), 0, dtde.getLocation().x, dtde.getLocation().y, 1, false);
       theMap.dispatchEvent(evt);
     }
@@ -780,7 +773,7 @@ public class Map extends AbstractConfigurable implements GameComponent,
       dy = 1;
 
     if (dx != 0 || dy != 0) {
-      scroll(2*dist*dx, 2*dist*dy);
+      scroll(2 * dist * dx, 2 * dist * dy);
     }
   }
 
@@ -825,7 +818,8 @@ public class Map extends AbstractConfigurable implements GameComponent,
 
   public void drawPiecesInRegion(Graphics g, Rectangle visibleRect) {
     if (!hideCounters) {
-      for (int i = 0; i < nstacks; ++i) {
+      GamePiece[] stack = pieces.getPieces();
+      for (int i = 0; i < stack.length; ++i) {
         Point pt = componentCoordinates(stack[i].getPosition());
         if (stack[i] instanceof Stack) {
           getStackMetrics().draw((Stack) stack[i], pt, g, this, getZoom(), visibleRect);
@@ -843,7 +837,8 @@ public class Map extends AbstractConfigurable implements GameComponent,
 
   public void drawPieces(Graphics g, int xOffset, int yOffset) {
     if (!hideCounters) {
-      for (int i = 0; i < nstacks; ++i) {
+      GamePiece[] stack = pieces.getPieces();
+      for (int i = 0; i < stack.length; ++i) {
         Point pt = componentCoordinates(stack[i].getPosition());
         stack[i].draw(g, pt.x - xOffset, pt.y - yOffset, theMap, getZoom());
         if (Boolean.TRUE.equals(stack[i].getProperty(Properties.SELECTED))) {
@@ -890,23 +885,24 @@ public class Map extends AbstractConfigurable implements GameComponent,
 
   /**
    * Returns the boundingBox of a GamePiece accounting for
-   * the offset of a piece within its parent stack
+   * the offset of a piece within its parent stack.
+   * Return null if this piece is not on the map
    *
    * @see GamePiece#boundingBox
    */
   public Rectangle boundingBoxOf(GamePiece p) {
-    if (p.getMap() != this) {
-      throw new RuntimeException("Piece is not on this map");
-    }
-    Rectangle r = p.boundingBox();
-    Point pos = p.getPosition();
-    r.translate(pos.x, pos.y);
-    if (Boolean.TRUE.equals(p.getProperty(Properties.SELECTED))) {
-      r = r.union(highlighter.boundingBox(p));
-    }
-    if (p.getParent() != null) {
-      Point pt = getStackMetrics().relativePosition(p.getParent(), p);
-      r.translate(pt.x, pt.y);
+    Rectangle r = null;
+    if (p.getMap() == this) {
+      r = p.boundingBox();
+      Point pos = p.getPosition();
+      r.translate(pos.x, pos.y);
+      if (Boolean.TRUE.equals(p.getProperty(Properties.SELECTED))) {
+        r = r.union(highlighter.boundingBox(p));
+      }
+      if (p.getParent() != null) {
+        Point pt = getStackMetrics().relativePosition(p.getParent(), p);
+        r.translate(pt.x, pt.y);
+      }
     }
     return r;
   }
@@ -934,9 +930,15 @@ public class Map extends AbstractConfigurable implements GameComponent,
    * read-only copy.  Altering the array does not alter the pieces
    * on the map.  */
   public GamePiece[] getPieces() {
-    GamePiece p[] = new GamePiece[nstacks];
-    System.arraycopy(stack, 0, p, 0, nstacks);
-    return p;
+    return pieces.getPieces();
+  }
+
+  public void setPieceCollection(PieceCollection pieces) {
+    this.pieces = pieces;
+  }
+
+  public PieceCollection getPieceCollection() {
+    return pieces;
   }
 
   protected void clearMapBorder(Graphics g) {
@@ -1103,7 +1105,7 @@ public class Map extends AbstractConfigurable implements GameComponent,
       }
     }
     else {
-      nstacks = 0;
+      pieces.clear();
       boards.removeAllElements();
       System.gc();
       if (mainWindowDock != null) {
@@ -1148,7 +1150,8 @@ public class Map extends AbstractConfigurable implements GameComponent,
   }
 
   public GamePiece findPiece(Point pt, PieceFinder finder) {
-    for (int i = nstacks - 1; i >= 0; --i) {
+    GamePiece[] stack = pieces.getPieces();
+    for (int i = stack.length - 1; i >= 0; --i) {
       GamePiece p = finder.select(this, stack[i], pt);
       if (p != null) {
         return p;
@@ -1223,7 +1226,8 @@ public class Map extends AbstractConfigurable implements GameComponent,
    * @see StackMetrics#merge
    */
   public Command placeOrMerge(GamePiece p, Point pt) {
-    for (int i = 0; i < nstacks; ++i) {
+    GamePiece[] stack = pieces.getPieces();
+    for (int i = 0; i < stack.length; ++i) {
       if (stack[i].getPosition().equals(pt)) {
         return getStackMetrics().merge(stack[i], p);
       }
@@ -1236,73 +1240,47 @@ public class Map extends AbstractConfigurable implements GameComponent,
    * parent Stack and from its current map, if different from this
    * map */
   public void addPiece(GamePiece p) {
-    if (indexOf(p) >= 0) {
-      p.setMap(this); // Moves Immobilized pieces to the back
-      return;
+    if (indexOf(p) < 0) {
+      if (p.getParent() != null) {
+        p.getParent().remove(p);
+      }
+      if (p.getMap() != null
+          && p.getMap() != this) {
+        p.getMap().removePiece(p);
+      }
+      pieces.add(p);
+      p.setParent(null);
+      p.setMap(this);
+      //	repaint(boundingBoxOf(p));
+      theMap.repaint();
     }
-    if (p.getParent() != null) {
-      p.getParent().remove(p);
-    }
-    if (p.getMap() != null
-        && p.getMap() != this) {
-      p.getMap().removePiece(p);
-    }
-    if (nstacks >= maxStacks) {
-      maxStacks += moreStacks;
-      GamePiece oldStack[] = stack;
-      stack = new GamePiece[maxStacks];
-      System.arraycopy(oldStack, 0, stack, 0, nstacks);
-    }
-    stack[nstacks++] = p;
-    p.setParent(null);
-    p.setMap(this);
-    //	repaint(boundingBoxOf(p));
-    theMap.repaint();
   }
 
   /**
    * Reorder the argument GamePiece to the new index.  When painting
-   * the map, pieces are drawn in order of index */
+   * the map, pieces are drawn in order of index
+   * @deprecated use {@link PieceCollection#moveToFront} */
   public void reposition(GamePiece s, int pos) {
-    int index = indexOf(s);
-    if (index < 0) {
-      throw new IllegalArgumentException("Piece is not on this map");
-    }
-    for (int i = index; i < nstacks - 1; ++i) {
-      stack[i] = stack[i + 1];
-    }
-    for (int i = nstacks - 1; i > pos; --i) {
-      stack[i] = stack[i - 1];
-    }
-    stack[pos] = s;
   }
 
   /**
-   * Returns the index of a piece.  When painting the map, pieces
-   * are drawn in order of index */
+   * Returns the index of a piece.
+   * When painting the map, pieces are drawn in order of index
+   * Return -1 if the piece is not on this map
+   */
   public int indexOf(GamePiece s) {
-    for (int i = 0; i < nstacks; ++i)
-      if (stack[i] == s)
-        return (i);
-    return (-1);
+    return pieces.indexOf(s);
   }
 
   /**
    * Removes a piece from the map
    */
-  public void removePiece(GamePiece s) {
-    int n = indexOf(s);
-    if (n > -1) {
-      Rectangle r = boundingBoxOf(s);
-      removePiece(n);
+  public void removePiece(GamePiece p) {
+    Rectangle r = boundingBoxOf(p);
+    pieces.remove(p);
+    if (r != null) {
       repaint(r);
     }
-  }
-
-  private void removePiece(int gone) {
-    for (int i = gone; i < nstacks - 1; ++i)
-      stack[i] = stack[i + 1];
-    nstacks--;
   }
 
   /** Center the map at given map coordinates within its JScrollPane
@@ -1390,7 +1368,7 @@ public class Map extends AbstractConfigurable implements GameComponent,
 
   public static class IconConfig implements ConfigurerFactory {
     public Configurer getConfigurer(AutoConfigurable c, String key, String name) {
-      return new IconConfigurer(key,name,"/images/map.gif");
+      return new IconConfigurer(key, name, "/images/map.gif");
     }
   }
 
