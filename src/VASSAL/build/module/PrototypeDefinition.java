@@ -59,6 +59,12 @@ public class PrototypeDefinition implements Configurable {
     return name;
   }
 
+  public void setConfigureName(String s) {
+    String oldName = name;
+    this.name = s;
+    propSupport.firePropertyChange(NAME_PROPERTY,oldName,name);
+  }
+
   public Configurer getConfigurer() {
     return new Config(this);
   }
@@ -112,7 +118,7 @@ public class PrototypeDefinition implements Configurable {
 
   public void build(Element e) {
     if (e != null) {
-      name = e.getAttribute(NAME_PROPERTY);
+      setConfigureName(e.getAttribute(NAME_PROPERTY));
       pieceDefinition = Builder.getText(e);
     }
   }
@@ -135,9 +141,9 @@ public class PrototypeDefinition implements Configurable {
     private PrototypeDefinition def;
 
     public Config(PrototypeDefinition def) {
-      super(null, null, def.name);
+      super(null, null, def);
       box = Box.createVerticalBox();
-      name = new StringConfigurer(null, "Name");
+      name = new StringConfigurer(null, "Name", def.name);
       box.add(name.getControls());
       pieceDefiner = new PieceDefiner();
       pieceDefiner.setPiece(def.getPiece());
@@ -148,7 +154,7 @@ public class PrototypeDefinition implements Configurable {
     public Object getValue() {
       if (def != null) {
         def.setPiece(pieceDefiner.getPiece());
-        def.name = name.getValueString();
+        def.setConfigureName(name.getValueString());
       }
       return def;
     }

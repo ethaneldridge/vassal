@@ -1,11 +1,13 @@
 package VASSAL.build.module;
 
-import VASSAL.build.AbstractConfigurable;
-import VASSAL.build.Buildable;
-import VASSAL.build.AbstractBuildable;
-import VASSAL.build.IllegalBuildException;
+import VASSAL.build.*;
 import VASSAL.build.module.documentation.HelpFile;
 import VASSAL.configure.Configurer;
+
+import java.util.Enumeration;
+import java.util.HashMap;
+import java.beans.PropertyChangeListener;
+import java.beans.PropertyChangeEvent;
 
 /*
  * $Id$
@@ -31,6 +33,9 @@ import VASSAL.configure.Configurer;
  * Actual definition is in inner class {@link VASSAL.build.module.PrototypeDefinition}
  */
 public class PrototypesContainer extends AbstractConfigurable {
+  private static PrototypesContainer instance;
+  private HashMap definitions = new HashMap();
+
   public String[] getAttributeDescriptions() {
     return new String[0];
   }
@@ -70,6 +75,22 @@ public class PrototypesContainer extends AbstractConfigurable {
     return "Game Piece Prototype Definitions";
   }
 
+  public void add(Buildable b) {
+    super.add(b);
+    if (b instanceof PrototypeDefinition) {
+      PrototypeDefinition def = (PrototypeDefinition) b;
+      definitions.put(def.getConfigureName(),def);
+      def.addPropertyChangeListener(new PropertyChangeListener() {
+        public void propertyChange(PropertyChangeEvent evt) {
+          if (Configurable.NAME_PROPERTY.equals(evt.getPropertyName())) {
+            definitions.remove(evt.getOldValue());
+            definitions.put(evt.getNewValue(),evt.getSource());
+          }
+        }
+      });
+    }
+  }
+
   public HelpFile getHelpFile() {
     return null;
   }
@@ -77,4 +98,16 @@ public class PrototypesContainer extends AbstractConfigurable {
   public void removeFrom(Buildable parent) {
   }
 
+  public static PrototypeDefinition getPrototype(String name) {
+    if (instance == null) {
+      Enumeration e = GameModule.getGameModule().getComponents(PrototypesContainer.class);
+      if (e.hasMoreElements()) {
+        instance = (PrototypesContainer) e.nextElement();
+      }
+      else {
+        return null;
+      }
+    }
+    return (PrototypeDefinition) instance.definitions.get(name);
+  }
 }

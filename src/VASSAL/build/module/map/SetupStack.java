@@ -5,20 +5,20 @@ import VASSAL.build.module.GameComponent;
 import VASSAL.build.module.Map;
 import VASSAL.build.module.documentation.HelpFile;
 import VASSAL.build.widget.PieceSlot;
-import VASSAL.command.AddPiece;
 import VASSAL.command.Command;
 import VASSAL.command.CommandEncoder;
-import VASSAL.configure.StringEnum;
 import VASSAL.configure.Configurer;
+import VASSAL.configure.StringEnum;
 import VASSAL.counters.GamePiece;
+import VASSAL.counters.PieceCloner;
 import VASSAL.counters.Stack;
 
 import java.awt.*;
+import java.io.File;
+import java.net.MalformedURLException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Enumeration;
-import java.io.File;
-import java.net.MalformedURLException;
 
 /*
  * $Id$
@@ -56,6 +56,7 @@ public class SetupStack extends AbstractConfigurable implements GameComponent, C
   protected String owningBoardName;
   protected String id;
   public static final String NAME = "name";
+  private PieceCloner cloner = new PieceCloner();
 
   public void setup(boolean gameStarting) {
     if (gameStarting && !stackInitialized && isOwningBoardActive()) {
@@ -209,7 +210,7 @@ public class SetupStack extends AbstractConfigurable implements GameComponent, C
     for (int i = 0; i < c.length; ++i) {
       PieceSlot slot = (PieceSlot) c[i];
       GamePiece p = slot.getPiece();
-      p = slot.clonePiece(p);
+      p = cloner.clonePiece(p);
       p.setState(slot.getPiece().getState());
       GameModule.getGameModule().getGameState().addPiece(p);
       s.add(p);

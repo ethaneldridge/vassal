@@ -24,7 +24,6 @@ import VASSAL.build.module.documentation.HelpFile;
 import VASSAL.build.module.documentation.HelpWindow;
 import VASSAL.build.module.documentation.HelpWindowExtension;
 import VASSAL.build.module.map.MenuDisplayer;
-import VASSAL.build.module.PrototypeDefinition;
 import VASSAL.command.AddPiece;
 import VASSAL.command.Command;
 import VASSAL.configure.Configurer;
@@ -42,7 +41,6 @@ import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.io.File;
 import java.net.MalformedURLException;
-import java.util.Enumeration;
 
 /**
  * A Component that displays a GamePiece.
@@ -59,8 +57,10 @@ public class PieceSlot extends Widget implements MouseListener, KeyListener {
   protected static Font FONT = new Font("Dialog", 0, 12);
   private javax.swing.JPanel panel;
   private int width, height;
+  private PieceCloner cloner;
 
   public PieceSlot() {
+    cloner = new PieceCloner();
     panel = new PieceSlot.Panel();
     panel.addMouseListener(this);
     panel.addKeyListener(this);
@@ -172,57 +172,9 @@ public class PieceSlot extends Widget implements MouseListener, KeyListener {
 
     if (getPiece() != null) {
       DragBuffer.getBuffer().clear();
-      GamePiece newPiece = clonePiece(getPiece());
-      newPiece.setState(getPiece().getState());
+      GamePiece newPiece = cloner.clonePiece(getPiece());
       DragBuffer.getBuffer().add(newPiece);
     }
-  }
-
-  /**
-   * Create a new instance that is a clone of the piece defined in this slot
-   * @return the new instance
-   */
-  public GamePiece clonePiece(GamePiece piece) {
-    GamePiece clone = null;
-    if (piece instanceof BasicPiece) {
-      clone = new BasicPiece(piece.getType());
-      clone.setState(piece.getState());
-    }
-    else if (piece instanceof UsePrototype) {
-      String prototypeName = ((UsePrototype)piece).getPrototypeName();
-      for (Enumeration e = GameModule.getGameModule().getComponents(PrototypeDefinition.class); e.hasMoreElements();) {
-        PrototypeDefinition def = (PrototypeDefinition)e.nextElement();
-        if (def.getConfigureName().equals(prototypeName)) {
-          clone = clonePiece(def.getPiece());
-          ((Decorator)Decorator.getInnermost(clone).getProperty(Properties.OUTER)).setInner(clonePiece(((UsePrototype)piece).getInner()));
-          break;
-        }
-      }
-      if (clone == null) {
-        throw new RuntimeException("No prototype \'"+prototypeName+"\'");
-      }
-    }
-    else if (piece instanceof EditablePiece
-        && piece instanceof Decorator) {
-      try {
-        clone = (GamePiece) piece.getClass().newInstance();
-        ((EditablePiece) clone).mySetType(((Decorator) piece).myGetType());
-        ((Decorator) clone).mySetState(((Decorator) piece).myGetState());
-        ((Decorator) clone).setInner(clonePiece(((Decorator) piece).getInner()));
-      }
-      catch (InstantiationException e) {
-        throw new RuntimeException(e);
-      }
-      catch (IllegalAccessException e) {
-        throw new RuntimeException(e);
-      }
-    }
-    else {
-      clone = ((AddPiece) GameModule.getGameModule().decode
-          (GameModule.getGameModule().encode
-           (new AddPiece(piece)))).getTarget();
-    }
-    return clone;
   }
 
   public void mouseReleased(MouseEvent e) {
