@@ -290,6 +290,9 @@ public class GlobalMap extends JPanel implements MouseListener,
     if (!show) {
       f.setVisible(false);
     }
+    else {
+      f.setSize(getPreferredSize());
+    }
 
     if (show && map.getComponents(CounterDetailViewer.class).hasMoreElements()) {
       addMouseMotionListener(mouseOverViewer);
