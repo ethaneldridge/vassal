@@ -26,19 +26,20 @@
  */
 package VASSAL.build.module;
 
-import VASSAL.build.module.map.*;
 import VASSAL.build.module.documentation.HelpFile;
-import VASSAL.build.module.map.boardPicker.Board;
+import VASSAL.build.module.map.HandMetrics;
+import VASSAL.build.module.map.StackExpander;
+import VASSAL.build.module.map.StackMetrics;
+import VASSAL.build.module.map.CounterDetailViewer;
 import VASSAL.command.Command;
 import VASSAL.counters.GamePiece;
-import VASSAL.counters.Stack;
 import VASSAL.counters.PieceFinder;
+import VASSAL.counters.Stack;
 
-import java.util.Enumeration;
 import java.awt.*;
-import java.net.URL;
-import java.net.MalformedURLException;
 import java.io.File;
+import java.net.MalformedURLException;
+import java.util.Enumeration;
 
 public class PlayerHand extends PrivateMap {
   public void build(org.w3c.dom.Element el) {
@@ -49,6 +50,12 @@ public class PlayerHand extends PrivateMap {
         StackExpander se = (StackExpander) e.nextElement();
         remove(se);
         removeLocalMouseListener(se);
+      }
+      e = getComponents(CounterDetailViewer.class);
+      while (e.hasMoreElements()) {
+        CounterDetailViewer cdv = (CounterDetailViewer) e.nextElement();
+        remove(cdv);
+        cdv.removeFrom(this);
       }
     }
   }
@@ -92,7 +99,13 @@ public class PlayerHand extends PrivateMap {
     Command c = null;
     GamePiece[] stack = pieces.getPieces();
     if (stack.length == 0) {
-      Rectangle r = piece.getShape().getBounds();
+      Rectangle r;
+      if (piece instanceof Stack)  {
+        r = ((Stack)piece).topPiece().getShape().getBounds();
+      }
+      else {
+        r = piece.getShape().getBounds();
+      }
       pt = new Point(-r.x,
                      -r.y);
       c = super.placeAt(piece, pt);

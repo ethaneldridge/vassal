@@ -20,10 +20,9 @@
 package VASSAL.build.module.map;
 
 import VASSAL.counters.Stack;
-import VASSAL.counters.GamePiece;
+import VASSAL.build.module.Map;
 
 import java.awt.*;
-import java.util.Enumeration;
 
 /**
  * Handles the drawing of cards in a {@link VASSAL.build.module.PlayerHand}.
@@ -34,12 +33,14 @@ public class HandMetrics extends StackMetrics {
     super(false, 12, 0, 12, 0);
   }
 
-  public Stack createStack(GamePiece p) {
-    return new Stack(p) {
-      public boolean isExpanded() {
-        return true;
-      }
-    };
+  public void draw(Stack stack, Graphics g, int x, int y, Component obs, double zoom) {
+    stack.setExpanded(true);
+    super.draw(stack, g, x, y, obs, zoom);
+  }
+
+  public void draw(Stack stack, Point location, Graphics g, Map map, double zoom, Rectangle visibleRect) {
+    stack.setExpanded(true);
+    super.draw(stack, location, g, map, zoom, visibleRect);
   }
 
   protected void nextPosition(Point currentPos, Rectangle currentBounds, Point nextPos, Rectangle nextBounds, int dx, int dy) {
