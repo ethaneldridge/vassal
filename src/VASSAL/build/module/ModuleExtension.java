@@ -319,35 +319,25 @@ public class ModuleExtension extends AbstractBuildable implements GameComponent 
     protected void executeCommand() {
       final Frame f = GameModule.getGameModule() == null ? null : GameModule.getGameModule().getFrame();
       boolean containsExtension = false;
+      String msg = null;
       Enumeration e = GameModule.getGameModule().getComponents(ModuleExtension.class);
       while (e.hasMoreElements()) {
         final ModuleExtension ext = (ModuleExtension) e.nextElement();
         if (ext.getName().equals(name)) {
           containsExtension = true;
           if (Info.compareVersions(ext.getVersion(), version) < 0) {
-            Runnable runnable = new Runnable() {
-              public void run() {
-                JOptionPane.showMessageDialog(f,
-                                              "Game saved with version " + version + " of extension \'" + name
-                                              + "\'\n  are running version " + ext.getVersion() +
-                                              ".\nPlease upgrade to the latest version of this extension.",
-                                              "Extension version mismatch", JOptionPane.WARNING_MESSAGE);
-              }
-            };
-            SwingUtilities.invokeLater(runnable);
+            msg = "Game saved with version " + version + " of extension \'" + name
+                         + "\', you are running version " + ext.getVersion() +
+                         ". Please upgrade to the latest version of this extension.";
+            GameModule.getGameModule().warn(msg);
           }
           break;
         }
       }
       if (!containsExtension) {
-        Runnable runnable = new Runnable() {
-          public void run() {
-            JOptionPane.showMessageDialog(f, "This game was saved with extension \'" + name + "\' loaded.\nYou do not have this extension loaded.\n"
-                                             + "Place the file into the \'" + ExtensionsLoader.getExtensionDirectory() + "\' folder to load it",
-                                          "Extension not found", JOptionPane.WARNING_MESSAGE);
-          }
-        };
-        SwingUtilities.invokeLater(runnable);
+        msg = "This game was saved with extension \'" + name + "\' loaded. You do not have this extension loaded."
+                                             + "Place the file into the \'" + ExtensionsLoader.getExtensionDirectory() + "\' folder to load it.";
+        GameModule.getGameModule().warn(msg);
       }
     }
 
