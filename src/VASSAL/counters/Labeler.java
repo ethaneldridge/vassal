@@ -56,7 +56,7 @@ public class Labeler extends Decorator implements EditablePiece {
   private String menuCommand = "Change Label";
   private Font font = new Font("Dialog", 0, 10);
   private KeyCommand[] commands;
-  private FormattedString nameFormat;
+  private FormattedString nameFormat = new FormattedString("$"+PIECE_NAME+"$ ($"+LABEL+"$)");
   private static final String PIECE_NAME = "pieceName";
   private static final String LABEL = "label";
 
@@ -98,7 +98,7 @@ public class Labeler extends Decorator implements EditablePiece {
       horizontalOffset = st.nextInt(0);
       verticalJust = st.nextChar('b');
       horizontalJust = st.nextChar('c');
-      nameFormat = new FormattedString(st.nextToken("$"+PIECE_NAME+"$ ($"+LABEL+"$)"));
+      nameFormat.setFormat(st.nextToken("$"+PIECE_NAME+"$ ($"+LABEL+"$)"));
     }
     lbl.setForeground(textFg);
     lbl.setFont(font);
