@@ -63,6 +63,7 @@ public class FreeRotator extends Decorator implements EditablePiece, MouseListen
   private String rotateCWText = "Rotate CW";
   private KeyStroke rotateCCWKey;
   private String rotateCCWText = "Rotate CCW";
+  private boolean useUnrotatedShape;
 
   private double[] validAngles = new double[]{0.0};
   private int angleIndex = 0;
@@ -136,7 +137,8 @@ public class FreeRotator extends Decorator implements EditablePiece, MouseListen
   }
 
   public Shape getShape() {
-    if (getAngle() == 0.0) {
+    if (getAngle() == 0.0
+      || useUnrotatedShape) {
       return piece.getShape();
     }
     else if (Info.is2dEnabled()) {
@@ -368,6 +370,13 @@ public class FreeRotator extends Decorator implements EditablePiece, MouseListen
       getMap().popMouseListener();
       getMap().getView().removeMouseMotionListener(this);
     }
+  }
+
+  public void setProperty(Object key, Object val) {
+    if (Properties.USE_UNROTATED_SHAPE.equals(key)) {
+      useUnrotatedShape = Boolean.TRUE.equals(val);
+    }
+    super.setProperty(key, val);
   }
 
   public void mouseDragged(MouseEvent e) {

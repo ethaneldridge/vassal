@@ -31,6 +31,8 @@ import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
+import java.io.File;
+import java.net.MalformedURLException;
 
 /**
  * Provides commands to pivot a Game Piece around a given point
@@ -61,7 +63,14 @@ public class Pivot extends Decorator implements EditablePiece {
   }
 
   public HelpFile getHelpFile() {
-    return null;
+    File dir = VASSAL.build.module.Documentation.getDocumentationBaseDir();
+    dir = new File(dir, "ReferenceManual");
+    try {
+      return new HelpFile(null, new File(dir, "Pivot.htm"));
+    }
+    catch (MalformedURLException ex) {
+      return null;
+    }
   }
 
   public void mySetType(String type) {
@@ -132,7 +141,7 @@ public class Pivot extends Decorator implements EditablePiece {
       }
       else if (getMap() != null) {
         final double oldAngle = rotator.getAngleInRadians();
-        Point2D pivot2D = new Point2D.Double(pivotX, -pivotY);
+        Point2D pivot2D = new Point2D.Double(pivotX, pivotY);
         AffineTransform t = AffineTransform.getRotateInstance(oldAngle);
         t.transform(pivot2D, pivot2D);
         rotator.beginInteractiveRotate();
@@ -149,7 +158,7 @@ public class Pivot extends Decorator implements EditablePiece {
    * @param newAngle
    */
   private void pivotPoint(Point p, double oldAngle, double newAngle) {
-    Point2D pivot2D = new Point2D.Double(pivotX, -pivotY);
+    Point2D pivot2D = new Point2D.Double(pivotX, pivotY);
     AffineTransform t = AffineTransform.getRotateInstance(oldAngle);
     t.transform(pivot2D, pivot2D);
     t = AffineTransform.getRotateInstance(newAngle - oldAngle, pivot2D.getX(), pivot2D.getY());

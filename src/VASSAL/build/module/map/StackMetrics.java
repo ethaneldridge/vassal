@@ -407,7 +407,9 @@ public class StackMetrics extends AbstractConfigurable {
         }
       }
       else {
+        child.setProperty(Properties.USE_UNROTATED_SHAPE,Boolean.TRUE);
         nextSelBounds = child.getShape().getBounds();
+        child.setProperty(Properties.USE_UNROTATED_SHAPE,Boolean.FALSE);
         nextPos = new Point(0,0);
         if (currentPos == null) {
           currentSelBounds = nextSelBounds;

@@ -100,4 +100,11 @@ public interface Properties {
 
   /** Used to store a duplicate of the target piece at some point in time */
   public static final String SNAPSHOT = "snapshot";
+
+  /**
+   * If Boolean.TRUE, then the shape returned by {@link GamePiece#getShape} is the shape of the piece
+   * when not rotated.
+   * @see FreeRotator
+   */
+  public static final String USE_UNROTATED_SHAPE = "useUnrotatedShape";
 }
