@@ -21,6 +21,7 @@ package VASSAL.counters;
 import VASSAL.build.module.documentation.HelpFile;
 import VASSAL.command.Command;
 import VASSAL.tools.SequenceEncoder;
+import VASSAL.configure.StringConfigurer;
 
 import javax.swing.*;
 import java.io.File;
@@ -146,6 +147,36 @@ public class Marker extends Decorator implements EditablePiece {
     }
     catch (MalformedURLException ex) {
       return null;
+    }
+  }
+
+  public PieceEditor getEditor() {
+    return new Ed(this);
+  }
+
+  private static class Ed implements PieceEditor {
+    private StringConfigurer propName;
+    private StringConfigurer propValue;
+    private JPanel panel;
+    private Ed(Marker m) {
+      panel = new JPanel();
+      panel.setLayout(new BoxLayout(panel,BoxLayout.Y_AXIS));
+      propName = new StringConfigurer(null,"Property name:  ",m.keys.length == 0 ? "" : m.keys[0]);
+      propValue = new StringConfigurer(null,"Property value:  ",m.values.length == 0 ? "" : m.values[0]);
+      panel.add(propName.getControls());
+      panel.add(propValue.getControls());
+    }
+
+    public Component getControls() {
+      return panel;
+    }
+
+    public String getState() {
+      return propValue.getValueString();
+    }
+
+    public String getType() {
+      return Marker.ID+propName.getValueString();
     }
   }
 }
