@@ -319,6 +319,10 @@ public class Deck extends Stack {
     return faceDown;
   }
 
+  public void setFaceDown(boolean faceDown) {
+    this.faceDown = faceDown;
+  }
+
   public void draw(java.awt.Graphics g, int x, int y, Component obs, double zoom) {
     int count = Math.min(getPieceCount(),10);
     GamePiece top = topPiece();

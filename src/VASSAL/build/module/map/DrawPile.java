@@ -293,6 +293,7 @@ public class DrawPile extends SetupStack {
     for (Enumeration e = s.getPieces(); e.hasMoreElements();) {
       d.add((GamePiece) e.nextElement());
     }
+    d.setFaceDown(!Deck.NEVER.equals(dummy.getFaceDownOption()));
     return d;
   }
 
@@ -320,7 +321,7 @@ public class DrawPile extends SetupStack {
       SequenceEncoder.Decoder st = new SequenceEncoder.Decoder(s, '\t');
       st.nextToken();
       String contentsId = st.nextToken();
-      return new PlaceDeck(this, contentsId);
+      return new PlaceDeck(this, contentsId,st.hasMoreTokens() && "true".equals(st.nextToken()));
     }
     else {
       return null;
@@ -335,10 +336,12 @@ public class DrawPile extends SetupStack {
   public static class PlaceDeck extends Command {
     private DrawPile drawPile;
     private String contentsId;
+    private boolean faceDown;
 
-    public PlaceDeck(DrawPile drawPile, String contentsId) {
+    public PlaceDeck(DrawPile drawPile, String contentsId, boolean faceDown) {
       this.drawPile = drawPile;
       this.contentsId = contentsId;
+      this.faceDown = faceDown;
     }
 
     // Replace the identified Stack with a Deck
@@ -349,6 +352,7 @@ public class DrawPile extends SetupStack {
         for (Enumeration e = stack.getPieces(); e.hasMoreElements();) {
           deck.add((GamePiece) e.nextElement());
         }
+        deck.setFaceDown(faceDown);
         Point p = new Point(drawPile.pos);
         if (drawPile.owningBoardName != null) {
           Rectangle r = drawPile.map.getBoardByName(drawPile.owningBoardName).bounds();
