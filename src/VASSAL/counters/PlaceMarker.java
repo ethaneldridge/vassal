@@ -173,7 +173,6 @@ public class PlaceMarker extends Decorator implements EditablePiece {
     private JPanel p = new JPanel();
     protected JButton defineButton = new JButton("Define Marker");
     protected JButton selectButton = new JButton("Select");
-    private JTextField pieceText = new JTextField(20);
 
     protected Ed(PlaceMarker piece) {
       keyInput = new KeySpecifier(piece.key);
@@ -215,11 +214,6 @@ public class PlaceMarker extends Decorator implements EditablePiece {
       });
       b.add(selectButton);
       p.add(b);
-      b = Box.createHorizontalBox();
-      b.add(new JLabel("Report Text:"));
-      pieceText.setText(piece.markerText);
-      b.add(pieceText);
-      p.add(b);
     }
 
     public Component getControls() {
@@ -241,12 +235,7 @@ public class PlaceMarker extends Decorator implements EditablePiece {
         String spec = GameModule.getGameModule().encode(new AddPiece(pieceInput.getPiece()));
         se.append(spec);
       }
-      if (pieceText.getText().length() == 0) {
-        se.append("null");
-      }
-      else {
-        se.append(pieceText.getText());
-      }
+      se.append("null"); // Older versions specified a text message to echo.  Now performed by the ReportState trait, but we remain backward-compatible.
       return ID + se.getValue();
     }
   }

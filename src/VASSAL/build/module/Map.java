@@ -1482,7 +1482,7 @@ public class Map extends AbstractConfigurable implements GameComponent,
   }
 
   public Class[] getAttributeTypes() {
-    return new Class[]{String.class, GlobalOptions.Prompt.class, Integer.class, Integer.class, Boolean.class, Color.class, Integer.class, Boolean.class, String.class, IconConfig.class, KeyStroke.class, LocationFormatConfig.class, MoveWithinFormatConfig.class, MoveToFormatConfig.class, MoveWithinFormatConfig.class};
+    return new Class[]{String.class, GlobalOptions.Prompt.class, Integer.class, Integer.class, Boolean.class, Color.class, Integer.class, Boolean.class, String.class, IconConfig.class, KeyStroke.class, LocationFormatConfig.class, MoveWithinFormatConfig.class, MoveToFormatConfig.class, CreateFormatConfig.class};
   }
 
   public static final String BOARD_NAME = "boardName";
@@ -1524,6 +1524,15 @@ public class Map extends AbstractConfigurable implements GameComponent,
                                                                    LOCATION,
                                                                    OLD_MAP,
                                                                    OLD_LOCATION});
+    }
+  }
+
+  public static class CreateFormatConfig implements ConfigurerFactory {
+    public Configurer getConfigurer(AutoConfigurable c, String key, String name) {
+      return new FormattedStringConfigurer(key, name, new String[]{PLAYER_NAME,
+                                                                   PLAYER_SIDE,
+                                                                   PIECE_NAME,
+                                                                   LOCATION});
     }
   }
 

@@ -50,8 +50,7 @@ import java.net.MalformedURLException;
 public class ReportState extends Decorator implements EditablePiece {
   public static final String ID = "report;";
   private String keys = "";
-  private String formatNameUnchanged = "$"+LOCATION_NAME+"$: $"+NEW_UNIT_NAME+"$ *";
-  private String formatNameChanged = "$"+LOCATION_NAME+"$: $"+NEW_UNIT_NAME+"$ *";
+  private FormattedString format = new FormattedString("$" + LOCATION_NAME + "$: $" + NEW_UNIT_NAME + "$ *");
 
   public ReportState() {
     this(ID, null);
@@ -83,7 +82,9 @@ public class ReportState extends Decorator implements EditablePiece {
   }
 
   public String myGetType() {
-    return ID + keys + ";" + formatNameUnchanged + ";" + formatNameChanged;
+    SequenceEncoder se = new SequenceEncoder(';');
+    se.append(format.getFormat());
+    return ID + keys + se.getValue();
   }
 
   public Command myKeyEvent(KeyStroke stroke) {
@@ -91,9 +92,6 @@ public class ReportState extends Decorator implements EditablePiece {
   }
 
   public Command keyEvent(KeyStroke stroke) {
-
-    FormattedString format = new FormattedString();
-
     GamePiece outer = getOutermost(this);
 
     // Retrieve the name, location and visibilty of the unit prior to the
@@ -115,13 +113,6 @@ public class ReportState extends Decorator implements EditablePiece {
     Hideable.setAllHidden(false);
     Obscurable.setAllHidden(false);
 
-    if (oldUnitName.equals(newUnitName)) {
-      format.setFormat(formatNameUnchanged);
-    }
-    else {
-      format.setFormat(formatNameChanged);
-    }
-
     // Only make a report if:
     //  1. It's not part of a global command with Single Reporting on
     //  2. The piece is visible to all players either before or after the trait
@@ -129,39 +120,39 @@ public class ReportState extends Decorator implements EditablePiece {
 
     if (!MassKeyCommand.suppressTraitReporting() && (isVisible || wasVisible)) {
 
-        for (int i = 0; i < keys.length(); ++i) {
-          if (stroke.equals(KeyStroke.getKeyStroke(keys.charAt(i), InputEvent.CTRL_MASK))) {
+      for (int i = 0; i < keys.length(); ++i) {
+        if (stroke.equals(KeyStroke.getKeyStroke(keys.charAt(i), InputEvent.CTRL_MASK))) {
 
-            //
-            // Find the Command Name
-            //
-            String commandName = "";
-            KeyCommand[] k = ((Decorator) outer).getKeyCommands();
-            for (int j = 0; j < k.length; j++) {
-              KeyStroke commandKey = k[j].getKeyStroke();
-              if (stroke.equals(commandKey)) {
-                commandName = k[j].getName();
-              }
+          //
+          // Find the Command Name
+          //
+          String commandName = "";
+          KeyCommand[] k = ((Decorator) outer).getKeyCommands();
+          for (int j = 0; j < k.length; j++) {
+            KeyStroke commandKey = k[j].getKeyStroke();
+            if (stroke.equals(commandKey)) {
+              commandName = k[j].getName();
             }
-
-            format.setProperty(PLAYER_NAME, (String) GameModule.getGameModule().getPrefs().getOption(GameModule.REAL_NAME).getValue());
-            format.setProperty(PLAYER_SIDE,PlayerRoster.getMySide());
-            format.setProperty(OLD_UNIT_NAME, oldUnitName);
-            format.setProperty(NEW_UNIT_NAME, newUnitName);
-            format.setProperty(MAP_NAME, getMap().getConfigureName());
-            format.setProperty(LOCATION_NAME, getMap().locationName(getPosition()));
-            format.setProperty(COMMAND_NAME, commandName);
-
-            String reportText = format.getText();
-
-            if (reportText.length() > 0) {
-              Command display = new Chatter.DisplayText(GameModule.getGameModule().getChatter(), "* " + reportText);
-              display.execute();
-              c = c == null ? display : c.append(display);
-            }
-            break;
           }
+
+          format.setProperty(PLAYER_NAME, (String) GameModule.getGameModule().getPrefs().getOption(GameModule.REAL_NAME).getValue());
+          format.setProperty(PLAYER_SIDE, PlayerRoster.getMySide());
+          format.setProperty(OLD_UNIT_NAME, oldUnitName);
+          format.setProperty(NEW_UNIT_NAME, newUnitName);
+          format.setProperty(MAP_NAME, getMap().getConfigureName());
+          format.setProperty(LOCATION_NAME, getMap().locationName(getPosition()));
+          format.setProperty(COMMAND_NAME, commandName);
+
+          String reportText = format.getText();
+
+          if (reportText.length() > 0) {
+            Command display = new Chatter.DisplayText(GameModule.getGameModule().getChatter(), "* " + reportText);
+            display.execute();
+            c = c == null ? display : c.append(display);
+          }
+          break;
         }
+      }
     }
 
     return c;
@@ -212,10 +203,7 @@ public class ReportState extends Decorator implements EditablePiece {
       keys = st.nextToken();
     }
     if (st.hasMoreTokens()) {
-      formatNameUnchanged = st.nextToken();
-    }
-    if (st.hasMoreTokens()) {
-      formatNameChanged = st.nextToken();
+      format.setFormat(st.nextToken());
     }
   }
 
@@ -223,29 +211,29 @@ public class ReportState extends Decorator implements EditablePiece {
     return new Ed(this);
   }
 
-  private static final String PLAYER_NAME="playerName";
-  private static final String PLAYER_SIDE="playerSide";
-  private static final String OLD_UNIT_NAME="oldPieceName";
-  private static final String NEW_UNIT_NAME="newPieceName";
-  private static final String MAP_NAME="mapName";
-  private static final String LOCATION_NAME="locationName";
-  private static final String COMMAND_NAME="menuCommand";
+  private static final String PLAYER_NAME = "playerName";
+  private static final String PLAYER_SIDE = "playerSide";
+  private static final String OLD_UNIT_NAME = "oldPieceName";
+  private static final String NEW_UNIT_NAME = "newPieceName";
+  private static final String MAP_NAME = "mapName";
+  private static final String LOCATION_NAME = "location";
+  private static final String COMMAND_NAME = "menuCommand";
 
   // Options for Trait Command Report
   private static final String[] getFormatParameters() {
     return new String[]{PLAYER_NAME,
                         PLAYER_SIDE,
+                        COMMAND_NAME,
                         OLD_UNIT_NAME,
                         NEW_UNIT_NAME,
                         MAP_NAME,
-                        LOCATION_NAME,
-                        COMMAND_NAME};
+                        LOCATION_NAME};
   }
 
   public static class Ed implements PieceEditor {
 
     StringConfigurer tf;
-    StringConfigurer fmt, fmt2;
+    StringConfigurer fmt;
     private JPanel box;
 
     public Ed(ReportState piece) {
@@ -253,13 +241,10 @@ public class ReportState extends Decorator implements EditablePiece {
       box = new JPanel();
       box.setLayout(new BoxLayout(box, BoxLayout.Y_AXIS));
       tf = new StringConfigurer(null, "Report when player presses CTRL-", piece.keys);
-      fmt = new FormattedStringConfigurer(null, "Report format, piece name unchanged", getFormatParameters());
-      fmt.setValue(piece.formatNameUnchanged);
-      fmt2 = new FormattedStringConfigurer(null, "Report format, piece name changes", getFormatParameters());
-      fmt2.setValue(piece.formatNameChanged);
+      fmt = new FormattedStringConfigurer(null, "Report format", getFormatParameters());
+      fmt.setValue(piece.format.getFormat());
       box.add(tf.getControls());
       box.add(fmt.getControls());
-      box.add(fmt2.getControls());
     }
 
     public Component getControls() {
@@ -272,7 +257,7 @@ public class ReportState extends Decorator implements EditablePiece {
 
     public String getType() {
       SequenceEncoder se = new SequenceEncoder(';');
-      se.append(tf.getValueString()).append(fmt.getValueString()).append(fmt2.getValueString());
+      se.append(tf.getValueString()).append(fmt.getValueString());
       return ID + se.getValue();
     }
   }

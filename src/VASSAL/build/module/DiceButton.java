@@ -42,7 +42,7 @@ public class DiceButton extends AbstractConfigurable {
   protected int nSides = 6, nDice = 2, plus = 0;
   protected boolean reportTotal = false;
   protected boolean promptAlways = false;
-  protected FormattedString reportFormat = new FormattedString("** $"+BUTTON_TEXT+"$ = $"+RESULT+"$ *** <$"+PLAYER_NAME+"$>");
+  protected FormattedString reportFormat = new FormattedString("** $"+REPORT_NAME+"$ = $"+RESULT+"$ *** <$"+PLAYER_NAME+"$>");
   protected LaunchButton launch;
 
   public static final String DEPRECATED_NAME = "label";
@@ -63,7 +63,7 @@ public class DiceButton extends AbstractConfigurable {
   public static final String PLAYER_SIDE="playerSide";
   /** Variable name for reporting format */
   public static final String RESULT="result";
-  public static final String REPORT_NAME="buttonText";
+  public static final String REPORT_NAME="name";
 
   public DiceButton() {
     ActionListener rollAction = new ActionListener() {
@@ -172,7 +172,7 @@ public class DiceButton extends AbstractConfigurable {
 
   public static class ReportFormatConfig implements ConfigurerFactory {
     public Configurer getConfigurer(AutoConfigurable c, String key, String name) {
-      return new FormattedStringConfigurer(key, name, new String[]{PLAYER_NAME,PLAYER_SIDE,RESULT});
+      return new FormattedStringConfigurer(key, name, new String[]{REPORT_NAME, RESULT, PLAYER_NAME,PLAYER_SIDE});
     }
   }
 
