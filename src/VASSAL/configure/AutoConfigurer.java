@@ -30,8 +30,6 @@ import java.util.Enumeration;
 import java.util.Hashtable;
 import java.util.Vector;
 
-import e;
-
 /**
  * A Configurer for configuring Configurable components
  * (Is that as redundant as it sounds?)
