@@ -351,7 +351,7 @@ public class PieceMover extends AbstractBuildable implements
     if (p.getParent() instanceof Deck) {
       Deck d = (Deck) p.getParent();
       ChangeTracker tracker = new ChangeTracker(p);
-      p.setProperty(Properties.OBSCURED_BY, d.isFaceDown() ? GameModule.getUserId() : null);
+      p.setProperty(Properties.OBSCURED_BY, d.isFaceDown() && !d.isDrawFaceUp() ? GameModule.getUserId() : null);
       c = c == null ? tracker.getChangeCommand() : c.append(tracker.getChangeCommand());
     }
     return c;

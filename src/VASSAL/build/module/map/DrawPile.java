@@ -97,6 +97,7 @@ public class DrawPile extends SetupStack {
   public static final String ALLOW_MULTIPLE = "allowMultiple";
   public static final String ALLOW_SELECT = "allowSelect";
   public static final String FACE_DOWN = "faceDown";
+  public static final String DRAW_FACE_UP = "drawFaceUp";
   public static final String FACE_DOWN_REPORT_FORMAT = "faceDownFormat";
   public static final String SHUFFLE = "shuffle";
   public static final String SHUFFLE_REPORT_FORMAT = "shuffleFormat";
@@ -160,7 +161,7 @@ public class DrawPile extends SetupStack {
 
   public String[] getAttributeNames() {
     return new String[]{NAME, OWNING_BOARD, X_POSITION, Y_POSITION, WIDTH, HEIGHT, ALLOW_MULTIPLE,
-                        ALLOW_SELECT, FACE_DOWN, FACE_DOWN_REPORT_FORMAT, SHUFFLE, SHUFFLE_REPORT_FORMAT,
+                        ALLOW_SELECT, FACE_DOWN, DRAW_FACE_UP, FACE_DOWN_REPORT_FORMAT, SHUFFLE, SHUFFLE_REPORT_FORMAT,
                         REVERSIBLE, REVERSE_REPORT_FORMAT, DRAW, COLOR,
                         RESHUFFLABLE, RESHUFFLE_COMMAND, RESHUFFLE_MESSAGE, RESHUFFLE_TARGET};
   }
@@ -175,6 +176,7 @@ public class DrawPile extends SetupStack {
                         "Allow Multiple Cards to be Drawn",
                         "Allow Specific Cards to be Drawn",
                         "Contents are Face-down",
+                        "Draw new cards face up",
                         "Face-down Report Format",
                         "Re-shuffle",
                         "Re-shuffle Report Format",
@@ -198,6 +200,7 @@ public class DrawPile extends SetupStack {
                        Boolean.class,
                        Boolean.class,
                        Prompt.class,
+                       Boolean.class,
                        FormattedStringConfig.class,
                        Prompt.class,
                        FormattedStringConfig.class,
@@ -227,6 +230,9 @@ public class DrawPile extends SetupStack {
     }
     else if (FACE_DOWN.equals(key)) {
       return dummy.getFaceDownOption();
+    }
+    else if (DRAW_FACE_UP.equals(key)) {
+      return String.valueOf(dummy.isDrawFaceUp());
     }
     else if (SHUFFLE.equals(key)) {
       return dummy.getShuffleOption();
@@ -291,6 +297,14 @@ public class DrawPile extends SetupStack {
     }
     else if (FACE_DOWN.equals(key)) {
       dummy.setFaceDownOption((String) value);
+    }
+    else if (DRAW_FACE_UP.equals(key)) {
+      if (value instanceof Boolean) {
+        dummy.setDrawFaceUp(Boolean.TRUE.equals(value));
+      }
+      else {
+        dummy.setDrawFaceUp("true".equals(value));
+      }
     }
     else if (SHUFFLE.equals(key)) {
       dummy.setShuffleOption((String) value);

@@ -67,6 +67,7 @@ public class Deck extends Stack {
   private String reverseMsgFormat;
   private String shuffleMsgFormat;
   private String faceDownMsgFormat;
+  private boolean drawFaceUp;
 
   private String deckName;
 
@@ -76,7 +77,7 @@ public class Deck extends Stack {
   private KeyCommand[] commands;
 
   public Deck() {
-    this(ID + "true;0,0,0;40;40;Always;Always;false;false;false;;;");
+    this(ID);
   }
 
   public Deck(String type) {
@@ -86,25 +87,37 @@ public class Deck extends Stack {
   protected void mySetType(String type) {
     SequenceEncoder.Decoder st = new SequenceEncoder.Decoder(type, ';');
     st.nextToken();
-    drawOutline = "true".equals(st.nextToken());
-    outlineColor = ColorConfigurer.stringToColor(st.nextToken());
+    drawOutline = st.nextBoolean(true);
+    outlineColor = ColorConfigurer.stringToColor(st.nextToken("0,0,0"));
     size.setSize(st.nextInt(40), st.nextInt(40));
-    faceDownOption = st.nextToken();
-    shuffleOption = st.nextToken();
-    allowMultipleDraw = "true".equals(st.nextToken());
-    allowSelectDraw = "true".equals(st.nextToken());
-    reversible = "true".equals(st.nextToken());
-    reshuffleCommand = st.nextToken();
-    reshuffleTarget = st.nextToken();
-    reshuffleMsgFormat = st.nextToken();
+    faceDownOption = st.nextToken("Always");
+    shuffleOption = st.nextToken("Always");
+    allowMultipleDraw = st.nextBoolean(true);
+    allowSelectDraw = st.nextBoolean(true);
+    reversible = st.nextBoolean(true);
+    reshuffleCommand = st.nextToken("");
+    reshuffleTarget = st.nextToken("");
+    reshuffleMsgFormat = st.nextToken("");
     deckName = st.nextToken("Deck");
     shuffleMsgFormat = st.nextToken("");
     reverseMsgFormat = st.nextToken("");
     faceDownMsgFormat = st.nextToken("");
+    drawFaceUp = st.nextBoolean(false);
   }
 
   public String getFaceDownOption() {
     return faceDownOption;
+  }
+
+  /**
+   * @return true if cards are turned face up when drawn from this deck
+   */
+  public boolean isDrawFaceUp() {
+    return drawFaceUp;
+  }
+
+  public void setDrawFaceUp(boolean drawFaceUp) {
+    this.drawFaceUp = drawFaceUp;
   }
 
   public void setFaceDownOption(String faceDownOption) {
@@ -232,19 +245,20 @@ public class Deck extends Stack {
     SequenceEncoder se = new SequenceEncoder(';');
     se.append("" + drawOutline)
         .append(ColorConfigurer.colorToString(outlineColor))
-        .append(size.width + "").append(size.height + "")
+        .append(String.valueOf(size.width)).append(String.valueOf(size.height))
         .append(faceDownOption)
         .append(shuffleOption)
-        .append(allowMultipleDraw + "")
-        .append(allowSelectDraw + "")
-        .append(reversible + "")
+        .append(String.valueOf(allowMultipleDraw))
+        .append(String.valueOf(allowSelectDraw))
+        .append(String.valueOf(reversible))
         .append(reshuffleCommand)
         .append(reshuffleTarget)
         .append(reshuffleMsgFormat)
         .append(deckName)
-          .append(shuffleMsgFormat)
+        .append(shuffleMsgFormat)
         .append(reverseMsgFormat)
-        .append(faceDownMsgFormat);
+        .append(faceDownMsgFormat)
+        .append(String.valueOf(drawFaceUp));
     return ID + se.getValue();
   }
 
@@ -273,9 +287,9 @@ public class Deck extends Stack {
    * fixed number of pieces to select with the next draw.
    */
   public PieceIterator drawCards() {
-    PieceIterator it;
+    Iterator it;
     if (nextDraw != null) {
-      it = new PieceIterator(nextDraw.iterator());
+      it = nextDraw.iterator();
     }
     else {
       int count = Math.max(dragCount, Math.min(1, getPieceCount()));
@@ -290,7 +304,10 @@ public class Deck extends Stack {
           int index = ((Integer) indices.get(i)).intValue();
           indices.remove(i);
           GamePiece p = getPieceAt(index);
-          if (faceDown) {
+          if (drawFaceUp) {
+            p.setProperty(Properties.OBSCURED_BY, null);
+          }
+          else if (faceDown) {
             p.setProperty(Properties.OBSCURED_BY, NO_USER);
           }
           pieces.add(p);
@@ -300,17 +317,31 @@ public class Deck extends Stack {
         Enumeration e = getPiecesInReverseOrder();
         while (count-- > 0 && e.hasMoreElements()) {
           GamePiece p = (GamePiece) e.nextElement();
-          if (faceDown) {
+          if (drawFaceUp) {
+            p.setProperty(Properties.OBSCURED_BY, null);
+          }
+          else if (faceDown) {
             p.setProperty(Properties.OBSCURED_BY, NO_USER);
           }
           pieces.add(p);
         }
       }
-      it = new PieceIterator(pieces.iterator());
+      it = pieces.iterator();
     }
     dragCount = 0;
     nextDraw = null;
-    return it;
+    return new PieceIterator(it) {
+      public GamePiece nextPiece() {
+        GamePiece p = super.nextPiece();
+        if (drawFaceUp) {
+          p.setProperty(Properties.OBSCURED_BY, null);
+        }
+        else if (faceDown) {
+          p.setProperty(Properties.OBSCURED_BY, NO_USER);
+        }
+        return p;
+      }
+    };
   }
 
   /** Set the contents of this Deck to an Enumeration of GamePieces */
@@ -319,7 +350,7 @@ public class Deck extends Stack {
     removeAll();
     while (it.hasNext()) {
       GamePiece child = (GamePiece) it.next();
-      insertChild(child,pieceCount);
+      insertChild(child, pieceCount);
     }
     return track.getChangeCommand();
   }
@@ -418,7 +449,7 @@ public class Deck extends Stack {
 
   public void draw(java.awt.Graphics g, int x, int y, Component obs, double zoom) {
     int count = Math.min(getPieceCount(), 10);
-    GamePiece top = topPiece();
+    GamePiece top = nextDraw != null ? (GamePiece) nextDraw.get(0) : topPiece();
 
     if (top != null) {
       top.setProperty(Properties.OBSCURED_BY, faceDown ? NO_USER : null);
@@ -549,18 +580,19 @@ public class Deck extends Stack {
         c = new KeyCommand("Draw specific cards", null, this) {
           public void actionPerformed(ActionEvent e) {
             promptForNextDraw();
+            map.repaint();
           }
         };
         l.add(c);
       }
       commands = (KeyCommand[]) l.toArray(new KeyCommand[l.size()]);
     }
-    for (int i=0;i<commands.length;++i) {
+    for (int i = 0; i < commands.length; ++i) {
       if ("Face up".equals(commands[i].getValue(Action.NAME)) && !faceDown) {
-        commands[i].putValue(Action.NAME,"Face down");
+        commands[i].putValue(Action.NAME, "Face down");
       }
       else if ("Face down".equals(commands[i].getValue(Action.NAME)) && faceDown) {
-        commands[i].putValue(Action.NAME,"Face up");
+        commands[i].putValue(Action.NAME, "Face up");
       }
     }
     return commands;
