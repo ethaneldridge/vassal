@@ -226,10 +226,10 @@ public class DieManager extends AbstractConfigurable {
     return defaultNSides;
   }
 
-  public MultiRoll getMultiRoll() {
+  public MultiRoll getMultiRoll(int nDice, int nSides) {
     String serverName = getServer().getName();
     if (myMultiRoll == null || !serverName.equals(lastServerName)) {
-      myMultiRoll = new MultiRoll(this, defaultNDice, defaultNSides);
+      myMultiRoll = new MultiRoll(this, nDice, nSides);
     }
     lastServerName = serverName;
 
@@ -237,7 +237,7 @@ public class DieManager extends AbstractConfigurable {
   }
 
   public void roll(int nDice, int nSides, int plus, boolean reportTotal, String description, FormattedString format) {
-    MultiRoll mroll = getMultiRoll();
+    MultiRoll mroll = getMultiRoll(nDice, nSides);
     getPrefs();
 
     RollSet rollSet;
