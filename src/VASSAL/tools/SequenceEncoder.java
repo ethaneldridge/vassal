@@ -20,6 +20,7 @@ package VASSAL.tools;
 
 import VASSAL.configure.HotKeyConfigurer;
 import VASSAL.configure.ColorConfigurer;
+import VASSAL.configure.StringArrayConfigurer;
 
 import javax.swing.*;
 import java.util.NoSuchElementException;
@@ -98,6 +99,10 @@ public class SequenceEncoder {
   public SequenceEncoder append(Color color) {
     String s = ColorConfigurer.colorToString(color);
     return append(s != null ? s : "");
+  }
+
+  public SequenceEncoder append(String[] s) {
+    return append(StringArrayConfigurer.arrayToString(s));
   }
 
   public String getValue() {
@@ -254,6 +259,19 @@ public class SequenceEncoder {
         defaultValue = nextToken();
       }
       return defaultValue;
+    }
+
+    public String[] nextStringArray(int minLength) {
+      String[] retVal = new String[0];
+      if (val != null) {
+        retVal = StringArrayConfigurer.stringToArray(nextToken());
+      }
+      if (retVal.length < minLength) {
+        String[] old = retVal;
+        retVal = new String[minLength];
+        System.arraycopy(old,0,retVal,0,old.length);
+      }
+      return retVal;
     }
   }
 

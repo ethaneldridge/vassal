@@ -19,6 +19,8 @@
 package VASSAL.counters;
 
 import VASSAL.Info;
+import VASSAL.configure.HotKeyConfigurer;
+import VASSAL.configure.KeyModifiersConfigurer;
 import VASSAL.build.GameModule;
 import VASSAL.build.module.documentation.HelpFile;
 import VASSAL.command.ChangeTracker;
@@ -44,14 +46,16 @@ import java.util.ArrayList;
  * be activated or deactivated.
  */
 public class Embellishment extends Decorator implements EditablePiece {
-  public static final String ID = "emb;";
+  public static final String OLD_ID = "emb;";
+  public static final String ID = "emb2;"; // New type encoding
 
   protected String activateKey = "";
   protected String upKey, downKey;
+  protected int activateModifiers, upModifiers, downModifiers;
   protected String upCommand, downCommand, activateCommand;
   protected String resetCommand;
   protected int resetLevel;
-  protected char resetKey;
+  protected KeyStroke resetKey;
 
   protected int value = -1;  // Index of the image to draw.  Negative if inactive
   protected String activationStatus = "";
@@ -65,7 +69,7 @@ public class Embellishment extends Decorator implements EditablePiece {
   protected KeyCommand[] commands;
 
   public Embellishment() {
-    this(ID + "A;Activate;];Increase;[;Decrease;0;0;", null);
+    this(ID, null);
   }
 
   public Embellishment(String type, GamePiece d) {
@@ -93,18 +97,57 @@ public class Embellishment extends Decorator implements EditablePiece {
   }
 
   public void mySetType(String s) {
+    if (s.startsWith(OLD_ID)) {
+      originalSetType(s);
+    }
+    else {
+      s = s.substring(ID.length());
+      SequenceEncoder.Decoder st = new SequenceEncoder.Decoder(s, ';');
+      activateCommand = st.nextToken("Activate");
+      activateModifiers = st.nextInt(InputEvent.CTRL_MASK);
+      activateKey = st.nextToken("A");
+      upCommand = st.nextToken("Increase");
+      upModifiers = st.nextInt(InputEvent.CTRL_MASK);
+      upKey = st.nextToken("]");
+      downCommand = st.nextToken("Decrease");
+      downModifiers = st.nextInt(InputEvent.CTRL_MASK);
+      downKey = st.nextToken("[");
+      resetCommand = st.nextToken("Reset");
+      resetKey = st.nextKeyStroke('R');
+      resetLevel = st.nextInt(0);
+      drawUnderneathWhenSelected = st.nextBoolean(false);
+      xOff = st.nextInt(0);
+      yOff = st.nextInt(0);
+      imageName = st.nextStringArray(0);
+      commonName = st.nextStringArray(imageName.length);
+
+      value = activateKey.length() > 0 ? -1 : 1;
+      nValues = imageName.length;
+      size = new Rectangle[imageName.length];
+    }
+
+    commands = null;
+  }
+
+  /**
+   * This original way of representing the type causes problems
+   * because it's not extensible
+   * @param s
+   */
+  private void originalSetType(String s) {
     SequenceEncoder.Decoder st = new SequenceEncoder.Decoder(s, ';');
 
     st.nextToken();
     SequenceEncoder.Decoder st2 = new SequenceEncoder.Decoder(st.nextToken(), ';');
     activateKey = st2.nextToken().toUpperCase();
+    activateModifiers = InputEvent.CTRL_MASK;
     if (st2.hasMoreTokens()) {
       resetCommand = st2.nextToken();
-      resetKey = st2.nextChar('\0');
+      resetKey = st2.nextKeyStroke(null);
       resetLevel = st2.nextInt(0);
     }
     else {
-      resetKey = 0;
+      resetKey = null;
       resetCommand = "";
       resetLevel = 0;
     }
@@ -119,9 +162,11 @@ public class Embellishment extends Decorator implements EditablePiece {
 
     upKey = st.nextToken().toUpperCase();
     upCommand = st.nextToken();
+    upModifiers = InputEvent.CTRL_MASK;
 
     downKey = st.nextToken().toUpperCase();
     downCommand = st.nextToken();
+    downModifiers = InputEvent.CTRL_MASK;
 
     xOff = st.nextInt(0);
     yOff = st.nextInt(0);
@@ -142,13 +187,11 @@ public class Embellishment extends Decorator implements EditablePiece {
         commonName[i] = subSt.nextToken();
       }
     }
-
-    commands = null;
   }
 
   public String getName() {
     String name = null;
-    if (value > 0 && commonName[value - 1] != null) {
+    if (value > 0 && commonName[value - 1] != null && commonName[value-1].length() > 0) {
       SequenceEncoder.Decoder st = new SequenceEncoder.Decoder(commonName[value - 1], '+');
       String first = st.nextToken();
       if (st.hasMoreTokens()) {
@@ -177,9 +220,31 @@ public class Embellishment extends Decorator implements EditablePiece {
   }
 
   public String myGetType() {
+    SequenceEncoder se = new SequenceEncoder(';');
+    se.append(activateCommand)
+        .append(activateModifiers)
+        .append(activateKey)
+        .append(upCommand)
+        .append(upModifiers)
+        .append(upKey)
+        .append(downCommand)
+        .append(downModifiers)
+        .append(downKey)
+        .append(resetCommand)
+        .append(resetKey)
+        .append(resetLevel)
+        .append(drawUnderneathWhenSelected)
+        .append(xOff)
+        .append(yOff)
+        .append(imageName)
+        .append(commonName);
+    return ID + se.getValue();
+  }
+
+  public String oldGetType() {
     SequenceEncoder se = new SequenceEncoder(null, ';');
     SequenceEncoder se2 = new SequenceEncoder(activateKey, ';');
-    se2.append(resetCommand).append(resetKey == 0 ? "" : String.valueOf(resetKey)).append(String.valueOf(resetLevel));
+    se2.append(resetCommand).append(resetKey).append(String.valueOf(resetLevel));
     se.append(se2.getValue())
         .append(drawUnderneathWhenSelected ? "_" + activateCommand : activateCommand)
         .append(upKey)
@@ -241,23 +306,21 @@ public class Embellishment extends Decorator implements EditablePiece {
       GamePiece outer = Decorator.getOutermost(this);
       if (activateKey.length() > 0) {
         l.add(new KeyCommand(activateCommand,
-                             KeyStroke.getKeyStroke(activateKey.charAt(0), InputEvent.CTRL_MASK),
+                             KeyStroke.getKeyStroke(activateKey.charAt(0), activateModifiers),
                              outer));
       }
       if (upCommand.length() > 0 && upKey.length() > 0 && nValues > 1) {
         l.add(new KeyCommand(upCommand,
-                             KeyStroke.getKeyStroke(upKey.charAt(0), InputEvent.CTRL_MASK),
+                             KeyStroke.getKeyStroke(upKey.charAt(0), upModifiers),
                              outer));
       }
       if (downCommand.length() > 0 && downKey.length() > 0 && nValues > 1) {
         l.add(new KeyCommand(downCommand,
-                             KeyStroke.getKeyStroke(downKey.charAt(0), InputEvent.CTRL_MASK),
+                             KeyStroke.getKeyStroke(downKey.charAt(0), downModifiers),
                              outer));
       }
-      if (resetKey != '\0' && resetCommand.length() > 0) {
-        l.add(new KeyCommand(resetCommand,
-                             KeyStroke.getKeyStroke(resetKey, InputEvent.CTRL_MASK),
-                             outer));
+      if (resetKey != null && resetCommand.length() > 0) {
+        l.add(new KeyCommand(resetCommand, resetKey, outer));
       }
       commands = (KeyCommand[]) l.toArray(new KeyCommand[l.size()]);
     }
@@ -286,7 +349,7 @@ public class Embellishment extends Decorator implements EditablePiece {
       }
     }
     for (int i = 0; i < upKey.length(); ++i) {
-      if (KeyStroke.getKeyStroke(upKey.charAt(i), InputEvent.CTRL_MASK).equals(stroke)) {
+      if (KeyStroke.getKeyStroke(upKey.charAt(i), upModifiers).equals(stroke)) {
         if (tracker == null) {
           tracker = new ChangeTracker(this);
         }
@@ -298,7 +361,7 @@ public class Embellishment extends Decorator implements EditablePiece {
       }
     }
     for (int i = 0; i < downKey.length(); ++i) {
-      if (KeyStroke.getKeyStroke(downKey.charAt(i), InputEvent.CTRL_MASK).equals(stroke)) {
+      if (KeyStroke.getKeyStroke(downKey.charAt(i), downModifiers).equals(stroke)) {
         if (tracker == null) {
           tracker = new ChangeTracker(this);
         }
@@ -309,8 +372,8 @@ public class Embellishment extends Decorator implements EditablePiece {
         break;
       }
     }
-    if (resetKey != '\0'
-        && KeyStroke.getKeyStroke(resetKey, InputEvent.CTRL_MASK).equals(stroke)) {
+    if (resetKey != null
+        && resetKey.equals(stroke)) {
       if (tracker == null) {
         tracker = new ChangeTracker(this);
       }
@@ -321,7 +384,7 @@ public class Embellishment extends Decorator implements EditablePiece {
 
   private char getMatchingActivationChar(KeyStroke stroke) {
     for (int i = 0; i < activateKey.length(); ++i) {
-      if (stroke.equals(KeyStroke.getKeyStroke(activateKey.charAt(i), InputEvent.CTRL_MASK))) {
+      if (stroke.equals(KeyStroke.getKeyStroke(activateKey.charAt(i), activateModifiers))) {
         return activateKey.charAt(i);
       }
     }
@@ -421,10 +484,9 @@ public class Embellishment extends Decorator implements EditablePiece {
   public static Embellishment getLayerWithMatchingActivateCommand(GamePiece piece, KeyStroke stroke, boolean active) {
     for (Embellishment layer = (Embellishment) Decorator.getDecorator(piece, Embellishment.class);
          layer != null;
-         layer = (Embellishment) Decorator.getDecorator(layer.piece, Embellishment.class)
-        ) {
+         layer = (Embellishment) Decorator.getDecorator(layer.piece, Embellishment.class)) {
       for (int i = 0; i < layer.activateKey.length(); ++i) {
-        if (stroke.equals(KeyStroke.getKeyStroke(layer.activateKey.charAt(i), InputEvent.CTRL_MASK))) {
+        if (stroke.equals(KeyStroke.getKeyStroke(layer.activateKey.charAt(i), layer.activateModifiers))) {
           if (active && layer.isActive()) {
             return layer;
           }
@@ -440,12 +502,15 @@ public class Embellishment extends Decorator implements EditablePiece {
 
   private static class Ed implements PieceEditor {
     private MultiImagePicker images;
-    private KeySpecifier activateKeyInput = new KeySpecifier('A');
-    private KeySpecifier upKeyInput = new KeySpecifier(']');
-    private KeySpecifier downKeyInput = new KeySpecifier('[');
+    private JTextField activateKeyInput = new JTextField("A");
+    private JTextField upKeyInput = new JTextField("]");
+    private JTextField downKeyInput = new JTextField("[");
     private JTextField activateCommand = new JTextField("Activate");
+    private KeyModifiersConfigurer activateModifiers = new KeyModifiersConfigurer(null,"key:  ");
     private JTextField upCommand = new JTextField("Increase");
+    private KeyModifiersConfigurer upModifiers = new KeyModifiersConfigurer(null,"key:  ");
     private JTextField downCommand = new JTextField("Decrease");
+    private KeyModifiersConfigurer downModifiers = new KeyModifiersConfigurer(null,"key:  ");
     private JTextField xOffInput = new JTextField(2);
     private JTextField yOffInput = new JTextField(2);
     private JTextField levelNameInput = new JTextField(8);
@@ -455,11 +520,11 @@ public class Embellishment extends Decorator implements EditablePiece {
     private JCheckBox drawUnderneath = new JCheckBox("Underneath when highlighted");
     private JTextField resetLevel = new JTextField(2);
     private JTextField resetCommand = new JTextField(8);
-    private KeySpecifier resetKey = new KeySpecifier('R');
+    private HotKeyConfigurer resetKey = new HotKeyConfigurer(null, "Keyboard:  ");
 
     private JPanel controls;
-    private Vector names;
-    private Vector isPrefix;
+    private List names;
+    private List isPrefix;
     private static final Integer NEITHER = new Integer(0);
     private static final Integer PREFIX = new Integer(1);
     private static final Integer SUFFIX = new Integer(2);
@@ -471,24 +536,29 @@ public class Embellishment extends Decorator implements EditablePiece {
       controls.setLayout(new BoxLayout(controls, BoxLayout.X_AXIS));
 
       JPanel p = new JPanel();
-      p.setLayout(new GridLayout(4, 2));
+      p.setLayout(new GridLayout(4, 3));
       activateCommand.setMaximumSize(activateCommand.getPreferredSize());
       p.add(activateCommand);
+      p.add(activateModifiers.getControls());
       p.add(activateKeyInput);
       upCommand.setMaximumSize(upCommand.getPreferredSize());
       p.add(upCommand);
+      p.add(upModifiers.getControls());
       p.add(upKeyInput);
       downCommand.setMaximumSize(downCommand.getPreferredSize());
       p.add(downCommand);
+      p.add(downModifiers.getControls());
       p.add(downKeyInput);
 
       Box box2 = Box.createHorizontalBox();
       box2.add(new JLabel("Reset to level"));
       box2.add(resetLevel);
-      box2.add(new JLabel("command"));
+      p.add(box2);
+      box2 = Box.createHorizontalBox();
+      box2.add(new JLabel("Command"));
       box2.add(resetCommand);
       p.add(box2);
-      p.add(resetKey);
+      p.add(resetKey.getControls());
 
       box = Box.createVerticalBox();
       alwaysActive.addItemListener
@@ -496,13 +566,13 @@ public class Embellishment extends Decorator implements EditablePiece {
             public void itemStateChanged(ItemEvent evt) {
               if (alwaysActive.isSelected()) {
                 activateCommand.setText("");
-                activateKeyInput.setKey("");
+                activateKeyInput.setText("");
                 activateCommand.setEnabled(false);
                 activateKeyInput.setEnabled(false);
               }
               else {
                 activateCommand.setText("Activate");
-                activateKeyInput.setKey("A");
+                activateKeyInput.setText("A");
                 activateCommand.setEnabled(true);
                 activateKeyInput.setEnabled(true);
               }
@@ -567,8 +637,8 @@ public class Embellishment extends Decorator implements EditablePiece {
       JButton b = new JButton("Add Level");
       b.addActionListener(new ActionListener() {
         public void actionPerformed(ActionEvent evt) {
-          names.addElement(null);
-          isPrefix.addElement(null);
+          names.add(null);
+          isPrefix.add(null);
           images.addEntry();
         }
       });
@@ -578,8 +648,8 @@ public class Embellishment extends Decorator implements EditablePiece {
         public void actionPerformed(ActionEvent evt) {
           int index = images.getList().getSelectedIndex();
           if (index >= 0) {
-            names.removeElementAt(index);
-            isPrefix.removeElementAt(index);
+            names.remove(index);
+            isPrefix.remove(index);
             images.removeEntryAt(index);
           }
         }
@@ -604,9 +674,9 @@ public class Embellishment extends Decorator implements EditablePiece {
         levelNameInput.setText(null);
       }
       else {
-        levelNameInput.setText((String) names.elementAt(index));
-        prefix.setSelected(PREFIX.equals(isPrefix.elementAt(index)));
-        suffix.setSelected(SUFFIX.equals(isPrefix.elementAt(index)));
+        levelNameInput.setText((String) names.get(index));
+        prefix.setSelected(PREFIX.equals(isPrefix.get(index)));
+        suffix.setSelected(SUFFIX.equals(isPrefix.get(index)));
       }
     }
 
@@ -614,20 +684,20 @@ public class Embellishment extends Decorator implements EditablePiece {
       int index = images.getList().getSelectedIndex();
       if (index >= 0) {
         String s = levelNameInput.getText();
-        names.setElementAt(s, index);
+        names.set(index, s);
         if (prefix.isSelected()) {
-          isPrefix.setElementAt(PREFIX, index);
+          isPrefix.set(index, PREFIX);
         }
         else if (suffix.isSelected()) {
-          isPrefix.setElementAt(SUFFIX, index);
+          isPrefix.set(index, SUFFIX);
         }
         else {
-          isPrefix.setElementAt(NEITHER, index);
+          isPrefix.set(index, NEITHER);
         }
       }
       else {
-        names.setElementAt(null, index);
-        isPrefix.setElementAt(NEITHER, index);
+        names.set(index, null);
+        isPrefix.set(index, NEITHER);
       }
     }
 
@@ -636,20 +706,77 @@ public class Embellishment extends Decorator implements EditablePiece {
     }
 
     public String getType() {
+      SequenceEncoder se = new SequenceEncoder(';');
+      List imageNames = new ArrayList();
+      List commonNames = new ArrayList();
+      int i=0;
+      for (Enumeration e = images.getImageNames();
+           e.hasMoreElements();) {
+        imageNames.add(e.nextElement());
+        String commonName = (String) names.get(i);
+        if (commonName != null
+            && commonName.length() > 0) {
+          if (PREFIX.equals(isPrefix.get(i))) {
+            commonName = new SequenceEncoder(commonName, '+').append("").getValue();
+          }
+          else if (SUFFIX.equals(isPrefix.get(i))) {
+            commonName = new SequenceEncoder("", '+').append(commonName).getValue();
+          }
+          else {
+            commonName = new SequenceEncoder(commonName, '+').getValue();
+          }
+        }
+        commonNames.add(commonName);
+        i++;
+      }
+      try {
+        Integer.parseInt(xOffInput.getText());
+      }
+      catch (NumberFormatException xNAN) {
+        xOffInput.setText("0");
+      }
+      try {
+        Integer.parseInt(yOffInput.getText());
+      }
+      catch (NumberFormatException yNAN) {
+        yOffInput.setText("0");
+      }
+
+      se.append(activateCommand.getText())
+          .append(activateModifiers.getValueString())
+          .append(activateKeyInput.getText())
+          .append(upCommand.getText())
+          .append(upModifiers.getValueString())
+          .append(upKeyInput.getText())
+          .append(downCommand.getText())
+          .append(downModifiers.getValueString())
+          .append(downKeyInput.getText())
+          .append(resetCommand.getText())
+          .append((KeyStroke)resetKey.getValue())
+          .append(resetLevel.getText())
+          .append(drawUnderneath.isSelected())
+          .append(xOffInput.getText())
+          .append(yOffInput.getText())
+          .append((String[])imageNames.toArray(new String[imageNames.size()]))
+          .append((String[])commonNames.toArray(new String[commonNames.size()]));
+      return ID + se.getValue();
+
+    }
+    public String oldgetType() {
       SequenceEncoder imageList = new SequenceEncoder(';');
       int i = 0;
       for (Enumeration e = images.getImageNames();
            e.hasMoreElements();) {
         String imageName = (String) e.nextElement();
-        String commonName = (String) names.elementAt(i);
-        if (names.elementAt(i) != null
+        String commonName = (String) names.get(i);
+        if (names.get(i) != null
             && commonName != null
             && commonName.length() > 0) {
           SequenceEncoder sub = new SequenceEncoder(imageName, ',');
-          if (PREFIX.equals(isPrefix.elementAt(i))) {
+          if (PREFIX.equals(isPrefix.get(i))) {
             commonName = new SequenceEncoder(commonName, '+').append("").getValue();
           }
-          else if (SUFFIX.equals(isPrefix.elementAt(i))) {
+          else if (SUFFIX.equals(isPrefix.get(i))) {
             commonName = new SequenceEncoder("", '+').append(commonName).getValue();
           }
           else {
@@ -679,14 +806,14 @@ public class Embellishment extends Decorator implements EditablePiece {
         command = "_" + command;
       }
 
-      SequenceEncoder se2 = new SequenceEncoder(activateKeyInput.getKey(), ';');
-      se2.append(resetCommand.getText()).append(resetKey.getKey()).append(resetLevel.getText());
+      SequenceEncoder se2 = new SequenceEncoder(activateKeyInput.getText(), ';');
+      se2.append(resetCommand.getText()).append((KeyStroke) resetKey.getValue()).append(resetLevel.getText());
       SequenceEncoder se = new SequenceEncoder(null, ';');
       se.append(se2.getValue())
           .append(command)
-          .append(upKeyInput.getKey())
+          .append(upKeyInput.getText())
           .append(upCommand.getText())
-          .append(downKeyInput.getKey())
+          .append(downKeyInput.getText())
           .append(downCommand.getText())
           .append(xOffInput.getText())
           .append(yOffInput.getText());
@@ -706,7 +833,8 @@ public class Embellishment extends Decorator implements EditablePiece {
       for (int i = 0; i < e.commonName.length; ++i) {
         String s = e.commonName[i];
         Integer is = NEITHER;
-        if (s != null) {
+        if (s != null
+          && s.length() > 0) {
           SequenceEncoder.Decoder st = new SequenceEncoder.Decoder(s, '+');
           String first = st.nextToken();
           if (st.hasMoreTokens()) {
@@ -724,8 +852,8 @@ public class Embellishment extends Decorator implements EditablePiece {
             s = first;
           }
         }
-        names.addElement(s);
-        isPrefix.addElement(is);
+        names.add(s);
+        isPrefix.add(is);
       }
 
       alwaysActive.setSelected(e.activateKey.length() == 0);
@@ -733,13 +861,16 @@ public class Embellishment extends Decorator implements EditablePiece {
 
       images.clear();
 
-      activateKeyInput.setKey(e.activateKey);
+      activateKeyInput.setText(e.activateKey);
       activateCommand.setText(e.activateCommand);
-      upKeyInput.setKey(e.upKey);
+      activateModifiers.setValue(new Integer(e.activateModifiers));
+      upKeyInput.setText(e.upKey);
       upCommand.setText(e.upCommand);
-      downKeyInput.setKey(e.downKey);
+      upModifiers.setValue(new Integer(e.upModifiers));
+      downKeyInput.setText(e.downKey);
       downCommand.setText(e.downCommand);
-      resetKey.setKey(e.resetKey != '\0' ? String.valueOf(e.resetKey) : "");
+      downModifiers.setValue(new Integer(e.downModifiers));
+      resetKey.setValue(e.resetKey);
       resetCommand.setText(e.resetCommand);
       resetLevel.setText(String.valueOf(e.resetLevel));
       xOffInput.setText("" + e.xOff);

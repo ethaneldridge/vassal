@@ -51,7 +51,8 @@ public class BasicCommandEncoder implements CommandEncoder, Buildable {
     if (type.startsWith(Immobilized.ID)) {
       return new Immobilized(inner, type);
     }
-    else if (type.startsWith(Embellishment.ID)) {
+    else if (type.startsWith(Embellishment.ID)
+      || type.startsWith(Embellishment.OLD_ID)) {
       return new Embellishment(type, inner);
     }
     else if (type.startsWith(Hideable.ID)) {

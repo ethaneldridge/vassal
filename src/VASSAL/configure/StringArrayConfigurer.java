@@ -152,7 +152,7 @@ public class StringArrayConfigurer extends Configurer {
     }
     SequenceEncoder se = new SequenceEncoder(',');
     for (int i = 0; i < s.length; ++i) {
-      se.append(s[i]);
+      se.append(s[i] != null ? s[i] : "");
     }
     return se.getValue();
   }

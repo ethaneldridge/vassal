@@ -13,7 +13,7 @@
  * Library General Public License for more details.
  *
  * You should have received a copy of the GNU Library General Public
- * License along with this library; if not, copies are available 
+ * License along with this library; if not, copies are available
  * at http://www.opensource.org.
  */
 package VASSAL.configure;
@@ -22,34 +22,38 @@ package VASSAL.configure;
  * A Configurer for Integer values
  */
 public class IntConfigurer extends StringConfigurer {
-    public IntConfigurer(String key, String name) {
-	this(key,name,new Integer(0));
+  public IntConfigurer(String key, String name) {
+    this(key, name, new Integer(0));
+  }
+
+  public IntConfigurer(String key, String name, Integer val) {
+    super(key, name);
+    if (val != null) {
+      setValue(val);
     }
-    public IntConfigurer(String key, String name, Integer val) {
-        super(key,name);
-	if (val != null) {
-	    setValue(val);
-	}
+  }
+
+  public void setValue(String s) {
+    Integer i = null;
+    try {
+      i = Integer.valueOf(s);
     }
-    public void setValue(String s) {
-        Integer i = null;
-        try {
-            i = Integer.valueOf(s);
-        }
-        catch (NumberFormatException e) {
-            i = null;
-        }
-        if (i != null) {
-        setValue(i);
-        }
+    catch (NumberFormatException e) {
+      i = null;
     }
-    public void setValue(Object o) {
-	if (!noUpdate && nameField != null && o != null) {
-	    nameField.setText(o.toString());
-	}
-	super.setValue(o);
+    if (i != null) {
+      setValue(i);
     }
-    public String getValueString() {
-        return value == null ? null : value.toString();
+  }
+
+  public void setValue(Object o) {
+    if (!noUpdate && nameField != null && o != null) {
+      nameField.setText(o.toString());
     }
+    super.setValue(o);
+  }
+
+  public String getValueString() {
+    return value == null ? null : value.toString();
+  }
 }
