@@ -128,7 +128,9 @@ public class PlaceMarker extends Decorator implements EditablePiece {
             p = new Point((int)markerPosition.getX(),(int)markerPosition.getY());
           }
         }
-        p = getMap().snapTo(p);
+        if (!Boolean.TRUE.equals(marker.getProperty(Properties.IGNORE_GRID))) {
+          p = getMap().snapTo(p);
+        }
         c = getMap().placeOrMerge(marker,p);
         KeyBuffer.getBuffer().remove(outer);
         KeyBuffer.getBuffer().add(marker);
