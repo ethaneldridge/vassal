@@ -29,6 +29,7 @@ import VASSAL.build.module.map.boardPicker.BoardSlot;
 import VASSAL.command.Command;
 import VASSAL.command.NullCommand;
 import VASSAL.configure.DirectoryConfigurer;
+import VASSAL.configure.ValidationReport;
 import VASSAL.tools.DataArchive;
 import VASSAL.tools.Sort;
 import org.w3c.dom.Document;
@@ -255,50 +256,6 @@ public class ASLBoardPicker extends BoardPicker
     };
 
     Sort.quicksort(sorted, comp);
-/*
-
-        Vector sorted = new Vector();
-        while (unsorted.size() > 0) {
-            String next = (String) unsorted.elementAt(0);
-            char nextChars[] = next.toCharArray();
-            for (int i = 1; i < unsorted.size(); ++i) {
-                String s = (String) unsorted.elementAt(i);
-                char sChars[] = s.toCharArray();
-                int n = Math.min(nextChars.length, sChars.length);
-                int pos = 0;
-                boolean areNumbers = true;
-                while (n-- != 0) {
-                    areNumbers = areNumbers
-                        && nextChars[pos] <= '9'
-                        && nextChars[pos] >= '0'
-                        && sChars[pos] <= '9'
-                        && sChars[pos] >= '0';
-                    if (nextChars[pos] != sChars[pos]) {
-                        break;
-                    }
-                    pos++;
-                }
-                if (areNumbers) {
-                    if (sChars.length == nextChars.length
-                        && n > 0 && sChars[pos] < nextChars[pos]) {
-                        next = s;
-                        nextChars = sChars;
-                    }
-                    else if (sChars.length < nextChars.length) {
-                        next = s;
-                        nextChars = sChars;
-                    }
-                }
-                else if (n > 0
-                    && sChars[pos] < nextChars[pos]) {
-                    next = s;
-                    nextChars = sChars;
-                }
-            }
-            sorted.addElement(next);
-            unsorted.removeElement(next);
-        }
-*/
 
     possibleBoards.removeAllElements();
     for (int i = 0; i < sorted.size(); ++i) {
@@ -312,6 +269,9 @@ public class ASLBoardPicker extends BoardPicker
 
   public void addBoard(String name) {
     possibleBoards.addElement(name);
+  }
+
+  public void validate(Buildable target, ValidationReport report) {
   }
 
   public String[] getAllowableBoardNames() {

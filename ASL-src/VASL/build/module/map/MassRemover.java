@@ -100,7 +100,6 @@ public class MassRemover implements Buildable {
   }
 
   public void add(Buildable b) {
-    throw new IllegalBuildException("Cannot have children");
   }
 
   public Command removePiecesWithName(String name) {
