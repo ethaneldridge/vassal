@@ -1,56 +1,48 @@
+/*
+ * $Id$
+ *
+ * Copyright (c) 2004 by Michael Blumohr, Rodney Kinney
+ *
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Library General Public
+ * License (LGPL) as published by the Free Software Foundation.
+ *
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Library General Public License for more details.
+ *
+ * You should have received a copy of the GNU Library General Public
+ * License along with this library; if not, copies are available
+ * at http://www.opensource.org.
+ */
 package VASSAL.build.module;
 
 import VASSAL.build.AbstractConfigurable;
-import VASSAL.build.Buildable;
-import VASSAL.build.GameModule;
 import VASSAL.build.AutoConfigurable;
+import VASSAL.build.Buildable;
 import VASSAL.build.module.documentation.HelpFile;
-import VASSAL.tools.FormattedString;
-import VASSAL.configure.ConfigurerFactory;
 import VASSAL.configure.Configurer;
+import VASSAL.configure.ConfigurerFactory;
 import VASSAL.configure.FormattedStringConfigurer;
+import VASSAL.tools.FormattedString;
 
 import java.io.File;
 import java.net.MalformedURLException;
 import java.util.ArrayList;
-import java.util.Enumeration;
 import java.util.List;
+import java.awt.*;
 
 public class SpecialDie extends AbstractConfigurable {
 
   private List dieFaceList = new ArrayList();
-  protected boolean bNumeric = false;
-  private FormattedString format = new FormattedString("$"+RESULT+"$");
+  private FormattedString format = new FormattedString("$" + RESULT + "$");
 
   public static final String NAME = "name";
-  public static final String NUMERIC = "numeric";
   public static final String FORMAT = "format";
   public static final String RESULT = "result";
+  public static final String NUMERICAL_VALUE = "intValue";
 
-
-  /**
-   * Find a SpecialDie below any SpecialDiceButton
-   * @param name
-   * @return the {@link SpecialDie} with the given name
-   */
-  public static SpecialDie findSpecialDie(String name) {
-    for (Enumeration e = GameModule.getGameModule().getComponents(SpecialDie.class); e.hasMoreElements();) {
-      SpecialDie s = (SpecialDie) e.nextElement();
-      if (s.getConfigureName().equals(name)) {
-        return s;
-      }
-    }
-    for (Enumeration e = GameModule.getGameModule().getComponents(SpecialDiceButton.class); e.hasMoreElements();) {
-      SpecialDiceButton b = (SpecialDiceButton) e.nextElement();
-      for (Enumeration e2 = b.getComponents(SpecialDie.class); e2.hasMoreElements();) {
-        SpecialDie s = (SpecialDie) e2.nextElement();
-        if (s.getConfigureName().equals(name)) {
-          return s;
-        }
-      }
-    }
-    return null;
-  }
 
   public void addFace(SpecialDieFace f) {
     dieFaceList.add(f);
@@ -65,21 +57,21 @@ public class SpecialDie extends AbstractConfigurable {
   }
 
   public String[] getAttributeDescriptions() {
-    return new String[]{"Name", "is numeric?","Results format"};
+    return new String[]{"Name", "Results format"};
   }
 
   public Class[] getAttributeTypes() {
-    return new Class[]{String.class, Boolean.class, ResultFormatConfig.class};
+    return new Class[]{String.class, ResultFormatConfig.class};
   }
 
   public static class ResultFormatConfig implements ConfigurerFactory {
     public Configurer getConfigurer(AutoConfigurable c, String key, String name) {
-      return new FormattedStringConfigurer(key, name, new String[]{NAME,RESULT});
+      return new FormattedStringConfigurer(key, name, new String[]{NAME, RESULT, NUMERICAL_VALUE});
     }
   }
 
   public String[] getAttributeNames() {
-    String s[] = {NAME, NUMERIC,FORMAT};
+    String s[] = {NAME, FORMAT};
     return s;
   }
 
@@ -87,25 +79,14 @@ public class SpecialDie extends AbstractConfigurable {
     if (NAME.equals(key)) {
       setConfigureName((String) o);
     }
-    else if (NUMERIC.equals(key)) {
-      if (o instanceof Boolean) {
-        bNumeric = ((Boolean) o).booleanValue();
-      }
-      else if (o instanceof String) {
-        bNumeric = "true".equals(o);
-      }
-    }
     else if (FORMAT.equals(key)) {
-      format.setFormat((String)o);
+      format.setFormat((String) o);
     }
   }
 
   public String getAttributeValueString(String key) {
     if (NAME.equals(key)) {
       return getConfigureName();
-    }
-    else if (NUMERIC.equals(key)) {
-      return "" + bNumeric;
     }
     else if (FORMAT.equals(key)) {
       return format.getFormat();
@@ -131,55 +112,33 @@ public class SpecialDie extends AbstractConfigurable {
   }
 
   public void addTo(Buildable parent) {
+    ((SpecialDiceButton) parent).addSpecialDie(this);
   }
 
   public void removeFrom(Buildable parent) {
+    ((SpecialDiceButton) parent).removeSpecialDie(this);
   }
 
-  public boolean isNumeric() {
-    return bNumeric;
-  }
-
-  // look if all faces has an image stored
-  public boolean hasImages() {
-    for (int ii = 0; ii < dieFaceList.size(); ii++) {
-      if (null == ((SpecialDieFace) dieFaceList.get(ii)).getAttributeValueString(SpecialDieFace.ICON))
-        return false;
-    }
-    return true;
-  }
-
-  public int getSides() {
+  /** Return the number of faces on this die */
+  public int getFaceCount() {
     return dieFaceList.size();
   }
 
-  public String getStrVal(int pRoll) {
-    if (pRoll > 0 && pRoll <= dieFaceList.size()) {
-      SpecialDieFace aFace = (SpecialDieFace) dieFaceList.get(pRoll - 1);
-      format.setProperty(NAME,getConfigureName());
-      format.setProperty(RESULT,aFace.strValue);
-      return format.getText();
-    }
-    else
-      return null;
+  public String getTextValue(int face) {
+    SpecialDieFace aFace = (SpecialDieFace) dieFaceList.get(face);
+    format.setProperty(NAME, getConfigureName());
+    format.setProperty(RESULT, aFace.getTextValue());
+    format.setProperty(NUMERICAL_VALUE, aFace.getIntValue()+"");
+    return format.getText();
   }
 
-  public int getIntVal(int pRoll) {
-    if (bNumeric && pRoll > 0 && pRoll <= dieFaceList.size()) {
-      SpecialDieFace aFace = (SpecialDieFace) dieFaceList.get(pRoll - 1);
-      return Integer.parseInt(aFace.strValue);
-    }
-    else
-      return pRoll;
+  public int getIntValue(int face) {
+    SpecialDieFace aFace = (SpecialDieFace) dieFaceList.get(face);
+    return aFace.getIntValue();
   }
 
-  public String getImageName(int pRoll) {
-    if (pRoll > 0 && pRoll <= dieFaceList.size()) {
-      SpecialDieFace aFace = (SpecialDieFace) dieFaceList.get(pRoll - 1);
-      return aFace.getAttributeValueString(SpecialDieFace.ICON);
-    }
-    else
-      return null;
+  public String getImageName(int face) {
+    SpecialDieFace aFace = (SpecialDieFace) dieFaceList.get(face);
+    return aFace.getImageName();
   }
-
 }

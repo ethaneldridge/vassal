@@ -1,7 +1,7 @@
 /*
  * $Id$
  *
- * Copyright (c) 2004 by Michael Blumohr
+ * Copyright (c) 2004 by Michael Blumohr, Rodney Kinney
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Library General Public
@@ -32,9 +32,12 @@ import java.awt.*;
 import java.awt.Component;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.HierarchyListener;
+import java.awt.event.HierarchyEvent;
 import java.io.*;
 import java.net.MalformedURLException;
 import java.util.*;
+import java.util.List;
 
 
 /**
@@ -43,49 +46,59 @@ import java.util.*;
 public class SpecialDiceButton extends AbstractConfigurable implements CommandEncoder, UniqueIdManager.Identifyable {
   private static UniqueIdManager idMgr = new UniqueIdManager("SpecialDiceButton");
 
+  private List dice = new ArrayList();
   protected java.util.Random ran;
-  protected boolean bNumeric = false;
-  protected boolean bResultToChatter = true;
-  protected boolean bResultInWindow = false;
-  protected boolean bResultInButton = false;
-  protected int nWinX = 100;
-  protected int nWinY = 100;
+  protected boolean reportResultAsText = true;
+  protected boolean reportResultInWindow = false;
+  protected boolean reportResultInButton = false;
   private LaunchButton launch;
   protected String id;
   protected String sMapName;
 
-  private Dice[] oaDice;  // DiceSet as objects
-  private SpecialDiceDialog oDialog = null; // Dialog to show results graphical
+  private JDialog dialog; // Dialog to show results graphical
+  private JLabel dialogLabel;
+  private Color bgColor;
+  private ResultsIcon resultsIcon = new ResultsIcon();
 
-  private FormattedString format = new FormattedString("** $"+NAME+"$ = [$result1$] *** <$"+PLAYER_NAME+"$>");
+  private FormattedString format = new FormattedString();
+  private String chatResultFormat = "** $" + NAME + "$ = [$result1$] *** <$" + PLAYER_NAME + "$>";
+  private String windowTitleResultFormat = "$" + NAME + "$";
 
   public static final String BUTTON_TEXT = "text";
   public static final String NAME = "name";
   public static final String ICON = "icon";
-  public static final String NUMERIC = "numeric";
   public static final String RESULT_CHATTER = "resultChatter";
-  public static final String FORMAT = "format";
+  public static final String CHAT_RESULT_FORMAT = "format";
   public static final String RESULT_N = "result#";
   public static final String RESULT_TOTAL = "numericalTotal";
   public static final String PLAYER_NAME = "playerName";
   public static final String PLAYER_SIDE = "playerSide";
   public static final String RESULT_WINDOW = "resultWindow";
+  public static final String WINDOW_TITLE_RESULT_FORMAT = "windowTitleResultFormat";
   public static final String RESULT_BUTTON = "resultButton";
   public static final String WINDOW_X = "windowX";
   public static final String WINDOW_Y = "windowY";
+  public static final String BACKGROUND_COLOR = "backgroundColor";
   public static final String DICE_SET = "diceSet";
   public static final String HOTKEY = "hotkey";
   public static final String NONE = "<none>";
 
   private static final int[] EMPTY = new int[0];
+  private Icon defaultIcon;
 
   public SpecialDiceButton() {
+    dialog = new JDialog(GameModule.getGameModule().getFrame());
+    dialogLabel = new JLabel();
+    dialogLabel.setIcon(resultsIcon);
+    dialog.getContentPane().add(dialogLabel);
+
     ActionListener rollAction = new ActionListener() {
       public void actionPerformed(ActionEvent e) {
         DR();
       }
     };
     launch = new LaunchButton(null, BUTTON_TEXT, HOTKEY, ICON, rollAction);
+    defaultIcon = launch.getIcon();
     setAttribute(NAME, "Symbols");
     setAttribute(BUTTON_TEXT, "Sym");
   }
@@ -116,67 +129,50 @@ public class SpecialDiceButton extends AbstractConfigurable implements CommandEn
    * additionally a command for every die is generated
    */
   protected void DR() {
-    GameModule theModule = GameModule.getGameModule();
-    format.setProperty(PLAYER_NAME,(String) GameModule.getGameModule().getPrefs().getValue(GameModule.REAL_NAME));
-    format.setProperty(PLAYER_SIDE,PlayerRoster.getMySide());
-    format.setProperty(NAME,getConfigureName());
-    int nTotal = 0;
-    int nVal = 0;
-
-    Command c = new NullCommand();
-
-    for (int ii = 0; ii < oaDice.length; ++ii) {
-      int[] rolls = new int[oaDice[ii].number];
-
-      // get the results of all rolls of this die
-      for (int jj = 0; jj < oaDice[ii].number; ++jj) {
-        rolls[jj] = (int) (ran.nextFloat() * oaDice[ii].sides + 1);
-      }
-
-      oaDice[ii].iaLastRolls = rolls;
-
-      for (int jj = 0; jj < oaDice[ii].number; ++jj) {
-        nVal = oaDice[ii].getIntVal(rolls[jj]);
-
-        // report single rolls to chatter
-        if (bResultToChatter) {
-          format.setProperty("result"+(ii+1),oaDice[ii].getStrVal(rolls[jj]));
-        }
-        if (bNumeric) {
-          nTotal += nVal;
-        }
-      }
-      // generate command to show dice for other players
-      c.append(new RollSpecialDice(this, id, ii,
-                                   oaDice[ii].number,
-                                   oaDice[ii].name,
-                                   oaDice[ii].mod,
-                                   rolls));
-      if (bNumeric)
-        nTotal += oaDice[ii].mod;
+    int[] results = new int[dice.size()];
+    int i = 0;
+    for (Iterator it = dice.iterator(); it.hasNext();) {
+      results[i++] = ran.nextInt(((SpecialDie) it.next()).getFaceCount());
     }
+    Command c = reportResults(results);
+    GameModule.getGameModule().sendAndLog(c);
+  }
 
-    format.setProperty(RESULT_TOTAL,""+nTotal);
+  private Command reportResults(int[] results) {
+    format.setProperty(PLAYER_NAME, (String) GameModule.getGameModule().getPrefs().getValue(GameModule.REAL_NAME));
+    format.setProperty(PLAYER_SIDE, PlayerRoster.getMySide());
+    format.setProperty(NAME, getConfigureName());
 
-    // if numeric total can be reported
-    if (bNumeric) {
-      c.append(new RollSpecialDice(this, id, -1,
-                                   0, "#total", nTotal, null));
+    int total = 0;
+    for (int i = 0; i < dice.size(); ++i) {
+      SpecialDie die = (SpecialDie) dice.get(i);
+      format.setProperty("result" + (i + 1), die.getTextValue(results[i]));
+      total += die.getIntValue(results[i]);
     }
-
-    if (bResultToChatter) {
+    format.setProperty(RESULT_TOTAL, "" + total);
+    resultsIcon.setResults(results);
+    if (reportResultAsText) {
+      format.setFormat(chatResultFormat);
       String msg = format.getText();
       if (msg.startsWith("*")) {
-        msg = "*"+msg;
+        msg = "*" + msg;
       }
       else {
-        msg = "* "+msg;
+        msg = "* " + msg;
       }
-      c.append(new Chatter.DisplayText(theModule.getChatter(), msg));
+      GameModule.getGameModule().getChatter().show(msg);
     }
 
-    c.execute();
-    theModule.sendAndLog(c);
+    if (reportResultInWindow) {
+      dialog.setVisible(true);
+      format.setFormat(windowTitleResultFormat);
+      dialog.setTitle(format.getText());
+      dialogLabel.repaint();
+    }
+    if (reportResultInButton) {
+      launch.repaint();
+    }
+    return new ShowResults(this, results);
   }
 
   /**
@@ -203,8 +199,9 @@ public class SpecialDiceButton extends AbstractConfigurable implements CommandEn
    */
   public String[] getAttributeNames() {
     String s[] = {NAME, BUTTON_TEXT, ICON, HOTKEY,
-                  NUMERIC, RESULT_CHATTER, FORMAT, RESULT_BUTTON,
-                  RESULT_WINDOW, WINDOW_X, WINDOW_Y};
+                  RESULT_CHATTER, CHAT_RESULT_FORMAT,
+                  RESULT_WINDOW, WINDOW_TITLE_RESULT_FORMAT,
+                  RESULT_BUTTON, WINDOW_X, WINDOW_Y, BACKGROUND_COLOR};
     return s;
   }
 
@@ -213,13 +210,29 @@ public class SpecialDiceButton extends AbstractConfigurable implements CommandEn
                         "Button text",
                         "Button icon",
                         "Hotkey",
-                        "Numeric values",
                         "Report results as text",
                         "Report format",
-                        "Show result in button",
                         "Show result in window",
+                        "Window title format",
+                        "Show result in button",
                         "Width",
-                        "Heidght"};
+                        "Heidght",
+      "Background color"};
+  }
+
+  public Class[] getAttributeTypes() {
+    return new Class[]{String.class,
+                       String.class,
+                       IconConfig.class,
+                       KeyStroke.class,
+                       Boolean.class,
+                       ReportFormatConfig.class,
+                       Boolean.class,
+                       ReportFormatConfig.class,
+                       Boolean.class,
+                       Integer.class,
+                       Integer.class,
+      Color.class};
   }
 
   public static class IconConfig implements ConfigurerFactory {
@@ -230,37 +243,32 @@ public class SpecialDiceButton extends AbstractConfigurable implements CommandEn
 
   public static class ReportFormatConfig implements ConfigurerFactory {
     public Configurer getConfigurer(AutoConfigurable c, String key, String name) {
-      return new FormattedStringConfigurer(key, name, new String[]{NAME,RESULT_N,RESULT_TOTAL,PLAYER_NAME,PLAYER_SIDE});
+      return new FormattedStringConfigurer(key, name, new String[]{NAME, RESULT_N, RESULT_TOTAL, PLAYER_NAME, PLAYER_SIDE});
     }
-  }
-
-  public Class[] getAttributeTypes() {
-    return new Class[]{String.class,
-                       String.class,
-                       IconConfig.class,
-                       KeyStroke.class,
-                       Boolean.class,
-                       Boolean.class,
-                       ReportFormatConfig.class,
-                       Boolean.class,
-                       Boolean.class,
-                       Integer.class,
-                       Integer.class};
   }
 
   public VisibilityCondition getAttributeVisibility(String name) {
 // get size only when output in window or on button
-    if (WINDOW_X.equals(name) || WINDOW_Y.equals(name)) {
+    if (WINDOW_X.equals(name)
+          || WINDOW_Y.equals(name)
+      || BACKGROUND_COLOR.equals(name)) {
       return new VisibilityCondition() {
         public boolean shouldBeVisible() {
-          return bResultInWindow || bResultInButton;
+          return reportResultInWindow || reportResultInButton;
         }
       };
     }
-    else if (FORMAT.equals(name)) {
+    else if (CHAT_RESULT_FORMAT.equals(name)) {
       return new VisibilityCondition() {
         public boolean shouldBeVisible() {
-          return bResultToChatter;
+          return reportResultAsText;
+        }
+      };
+    }
+    else if (WINDOW_TITLE_RESULT_FORMAT.equals(name)) {
+      return new VisibilityCondition() {
+        public boolean shouldBeVisible() {
+          return reportResultInWindow;
         }
       };
     }
@@ -268,14 +276,12 @@ public class SpecialDiceButton extends AbstractConfigurable implements CommandEn
       return null;
   }
 
-  public void remove(Buildable b) {
-    super.remove(b);
-    init();
+  public void addSpecialDie(SpecialDie d) {
+    dice.add(d);
   }
 
-  public void add(Buildable b) {
-    super.add(b);
-    init();
+  public void removeSpecialDie(SpecialDie d) {
+    dice.remove(d);
   }
 
   /**
@@ -283,6 +289,18 @@ public class SpecialDiceButton extends AbstractConfigurable implements CommandEn
    * control window's toolbar and registers itself as a {@link
    * KeyStrokeListener} */
   public void addTo(Buildable parent) {
+    resultsIcon.setResults(new int[dice.size()]);
+
+    launch.addHierarchyListener(new HierarchyListener() {
+      public void hierarchyChanged(HierarchyEvent e) {
+        if (launch.isShowing()) {
+          dialog.setLocationRelativeTo(launch);
+          launch.removeHierarchyListener(this);
+        }
+      }
+    });
+
+
     GameModule mod = GameModule.getGameModule();
     ran = mod.getRNG();
 
@@ -311,37 +329,6 @@ public class SpecialDiceButton extends AbstractConfigurable implements CommandEn
   }
 
   /**
-   * create a dialog for the graphic output of dice
-   */
-  private void createDialog() {
-    if (oDialog == null) {
-      oDialog = new SpecialDiceDialog();
-    }
-  }
-
-  /**
-   *
-   * @param id
-   * @return the {@link SpecialDiceButton} with the given id
-   */
-  public static SpecialDiceButton findSpecialDiceButton(String id) {
-    for (Enumeration e = GameModule.getGameModule().getComponents(SpecialDiceButton.class); e.hasMoreElements();) {
-      SpecialDiceButton s = (SpecialDiceButton) e.nextElement();
-      if (s.getId().equals(id)) {
-        return s;
-      }
-    }
-    return null;
-  }
-
-  /**
-   * The component to be added to the control window toolbar
-   */
-  protected java.awt.Component getComponent() {
-    return launch;
-  }
-
-  /**
    * get boolean value of object
    * @param o object as input for setAttribute()
    * @return  boolean value of object
@@ -363,42 +350,46 @@ public class SpecialDiceButton extends AbstractConfigurable implements CommandEn
       setConfigureName((String) o);
       launch.setToolTipText((String) o);
     }
-    else if (NUMERIC.equals(key)) {
-      bNumeric = getBoolVal(o);
-    }
     else if (RESULT_CHATTER.equals(key)) {
-      bResultToChatter = getBoolVal(o);
+      reportResultAsText = getBoolVal(o);
     }
-    else if (FORMAT.equals(key)) {
-      format.setFormat((String)o);
+    else if (CHAT_RESULT_FORMAT.equals(key)) {
+      chatResultFormat = (String) o;
     }
     else if (RESULT_BUTTON.equals(key)) {
-      bResultInButton = getBoolVal(o);
-      if (bResultInButton) {
-        launch.setIcon(null);
+      reportResultInButton = getBoolVal(o);
+      if (reportResultInButton) {
+        launch.setIcon(resultsIcon);
       }
       else {
-        launch.setAttribute(ICON,getAttributeValueString(ICON));
+        launch.setIcon(defaultIcon);
       }
     }
     else if (RESULT_WINDOW.equals(key)) {
-      bResultInWindow = getBoolVal(o);
+      reportResultInWindow = getBoolVal(o);
+    }
+    else if (WINDOW_TITLE_RESULT_FORMAT.equals(key)) {
+      windowTitleResultFormat = (String) o;
     }
     else if (WINDOW_X.equals(key)) {
-      if (o instanceof Integer) {
-        nWinX = ((Integer) o).intValue();
+      if (o instanceof String) {
+        o = Integer.valueOf((String) o);
       }
-      else if (o instanceof String) {
-        nWinX = Integer.parseInt((String) o);
-      }
+      resultsIcon.width = ((Integer) o).intValue();
+      dialog.pack();
     }
     else if (WINDOW_Y.equals(key)) {
-      if (o instanceof Integer) {
-        nWinY = ((Integer) o).intValue();
+      if (o instanceof String) {
+        o = Integer.valueOf((String) o);
       }
-      else if (o instanceof String) {
-        nWinY = Integer.parseInt((String) o);
+      resultsIcon.height = ((Integer) o).intValue();
+      dialog.pack();
+    }
+    else if (BACKGROUND_COLOR.equals(key)) {
+      if (o instanceof String) {
+        o = ColorConfigurer.stringToColor((String) o);
       }
+      bgColor = (Color) o;
     }
     else {
       launch.setAttribute(key, o);
@@ -409,26 +400,29 @@ public class SpecialDiceButton extends AbstractConfigurable implements CommandEn
     if (NAME.equals(key)) {
       return getConfigureName();
     }
-    else if (NUMERIC.equals(key)) {
-      return "" + bNumeric;
-    }
     else if (RESULT_CHATTER.equals(key)) {
-      return "" + bResultToChatter;
+      return "" + reportResultAsText;
     }
-    else if (FORMAT.equals(key)) {
-      return format.getFormat();
+    else if (CHAT_RESULT_FORMAT.equals(key)) {
+      return chatResultFormat;
     }
     else if (RESULT_BUTTON.equals(key)) {
-      return "" + bResultInButton;
+      return "" + reportResultInButton;
     }
     else if (RESULT_WINDOW.equals(key)) {
-      return "" + bResultInWindow;
+      return "" + reportResultInWindow;
+    }
+    else if (WINDOW_TITLE_RESULT_FORMAT.equals(key)) {
+      return windowTitleResultFormat;
     }
     else if (WINDOW_X.equals(key)) {
-      return "" + nWinX;
+      return "" + resultsIcon.width;
     }
     else if (WINDOW_Y.equals(key)) {
-      return "" + nWinY;
+      return "" + resultsIcon.height;
+    }
+    else if (BACKGROUND_COLOR.equals(key)) {
+      return ColorConfigurer.colorToString(bgColor);
     }
     else {
       return launch.getAttributeValueString(key);
@@ -449,17 +443,6 @@ public class SpecialDiceButton extends AbstractConfigurable implements CommandEn
     catch (MalformedURLException ex) {
       return null;
     }
-  }
-
-  /**
-   * initialize dice roller
-   */
-  private void init() {
-    ArrayList l = new ArrayList();
-    for (Enumeration e = getComponents(SpecialDie.class); e.hasMoreElements();) {
-      l.add(new Dice((SpecialDie) e.nextElement()));
-    }
-    oaDice = (Dice[]) l.toArray(new Dice[l.size()]);
   }
 
   /**
@@ -502,15 +485,12 @@ public class SpecialDiceButton extends AbstractConfigurable implements CommandEn
 
 
   public String encode(Command c) {
-    if (c instanceof RollSpecialDice) {
-      RollSpecialDice c2 = (RollSpecialDice) c;
-      SequenceEncoder se = new SequenceEncoder(c2.sButtonId, '\t');
-      se.append(id);
-      se.append(String.valueOf(c2.nRollNo));
-      se.append(name);
-      se.append(String.valueOf(c2.nNumber));
-      se.append(String.valueOf(c2.nMod));
-      se.append(intArrayToString(c2.getRolls()));
+    if (c instanceof ShowResults) {
+      ShowResults c2 = (ShowResults) c;
+      SequenceEncoder se = new SequenceEncoder(c2.target.getId(), '\t');
+      for (int i = 0; i < c2.rolls.length; ++i) {
+        se.append(c2.rolls[i] + "");
+      }
       return se.getValue();
     }
     else {
@@ -522,14 +502,16 @@ public class SpecialDiceButton extends AbstractConfigurable implements CommandEn
     if (s.startsWith(getId() + '\t')) {
       SequenceEncoder.Decoder st = new SequenceEncoder.Decoder(s, '\t');
       st.nextToken();
-      String contentsId = st.nextToken();
-      int nRollNo = Integer.parseInt(st.nextToken());
-      String name = st.nextToken();
-      int nNumber = Integer.parseInt(st.nextToken());
-      int nMod = Integer.parseInt(st.nextToken());
-      return new RollSpecialDice(this, contentsId, nRollNo, nNumber,
-                                 name, nMod,
-                                 stringToIntArray(st.nextToken()));
+      List l = new ArrayList();
+      while (st.hasMoreTokens()) {
+        l.add(st.nextToken());
+      }
+      int[] results = new int[l.size()];
+      int i = 0;
+      for (Iterator iterator = l.iterator(); iterator.hasNext();) {
+        results[i++] = Integer.parseInt((String) iterator.next());
+      }
+      return new ShowResults(this, results);
     }
     else {
       return null;
@@ -537,258 +519,71 @@ public class SpecialDiceButton extends AbstractConfigurable implements CommandEn
   }
 
   /**
-   * Command for rolling dice from a dice set
+   * Command for displaying the results of a roll of the dice
    */
-  public static class RollSpecialDice extends Command {
+  public static class ShowResults extends Command {
     private SpecialDiceButton target;
-    private String sButtonId;  // id of button
-    private int nRollNo;       // counts rolls beginning with 0
-    private int[] rolls;       // random numbers (not int values!)
-    private String name;       // name of die
-    private int nNumber;       // number of dice rolled
-    private int nMod;          // modifier
+    private int[] rolls;
 
-//	+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-
-    private class SpecialDiceIcon implements Icon {
-      private int nWidth, nHeight;
-      private Dice[] oDice;
-      private Component oObserver;
-
-      public SpecialDiceIcon(Dice[] oDice, int nWidth, int nHeight) {
-        this.nHeight = nHeight;
-        this.nWidth = nWidth;
-        this.oDice = oDice;
-      }
-
-      public void paintIcon(Component c, Graphics g, int x, int y) {
-        GameModule theModule = GameModule.getGameModule();
-        g.setColor(c.getBackground());
-        g.clearRect(0, 0, nWidth, nHeight);
-        int offset = 2;
-        for (int n = 0; n < oDice.length; ++n) {
-          for (int ii = 0; ii < oDice[n].iaLastRolls.length; ii++) {
-            String strImage = oDice[n].theDie.getImageName(oDice[n].iaLastRolls[ii]);
-            try {
-              ImageIcon aImageIcon = new ImageIcon(theModule.getDataArchive().getCachedImage(strImage));
-              Image aImage = aImageIcon.getImage();
-              g.drawImage(aImage, offset, 2, oObserver);
-              offset += aImage.getWidth(oObserver) + 5;
-            }
-            catch (IOException e) {
-              System.err.println("Unable to locate image " + strImage);
-            }
-          }
-        }
-      }
-
-      public void setImageObserver(Component c) {
-        oObserver = c;
-      }
-
-      public int getIconWidth() {
-        return nWidth;
-      }
-
-      public int getIconHeight() {
-        return nHeight;
-      }
-
-    }  // end class SpecialDiceIcon
-
-
-    public RollSpecialDice(SpecialDiceButton oTarget, String pId, int pRollNo, int pNumber, String pName, int pMod, int[] pRolls) {
+    public ShowResults(SpecialDiceButton oTarget, int[] results) {
       target = oTarget;
-      sButtonId = pId;
-      nRollNo = pRollNo;
-      nNumber = pNumber;
-      name = pName;
-      nMod = pMod;
-      rolls = pRolls;
+      rolls = new int[results.length];
+      System.arraycopy(results, 0, rolls, 0, results.length);
     }
 
     protected void executeCommand() {
-      int ii;
-
-      if (target == null) {
-        target = SpecialDiceButton.findSpecialDiceButton(sButtonId);
-      }
-      target.createDialog();
-
-      // remove old dice symbols
-      if (target.bResultInWindow && nRollNo == 0) {
-        target.oDialog.removeAll();
-      }
-
-      // special commands: show total sum in title
-      if (target.bResultInWindow && nRollNo == -1) {
-        String s = target.getConfigureName() + ": " + String.valueOf(nMod);
-        target.oDialog.setTitle(s);
-      }
-
-      // output graphical
-      else if ((target.bResultInWindow || target.bResultInButton) &&
-          rolls != null && rolls.length > 0) {
-
-        GameModule theModule = GameModule.getGameModule();
-
-        SpecialDie theDie = target.oaDice[nRollNo].theDie;
-        target.oaDice[nRollNo].iaLastRolls = rolls;
-
-        if (theDie != null && theDie.hasImages() &&
-            target.bResultInButton) {
-          target.launch.removeAll();
-          SpecialDiceIcon anIcon = new SpecialDiceIcon(target.oaDice, target.nWinX, target.nWinY);
-          anIcon.setImageObserver(target.launch);
-          JLabel label = new JLabel(anIcon);
-          target.launch.add(label);
-          target.launch.repaint();
-          target.launch.revalidate();
-        }
-
-        if (target.bResultInWindow) {
-          for (ii = 0; ii < rolls.length; ii++) {
-            // get symbol from resource
-            if (theDie != null && theDie.hasImages()) {
-              String strImage = theDie.getImageName(rolls[ii]);
-              try {
-                ImageIcon aImage = new ImageIcon(theModule.getDataArchive().getCachedImage(strImage));
-                JLabel label = new JLabel(aImage);
-                target.oDialog.addL(label);
-              }
-              catch (IOException e) {
-                System.err.println("Unable to locate image " + strImage);
-              }
-            }
-            else {
-              JLabel label = new JLabel();
-              if (theDie != null) {
-                label.setText(theDie.getStrVal(rolls[ii]));
-              }
-              else {
-                label.setText(String.valueOf(rolls[ii]));
-              }
-              target.oDialog.addL(label);
-            }
-          }
-          target.oDialog.showDialog();
-        }
-      }
+      target.reportResults(rolls);
     }
 
     protected Command myUndoCommand() {
       return null;
     }
-
-    public int[] getRolls() {
-      return rolls;
-    }
   }
 
+  /** Icon class for graphical display of a dice roll */
+  private class ResultsIcon implements Icon {
+    private int width, height;
+    private Icon[] icons;
 
-//++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-
-  private class Dice {
-    public int number;  // number of rolls
-    public String name; // Name of SpecialDie
-    public int mod;     // Modifier added after all rolls
-    public int[] iaLastRolls; // last rolls of die
-
-    private int sides;   // number of sides
-    private SpecialDie theDie; // special die used
-
-    public Dice(int pNo, String pName, int pMod) {
-      sides = 0;
-      number = pNo;
-      if (number == 0)
-        number = 1;
-
-      mod = pMod;
-      name = pName;
-
-      // get the number of sides of SpecialDie
-      theDie = SpecialDie.findSpecialDie(name);
-      if (theDie != null)
-        sides = theDie.getSides();
-      iaLastRolls = null;
+    public ResultsIcon() {
     }
 
-    public Dice(SpecialDie die) {
-      theDie = die;
-      sides = theDie.getSides();
-      name = theDie.getConfigureName();
-      number = 1;
-    }
-
-    public String getStrVal(int pRoll) {
-      if (pRoll > 0) {
-        return theDie.getStrVal(pRoll);
-      }
-      else
-        return null;
-    }
-
-
-    public int getIntVal(int pRoll) {
-      if (pRoll > 0) {
-        return theDie.getIntVal(pRoll);
-      }
-      else
-        return 0;
-    }
-
-    public boolean isNumeric() {
-      return theDie.bNumeric;
-    }
-
-  }  // end class Dice
-
-
-//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-
-  private class SpecialDiceDialog extends JDialog {
-    private JPanel m_oPanel;
-    private ScrollPane m_oScrollPane;
-
-    /**
-     * create a dialog for the graphic output of dice
-     */
-    public SpecialDiceDialog() {
-      super(GameModule.getGameModule().getFrame());
-      setTitle(getConfigureName());
-      m_oScrollPane = new ScrollPane(ScrollPane.SCROLLBARS_AS_NEEDED);
-      setContentPane(m_oScrollPane);
-      m_oPanel = new JPanel();
-      Dimension oSize = new Dimension(nWinX, nWinY);
-      m_oPanel.setPreferredSize(oSize);
-      m_oScrollPane.setSize(nWinX + 20, nWinY + 20);
-      m_oScrollPane.add(m_oPanel);
-    }
-
-    public void centerDialog() {
-      if (getX() < 2) {
-        Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
-        Dimension windowSize = getSize();
-        setLocation(Math.max(0, (screenSize.width - windowSize.width) / 2),
-                    Math.max(0, (screenSize.height - windowSize.height) / 2));
+    private void setResults(int[] results) {
+      icons = new Icon[results.length];
+      for (int i = 0; i < results.length; ++i) {
+        String imageName = ((SpecialDie) dice.get(i)).getImageName(results[i]);
+        try {
+          Image aImage = GameModule.getGameModule().getDataArchive().getCachedImage(imageName);
+          icons[i] = new ImageIcon(aImage);
+        }
+        catch (IOException e) {
+          System.err.println("Unable to locate image " + imageName);
+        }
       }
     }
 
-    public void showDialog() {
-      validate();
-      pack();
-      centerDialog();
-      setVisible(true);
+    public void paintIcon(Component c, Graphics g, int x, int y) {
+      if (bgColor != null) {
+        g.setColor(bgColor);
+        g.fillRect(x, y, width, height);
+      }
+      int offset = 0;
+      for (int i = 0; i < icons.length; ++i) {
+        if (icons[i] != null) {
+          icons[i].paintIcon(c,g,x+offset,y);
+          offset += icons[i].getIconWidth();
+        }
+      }
     }
 
-    public void removeAll() {
-      m_oPanel.removeAll();
+    public int getIconWidth() {
+      return width;
     }
 
-    public Component addL(Component arg0) {
-      return m_oPanel.add(arg0);
+    public int getIconHeight() {
+      return height;
     }
 
-  }  // end class SpecialDiceDialog
+  }  // end class SpecialDiceIcon
 
 }

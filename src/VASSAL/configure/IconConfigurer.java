@@ -91,14 +91,16 @@ public class IconConfigurer extends Configurer {
         }
       });
       controls.add(reset);
-      JButton useDefault = new JButton("Default");
-      useDefault.addActionListener(new ActionListener() {
-        public void actionPerformed(ActionEvent e) {
-          setValue(defaultImage);
-          p.repaint();
-        }
-      });
-      controls.add(useDefault);
+      if (defaultImage != null) {
+        JButton useDefault = new JButton("Default");
+        useDefault.addActionListener(new ActionListener() {
+          public void actionPerformed(ActionEvent e) {
+            setValue(defaultImage);
+            p.repaint();
+          }
+        });
+        controls.add(useDefault);
+      }
     }
     return controls;
   }
