@@ -25,6 +25,8 @@ import VASSAL.configure.BooleanConfigurer;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.image.BufferedImage;
+import java.awt.geom.AffineTransform;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.io.*;
@@ -33,9 +35,7 @@ import java.security.AllPermission;
 import java.security.CodeSource;
 import java.security.PermissionCollection;
 import java.security.SecureClassLoader;
-import java.util.Enumeration;
-import java.util.Hashtable;
-import java.util.Vector;
+import java.util.*;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 import java.util.zip.ZipInputStream;
@@ -121,26 +121,42 @@ public class DataArchive extends SecureClassLoader {
   }
 
   /**
-   * Return a scaled instance of the image.  Each zoom factory of each image is stored in a cache
+   * Return a scaled instance of the image.
+   * The image will be retrieved from cache if available, cached otherwise
    * @param base
    * @param scale
    * @return
    */
   public Image getScaledImage(Image base, double scale) {
+    return getScaledImage(base,scale, false);
+  }
+  /**
+   * Return a scaled instance of the image, optionally rotated by 180 degrees.
+   * The image will be retrieved from cache if available, cached otherwise
+   * @param base
+   * @param scale
+   * @param reversed
+   * @return
+   */
+  public Image getScaledImage(Image base, double scale, boolean reversed) {
     Dimension d = getImageBounds(base).getSize();
     d.width *= scale;
     d.height *= scale;
-    ScaledCacheKey key = new ScaledCacheKey(base,d);
+    ScaledCacheKey key = new ScaledCacheKey(base, d, reversed);
     Image scaled = (Image) scaledImageCache.get(key);
     if (scaled == null) {
-      scaled = getScaledInstance(base, d);
+      scaled = getScaledInstance(base, d, reversed);
       new ImageIcon(scaled); // Wait for the image to load
       scaledImageCache.put(key,scaled);
     }
     return scaled;
   }
 
-  private Image getScaledInstance(Image im, Dimension size) {
+  private Image getScaledInstance(Image im, Dimension size, boolean reversed) {
+    Dimension fullSize = getImageBounds(im).getSize();
+    if (fullSize.equals(size) && !reversed) {
+      return im;
+    }
     if (smoothPrefs == null) {
       smoothPrefs = (BooleanConfigurer) GameModule.getGameModule().getPrefs().getOption(GlobalOptions.SCALER_ALGORITHM);
       if (smoothPrefs == null) {
@@ -153,7 +169,19 @@ public class DataArchive extends SecureClassLoader {
       });
     }
     int algorithm = Boolean.TRUE.equals(smoothPrefs.getValue()) ? Image.SCALE_AREA_AVERAGING : Image.SCALE_DEFAULT;
-    return im.getScaledInstance(size.width,size.height,algorithm);
+    if (reversed) {
+      BufferedImage rev = new BufferedImage(size.width,size.height, BufferedImage.TYPE_4BYTE_ABGR);
+      Graphics2D g2d = rev.createGraphics();
+      g2d.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR);
+      double zoom = (double)size.width/fullSize.width;
+      AffineTransform t = AffineTransform.getRotateInstance(Math.PI,size.width*.5,size.height*.5);
+      t.scale(zoom,zoom);
+      g2d.drawImage(im,t,null);
+      return rev;
+    }
+    else {
+      return im.getScaledInstance(size.width,size.height,algorithm);
+    }
   }
 
   /**
@@ -205,6 +233,20 @@ public class DataArchive extends SecureClassLoader {
 
   public void unCacheImage(String file) {
     imageCache.remove(IMAGE_DIR + file);
+  }
+
+  public void unCacheImage(Image im) {
+    ArrayList toClear = new ArrayList();
+    for (Iterator iterator = scaledImageCache.keySet().iterator(); iterator.hasNext();) {
+      ScaledCacheKey key = (ScaledCacheKey) iterator.next();
+      if (im.equals(key.base)) {
+        toClear.add(key);
+      }
+    }
+    for (Iterator iterator = toClear.iterator(); iterator.hasNext();) {
+      ScaledCacheKey scaledCacheKey = (ScaledCacheKey) iterator.next();
+      scaledImageCache.remove(scaledCacheKey);
+    }
   }
 
   public static Image getImage(InputStream in) throws IOException {
@@ -523,10 +565,12 @@ public class DataArchive extends SecureClassLoader {
   private static class ScaledCacheKey {
     private Image base;
     private Dimension bounds;
+    private boolean reversed;
 
-    public ScaledCacheKey(Image base, Dimension bounds) {
+    public ScaledCacheKey(Image base, Dimension bounds, boolean reversed) {
       this.bounds = bounds;
       this.base = base;
+      this.reversed = reversed;
     }
 
     public boolean equals(Object o) {
@@ -535,8 +579,9 @@ public class DataArchive extends SecureClassLoader {
 
       final ScaledCacheKey scaledCacheKey = (ScaledCacheKey) o;
 
-      if (!bounds.equals(scaledCacheKey.bounds)) return false;
+      if (reversed != scaledCacheKey.reversed) return false;
       if (!base.equals(scaledCacheKey.base)) return false;
+      if (!bounds.equals(scaledCacheKey.bounds)) return false;
 
       return true;
     }
@@ -545,6 +590,7 @@ public class DataArchive extends SecureClassLoader {
       int result;
       result = base.hashCode();
       result = 29 * result + bounds.hashCode();
+      result = 29 * result + (reversed ? 1 : 0);
       return result;
     }
   }

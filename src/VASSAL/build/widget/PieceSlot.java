@@ -145,13 +145,27 @@ public class PieceSlot extends Widget implements MouseListener, KeyListener {
     if (getPiece() != null) {
       KeyBuffer.getBuffer().add(getPiece());
     }
+
+    panel.requestFocus();
+    panel.repaint();
+
     if (!Info.isDndEnabled()) {
       startDrag();
       panel.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
     }
   }
 
+  // Puts counter in DragBuffer. Call when mouse gesture recognized
   protected void startDrag() {
+    
+    // Recenter piece; panel may have been resized at some point resulting
+    // in pieces with inaccurate positional information. 
+    getPiece().setPosition( new Point( panel.getSize().width / 2, panel.getSize().height / 2 ));
+    
+    // Erase selection border to avoid leaving selected after mouse dragged out 
+    getPiece().setProperty(Properties.SELECTED, null);
+    panel.repaint();
+    
     if (getPiece() != null) {
       DragBuffer.getBuffer().clear();
       GamePiece newPiece
@@ -184,8 +198,8 @@ public class PieceSlot extends Widget implements MouseListener, KeyListener {
       });
       popup.show(panel, e.getX(), e.getY());
     }
-    panel.requestFocus();
-    panel.repaint();
+    
+    
   }
 
   public void mouseClicked(MouseEvent e) {
@@ -252,28 +266,15 @@ public class PieceSlot extends Widget implements MouseListener, KeyListener {
 
   public void addTo(Buildable parent) {
     if (Info.isDndEnabled()) {
-      DragGestureListener l = new DragGestureListener() {
+      panel.setDropTarget( VASSAL.build.module.map.PieceMover.DragHandler.makeDropTarget( panel, DnDConstants.ACTION_MOVE, null ));
+
+      DragGestureListener dragGestureListener = new DragGestureListener() {
         public void dragGestureRecognized(DragGestureEvent dge) {
           startDrag();
-          dge.startDrag(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR), new StringSelection(""), new DragSourceListener() {
-            public void dragEnter(DragSourceDragEvent dsde) {
-            }
-
-            public void dragOver(DragSourceDragEvent dsde) {
-            }
-
-            public void dropActionChanged(DragSourceDragEvent dsde) {
-            }
-
-            public void dragExit(DragSourceEvent dse) {
-            }
-
-            public void dragDropEnd(DragSourceDropEvent dsde) {
-            }
-          });
+          VASSAL.build.module.map.PieceMover.DragHandler.getTheDragHandler().dragGestureRecognized( dge );
         }
       };
-      DragSource.getDefaultDragSource().createDefaultDragGestureRecognizer(panel, DnDConstants.ACTION_MOVE, l);
+      DragSource.getDefaultDragSource().createDefaultDragGestureRecognizer(panel, DnDConstants.ACTION_MOVE, dragGestureListener );
     }
     else {
       DragBuffer.getBuffer().addDragSource(getComponent());

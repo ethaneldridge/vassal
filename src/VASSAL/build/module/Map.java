@@ -55,7 +55,7 @@ import java.util.Vector;
  * Components which are added directly to a Map are contained in the
  * <code>VASSAL.build.module.map</code> package */
 public class Map extends AbstractConfigurable implements GameComponent,
-    FocusListener, MouseListener, MouseMotionListener,
+    FocusListener, MouseListener, MouseMotionListener, DropTargetListener, // jimu
     Configurable {
   /*
    ** The map consists of the empty board and an array of stacks
@@ -394,7 +394,7 @@ public class Map extends AbstractConfigurable implements GameComponent,
         }
       };
       DragSource.getDefaultDragSource().createDefaultDragGestureRecognizer(theMap, DnDConstants.ACTION_MOVE, dgl);
-      theMap.setDropTarget(new DropTarget(theMap, DnDConstants.ACTION_MOVE, new DT()));
+      theMap.setDropTarget( PieceMover.DragHandler.makeDropTarget( theMap, DnDConstants.ACTION_MOVE, this ));
     }
     else {
       DragBuffer.getBuffer().addDropTarget(theMap, this);
@@ -734,8 +734,10 @@ public class Map extends AbstractConfigurable implements GameComponent,
   }
 
   public void drop(DropTargetDropEvent dtde) {
-    MouseEvent evt = new MouseEvent(theMap, MouseEvent.MOUSE_RELEASED, System.currentTimeMillis(), 0, dtde.getLocation().x, dtde.getLocation().y, 1, false);
-    theMap.dispatchEvent(evt);
+    if ( dtde.getDropTargetContext().getComponent() == theMap ) { 
+      MouseEvent evt = new MouseEvent(theMap, MouseEvent.MOUSE_RELEASED, System.currentTimeMillis(), 0, dtde.getLocation().x, dtde.getLocation().y, 1, false);
+      theMap.dispatchEvent(evt);
+    }
   }
 
   /**
@@ -1492,28 +1494,6 @@ public class Map extends AbstractConfigurable implements GameComponent,
 
     public Map getMap() {
       return map;
-    }
-  }
-
-  private class DT implements DropTargetListener {
-    public void dragEnter(DropTargetDragEvent dtde) {
-      Map.this.dragEnter(dtde);
-    }
-
-    public void dragOver(DropTargetDragEvent dtde) {
-      Map.this.dragOver(dtde);
-    }
-
-    public void dropActionChanged(DropTargetDragEvent dtde) {
-      Map.this.dropActionChanged(dtde);
-    }
-
-    public void dragExit(DropTargetEvent dte) {
-      Map.this.dragExit(dte);
-    }
-
-    public void drop(DropTargetDropEvent dtde) {
-      Map.this.drop(dtde);
     }
   }
 }

@@ -22,14 +22,15 @@ import VASSAL.build.AbstractConfigurable;
 import VASSAL.build.Buildable;
 import VASSAL.build.GameModule;
 import VASSAL.build.IllegalBuildException;
+import VASSAL.build.module.GameComponent;
 import VASSAL.build.module.documentation.HelpFile;
 import VASSAL.build.module.map.BoardPicker;
 import VASSAL.build.module.map.boardPicker.board.HexGrid;
 import VASSAL.build.module.map.boardPicker.board.MapGrid;
 import VASSAL.build.module.map.boardPicker.board.SquareGrid;
+import VASSAL.command.Command;
 import VASSAL.configure.ColorConfigurer;
 import VASSAL.configure.VisibilityCondition;
-import VASSAL.tools.BackgroundTask;
 
 import javax.swing.*;
 import java.awt.*;
@@ -37,7 +38,8 @@ import java.io.File;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.util.Enumeration;
-import java.util.Hashtable;
+import java.util.HashSet;
+import java.util.Iterator;
 
 public class Board extends AbstractConfigurable {
   /**
@@ -60,7 +62,6 @@ public class Board extends AbstractConfigurable {
   protected boolean reversible = false;
   protected boolean reversed = false;
 
-  protected Hashtable scaledCache = new Hashtable();
   private Color color = null;
 
   private MapGrid grid = null;
@@ -252,34 +253,12 @@ public class Board extends AbstractConfigurable {
   }
 
   public synchronized Image getScaledImage(double zoom, Component obs) {
-    Image scaledImage = (Image) scaledCache.get(new Double(zoom));
-    if (scaledImage == null
-        && boardImage != null) {
-      scaledImage = boardImage;
-      if ((zoom != 1.0 || reversed)
-          && boardImage != null) {
-        Dimension d = new Dimension((int) Math.round(zoom * boundaries.width),
-                                    (int) Math.round(zoom * boundaries.height));
-
-        scaledImage = GameModule.getGameModule().getDataArchive().getScaledImage(boardImage, zoom);
-
-        if (reversed) {
-          Image reverseScaled = obs.createImage(d.width, d.height);
-          Graphics g = reverseScaled.getGraphics();
-          g.drawImage(scaledImage, d.width, d.height, 0, 0,
-                      0, 0, d.width, d.height, obs);
-          scaledImage = reverseScaled;
-        }
-      }
-      scaledCache.put(new Double(zoom), scaledImage);
-    }
-    return scaledImage;
+    return GameModule.getGameModule().getDataArchive().getScaledImage(boardImage, zoom, reversed);
   }
 
   public void setReversed(boolean val) {
     if (reversible) {
       reversed = val;
-      scaledCache.clear();
     }
   }
 
@@ -323,8 +302,8 @@ public class Board extends AbstractConfigurable {
   }
 
   public void fixImage(Component map) {
-    scaledCache.clear();
-
+    Cleanup.init();
+    Cleanup.getInstance().addBoard(this);
     if (imageFile == null)
       return;
     try {
@@ -419,6 +398,73 @@ public class Board extends AbstractConfigurable {
     }
     catch (MalformedURLException ex) {
       return null;
+    }
+  }
+
+  /**
+   * Removes board images from the {@link VASSAL.tools.DataArchive} cache
+   */
+  public void cleanUp() {
+    if (imageFile != null) {
+      GameModule.getGameModule().getDataArchive().unCacheImage("images/" + imageFile);
+    }
+    if (boardImage != null) {
+      GameModule.getGameModule().getDataArchive().unCacheImage(boardImage);
+      boardImage = null;
+    }
+  }
+
+  /**
+   * Cleans up {@link Board}s (by invoking {@link Board#cleanUp}) when a game is closed
+   */
+  public static class Cleanup implements GameComponent {
+    private static Cleanup instance;
+
+    private HashSet toClean = new HashSet();
+
+    private boolean gameStarted = false;
+
+    public static void init() {
+      if (instance == null) {
+        instance = new Cleanup();
+      }
+    }
+
+    private Cleanup() {
+      GameModule.getGameModule().getGameState().addGameComponent(this);
+    }
+
+    public static Cleanup getInstance() {
+      return instance;
+    }
+
+    /**
+     * Mark this board as needing to be cleaned up when the game is closed
+     * @param b
+     */
+    public void addBoard(Board b) {
+      toClean.add(b);
+    }
+
+    public Command getRestoreCommand() {
+      return null;
+    }
+
+    public void setup(boolean gameStarting) {
+      if (gameStarted && !gameStarting) {
+        for (Iterator iterator = toClean.iterator(); iterator.hasNext();) {
+          Board board = (Board) iterator.next();
+          board.cleanUp();
+          iterator.remove();
+        }
+      }
+      gameStarted = gameStarting;
+      System.gc();
+      System.err.println("----"+(gameStarting ? "start" : "end")+"----");
+      double oneMeg = 1024*1024;
+      System.err.println("free "+Runtime.getRuntime().freeMemory()/oneMeg);
+      System.err.println("max "+Runtime.getRuntime().maxMemory()/oneMeg);
+      System.err.println("total "+Runtime.getRuntime().totalMemory()/oneMeg);
     }
   }
 }
