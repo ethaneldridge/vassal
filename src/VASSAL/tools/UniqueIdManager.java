@@ -41,6 +41,11 @@ import java.util.Iterator;
  * names and use a {@link VASSAL.configure.ValidityChecker} to ensure that the
  * names are unique.  This class provides some support for using this approach while
  * providing backward compatibility with old saved games and modules.
+ *
+ * Usage:  an {@link Identifyable} instance invokes {@link #add}, typically
+ * during the {@link Buildable#build} method.  Classes can use the {@link #getIdentifier}
+ * method to look up an identifier for that instance, and can use {@link #findInstance}
+ * to look up a component by id.
  */
 public class UniqueIdManager implements ValidityChecker {
   private List instances = new ArrayList();
@@ -66,7 +71,7 @@ public class UniqueIdManager implements ValidityChecker {
   }
 
   /**
-   * Make a best gues for a unique identifier for the target.
+   * Make a best guess for a unique identifier for the target.
    * Use {@link Identifyable#getConfigureName if non-null, otherwise
    * use {@link Identifyable#getId
    * @param target

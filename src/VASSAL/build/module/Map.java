@@ -1625,13 +1625,6 @@ public class Map extends AbstractConfigurable implements GameComponent,
   }
 
   /**
-   * @deprecated see {@link #setId}
-   */
-  public void setID(String id) {
-    setId(id);
-  }
-
-  /**
    * Each Map must have a unique String id
    */
   public void setId(String id) {
@@ -1653,8 +1646,8 @@ public class Map extends AbstractConfigurable implements GameComponent,
 
   /**
    * Make a best gues for a unique identifier for the target.
-   * Use {@link VASSAL.tools.UniqueIdManager.Identifyable#getConfigureName if non-null, otherwise
-   * use {@link VASSAL.tools.UniqueIdManager.Identifyable#getId
+   * Use {@link VASSAL.tools.UniqueIdManager.Identifyable#getConfigureName} if non-null, otherwise
+   * use {@link VASSAL.tools.UniqueIdManager.Identifyable#getId}
    * @param target
    * @return
    */

@@ -22,6 +22,7 @@ import VASSAL.build.GameModule;
 import VASSAL.build.module.Map;
 import VASSAL.counters.GamePiece;
 import VASSAL.counters.KeyBuffer;
+import VASSAL.counters.Stack;
 
 /**
  * This Command removed a {@link GamePiece} from a game.  Its undo
@@ -51,16 +52,18 @@ public class RemovePiece extends Command {
       undo = new AddPiece(target, target.getState());
       java.awt.Rectangle r = null;
       Map m = target.getMap();
+      Stack parent = target.getParent();
+      m.getIdentifier();
       if (m != null) {
-        r = target.getParent() == null ?
-          m.boundingBoxOf(target) : m.boundingBoxOf(target.getParent());
-      }
-      if (target.getMap() != null) {
+        r = parent == null ?
+          m.boundingBoxOf(target) : m.boundingBoxOf(parent);
         target.getMap().removePiece(target);
         target.setMap(null);
       }
-      if (target.getParent() != null) {
-        target.getParent().remove(target);
+      if (parent != null) {
+        String stateWithPiece = parent.getState();
+        parent.remove(target);
+        undo = undo.append(new ChangePiece(parent.getId(),parent.getState(), stateWithPiece));
         target.setParent(null);
       }
       if (m != null) {

@@ -407,7 +407,8 @@ public class BasicPiece implements EditablePiece {
     SequenceEncoder se = new SequenceEncoder(';');
     String mapName = map == null ? "null" : map.getIdentifier();
     se.append(mapName);
-    se.append("" + pos.x).append("" + pos.y);
+    Point p = getPosition();
+    se.append("" + p.x).append("" + p.y);
     return se.getValue();
   }
 

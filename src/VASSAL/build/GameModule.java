@@ -328,7 +328,6 @@ public abstract class GameModule extends AbstractConfigurable implements Command
    * Display the given text in the control window's status line
    */
   public void warn(String s) {
-//    status.setText(s);
     chat.show(" - " + s);
   }
 
