@@ -156,12 +156,13 @@ public class ReportState extends Decorator implements EditablePiece {
           String theFormat = reportFormat;
           if (cycleIndex >= 0) {
             if (i < keys.length()) {
+              theFormat = cycleReportFormat[cycleIndex];
               cycleIndex = (cycleIndex + 1) % cycleReportFormat.length;
             }
             else {
               cycleIndex = (cycleIndex + cycleReportFormat.length - 1) % cycleReportFormat.length;
+              theFormat = cycleReportFormat[(cycleIndex + cycleReportFormat.length - 1) % cycleReportFormat.length];
             }
-            theFormat = cycleReportFormat[cycleIndex];
           }
           format.setFormat(theFormat);
 
