@@ -23,7 +23,6 @@ import VASSAL.build.Buildable;
 import VASSAL.build.GameModule;
 import VASSAL.build.IllegalBuildException;
 import VASSAL.build.module.Map;
-import VASSAL.build.module.GlobalOptions;
 import VASSAL.build.module.documentation.HelpFile;
 import VASSAL.build.module.map.boardPicker.Board;
 import VASSAL.build.widget.CardSlot;
@@ -41,6 +40,7 @@ import java.io.File;
 import java.net.MalformedURLException;
 import java.util.ArrayList;
 import java.util.Enumeration;
+import java.util.Iterator;
 
 public class DrawPile extends SetupStack {
   protected Deck dummy = new Deck(); // Used for storing type information
@@ -103,14 +103,11 @@ public class DrawPile extends SetupStack {
    * @see VASSAL.build.AbstractConfigurable#getConfigureName
    */
   public static DrawPile findDrawPile(String id) {
-    for (Enumeration e = GameModule.getGameModule().getComponents(Map.class); e.hasMoreElements();) {
-      Map m = (Map) e.nextElement();
-      for (Enumeration e2 = m.getComponents(DrawPile.class); e2.hasMoreElements();) {
-        DrawPile p = (DrawPile) e2.nextElement();
-        if (id.equals(p.getId())
-            || id.equals(p.getConfigureName())) {
-          return p;
-        }
+    for (Iterator it = idMgr.getAllInstances(); it.hasNext();) {
+      DrawPile p = (DrawPile) it.next();
+      if (id.equals(p.getId())
+          || id.equals(p.getConfigureName())) {
+        return p;
       }
     }
     return null;

@@ -359,6 +359,9 @@ public class PropertySheet extends Decorator implements EditablePiece {
 
         while (defDecoder.hasMoreTokens()) {
           String code = defDecoder.nextToken();
+          if (code.length() == 0) {
+            break;
+          }
           int type = code.charAt(0) - '0';
           String name = code.substring(1);
           JComponent field;

@@ -19,17 +19,16 @@
 package VASSAL.counters;
 
 import VASSAL.build.GameModule;
-import VASSAL.build.module.GlobalOptions;
-import VASSAL.build.module.Map;
 import VASSAL.build.module.Chatter;
+import VASSAL.build.module.Map;
 import VASSAL.build.module.map.DrawPile;
 import VASSAL.command.ChangeTracker;
 import VASSAL.command.Command;
 import VASSAL.command.NullCommand;
 import VASSAL.configure.ColorConfigurer;
 import VASSAL.tools.FormattedString;
-import VASSAL.tools.SequenceEncoder;
 import VASSAL.tools.PlayerIdFormattedString;
+import VASSAL.tools.SequenceEncoder;
 
 import javax.swing.*;
 import java.awt.*;
@@ -362,12 +361,14 @@ public class Deck extends Stack {
       }
     }
     faceDown = "true".equals(st.nextToken());
-    SequenceEncoder.Decoder st2 = new SequenceEncoder.Decoder(st.nextToken(), ',');
     ArrayList l = new ArrayList();
-    while (st2.hasMoreTokens()) {
-      GamePiece p = GameModule.getGameModule().getGameState().getPieceForId(st2.nextToken());
-      if (p != null) {
-        l.add(p);
+    if (st.hasMoreTokens()) {
+      SequenceEncoder.Decoder st2 = new SequenceEncoder.Decoder(st.nextToken(), ',');
+      while (st2.hasMoreTokens()) {
+        GamePiece p = GameModule.getGameModule().getGameState().getPieceForId(st2.nextToken());
+        if (p != null) {
+          l.add(p);
+        }
       }
     }
     setContents(l.iterator());

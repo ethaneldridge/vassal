@@ -20,6 +20,7 @@ package VASSAL.tools;
 
 import java.util.List;
 import java.util.ArrayList;
+import java.util.Iterator;
 
 /**
  * A class for assigning unique identifiers to objects.  Identifiers will be of
@@ -50,6 +51,11 @@ public class UniqueIdManager {
       instances.remove(index);
     }
   }
+
+  public Iterator getAllInstances() {
+    return instances.iterator();
+  }
+
   /**
    * An object with an identifier that can be manipulated by a {@link UniqueIdManager}
    */

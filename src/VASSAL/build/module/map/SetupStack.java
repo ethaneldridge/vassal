@@ -75,7 +75,7 @@ public class SetupStack extends AbstractConfigurable implements GameComponent, C
   }
 
   public Command getRestoreCommand() {
-    return new MarkInitialized(getId());
+    return new MarkInitialized(this);
   }
 
   /**
@@ -93,8 +93,8 @@ public class SetupStack extends AbstractConfigurable implements GameComponent, C
 
   public Command decode(String command) {
     Command c = null;
-    if (command.startsWith(COMMAND_PREFIX)) {
-      return new MarkInitialized(command.substring(COMMAND_PREFIX.length()));
+    if (command.startsWith(COMMAND_PREFIX+getId())) {
+      return new MarkInitialized(this);
     }
     return c;
   }
@@ -102,7 +102,7 @@ public class SetupStack extends AbstractConfigurable implements GameComponent, C
   public String encode(Command c) {
     String s = null;
     if (c instanceof MarkInitialized) {
-      return COMMAND_PREFIX + ((MarkInitialized) c).id;
+      return COMMAND_PREFIX + ((MarkInitialized)c).target.getId();
     }
     return s;
   }
@@ -164,7 +164,7 @@ public class SetupStack extends AbstractConfigurable implements GameComponent, C
   }
 
   public void addTo(Buildable parent) {
-    map = (Map)parent;
+    map = (Map) parent;
     idMgr.add(this);
 
     GameModule.getGameModule().addCommandEncoder(this);
@@ -233,24 +233,6 @@ public class SetupStack extends AbstractConfigurable implements GameComponent, C
     return id;
   }
 
-  /**
-   *
-   * @param id
-   * @return the {@link SetupStack} with the given id
-   */
-  public static SetupStack findSetupStack(String id) {
-    for (Enumeration e = GameModule.getGameModule().getComponents(Map.class); e.hasMoreElements();) {
-      Map m = (Map) e.nextElement();
-      for (Enumeration e2 = m.getComponents(SetupStack.class); e2.hasMoreElements();) {
-        SetupStack s = (SetupStack) e2.nextElement();
-        if (s.getId().equals(id)) {
-          return s;
-        }
-      }
-    }
-    return null;
-  }
-
   public Configurer getConfigurer() {
     config = null; // Don't cache the Configurer so that the list of available boards won't go stale
     return super.getConfigurer();
@@ -291,17 +273,14 @@ public class SetupStack extends AbstractConfigurable implements GameComponent, C
    * game, so there is no need to initialized a new one when the game is opened.
    */
   public static class MarkInitialized extends Command {
-    private String id;
+    private SetupStack target;
 
-    public MarkInitialized(String id) {
-      this.id = id;
+    public MarkInitialized(SetupStack target) {
+      this.target = target;
     }
 
     protected void executeCommand() {
-      SetupStack s = SetupStack.findSetupStack(id);
-      if (s != null) {
-        s.stackInitialized = true;
-      }
+      target.stackInitialized = true;
     }
 
     protected Command myUndoCommand() {
