@@ -87,9 +87,9 @@ public class SequenceEncoder {
       end = s.indexOf(delimit, end + 1);
     }
     buffer.append(s.substring(begin));
-    if (buffer.toString().endsWith("\\")
-      || (length > 0 && buffer.charAt(length-1) == '\''
-      && buffer.charAt(buffer.length()-1) == '\'')) {
+    if (s.endsWith("\\")
+      || (s.startsWith("\'")
+      && s.endsWith("\'"))) {
       buffer.insert(length,"'").append("'");
     }
   }
