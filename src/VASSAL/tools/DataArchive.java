@@ -139,6 +139,9 @@ public class DataArchive extends SecureClassLoader {
    * @return
    */
   public Image getScaledImage(Image base, double scale, boolean reversed) {
+    if (base == null) {
+      return null;
+    }
     Dimension d = getImageBounds(base).getSize();
     d.width *= scale;
     d.height *= scale;
