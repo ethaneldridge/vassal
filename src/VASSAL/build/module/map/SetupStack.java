@@ -3,6 +3,7 @@ package VASSAL.build.module.map;
 import VASSAL.build.*;
 import VASSAL.build.module.GameComponent;
 import VASSAL.build.module.Map;
+import VASSAL.build.module.NewGameIndicator;
 import VASSAL.build.module.documentation.HelpFile;
 import VASSAL.build.widget.PieceSlot;
 import VASSAL.command.Command;
@@ -46,7 +47,7 @@ import java.util.Enumeration;
  * of counters than a {@link DrawPile}
  *
  */
-public class SetupStack extends AbstractConfigurable implements GameComponent, CommandEncoder, UniqueIdManager.Identifyable {
+public class SetupStack extends AbstractConfigurable implements GameComponent, UniqueIdManager.Identifyable {
   private static UniqueIdManager idMgr = new UniqueIdManager("SetupStack");
   public static final String COMMAND_PREFIX = "SETUP_STACK\t";
   protected Point pos = new Point();
@@ -55,12 +56,12 @@ public class SetupStack extends AbstractConfigurable implements GameComponent, C
   public final static String Y_POSITION = "y";
   protected Map map;
   protected String owningBoardName;
-  private boolean stackInitialized;
   protected String id;
   public static final String NAME = "name";
+  private static NewGameIndicator indicator;
 
   public void setup(boolean gameStarting) {
-    if (gameStarting && !stackInitialized && isOwningBoardActive()) {
+    if (gameStarting && indicator.isNewGame() && isOwningBoardActive()) {
       Stack s = initializeContents();
       Point p = new Point(pos);
       if (owningBoardName != null) {
@@ -69,45 +70,10 @@ public class SetupStack extends AbstractConfigurable implements GameComponent, C
       }
       map.placeAt(s, p);
     }
-    if (!gameStarting) {
-      stackInitialized = false;
-    }
   }
 
   public Command getRestoreCommand() {
-    return new MarkInitialized(this);
-  }
-
-  /**
-   * Return true if the stack that this component places on the map board
-   * has already been placed
-   * @return
-   */
-  public boolean isStackInitialized() {
-    return stackInitialized;
-  }
-
-  public void setStackInitialized(boolean stackInitialized) {
-    this.stackInitialized = stackInitialized;
-  }
-
-  public Command decode(String command) {
-    Command c = null;
-    if ((getConfigureName() != null && getConfigureName().length() > 0 && command.startsWith(COMMAND_PREFIX+getConfigureName()))
-      || command.startsWith(COMMAND_PREFIX+getId())) {
-      return new MarkInitialized(this);
-    }
-    return c;
-  }
-
-  public String encode(Command c) {
-    String s = null;
-    if (c instanceof MarkInitialized) {
-      MarkInitialized mark = (MarkInitialized)c;
-      return COMMAND_PREFIX + (mark.target.getConfigureName() != null && mark.target.getConfigureName().length() > 0 ?
-          mark.target.getConfigureName() : mark.target.getId());
-    }
-    return s;
+    return null;
   }
 
   public String[] getAttributeDescriptions() {
@@ -167,12 +133,13 @@ public class SetupStack extends AbstractConfigurable implements GameComponent, C
   }
 
   public void addTo(Buildable parent) {
+    if (indicator == null) {
+      indicator = new NewGameIndicator(COMMAND_PREFIX);
+    }
     map = (Map) parent;
     idMgr.add(this);
 
-    GameModule.getGameModule().addCommandEncoder(this);
     GameModule.getGameModule().getGameState().addGameComponent(this);
-
   }
 
   public Class[] getAllowableConfigureComponents() {
@@ -196,6 +163,7 @@ public class SetupStack extends AbstractConfigurable implements GameComponent, C
 
   public void removeFrom(Buildable parent) {
     idMgr.remove(this);
+    GameModule.getGameModule().getGameState().removeGameComponent(this);
   }
 
   protected boolean isOwningBoardActive() {
@@ -268,26 +236,6 @@ public class SetupStack extends AbstractConfigurable implements GameComponent, C
         values = new String[]{ANY};
       }
       return values;
-    }
-  }
-
-  /**
-   * This command indicates that a Stack has been created already in a saved
-   * game, so there is no need to initialized a new one when the game is opened.
-   */
-  public static class MarkInitialized extends Command {
-    private SetupStack target;
-
-    public MarkInitialized(SetupStack target) {
-      this.target = target;
-    }
-
-    protected void executeCommand() {
-      target.stackInitialized = true;
-    }
-
-    protected Command myUndoCommand() {
-      return null;
     }
   }
 }

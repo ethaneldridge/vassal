@@ -19,9 +19,7 @@
 package VASSAL.build.module.map;
 
 import VASSAL.build.AutoConfigurable;
-import VASSAL.build.Buildable;
 import VASSAL.build.GameModule;
-import VASSAL.build.IllegalBuildException;
 import VASSAL.build.module.Map;
 import VASSAL.build.module.documentation.HelpFile;
 import VASSAL.build.module.map.boardPicker.Board;
@@ -31,7 +29,6 @@ import VASSAL.configure.*;
 import VASSAL.counters.Deck;
 import VASSAL.counters.GamePiece;
 import VASSAL.counters.Stack;
-import VASSAL.tools.SequenceEncoder;
 import VASSAL.tools.UniqueIdManager;
 
 import javax.swing.*;
@@ -76,23 +73,6 @@ public class DrawPile extends SetupStack {
   protected JPopupMenu buildPopup() {
     JPopupMenu popup = new JPopupMenu();
     return popup.getComponentCount() > 0 ? popup : null;
-  }
-
-  public void addTo(Buildable b) {
-    map = (Map) b;
-    idMgr.add(this);
-
-    GameModule.getGameModule().addCommandEncoder(this);
-    GameModule.getGameModule().getGameState().addGameComponent(this);
-  }
-
-  public void removeFrom(Buildable b) {
-    if (map != b) {
-      throw new IllegalBuildException("Parent is not " + b);
-    }
-    GameModule.getGameModule().removeCommandEncoder(this);
-    GameModule.getGameModule().getGameState().removeGameComponent(this);
-    idMgr.remove(this);
   }
 
   /**
@@ -467,55 +447,5 @@ public class DrawPile extends SetupStack {
 
   public static String getConfigureTypeName() {
     return "Deck";
-  }
-
-  public Command decode(String s) {
-    if (s.startsWith(getId() + '\t')) {
-      SequenceEncoder.Decoder st = new SequenceEncoder.Decoder(s, '\t');
-      st.nextToken();
-      String contentsId = st.nextToken();
-      return new PlaceDeck(this, contentsId, st.hasMoreTokens() && "true".equals(st.nextToken()));
-    }
-    else {
-      return super.decode(s);
-    }
-  }
-
-  /** Only necessary for backward compatibility */
-  public static class PlaceDeck extends Command {
-    private DrawPile drawPile;
-    private String contentsId;
-    private boolean faceDown;
-
-    public PlaceDeck(DrawPile drawPile, String contentsId, boolean faceDown) {
-      this.drawPile = drawPile;
-      this.contentsId = contentsId;
-      this.faceDown = faceDown;
-    }
-
-    // Replace the identified Stack with a Deck
-    public void executeCommand() {
-      Stack stack = (Stack) GameModule.getGameModule().getGameState().getPieceForId(contentsId);
-      if (stack != null) {
-        Deck deck = new Deck(drawPile.getDeckType());
-        for (Enumeration e = stack.getPieces(); e.hasMoreElements();) {
-          deck.add((GamePiece) e.nextElement());
-        }
-        deck.setFaceDown(faceDown);
-        Point p = new Point(drawPile.pos);
-        if (drawPile.owningBoardName != null) {
-          Rectangle r = drawPile.map.getBoardByName(drawPile.owningBoardName).bounds();
-          p.translate(r.x, r.y);
-        }
-        drawPile.map.placeAt(deck, p);
-        GameModule.getGameModule().getGameState().addPiece(deck);
-        GameModule.getGameModule().getGameState().removePiece(contentsId);
-        drawPile.setStackInitialized(true);
-      }
-    }
-
-    public Command myUndoCommand() {
-      return null;
-    }
   }
 }
