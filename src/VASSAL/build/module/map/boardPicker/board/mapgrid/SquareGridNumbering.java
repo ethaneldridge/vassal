@@ -120,7 +120,7 @@ public class SquareGridNumbering extends RegularGridNumbering {
   }
 
   public int getColumn(Point p) {
-    int col = (int) ((p.x - grid.getOrigin().x) / grid.getDx() + 0.5);
+    int col = (int) Math.floor((p.x - grid.getOrigin().x) / grid.getDx());
     if (hDescending) {
       return (getMaxColumns() - col);
     }
