@@ -13,18 +13,18 @@
  * Library General Public License for more details.
  *
  * You should have received a copy of the GNU Library General Public
- * License along with this library; if not, copies are available 
+ * License along with this library; if not, copies are available
  * at http://www.opensource.org.
  */
 package VASSAL.counters;
 
+import VASSAL.Info;
+import VASSAL.build.GameModule;
+import VASSAL.build.module.Map;
 import VASSAL.build.module.documentation.HelpFile;
 import VASSAL.build.module.map.Drawable;
-import VASSAL.build.module.Map;
-import VASSAL.build.GameModule;
-import VASSAL.command.Command;
 import VASSAL.command.ChangeTracker;
-import VASSAL.command.AddPiece;
+import VASSAL.command.Command;
 import VASSAL.configure.BooleanConfigurer;
 import VASSAL.configure.IntConfigurer;
 import VASSAL.tools.RotateFilter;
@@ -32,9 +32,10 @@ import VASSAL.tools.SequenceEncoder;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.MouseListener;
 import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
+import java.awt.geom.AffineTransform;
 import java.awt.image.FilteredImageSource;
 import java.awt.image.ImageProducer;
 import java.io.File;
@@ -57,7 +58,6 @@ public class FreeRotator extends Decorator implements EditablePiece, MouseListen
   private String rotateCWText = "Rotate CW";
   private char rotateCCWKey = '[';
   private String rotateCCWText = "Rotate CCW";
-  private GamePiece ghost;
 
   private double[] validAngles = new double[]{0.0};
   private int angleIndex = 0;
@@ -66,7 +66,7 @@ public class FreeRotator extends Decorator implements EditablePiece, MouseListen
   private Hashtable bounds = new Hashtable();
 
   private PieceImage unrotated;
-  private FreeRotator ghostRotator;
+  private double tempAngle;
   private Transparent trans;
 
   public FreeRotator() {
@@ -151,6 +151,13 @@ public class FreeRotator extends Decorator implements EditablePiece, MouseListen
     if (getAngle() == 0.0) {
       getInner().draw(g, x, y, obs, zoom);
     }
+    else if (false && Info.is2dEnabled() && g instanceof Graphics2D) {
+      Graphics2D g2d = (Graphics2D) g;
+      AffineTransform t = g2d.getTransform();
+      g2d.setTransform(AffineTransform.getRotateInstance(-getAngle(),x,y));
+      getInner().draw(g,x,y,obs,zoom);
+      g2d.setTransform(t);
+    }
     else {
       Image rotated = getRotatedImage(getAngle(), obs);
       Rectangle r = getRotatedBounds();
@@ -164,9 +171,17 @@ public class FreeRotator extends Decorator implements EditablePiece, MouseListen
   }
 
   public void draw(Graphics g, Map map) {
-    if (trans != null) {
+    if (trans != null
+      && Info.is2dEnabled()
+      && g instanceof Graphics2D) {
       Point p = map.componentCoordinates(getPosition());
+      Rectangle r = map.getView().getVisibleRect();
+      p.translate(-r.x,-r.y);
+      Graphics2D g2d = (Graphics2D) g;
+      AffineTransform t = g2d.getTransform();
+      g2d.setTransform(AffineTransform.getRotateInstance(Math.PI*(getAngle()-tempAngle)/180.,p.x,p.y));
       trans.draw(g,p.x,p.y,map.getView(),map.getZoom());
+      g2d.setTransform(t);
     }
   }
 
@@ -298,15 +313,14 @@ public class FreeRotator extends Decorator implements EditablePiece, MouseListen
   }
 
   public void mousePressed(MouseEvent e) {
-    ghost = ((AddPiece) GameModule.getGameModule().decode(GameModule.getGameModule().encode(new AddPiece(Decorator.getOutermost(this))))).getTarget();
-    ghostRotator = (FreeRotator) Decorator.getDecorator(ghost, FreeRotator.class);
-    trans = new Transparent(ghost);
+    trans = new Transparent(this);
+    trans.setAlpha(0.5);
   }
 
   public void mouseReleased(MouseEvent e) {
     try {
       ChangeTracker tracker = new ChangeTracker(this);
-      setAngle(ghostRotator.getAngle());
+      setAngle(tempAngle);
       GameModule.getGameModule().sendAndLog(tracker.getChangeCommand());
     }
     finally {
@@ -318,7 +332,7 @@ public class FreeRotator extends Decorator implements EditablePiece, MouseListen
   }
 
   public void mouseDragged(MouseEvent e) {
-    if (ghostRotator != null) {
+    if (trans != null) {
       Point p = getMap().mapCoordinates(e.getPoint());
       Point p2 = getPosition();
       double myAngle;
@@ -326,14 +340,24 @@ public class FreeRotator extends Decorator implements EditablePiece, MouseListen
         myAngle = p.x < p2.x ? Math.PI / 2 : -Math.PI / 2;
       }
       else {
-        myAngle = Math.atan((p.x - p2.x) / (p2.y - p.y));
+        myAngle = Math.atan((float)(p.x - p2.x) / (float)(p2.y - p.y));
         if (p2.y < p.y) {
           myAngle += Math.PI;
         }
       }
-      ghostRotator.setAngle(-180. * myAngle / Math.PI);
+      tempAngle = -180. * myAngle / Math.PI;
     }
     getMap().repaint();
+  }
+
+  public Object getProperty(Object key) {
+    if (Properties.SHAPE.equals(key)) {
+      Shape s = AffineTransform.getRotateInstance(-Math.PI*getAngle()/180.0,getPosition().x,getPosition().y).createTransformedShape(getInner().selectionBounds());
+      return s;
+    }
+    else {
+      return super.getProperty(key);
+    }
   }
 
   public void mouseMoved(MouseEvent e) {

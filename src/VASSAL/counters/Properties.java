@@ -79,4 +79,7 @@ public interface Properties {
 
   /** Return Boolean.TRUE if this piece has been moved */
   public static final String MOVED = "Moved";
+
+  /** Return a non-rectangular {@link java.awt.Shape} for this piece, null if not applicable */
+  public static final String SHAPE = "Shape";
 }

@@ -26,6 +26,7 @@ import java.util.StringTokenizer;
  */
 public final class Info {
   public static final String VERSION = "1.3b1";
+  private static Boolean is2dEnabled;
   /** This class should not be instantiated */
   private Info() {
   }
@@ -36,6 +37,19 @@ public final class Info {
    */
   public static String getVersion() {
     return VERSION;
+  }
+
+  public static boolean is2dEnabled() {
+    if (is2dEnabled == null) {
+      try {
+        Class.forName("java.awt.Graphics2D");
+        is2dEnabled = Boolean.TRUE;
+      }
+      catch (ClassNotFoundException e) {
+        is2dEnabled = Boolean.FALSE;
+      }
+    }
+    return is2dEnabled.booleanValue();
   }
 
   /**

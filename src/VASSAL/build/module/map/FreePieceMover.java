@@ -36,11 +36,8 @@ import java.util.Enumeration;
  * A class for moving and rotating pieces, as for mineatures-based games
  */
 public class FreePieceMover extends PieceMover implements MouseMotionListener, Drawable {
-  protected GamePiece ghost;
   protected GamePiece dragging;
   protected Transparent trans;
-  protected FreeRotator ghostRotator;
-  protected FreeRotator draggingRotator;
   protected Point anchor;
   protected Point arrow;
 
@@ -62,11 +59,8 @@ public class FreePieceMover extends PieceMover implements MouseMotionListener, D
           break;
         }
       }
-      ghost = ((AddPiece) GameModule.getGameModule().decode(GameModule.getGameModule().encode(new AddPiece(dragging)))).getTarget();
-      ghostRotator = (FreeRotator) Decorator.getDecorator(ghost, FreeRotator.class);
-      draggingRotator = (FreeRotator) Decorator.getDecorator(dragging, FreeRotator.class);
-      trans = new Transparent(ghost);
-      trans.setAlpha(0.4);
+      trans = new Transparent(dragging);
+      trans.setAlpha(0.5);
       arrow = null;
     }
     else {
@@ -75,10 +69,8 @@ public class FreePieceMover extends PieceMover implements MouseMotionListener, D
   }
 
   protected void clear() {
-    ghost = null;
     anchor = null;
     arrow = null;
-    ghostRotator = null;
     trans = null;
   }
 
@@ -105,7 +97,7 @@ public class FreePieceMover extends PieceMover implements MouseMotionListener, D
     if (dest != null
         && src != null) {
       double dist = Math.sqrt(Math.pow(dest.x - src.x, 2.0) + Math.pow((dest.y - src.y), 2.0));
-      int maxDrag = getMaxDragDistance(ghost);
+      int maxDrag = getMaxDragDistance(dragging);
       if (dist > maxDrag) {
         p = new Point(src.x + (int) Math.round(maxDrag * (dest.x - src.x) / dist),
                       src.y + (int) Math.round(maxDrag * (dest.y - src.y) / dist));
@@ -115,27 +107,7 @@ public class FreePieceMover extends PieceMover implements MouseMotionListener, D
   }
 
   public void mouseDragged(MouseEvent e) {
-    if (e.isShiftDown()) {
-      if (ghostRotator != null) {
-        Point p = map.mapCoordinates(e.getPoint());
-        Point p2 = getDragDestination(map.mapCoordinates(anchor), map.mapCoordinates(arrow));
-        double myAngle;
-        if (p.y == p2.y) {
-          myAngle = p.x < p2.x ? Math.PI / 2 : -Math.PI / 2;
-        }
-        else {
-          myAngle = Math.atan((p.x - p2.x) / (p2.y - p.y));
-          if (p2.y < p.y) {
-            myAngle += Math.PI;
-          }
-        }
-        System.err.println("Angle " + myAngle + ", mouse " + p + ", arrow " + p2);
-        ghostRotator.setAngle(-180. * myAngle / Math.PI);
-      }
-    }
-    else {
-      arrow = e.getPoint();
-    }
+    arrow = e.getPoint();
     map.repaint();
   }
 
@@ -146,16 +118,6 @@ public class FreePieceMover extends PieceMover implements MouseMotionListener, D
     }
     super.mouseReleased(e);
     clear();
-  }
-
-  public Command movePieces(Map m, Point p) {
-    Command c = super.movePieces(m,p);
-    if (draggingRotator != null && ghostRotator != null) {
-      ChangeTracker tracker = new ChangeTracker(dragging);
-      draggingRotator.setAngle(ghostRotator.getAngle());
-      c.append(tracker.getChangeCommand());
-    }
-    return c;
   }
 
   /**
