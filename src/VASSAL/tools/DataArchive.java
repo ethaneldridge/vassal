@@ -23,10 +23,14 @@ import VASSAL.build.module.GlobalOptions;
 import VASSAL.build.module.documentation.HelpFile;
 import VASSAL.configure.BooleanConfigurer;
 
+import javax.media.jai.Interpolation;
+import javax.media.jai.JAI;
+import javax.media.jai.PlanarImage;
 import javax.swing.*;
 import java.awt.*;
-import java.awt.image.BufferedImage;
 import java.awt.geom.AffineTransform;
+import java.awt.image.BufferedImage;
+import java.awt.image.renderable.ParameterBlock;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.io.*;
@@ -128,17 +132,19 @@ public class DataArchive extends SecureClassLoader {
    * @return
    */
   public Image getScaledImage(Image base, double scale) {
-    return getScaledImage(base,scale, false);
+    return getScaledImage(base, scale, false, true);
   }
+
   /**
    * Return a scaled instance of the image, optionally rotated by 180 degrees.
    * The image will be retrieved from cache if available, cached otherwise
    * @param base
    * @param scale
    * @param reversed
+   * @param useJAI If true, use JAI library to force smoothing.  This usually yields better results, but can be slow for large images
    * @return
    */
-  public Image getScaledImage(Image base, double scale, boolean reversed) {
+  public Image getScaledImage(Image base, double scale, boolean reversed, boolean useJAI) {
     if (base == null) {
       return null;
     }
@@ -148,14 +154,21 @@ public class DataArchive extends SecureClassLoader {
     ScaledCacheKey key = new ScaledCacheKey(base, d, reversed);
     Image scaled = (Image) scaledImageCache.get(key);
     if (scaled == null) {
-      scaled = getScaledInstance(base, d, reversed);
+      scaled = createScaledInstance(base, d, reversed, useJAI);
       new ImageIcon(scaled); // Wait for the image to load
-      scaledImageCache.put(key,scaled);
+      scaledImageCache.put(key, scaled);
     }
     return scaled;
   }
 
-  private Image getScaledInstance(Image im, Dimension size, boolean reversed) {
+  /**
+   * Create a new scaled instance of the argument image, optionally reversed
+   * @param im
+   * @param size
+   * @param reversed
+   * @return
+   */
+  protected Image createScaledInstance(Image im, Dimension size, boolean reversed, boolean useJAI) {
     Dimension fullSize = getImageBounds(im).getSize();
     if (fullSize.equals(size) && !reversed) {
       return im;
@@ -163,7 +176,7 @@ public class DataArchive extends SecureClassLoader {
     if (smoothPrefs == null) {
       smoothPrefs = (BooleanConfigurer) GameModule.getGameModule().getPrefs().getOption(GlobalOptions.SCALER_ALGORITHM);
       if (smoothPrefs == null) {
-        smoothPrefs = new BooleanConfigurer(null,null,Boolean.TRUE);
+        smoothPrefs = new BooleanConfigurer(null, null, Boolean.TRUE);
       }
       smoothPrefs.addPropertyChangeListener(new PropertyChangeListener() {
         public void propertyChange(PropertyChangeEvent evt) {
@@ -171,21 +184,59 @@ public class DataArchive extends SecureClassLoader {
         }
       });
     }
-    int algorithm = Boolean.TRUE.equals(smoothPrefs.getValue()) ? Image.SCALE_AREA_AVERAGING : Image.SCALE_DEFAULT;
+    boolean smooth = Boolean.TRUE.equals(smoothPrefs.getValue());
     if (reversed) {
-      BufferedImage rev = new BufferedImage(size.width,size.height, BufferedImage.TYPE_4BYTE_ABGR);
+      BufferedImage rev = new BufferedImage(size.width, size.height, BufferedImage.TYPE_4BYTE_ABGR);
       Graphics2D g2d = rev.createGraphics();
-      g2d.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR);
-      double zoom = (double)size.width/fullSize.width;
-      AffineTransform t = AffineTransform.getRotateInstance(Math.PI,size.width*.5,size.height*.5);
-      t.scale(zoom,zoom);
-      g2d.drawImage(im,t,null);
+      if (smooth) {
+        g2d.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR);
+      }
+      double zoom = (double) size.width / fullSize.width;
+      AffineTransform t = AffineTransform.getRotateInstance(Math.PI, size.width * .5, size.height * .5);
+      t.scale(zoom, zoom);
+      g2d.drawImage(im, t, null);
       return rev;
     }
+    else if (smooth && useJAI) {
+      double zoom = (double) size.width / fullSize.width;
+      return JAIScaling(im, zoom);
+    }
     else {
-      return im.getScaledInstance(size.width,size.height,algorithm);
+      return im.getScaledInstance(size.width, size.height, smooth ? Image.SCALE_AREA_AVERAGING : Image.SCALE_DEFAULT);
     }
   }
+
+  private Image JAIScaling(Image img, double zoom) {
+    BufferedImage buffImg = toBufferedImage(img);
+
+    Interpolation interp = Interpolation.getInstance(Interpolation.INTERP_BILINEAR);
+    ParameterBlock pb = new ParameterBlock();
+    pb.add(buffImg);
+
+    PlanarImage image1 = JAI.create("awtImage", pb);
+
+    ParameterBlock params = new ParameterBlock();
+    params.addSource(image1);
+    params.add(new Float(zoom)); // x scale factor
+    params.add(new Float(zoom)); // y scale factor
+    params.add(0.0F); // x translate
+    params.add(0.0F); // y translate
+    params.add(interp); // interpolation method
+
+    PlanarImage image3 = JAI.create("scale", params);
+    return image3.getAsBufferedImage();
+  }
+
+  public BufferedImage toBufferedImage(Image img) {
+    BufferedImage bimg =
+        new BufferedImage(img.getWidth(null),
+                          img.getHeight(null),
+                          BufferedImage.TYPE_INT_ARGB);
+    //or whatever type is appropriate
+    bimg.getGraphics().drawImage(img, 0, 0, null);
+    return bimg;
+  }
+
 
   /**
    *
@@ -389,13 +440,13 @@ public class DataArchive extends SecureClassLoader {
 
   protected Class findClass(String name) throws ClassNotFoundException {
     if (cs == null) {
-      cs = new CodeSource(null,null);
+      cs = new CodeSource(null, null);
     }
     try {
       String slashname = name.replace('.', '/');
       InputStream in = getFileStream(slashname + ".class");
       byte[] data = getBytes(in);
-      return defineClass(slashname, data, 0, data.length,cs);
+      return defineClass(slashname, data, 0, data.length, cs);
     }
     catch (IOException e) {
       throw new ClassNotFoundException("Unable to load " + name + "\n" + e.getMessage());
@@ -449,122 +500,6 @@ public class DataArchive extends SecureClassLoader {
     }
   }
 
-  public static class Scaler {
-    static final int IMAGE_ID = 0;
-    public static final int SCALE_AREA_AVERAGING = 16;
-    public static final int SCALE_SMOOTH = 4;
-    public static final int SCALE_FAST = 2;
-
-    private Hashtable scaledImageCache = new Hashtable();
-
-    private int scalingMethod;
-
-    public Scaler() {
-    }
-
-    public void clearCache() {
-      scaledImageCache.clear();
-    }
-
-    private void setScalingMethod() {
-      // this can be 16,8,4 or 2 depending on scaling alg
-      if (GlobalOptions.getInstance().isAveragedScaling()) {
-        scalingMethod = SCALE_AREA_AVERAGING;
-      }
-      else {
-        scalingMethod = SCALE_FAST;
-      }
-    }
-
-    public Image scale(Image img, double zoom, Component obs) {
-      return scaleImage(img, zoom, obs);
-    }
-
-    public Image scale(Image img, String pieceID, double zoom, Component obs) {
-      if (pieceID != null) {
-        // Check whether the scaled image is in the cache
-        String hashKey = pieceID + String.valueOf(zoom);
-        if (scaledImageCache.containsKey(hashKey)) {
-          return (Image) scaledImageCache.get(hashKey);
-        }
-        img = scaleImage(img, zoom, obs);
-        scaledImageCache.put(hashKey, img);
-      }
-      else {
-        img = scaleImage(img, zoom, obs);
-      }
-      return img;
-    }
-
-/*
-	private Image JAIscaleImage( Image img,  double zoom, Component obs  )
-	{
-
-		// Create an RGB color model
-		int[] bits = { 8, 8, 8 };
-		ColorModel colorModel = new
-				ComponentColorModel(
-					ColorSpace.getInstance(ColorSpace.CS_sRGB),
-						bits,	false, false,
-						Transparency.OPAQUE,
-						DataBuffer.TYPE_BYTE);
-
-		// Possible Interpolation methods are (in order of quality):
-		// INTERP_NEAREST, INTERP_BILINEAR, INTERP_BICUBIC, INTERP_BICUBIC2
-		Interpolation interp = Interpolation.getInstance(
-									Interpolation.INTERP_BICUBIC);
-		ParameterBlock pb = new ParameterBlock();
-		pb.add(img);
-		PlanarImage image1 = (PlanarImage)JAI.create("awtImage", pb);
-
-		//		Create the ParameterBlock.
-		pb = new ParameterBlock();
-		pb.addSource(image1).add(colorModel);
-		//		Perform the color conversion.
-		PlanarImage image2 = JAI.create("ColorConvert", pb);
-
-				ParameterBlock params = new ParameterBlock();
-		params.addSource(image2);
-		params.add(new Float(zoom)); // x scale factor
-		params.add(new Float(zoom)); // y scale factor
-		params.add(0.0F); // x translate
-		params.add(0.0F); // y translate
-		params.add(interp); // interpolation method
-
-		PlanarImage image3 = (PlanarImage)JAI.create("scale", params);
-		img = (Image)image3.getAsBufferedImage();
-		return img;
-	}
-*/
-    private Image scaleImage(Image img, double zoom, Component obs) {
-      setScalingMethod();
-      int width = img.getWidth(obs);
-      int height = img.getHeight(obs);
-      MediaTracker t = new MediaTracker(obs);
-      Image scaled = img;
-      try {
-        scaled = scaled.getScaledInstance(
-            (int) (zoom * width),
-            (int) (zoom * height),
-            scalingMethod);
-
-        t.addImage(scaled, IMAGE_ID);
-        try {
-          t.waitForID(IMAGE_ID);
-        }
-        catch (InterruptedException e) {
-        }
-      }
-      catch (IllegalArgumentException c) {
-      }
-      try {
-        Thread.sleep(2);
-      }
-      catch (InterruptedException e) {
-      }
-      return scaled;
-    }
-  }
   private static class ScaledCacheKey {
     private Image base;
     private Dimension bounds;

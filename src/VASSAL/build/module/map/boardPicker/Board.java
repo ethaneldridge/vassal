@@ -258,7 +258,7 @@ public class Board extends AbstractConfigurable {
   }
 
   public synchronized Image getScaledImage(double zoom, Component obs) {
-    return GameModule.getGameModule().getDataArchive().getScaledImage(boardImage, zoom, reversed);
+    return GameModule.getGameModule().getDataArchive().getScaledImage(boardImage, zoom, reversed, false);
   }
 
   public void setReversed(boolean val) {
