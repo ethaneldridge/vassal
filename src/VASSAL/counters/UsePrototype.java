@@ -1,14 +1,3 @@
-package VASSAL.counters;
-
-import VASSAL.build.module.documentation.HelpFile;
-import VASSAL.build.module.PrototypesContainer;
-import VASSAL.build.module.PrototypeDefinition;
-import VASSAL.command.Command;
-import VASSAL.configure.StringConfigurer;
-
-import javax.swing.*;
-import java.awt.*;
-
 /*
  * $Id$
  *
@@ -27,6 +16,17 @@ import java.awt.*;
  * License along with this library; if not, copies are available
  * at http://www.opensource.org.
  */
+package VASSAL.counters;
+
+import VASSAL.build.module.documentation.HelpFile;
+import VASSAL.build.module.PrototypesContainer;
+import VASSAL.build.module.PrototypeDefinition;
+import VASSAL.command.Command;
+import VASSAL.configure.StringConfigurer;
+
+import javax.swing.*;
+import java.awt.*;
+import java.util.ArrayList;
 
 /**
  * This trait is a placeholder for a pre-defined series of traits specified
@@ -43,7 +43,7 @@ import java.awt.*;
 public class UsePrototype extends Decorator implements EditablePiece {
   public static final String ID = "prototype;";
   private String prototypeName;
-  private GamePiece delegate;
+  private GamePiece prototype;
 
   public UsePrototype() {
     this(ID, null);
@@ -66,38 +66,46 @@ public class UsePrototype extends Decorator implements EditablePiece {
     prototypeName = type.substring(ID.length());
   }
 
+/*
   protected KeyCommand[] myGetKeyCommands() {
     KeyCommand[] comm = new KeyCommand[0];
-    PrototypeDefinition prototype = PrototypesContainer.getPrototype(prototypeName);
+    buildPrototype();
     if (prototype != null) {
-      KeyCommand[] original = (KeyCommand[]) prototype.getPiece().getProperty(Properties.KEY_COMMANDS);
-      comm = new KeyCommand[original.length];
-      System.arraycopy(original,0,comm,0,original.length);
-      for (int i=0;i<comm.length;++i) {
-        comm[i].setEnabled(false);
+      for (GamePiece p = prototype; p instanceof Decorator && p != piece; p = ((Decorator)p).getInner()) {
+        KeyCommand[] c = ((Decorator)p).myGetKeyCommands();
+        KeyCommand[] newValue = new KeyCommand[comm.length+c.length];
+        System.arraycopy(comm,0,newValue,0,comm.length);
+        System.arraycopy(c,0,newValue,comm.length,c.length);
+        comm = newValue;
       }
     }
     return comm;
   }
+*/
 
-  protected void buildDelegate() {
+  protected KeyCommand[] myGetKeyCommands() {
+    return new KeyCommand[0];
+  }
+
+  protected KeyCommand[] getKeyCommands() {
+    return (KeyCommand[]) getNext().getProperty(Properties.KEY_COMMANDS);
+  }
+
+  protected void buildPrototype() {
     PrototypeDefinition def = PrototypesContainer.getPrototype(prototypeName);
     if (def != null) {
-      delegate = new PieceCloner().clonePiece(def.getPiece());
+        prototype = new PieceCloner().clonePiece(def.getPiece());
+        ((Decorator)Decorator.getInnermost(prototype).getProperty(Properties.OUTER)).setInner(piece);
+        prototype.setProperty(Properties.OUTER, this);
     }
     else {
-      delegate = null;
+      prototype = null;
     }
   }
 
-  public GamePiece getInner() {
-    buildDelegate();
-    return super.getInner();
-  }
-
-  public void setInner(GamePiece p) {
-    piece = p;
-    super.setInner(p);
+  protected GamePiece getNext() {
+    buildPrototype();
+    return prototype != null ? prototype : piece;
   }
 
   public String myGetState() {
@@ -108,6 +116,10 @@ public class UsePrototype extends Decorator implements EditablePiece {
     return ID+prototypeName;
   }
 
+  public Command keyEvent(KeyStroke stroke) {
+    return getNext().keyEvent(stroke);
+  }
+
   public Command myKeyEvent(KeyStroke stroke) {
     return null;
   }
@@ -116,19 +128,19 @@ public class UsePrototype extends Decorator implements EditablePiece {
   }
 
   public Rectangle boundingBox() {
-    return getInner().boundingBox();
+    return getNext().boundingBox();
   }
 
   public void draw(Graphics g, int x, int y, Component obs, double zoom) {
-    getInner().draw(g,x,y,obs,zoom);
+    getNext().draw(g,x,y,obs,zoom);
   }
 
   public String getName() {
-    return getInner().getName();
+    return getNext().getName();
   }
 
   public Shape getShape() {
-    return getInner().getShape();
+    return getNext().getShape();
   }
 
   public String getPrototypeName() {

@@ -5,10 +5,7 @@ import VASSAL.build.module.documentation.HelpFile;
 import VASSAL.command.AddPiece;
 import VASSAL.configure.Configurer;
 import VASSAL.configure.StringConfigurer;
-import VASSAL.counters.GamePiece;
-import VASSAL.counters.PieceDefiner;
-import VASSAL.counters.BasicPiece;
-import VASSAL.counters.PieceEditor;
+import VASSAL.counters.*;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
@@ -42,6 +39,7 @@ public class PrototypeDefinition implements Configurable {
   private String name = "Prototype";
   private GamePiece piece;
   private String pieceDefinition;
+  private PrototypesContainer parent;
 
   private PropertyChangeSupport propSupport = new PropertyChangeSupport(this);
 
@@ -93,6 +91,9 @@ public class PrototypeDefinition implements Configurable {
           throw new IllegalBuildException("Must have unique name");
         }
       }
+    }
+    if (parent instanceof PrototypesContainer) {
+      this.parent = (PrototypesContainer) parent;
     }
   }
 
@@ -173,12 +174,19 @@ public class PrototypeDefinition implements Configurable {
     }
 
     public static class Definer extends PieceDefiner {
-      public Definer() {
-        inUseModel.setElementAt(new Plain(), 0);
-      }
       public void setPiece(GamePiece piece) {
+        if (piece != null) {
+          GamePiece inner = Decorator.getInnermost(piece);
+          if (!(inner instanceof Plain)) {
+            Plain plain = new Plain();
+            ((Decorator)inner.getProperty(Properties.OUTER)).setInner(plain);
+            piece = Decorator.getOutermost(plain);
+          }
+        }
+        else {
+          piece = new Plain();
+        }
         super.setPiece(piece);
-        inUseModel.setElementAt(new Plain(), 0);
       }
       private static class Plain extends BasicPiece {
         public Plain() {
