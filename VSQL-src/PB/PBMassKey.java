@@ -1,0 +1,182 @@
+/*
+ * $Id$
+ *
+ * Copyright (c) 2000-2003 by Rodney Kinney
+ *
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Library General Public
+ * License (LGPL) as published by the Free Software Foundation.
+ *
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Library General Public License for more details.
+ *
+ * You should have received a copy of the GNU Library General Public
+ * License along with this library; if not, copies are available
+ * at http://www.opensource.org.
+ */
+/*
+ * Created by IntelliJ IDEA.
+ * User: rkinney
+ * Date: Sep 25, 2002
+ * Time: 10:43:11 PM
+ * To change template for new class use
+ * Code Style | Class Templates options (Tools | IDE Options).
+ */
+package PB;
+
+import java.awt.event.InputEvent;
+import java.util.Enumeration;
+
+import javax.swing.KeyStroke;
+
+import VASSAL.build.GameModule;
+import VASSAL.build.module.Chatter;
+import VASSAL.build.module.Map;
+import VASSAL.command.Command;
+import VASSAL.command.NullCommand;
+import VASSAL.counters.BoundsTracker;
+import VASSAL.counters.Decorator;
+import VASSAL.counters.Embellishment;
+import VASSAL.counters.GamePiece;
+import VASSAL.counters.PieceCloner;
+import VASSAL.counters.PieceVisitor;
+import VASSAL.counters.PieceVisitorDispatcher;
+import VASSAL.counters.Properties;
+import VASSAL.counters.Stack;
+import VASSAL.tools.FormattedString;
+import VASSAL.tools.LaunchButton;
+import VASSAL.tools.PlayerIdFormattedString;
+
+/** Adds a button to a map window toolbar.  Hitting the button applies a particular key command to all pieces
+ * on that map with a given name.
+ */
+public class PBMassKey implements PieceVisitor {
+
+  public static final String IF_ACTIVE = "If layer is active";
+  public static final String IF_INACTIVE = "If layer is inactive";
+  public static final String ALWAYS = "Always";
+
+  private LaunchButton launch;
+  private KeyStroke stroke = KeyStroke.getKeyStroke(0, 0);
+  private String[] names = null;
+  private String condition = ALWAYS;
+  protected String checkProperty;
+  protected String checkValue;
+  protected PieceVisitorDispatcher dispatcher = new PieceVisitorDispatcher(this);
+  private Map map;
+  private Command keyCommand;
+  private BoundsTracker tracker;
+  protected boolean reportSingle;
+  protected FormattedString reportFormat = new PlayerIdFormattedString("");
+  protected boolean isReportable;
+
+  public PBMassKey() {
+     reportSingle = true;
+     condition = IF_ACTIVE;
+  }
+  
+  public PBMassKey(String prop, String val, char key, String report, Map m) {
+    this();
+    checkProperty = prop;
+    checkValue = val;
+    stroke = KeyStroke.getKeyStroke(key, InputEvent.CTRL_MASK);
+    reportFormat.setFormat(report);  
+    map = m;
+  }
+
+  public PBMassKey(String prop, String val, char key, String report, Map m, boolean doReport) {
+    this(prop, val, key, report, m);
+    isReportable = doReport;
+  }
+  
+  public Command apply() {
+    String mapFormat = map.getChangeFormat();
+    if (reportSingle) {
+      map.setAttribute(Map.CHANGE_FORMAT,"");
+    }
+    String reportText = reportFormat.getText();
+    if (reportText.length() > 0 && isReportable) {
+      keyCommand = new Chatter.DisplayText(GameModule.getGameModule().getChatter(), "*" + reportText);
+      //keyCommand.execute();
+    }
+    else {
+      keyCommand = new NullCommand();
+    }
+    tracker = new BoundsTracker();
+    GamePiece[] p = map.getPieces();
+    for (int i = 0; i < p.length; ++i) {
+      dispatcher.accept(p[i]);
+    }
+    tracker.repaint();
+    
+    if (reportSingle) {
+      map.setAttribute(Map.CHANGE_FORMAT,mapFormat);
+    }
+    return keyCommand;
+  }
+
+  /* We don't treat {@link Deck}s any differently than {@link Stack}s, so
+  no need to implement {@link DeckVisitor */
+  public Object visitStack(Stack s) {
+    for (Enumeration e = s.getPieces(); e.hasMoreElements();) {
+      apply((GamePiece) e.nextElement(), keyCommand, tracker);
+    }
+    return null;
+  }
+
+  public Object visitDefault(GamePiece p) {
+    apply(p, keyCommand, tracker);
+    return null;
+  }
+
+  private void apply(GamePiece p, Command c, BoundsTracker tracker) {
+    if (isValidTarget(p)) {
+      tracker.addPiece(p);
+      p.setProperty(Properties.SNAPSHOT, PieceCloner.getInstance().clonePiece(p));
+      c.append(p.keyEvent(stroke));
+      tracker.addPiece(p);
+    }
+  }
+
+  /**
+   *
+   * @param target
+   * @return true if the KeyCommand should be applied to the <code>target</code> GamePiece
+   */
+  protected boolean isValidTarget(GamePiece target) {
+    boolean valid = false;
+    if (isAffected(target)) {
+      if (ALWAYS.equals(condition)) {
+        valid = true;
+      }
+      else if (IF_ACTIVE.equals(condition)) {
+        valid = Embellishment.getLayerWithMatchingActivateCommand(target, stroke, true) != null;
+      }
+      else if (IF_INACTIVE.equals(condition)) {
+        valid = Embellishment.getLayerWithMatchingActivateCommand(target, stroke, false) != null;
+      }
+    }
+    return valid;
+  }
+
+  /**
+   * Return true if the name of the argument GamePiece is in the list of target piece names
+   */
+  protected boolean isAffected(GamePiece target) {
+    boolean affected = false;
+    if (names != null) {
+      for (int j = 0; j < names.length; ++j) {
+        if (Decorator.getInnermost(target).getName().equals(names[j])) {
+          affected = true;
+          break;
+        }
+      }
+    }
+    else if (checkValue != null) {
+      affected = checkValue.equals(target.getProperty(checkProperty));
+    }
+    return affected;
+  }
+}
