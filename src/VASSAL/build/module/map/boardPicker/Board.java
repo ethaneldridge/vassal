@@ -27,6 +27,7 @@ import VASSAL.build.module.documentation.HelpFile;
 import VASSAL.build.module.map.BoardPicker;
 import VASSAL.build.module.map.boardPicker.board.HexGrid;
 import VASSAL.build.module.map.boardPicker.board.MapGrid;
+import VASSAL.build.module.map.boardPicker.board.RegionGrid;
 import VASSAL.build.module.map.boardPicker.board.SquareGrid;
 import VASSAL.command.Command;
 import VASSAL.configure.ColorConfigurer;
@@ -218,7 +219,7 @@ public class Board extends AbstractConfigurable {
 
 
   public Class[] getAllowableConfigureComponents() {
-    Class[] c = {HexGrid.class, SquareGrid.class};
+    Class[] c = {HexGrid.class, SquareGrid.class, RegionGrid.class};
     return c;
   }
 

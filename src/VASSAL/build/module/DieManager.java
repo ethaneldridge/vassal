@@ -17,12 +17,17 @@
  */
 package VASSAL.build.module;
 
+import java.awt.Component;
+import java.awt.Container;
+import java.awt.event.ActionEvent;
 import java.io.*;
 import java.net.*;
 import java.util.Enumeration;
 import java.util.Hashtable;
 import java.util.StringTokenizer;
 import java.util.Vector;
+
+import javax.swing.JButton;
 
 import VASSAL.build.AbstractConfigurable;
 import VASSAL.build.Buildable;
@@ -54,13 +59,15 @@ public class DieManager extends AbstractConfigurable {
   private DieServer server;
   private String lastServerName = "";
   private MultiRoll myMultiRoll;
-
+  private static String[] addressList = new String[] {};
+  
   public static final String USE_INTERNET_DICE = "useinternetdice";
   public static final String DICE_SERVER = "diceserver";
   public static final String SERVER_PW = "serverpw";
   public static final String USE_EMAIL = "useemail";
   public static final String PRIMARY_EMAIL = "primaryemail";
   public static final String SECONDARY_EMAIL = "secondaryemail";
+  public static final String ADDRESS_BOOK = "addressbook";
   public static final String MULTI_ROLL = "multiroll";
   public static final String DIE_MANAGER = "Internet Die Roller";
 
@@ -100,17 +107,20 @@ public class DieManager extends AbstractConfigurable {
     final StringConfigurer serverpw = new StringConfigurer(SERVER_PW, "Dice Server Password");
     final BooleanConfigurer useemail = new BooleanConfigurer(USE_EMAIL, "Email results?");
     final StringConfigurer pemail = new StringConfigurer(PRIMARY_EMAIL, "Primary Email");
-    final StringArrayConfigurer semail = new StringArrayConfigurer(SECONDARY_EMAIL, "Secondary Emails");
-    final BooleanConfigurer multiroll = new BooleanConfigurer(MULTI_ROLL, "Put multiple rolls into single email");
-
-    GameModule.getGameModule().getPrefs().addOption(null, dieserver);
+	final StringArrayConfigurer abook = new StringArrayConfigurer(ADDRESS_BOOK, "Address Book");
+	final BooleanConfigurer multiroll = new BooleanConfigurer(MULTI_ROLL, "Put multiple rolls into single email");
+	
+	GameModule.getGameModule().getPrefs().addOption(null, dieserver);
     GameModule.getGameModule().getPrefs().addOption(null, serverpw);
     GameModule.getGameModule().getPrefs().addOption(DIE_MANAGER, useemail);
+    	GameModule.getGameModule().getPrefs().addOption(DIE_MANAGER, abook);
+	addressList = (String[]) GameModule.getGameModule().getPrefs().getValue(ADDRESS_BOOK);
     GameModule.getGameModule().getPrefs().addOption(DIE_MANAGER, pemail);
+	final StringEnumConfigurer semail = new StringEnumConfigurer(SECONDARY_EMAIL, "Secondary Email", addressList);
     GameModule.getGameModule().getPrefs().addOption(DIE_MANAGER, semail);
-    GameModule.getGameModule().getPrefs().addOption(DIE_MANAGER, multiroll);
+    GameModule.getGameModule().getPrefs().addOption(DIE_MANAGER, multiroll); 
   }
-
+  
   // Return names of all known Dice Servers
   public String[] getNames() {
     if (servers == null) {
@@ -198,7 +208,13 @@ public class DieManager extends AbstractConfigurable {
     getPrefs();
 
     RollSet rollSet;
+    String mess;
 
+	String desc = GameModule.getGameModule().getChatter().getInputField().getText();
+	if (desc != null && desc.length() > 0) {
+	   mroll.setDescription(desc);
+	}
+	
     // Do we want full multi-roll capabilities? If required, pop-up the multi-roll
     // cofigurer to get the details
     if (useMultiRoll) {
@@ -208,18 +224,35 @@ public class DieManager extends AbstractConfigurable {
         return;
       }
       rollSet = mroll.getRollSet();
+	  desc = rollSet.getDescription();
     }
 
     // Multi Roll preference not selected, so build a dummy MultiRoll object
     else {
       DieRoll[] rolls = new DieRoll[]{new DieRoll(description, nDice, nSides, plus, reportTotal)};
       rollSet = new RollSet(description, rolls);
+      desc = "";
     }
 
-    String desc = GameModule.getGameModule().getChatter().getInputField().getText();
+	if (desc == null || desc.length() == 0) {
+		desc = GameModule.getGameModule().getChatter().getInputField().getText();
+	}
+	
     if (desc == null || desc.length() == 0) {
       desc = "(Leave text in the chat input area to provide a subject line)";
+      mess = "";
+    } 
+    else {
+      mess = desc + " ";
     }
+    
+    mess += "[Roll sent to " + server.getDescription();
+	if (server.getUseEmail()) {
+	    mess += " (Emailing " + server.getSecondaryEmail() + ")";
+	} 
+	mess += "]";
+	GameModule.getGameModule().getChatter().send(mess);
+	
     GameModule.getGameModule().getChatter().getInputField().setText("");
     rollSet.setDescription(desc);
 
@@ -242,7 +275,7 @@ public class DieManager extends AbstractConfigurable {
     server.setPasswd((String) prefs.getValue(SERVER_PW));
     server.setUseEmail(((Boolean) prefs.getValue(USE_EMAIL)).booleanValue());
     server.setPrimaryEmail((String) prefs.getValue(PRIMARY_EMAIL));
-    server.setSecondaryEmail((String[]) prefs.getValue(SECONDARY_EMAIL));
+    server.setSecondaryEmail((String) prefs.getValue(SECONDARY_EMAIL));
 
     useMultiRoll = ((Boolean) prefs.getValue(MULTI_ROLL)).booleanValue();
 
@@ -378,7 +411,7 @@ public class DieManager extends AbstractConfigurable {
     protected String password = "";
     protected boolean useEmail;
     protected String primaryEmail;
-    protected String[] secondaryEmail;
+    protected String secondaryEmail;
     protected boolean canDoSeperateDice = false;
 
     /*
@@ -446,11 +479,11 @@ public class DieManager extends AbstractConfigurable {
       return primaryEmail;
     }
 
-    public void setSecondaryEmail(String[] e) {
+    public void setSecondaryEmail(String e) {
       secondaryEmail = e;
     }
 
-    public String[] getSecondaryEmail() {
+    public String getSecondaryEmail() {
       return secondaryEmail;
     }
 
@@ -791,9 +824,7 @@ public class DieManager extends AbstractConfigurable {
 
       if (getUseEmail()) {
         pEmail = getPrimaryEmail();
-        String[] se = getSecondaryEmail();
-        if (se.length > 0)
-          sEmail = se[0];
+        sEmail = getSecondaryEmail();
       }
 
       desc = hexify(toss.description);

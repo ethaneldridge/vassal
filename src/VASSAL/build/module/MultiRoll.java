@@ -26,6 +26,8 @@ import java.util.ArrayList;
 import javax.swing.*;
 import javax.swing.border.*;
 
+import VASSAL.build.GameModule;
+
 /**
  * @author Brent Easton
  *
@@ -37,10 +39,13 @@ public class MultiRoll extends JDialog {
   private JButton rollButton = new JButton("Roll");
   private JButton canButton = new JButton("Cancel");
 
+  private JPanel descPanel;
+  private JTextField descText;
   private JPanel topPanel;
   private JPanel buttonPanel;
   private JPanel detailPanel;
   protected int lastSelectedRow, lastSelectedCol;
+  private String description = "";
 
   protected RollRow[] rollRows;
 
@@ -89,7 +94,16 @@ public class MultiRoll extends JDialog {
   public boolean wasCancelled() {
     return rollCancelled;
   }
-
+  
+  public void setDescription(String s) {
+  	description = s;
+  	descText.setText(s);
+  }
+  
+  public String getDescription() {
+  	return description;
+  }
+  
   public DieManager.RollSet getRollSet() {
     ArrayList l = new ArrayList();
     for (int i=0;i<MAX_ROLLS;++i) {
@@ -98,7 +112,7 @@ public class MultiRoll extends JDialog {
       }
     }
     DieRoll[] rolls = (DieRoll[]) l.toArray(new DieRoll[l.size()]);
-    return new DieManager.RollSet("",rolls);
+    return new DieManager.RollSet(getDescription(),rolls);
   }
 
   // Multi-roll Configuration code
@@ -114,6 +128,19 @@ public class MultiRoll extends JDialog {
     topPanel = new JPanel();
     topPanel.setLayout(new BoxLayout(topPanel, BoxLayout.PAGE_AXIS));
 
+	descPanel = new JPanel();
+	JLabel descLabel = new JLabel("Roll Description");
+	descText = new JTextField(20);
+	descText.setText(GameModule.getGameModule().getChatter().getInputField().getText());
+	descText.addKeyListener(new java.awt.event.KeyAdapter() {
+	  public void keyReleased(java.awt.event.KeyEvent e) {
+		description = descText.getText();
+	  }
+	});
+	descPanel.add(descLabel);
+	descPanel.add(descText);
+	topPanel.add(descPanel);
+	
     detailPanel = new JPanel();
     detailPanel.setLayout(new BoxLayout(detailPanel, BoxLayout.PAGE_AXIS));
     detailPanel.setBorder(BorderFactory.createLineBorder(Color.black));
