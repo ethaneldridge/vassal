@@ -1,7 +1,7 @@
 /*
  * $Id$
  *
- * Copyright (c) 2000-2003 by Rodney Kinney
+ * Copyright (c) 2000-2004 by Rodney Kinney
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Library General Public
@@ -26,6 +26,7 @@ import VASSAL.build.module.map.boardPicker.board.MapGrid;
 import VASSAL.tools.DataArchive;
 
 import java.awt.*;
+import java.awt.image.BufferedImage;
 import java.io.*;
 import java.util.Enumeration;
 import java.util.StringTokenizer;
@@ -214,7 +215,8 @@ public class ASLBoard extends Board {
       boardImage = baseImage;
       return;
     }
-    boardImage = map.createImage(boundaries.width, boundaries.height);
+//    boardImage = map.createImage(boundaries.width, boundaries.height);
+    boardImage = new BufferedImage(boundaries.width,boundaries.height,BufferedImage.TYPE_4BYTE_ABGR);
     Graphics g = boardImage.getGraphics();
     if (reversed) {
       g.drawImage(im, 0, 0, boundaries.width, boundaries.height,
