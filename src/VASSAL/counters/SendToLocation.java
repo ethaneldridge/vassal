@@ -1,23 +1,22 @@
 package VASSAL.counters;
 
 import VASSAL.build.GameModule;
+import VASSAL.build.module.Chatter;
 import VASSAL.build.module.GlobalOptions;
 import VASSAL.build.module.Map;
-import VASSAL.build.module.Chatter;
 import VASSAL.build.module.documentation.HelpFile;
 import VASSAL.build.module.map.boardPicker.Board;
 import VASSAL.command.Command;
-import VASSAL.tools.SequenceEncoder;
-import VASSAL.tools.UniqueIdManager;
-import VASSAL.configure.IntConfigurer;
 import VASSAL.configure.ChooseComponentDialog;
+import VASSAL.configure.IntConfigurer;
 import VASSAL.configure.StringConfigurer;
+import VASSAL.tools.SequenceEncoder;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.InputEvent;
-import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.InputEvent;
 import java.io.File;
 import java.net.MalformedURLException;
 
@@ -36,7 +35,7 @@ import java.net.MalformedURLException;
  * Library General Public License for more details.
  *
  * You should have received a copy of the GNU Library General Public
- * License along with this library; if not, copies are available 
+ * License along with this library; if not, copies are available
  * at http://www.opensource.org.
  */
 
@@ -122,14 +121,14 @@ public class SendToLocation extends Decorator implements EditablePiece {
           dest.translate(b.bounds().x,b.bounds().y);
         }
         c = m.placeOrMerge(Decorator.getOutermost(this),dest);
-        
+
 		if (GlobalOptions.getInstance().autoReportEnabled()) {
 		   String s = "* " + getName() + " sent to " + commandName + " * ";
 		   Command report = new Chatter.DisplayText(GameModule.getGameModule().getChatter(), s);
 		   report.execute();
 		   c = c.append(report);
 		}
-		
+
       }
     }
     return c;
@@ -281,7 +280,7 @@ public class SendToLocation extends Decorator implements EditablePiece {
       SequenceEncoder se = new SequenceEncoder(';');
       se.append(nameInput.getValueString())
         .append(keyInput.getKey())
-        .append(map == null ? "" : UniqueIdManager.getIdentifier(map))
+        .append(map == null ? "" : map.getIdentifier())
         .append(boardNameInput.getText())
         .append(xInput.getValueString())
         .append(yInput.getValueString());

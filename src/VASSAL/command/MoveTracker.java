@@ -1,7 +1,6 @@
 package VASSAL.command;
 
 import VASSAL.counters.GamePiece;
-import VASSAL.tools.UniqueIdManager;
 
 import java.awt.*;
 
@@ -20,7 +19,7 @@ import java.awt.*;
  * Library General Public License for more details.
  *
  * You should have received a copy of the GNU Library General Public
- * License along with this library; if not, copies are available 
+ * License along with this library; if not, copies are available
  * at http://www.opensource.org.
  */
 
@@ -53,7 +52,7 @@ public class MoveTracker {
   }
 
   private String getMapId() {
-    return piece.getMap() == null ? null : UniqueIdManager.getIdentifier(piece.getMap());
+    return piece.getMap() == null ? null : piece.getMap().getIdentifier();
   }
 
   public Command getMoveCommand() {

@@ -18,8 +18,6 @@
  */
 package VASSAL.tools;
 
-import VASSAL.tools.SequenceEncoder;
-
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -44,19 +42,25 @@ public class PropertiesEncoder {
   }
 
   private String encode(Properties p) {
-    ByteArrayOutputStream out = new ByteArrayOutputStream();
-    p.save(out, null);
-    // Strip away comments
-    String s = new String(out.toByteArray());
-    StringTokenizer st = new StringTokenizer(s, "\n\r", false);
-    SequenceEncoder se = new SequenceEncoder('|');
-    while (st.hasMoreTokens()) {
-      String token = st.nextToken();
-      if (!token.startsWith("#")) {
-        se.append(token);
+    try {
+      ByteArrayOutputStream out = new ByteArrayOutputStream();
+      p.store(out, null);
+      // Strip away comments
+      String s = new String(out.toByteArray(),"UTF-8");
+      StringTokenizer st = new StringTokenizer(s, "\n\r", false);
+      SequenceEncoder se = new SequenceEncoder('|');
+      while (st.hasMoreTokens()) {
+        String token = st.nextToken();
+        if (!token.startsWith("#")) {
+          se.append(token);
+        }
       }
+      return se.getValue();
     }
-    return se.getValue();
+    catch (IOException e) {
+      e.printStackTrace();
+      return "";
+    }
   }
 
   private Properties decode(String s) throws IOException {
@@ -69,7 +73,7 @@ public class PropertiesEncoder {
         buffer.append('\n');
       }
     }
-    ByteArrayInputStream in = new ByteArrayInputStream(buffer.toString().getBytes());
+    ByteArrayInputStream in = new ByteArrayInputStream(buffer.toString().getBytes("UTF-8"));
     p.load(in);
     return p;
   }

@@ -19,7 +19,10 @@
 package VASSAL.build.module.map;
 
 
-import VASSAL.build.*;
+import VASSAL.build.Buildable;
+import VASSAL.build.Builder;
+import VASSAL.build.Configurable;
+import VASSAL.build.GameModule;
 import VASSAL.build.module.GameComponent;
 import VASSAL.build.module.Map;
 import VASSAL.build.module.documentation.HelpFile;
@@ -27,24 +30,23 @@ import VASSAL.build.module.map.boardPicker.Board;
 import VASSAL.build.module.map.boardPicker.BoardSlot;
 import VASSAL.command.Command;
 import VASSAL.command.CommandEncoder;
-import VASSAL.configure.Configurer;
-import VASSAL.configure.ValidityChecker;
-import VASSAL.configure.ValidationReport;
 import VASSAL.configure.ConfigureTree;
+import VASSAL.configure.Configurer;
+import VASSAL.configure.ValidationReport;
+import VASSAL.configure.ValidityChecker;
 import VASSAL.tools.SequenceEncoder;
-import VASSAL.tools.UniqueIdManager;
 import org.w3c.dom.Element;
-import org.w3c.dom.NodeList;
 import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
 
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.Enumeration;
-import java.util.Vector;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.Vector;
 
 /**
  * This class is responsible for maintaining the {@link Board}s on a
@@ -584,7 +586,7 @@ public class BoardPicker extends JDialog
     if (c instanceof SetBoards
       && map != null
       && ((SetBoards)c).target == this) {
-      SequenceEncoder se = new SequenceEncoder(UniqueIdManager.getIdentifier(map) + ID, '\t');
+      SequenceEncoder se = new SequenceEncoder(map.getIdentifier() + ID, '\t');
       Vector bds = ((SetBoards) c).bds;
       if (bds != null) {
         for (Enumeration e = bds.elements();

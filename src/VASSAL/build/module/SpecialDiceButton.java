@@ -18,23 +18,29 @@
  */
 package VASSAL.build.module;
 
-import VASSAL.build.*;
+import VASSAL.build.AbstractConfigurable;
+import VASSAL.build.AutoConfigurable;
+import VASSAL.build.Buildable;
+import VASSAL.build.GameModule;
 import VASSAL.build.module.documentation.HelpFile;
+import VASSAL.command.Command;
+import VASSAL.command.CommandEncoder;
 import VASSAL.configure.*;
 import VASSAL.tools.*;
-import VASSAL.command.*;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.Component;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.event.HierarchyListener;
 import java.awt.event.HierarchyEvent;
-import java.io.*;
+import java.awt.event.HierarchyListener;
+import java.io.File;
+import java.io.IOException;
 import java.net.MalformedURLException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Vector;
 
 
 /**
@@ -324,6 +330,17 @@ public class SpecialDiceButton extends AbstractConfigurable implements CommandEn
   }
 
   /**
+   * Make a best gues for a unique identifier for the target.
+   * Use {@link VASSAL.tools.UniqueIdManager.Identifyable#getConfigureName if non-null, otherwise
+   * use {@link VASSAL.tools.UniqueIdManager.Identifyable#getId
+   * @param target
+   * @return
+   */
+  public String getIdentifier() {
+    return UniqueIdManager.getIdentifier(this);
+  }
+
+  /**
    * get boolean value of object
    * @param o object as input for setAttribute()
    * @return  boolean value of object
@@ -482,7 +499,7 @@ public class SpecialDiceButton extends AbstractConfigurable implements CommandEn
   public String encode(Command c) {
     if (c instanceof ShowResults) {
       ShowResults c2 = (ShowResults) c;
-      SequenceEncoder se = new SequenceEncoder(UniqueIdManager.getIdentifier(c2.target), '\t');
+      SequenceEncoder se = new SequenceEncoder(c2.target.getIdentifier(), '\t');
       for (int i = 0; i < c2.rolls.length; ++i) {
         se.append(c2.rolls[i] + "");
       }

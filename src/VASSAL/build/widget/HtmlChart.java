@@ -76,7 +76,7 @@ public class HtmlChart extends Widget implements MouseListener {
         iBytes += numRead;
         }
       stream.close();
-      return new String( bytes );
+      return new String( bytes,"UTF-8" );
     }
     catch (IOException ex) {
       return "Page " + fname + " not found";

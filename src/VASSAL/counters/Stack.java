@@ -18,18 +18,19 @@
  */
 package VASSAL.counters;
 
+import VASSAL.Info;
 import VASSAL.build.GameModule;
 import VASSAL.build.module.Map;
 import VASSAL.build.module.map.StackMetrics;
 import VASSAL.command.Command;
 import VASSAL.tools.SequenceEncoder;
-import VASSAL.tools.UniqueIdManager;
-import VASSAL.Info;
 
-import java.awt.geom.Area;
-import java.util.*;
-import java.util.List;
 import java.awt.*;
+import java.awt.geom.Area;
+import java.util.ArrayList;
+import java.util.Enumeration;
+import java.util.Iterator;
+import java.util.List;
 
 /**
  * A collection of GamePieces which can be moved as a single unit
@@ -329,7 +330,7 @@ public class Stack implements GamePiece {
 
   public String getState() {
     SequenceEncoder se = new SequenceEncoder(';');
-    se.append(getMap() == null ? "null" : UniqueIdManager.getIdentifier(getMap()))
+    se.append(getMap() == null ? "null" : getMap().getIdentifier())
       .append("" + getPosition().x)
       .append("" + getPosition().y);
     for (int i = 0; i < pieceCount; ++i) {

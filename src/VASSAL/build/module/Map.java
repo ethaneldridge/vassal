@@ -29,7 +29,10 @@ import VASSAL.command.MoveTracker;
 import VASSAL.configure.*;
 import VASSAL.counters.*;
 import VASSAL.preferences.PositionOption;
-import VASSAL.tools.*;
+import VASSAL.tools.ComponentSplitter;
+import VASSAL.tools.KeyStrokeSource;
+import VASSAL.tools.LaunchButton;
+import VASSAL.tools.UniqueIdManager;
 import org.w3c.dom.Element;
 
 import javax.swing.*;
@@ -1223,7 +1226,7 @@ public class Map extends AbstractConfigurable implements GameComponent,
           ((RootPaneContainer) topWindow).getContentPane().add("North", getToolBar());
           ((RootPaneContainer) topWindow).getContentPane().add("Center", scroll);
           topWindow.setSize(600, 400);
-          PositionOption option = new PositionOption(PositionOption.key + UniqueIdManager.getIdentifier(this), topWindow);
+          PositionOption option = new PositionOption(PositionOption.key + getIdentifier(), topWindow);
           GameModule.getGameModule().getPrefs().addOption(option);
         }
         theMap.getTopLevelAncestor().setVisible(!launchButton.isVisible());
@@ -1646,6 +1649,17 @@ public class Map extends AbstractConfigurable implements GameComponent,
    */
   public String getId() {
     return mapID;
+  }
+
+  /**
+   * Make a best gues for a unique identifier for the target.
+   * Use {@link VASSAL.tools.UniqueIdManager.Identifyable#getConfigureName if non-null, otherwise
+   * use {@link VASSAL.tools.UniqueIdManager.Identifyable#getId
+   * @param target
+   * @return
+   */
+  public String getIdentifier() {
+    return UniqueIdManager.getIdentifier(this);
   }
 
   /** Return the AWT component representing the map */

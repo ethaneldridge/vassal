@@ -173,11 +173,11 @@ public class ZipUpdater {
     StringBuffer buffer = new StringBuffer();
     buffer.append("Manifest-Version: 1.0\n")
       .append("Main-Class: VASSAL.tools.ZipUpdater\n");
-    writeEntry(new ByteArrayInputStream(buffer.toString().getBytes()), out, manifestEntry);
+    writeEntry(new ByteArrayInputStream(buffer.toString().getBytes("UTF-8")), out, manifestEntry);
 
     ZipEntry nameEntry = new ZipEntry(TARGET_ARCHIVE);
     nameEntry.setMethod(ZipEntry.DEFLATED);
-    writeEntry(new ByteArrayInputStream(inputArchiveName.getBytes()), out, nameEntry);
+    writeEntry(new ByteArrayInputStream(inputArchiveName.getBytes("UTF-8")), out, nameEntry);
 
     ByteArrayOutputStream byteOut = new ByteArrayOutputStream();
     checkSums.store(byteOut, null);

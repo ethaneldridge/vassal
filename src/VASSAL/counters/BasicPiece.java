@@ -30,7 +30,6 @@ import VASSAL.command.Command;
 import VASSAL.command.RemovePiece;
 import VASSAL.tools.DataArchive;
 import VASSAL.tools.SequenceEncoder;
-import VASSAL.tools.UniqueIdManager;
 
 import javax.swing.*;
 import java.awt.*;
@@ -39,7 +38,6 @@ import java.awt.event.MouseEvent;
 import java.io.File;
 import java.io.IOException;
 import java.net.MalformedURLException;
-import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Vector;
 
@@ -407,7 +405,7 @@ public class BasicPiece implements EditablePiece {
 
   public String getState() {
     SequenceEncoder se = new SequenceEncoder(';');
-    String mapName = map == null ? "null" : UniqueIdManager.getIdentifier(map);
+    String mapName = map == null ? "null" : map.getIdentifier();
     se.append(mapName);
     se.append("" + pos.x).append("" + pos.y);
     return se.getValue();
