@@ -72,6 +72,18 @@ public class SequenceEncoder {
     return this;
   }
 
+  public SequenceEncoder append(char c) {
+    return append(String.valueOf(c));
+  }
+
+  public SequenceEncoder append(int i) {
+    return append(String.valueOf(i));
+  }
+
+  public SequenceEncoder append(boolean b) {
+    return append(String.valueOf(b));
+  }
+
   public String getValue() {
     return buffer != null ? buffer.toString() : null;
   }

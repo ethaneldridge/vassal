@@ -111,6 +111,9 @@ public class BasicCommandEncoder implements CommandEncoder, Buildable {
     else if (type.startsWith(SubMenu.ID)) {
       return new SubMenu(type, inner);
     }
+    else if (type.startsWith(Translate.ID)) {
+      return new Translate(type, inner);
+    }
     return null;
   }
 
