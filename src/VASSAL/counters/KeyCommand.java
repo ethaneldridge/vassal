@@ -13,13 +13,12 @@
  * Library General Public License for more details.
  *
  * You should have received a copy of the GNU Library General Public
- * License along with this library; if not, copies are available 
+ * License along with this library; if not, copies are available
  * at http://www.opensource.org.
  */
 package VASSAL.counters;
 
 import VASSAL.build.GameModule;
-import VASSAL.build.module.GlobalOptions;
 import VASSAL.command.Command;
 import VASSAL.configure.HotKeyConfigurer;
 
@@ -57,7 +56,7 @@ public class KeyCommand extends AbstractAction {
     BoundsTracker t = new BoundsTracker();
     GamePiece outer = Decorator.getOutermost(target);
     t.addPiece(outer);
-    GlobalOptions.setInitialState(outer);
+    BasicPiece.setInitialState(outer);	// Save state prior to command
     Command c = target.keyEvent(stroke);
     if (target.getId() != null) {
       GameModule.getGameModule().sendAndLog(c);

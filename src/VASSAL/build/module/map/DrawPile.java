@@ -214,10 +214,10 @@ public class DrawPile extends SetupStack {
                        String.class,
                        String.class,
                        AssignedDeckPrompt.class,
-                       FormattedString1.class};
+                       ReportFormatConfig.class};
   }
 
-  public static class FormattedString1 implements ConfigurerFactory {
+  public static class ReportFormatConfig implements ConfigurerFactory {
     public Configurer getConfigurer(AutoConfigurable c, String key, String name) {
       return new FormattedStringConfigurer(key, name, GlobalOptions.getDeckOptions());
     }
@@ -437,12 +437,8 @@ public class DrawPile extends SetupStack {
       return new PlaceDeck(this, contentsId, st.hasMoreTokens() && "true".equals(st.nextToken()));
     }
     else {
-      return null;
+      return super.decode(s);
     }
-  }
-
-  public String encode(Command c) {
-    return null;
   }
 
   /** Only necessary for backward compatibility */

@@ -13,12 +13,11 @@
  * Library General Public License for more details.
  *
  * You should have received a copy of the GNU Library General Public
- * License along with this library; if not, copies are available 
+ * License along with this library; if not, copies are available
  * at http://www.opensource.org.
  */
 package VASSAL.counters;
 
-import VASSAL.build.module.GlobalOptions;
 import VASSAL.command.Command;
 import VASSAL.command.NullCommand;
 
@@ -50,7 +49,7 @@ public class KeyBuffer {
 
   public void add(GamePiece p) {
     if (p != null
-      && !pieces.contains(p)) {
+        && !pieces.contains(p)) {
       pieces.addElement(p);
       p.setProperty(Properties.SELECTED, Boolean.TRUE);
     }
@@ -104,7 +103,7 @@ public class KeyBuffer {
     for (Enumeration e = targets.elements();
          e.hasMoreElements();) {
       GamePiece g = (GamePiece) e.nextElement();
-      GlobalOptions.setInitialState(g);
+      BasicPiece.setInitialState(g);	// Save state prior to command
       Command c2 = g.keyEvent(stroke);
       comm = comm.append(c2);
     }

@@ -97,18 +97,19 @@ public class MassKeyCommand extends AbstractConfigurable implements PieceVisitor
   }
 
   public void apply() {
-  	
-  	suppressTraitReports = reportSingle;
-  	
-  	reportFormat.setProperty(GlobalOptions.COMMAND_NAME, getConfigureName());
-	reportFormat.setProperty(GlobalOptions.PLAYER_ID, GlobalOptions.getPlayerId());
-  	String reportText = "* " + reportFormat.getText();
-  	if (reportText.length() > 0) {
-  		keyCommand = new Chatter.DisplayText(GameModule.getGameModule().getChatter(), reportText);
-  		keyCommand.execute();
-  	} else {
-  		keyCommand = new NullCommand();
-  	}
+
+    suppressTraitReports = reportSingle;
+
+    reportFormat.setProperty(GlobalOptions.COMMAND_NAME, getConfigureName());
+    reportFormat.setProperty(GlobalOptions.PLAYER_ID, GlobalOptions.getPlayerId());
+    String reportText = reportFormat.getText();
+    if (reportText.length() > 0) {
+      keyCommand = new Chatter.DisplayText(GameModule.getGameModule().getChatter(), "*" + reportText);
+      keyCommand.execute();
+    }
+    else {
+      keyCommand = new NullCommand();
+    }
     tracker = new BoundsTracker();
     GamePiece[] p = map.getPieces();
     for (int i = 0; i < p.length; ++i) {
@@ -116,8 +117,8 @@ public class MassKeyCommand extends AbstractConfigurable implements PieceVisitor
     }
     tracker.repaint();
     GameModule.getGameModule().sendAndLog(keyCommand);
-    
-	suppressTraitReports = false;
+
+    suppressTraitReports = false;
   }
 
   /* We don't treat {@link Deck}s any differently than {@link Stack}s, so
@@ -137,7 +138,7 @@ public class MassKeyCommand extends AbstractConfigurable implements PieceVisitor
   private void apply(GamePiece p, Command c, BoundsTracker tracker) {
     if (isValidTarget(p)) {
       tracker.addPiece(p);
-	  GlobalOptions.setInitialState(p);
+      BasicPiece.setInitialState(p);
       c.append(p.keyEvent(stroke));
       tracker.addPiece(p);
     }
@@ -187,21 +188,21 @@ public class MassKeyCommand extends AbstractConfigurable implements PieceVisitor
    * Return true if a Global Command is currently in action
    */
   public static boolean suppressTraitReporting() {
-  	return suppressTraitReports;
+    return suppressTraitReports;
   }
-  
+
   public Class[] getAllowableConfigureComponents() {
     return new Class[0];
   }
 
   public String[] getAttributeDescriptions() {
     return new String[]{"Description", "Key Command", "Apply to pieces whose property", "is equal to this value", "Apply command", "Button text", "Button Icon", "Hotkey",
-    	"Report as single Command", "Report Format"};
+                        "Report as single Command", "Report Format"};
   }
 
   public String[] getAttributeNames() {
-    return new String[]{NAME, KEY_COMMAND, CHECK_PROPERTY, CHECK_VALUE, CONDITION, BUTTON_TEXT, ICON, HOTKEY, 
-    	REPORT_SINGLE, REPORT_FORMAT};
+    return new String[]{NAME, KEY_COMMAND, CHECK_PROPERTY, CHECK_VALUE, CONDITION, BUTTON_TEXT, ICON, HOTKEY,
+                        REPORT_SINGLE, REPORT_FORMAT};
   }
 
   public static class Prompt extends StringEnum {
@@ -211,8 +212,8 @@ public class MassKeyCommand extends AbstractConfigurable implements PieceVisitor
   }
 
   public Class[] getAttributeTypes() {
-    return new Class[]{String.class, KeyStroke.class, String.class, String.class, Prompt.class, String.class, IconConfig.class, KeyStroke.class, 
-    	Boolean.class, FormattedString1.class};
+    return new Class[]{String.class, KeyStroke.class, String.class, String.class, Prompt.class, String.class, IconConfig.class, KeyStroke.class,
+                       Boolean.class, ReportFormatConfig.class};
   }
 
   public static class IconConfig implements ConfigurerFactory {
@@ -221,12 +222,12 @@ public class MassKeyCommand extends AbstractConfigurable implements PieceVisitor
     }
   }
 
-  public static class FormattedString1 implements ConfigurerFactory {
-	  public Configurer getConfigurer(AutoConfigurable c, String key, String name) {
-		  return new FormattedStringConfigurer(key, name, GlobalOptions.getMassKeyOptions());
-	  }
+  public static class ReportFormatConfig implements ConfigurerFactory {
+    public Configurer getConfigurer(AutoConfigurable c, String key, String name) {
+      return new FormattedStringConfigurer(key, name, GlobalOptions.getMassKeyOptions());
+    }
   }
-  
+
   public String getAttributeValueString(String key) {
     if (NAME.equals(key)) {
       return getConfigureName();
@@ -246,12 +247,12 @@ public class MassKeyCommand extends AbstractConfigurable implements PieceVisitor
     else if (CONDITION.equals(key)) {
       return condition;
     }
-	else if (REPORT_SINGLE.equals(key)) {
-	  return reportSingle + "";
-	}
-	else if (REPORT_FORMAT.equals(key)) {
-	  return reportFormat.getFormat();
-	}    
+    else if (REPORT_SINGLE.equals(key)) {
+      return reportSingle + "";
+    }
+    else if (REPORT_FORMAT.equals(key)) {
+      return reportFormat.getFormat();
+    }
     else {
       return launch.getAttributeValueString(key);
     }
@@ -315,15 +316,15 @@ public class MassKeyCommand extends AbstractConfigurable implements PieceVisitor
     else if (CONDITION.equals(key)) {
       condition = (String) value;
     }
-	else if (REPORT_SINGLE.equals(key)) {
-	  if (value instanceof String) {
-		value = new Boolean((String) value);
-	  }
-	  reportSingle = ((Boolean) value).booleanValue();
-	}
-	else if (REPORT_FORMAT.equals(key)) {
-	  reportFormat.setFormat((String) value);
-	}
+    else if (REPORT_SINGLE.equals(key)) {
+      if (value instanceof String) {
+        value = new Boolean((String) value);
+      }
+      reportSingle = ((Boolean) value).booleanValue();
+    }
+    else if (REPORT_FORMAT.equals(key)) {
+      reportFormat.setFormat((String) value);
+    }
     else {
       launch.setAttribute(key, value);
     }

@@ -13,7 +13,7 @@
  * Library General Public License for more details.
  *
  * You should have received a copy of the GNU Library General Public
- * License along with this library; if not, copies are available 
+ * License along with this library; if not, copies are available
  * at http://www.opensource.org.
  */
 package VASSAL.build.module;
@@ -24,6 +24,7 @@ import VASSAL.build.Buildable;
 import VASSAL.build.GameModule;
 import VASSAL.build.module.documentation.HelpFile;
 import VASSAL.configure.*;
+import VASSAL.tools.FormattedString;
 import VASSAL.tools.LaunchButton;
 
 import javax.swing.*;
@@ -41,6 +42,7 @@ public class DiceButton extends AbstractConfigurable {
   protected int nSides = 6, nDice = 2, plus = 0;
   protected boolean reportTotal = false;
   protected boolean promptAlways = false;
+  protected FormattedString reportFormat = new FormattedString("*** $text$ *** $playerId$");
   protected LaunchButton launch;
 
   public static final String DEPRECATED_NAME = "label";
@@ -53,6 +55,7 @@ public class DiceButton extends AbstractConfigurable {
   public static final String HOTKEY = "hotkey";
   public static final String REPORT_TOTAL = "reportTotal";
   public static final String PROMPT_ALWAYS = "prompt";
+  public static final String REPORT_FORMAT = "reportFormat";
 
   public DiceButton() {
     ActionListener rollAction = new ActionListener() {
@@ -83,7 +86,7 @@ public class DiceButton extends AbstractConfigurable {
     };
     launch = new LaunchButton(null, BUTTON_TEXT, HOTKEY, ICON, rollAction);
     setAttribute(NAME, "2d6");
-    setAttribute(BUTTON_TEXT,"2d6");
+    setAttribute(BUTTON_TEXT, "2d6");
   }
 
   public static String getConfigureTypeName() {
@@ -102,7 +105,7 @@ public class DiceButton extends AbstractConfigurable {
    */
   protected String getReportSuffix() {
     return " ***  <"
-      + GameModule.getGameModule().getChatter().getHandle() + ">";
+        + GameModule.getGameModule().getChatter().getHandle() + ">";
   }
 
   /**
@@ -110,7 +113,8 @@ public class DiceButton extends AbstractConfigurable {
    * method of the {@link Chatter} of the {@link GameModule}.  Format is
    * prefix+[comma-separated roll list]+suffix */
   protected void DR() {
-    String val = getReportPrefix();
+    // String val = getReportPrefix();
+    String val = getConfigureName() + " = ";
     int total = 0;
     for (int i = 0; i < nDice; ++i) {
       int roll = (int) (ran.nextFloat() * nSides + 1) + plus;
@@ -127,8 +131,12 @@ public class DiceButton extends AbstractConfigurable {
     if (reportTotal)
       val += total;
 
-    val += getReportSuffix();
-    GameModule.getGameModule().getChatter().send(val);
+    //val += getReportSuffix();
+
+    reportFormat.setProperty(GlobalOptions.PLAYER_ID, GlobalOptions.getPlayerId());
+    reportFormat.setProperty(GlobalOptions.TEXT, val);
+    String report = reportFormat.getText();
+    GameModule.getGameModule().getChatter().send(report);
   }
 
   /**
@@ -141,7 +149,7 @@ public class DiceButton extends AbstractConfigurable {
    * <code>REPORT_TOTALL</code> If true, add the results of the dice together and report the total.  Otherwise, report the individual results
    */
   public String[] getAttributeNames() {
-    String s[] = {NAME, BUTTON_TEXT, ICON, N_DICE, N_SIDES, PLUS, REPORT_TOTAL, HOTKEY, PROMPT_ALWAYS};
+    String s[] = {NAME, BUTTON_TEXT, ICON, N_DICE, N_SIDES, PLUS, REPORT_TOTAL, HOTKEY, PROMPT_ALWAYS, REPORT_FORMAT};
     return s;
   }
 
@@ -154,12 +162,19 @@ public class DiceButton extends AbstractConfigurable {
                         "Add to each die",
                         "Report Total",
                         "Hotkey",
-                        "Prompt for values when button pushed"};
+                        "Prompt for values when button pushed",
+                        "Report Format"};
   }
 
   public static class IconConfig implements ConfigurerFactory {
     public Configurer getConfigurer(AutoConfigurable c, String key, String name) {
-      return new IconConfigurer(key,name,"/images/die.gif");
+      return new IconConfigurer(key, name, "/images/die.gif");
+    }
+  }
+
+  public static class ReportFormatConfig implements ConfigurerFactory {
+    public Configurer getConfigurer(AutoConfigurable c, String key, String name) {
+      return new FormattedStringConfigurer(key, name, GlobalOptions.getChatOptions());
     }
   }
 
@@ -172,7 +187,8 @@ public class DiceButton extends AbstractConfigurable {
                        Integer.class,
                        Boolean.class,
                        KeyStroke.class,
-                       Boolean.class};
+                       Boolean.class,
+                       ReportFormatConfig.class};
   }
 
   private VisibilityCondition cond = new VisibilityCondition() {
@@ -183,9 +199,9 @@ public class DiceButton extends AbstractConfigurable {
 
   public VisibilityCondition getAttributeVisibility(String name) {
     if (N_DICE.equals(name)
-      || N_SIDES.equals(name)
-      || PLUS.equals(name)
-      || REPORT_TOTAL.equals(name)) {
+        || N_SIDES.equals(name)
+        || PLUS.equals(name)
+        || REPORT_TOTAL.equals(name)) {
       return cond;
     }
     else {
@@ -211,8 +227,8 @@ public class DiceButton extends AbstractConfigurable {
 
   public void setAttribute(String key, Object o) {
     if (DEPRECATED_NAME.equals(key)) { // Backward compatibility.  Before v1.3, name and button text were combined into one attribute
-      setAttribute(NAME,o);
-      setAttribute(BUTTON_TEXT,o);
+      setAttribute(NAME, o);
+      setAttribute(BUTTON_TEXT, o);
     }
     else if (NAME.equals(key)) {
       setConfigureName((String) o);
@@ -258,6 +274,9 @@ public class DiceButton extends AbstractConfigurable {
         promptAlways = "true".equals(o);
       }
     }
+    else if (REPORT_FORMAT.equals(key)) {
+      reportFormat.setFormat((String) o);
+    }
     else {
       launch.setAttribute(key, o);
     }
@@ -282,6 +301,9 @@ public class DiceButton extends AbstractConfigurable {
     else if (PROMPT_ALWAYS.equals(key)) {
       return "" + promptAlways;
     }
+    else if (REPORT_FORMAT.equals(key)) {
+      return reportFormat.getFormat();
+    }
     else {
       return launch.getAttributeValueString(key);
     }
@@ -300,7 +322,7 @@ public class DiceButton extends AbstractConfigurable {
     File dir = VASSAL.build.module.Documentation.getDocumentationBaseDir();
     dir = new File(dir, "ReferenceManual");
     try {
-      return new HelpFile(null, new File(dir, "GameModule.htm"),"#DiceButton");
+      return new HelpFile(null, new File(dir, "GameModule.htm"), "#DiceButton");
     }
     catch (MalformedURLException ex) {
       return null;

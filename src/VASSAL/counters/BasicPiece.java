@@ -136,6 +136,23 @@ public class BasicPiece implements EditablePiece {
     }
   }
 
+  // Save the current location, name and Invisibility status of a unit as
+  // properties of the GamePiece
+  public static void setInitialState(GamePiece outer) {
+    Map map = outer.getMap();
+    if (map != null) {
+      String location = GlobalOptions.formatLocationId(map.locationName(outer.getPosition()), map.getConfigureName());
+      outer.setProperty(GlobalOptions.INITIAL_LOCATION, location);
+      Boolean initialInvisibility = (Boolean) outer.getProperty(VASSAL.counters.Properties.INVISIBLE_TO_OTHERS);
+      outer.setProperty(GlobalOptions.INITIAL_INVISIBILITY, (initialInvisibility == null) ? Boolean.FALSE : initialInvisibility);
+      Hideable.setAllHidden(true);
+      Obscurable.setAllHidden(true);
+      outer.setProperty(GlobalOptions.INITIAL_NAME, outer.getName());
+      Hideable.setAllHidden(false);
+      Obscurable.setAllHidden(false);
+    }
+  }
+
   protected Object prefsValue(String s) {
     return GameModule.getGameModule().getPrefs().getValue(s);
   }

@@ -23,7 +23,6 @@ import VASSAL.build.*;
 import VASSAL.build.module.documentation.HelpFile;
 import VASSAL.build.module.map.*;
 import VASSAL.build.module.map.boardPicker.Board;
-import VASSAL.build.module.map.boardPicker.board.MapGrid;
 import VASSAL.command.AddPiece;
 import VASSAL.command.Command;
 import VASSAL.command.MoveTracker;
@@ -115,7 +114,7 @@ public class Map extends AbstractConfigurable implements GameComponent,
   public static final String ICON = "icon";
   public static final String HOTKEY = "hotkey";
   public static final String SUPPRESS_AUTO = "suppressAuto";
-  
+
   public void setAttribute(String key, Object value) {
     if (NAME.equals(key)) {
       setMapName((String) value);
@@ -183,12 +182,12 @@ public class Map extends AbstractConfigurable implements GameComponent,
       }
       launchButton.setVisible(((Boolean) value).booleanValue());
     }
-	else if (SUPPRESS_AUTO.equals(key)) {
-	  if (value instanceof String) {
-		value = new Boolean((String) value);
-	  }
-	  suppressAutoReportWithin = ((Boolean) value).booleanValue();
-	}
+    else if (SUPPRESS_AUTO.equals(key)) {
+      if (value instanceof String) {
+        value = new Boolean((String) value);
+      }
+      suppressAutoReportWithin = ((Boolean) value).booleanValue();
+    }
     else {
       launchButton.setAttribute(key, value);
     }
@@ -229,9 +228,9 @@ public class Map extends AbstractConfigurable implements GameComponent,
     else if (USE_LAUNCH_BUTTON.equals(key)) {
       return "" + launchButton.isVisible();
     }
-	else if (SUPPRESS_AUTO.equals(key)) {
-	  return "" + suppressAutoReportWithin;
-	}
+    else if (SUPPRESS_AUTO.equals(key)) {
+      return "" + suppressAutoReportWithin;
+    }
     else {
       return launchButton.getAttributeValueString(key);
     }
@@ -494,10 +493,10 @@ public class Map extends AbstractConfigurable implements GameComponent,
   }
 
   /**
-   * @return the nearest allowable point according to the {@link MapGrid} on the {@link Board} at this point
+   * @return the nearest allowable point according to the {@link VASSAL.build.module.map.boardPicker.board.MapGrid} on the {@link Board} at this point
    *
    * @see Board#snapTo
-   * @see MapGrid#snapTo */
+   * @see VASSAL.build.module.map.boardPicker.board.MapGrid#snapTo */
   public Point snapTo(Point p) {
     Point snap = new Point(p);
 
@@ -510,6 +509,23 @@ public class Map extends AbstractConfigurable implements GameComponent,
     snap = b.snapTo(snap);
     snap.translate(r.x, r.y);
     return snap;
+  }
+
+  /**
+   *
+   * @param p
+   * @return false if this point is in a no-go area
+   */
+  public boolean isSnappable(Point p) {
+    return true;
+    // TODO re-enable this when the Board class is updated
+/*
+    Board b = findBoard(p);
+    if (b == null) {
+      return true;
+    }
+    return b.isSnappable(p);
+*/
   }
 
   /** The buffer of empty space around the boards in the Map window,
@@ -567,86 +583,91 @@ public class Map extends AbstractConfigurable implements GameComponent,
    * @see Board#locationName
    */
   public String locationName(Point p) {
-    String name = "offboard";
+    String gridRef = "offboard";
+    String boardName = "";
     Board b = findBoard(p);
     if (b != null) {
-      name = b.locationName(new Point(p.x - b.bounds().x,
-                                      p.y - b.bounds().y));
-      if (name != null
+      gridRef = b.locationName(new Point(p.x - b.bounds().x,
+                                         p.y - b.bounds().y));
+
+      if (gridRef != null
           && boards.size() > 1
           && b.getName() != null) {
-        name = b.getName() + name;
+        boardName = b.getName();
+        //name = b.getName() + name;
+      }
+      gridRef = GlobalOptions.formatGridReference(gridRef, boardName);
+    }
+    return gridRef;
+  }
+
+  /**
+   * @return a String name for the given location on the map. Include Map name
+   *         if requested. Report deck name instead of location if point is inside
+   *         the bounds of a deck. Do not include location if this map is not visible
+   *         to all players.
+   */
+  public String getFullLocationName(Point p, boolean includeMap) {
+    String loc = "";
+
+    if (includeMap && getMapName() != null && getMapName().length() > 0) {
+      loc = "[" + getMapName() + "]";
+    }
+
+    if (isVisibleToAll() && p != null) {
+      String pos = getDeckName(p);
+      if (pos == null) {
+        if (locationName(p) != null) {
+          loc = locationName(p) + loc;
+        }
+      }
+      else {
+        loc = pos;
       }
     }
-    return name;
+    return loc;
   }
-  
-  /**
-	 * @return a String name for the given location on the map. Include Map name
-	 *         if requested. Report deck name instead of location if point is inside
-	 *         the bounds of a deck. Do not include location if this map is not visible
-	 *         to all players.
-	 */
-	public String getFullLocationName (Point p, boolean includeMap) {
-	  String loc = "";
-  	
-	  if (includeMap && getMapName() != null && getMapName().length() > 0) {
-		 loc = "[" + getMapName() + "]";
-	  }
-  	
-	  if (isVisibleToAll() && p != null) {
-		  String pos = getDeckName(p);
-		  if (pos == null) {
-			  if (locationName(p) != null) {
-			      loc = locationName(p) + loc;
-			  }
-		  }
-		  else {
-		      loc = pos;
-		  }
-	  }
-	  return loc;
-	}
-	
-	public boolean getSuppressAutoReportWithin() {
-	  return suppressAutoReportWithin;
-	}
-	
+
+  public boolean getSuppressAutoReportWithin() {
+    return suppressAutoReportWithin;
+  }
+
   /**
    * Is this map visible to all players
    */
   public boolean isVisibleToAll() {
-	if (this instanceof PrivateMap) {
-		if (!getAttributeValueString(PrivateMap.VISIBLE).equals("true")) {
-		   return false;
-		}
-	}
-	return true;
+    if (this instanceof PrivateMap) {
+      if (!getAttributeValueString(PrivateMap.VISIBLE).equals("true")) {
+        return false;
+      }
+    }
+    return true;
   }
 
   /**
-	* Return the name of the deck at p
-	*/
-   public String getDeckName(Point p) {
-  	
-	 String deck = null;
-	 if (p == null) {
-		 return deck;
-	 }
-  	
-	 Enumeration e = buildComponents.elements();
-	 while (e.hasMoreElements()) {
-		 Object o = e.nextElement();
-		 if (o instanceof DrawPile) {
-			 DrawPile d = (DrawPile) o;
-			 if (d.boundingBox().contains(p)) { 
-				 return d.getConfigureName();
-			 }
-		 }
-	 }
-  	
-	 return deck;
-   }
+   * Return the name of the deck at p
+   */
+  public String getDeckName(Point p) {
+
+    String deck = null;
+    if (p == null) {
+      return deck;
+    }
+
+    Enumeration e = buildComponents.elements();
+    while (e.hasMoreElements()) {
+      Object o = e.nextElement();
+      if (o instanceof DrawPile) {
+        DrawPile d = (DrawPile) o;
+        if (d.boundingBox().contains(p)) {
+          return d.getConfigureName();
+        }
+      }
+    }
+
+    return deck;
+  }
+
   public void focusGained(FocusEvent e) {
   }
 

@@ -64,7 +64,7 @@ public class Deck extends Stack {
   private String reshuffleCommand = "";
   private String reshuffleTarget;
   private String reshuffleMessage;
-  private String name;
+  private String deckName;
   private FormattedString reportFormat = new FormattedString();
 
   private boolean faceDown;
@@ -154,16 +154,17 @@ public class Deck extends Stack {
   }
 
   public void setDeckName(String n) {
-  	name = n;
+    deckName = n;
   }
-  
+
   public String getDeckName() {
-  	return name;
+    return deckName;
   }
-  
+
   public void setReportFormat(String s) {
-  	reportFormat.setFormat(s);
+    reportFormat.setFormat(s);
   }
+
   /**
    * The popup menu text for the command that sends the entire deck to another deck
    * @return
@@ -388,6 +389,8 @@ public class Deck extends Stack {
   public void draw(java.awt.Graphics g, int x, int y, Component obs, double zoom) {
     int count = Math.min(getPieceCount(), 10);
     GamePiece top = topPiece();
+    BasicPiece p = new BasicPiece();
+
     if (top != null) {
       top.setProperty(Properties.OBSCURED_BY, faceDown ? NO_USER : null);
       Color blankColor = getBlankColor();
@@ -470,11 +473,11 @@ public class Deck extends Stack {
       if (USE_MENU.equals(shuffleOption)) {
         c = new KeyCommand("Shuffle", null, this) {
           public void actionPerformed(ActionEvent e) {
-          	Command c = shuffle();
-          	Command rep = reportCommand("Shuffle");
-          	if (rep != null) {
-          		c.append(rep);
-          	}
+            Command c = shuffle();
+            Command rep = reportCommand("Shuffle");
+            if (rep != null) {
+              c.append(rep);
+            }
             GameModule.getGameModule().sendAndLog(c);
             map.repaint();
           }
@@ -493,11 +496,11 @@ public class Deck extends Stack {
       if (USE_MENU.equals(faceDownOption)) {
         KeyCommand faceDownAction = new KeyCommand(faceDown ? "Face up" : "Face down", null, this) {
           public void actionPerformed(ActionEvent e) {
-          	Command c = setContentsFaceDown(!faceDown);
-			Command rep = reportCommand(!faceDown ? "Face up" : "Face down");
-			if (rep != null) {
-				c.append(rep);
-			}
+            Command c = setContentsFaceDown(!faceDown);
+            Command rep = reportCommand(!faceDown ? "Face up" : "Face down");
+            if (rep != null) {
+              c.append(rep);
+            }
             GameModule.getGameModule().sendAndLog(c);
             map.repaint();
           }
@@ -507,11 +510,11 @@ public class Deck extends Stack {
       if (reversible) {
         c = new KeyCommand("Reverse order", null, this) {
           public void actionPerformed(ActionEvent e) {
-          	Command c = reverse();
-			Command rep = reportCommand("Reverse order");
-			if (rep != null) {
-				c.append(rep);
-			}
+            Command c = reverse();
+            Command rep = reportCommand("Reverse order");
+            if (rep != null) {
+              c.append(rep);
+            }
             GameModule.getGameModule().sendAndLog(c);
             map.repaint();
           }
@@ -539,22 +542,25 @@ public class Deck extends Stack {
     return commands;
   }
 
-  private Command reportCommand (String commandName) {
-  	
-  	Command c = null;
-  	
-	reportFormat.setProperty(GlobalOptions.PLAYER_ID, GlobalOptions.getPlayerId());
-	reportFormat.setProperty(GlobalOptions.DECK_NAME, getDeckName());
-	reportFormat.setProperty(GlobalOptions.COMMAND_NAME, commandName);
-	String rep = reportFormat.getText();
-	if (rep.length() > 0) {
-		c = new Chatter.DisplayText(GameModule.getGameModule().getChatter(), "* " + reportFormat.getText());
-	    c.execute();
-	}
-	
-	return c;
+  /*
+   * Format command report as per module designers setup.
+   */
+  private Command reportCommand(String commandName) {
+
+    Command c = null;
+
+    reportFormat.setProperty(GlobalOptions.PLAYER_ID, GlobalOptions.getPlayerId());
+    reportFormat.setProperty(GlobalOptions.DECK_NAME, getDeckName());
+    reportFormat.setProperty(GlobalOptions.COMMAND_NAME, commandName);
+    String rep = reportFormat.getText();
+    if (rep.length() > 0) {
+      c = new Chatter.DisplayText(GameModule.getGameModule().getChatter(), "* " + reportFormat.getText());
+      c.execute();
+    }
+
+    return c;
   }
-  
+
   public void promptForDragCount() {
     while (true) {
       String s = JOptionPane.showInputDialog("Enter number to grab.\nThen click and drag to draw that number.");
@@ -620,12 +626,7 @@ public class Deck extends Stack {
     DrawPile target = DrawPile.findDrawPile(reshuffleTarget);
     if (target != null) {
       if (reshuffleMessage.length() > 0) {
-      	FormattedString fmt = new FormattedString(reshuffleMessage);
-		fmt.setProperty(GlobalOptions.PLAYER_ID, GlobalOptions.getPlayerId());
-		fmt.setProperty(GlobalOptions.DECK_NAME, getDeckName());
-		fmt.setProperty(GlobalOptions.COMMAND_NAME, reshuffleCommand);
-        c = new Chatter.DisplayText(GameModule.getGameModule().getChatter(), "*" + fmt.getText());
-        c.execute();
+        c = reportCommand(reshuffleCommand);
       }
       else {
         c = new NullCommand();

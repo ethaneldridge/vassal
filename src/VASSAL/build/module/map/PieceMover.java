@@ -411,142 +411,135 @@ public class PieceMover extends AbstractBuildable implements
       p = map.snapTo(p);
     }
 
-	Hideable.setAllHidden(true);
-	   Obscurable.setAllHidden(true);
+    Hideable.setAllHidden(true);
+    Obscurable.setAllHidden(true);
 
-	   String origin = "";
-	   Point fromPos = null;
-	   Map fromMap = DragBuffer.getBuffer().getFromMap();
-	   if (fromMap != null) {
-		   if (bottom.getParent() != null) {
-			   fromPos = bottom.getParent().getPosition();
-		   }
-		   else {
-			   fromPos = bottom.getPosition();
-		   }
-		   origin = fromMap.locationName(fromPos);
-	   }
-    
-	   StringBuffer moved = new StringBuffer();
-	   if (bottom.getMap() == map) {
-		 moved.append(bottom.getName());
-	   }
-	   else if (bottom.getMap() != null) {
-		 moved.append(bottom.getName());
-		 originMaps.add(bottom.getMap());
-	   }
-	   else {
-		 moved.append(bottom.getName());
-		 origin = OFFMAP;
-	   }
-	   Hideable.setAllHidden(false);
-	   Obscurable.setAllHidden(false);
+    String origin = "";
+    Point fromPos = null;
+    Map fromMap = DragBuffer.getBuffer().getFromMap();
+    if (fromMap != null) {
+      if (bottom.getParent() != null) {
+        fromPos = bottom.getParent().getPosition();
+      }
+      else {
+        fromPos = bottom.getPosition();
+      }
+      origin = fromMap.locationName(fromPos);
+    }
 
-	   Command comm = new NullCommand();
-	   String destination;
+    StringBuffer moved = new StringBuffer();
+    if (bottom.getMap() == map) {
+      moved.append(bottom.getName());
+    }
+    else if (bottom.getMap() != null) {
+      moved.append(bottom.getName());
+      originMaps.add(bottom.getMap());
+    }
+    else {
+      moved.append(bottom.getName());
+      origin = OFFMAP;
+    }
+    Hideable.setAllHidden(false);
+    Obscurable.setAllHidden(false);
 
-	   if (mergeWith == null) {
-		 comm = comm.append(movedPiece(bottom, p));
-		 comm = comm.append(map.placeAt(bottom, p));
-		 if (!(bottom instanceof Stack) && !Boolean.TRUE.equals(bottom.getProperty(Properties.NO_STACK))) {
-		   Stack parent = map.getStackMetrics().createStack(bottom);
-		   if (parent != null) {
-			 comm = comm.append(map.placeAt(parent, p));
-		   }
-		 }
-		 destination = map.locationName(p);
-	   }
-	   else {
-		 comm = comm.append(movedPiece(bottom, mergeWith.getPosition()));
-		 comm = comm.append(map.getStackMetrics().merge(mergeWith, bottom));
-		 destination = map.locationName(mergeWith.getPosition());
-	   }
+    Command comm = new NullCommand();
+    String destination;
 
-	   while (it.hasMoreElements()) {
-		 GamePiece next = it.nextPiece();
-		 Hideable.setAllHidden(true);
-		 Obscurable.setAllHidden(true);
-		 //if (next.getMap() == map) { // Make sure moved from offmap are reported
-		 if (next.getMap() == map || OFFMAP.equals(origin)) {
-		   if (next.getName().length() > 0) {
-			 moved.append(',');
-			 moved.append(next.getName());
-		   }
-		 }
-		 else if (next.getMap() != null) {
-		   originMaps.add(next.getMap());
-		 }
-		 Hideable.setAllHidden(false);
-		 Obscurable.setAllHidden(false);
-		 String nextOrigin = map.locationName(next.getPosition());
-		 if (nextOrigin == null || !nextOrigin.equals(origin)) {
-		   origin = null;
-		 }
-		 comm = comm.append(movedPiece(next, bottom.getPosition()));
-		 comm = comm.append(map.getStackMetrics().merge(bottom, next));
-		 bottom = next;
-	   }
+    if (mergeWith == null) {
+      comm = comm.append(movedPiece(bottom, p));
+      comm = comm.append(map.placeAt(bottom, p));
+      if (!(bottom instanceof Stack) && !Boolean.TRUE.equals(bottom.getProperty(Properties.NO_STACK))) {
+        Stack parent = map.getStackMetrics().createStack(bottom);
+        if (parent != null) {
+          comm = comm.append(map.placeAt(parent, p));
+        }
+      }
+      destination = map.locationName(p);
+    }
+    else {
+      comm = comm.append(movedPiece(bottom, mergeWith.getPosition()));
+      comm = comm.append(map.getStackMetrics().merge(mergeWith, bottom));
+      destination = map.locationName(mergeWith.getPosition());
+    }
 
-	   String toId   = map.getFullLocationName(p, true);
-	   String fromId = "", fullFromId = "";
-	   
-	   if (fromMap != null) {
-		   fromId = fromMap.getFullLocationName(fromPos, true);
-		   fullFromId = fromId = fromMap.getFullLocationName(fromPos, true);
-		   if (fromMap.equals(map)) {
-			   fromId = fromMap.getFullLocationName(fromPos, false);
-		   }
-		   else {
-			   fromId = fullFromId;
-		   }
-	   }
-	    
-	   String s = moved.toString();
-	   if 	// At least one unit moved somwhere 
-		   (comm != null && !comm.isNull() && 
-    
-		   // Not movement within a window with suppress internal move reporting turned on
-		   (fromMap == null || !fromMap.equals(map) || !fromMap.getSuppressAutoReportWithin()) &&
-        
-		   // There is a source or a destination to report
-		   (origin != null || destination != null || !fromMap.equals(map) || !fromMap.getSuppressAutoReportWithin()) &&
- 	    
-		   // Not a unit creation in a restricted visibility window
-		   (origin == null || !origin.equals(OFFMAP) || map.isVisibleToAll()) &&
- 	    
-		   // Not Movement within a restricted visibilty window
-		   (fromMap == null || !fromMap.equals(map) || fromMap.isVisibleToAll()) &&
- 	    
-		   // There is a unit to repot
-		   s.length() > 0 &&
-		
-		   //Auto-reporting moves enabled
-		   GlobalOptions.getInstance().autoReportEnabled()) {
-        	
-		   String moveText = GlobalOptions.formatMove(moved.toString(), fromId, toId);
-		   if (origin != null && origin.equals(OFFMAP)) {
-			   if (map.isVisibleToAll()) {
-				  s += " " + toId + " Created";
-				  moveText = GlobalOptions.formatCreate(moved.toString(), toId);
-			   }
-		   }
-		   else {
-			 s += " moves " + fromId + " -> " + toId;
-		   }
-      
-           if (moveText.length() > 0) {
-		       Command report = new Chatter.DisplayText(GameModule.getGameModule().getChatter(), "* " + moveText);
-		       report.execute();
-		       comm = comm.append(report);
-           }
+    while (it.hasMoreElements()) {
+      GamePiece next = it.nextPiece();
+      Hideable.setAllHidden(true);
+      Obscurable.setAllHidden(true);
+      //if (next.getMap() == map) { // Make sure moved from offmap are reported
+      if (next.getMap() == map || OFFMAP.equals(origin)) {
+        if (next.getName().length() > 0) {
+          moved.append(',');
+          moved.append(next.getName());
+        }
+      }
+      else if (next.getMap() != null) {
+        originMaps.add(next.getMap());
+      }
+      Hideable.setAllHidden(false);
+      Obscurable.setAllHidden(false);
+      String nextOrigin = map.locationName(next.getPosition());
+      if (nextOrigin == null || !nextOrigin.equals(origin)) {
+        origin = null;
+      }
+      comm = comm.append(movedPiece(next, bottom.getPosition()));
+      comm = comm.append(map.getStackMetrics().merge(bottom, next));
+      bottom = next;
+    }
+
+    String toLocation = map.getFullLocationName(p, false);
+    String toId = GlobalOptions.formatLocationId(toLocation, map.getConfigureName());
+
+    String fromLocation = (fromMap == null) ? "" : fromMap.getFullLocationName(fromPos, false);
+    String fromMapId = "";
+    if (fromMap != null && !fromMap.equals(map)) {
+      fromMapId = fromMap.getConfigureName();
+    }
+
+    String fromId = GlobalOptions.formatLocationId(fromLocation, fromMapId);
+
+    String s = moved.toString();
+    if 	// At least one unit moved somwhere
+    (comm != null && !comm.isNull() &&
+
+        // Not movement within a window with suppress internal move reporting turned on
+        (fromMap == null || !fromMap.equals(map) || !fromMap.getSuppressAutoReportWithin()) &&
+
+        // There is a source or a destination to report
+        (origin != null || destination != null || !fromMap.equals(map) || !fromMap.getSuppressAutoReportWithin()) &&
+
+        // Not a unit creation in a restricted visibility window
+        (origin == null || !origin.equals(OFFMAP) || map.isVisibleToAll()) &&
+
+        // Not Movement within a restricted visibilty window
+        (fromMap == null || !fromMap.equals(map) || fromMap.isVisibleToAll()) &&
+
+        // There is a unit to repot
+        s.length() > 0 &&
+
+        //Auto-reporting moves enabled
+        GlobalOptions.getInstance().autoReportEnabled()) {
+
+      String moveText = GlobalOptions.formatMove(moved.toString(), fromId, toId);
+      if (origin != null && origin.equals(OFFMAP)) {
+        if (map.isVisibleToAll()) {
+          moveText = GlobalOptions.formatCreate(moved.toString(), toId);
+        }
+      }
+
+      if (moveText.length() > 0) {
+        Command report = new Chatter.DisplayText(GameModule.getGameModule().getChatter(), "* " + moveText);
+        report.execute();
+        comm = comm.append(report);
+      }
 //		   comm = comm.append(GameModule.getGameModule().getChatter().report(s));
-	   }
-    
-	   for (Iterator iterator = originMaps.iterator(); iterator.hasNext();) {
-		 ((Map) iterator.next()).repaint();
-	   }
-	   return comm;
-	 }
+    }
+
+    for (Iterator iterator = originMaps.iterator(); iterator.hasNext();) {
+      ((Map) iterator.next()).repaint();
+    }
+    return comm;
+  }
 
   /**
    * This listener is used for faking drag-and-drop on Java 1.1 systems
