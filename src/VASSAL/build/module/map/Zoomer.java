@@ -27,6 +27,7 @@ import VASSAL.tools.LaunchButton;
 import VASSAL.tools.BackgroundTask;
 
 import javax.swing.*;
+import javax.swing.border.BevelBorder;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -62,6 +63,7 @@ public class Zoomer extends AbstractConfigurable implements GameComponent {
           l.setFont(new Font("Dialog",Font.PLAIN,48));
           l.setBackground(Color.white);
           l.setForeground(Color.black);
+          l.setBorder(new BevelBorder(BevelBorder.RAISED,Color.lightGray,Color.darkGray));
           w.getContentPane().add(l);
           w.pack();
           Dimension d = Toolkit.getDefaultToolkit().getScreenSize();
