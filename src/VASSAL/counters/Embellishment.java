@@ -26,6 +26,7 @@ import VASSAL.command.Command;
 import VASSAL.tools.DataArchive;
 import VASSAL.tools.SequenceEncoder;
 
+import java.util.List;
 import javax.swing.*;
 import javax.swing.event.ListSelectionListener;
 import java.awt.*;
@@ -35,6 +36,7 @@ import java.io.File;
 import java.net.MalformedURLException;
 import java.util.Enumeration;
 import java.util.Vector;
+import java.util.ArrayList;
 
 /**
  * The "Layer" trait. Contains a list of images that the user may cycle through.
@@ -47,6 +49,9 @@ public class Embellishment extends Decorator implements EditablePiece {
   protected String activateKey = "";
   protected String upKey, downKey;
   protected String upCommand, downCommand, activateCommand;
+  protected String resetCommand;
+  protected int resetLevel;
+  protected char resetKey;
 
   protected int value = -1;  // Index of the image to draw.  Negative if inactive
   protected String activationStatus = "";
@@ -91,8 +96,19 @@ public class Embellishment extends Decorator implements EditablePiece {
     SequenceEncoder.Decoder st = new SequenceEncoder.Decoder(s, ';');
 
     st.nextToken();
+    SequenceEncoder.Decoder st2 = new SequenceEncoder.Decoder(st.nextToken(), ';');
+    activateKey = st2.nextToken().toUpperCase();
+    if (st2.hasMoreTokens()) {
+      resetCommand = st2.nextToken();
+      resetKey = st2.nextChar('\0');
+      resetLevel = st2.nextInt(0);
+    }
+    else {
+      resetKey = 0;
+      resetCommand = "";
+      resetLevel = 0;
+    }
 
-    activateKey = st.nextToken().toUpperCase();
     activateCommand = st.nextToken();
     drawUnderneathWhenSelected = activateCommand.startsWith("_");
     if (drawUnderneathWhenSelected) {
@@ -168,7 +184,9 @@ public class Embellishment extends Decorator implements EditablePiece {
 
   public String myGetType() {
     SequenceEncoder se = new SequenceEncoder(null, ';');
-    se.append(activateKey)
+    SequenceEncoder se2 = new SequenceEncoder(activateKey, ';');
+    se2.append(resetCommand).append(resetKey == 0 ? "" : String.valueOf(resetKey)).append(String.valueOf(resetLevel));
+    se.append(se2.getValue())
         .append(drawUnderneathWhenSelected ? "_" + activateCommand : activateCommand)
         .append(upKey)
         .append(upCommand)
@@ -229,26 +247,29 @@ public class Embellishment extends Decorator implements EditablePiece {
 
   public KeyCommand[] myGetKeyCommands() {
     if (commands == null) {
-      Vector v = new Vector();
+      List l = new ArrayList();
+      GamePiece outer = Decorator.getOutermost(this);
       if (activateKey.length() > 0) {
-        v.addElement(new KeyCommand(activateCommand,
-                                    KeyStroke.getKeyStroke(activateKey.charAt(0), InputEvent.CTRL_MASK),
-                                    Decorator.getOutermost(this)));
+        l.add(new KeyCommand(activateCommand,
+                             KeyStroke.getKeyStroke(activateKey.charAt(0), InputEvent.CTRL_MASK),
+                             outer));
       }
       if (upCommand.length() > 0 && upKey.length() > 0 && nValues > 1) {
-        v.addElement(new KeyCommand(upCommand,
-                                    KeyStroke.getKeyStroke(upKey.charAt(0), InputEvent.CTRL_MASK),
-                                    Decorator.getOutermost(this)));
+        l.add(new KeyCommand(upCommand,
+                             KeyStroke.getKeyStroke(upKey.charAt(0), InputEvent.CTRL_MASK),
+                             outer));
       }
       if (downCommand.length() > 0 && downKey.length() > 0 && nValues > 1) {
-        v.addElement(new KeyCommand(downCommand,
-                                    KeyStroke.getKeyStroke(downKey.charAt(0), InputEvent.CTRL_MASK),
-                                    Decorator.getOutermost(this)));
+        l.add(new KeyCommand(downCommand,
+                             KeyStroke.getKeyStroke(downKey.charAt(0), InputEvent.CTRL_MASK),
+                             outer));
       }
-      commands = new KeyCommand[v.size()];
-      for (int i = 0; i < commands.length; ++i) {
-        commands[i] = (KeyCommand) v.elementAt(i);
+      if (resetKey != '\0' && resetCommand.length() > 0) {
+        l.add(new KeyCommand(resetCommand,
+                             KeyStroke.getKeyStroke(resetKey, InputEvent.CTRL_MASK),
+                             outer));
       }
+      commands = (KeyCommand[]) l.toArray(new KeyCommand[l.size()]);
     }
     return commands;
   }
@@ -297,6 +318,13 @@ public class Embellishment extends Decorator implements EditablePiece {
         value = value > 0 ? val : -val;
         break;
       }
+    }
+    if (resetKey != '\0'
+        && KeyStroke.getKeyStroke(resetKey, InputEvent.CTRL_MASK).equals(stroke)) {
+      if (tracker == null) {
+        tracker = new ChangeTracker(this);
+      }
+      setValue(resetLevel-1);
     }
     return tracker != null ? tracker.getChangeCommand() : null;
   }
@@ -435,6 +463,9 @@ public class Embellishment extends Decorator implements EditablePiece {
     private JRadioButton suffix = new JRadioButton("is suffix");
     private JCheckBox alwaysActive = new JCheckBox("Always active");
     private JCheckBox drawUnderneath = new JCheckBox("Underneath when highlighted");
+    private JTextField resetLevel = new JTextField(2);
+    private JTextField resetCommand = new JTextField(8);
+    private KeySpecifier resetKey = new KeySpecifier('R');
 
     private JPanel controls;
     private Vector names;
@@ -450,7 +481,7 @@ public class Embellishment extends Decorator implements EditablePiece {
       controls.setLayout(new BoxLayout(controls, BoxLayout.X_AXIS));
 
       JPanel p = new JPanel();
-      p.setLayout(new GridLayout(3, 2));
+      p.setLayout(new GridLayout(4, 2));
       activateCommand.setMaximumSize(activateCommand.getPreferredSize());
       p.add(activateCommand);
       p.add(activateKeyInput);
@@ -460,6 +491,14 @@ public class Embellishment extends Decorator implements EditablePiece {
       downCommand.setMaximumSize(downCommand.getPreferredSize());
       p.add(downCommand);
       p.add(downKeyInput);
+
+      Box box2 = Box.createHorizontalBox();
+      box2.add(new JLabel("Reset to level"));
+      box2.add(resetLevel);
+      box2.add(new JLabel("command"));
+      box2.add(resetCommand);
+      p.add(box2);
+      p.add(resetKey);
 
       box = Box.createVerticalBox();
       alwaysActive.addItemListener
@@ -483,7 +522,7 @@ public class Embellishment extends Decorator implements EditablePiece {
       box.add(drawUnderneath);
       box.add(p);
 
-      Box box2 = Box.createHorizontalBox();
+      box2 = Box.createHorizontalBox();
       xOffInput.setMaximumSize(xOffInput.getPreferredSize());
       xOffInput.setText("0");
       yOffInput.setMaximumSize(xOffInput.getPreferredSize());
@@ -649,8 +688,12 @@ public class Embellishment extends Decorator implements EditablePiece {
       if (drawUnderneath.isSelected()) {
         command = "_" + command;
       }
-      SequenceEncoder se = new SequenceEncoder(activateKeyInput.getKey(), ';');
-      se.append(command)
+
+      SequenceEncoder se2 = new SequenceEncoder(activateKeyInput.getKey(), ';');
+      se2.append(resetCommand.getText()).append(resetKey.getKey()).append(resetLevel.getText());
+      SequenceEncoder se = new SequenceEncoder(null, ';');
+      se.append(se2.getValue())
+          .append(command)
           .append(upKeyInput.getKey())
           .append(upCommand.getText())
           .append(downKeyInput.getKey())
@@ -706,6 +749,9 @@ public class Embellishment extends Decorator implements EditablePiece {
       upCommand.setText(e.upCommand);
       downKeyInput.setKey(e.downKey);
       downCommand.setText(e.downCommand);
+      resetKey.setKey(e.resetKey != '\0' ? String.valueOf(e.resetKey) : "");
+      resetCommand.setText(e.resetCommand);
+      resetLevel.setText(String.valueOf(e.resetLevel));
       xOffInput.setText("" + e.xOff);
       yOffInput.setText("" + e.yOff);
       images.setImageList(e.imageName);
