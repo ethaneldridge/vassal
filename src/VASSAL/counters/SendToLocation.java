@@ -115,7 +115,7 @@ public class SendToLocation extends Decorator implements EditablePiece {
         if (b != null) {
           dest.translate(b.bounds().x,b.bounds().y);
         }
-        c = m.placeOrMerge(this,dest);
+        c = m.placeOrMerge(Decorator.getOutermost(this),dest);
       }
     }
     return c;
