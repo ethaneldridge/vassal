@@ -1,5 +1,12 @@
 package VASSAL.build.module.noteswindow;
 
+import java.text.DateFormat;
+import java.util.Date;
+import java.util.Locale;
+
+import VASSAL.build.GameModule;
+import VASSAL.build.module.PlayerRoster;
+
 /*
  * $Id$
  *
@@ -15,7 +22,7 @@ package VASSAL.build.module.noteswindow;
  * Library General Public License for more details.
  *
  * You should have received a copy of the GNU Library General Public
- * License along with this library; if not, copies are available 
+ * License along with this library; if not, copies are available
  * at http://www.opensource.org.
  */
 
@@ -24,29 +31,43 @@ package VASSAL.build.module.noteswindow;
  * This is an immutable object
  */
 public class SecretNote {
-    private String owner;
-    private String name;
-    private String text;
-    private boolean hidden = true;
+  private String owner;
+  private String name;
+  private String text;
+  private boolean hidden = true;
 
-    public SecretNote(String name, String owner, String text, boolean hidden) {
-      this.name = name;
-      this.owner = owner;
-      this.text = text;
-      this.hidden = hidden;
-    }
+  public SecretNote(String name, String owner, String text, boolean hidden) {
 
-    public boolean isHidden() {
-      return hidden;
-    }
+    String handle;
 
-    public String getName() {
-      return name;
+    if (PlayerRoster.isActive()) {
+      handle = PlayerRoster.getMySide();
     }
+    else {
+      handle = (String) GameModule.getGameModule().getPrefs().getOption(GameModule.REAL_NAME).getValue();
+    }
+    DateFormat formatter =
+        DateFormat.getDateTimeInstance(DateFormat.SHORT, DateFormat.SHORT, Locale.getDefault());
+    String dtm = formatter.format(new Date());
+    handle += " (" + dtm + ") ";
 
-    public String getOwner() {
-      return owner;
-    }
+    this.name = handle + ": " + name;
+    this.owner = owner;
+    this.text = text;
+    this.hidden = hidden;
+  }
+
+  public boolean isHidden() {
+    return hidden;
+  }
+
+  public String getName() {
+    return name;
+  }
+
+  public String getOwner() {
+    return owner;
+  }
 
   /**
    * Two SecretNotes with the same owner and name are considered equal
@@ -73,7 +94,7 @@ public class SecretNote {
   }
 
   public String getText() {
-      return text;
-    }
-
+    return text;
   }
+
+}
