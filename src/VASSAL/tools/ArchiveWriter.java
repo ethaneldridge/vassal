@@ -38,7 +38,9 @@ public class ArchiveWriter extends DataArchive {
    *
    * @param zipName the name of the archive.  If null, the user will
    * be prompted for a filename when saving.  If not null, new
-   * entries will be added to the named archive.  */
+   * entries will be added to the named archive.
+   * If the file exists and is not a zip archive, it will be overwritten.
+   */
   public ArchiveWriter(String zipName) {
     archiveName = zipName;
     if (archiveName == null) {
@@ -52,6 +54,10 @@ public class ArchiveWriter extends DataArchive {
         archive = null;
       }
     }
+  }
+
+  public ArchiveWriter(ZipFile archive) {
+    this.archive = archive;
   }
 
   /** Add an image file to the archive.  The file will be copied into an

@@ -20,6 +20,7 @@ package VASSAL.preferences;
 
 import VASSAL.build.GameModule;
 import VASSAL.configure.Configurer;
+import VASSAL.tools.ArchiveWriter;
 
 import javax.swing.*;
 import java.awt.*;
@@ -28,44 +29,54 @@ import java.awt.event.ActionListener;
 import java.util.Enumeration;
 import java.util.Hashtable;
 import java.util.Vector;
+import java.io.IOException;
 
-public class PrefsEditor extends JDialog implements ActionListener {
+public class PrefsEditor extends JDialog {
   private Vector options = new Vector();
   private Hashtable savedValues;
-  private Prefs prefs;
+  private Vector prefs;
   private JButton save, cancel;
   private JTabbedPane tab;
   private JMenuItem launch;
   private JDialog setupDialog;
+  private ArchiveWriter archive;
+  private Action editAction;
 
-  public PrefsEditor(Prefs p) {
+  public PrefsEditor(ArchiveWriter archive) {
     super(GameModule.getGameModule() == null ? (Frame)null
 	: GameModule.getGameModule().getFrame(), true);
     setTitle("Preferences");
 
-    setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
+    savedValues = new Hashtable();
+    this.archive = archive;
 
-    prefs = p;
-
-    save = new JButton("Save");
-    save.addActionListener(this);
-    cancel = new JButton("Cancel");
-    cancel.addActionListener(this);
-
-    launch = new JMenuItem();
-    launch.setText("Edit Preferences");
-    ActionListener al = new ActionListener() {
+    editAction = new AbstractAction("Edit Preferences") {
       public void actionPerformed(ActionEvent e) {
         storeValues();
         pack();
+        Dimension d = Toolkit.getDefaultToolkit().getScreenSize();
+        setLocation(d.width/2-getWidth()/2,0);
         setVisible(true);
       }
     };
-    launch.addActionListener(al);
-    launch.setMnemonic('P');
-    if (GameModule.getGameModule() != null) {
-      GameModule.getGameModule().getFileMenu().add(launch);
-    }
+    editAction.putValue(Action.MNEMONIC_KEY,new Integer((int)'P'));
+
+    setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
+
+    prefs = new Vector();
+
+    save = new JButton("Save");
+    save.addActionListener(new ActionListener() {
+      public void actionPerformed(ActionEvent e) {
+        save();
+      }
+    });
+    cancel = new JButton("Cancel");
+    cancel.addActionListener(new ActionListener() {
+      public void actionPerformed(ActionEvent e) {
+        cancel();
+      }
+    });
 
     JPanel pan = new JPanel();
     pan.add(save);
@@ -75,10 +86,10 @@ public class PrefsEditor extends JDialog implements ActionListener {
     tab = new JTabbedPane();
     getContentPane().add(tab);
     getContentPane().add(pan);
+  }
 
-    pack();
-    setLocation(Toolkit.getDefaultToolkit().getScreenSize().width / 2 - getSize().width / 2,
-                Toolkit.getDefaultToolkit().getScreenSize().height / 2 - getSize().height / 2);
+  public void addPrefs(Prefs p) {
+    prefs.addElement(p);
   }
 
   public void addOption(String category, Configurer c, String prompt) {
@@ -136,7 +147,7 @@ public class PrefsEditor extends JDialog implements ActionListener {
   }
 
   private void storeValues() {
-    savedValues = new Hashtable();
+    savedValues.clear();
     for (Enumeration e = options.elements();
          e.hasMoreElements();) {
       Configurer c = (Configurer) e.nextElement();
@@ -147,27 +158,44 @@ public class PrefsEditor extends JDialog implements ActionListener {
     }
   }
 
-  public void actionPerformed(ActionEvent event) {
-    if (cancel == event.getSource()) {
-      for (Enumeration e = options.elements();
-           e.hasMoreElements();) {
-        Configurer c = (Configurer) e.nextElement();
-        c.setValue(savedValues.get(c));
-        c.setFrozen(false);
-      }
-      setVisible(false);
-    }
-    else if (save == event.getSource()) {
-      for (Enumeration e = options.elements();
-           e.hasMoreElements();) {
-        Configurer c = (Configurer) e.nextElement();
-        c.fireUpdate();
-        c.setFrozen(false);
-      }
-      prefs.write();
-      setVisible(false);
-    }
+  public ArchiveWriter getArchive() {
+    return archive;
   }
 
+  protected void cancel() {
+    for (Enumeration e = options.elements();
+         e.hasMoreElements();) {
+      Configurer c = (Configurer) e.nextElement();
+      c.setValue(savedValues.get(c));
+      c.setFrozen(false);
+    }
+    setVisible(false);
+  }
 
+  protected void save() {
+    for (Enumeration e = options.elements();
+         e.hasMoreElements();) {
+      Configurer c = (Configurer) e.nextElement();
+      c.fireUpdate();
+      c.setFrozen(false);
+    }
+    try {
+      for (Enumeration e = prefs.elements(); e.hasMoreElements();) {
+        ((Prefs)e.nextElement()).save();
+      }
+      write();
+    }
+    catch (IOException e) {
+      JOptionPane.showMessageDialog(getOwner(),"Unable to save preferences.\n","Save error",JOptionPane.ERROR_MESSAGE);
+    }
+    setVisible(false);
+  }
+
+  public Action getEditAction() {
+    return editAction;
+  }
+
+  public void write() throws IOException {
+    archive.write();
+  }
 }

@@ -20,36 +20,30 @@ package VASSAL.preferences;
 
 import VASSAL.build.GameModule;
 import VASSAL.configure.Configurer;
-import VASSAL.tools.ArchiveWriter;
 
 import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.Enumeration;
 import java.util.Hashtable;
 import java.util.Properties;
 
+/**
+ * A set of preferences.  Each set of preferences is identified by a name, and
+ * different sets may share a common editor, which is responsible for
+ * writing the preferences to disk
+ */
 public class Prefs {
-  private ArchiveWriter archive;
   private Hashtable options = new Hashtable();
   private Properties storedValues = new Properties();
   private PrefsEditor editor;
-  private String filename;
-  private Prefs child;
+  private String name;
 
-  public Prefs(String fileName) {
-    editor = new PrefsEditor(this);
-    archive = new ArchiveWriter(fileName);
-  }
-
-  public Prefs(Prefs parent, String fileName) {
-    parent.child = this;
-    archive = parent.archive;
-    editor = parent.editor;
-    init(fileName);
-  }
-
-  public void addTo(GameModule theModule) {
-    theModule.setPrefs(this);
-    init(theModule.getGameName());
+  public Prefs(PrefsEditor editor, String name) {
+    this.editor = editor;
+    this.name = name;
+    editor.addPrefs(this);
+    init(name);
   }
 
   public PrefsEditor getEditor() {
@@ -107,11 +101,11 @@ public class Prefs {
   }
 
   public void init(String moduleName) {
-    filename = moduleName;
+    name = moduleName;
     try {
-      archive.getFileStream(filename);
+      InputStream in = editor.getArchive().getFileStream(name);
       storedValues.clear();
-      storedValues.load(archive.getFileStream(filename));
+      storedValues.load(in);
       for (Enumeration e = storedValues.keys(); e.hasMoreElements();) {
         String key = (String) e.nextElement();
         String value = storedValues.getProperty(key);
@@ -125,29 +119,23 @@ public class Prefs {
     }
   }
 
-  public void write() {
-    if (child != null) {
-      child.write();
-    }
+  /**
+   * Store this set of preferences in the editor, but don't yet save to disk
+   */
+  public void save() throws IOException {
     for (Enumeration e = options.elements(); e.hasMoreElements();) {
       Configurer c = (Configurer) e.nextElement();
       storedValues.put(c.getKey(), c.getValueString());
     }
-    try {
-      ByteArrayOutputStream out = new ByteArrayOutputStream();
-      storedValues.store(out, null);
-      archive.addFile(filename,
-                      new java.io.ByteArrayInputStream(out.toByteArray()));
-      archive.write();
-    }
-    catch (Exception e) {
-      e.printStackTrace();
-      javax.swing.JOptionPane.showMessageDialog
-          (null,
-           e.getMessage(),
-           "Error writing preferences",
-           javax.swing.JOptionPane.ERROR_MESSAGE);
-    }
+    ByteArrayOutputStream out = new ByteArrayOutputStream();
+    storedValues.store(out, null);
+    editor.getArchive().addFile(name,
+                                new java.io.ByteArrayInputStream(out.toByteArray()));
   }
 
+  /** Save these preferences and write to disk */
+  public void write() throws IOException {
+    save();
+    editor.write();
+  }
 }

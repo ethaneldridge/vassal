@@ -124,7 +124,7 @@ public abstract class GameModule extends AbstractConfigurable implements Command
   /**
    * Initialize the module
    */
-  protected abstract void build();
+  protected abstract void build() throws IOException;
 
   public void setAttribute(String name, Object value) {
     if (MODULE_NAME.equals(name)) {
@@ -272,10 +272,6 @@ public abstract class GameModule extends AbstractConfigurable implements Command
    * @return the preferences for this module
    */
   public Prefs getPrefs() {
-    if (preferences == null) {
-      (new Prefs(System.getProperty("user.home")
-                 + java.io.File.separator + ".VassalPreferences")).addTo(this);
-    }
     return preferences;
   }
 
@@ -284,7 +280,6 @@ public abstract class GameModule extends AbstractConfigurable implements Command
    * @return
    */
   public Prefs getGlobalPrefs() {
-    getPrefs();
     return globalPrefs;
   }
 
@@ -369,7 +364,10 @@ public abstract class GameModule extends AbstractConfigurable implements Command
 
   public void setPrefs(Prefs p) {
     preferences = p;
-    globalPrefs = new Prefs(preferences,"VASSAL");
+  }
+
+  public void setGlobalPrefs(Prefs p) {
+    globalPrefs = p;
   }
 
   /**
@@ -522,6 +520,9 @@ public abstract class GameModule extends AbstractConfigurable implements Command
         }
       }
     }
+    catch (IOException ex) {
+      ex.printStackTrace();
+    }
     finally {
       if (!cancelled) {
         System.exit(0);
@@ -573,14 +574,7 @@ public abstract class GameModule extends AbstractConfigurable implements Command
     }
     else {
       theModule = module;
-      try {
-        theModule.build();
-      }
-      catch (Exception ex) {
-        ex.printStackTrace();
-        theModule = null;
-        throw new IOException(ex.getMessage());
-      }
+      theModule.build();
     }
     if (theModule.getDataArchive() instanceof ArchiveWriter) {
       theModule.lastSavedConfiguration = theModule.buildString();
