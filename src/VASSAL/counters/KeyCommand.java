@@ -57,7 +57,7 @@ public class KeyCommand extends AbstractAction {
     GamePiece outer = Decorator.getOutermost(target);
     t.addPiece(outer);
     outer.setProperty(Properties.SNAPSHOT,PieceCloner.getInstance().clonePiece(outer)); // save state prior to command
-    Command c = target.keyEvent(stroke);
+    Command c = outer.keyEvent(stroke);
     if (target.getId() != null) {
       GameModule.getGameModule().sendAndLog(c);
     }
