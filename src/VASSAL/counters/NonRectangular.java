@@ -14,6 +14,7 @@ import java.awt.geom.PathIterator;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Area;
 import java.util.StringTokenizer;
+import java.util.HashMap;
 import java.io.IOException;
 
 /*
@@ -41,6 +42,7 @@ import java.io.IOException;
  */
 public class NonRectangular extends Decorator implements EditablePiece {
   public static final String ID = "nonRect;";
+  private static HashMap shapeCache = new HashMap();
   private String type;
   private Shape shape;
 
@@ -95,9 +97,17 @@ public class NonRectangular extends Decorator implements EditablePiece {
   public void mySetType(String type) {
     this.type = type;
     if (Info.is2dEnabled()) {
-      StringTokenizer st = new StringTokenizer(type.substring(ID.length()), ",");
+      String shapeSpec = type.substring(ID.length());
+      shape = buildPath(shapeSpec);
+    }
+  }
+
+  private GeneralPath buildPath(String spec) {
+    GeneralPath path = (GeneralPath) shapeCache.get(spec);
+    if (path == null && !shapeCache.containsKey(spec)) {
+      StringTokenizer st = new StringTokenizer(spec, ",");
       if (st.hasMoreTokens()) {
-        GeneralPath path = new GeneralPath();
+        path = new GeneralPath();
         while (st.hasMoreTokens()) {
           String token = st.nextToken();
           switch (token.charAt(0)) {
@@ -112,12 +122,10 @@ public class NonRectangular extends Decorator implements EditablePiece {
               break;
           }
         }
-        shape = path;
       }
-      else {
-        shape = null;
-      }
+      shapeCache.put(spec, path);
     }
+    return path;
   }
 
   public HelpFile getHelpFile() {

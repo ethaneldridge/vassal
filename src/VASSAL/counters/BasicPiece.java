@@ -264,7 +264,7 @@ public class BasicPiece implements EditablePiece {
       newPiece.setState(outer.getState());
       comm = new AddPiece(newPiece);
       if (getMap() != null) {
-        comm.append(getMap().getStackMetrics().merge(outer, newPiece));
+        comm.append(getMap().placeOrMerge(newPiece,getPosition()));
         KeyBuffer.getBuffer().remove(outer);
         KeyBuffer.getBuffer().add(newPiece);
 
