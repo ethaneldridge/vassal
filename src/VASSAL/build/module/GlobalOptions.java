@@ -49,15 +49,6 @@ public class GlobalOptions extends AbstractConfigurable {
 
   public static final String PLAYER_NAME = "playerName";
   public static final String PLAYER_SIDE = "playerSide";
-  public static final String GRID_REF = "gridRef";
-  public static final String MAP_NAME = "mapName";
-  public static final String BOARD_NAME = "boardName";
-  public static final String MAP_REF = "mapRef";
-  public static final String FROM_MAP_REF = "fromMapRef";
-  public static final String TO_MAP_REF = "toMapRef";
-  public static final String UNIT_NAME = "unitName";
-  public static final String OLD_UNIT_NAME = "oldUnitName";
-  public static final String NEW_UNIT_NAME = "newUnitName";
   public static final String COMMAND_NAME = "commandName";
   public static final String DECK_NAME = "deckName";
   public static final String TEXT = "text";
@@ -73,9 +64,7 @@ public class GlobalOptions extends AbstractConfigurable {
   private String markMoved = NEVER;
 
   // Default Report Formats
-  private static String chatFmt = "$"+PLAYER_NAME+"$ - $"+TEXT+"$";
-  private static String moveFmt = "$"+UNIT_NAME+"$"+" moves $"+FROM_MAP_REF+"$ -> $"+TO_MAP_REF+"$ *";
-  private static String createFmt = "$"+UNIT_NAME+"$ created in $"+TO_MAP_REF+"$";
+  private static String chatFmt = "<$"+PLAYER_NAME+"$> - $"+TEXT+"$";
 
   private static GlobalOptions instance;
   private boolean useSingleWindow;
@@ -143,8 +132,7 @@ public class GlobalOptions extends AbstractConfigurable {
 
   public Class[] getAttributeTypes() {
     return new Class[]{Prompt.class, null, Prompt.class, Prompt.class,
-                       ChatFormatConfig.class,
-                       MoveReportFormatConfig.class, MoveReportFormatConfig.class};
+                       ChatFormatConfig.class};
   }
 
   public String getAttributeValueString(String key) {
@@ -165,12 +153,6 @@ public class GlobalOptions extends AbstractConfigurable {
     }
     else if (CHAT_FMT.equals(key)) {
       return chatFmt;
-    }
-    else if (MOVE_FMT.equals(key)) {
-      return moveFmt;
-    }
-    else if (CREATE_FMT.equals(key)) {
-      return createFmt;
     }
     else {
       return null;
@@ -234,12 +216,6 @@ public class GlobalOptions extends AbstractConfigurable {
     else if (CHAT_FMT.equals(key)) {
       chatFmt = (String) value;
     }
-    else if (MOVE_FMT.equals(key)) {
-      moveFmt = (String) value;
-    }
-    else if (CREATE_FMT.equals(key)) {
-      createFmt = (String) value;
-    }
   }
 
   public boolean autoReportEnabled() {
@@ -275,50 +251,6 @@ public class GlobalOptions extends AbstractConfigurable {
     fmt.setProperty(TEXT, chatText);
     id = fmt.getText();
     return id;
-  }
-
-  // Format a Move Report
-  public static String formatMove(String unitName, String from, String to) {
-    String id = "";
-    FormattedString fmt = new FormattedString(moveFmt);
-    fmt.setProperty(PLAYER_NAME, (String)GameModule.getGameModule().getPrefs().getValue(GameModule.REAL_NAME));
-    fmt.setProperty(PLAYER_SIDE, PlayerRoster.getMySide());
-    fmt.setProperty(UNIT_NAME, unitName);
-    fmt.setProperty(FROM_MAP_REF, from);
-    fmt.setProperty(TO_MAP_REF, to);
-    fmt.setProperty(MAP_REF, to);
-    id = fmt.getText();
-    return id;
-  }
-
-  // Format a Unit creation report
-  public static String formatCreate(String unitName, String loc) {
-    String id = "";
-    FormattedString fmt = new FormattedString(createFmt);
-    fmt.setProperty(PLAYER_NAME, (String)GameModule.getGameModule().getPrefs().getValue(GameModule.REAL_NAME));
-    fmt.setProperty(PLAYER_SIDE, PlayerRoster.getMySide());
-    fmt.setProperty(UNIT_NAME, unitName);
-    fmt.setProperty(FROM_MAP_REF, "Off Map");
-    fmt.setProperty(TO_MAP_REF, loc);
-    fmt.setProperty(MAP_REF, loc);
-    id = fmt.getText();
-    return id;
-  }
-
-  // Options for Move Report
-  public static final String[] getMoveOptions() {
-    return new String[]{GlobalOptions.PLAYER_NAME,
-                          PLAYER_SIDE,
-                        GlobalOptions.UNIT_NAME,
-                        GlobalOptions.MAP_REF,
-                        GlobalOptions.FROM_MAP_REF,
-                        GlobalOptions.TO_MAP_REF};
-  }
-
-  public static class MoveReportFormatConfig implements ConfigurerFactory {
-    public Configurer getConfigurer(AutoConfigurable c, String key, String name) {
-      return new FormattedStringConfigurer(key, name, getMoveOptions());
-    }
   }
 
   public static class ChatFormatConfig implements ConfigurerFactory {

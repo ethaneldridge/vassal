@@ -99,7 +99,15 @@ public class ReportState extends Decorator implements EditablePiece {
     // Retrieve the name, location and visibilty of the unit prior to the
     // trait being executed if it is outside this one.
 
+
+    // The following line will execute the trait if it is inside this one
+    Command c = super.keyEvent(stroke);
+
     GamePiece oldPiece = (GamePiece) getProperty(Properties.SNAPSHOT);
+
+    boolean wasVisible = !Boolean.TRUE.equals(oldPiece.getProperty(Properties.INVISIBLE_TO_OTHERS));
+    boolean isVisible = !Boolean.TRUE.equals(outer.getProperty(Properties.INVISIBLE_TO_OTHERS));
+
     Hideable.setAllHidden(true);
     Obscurable.setAllHidden(true);
     String oldUnitName = oldPiece.getName();
@@ -107,18 +115,12 @@ public class ReportState extends Decorator implements EditablePiece {
     Hideable.setAllHidden(false);
     Obscurable.setAllHidden(false);
 
-    boolean wasVisible = !Boolean.TRUE.equals(oldPiece.getProperty(Properties.INVISIBLE_TO_OTHERS));
-    boolean isVisible = !Boolean.TRUE.equals(outer.getProperty(Properties.INVISIBLE_TO_OTHERS));
-
     if (oldUnitName.equals(newUnitName)) {
       format.setFormat(formatNameUnchanged);
     }
     else {
       format.setFormat(formatNameChanged);
     }
-
-    // The following line will execute the trait if it is inside this one
-    Command c = super.keyEvent(stroke);
 
     // Only make a report if:
     //  1. It's not part of a global command with Single Reporting on
@@ -188,7 +190,7 @@ public class ReportState extends Decorator implements EditablePiece {
   }
 
   public String getDescription() {
-    return "Report Changes";
+    return "Report Action";
   }
 
   public HelpFile getHelpFile() {

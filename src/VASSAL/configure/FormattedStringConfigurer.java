@@ -94,6 +94,7 @@ public class FormattedStringConfigurer
       int pos = nameField.getCaretPosition();
       String news = work.substring(0, pos) + item + work.substring(pos);
       nameField.setText(news);
+      nameField.setCaretPosition(pos+item.length());
 
       // Update the text field and repaint it
       noUpdate = true;

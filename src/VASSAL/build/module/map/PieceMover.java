@@ -26,10 +26,7 @@ package VASSAL.build.module.map;
 import VASSAL.build.AbstractBuildable;
 import VASSAL.build.Buildable;
 import VASSAL.build.GameModule;
-import VASSAL.build.module.Chatter;
-import VASSAL.build.module.GameComponent;
-import VASSAL.build.module.GlobalOptions;
-import VASSAL.build.module.Map;
+import VASSAL.build.module.*;
 import VASSAL.build.module.map.boardPicker.Board;
 import VASSAL.command.ChangeTracker;
 import VASSAL.command.Command;
@@ -37,6 +34,7 @@ import VASSAL.command.NullCommand;
 import VASSAL.configure.BooleanConfigurer;
 import VASSAL.counters.*;
 import VASSAL.tools.Sort;
+import VASSAL.tools.FormattedString;
 import VASSAL.Info;
 
 import javax.swing.*;
@@ -420,23 +418,29 @@ public class PieceMover extends AbstractBuildable implements
     if (fromMap != null) {
       if (bottom.getParent() != null) {
         fromPos = bottom.getParent().getPosition();
+        if (bottom.getParent() instanceof Deck) {
+          origin = ((Deck)bottom.getParent()).getDeckName();
+        }
+        else {
+          origin = fromMap.locationName(fromPos);
+        }
       }
       else {
         fromPos = bottom.getPosition();
+        origin = fromMap.locationName(fromPos);
       }
-      origin = fromMap.locationName(fromPos);
     }
 
-    StringBuffer moved = new StringBuffer();
+    StringBuffer movedPieceNames = new StringBuffer();
     if (bottom.getMap() == map) {
-      moved.append(bottom.getName());
+      movedPieceNames.append(bottom.getName());
     }
     else if (bottom.getMap() != null) {
-      moved.append(bottom.getName());
+      movedPieceNames.append(bottom.getName());
       originMaps.add(bottom.getMap());
     }
     else {
-      moved.append(bottom.getName());
+      movedPieceNames.append(bottom.getName());
       origin = OFFMAP;
     }
     Hideable.setAllHidden(false);
@@ -459,7 +463,12 @@ public class PieceMover extends AbstractBuildable implements
     else {
       comm = comm.append(movedPiece(bottom, mergeWith.getPosition()));
       comm = comm.append(map.getStackMetrics().merge(mergeWith, bottom));
-      destination = map.locationName(mergeWith.getPosition());
+      if (mergeWith instanceof Deck) {
+        destination = ((Deck)mergeWith).getDeckName();
+      }
+      else {
+        destination = map.locationName(mergeWith.getPosition());
+      }
     }
 
     while (it.hasMoreElements()) {
@@ -469,8 +478,8 @@ public class PieceMover extends AbstractBuildable implements
       //if (next.getMap() == map) { // Make sure moved from offmap are reported
       if (next.getMap() == map || OFFMAP.equals(origin)) {
         if (next.getName().length() > 0) {
-          moved.append(',');
-          moved.append(next.getName());
+          movedPieceNames.append(',');
+          movedPieceNames.append(next.getName());
         }
       }
       else if (next.getMap() != null) {
@@ -487,28 +496,11 @@ public class PieceMover extends AbstractBuildable implements
       bottom = next;
     }
 
-    String toId = map.getDeckName(p);
-    if (toId == null) {
-      toId = map.locationName(p);
-    }
-
-    String fromId = "";
-    if (fromMap != null && !fromMap.equals(map)) {
-      fromId = map.getDeckName(p);
-      if (fromId == null) {
-        fromId = fromMap.locationName(fromPos);
-      }
-    }
-
-    String s = moved.toString();
     if 	// At least one unit moved somwhere
     (comm != null && !comm.isNull() &&
 
-        // Not movement within a window with suppress internal move reporting turned on
-        (fromMap == null || !fromMap.equals(map) || !fromMap.getSuppressAutoReportWithin()) &&
-
         // There is a source or a destination to report
-        (origin != null || destination != null || !fromMap.equals(map) || !fromMap.getSuppressAutoReportWithin()) &&
+        (origin != null || destination != null) &&
 
         // Not a unit creation in a restricted visibility window
         (origin == null || !origin.equals(OFFMAP) || map.isVisibleToAll()) &&
@@ -517,17 +509,31 @@ public class PieceMover extends AbstractBuildable implements
         (fromMap == null || !fromMap.equals(map) || fromMap.isVisibleToAll()) &&
 
         // There is a unit to repot
-        s.length() > 0 &&
+        movedPieceNames.length() > 0 &&
 
         //Auto-reporting moves enabled
         GlobalOptions.getInstance().autoReportEnabled()) {
 
-      String moveText = GlobalOptions.formatMove(moved.toString(), fromId, toId);
-      if (origin != null && origin.equals(OFFMAP)) {
-        if (map.isVisibleToAll()) {
-          moveText = GlobalOptions.formatCreate(moved.toString(), toId);
-        }
+      FormattedString format;
+      if (fromMap == null) {
+        format = map.getCreateFormat();
       }
+      else if (fromMap != map) {
+        format = map.getMoveToFormat();
+      }
+      else {
+        format = map.getMoveWithinFormat();
+      }
+      format.setProperty(Map.PLAYER_NAME, (String)GameModule.getGameModule().getPrefs().getValue(GameModule.REAL_NAME));
+      format.setProperty(Map.PLAYER_SIDE, PlayerRoster.getMySide());
+      format.setProperty(Map.PIECE_NAME, movedPieceNames.toString());
+      format.setProperty(Map.LOCATION, destination);
+      if (fromMap != null) {
+        format.setProperty(Map.OLD_MAP, fromMap.getConfigureName());
+      }
+      format.setProperty(Map.OLD_LOCATION, origin);
+
+      String moveText = format.getText();
 
       if (moveText.length() > 0) {
         Command report = new Chatter.DisplayText(GameModule.getGameModule().getChatter(), "* " + moveText);

@@ -20,6 +20,7 @@
 package VASSAL.counters;
 
 import VASSAL.build.GameModule;
+import VASSAL.build.module.Map;
 import VASSAL.command.AddPiece;
 
 /**
@@ -34,7 +35,10 @@ public class PieceCloner {
     GamePiece clone = null;
     if (piece instanceof BasicPiece) {
       clone = new BasicPiece(piece.getType());
+      Map m = piece.getMap();
+      piece.setMap(null); // Temporarily set map to null so that clone won't be added to map
       clone.setState(piece.getState());
+      piece.setMap(m);
     }
     else if (piece instanceof UsePrototype) {
       clone = clonePiece(((UsePrototype)piece).getExpandedInner());

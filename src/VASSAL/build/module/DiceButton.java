@@ -42,7 +42,7 @@ public class DiceButton extends AbstractConfigurable {
   protected int nSides = 6, nDice = 2, plus = 0;
   protected boolean reportTotal = false;
   protected boolean promptAlways = false;
-  protected FormattedString reportFormat = new FormattedString("** $"+RESULT+"$ *** <$"+PLAYER_NAME+"$>");
+  protected FormattedString reportFormat = new FormattedString("** $"+BUTTON_TEXT+"$ = $"+RESULT+"$ *** <$"+PLAYER_NAME+"$>");
   protected LaunchButton launch;
 
   public static final String DEPRECATED_NAME = "label";
@@ -63,6 +63,7 @@ public class DiceButton extends AbstractConfigurable {
   public static final String PLAYER_SIDE="playerSide";
   /** Variable name for reporting format */
   public static final String RESULT="result";
+  public static final String REPORT_NAME="buttonText";
 
   public DiceButton() {
     ActionListener rollAction = new ActionListener() {
@@ -120,8 +121,7 @@ public class DiceButton extends AbstractConfigurable {
    * method of the {@link Chatter} of the {@link GameModule}.  Format is
    * prefix+[comma-separated roll list]+suffix */
   protected void DR() {
-    // String val = getReportPrefix();
-    String val = getConfigureName() + " = ";
+    String val = "";
     int total = 0;
     for (int i = 0; i < nDice; ++i) {
       int roll = (int) (ran.nextFloat() * nSides + 1) + plus;
@@ -138,24 +138,14 @@ public class DiceButton extends AbstractConfigurable {
     if (reportTotal)
       val += total;
 
-    //val += getReportSuffix();
-
     reportFormat.setProperty(PLAYER_NAME, (String) GameModule.getGameModule().getPrefs().getValue(GameModule.REAL_NAME));
     reportFormat.setProperty(PLAYER_SIDE,PlayerRoster.getMySide());
+    reportFormat.setProperty(REPORT_NAME, getConfigureName());
     reportFormat.setProperty(RESULT, val);
     String report = "*"+reportFormat.getText();
     GameModule.getGameModule().getChatter().send(report);
   }
 
-  /**
-   * The Attributes of a DiceButton are:
-   *
-   * <code>LABEL</code> the label of the button in the toolbar
-   * <code>HOTKEY</code> the hotkey equivalent of the button
-   * <code>N_DICE</code> the number of dice to roll on each button press
-   * <code>N_SIDES</code> the number of sides of each die
-   * <code>REPORT_TOTALL</code> If true, add the results of the dice together and report the total.  Otherwise, report the individual results
-   */
   public String[] getAttributeNames() {
     String s[] = {NAME, BUTTON_TEXT, ICON, N_DICE, N_SIDES, PLUS, REPORT_TOTAL, HOTKEY, PROMPT_ALWAYS, REPORT_FORMAT};
     return s;

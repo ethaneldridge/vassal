@@ -7,60 +7,43 @@
 
 package VASSAL.tools;
 
-import java.util.Properties;
-import java.util.StringTokenizer;
+import java.util.HashMap;
 
 public class FormattedString {
 
-	private String formatString;
-	private Properties props = new Properties();
+  private String formatString;
+  private HashMap props = new HashMap();
 
-    public FormattedString () {
-    	setFormat("");
-    }
-    
-	public FormattedString (String s) {
-		setFormat(s);	
-	}
-	
-	public void setFormat(String s) {
-		formatString = s;
-	}
-	
-	public String getFormat() {
-		return formatString;
-	}
-
-	public void setProperty(String name, String value) {
-    if (value != null) {
-      props.setProperty(name, value);
-    }
-    else {
-      props.remove(name);
-    }
+  public FormattedString() {
+    setFormat("");
   }
-	
-	public String getText() {
-		StringBuffer buffer = new StringBuffer();
-    StringTokenizer st = new StringTokenizer(formatString,"$",true);
-    boolean expectingVariable = false;
+
+  public FormattedString(String s) {
+    setFormat(s);
+  }
+
+  public void setFormat(String s) {
+    formatString = s;
+  }
+
+  public String getFormat() {
+    return formatString;
+  }
+
+  public void setProperty(String name, String value) {
+    props.put(name, value);
+  }
+
+  public String getText() {
+    StringBuffer buffer = new StringBuffer();
+    SequenceEncoder.Decoder st = new SequenceEncoder.Decoder(formatString, '$');
     while (st.hasMoreTokens()) {
       String token = st.nextToken();
-      if ("$".equals(token)) {
-        expectingVariable = !expectingVariable;
+      String value = (String) props.get(token);
+      if (value != null) {
+        buffer.append(value);
       }
-      else if (expectingVariable) {
-        String value = props.getProperty(token);
-        if (value != null) {
-          buffer.append(value);
-        }
-        else {
-          if (!props.containsKey(token)) {
-            expectingVariable = false;
-          }
-        }
-      }
-      else {
+      else if (!props.containsKey(token)) {
         buffer.append(token);
       }
     }
@@ -78,7 +61,7 @@ public class FormattedString {
     }
 */
 
-		return buffer.toString();
-	}
-	
+    return buffer.toString();
+  }
+
 }
