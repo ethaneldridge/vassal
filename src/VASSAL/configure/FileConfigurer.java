@@ -120,11 +120,6 @@ public class FileConfigurer extends Configurer {
             setValue(f);
             noUpdate = false;
           }
-          else {
-            noUpdate = true;
-            setValue(null);
-            noUpdate = false;
-          }
         }
       });
       p.add(tf);
@@ -144,7 +139,8 @@ public class FileConfigurer extends Configurer {
       setValue((Object) null);
     }
     else {
-      setValue(fc.getSelectedFile());
+      setValue(fc.getSelectedFile().exists() ?
+               fc.getSelectedFile() : (Object) null);
     }
   }
 

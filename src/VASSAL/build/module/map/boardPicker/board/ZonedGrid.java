@@ -13,7 +13,7 @@
  * Library General Public License for more details.
  *
  * You should have received a copy of the GNU Library General Public
- * License along with this library; if not, copies are available 
+ * License along with this library; if not, copies are available
  * at http://www.opensource.org.
  */
 package VASSAL.build.module.map.boardPicker.board;
@@ -24,9 +24,12 @@ import VASSAL.build.module.documentation.HelpFile;
 import VASSAL.build.module.map.boardPicker.board.mapgrid.GridContainer;
 import VASSAL.build.module.map.boardPicker.board.mapgrid.GridNumbering;
 import VASSAL.build.module.map.boardPicker.board.mapgrid.Zone;
+import VASSAL.build.module.map.boardPicker.Board;
+import VASSAL.configure.Configurer;
 
 import java.awt.*;
 import java.awt.geom.Area;
+import java.awt.geom.AffineTransform;
 import java.util.ArrayList;
 import java.util.Iterator;
 
@@ -57,9 +60,17 @@ public class ZonedGrid extends AbstractConfigurable implements MapGrid, GridCont
   public void setAttribute(String key, Object value) {
   }
 
+  public Configurer getConfigurer() {
+    return null;
+  }
+
   public void addTo(Buildable parent) {
     container = (GridContainer) parent;
     container.setGrid(this);
+  }
+
+  public GridContainer getContainer() {
+    return container;
   }
 
   public Dimension getSize() {
@@ -72,6 +83,10 @@ public class ZonedGrid extends AbstractConfigurable implements MapGrid, GridCont
     }
   }
 
+  public Board getBoard() {
+    return container != null ? container.getBoard() : null;
+  }
+
   public void setGrid(MapGrid grid) {
     background = grid;
   }
@@ -79,6 +94,10 @@ public class ZonedGrid extends AbstractConfigurable implements MapGrid, GridCont
   public Class[] getAllowableConfigureComponents() {
     return background == null ? new Class[]{Zone.class, HexGrid.class, SquareGrid.class, RegionGrid.class}
           : new Class[]{Zone.class};
+  }
+
+  public static String getConfigureTypeName() {
+    return "Multi-zoned Grid";
   }
 
   public HelpFile getHelpFile() {
@@ -91,13 +110,15 @@ public class ZonedGrid extends AbstractConfigurable implements MapGrid, GridCont
 
   public void draw(Graphics g, Rectangle bounds, Rectangle visibleRect, double scale, boolean reversed) {
     Area allZones = null;
+    AffineTransform transform = AffineTransform.getScaleInstance(scale, scale);
+    transform.translate(bounds.x,bounds.y);
     for (Iterator it = zones.iterator(); it.hasNext();) {
       Zone zone = (Zone) it.next();
       if (allZones == null) {
-        allZones = new Area(zone.getShape());
+        allZones = new Area(transform.createTransformedShape(zone.getShape()));
       }
       else {
-        allZones.add(new Area(zone.getShape()));
+        allZones.add(new Area(transform.createTransformedShape(zone.getShape())));
       }
     }
     if (background != null) {
@@ -163,9 +184,8 @@ public class ZonedGrid extends AbstractConfigurable implements MapGrid, GridCont
           break;
         }
     }
-    if (snap == null
-      && background != null) {
-      snap = background.snapTo(p);
+    if (snap == null) {
+      snap = background != null ? background.snapTo(p) : p;
     }
     return snap;
   }

@@ -23,6 +23,7 @@ import VASSAL.build.Buildable;
 import VASSAL.build.module.documentation.HelpFile;
 import VASSAL.build.module.map.boardPicker.Board;
 import VASSAL.build.module.map.boardPicker.board.mapgrid.GridNumbering;
+import VASSAL.build.module.map.boardPicker.board.mapgrid.GridContainer;
 import VASSAL.configure.Configurer;
 import VASSAL.configure.EditPropertiesAction;
 import VASSAL.configure.VisibilityCondition;
@@ -41,7 +42,7 @@ public class RegionGrid extends AbstractConfigurable implements MapGrid {
   // pointList is a cross-reference of points to Area names
 
   private Hashtable regionList = new Hashtable();
-  private Board board;
+  private GridContainer container;
   private boolean visible = false;
   private static boolean inConfig = false;
   private int fontSize = 9; // Size square to display when configuring
@@ -50,14 +51,6 @@ public class RegionGrid extends AbstractConfigurable implements MapGrid {
 
   private GridNumbering gridNumbering;
   RegionGrid me = this;
-
-  public void setBoard(Board b) {
-    this.board = b;
-  }
-
-  public Board getBoard() {
-    return board;
-  }
 
   public void addRegion(Region a) {
     regionList.put(a.getOrigin(), a);
@@ -117,14 +110,13 @@ public class RegionGrid extends AbstractConfigurable implements MapGrid {
   }
 
   public void addTo(Buildable b) {
-    ((Board) b).setGrid(this);
-    board = (Board) b;
+    container = (GridContainer) b;
+    container.setGrid(this);
   }
 
   public void removeFrom(Buildable b) {
-    if (((Board) b).getGrid() == this)
-      ((Board) b).setGrid(null);
-    board = null;
+    container.removeGrid(this);
+    container = null;
   }
 
   public static String getConfigureTypeName() {
@@ -201,7 +193,7 @@ public class RegionGrid extends AbstractConfigurable implements MapGrid {
 
   public void configureRegions() {
   	inConfig = true;
-  	regionConfigurer = new Config(board);
+  	regionConfigurer = new Config(container.getBoard());
   	regionConfigurer.setVisible(true);
   }
 

@@ -1,6 +1,7 @@
 package VASSAL.build.module.map.boardPicker.board.mapgrid;
 
 import VASSAL.build.module.map.boardPicker.board.MapGrid;
+import VASSAL.build.module.map.boardPicker.Board;
 
 import java.awt.*;
 
@@ -29,5 +30,6 @@ import java.awt.*;
 public interface GridContainer {
   void setGrid(MapGrid grid);
   void removeGrid(MapGrid grid);
+  Board getBoard();
   Dimension getSize();
 }

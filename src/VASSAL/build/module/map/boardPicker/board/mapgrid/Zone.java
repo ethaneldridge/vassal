@@ -21,14 +21,18 @@ package VASSAL.build.module.map.boardPicker.board.mapgrid;
 import VASSAL.build.AbstractConfigurable;
 import VASSAL.build.AutoConfigurable;
 import VASSAL.build.Buildable;
+import VASSAL.build.module.map.boardPicker.Board;
 import VASSAL.build.module.map.boardPicker.board.*;
 import VASSAL.configure.Configurer;
 import VASSAL.configure.ConfigurerFactory;
 import VASSAL.configure.FormattedStringConfigurer;
 import VASSAL.tools.FormattedString;
-import VASSAL.tools.SequenceEncoder;
 
+import javax.swing.*;
 import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.geom.AffineTransform;
 import java.awt.geom.Area;
 
 public class Zone extends AbstractConfigurable implements GridContainer {
@@ -41,13 +45,10 @@ public class Zone extends AbstractConfigurable implements GridContainer {
   protected FormattedString format = new FormattedString();
   protected Polygon myPolygon;
   private MapGrid grid = null;
+  private ZonedGrid parentGrid;
 
   public Zone() {
-    this(new Polygon());
-  }
-
-  public Zone(Polygon p) {
-    myPolygon = p;
+    myPolygon = new Polygon();
   }
 
   public String getName() {
@@ -474,7 +475,7 @@ public class Zone extends AbstractConfigurable implements GridContainer {
     return new Class[]{
       String.class,
       LocationFormatConfig.class,
-      String.class};
+      ShapeEditor.class};
   }
 
   public static class LocationFormatConfig implements ConfigurerFactory {
@@ -483,8 +484,15 @@ public class Zone extends AbstractConfigurable implements GridContainer {
     }
   }
 
+  public static class ShapeEditor implements ConfigurerFactory {
+    public Configurer getConfigurer(AutoConfigurable c, String key, String name) {
+      return new Editor((Zone) c);
+    }
+  }
+
   public void addTo(Buildable b) {
-    ((ZonedGrid) b).addZone(this);
+    parentGrid = (ZonedGrid) b;
+    parentGrid.addZone(this);
   }
 
   public void removeFrom(Buildable b) {
@@ -504,7 +512,7 @@ public class Zone extends AbstractConfigurable implements GridContainer {
       return getConfigureName();
     }
     else if (PATH.equals(key)) {
-      return polygonToString(myPolygon);
+      return PolygonEditor.polygonToString(myPolygon);
     }
     else if (LOCATION_FORMAT.equals(key)) {
       return locationFormat;
@@ -520,7 +528,7 @@ public class Zone extends AbstractConfigurable implements GridContainer {
       setConfigureName((String) val);
     }
     else if (PATH.equals(key)) {
-      setPolygon((String) val);
+      PolygonEditor.reset(myPolygon,(String) val);
     }
     else if (LOCATION_FORMAT.equals(key)) {
       locationFormat = (String) val;
@@ -546,38 +554,6 @@ public class Zone extends AbstractConfigurable implements GridContainer {
     return myPolygon.contains(p);
   }
 
-  public static String polygonToString(Polygon p) {
-    StringBuffer s = new StringBuffer();
-    for (int i = 0; i < p.npoints; i++) {
-      s.append(Math.round(p.xpoints[i])).append(',').append(Math.round(p.ypoints[i]));
-      if (i < (p.npoints - 1)) {
-        s.append(';');
-      }
-    }
-    return s.toString();
-  }
-
-  public void setPolygon(String path) {
-    myPolygon.reset();
-
-    SequenceEncoder.Decoder sd = new SequenceEncoder.Decoder(path, ';');
-    while (sd.hasMoreTokens()) {
-      String s = sd.nextToken();
-      SequenceEncoder.Decoder pd = new SequenceEncoder.Decoder(s, ',');
-      if (pd.hasMoreTokens()) {
-        try {
-          int x = Integer.parseInt(pd.nextToken());
-          if (pd.hasMoreTokens()) {
-            int y = Integer.parseInt(pd.nextToken());
-            myPolygon.addPoint(x, y);
-          }
-        }
-        catch (NumberFormatException e) {
-          e.printStackTrace();
-        }
-      }
-    }
-  }
 //  private void checkRectangular() {
 //    if (pathPoints.size() == 4) {
 //      Point p1 = (Point) pathPoints.get(0);
@@ -618,6 +594,10 @@ public class Zone extends AbstractConfigurable implements GridContainer {
     }
   }
 
+  public Board getBoard() {
+    return parentGrid.getBoard();
+  }
+
   public void setGrid(MapGrid m) {
     grid = m;
   }
@@ -652,15 +632,90 @@ public class Zone extends AbstractConfigurable implements GridContainer {
   }
 
   public void draw(Graphics g, Rectangle bounds, Rectangle visibleRect, double scale, boolean reversed) {
-    Graphics2D g2d = (Graphics2D)g;
+    Graphics2D g2d = (Graphics2D) g;
     Shape oldClip = g2d.getClip();
     Area newClip = new Area(visibleRect);
-    newClip.intersect(new Area(myPolygon));
+    AffineTransform transform = AffineTransform.getScaleInstance(scale, scale);
+    transform.translate(bounds.x, bounds.y);
+    Shape s = transform.createTransformedShape(myPolygon);
+    newClip.intersect(new Area(s));
     g2d.setClip(newClip);
     if (grid != null) {
       grid.draw(g, bounds, visibleRect, scale, reversed);
     }
     g2d.setClip(oldClip);
+  }
+
+  public static class Editor extends Configurer {
+    private JButton button;
+    private PolygonEditor editor;
+    private String path;
+
+    public Editor(final Zone zone) {
+      super(PATH, null);
+      button = new JButton("Define Shape");
+      button.addActionListener(new ActionListener() {
+        public void actionPerformed(ActionEvent e) {
+          init(zone);
+        }
+      });
+    }
+
+    private void init(Zone zone) {
+      final Board background = zone.parentGrid.getBoard();
+      editor = new PolygonEditor(zone.myPolygon) {
+        protected void paintBackground(Graphics g) {
+          if (background != null) {
+            background.draw(g, 0, 0, 1.0, editor);
+          }
+          else {
+            super.paintBackground(g);
+          }
+        }
+      };
+      if (background != null) {
+        background.fixImage(editor);
+      }
+      if (path != null) {
+        PolygonEditor.reset(editor.getPolygon(),path);
+      }
+      editor.setPreferredSize(background != null ? background.getSize() : new Dimension(600,600));
+      final JFrame frame = new JFrame(zone.getConfigureName());
+      frame.getContentPane().setLayout(new BoxLayout(frame.getContentPane(), BoxLayout.Y_AXIS));
+      JPanel labels = new JPanel();
+      labels.setLayout(new GridLayout(2,2));
+      labels.add(new JLabel("Drag to create initial shape"));
+      labels.add(new JLabel("Right-click to add point"));
+      labels.add(new JLabel("Left-click to move points"));
+      labels.add(new JLabel("DEL to remove point"));
+      frame.getContentPane().add(labels);
+      frame.getContentPane().add(new JScrollPane(editor));
+      JPanel buttonPanel = new JPanel();
+      JButton closeButton = new JButton("Ok");
+      closeButton.addActionListener(new ActionListener() {
+        public void actionPerformed(ActionEvent e) {
+          path = PolygonEditor.polygonToString(editor.getPolygon());
+          frame.dispose();
+        }
+      });
+      buttonPanel.add(closeButton);
+      frame.getContentPane().add(buttonPanel);
+
+      frame.pack();
+      frame.setVisible(true);
+    }
+
+    public Component getControls() {
+      return button;
+    }
+
+    public String getValueString() {
+      return path;
+    }
+
+    public void setValue(String s) {
+      path = s;
+    }
   }
 
 /*

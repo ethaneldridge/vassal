@@ -285,6 +285,10 @@ public class Board extends AbstractConfigurable implements GridContainer {
     }
   }
 
+  public Board getBoard() {
+    return this;
+  }
+
   public Dimension getSize() {
     return bounds().getSize();
   }
@@ -318,18 +322,9 @@ public class Board extends AbstractConfigurable implements GridContainer {
         return;
       }
 
-
-      MediaTracker track = new MediaTracker(map);
-
-      try {
-        track.addImage(boardImage, 0);
-        track.waitForID(0);
-      }
-      catch (Exception eWaitIm) {
-      }
-
-      boundaries.setSize(boardImage.getWidth(map),
-                         boardImage.getHeight(map));
+      Icon icon = new ImageIcon(boardImage);
+      boundaries.setSize(icon.getIconWidth(),
+                         icon.getIconHeight());
     }
     catch (OutOfMemoryError err) {
       JOptionPane.showMessageDialog
