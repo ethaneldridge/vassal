@@ -50,7 +50,7 @@ public class VSQLEmbellishment extends Embellishment {
     Command c = super.myKeyEvent(stroke);
 
     String name = commonName[Math.abs(value) - 1];
-    if (value != oldValue && name.startsWith(CA_PREFIX)) {
+    if (value != oldValue && name != null && name.startsWith(CA_PREFIX)) {
       String ca = name.substring(CA_PREFIX.length());
       setProperty(VSQLProperties.VEHICLE_CA, ca);
     }

@@ -18,9 +18,11 @@
  */
 package VSQL;
 
+import java.awt.AlphaComposite;
 import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Component;
+import java.awt.Composite;
 import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
@@ -31,6 +33,7 @@ import java.awt.Shape;
 import java.awt.event.InputEvent;
 import java.util.Enumeration;
 import java.util.Vector;
+import java.awt.geom.*; 
 
 import javax.swing.Box;
 import javax.swing.BoxLayout;
@@ -298,6 +301,8 @@ public class VSQLFootprint extends MarkMoved {
     if (visible && (zoom == mapZoom)) {
       Font f = new Font("Dialog", Font.PLAIN, (int) (BASE_FONT_SIZE * zoom));
       Graphics2D g2d = (Graphics2D) g;
+      boolean selected = Boolean.TRUE.equals(getProperty(Properties.SELECTED));
+      Composite oldComposite = g2d.getComposite();
 
       /**
        * newClip is an overall clipping region made up of the Map itself and a
@@ -327,9 +332,9 @@ public class VSQLFootprint extends MarkMoved {
       Shape oldClip = g.getClip();
       g.setClip(newClip.intersection(visibleRect));
 
-      //Composite oldComposite = g2d.getComposite();
-      //g2d.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER,
-      // 0.5F));
+      if (!selected) {         
+         g2d.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.5F));
+      }
       g2d.setStroke(new BasicStroke(LINE_WIDTH));
       g2d.setColor(LINE_COLOR);
       Enumeration e = getPointList();
@@ -343,7 +348,7 @@ public class VSQLFootprint extends MarkMoved {
           x1 = (int) (lastP.x * zoom);
           y1 = (int) (lastP.y * zoom);
           x2 = (int) (p.x * zoom);
-          y2 = (int) (p.y * zoom);
+          y2 = (int) (p.y * zoom);     
           g.drawLine(x1, y1, x2, y2);
         }
         lastP = p;
@@ -373,8 +378,6 @@ public class VSQLFootprint extends MarkMoved {
           g.fillOval(x2, y2, radius, radius);
           g.setColor(CIRCLE_COLOR);
           g.drawOval(x2, y2, radius, radius);
-          //g.drawOval(p.x - CIRCLE_RADIUS + 1, p.y - CIRCLE_RADIUS + 1,
-          // CIRCLE_RADIUS * 2 - 1, CIRCLE_RADIUS * 2 - 1);
           
           /**
            * For a vehicled, draw an arrow showing the CA of the vehicle
@@ -399,18 +402,20 @@ public class VSQLFootprint extends MarkMoved {
           
           /**
            * For a leader counter, display the number of squads or crews
-           * that moved into the hex stacked with the leader.
+           * that moved into the hex stacked with the leader. (+1 for the leader)
            */
           else if (leader && lastValue > 0) {
            
-            Labeler.drawLabel(g, lastValue + "", x1, y1, f, Labeler.CENTER,
+            Labeler.drawLabel(g, lastValue + 1 + "", x1, y1, f, Labeler.CENTER,
                Labeler.CENTER, CIRCLE_COLOR, null, null);
             
           }
         }
         lastValue = cap.ca;
       }
-      //g2d.setComposite(oldComposite);
+      if (! selected) {
+         g2d.setComposite(oldComposite);
+      }
       g.setClip(oldClip);
 
     }
