@@ -107,6 +107,7 @@ public class DieManager extends AbstractConfigurable {
      */
 
     final StringEnumConfigurer dieserver = new StringEnumConfigurer(DICE_SERVER, "Internet Dice Server", getDescriptions());
+    dieserver.setValue(server.getDescription());
     final StringConfigurer serverpw = new StringConfigurer(SERVER_PW, "Dice Server Password");
     final BooleanConfigurer useemail = new BooleanConfigurer(USE_EMAIL, "Email results?");
     final StringConfigurer pemail = new StringConfigurer(PRIMARY_EMAIL, "Primary Email");
