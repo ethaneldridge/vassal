@@ -34,9 +34,9 @@ import java.awt.*;
 public class Concealment extends Decorator implements EditablePiece {
   public static final String ID = "concealment;";
 
-  private KeyCommand[] commands;
-  private String nation;
-  private String owner;
+  protected KeyCommand[] commands;
+  protected String nation;
+  protected String owner;
 
   public Concealment() {
     this(ID, null);
@@ -174,7 +174,7 @@ public class Concealment extends Decorator implements EditablePiece {
     }
   }
 
-  private String getNationality() {
+  protected String getNationality() {
     String value = nation;
     if (value == null) {
       ColoredBox b = (ColoredBox) Decorator.getDecorator(this,ColoredBox.class);

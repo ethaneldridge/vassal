@@ -38,7 +38,7 @@ import VASSAL.counters.Hideable;
          return new Boolean(true);
        }
        else {
-         return null;
+         return piece.getProperty(key);
        }
      }
      else {

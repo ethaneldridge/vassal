@@ -43,4 +43,5 @@ public class VSQLProperties {
   public static final String TRUCK_OR_JEEP = "Truck-Jeep";
   public static final String ARMORED_CAR = "Armored Car";
   public static final String MOTOR_CYCLE = "Motor Cycle";
+  public static final String BUNKER = "Bunker";
 }

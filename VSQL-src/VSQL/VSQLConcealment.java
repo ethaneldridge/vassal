@@ -20,7 +20,6 @@
 package VSQL;
 
 import VASL.counters.ASLProperties;
-import VASL.counters.ColoredBox;
 import VASL.counters.Concealable;
 import VASL.counters.Concealment;
 import VASSAL.build.GameModule;
@@ -44,18 +43,9 @@ public class VSQLConcealment extends Concealment {
       return false;
     }
     else {
-      return getNationality().equals(c.getProperty(ASLProperties.NATIONALITY));
+      return getNationality().equals(c.getProperty(ASLProperties.NATIONALITY)) ||
+             ((String) Decorator.getOutermost(this).getProperty(VSQLProperties.UNIT_SUB_TYPE)).equals(VSQLProperties.BUNKER);
     }
   }
   
-  private String getNationality() {
-    String value = nation;
-    if (value == null) {
-      ColoredBox b = (ColoredBox) Decorator.getDecorator(this,ColoredBox.class);
-      if (b != null) {
-        value = b.getColorId();
-      }
-    }
-    return value;
-  }
 }
