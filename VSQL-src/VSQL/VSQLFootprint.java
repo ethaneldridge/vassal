@@ -21,7 +21,6 @@ package VSQL;
 import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Component;
-import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Image;
@@ -38,7 +37,6 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.KeyStroke;
 
-import CASL.Map.Hex;
 import VASL.counters.MarkMoved;
 import VASSAL.build.GameModule;
 import VASSAL.build.module.Map;
@@ -48,7 +46,6 @@ import VASSAL.counters.Decorator;
 import VASSAL.counters.GamePiece;
 import VASSAL.counters.KeyCommand;
 import VASSAL.counters.KeySpecifier;
-import VASSAL.counters.Labeler;
 import VASSAL.counters.PieceEditor;
 import VASSAL.counters.Properties;
 import VASSAL.tools.SequenceEncoder;
@@ -65,10 +62,12 @@ public class VSQLFootprint extends MarkMoved {
   private String command = "Movement Trail";
   protected boolean visible = false;
   protected int currentCA = 1;
+  protected int offboardCA = 1;
 
   protected int minX, minY, maxX, maxY;
   protected Rectangle myBoundingBox;
 
+  // Color, size and font settings for the trail itself
   protected static final int CIRCLE_RADIUS = 10;
   protected static final Color CIRCLE_COLOR = Color.BLACK;
   protected static final Color FILL_COLOR = Color.WHITE;
@@ -76,21 +75,30 @@ public class VSQLFootprint extends MarkMoved {
   protected static final float LINE_WIDTH = 1.0f;
   protected static final int BASE_FONT_SIZE = 14;
 
+  // Marker type and value indicating a Vehicle Unit
   protected static final String VSQL_TYPE_MARKER = "TYPE";
   protected static final String VSQL_VEHICLE_TYPE = "Vehicle";
-  protected static final int EDGE_CLIP_LIMIT = 20;
+
+  // Buffer around map for all drawing
+  protected static final int EDGE_CLIP_LIMIT = 30;
+
+  // Buffer around map for drawing circles
+  protected static final int EDGE_POINT_LIMIT = 20;
 
   protected Vector pointList = new Vector();
 
-  public class caPoint extends Point {
+  /**
+   * Class CAPoint, a Point with a CA
+   */
+  public class CAPoint extends Point {
     protected int ca = 1;
 
-    public caPoint(int x, int y, int c) {
+    public CAPoint(int x, int y, int c) {
       super(x, y);
       ca = c;
     }
 
-    public caPoint(Point p, int c) {
+    public CAPoint(Point p, int c) {
       this(p.x, p.y, c);
     }
   }
@@ -123,7 +131,7 @@ public class VSQLFootprint extends MarkMoved {
         int x = sp.nextInt(0);
         int y = sp.nextInt(0);
         int ca = sp.nextInt(1);
-        pointList.addElement(new caPoint(x, y, ca));
+        pointList.addElement(new CAPoint(x, y, ca));
       }
     }
     if (ss.hasMoreTokens()) {
@@ -137,7 +145,7 @@ public class VSQLFootprint extends MarkMoved {
     String s = pointList.size() + "";
     Enumeration e = getPointList();
     while (e.hasMoreElements()) {
-      caPoint p = (caPoint) e.nextElement();
+      CAPoint p = (CAPoint) e.nextElement();
       s += ";" + p.x + "," + p.y + "," + p.ca;
     }
     s += ";" + visible;
@@ -161,7 +169,7 @@ public class VSQLFootprint extends MarkMoved {
 
   /**
    * setMoved is called with an argument of true each time the piece is moved.
-   *  
+   * The argiment is false when the unit is marked as not moved.
    */
   public void setMoved(boolean justMoved) {
 
@@ -185,15 +193,15 @@ public class VSQLFootprint extends MarkMoved {
   }
 
   protected void addPoint(Point p) {
-    pointList.addElement(new caPoint(p, currentCA));
+    pointList.addElement(new CAPoint(p, currentCA));
 
     getMyBoundingBox();
-    
-    if (p.x+CIRCLE_RADIUS > maxX) maxX = p.x+CIRCLE_RADIUS;
-    if (p.x-CIRCLE_RADIUS < minX) minX = p.x-CIRCLE_RADIUS;
-    if (p.y+CIRCLE_RADIUS > maxY) maxY = p.y+CIRCLE_RADIUS;
-    if (p.y-CIRCLE_RADIUS < minY) minY = p.y-CIRCLE_RADIUS;
-    
+
+    if (p.x + CIRCLE_RADIUS > maxX) maxX = p.x + CIRCLE_RADIUS;
+    if (p.x - CIRCLE_RADIUS < minX) minX = p.x - CIRCLE_RADIUS;
+    if (p.y + CIRCLE_RADIUS > maxY) maxY = p.y + CIRCLE_RADIUS;
+    if (p.y - CIRCLE_RADIUS < minY) minY = p.y - CIRCLE_RADIUS;
+
     myBoundingBox = new Rectangle(minX, minY, maxX - minX, maxY - minY);
 
   }
@@ -213,6 +221,10 @@ public class VSQLFootprint extends MarkMoved {
     piece.getMap().repaint();
   }
 
+  /**
+   * Called by VSQLEmbellishment with the new CA whenever a CA Layer rotation
+   * command is executed
+   */
   public void setProperty(Object key, Object val) {
     if (Properties.MOVED.equals(key)) {
       setMoved(Boolean.TRUE.equals(val));
@@ -255,6 +267,12 @@ public class VSQLFootprint extends MarkMoved {
     if (visible && (zoom == mapZoom)) {
       Graphics2D g2d = (Graphics2D) g;
 
+      /**
+       * newClip is an overall clipping region made up of the Map itself and a
+       * border of 20 pixels. No drawing at all outside this area. mapRect is
+       * made of the Map and a 10 pixel border. Circles are not drawn outside
+       * this area.
+       */
       int mapHeight = getMap().mapSize().height;
       int mapWidth = getMap().mapSize().width;
       int edgeHeight = Integer.parseInt(getMap().getAttributeValueString(Map.EDGE_HEIGHT));
@@ -270,7 +288,8 @@ public class VSQLFootprint extends MarkMoved {
 
       Rectangle newClip = new Rectangle((int) (clipX * zoom), (int) (clipY * zoom), (int) (width * zoom),
           (int) (height * zoom));
-      Rectangle mapRect = new Rectangle(edgeWidth, edgeHeight, mapWidth, mapHeight);
+      Rectangle circleRect = new Rectangle(edgeWidth - EDGE_POINT_LIMIT, edgeHeight - EDGE_POINT_LIMIT, mapWidth + 2
+          * EDGE_POINT_LIMIT, mapHeight + 2 * EDGE_POINT_LIMIT);
       Rectangle visibleRect = getMap().getView().getVisibleRect();
 
       Shape oldClip = g.getClip();
@@ -285,7 +304,7 @@ public class VSQLFootprint extends MarkMoved {
       Point lastP = null;
       Point here = getPosition();
       while (e.hasMoreElements()) {
-        caPoint cap = (caPoint) e.nextElement();
+        CAPoint cap = (CAPoint) e.nextElement();
         Point p = cap.getLocation();
 
         if (lastP != null) {
@@ -304,15 +323,15 @@ public class VSQLFootprint extends MarkMoved {
         y2 = (int) (here.y * zoom);
         g.drawLine(x1, y1, x2, y2);
       }
-      Font f = new Font("Dialog", Font.PLAIN, (int) (BASE_FONT_SIZE * zoom));
+      // Font f = new Font("Dialog", Font.PLAIN, (int) (BASE_FONT_SIZE * zoom));
       int step = 0;
       e = getPointList();
       while (e.hasMoreElements()) {
         step += 1;
-        caPoint cap = (caPoint) e.nextElement();
+        CAPoint cap = (CAPoint) e.nextElement();
         Point p = cap.getLocation();
 
-        if (mapRect.contains(p)) {
+        if (circleRect.contains(p)) {
           x1 = (int) (p.x * zoom);
           y1 = (int) (p.y * zoom);
           x2 = (int) ((p.x - CIRCLE_RADIUS) * zoom);
@@ -340,10 +359,9 @@ public class VSQLFootprint extends MarkMoved {
             catch (Exception ex) {
 
             }
-
           }
-          lastCA = cap.ca;
         }
+        lastCA = cap.ca;
       }
       //g2d.setComposite(oldComposite);
       g.setClip(oldClip);
@@ -370,7 +388,7 @@ public class VSQLFootprint extends MarkMoved {
 
   public Rectangle getMyBoundingBox() {
     if (myBoundingBox == null) {
-      
+
       Point p = piece.getPosition();
       myBoundingBox = new Rectangle(p.x, p.y, 60, 60);
       minX = myBoundingBox.x;
