@@ -98,7 +98,7 @@ public class ComponentSplitter {
     Component next = SwingUtilities.getAncestorOfClass(SplitPane.class, c);
     int count = -1;
     while (next != null
-      && (index < 0 || count++ < index)) {
+        && (index < 0 || count++ < index)) {
       c = next;
       next = SwingUtilities.getAncestorOfClass(SplitPane.class, c);
     }
@@ -276,17 +276,22 @@ public class ComponentSplitter {
             ancestor.validate();
           }
         }
-        ((BasicSplitPaneUI) getUI()).getDivider().setVisible(false);
-        getHideableComponent().setVisible(false);
-        switch (hideablePosition) {
-          case HIDE_LEFT:
-          case HIDE_TOP:
-            setDividerLocation(0.0);
-            break;
-          case HIDE_RIGHT:
-          case HIDE_BOTTOM:
-            setDividerLocation(1.0);
-        }
+        Runnable runnable = new Runnable() {
+          public void run() {
+            ((BasicSplitPaneUI) getUI()).getDivider().setVisible(false);
+            getHideableComponent().setVisible(false);
+            switch (hideablePosition) {
+              case HIDE_LEFT:
+              case HIDE_TOP:
+                setDividerLocation(0.0);
+                break;
+              case HIDE_RIGHT:
+              case HIDE_BOTTOM:
+                setDividerLocation(1.0);
+            }
+          }
+        };
+        SwingUtilities.invokeLater(runnable);
         SplitPane split = getTransverseSplit();
         if (split != null) {
           split.hideTransverseComponent(this);
@@ -327,7 +332,7 @@ public class ComponentSplitter {
         }
       }
       else if (resizeOnVisibilityChange
-        && getTopLevelAncestor() != null) {
+          && getTopLevelAncestor() != null) {
         getTopLevelAncestor().setSize(getTransverseSize());
         getTopLevelAncestor().validate();
       }
@@ -410,10 +415,15 @@ public class ComponentSplitter {
         else {
           getHideableComponent().setVisible(true);
           ((BasicSplitPaneUI) getUI()).getDivider().setVisible(true);
-          setDividerLocation(getPreferredDividerLocation());
+          Runnable runnable = new Runnable() {
+            public void run() {
+              setDividerLocation(getPreferredDividerLocation());
+            }
+          };
+          SwingUtilities.invokeLater(runnable);
           SplitPane split = getTransverseSplit();
           if (split != null) {
-            split.showTransverseComponent(this);
+            split.showTransverseComponent(ComponentSplitter.SplitPane.this);
           }
         }
       }
@@ -450,7 +460,7 @@ public class ComponentSplitter {
         if (c instanceof SplitPane) {
           SplitPane p = (SplitPane) c;
           if (p.getOrientation() != getOrientation()
-            && SwingUtilities.isDescendingFrom(this, p.getBaseComponent())) {
+              && SwingUtilities.isDescendingFrom(this, p.getBaseComponent())) {
             split = p;
             break;
           }
@@ -465,7 +475,7 @@ public class ComponentSplitter {
     public Dimension getPreferredSize() {
       Dimension d = null;
       if (getHideableComponent() == null
-        || getHideableComponent().isVisible()) {
+          || getHideableComponent().isVisible()) {
         d = super.getPreferredSize();
       }
       else {
@@ -519,8 +529,8 @@ public class ComponentSplitter {
     text.add(new JScrollPane(new JTextArea(15, 60)));
     JTextField input = new JTextField(60);
     input.setMaximumSize
-      (new Dimension(input.getMaximumSize().width,
-                     input.getPreferredSize().height));
+        (new Dimension(input.getMaximumSize().width,
+                       input.getPreferredSize().height));
     text.add(input);
 
     ComponentSplitter splitter = new ComponentSplitter();
