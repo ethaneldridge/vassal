@@ -427,7 +427,7 @@ public class Map extends AbstractConfigurable implements GameComponent,
 
     GameModule.getGameModule().getGameState().addGameComponent(this);
     GameModule.getGameModule().addKeyStrokeSource
-        (new KeyStrokeSource(theMap, JComponent.WHEN_FOCUSED));
+        (new KeyStrokeSource(theMap, JComponent.WHEN_IN_FOCUSED_WINDOW));
     GameModule.getGameModule().getToolBar().add(launchButton);
 
     if (shouldDockIntoMainWindow()) {

@@ -27,6 +27,7 @@ import VASSAL.build.widget.PanelWidget;
 import VASSAL.build.widget.TabWidget;
 import VASSAL.preferences.PositionOption;
 import VASSAL.tools.LaunchButton;
+import VASSAL.tools.KeyStrokeSource;
 import VASSAL.configure.ConfigurerFactory;
 import VASSAL.configure.Configurer;
 import VASSAL.configure.IconConfigurer;
@@ -76,7 +77,7 @@ public class ChartWindow extends Widget {
     rebuild();
     int count = 0;
     for (java.util.Enumeration e =
-        GameModule.getGameModule().getComponents(PieceWindow.class);
+        GameModule.getGameModule().getComponents(ChartWindow.class);
          e.hasMoreElements();) {
       count++;
       e.nextElement();
@@ -86,6 +87,9 @@ public class ChartWindow extends Widget {
     GameModule.getGameModule().getToolBar().add(launch);
 
     frame = new JDialog(GameModule.getGameModule().getFrame());
+    GameModule.getGameModule().addKeyStrokeSource
+        (new KeyStrokeSource(frame.getRootPane(), JComponent.WHEN_IN_FOCUSED_WINDOW));
+
     while (root.getComponentCount() > 0) {
       frame.getContentPane().add(root.getComponent(0));
     }
