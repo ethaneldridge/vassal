@@ -13,7 +13,7 @@
  * Library General Public License for more details.
  *
  * You should have received a copy of the GNU Library General Public
- * License along with this library; if not, copies are available 
+ * License along with this library; if not, copies are available
  * at http://www.opensource.org.
  */
 /*
@@ -30,6 +30,7 @@ import VASSAL.build.AbstractConfigurable;
 import VASSAL.build.AutoConfigurable;
 import VASSAL.build.module.documentation.HelpFile;
 import VASSAL.configure.*;
+import VASSAL.tools.FormattedString;
 
 import javax.swing.*;
 import java.awt.*;
@@ -58,6 +59,8 @@ public abstract class RegularGridNumbering extends AbstractConfigurable implemen
   protected int fontSize = 9;
   protected Color color = Color.black;
   protected JComponent visualizer;
+  protected String locationFormat = "$" + GRID_LOCATION + "$";
+  protected FormattedString format = new FormattedString();
 
   public static final String FIRST = "first";
   public static final String SEP = "sep";
@@ -72,6 +75,9 @@ public abstract class RegularGridNumbering extends AbstractConfigurable implemen
   public static final String FONT_SIZE = "fontSize";
   public static final String COLOR = "color";
   public static final String VISIBLE = "visible";
+  public static final String LOCATION_FORMAT = "locationFormat";
+
+  public static final String GRID_LOCATION = "gridLocation";
 
   public String getAttributeValueString(String key) {
     if (FIRST.equals(key)) {
@@ -98,12 +104,12 @@ public abstract class RegularGridNumbering extends AbstractConfigurable implemen
     else if (V_OFF.equals(key)) {
       return "" + vOff;
     }
-	else if (H_DESCEND.equals(key)) {
-		return "" + hDescending;
-	}
-	else if (V_DESCEND.equals(key)) {
-		return "" + vDescending;
-	}
+    else if (H_DESCEND.equals(key)) {
+      return "" + hDescending;
+    }
+    else if (V_DESCEND.equals(key)) {
+      return "" + vDescending;
+    }
     else if (FONT_SIZE.equals(key)) {
       return "" + fontSize;
     }
@@ -112,6 +118,9 @@ public abstract class RegularGridNumbering extends AbstractConfigurable implemen
     }
     else if (VISIBLE.equals(key)) {
       return "" + visible;
+    }
+    else if (LOCATION_FORMAT.equals(key)) {
+      return locationFormat;
     }
     else {
       return null;
@@ -155,18 +164,18 @@ public abstract class RegularGridNumbering extends AbstractConfigurable implemen
       }
       vOff = ((Integer) value).intValue();
     }
-	else if (H_DESCEND.equals(key)) {
-		  if (value instanceof String) {
-			value = new Boolean((String) value);
-		  }
-		  hDescending = ((Boolean) value).booleanValue();
-		}
-	else if (V_DESCEND.equals(key)) {
-		  if (value instanceof String) {
-			value = new Boolean((String) value);
-		  }
-		  vDescending = ((Boolean) value).booleanValue();
-		}		    
+    else if (H_DESCEND.equals(key)) {
+      if (value instanceof String) {
+        value = new Boolean((String) value);
+      }
+      hDescending = ((Boolean) value).booleanValue();
+    }
+    else if (V_DESCEND.equals(key)) {
+      if (value instanceof String) {
+        value = new Boolean((String) value);
+      }
+      vDescending = ((Boolean) value).booleanValue();
+    }
     else if (FONT_SIZE.equals(key)) {
       if (value instanceof String) {
         value = new Integer((String) value);
@@ -184,6 +193,9 @@ public abstract class RegularGridNumbering extends AbstractConfigurable implemen
         value = new Boolean((String) value);
       }
       visible = ((Boolean) value).booleanValue();
+    }
+    else if (LOCATION_FORMAT.equals(key)) {
+      locationFormat = (String) value;
     }
   }
 
@@ -204,8 +216,8 @@ public abstract class RegularGridNumbering extends AbstractConfigurable implemen
   }
 
   public String[] getAttributeNames() {
-    return new String[]{FIRST, SEP, H_TYPE, H_LEADING, H_OFF, H_DESCEND, 
-    	                V_TYPE, V_LEADING, V_OFF, V_DESCEND, VISIBLE, FONT_SIZE, COLOR};
+    return new String[]{FIRST, SEP, H_TYPE, H_LEADING, H_OFF, H_DESCEND,
+                        V_TYPE, V_LEADING, V_OFF, V_DESCEND, LOCATION_FORMAT, VISIBLE, FONT_SIZE, COLOR};
   }
 
   public String[] getAttributeDescriptions() {
@@ -219,6 +231,7 @@ public abstract class RegularGridNumbering extends AbstractConfigurable implemen
                         "Leading zeros in vertical",
                         "Starting number in vertical",
                         "Vertical numbering descending",
+                        "Location format",
                         "Draw Numbering",
                         "Font size",
                         "Color"};
@@ -236,6 +249,12 @@ public abstract class RegularGridNumbering extends AbstractConfigurable implemen
     }
   }
 
+  public static class LocationFormatConfig implements ConfigurerFactory {
+    public Configurer getConfigurer(AutoConfigurable c, String key, String name) {
+      return new FormattedStringConfigurer(key, name, new String[]{GRID_LOCATION});
+    }
+  }
+
   public Class[] getAttributeTypes() {
     return new Class[]{F.class,
                        String.class,
@@ -247,6 +266,7 @@ public abstract class RegularGridNumbering extends AbstractConfigurable implemen
                        Integer.class,
                        Integer.class,
                        Boolean.class,
+                       LocationFormatConfig.class,
                        Boolean.class,
                        Integer.class,
                        Color.class};
@@ -260,7 +280,7 @@ public abstract class RegularGridNumbering extends AbstractConfigurable implemen
 
   public VisibilityCondition getAttributeVisibility(String name) {
     if (FONT_SIZE.equals(name)
-      || COLOR.equals(name)) {
+        || COLOR.equals(name)) {
       VisibilityCondition cond = new VisibilityCondition() {
         public boolean shouldBeVisible() {
           return visible;
@@ -330,7 +350,9 @@ public abstract class RegularGridNumbering extends AbstractConfigurable implemen
   public String locationName(Point pt) {
     int row = getRow(pt);
     int col = getColumn(pt);
-    return getName(row, col);
+    format.setFormat(locationFormat);
+    format.setProperty(GRID_LOCATION, getName(row, col));
+    return format.getText();
   }
 
   public static final String ALPHABET = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
@@ -343,8 +365,7 @@ public abstract class RegularGridNumbering extends AbstractConfigurable implemen
         do {
           val += ALPHABET.charAt(rowOrColumn % 26);
           rowOrColumn -= 26;
-        }
-        while (rowOrColumn >= 0);
+        } while (rowOrColumn >= 0);
         return val;
       default: // Numeric
         while (leading > 0 && rowOrColumn < Math.pow(10.0, (double) leading--)) {

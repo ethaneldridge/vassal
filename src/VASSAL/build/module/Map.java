@@ -91,7 +91,6 @@ public class Map extends AbstractConfigurable implements GameComponent,
   private VisibilityCondition visibilityCondition;
   private DragGestureListener dragGestureListener;
   private FormattedString format = new FormattedString();
-  private String locationFormat;
   private String moveWithinFormat;
   private String moveToFormat;
   private String createFormat;
@@ -116,7 +115,6 @@ public class Map extends AbstractConfigurable implements GameComponent,
   public static final String ICON = "icon";
   public static final String HOTKEY = "hotkey";
   public static final String SUPPRESS_AUTO = "suppressAuto";
-  public static final String LOCATION_FORMAT = "locationFormat";
   public static final String MOVE_WITHIN_FORMAT = "moveWithinFormat";
   public static final String MOVE_TO_FORMAT = "moveToFormat";
   public static final String CREATE_FORMAT = "createFormat";
@@ -196,9 +194,6 @@ public class Map extends AbstractConfigurable implements GameComponent,
         moveWithinFormat = "";
       }
     }
-    else if (LOCATION_FORMAT.equals(key)) {
-      locationFormat = (String) value;
-    }
     else if (MOVE_WITHIN_FORMAT.equals(key)) {
       moveWithinFormat = (String) value;
     }
@@ -247,9 +242,6 @@ public class Map extends AbstractConfigurable implements GameComponent,
     }
     else if (USE_LAUNCH_BUTTON.equals(key)) {
       return "" + launchButton.isVisible();
-    }
-    else if (LOCATION_FORMAT.equals(key)) {
-      return getLocationFormat();
     }
     else if (MOVE_WITHIN_FORMAT.equals(key)) {
       return getMoveWithinFormat();
@@ -622,19 +614,13 @@ public class Map extends AbstractConfigurable implements GameComponent,
    * @see Board#locationName
    */
   public String locationName(Point p) {
-    String gridRef = "offboard";
-    String boardName = null;
+    String loc = "offboard";
     Board b = findBoard(p);
     if (b != null) {
-      boardName = b.getName();
-      gridRef = b.locationName(new Point(p.x - b.bounds().x,
+      loc = b.locationName(new Point(p.x - b.bounds().x,
                                          p.y - b.bounds().y));
     }
-    format.clearProperties();
-    format.setFormat(getLocationFormat());
-    format.setProperty(BOARD_NAME, boardName);
-    format.setProperty(GRID_LOCATION, gridRef);
-    return format.getText();
+    return loc;
   }
 
   /**
@@ -1477,34 +1463,25 @@ public class Map extends AbstractConfigurable implements GameComponent,
     return new String[]{"Map Name", "Mark pieces that move (if they possess the proper trait)", "Horizontal Padding", "Vertical Padding", "Can contain multiple boards",
                         "Border color for selected counters", "Border thickness for selected counters",
                         "Include toolbar button to show/hide", "Toolbar button name", "Toolbar button icon", "Hotkey",
-                        "Location format",
                         "Auto-report format for movement within this map",
                         "Auto-report format for movement to this map",
                         "Auto-report format for units created in this map", };
   }
 
   public String[] getAttributeNames() {
-    return new String[]{NAME, MARK_MOVED, EDGE_WIDTH, EDGE_HEIGHT, ALLOW_MULTIPLE, HIGHLIGHT_COLOR, HIGHLIGHT_THICKNESS, USE_LAUNCH_BUTTON, BUTTON_NAME, ICON, HOTKEY, LOCATION_FORMAT, MOVE_WITHIN_FORMAT, MOVE_TO_FORMAT, CREATE_FORMAT, SUPPRESS_AUTO};
+    return new String[]{NAME, MARK_MOVED, EDGE_WIDTH, EDGE_HEIGHT, ALLOW_MULTIPLE, HIGHLIGHT_COLOR, HIGHLIGHT_THICKNESS, USE_LAUNCH_BUTTON, BUTTON_NAME, ICON, HOTKEY, MOVE_WITHIN_FORMAT, MOVE_TO_FORMAT, CREATE_FORMAT, SUPPRESS_AUTO};
   }
 
   public Class[] getAttributeTypes() {
-    return new Class[]{String.class, GlobalOptions.Prompt.class, Integer.class, Integer.class, Boolean.class, Color.class, Integer.class, Boolean.class, String.class, IconConfig.class, KeyStroke.class, LocationFormatConfig.class, MoveWithinFormatConfig.class, MoveToFormatConfig.class, CreateFormatConfig.class};
+    return new Class[]{String.class, GlobalOptions.Prompt.class, Integer.class, Integer.class, Boolean.class, Color.class, Integer.class, Boolean.class, String.class, IconConfig.class, KeyStroke.class, MoveWithinFormatConfig.class, MoveToFormatConfig.class, CreateFormatConfig.class};
   }
 
-  public static final String BOARD_NAME = "boardName";
-  public static final String GRID_LOCATION = "gridLocation";
   public static final String LOCATION = "location";
   public static final String OLD_LOCATION = "previousLocation";
   public static final String OLD_MAP = "previousMap";
   public static final String PLAYER_NAME = "playerName";
   public static final String PLAYER_SIDE = "playerSide";
   public static final String PIECE_NAME = "pieceName";
-
-  public static class LocationFormatConfig implements ConfigurerFactory {
-    public Configurer getConfigurer(AutoConfigurable c, String key, String name) {
-      return new FormattedStringConfigurer(key, name, new String[]{BOARD_NAME, GRID_LOCATION});
-    }
-  }
 
   public static class IconConfig implements ConfigurerFactory {
     public Configurer getConfigurer(AutoConfigurable c, String key, String name) {
@@ -1539,20 +1516,6 @@ public class Map extends AbstractConfigurable implements GameComponent,
                                                                    PLAYER_SIDE,
                                                                    PIECE_NAME,
                                                                    LOCATION});
-    }
-  }
-
-  public String getLocationFormat() {
-    if (locationFormat != null) {
-      return locationFormat;
-    }
-    else {
-      if (boards.size() > 1) {
-        return "$" + BOARD_NAME + "$$" + GRID_LOCATION + "$";
-      }
-      else {
-        return "$" + GRID_LOCATION + "$";
-      }
     }
   }
 
