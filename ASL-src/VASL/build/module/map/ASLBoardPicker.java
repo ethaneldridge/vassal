@@ -149,9 +149,6 @@ public class ASLBoardPicker extends BoardPicker
       if (GameModule.getGameModule().getPrefs().getStoredValue(BOARD_DIR) == null) {
         File archive = new File(GameModule.getGameModule().getDataArchive().getName());
         File dir = archive.getParentFile();
-        if (dir != null) {
-          dir = dir.getParentFile();
-        }
         config.setValue(new File(dir, "boards"));
       }
     }
