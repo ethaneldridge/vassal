@@ -311,7 +311,8 @@ public class DataArchive extends ClassLoader {
                                       boolean resolve) throws ClassNotFoundException {
     Class c;
     try {
-      c = findSystemClass(name);
+//      c = findSystemClass(name);
+      c = Class.forName(name);
     }
     catch (Exception noClass) {
       c = findLoadedClass(name);
