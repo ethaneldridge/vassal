@@ -56,6 +56,11 @@ public class LaunchButton extends JButton {
     addActionListener(al);
   }
 
+  protected void fireActionPerformed(ActionEvent event) {
+    super.fireActionPerformed(event);
+    GameModule.getGameModule().getChatter().getInputField().requestFocus();
+  }
+
   public String getNameAttribute() {
     return nameAtt;
   }
