@@ -1500,6 +1500,7 @@ public class Map extends AbstractConfigurable implements GameComponent,
   public static final String LOCATION = "location";
   public static final String OLD_LOCATION = "previousLocation";
   public static final String OLD_MAP = "previousMap";
+  public static final String MAP_NAME = "mapName";
   public static final String PIECE_NAME = "pieceName";
   public static final String MESSAGE = "message";
 
@@ -1513,6 +1514,7 @@ public class Map extends AbstractConfigurable implements GameComponent,
     public Configurer getConfigurer(AutoConfigurable c, String key, String name) {
       return new PlayerIdFormattedStringConfigurer(key, name, new String[]{PIECE_NAME,
                                                                            LOCATION,
+                                                                           MAP_NAME,
                                                                            OLD_LOCATION});
     }
   }
@@ -1522,6 +1524,7 @@ public class Map extends AbstractConfigurable implements GameComponent,
       return new PlayerIdFormattedStringConfigurer(key, name, new String[]{PIECE_NAME,
                                                                            LOCATION,
                                                                            OLD_MAP,
+                                                                           MAP_NAME,
                                                                            OLD_LOCATION});
     }
   }
@@ -1529,6 +1532,7 @@ public class Map extends AbstractConfigurable implements GameComponent,
   public static class CreateFormatConfig implements ConfigurerFactory {
     public Configurer getConfigurer(AutoConfigurable c, String key, String name) {
       return new PlayerIdFormattedStringConfigurer(key, name, new String[]{PIECE_NAME,
+                                                                           MAP_NAME,
                                                                            LOCATION});
     }
   }
@@ -1648,7 +1652,6 @@ public class Map extends AbstractConfigurable implements GameComponent,
    * Make a best gues for a unique identifier for the target.
    * Use {@link VASSAL.tools.UniqueIdManager.Identifyable#getConfigureName} if non-null, otherwise
    * use {@link VASSAL.tools.UniqueIdManager.Identifyable#getId}
-   * @param target
    * @return
    */
   public String getIdentifier() {
