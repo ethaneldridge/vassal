@@ -32,6 +32,7 @@ import VASSAL.counters.Labeler;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.geom.AffineTransform;
 import java.awt.event.*;
 
 public class HexGridNumbering extends RegularGridNumbering {
@@ -92,8 +93,20 @@ public class HexGridNumbering extends RegularGridNumbering {
 
   public void draw(Graphics g, Rectangle bounds, Rectangle visibleRect, double scale, boolean reversed) {
     int size = (int) (scale * fontSize + 0.5);
-    if (size < 5 || !bounds.intersects(visibleRect)) {
+    if (size < 5) {
       return;
+    }
+
+    Graphics2D g2d = (Graphics2D) g;
+    AffineTransform oldT = g2d.getTransform();
+    if (reversed) {
+      AffineTransform t = AffineTransform.getRotateInstance(Math.PI,bounds.x+.5*bounds.width,bounds.y+.5*bounds.height);
+      g2d.transform(t);
+      visibleRect = t.createTransformedShape(visibleRect).getBounds();
+    }
+
+    if (!bounds.intersects(visibleRect)) {
+       return;
     }
 
     Rectangle region = bounds.intersection(visibleRect);
@@ -109,15 +122,11 @@ public class HexGridNumbering extends RegularGridNumbering {
       region = new Rectangle(region.y, region.x, region.height, region.width);
     }
 
-    int minCol = reversed ? 2 * (int) Math.ceil((bounds.x - scale * grid.getOrigin().x + bounds.width - region.x) / (2 * deltaX))
-        : 2 * (int) Math.floor((region.x - bounds.x - scale * grid.getOrigin().x) / (2 * deltaX));
-    double xmin = reversed ? bounds.x - scale * grid.getOrigin().x + bounds.width - deltaX * minCol
-        : bounds.x + scale * grid.getOrigin().x + deltaX * minCol;
+    int minCol = 2 * (int) Math.floor((region.x - bounds.x - scale * grid.getOrigin().x) / (2 * deltaX));
+    double xmin = bounds.x + scale * grid.getOrigin().x + deltaX * minCol;
     double xmax = region.x + region.width + deltaX;
-    int minRow = reversed ? (int) Math.ceil((bounds.y - scale * grid.getOrigin().y + bounds.height - region.y) / deltaY)
-        : (int) Math.floor((region.y - bounds.y - scale * grid.getOrigin().y) / deltaY);
-    double ymin = reversed ? bounds.y - scale * grid.getOrigin().y + bounds.height - deltaY * minRow
-        : bounds.y + scale * grid.getOrigin().y + deltaY * minRow;
+    int minRow = (int) Math.floor((region.y - bounds.y - scale * grid.getOrigin().y) / deltaY);
+    double ymin = bounds.y + scale * grid.getOrigin().y + deltaY * minRow;
     double ymax = region.y + region.height + deltaY;
 
     Font f = new Font("Dialog", Font.PLAIN, size);
@@ -143,10 +152,6 @@ public class HexGridNumbering extends RegularGridNumbering {
         grid.rotateIfSideways(gridp);
         gridp.x = (int) Math.round(gridp.x / scale);
         gridp.y = (int) Math.round(gridp.y / scale);
-        if (reversed) {
-          gridp.x = bounds.width - gridp.x;
-          gridp.y = bounds.height - gridp.y;
-        }
 
         Labeler.drawLabel(g, getName(getRow(gridp), getColumn(gridp)),
                           p.x,
@@ -164,10 +169,6 @@ public class HexGridNumbering extends RegularGridNumbering {
         grid.rotateIfSideways(gridp);
         gridp.x = (int) Math.round(gridp.x / scale);
         gridp.y = (int) Math.round(gridp.y / scale);
-        if (reversed) {
-          gridp.x = bounds.width - gridp.x;
-          gridp.y = bounds.height - gridp.y;
-        }
 
         Labeler.drawLabel(g, getName(getRow(gridp), getColumn(gridp)),
                           p.x,
@@ -178,6 +179,7 @@ public class HexGridNumbering extends RegularGridNumbering {
       }
     }
     g.setClip(oldClip);
+    g2d.setTransform(oldT);
   }
 
 
