@@ -66,7 +66,7 @@ public class ImageConfigurer extends FileConfigurer {
 
   private static class Chooser extends JFileChooser {
     private Chooser() {
-      super(System.getProperty("user.dir"));
+      super();
       setFileFilter(new javax.swing.filechooser.FileFilter() {
         public boolean accept(java.io.File f) {
           return f.getName().endsWith(".gif")

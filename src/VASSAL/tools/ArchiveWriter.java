@@ -123,8 +123,7 @@ public class ArchiveWriter extends DataArchive {
    * select a new file into which to write archive */
   public void write() throws IOException {
     if (archiveName == null) {
-      javax.swing.JFileChooser fc = new javax.swing.JFileChooser
-        (System.getProperty("user.dir"));
+      javax.swing.JFileChooser fc = new javax.swing.JFileChooser();
       if (fc.showSaveDialog(null)
         == javax.swing.JFileChooser.CANCEL_OPTION)
         return;

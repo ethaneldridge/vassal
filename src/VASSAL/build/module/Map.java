@@ -912,7 +912,6 @@ public class Map extends AbstractConfigurable implements GameComponent,
   /**
    * Returns the selection bounding box of a GamePiece accounting for
    * the offset of a piece within a stack
-   * @deprecated
    * @see GamePiece#getShape
    */
   public Rectangle selectionBoundsOf(GamePiece p) {

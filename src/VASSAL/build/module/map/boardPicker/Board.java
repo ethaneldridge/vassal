@@ -378,10 +378,6 @@ public class Board extends AbstractConfigurable {
     return grid == null ? p : globalCoordinates(grid.snapTo(localCoordinates(p)));
   }
 
-  public String baseDir() {
-    return System.getProperty("user.dir") + File.separator;
-  }
-
   public String fileName() {
     return imageFile;
   }

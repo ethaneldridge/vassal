@@ -328,6 +328,7 @@ public class RegionGrid extends AbstractConfigurable implements MapGrid {
       view.addMouseListener(this);
       view.addMouseMotionListener(this);
       view.addKeyListener(this);
+      view.setFocusable(true);
 
       scroll =
           new JScrollPane(
@@ -347,7 +348,7 @@ public class RegionGrid extends AbstractConfigurable implements MapGrid {
       });
       JPanel p = new JPanel();
       p.add(okButton);
-      getContentPane().add(p,BorderLayout.SOUTH);
+      getContentPane().add(p, BorderLayout.SOUTH);
 
       board.fixImage(view);
       scroll.revalidate();
@@ -625,7 +626,7 @@ public class RegionGrid extends AbstractConfigurable implements MapGrid {
     }
 
     public void keyTyped(KeyEvent e) {
-
     }
   }
 }
+
