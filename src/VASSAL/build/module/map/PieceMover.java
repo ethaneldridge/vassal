@@ -524,6 +524,7 @@ public class PieceMover extends AbstractBuildable implements
         format.setProperty(Map.OLD_MAP, fromMap.getConfigureName());
       }
       format.setProperty(Map.OLD_LOCATION, origin);
+      format.setProperty(Map.MAP_NAME, map.getConfigureName());
 
       String moveText = format.getText();
 
