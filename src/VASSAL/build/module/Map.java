@@ -36,9 +36,11 @@ import VASSAL.counters.*;
 import VASSAL.preferences.PositionOption;
 import VASSAL.tools.KeyStrokeSource;
 import VASSAL.tools.LaunchButton;
+import VASSAL.tools.ComponentSplitter;
 import org.w3c.dom.Element;
 
 import javax.swing.*;
+import javax.swing.plaf.basic.BasicSplitPaneUI;
 import java.awt.*;
 import java.awt.event.*;
 import java.util.Enumeration;
@@ -70,13 +72,11 @@ public class Map extends AbstractConfigurable implements GameComponent,
 
   protected JPanel theMap;
 
-  /* ******************** UI Components ******************** */
   private Vector drawComponents = new Vector();
-  //      private ConfigureMap configurer;
-  /* ******************************************************* */
 
   protected JScrollPane scroll;
   protected JFrame topWindow;
+  protected JSplitPane mainWindowDock;
   protected BoardPicker picker;
   protected JToolBar toolBar = new JToolBar();
   protected Zoomer zoom;
@@ -126,7 +126,7 @@ public class Map extends AbstractConfigurable implements GameComponent,
       setMapName((String) value);
     }
     else if (MARK_MOVED.equals(key)) {
-      markMovedOption = (String)value;
+      markMovedOption = (String) value;
     }
     else if ("edge".equals(key)) { // Backward-compatible
       String s = (String) value;
@@ -391,6 +391,14 @@ public class Map extends AbstractConfigurable implements GameComponent,
     GameModule.getGameModule().addKeyStrokeSource
       (new KeyStrokeSource(theMap, JComponent.WHEN_FOCUSED));
     GameModule.getGameModule().getToolBar().add(launchButton);
+
+    if (shouldDockIntoMainWindow()) {
+      JPanel root = new JPanel(new BorderLayout());
+      root.add(toolBar, BorderLayout.NORTH);
+      root.add(scroll, BorderLayout.CENTER);
+      ComponentSplitter splitter = new ComponentSplitter();
+      mainWindowDock = splitter.splitBottom(splitter.getSplitAncestor(GameModule.getGameModule().getControlPanel(), -1), root);
+    }
   }
 
   public void removeFrom(Buildable b) {
@@ -525,6 +533,7 @@ public class Map extends AbstractConfigurable implements GameComponent,
     r.height *= getZoom();
     return r;
   }
+
   /**
    * @return a String name for the given location on the map
    *
@@ -925,8 +934,8 @@ public class Map extends AbstractConfigurable implements GameComponent,
     for (int i = 0; i < boards.size(); ++i) {
       Board b = (Board) boards.elementAt(i);
       b.draw(g,
-             xoffset + Math.round(b.bounds().x * (float)zoom),
-             yoffset + Math.round(b.bounds().y * (float)zoom), zoom, obs);
+             xoffset + Math.round(b.bounds().x * (float) zoom),
+             yoffset + Math.round(b.bounds().y * (float) zoom), zoom, obs);
     }
   }
 
@@ -954,11 +963,26 @@ public class Map extends AbstractConfigurable implements GameComponent,
   /**
    * @return the top-level window containing this map
    */
-  protected Window getParentFrame() {
-    if (topWindow == null) {
-      topWindow = new JFrame();
+  protected JFrame createParentFrame() {
+    return new JFrame();
+  }
+
+  public boolean shouldDockIntoMainWindow() {
+    boolean shouldDock = false;
+    if (!launchButton.isVisible()) {
+      shouldDock = true;
+      for (Enumeration e = GameModule.getGameModule().getComponents(Map.class); e.hasMoreElements();) {
+        Map m = (Map) e.nextElement();
+        if (m == this) {
+          break;
+        }
+        if (m.shouldDockIntoMainWindow()) {
+          shouldDock = false;
+          break;
+        }
+      }
     }
-    return topWindow;
+    return shouldDock;
   }
 
   /**
@@ -967,37 +991,52 @@ public class Map extends AbstractConfigurable implements GameComponent,
    *
    * @see GameComponent */
   public void setup(boolean show) {
-    if (show && topWindow == null) {
-      getParentFrame();
-      topWindow.setDefaultCloseOperation
-        (WindowConstants.DO_NOTHING_ON_CLOSE);
-      topWindow.addWindowListener
-        (new WindowAdapter() {
-          public void windowClosing(WindowEvent e) {
-            if (launchButton.isVisible()) {
-              topWindow.setVisible(false);
-            }
-            else {
-              GameModule.getGameModule()
-                .getGameState().setup(false);
-            }
-          }
-        });
-      topWindow.getContentPane().add("North", getToolBar());
-      topWindow.getContentPane().add("Center", scroll);
-      topWindow.setSize(600, 400);
-      PositionOption option = new PositionOption(PositionOption.key + getId(), topWindow);
-      GameModule.getGameModule().getPrefs().addOption(option);
-      topWindow.setTitle(getDefaultWindowTitle());
+    if (show) {
+      if (shouldDockIntoMainWindow()) {
+        mainWindowDock.getBottomComponent().setVisible(true);
+        ((BasicSplitPaneUI)mainWindowDock.getUI()).getDivider().setVisible(true);
+        new ComponentSplitter().show(mainWindowDock.getBottomComponent(), true);
+      }
+      else {
+        if (topWindow == null) {
+          topWindow = createParentFrame();
+          topWindow.setDefaultCloseOperation
+            (WindowConstants.DO_NOTHING_ON_CLOSE);
+          topWindow.addWindowListener
+            (new WindowAdapter() {
+              public void windowClosing(WindowEvent e) {
+                if (launchButton.isVisible()) {
+                  topWindow.setVisible(false);
+                }
+                else {
+                  GameModule.getGameModule()
+                    .getGameState().setup(false);
+                }
+              }
+            });
+          topWindow.getContentPane().add("North", getToolBar());
+          topWindow.getContentPane().add("Center", scroll);
+          topWindow.setSize(600, 400);
+          PositionOption option = new PositionOption(PositionOption.key + getId(), topWindow);
+          GameModule.getGameModule().getPrefs().addOption(option);
+          topWindow.setTitle(getDefaultWindowTitle());
+        }
+        topWindow.setVisible(!launchButton.isVisible());
+        theMap.revalidate();
+      }
     }
-    if (topWindow != null) {
-      topWindow.setVisible(show && !launchButton.isVisible());
-      theMap.revalidate();
-    }
-    if (!show) {
+    else {
       nstacks = 0;
       boards.removeAllElements();
       System.gc();
+      if (topWindow != null) {
+        topWindow.setVisible(false);
+      }
+      if (mainWindowDock != null) {
+        new ComponentSplitter().hide(mainWindowDock.getBottomComponent(), true);
+        ((BasicSplitPaneUI)mainWindowDock.getUI()).getDivider().setVisible(false);
+        mainWindowDock.getBottomComponent().setVisible(false);
+      }
     }
     launchButton.setEnabled(show);
   }
@@ -1230,9 +1269,9 @@ public class Map extends AbstractConfigurable implements GameComponent,
   }
 
   public String[] getAttributeDescriptions() {
-    return new String[]{"Map Name", "Mark pieces that move (if they possess the proper trait)","Horizontal Padding", "Vertical Padding", "Can contain multiple boards",
+    return new String[]{"Map Name", "Mark pieces that move (if they possess the proper trait)", "Horizontal Padding", "Vertical Padding", "Can contain multiple boards",
                         "Border color for selected counters", "Border thickness for selected counters",
-                        "Include toolbar button to show/hide", "Toolbar button name","Hotkey"};
+                        "Include toolbar button to show/hide", "Toolbar button name", "Hotkey"};
   }
 
   public String[] getAttributeNames() {
@@ -1251,11 +1290,11 @@ public class Map extends AbstractConfigurable implements GameComponent,
 
   public VisibilityCondition getAttributeVisibility(String name) {
     if (visibilityCondition == null) {
-       visibilityCondition = new VisibilityCondition() {
-          public boolean shouldBeVisible() {
-            return launchButton.isVisible();
-          }
-        };
+      visibilityCondition = new VisibilityCondition() {
+        public boolean shouldBeVisible() {
+          return launchButton.isVisible();
+        }
+      };
     }
     if (HOTKEY.equals(name)) {
       return visibilityCondition;

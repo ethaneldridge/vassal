@@ -69,7 +69,7 @@ public abstract class GameModule extends AbstractConfigurable implements Command
   protected FileDialog fileDialog;
 
   protected JTextField status;
-  protected JPanel chatPanel = new JPanel();
+  protected JPanel controlPanel = new JPanel();
 
   private JToolBar toolBar = new JToolBar();
   private JMenu fileMenu = new JMenu("File");
@@ -113,14 +113,18 @@ public abstract class GameModule extends AbstractConfigurable implements Command
 
     status = new JTextField();
     status.setEditable(false);
-    frame.getContentPane().add(status, BorderLayout.NORTH);
-    chatPanel.setLayout(new BorderLayout());
-    chatPanel.add("North", toolBar);
+    Box box = Box.createVerticalBox();
+    box.add(status);
+    toolBar.setAlignmentX(0.0F);
+    toolBar.setFloatable(false);
+    box.add(toolBar);
+    frame.getContentPane().add(box, BorderLayout.NORTH);
+    controlPanel.setLayout(new BorderLayout());
     addKeyStrokeSource
       (new KeyStrokeSource
         (toolBar,
          JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT));
-    frame.getContentPane().add(chatPanel, BorderLayout.CENTER);
+    frame.getContentPane().add(controlPanel, BorderLayout.CENTER);
   }
 
   /**
@@ -396,11 +400,11 @@ public abstract class GameModule extends AbstractConfigurable implements Command
    * set the object that displays chat text
    */
   public void setChatter(Chatter c) {
-    if (chat != null) {
-      chatPanel.remove(chat);
-    }
     chat = c;
-    chatPanel.add("Center", chat);
+  }
+
+  public JComponent getControlPanel() {
+    return controlPanel;
   }
 
   /**

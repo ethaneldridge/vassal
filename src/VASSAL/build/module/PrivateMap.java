@@ -13,7 +13,7 @@
  * Library General Public License for more details.
  *
  * You should have received a copy of the GNU Library General Public
- * License along with this library; if not, copies are available 
+ * License along with this library; if not, copies are available
  * at http://www.opensource.org.
  */
 /*
@@ -126,16 +126,13 @@ public class PrivateMap extends Map {
     }
   }
 
-  public Window getParentFrame() {
-    if (topWindow == null) {
-      topWindow = new JFrame() {
-        public void setVisible(boolean show) {
-          super.setVisible(show && (visibleToAll
-                                    || isAccessibleTo(PlayerRoster.getMySide())));
-        }
-      };
-    }
-    return topWindow;
+  protected JFrame createtParentFrame() {
+    return new JFrame() {
+      public void setVisible(boolean show) {
+        super.setVisible(show && (visibleToAll
+                                  || isAccessibleTo(PlayerRoster.getMySide())));
+      }
+    };
   }
 
   /** Return true if the player playing the given side can access this map
