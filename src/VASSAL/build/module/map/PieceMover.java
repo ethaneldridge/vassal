@@ -74,6 +74,7 @@ public class PieceMover extends AbstractBuildable implements
   protected PieceFinder dragTargetSelector; // Selects drag target from mouse click on the Map
   protected PieceFinder dropTargetSelector; // Selects piece to merge with at the drop destination
   protected PieceVisitorDispatcher selectionProcessor; // Processes drag target after having been selected
+  private FormattedString format = new FormattedString();
 
   public void addTo(Buildable b) {
     dragTargetSelector = createDragTargetSelector();
@@ -419,7 +420,7 @@ public class PieceMover extends AbstractBuildable implements
       if (bottom.getParent() != null) {
         fromPos = bottom.getParent().getPosition();
         if (bottom.getParent() instanceof Deck) {
-          origin = ((Deck)bottom.getParent()).getDeckName();
+          origin = ((Deck) bottom.getParent()).getDeckName();
         }
         else {
           origin = fromMap.locationName(fromPos);
@@ -464,7 +465,7 @@ public class PieceMover extends AbstractBuildable implements
       comm = comm.append(movedPiece(bottom, mergeWith.getPosition()));
       comm = comm.append(map.getStackMetrics().merge(mergeWith, bottom));
       if (mergeWith instanceof Deck) {
-        destination = ((Deck)mergeWith).getDeckName();
+        destination = ((Deck) mergeWith).getDeckName();
       }
       else {
         destination = map.locationName(mergeWith.getPosition());
@@ -508,23 +509,22 @@ public class PieceMover extends AbstractBuildable implements
         // Not Movement within a restricted visibilty window
         (fromMap == null || !fromMap.equals(map) || fromMap.isVisibleToAll()) &&
 
-        // There is a unit to repot
+        // There is a unit to report
         movedPieceNames.length() > 0 &&
 
         //Auto-reporting moves enabled
         GlobalOptions.getInstance().autoReportEnabled()) {
-
-      FormattedString format;
+      format.clearProperties();
       if (fromMap == null) {
-        format = map.getCreateFormat();
+        format.setFormat(map.getCreateFormat());
       }
       else if (fromMap != map) {
-        format = map.getMoveToFormat();
+        format.setFormat(map.getMoveToFormat());
       }
       else {
-        format = map.getMoveWithinFormat();
+        format.setFormat(map.getMoveWithinFormat());
       }
-      format.setProperty(Map.PLAYER_NAME, (String)GameModule.getGameModule().getPrefs().getValue(GameModule.REAL_NAME));
+      format.setProperty(Map.PLAYER_NAME, (String) GameModule.getGameModule().getPrefs().getValue(GameModule.REAL_NAME));
       format.setProperty(Map.PLAYER_SIDE, PlayerRoster.getMySide());
       format.setProperty(Map.PIECE_NAME, movedPieceNames.toString());
       format.setProperty(Map.LOCATION, destination);

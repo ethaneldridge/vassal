@@ -34,6 +34,10 @@ public class FormattedString {
     props.put(name, value);
   }
 
+  public void clearProperties() {
+    props.clear();
+  }
+
   public String getText() {
     StringBuffer buffer = new StringBuffer();
     SequenceEncoder.Decoder st = new SequenceEncoder.Decoder(formatString, '$');

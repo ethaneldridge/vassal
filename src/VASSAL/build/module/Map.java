@@ -90,10 +90,11 @@ public class Map extends AbstractConfigurable implements GameComponent,
   private boolean allowMultiple = false;
   private VisibilityCondition visibilityCondition;
   private DragGestureListener dragGestureListener;
-  private FormattedString locationFormat = new FormattedString("$" + BOARD_NAME + "$$" + GRID_LOCATION + "$");
-  private FormattedString moveWithinFormat = new FormattedString("$" + PIECE_NAME + "$" + " moves $" + OLD_LOCATION + "$ -> $" + LOCATION + "$ *");
-  private FormattedString moveToFormat = new FormattedString("$" + PIECE_NAME + "$" + " moves $" + OLD_LOCATION + "$ -> $" + LOCATION + "$ *");
-  private FormattedString createFormat = new FormattedString("$" + PIECE_NAME + "$ created in $" + LOCATION + "$");
+  private FormattedString format = new FormattedString();
+  private String locationFormat;
+  private String moveWithinFormat;
+  private String moveToFormat;
+  private String createFormat;
 
   public Map() {
     getView();
@@ -192,20 +193,20 @@ public class Map extends AbstractConfigurable implements GameComponent,
         value = new Boolean((String) value);
       }
       if (Boolean.TRUE.equals(value)) {
-        moveWithinFormat.setFormat("");
+        moveWithinFormat = "";
       }
     }
     else if (LOCATION_FORMAT.equals(key)) {
-      locationFormat.setFormat((String) value);
+      locationFormat = (String) value;
     }
     else if (MOVE_WITHIN_FORMAT.equals(key)) {
-      moveWithinFormat.setFormat((String) value);
+      moveWithinFormat = (String) value;
     }
     else if (MOVE_TO_FORMAT.equals(key)) {
-      moveToFormat.setFormat((String) value);
+      moveToFormat = (String) value;
     }
     else if (CREATE_FORMAT.equals(key)) {
-      createFormat.setFormat((String) value);
+      createFormat = (String) value;
     }
     else {
       launchButton.setAttribute(key, value);
@@ -248,16 +249,16 @@ public class Map extends AbstractConfigurable implements GameComponent,
       return "" + launchButton.isVisible();
     }
     else if (LOCATION_FORMAT.equals(key)) {
-      return locationFormat.getFormat();
+      return locationFormat;
     }
     else if (MOVE_WITHIN_FORMAT.equals(key)) {
-      return moveWithinFormat.getFormat();
+      return moveWithinFormat;
     }
     else if (MOVE_TO_FORMAT.equals(key)) {
-      return moveToFormat.getFormat();
+      return moveToFormat;
     }
     else if (CREATE_FORMAT.equals(key)) {
-      return createFormat.getFormat();
+      return createFormat;
     }
     else {
       return launchButton.getAttributeValueString(key);
@@ -629,9 +630,11 @@ public class Map extends AbstractConfigurable implements GameComponent,
       gridRef = b.locationName(new Point(p.x - b.bounds().x,
                                          p.y - b.bounds().y));
     }
-    locationFormat.setProperty(BOARD_NAME, boardName);
-    locationFormat.setProperty(GRID_LOCATION, gridRef);
-    return locationFormat.getText();
+    format.clearProperties();
+    format.setFormat(getLocationFormat());
+    format.setProperty(BOARD_NAME, boardName);
+    format.setProperty(GRID_LOCATION, gridRef);
+    return format.getText();
   }
 
   /**
@@ -1539,16 +1542,30 @@ public class Map extends AbstractConfigurable implements GameComponent,
     }
   }
 
-  public FormattedString getCreateFormat() {
-    return createFormat;
+  public String getLocationFormat() {
+    if (locationFormat != null) {
+      return locationFormat;
+    }
+    else {
+      if (boards.size() > 1) {
+        return "$" + BOARD_NAME + "$$" + GRID_LOCATION + "$";
+      }
+      else {
+        return "$" + GRID_LOCATION + "$";
+      }
+    }
   }
 
-  public FormattedString getMoveToFormat() {
-    return moveToFormat;
+  public String getCreateFormat() {
+    return createFormat != null ? createFormat : "$" + PIECE_NAME + "$ created in $" + LOCATION + "$";
   }
 
-  public FormattedString getMoveWithinFormat() {
-    return moveWithinFormat;
+  public String getMoveToFormat() {
+    return moveToFormat != null ? moveToFormat : "$" + PIECE_NAME + "$" + " moves $" + OLD_LOCATION + "$ -> $" + LOCATION + "$ *";
+  }
+
+  public String getMoveWithinFormat() {
+    return moveWithinFormat != null ? moveWithinFormat : "$" + PIECE_NAME + "$" + " moves $" + OLD_LOCATION + "$ -> $" + LOCATION + "$ *";
   }
 
   public Class[] getAllowableConfigureComponents() {
