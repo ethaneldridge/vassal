@@ -107,7 +107,7 @@ public class VSQLKeyBufferer extends MouseAdapter implements Buildable, MouseMot
         }
 
       public Object visitStack(Stack s) {
-          if (s.isExpanded()) {
+          //if (s.isExpanded()) {
             Point[] pos = new Point[s.getPieceCount()];
             map.getStackMetrics().getContents(s, pos, null, null, s.getPosition().x, s.getPosition().y);
             for (int i=0;i<pos.length;++i) {
@@ -115,10 +115,10 @@ public class VSQLKeyBufferer extends MouseAdapter implements Buildable, MouseMot
                 KeyBuffer.getBuffer().add(s.getPieceAt(i));
               }
             }
-          }
-          else if (selection.contains(s.getPosition())) {
-            return s.topPiece();
-          }
+          //}
+          //else if (selection.contains(s.getPosition())) {
+          //  return s.topPiece();
+          //}
           return null;
         }
 
