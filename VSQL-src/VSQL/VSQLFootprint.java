@@ -78,7 +78,8 @@ public class VSQLFootprint extends MarkMoved {
   protected static final Color CIRCLE_COLOR = Color.BLACK;
   protected static final Color FILL_COLOR = Color.WHITE;
   protected static final Color LINE_COLOR = Color.BLACK;
-  protected static final float LINE_WIDTH = 1.0f;
+  protected static final float SELECTED_LINE_WIDTH = 2.0f;
+  protected static final float UNSELECTED_LINE_WIDTH = 1.0f;
   protected static final int BASE_FONT_SIZE = 14;
 
   // Buffer around map for all drawing
@@ -332,10 +333,12 @@ public class VSQLFootprint extends MarkMoved {
       Shape oldClip = g.getClip();
       g.setClip(newClip.intersection(visibleRect));
 
+      float lineWidth = SELECTED_LINE_WIDTH;
       if (!selected) {         
          g2d.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.5F));
+         lineWidth = UNSELECTED_LINE_WIDTH;
       }
-      g2d.setStroke(new BasicStroke(LINE_WIDTH));
+      g2d.setStroke(new BasicStroke(lineWidth));
       g2d.setColor(LINE_COLOR);
       Enumeration e = getPointList();
       Point lastP = null;
@@ -351,8 +354,8 @@ public class VSQLFootprint extends MarkMoved {
           y2 = (int) (p.y * zoom);     
           
           double dist = getDistance(x1, y1, x2, y2);
-          int xDiff = (int) ((CIRCLE_RADIUS * (x2 - x1)) / dist);
-          int yDiff = (int) ((CIRCLE_RADIUS * (y2 - y1)) / dist);
+          int xDiff = (int) ((CIRCLE_RADIUS * zoom * (x2 - x1)) / dist);
+          int yDiff = (int) ((CIRCLE_RADIUS * zoom * (y2 - y1)) / dist);
           
           g.drawLine(x1+xDiff, y1+yDiff, x2-xDiff, y2-yDiff);
         }
@@ -365,8 +368,8 @@ public class VSQLFootprint extends MarkMoved {
         y2 = (int) (here.y * zoom);
         
         double dist = getDistance(x1, y1, x2, y2);
-        int xDiff = (int) ((CIRCLE_RADIUS * (x2 - x1)) / dist);
-        int yDiff = (int) ((CIRCLE_RADIUS * (y2 - y1)) / dist);
+        int xDiff = (int) ((CIRCLE_RADIUS * zoom * (x2 - x1)) / dist);
+        int yDiff = (int) ((CIRCLE_RADIUS * zoom * (y2 - y1)) / dist);
         
         g.drawLine(x1+xDiff, y1+yDiff, x2-xDiff, y2-yDiff);
       }
