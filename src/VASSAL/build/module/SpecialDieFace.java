@@ -8,6 +8,9 @@ import VASSAL.configure.Configurer;
 import VASSAL.configure.ConfigurerFactory;
 import VASSAL.configure.IconConfigurer;
 
+import java.io.File;
+import java.net.MalformedURLException;
+
 public class SpecialDieFace extends AbstractConfigurable {
 
   public static final String NAME = "name";
@@ -26,7 +29,7 @@ public class SpecialDieFace extends AbstractConfigurable {
   }
 
   public String[] getAttributeDescriptions() {
-    return new String[]{"Name", "Value", "Icon"};
+    return new String[]{"Name", "Numerical value", "Icon"};
   }
 
   public Class[] getAttributeTypes() {
@@ -83,7 +86,14 @@ public class SpecialDieFace extends AbstractConfigurable {
   }
 
   public HelpFile getHelpFile() {
-    return null;
+    File dir = VASSAL.build.module.Documentation.getDocumentationBaseDir();
+    dir = new File(dir, "ReferenceManual");
+    try {
+      return new HelpFile(null, new File(dir, "GameModule.htm"), "#SpecialDiceButton");
+    }
+    catch (MalformedURLException ex) {
+      return null;
+    }
   }
 
   public Class[] getAllowableConfigureComponents() {

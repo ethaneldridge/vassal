@@ -2,6 +2,8 @@ package VASSAL.build.module;
 
 import java.util.Vector;
 import java.util.Enumeration;
+import java.io.File;
+import java.net.MalformedURLException;
 
 import VASSAL.build.*;
 import VASSAL.build.module.documentation.HelpFile;
@@ -91,7 +93,14 @@ public class SpecialDie extends AbstractConfigurable {
   }
 
   public HelpFile getHelpFile() {
-    return null;
+    File dir = VASSAL.build.module.Documentation.getDocumentationBaseDir();
+    dir = new File(dir, "ReferenceManual");
+    try {
+      return new HelpFile(null, new File(dir, "GameModule.htm"), "#SpecialDiceButton");
+    }
+    catch (MalformedURLException ex) {
+      return null;
+    }
   }
 
   public Class[] getAllowableConfigureComponents() {
