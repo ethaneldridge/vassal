@@ -132,7 +132,7 @@ public class HexGridNumbering extends RegularGridNumbering {
     Font f = new Font("Dialog", Font.PLAIN, size);
     Point p = new Point();
     int alignment = Labeler.TOP;
-    int offset = -(int) deltaY / 2;
+    int offset = -(int) Math.round(deltaY / 2);
     if (grid.isSideways()) {
       alignment = Labeler.CENTER;
       offset = 0;
@@ -143,8 +143,8 @@ public class HexGridNumbering extends RegularGridNumbering {
     for (double x = xmin; x < xmax; x += 2 * deltaX) {
       for (double y = ymin; y < ymax; y += deltaY) {
 
-        p.setLocation((int) x, (int) y + offset);
-        gridp = new Point(p);
+        p.setLocation((int) Math.round(x), (int) Math.round(y) + offset);
+        gridp = new Point(p.x,p.y-offset);
         grid.rotateIfSideways(p);
 
         // Convert from map co-ordinates to board co-ordinates
@@ -160,7 +160,7 @@ public class HexGridNumbering extends RegularGridNumbering {
                           Labeler.CENTER,
                           alignment, color, null, null);
 
-        p.setLocation((int) (x + deltaX), (int) (y + deltaY / 2) + offset);
+        p.setLocation((int) Math.round(x + deltaX), (int) Math.round(y + deltaY / 2) + offset);
         gridp = new Point(p);
         grid.rotateIfSideways(p);
 
