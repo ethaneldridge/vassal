@@ -77,20 +77,21 @@ public class VSQLCounterDetailViewer extends CounterDetailViewer {
       GamePiece p = null;
       
       p = nextFromStack();
-      if (p == null) {      
+      if (p == null) {
          index++;
          if (index < pieces.length) {
-             p = pieces[index];
-             if (p instanceof Stack) {
-               currentStack = (Stack) p;
-               stackIndex = -1;
-               p = nextFromStack();            
-             }
-         }
-      }
-      
-      return p;
-      
+            p = pieces[index];
+            if (p instanceof Stack) {
+              currentStack = (Stack) p;
+              stackIndex = -1;
+              p = nextFromStack();
+              if (p == null) {
+                p = nextPiece();
+              }
+           }
+         }         
+      }      
+      return p;      
     }
     
     protected GamePiece nextFromStack() {
@@ -99,6 +100,8 @@ public class VSQLCounterDetailViewer extends CounterDetailViewer {
         return currentStack.getPieceAt(stackIndex);
       }
       else
+        currentStack = null;
+        stackIndex = -1;
         return null;
     }
     
@@ -113,6 +116,7 @@ public class VSQLCounterDetailViewer extends CounterDetailViewer {
       return p;
     }    
   }
+  
   
   protected class Selector implements PieceFilter {
 

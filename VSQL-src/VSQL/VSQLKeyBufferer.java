@@ -157,8 +157,10 @@ public class VSQLKeyBufferer extends MouseAdapter implements Buildable, MouseMot
   }
 
   public void draw(Graphics g, Map map) {
+    Graphics2D g2d = (Graphics2D) g;
     if (selection != null) {
-      g.setColor(color);
+      g.setColor(color);      
+      g2d.setStroke(new BasicStroke(1.0f));
       for (int i = 0; i < thickness; ++i) {
         g.drawRect(selection.x+i, selection.y+i, selection.width, selection.height);
       }
