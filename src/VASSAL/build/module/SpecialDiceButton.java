@@ -24,6 +24,7 @@ import VASSAL.configure.*;
 import VASSAL.tools.LaunchButton;
 import VASSAL.tools.SequenceEncoder;
 import VASSAL.tools.UniqueIdManager;
+import VASSAL.tools.FormattedString;
 import VASSAL.command.*;
 
 import javax.swing.*;
@@ -44,7 +45,6 @@ public class SpecialDiceButton extends AbstractConfigurable implements CommandEn
 
   protected java.util.Random ran;
   protected boolean bNumeric = false;
-  protected boolean bReportTotal = false;
   protected boolean bResultToChatter = true;
   protected boolean bResultInWindow = false;
   protected boolean bResultInButton = false;
@@ -57,12 +57,18 @@ public class SpecialDiceButton extends AbstractConfigurable implements CommandEn
   private Dice[] oaDice;  // DiceSet as objects
   private SpecialDiceDialog oDialog = null; // Dialog to show results graphical
 
+  private FormattedString format = new FormattedString("** $"+NAME+"$ = [$result1$] *** <$"+PLAYER_NAME+"$>");
+
   public static final String BUTTON_TEXT = "text";
   public static final String NAME = "name";
   public static final String ICON = "icon";
   public static final String NUMERIC = "numeric";
-  public static final String REPORT_TOTAL = "reportTotal";
   public static final String RESULT_CHATTER = "resultChatter";
+  public static final String FORMAT = "format";
+  public static final String RESULT_N = "result#";
+  public static final String RESULT_TOTAL = "numericalTotal";
+  public static final String PLAYER_NAME = "playerName";
+  public static final String PLAYER_SIDE = "playerSide";
   public static final String RESULT_WINDOW = "resultWindow";
   public static final String RESULT_BUTTON = "resultButton";
   public static final String WINDOW_X = "windowX";
@@ -111,7 +117,9 @@ public class SpecialDiceButton extends AbstractConfigurable implements CommandEn
    */
   protected void DR() {
     GameModule theModule = GameModule.getGameModule();
-    String strVal = getReportPrefix();
+    format.setProperty(PLAYER_NAME,(String) GameModule.getGameModule().getPrefs().getValue(GameModule.REAL_NAME));
+    format.setProperty(PLAYER_SIDE,PlayerRoster.getMySide());
+    format.setProperty(NAME,getConfigureName());
     int nTotal = 0;
     int nVal = 0;
 
@@ -119,8 +127,6 @@ public class SpecialDiceButton extends AbstractConfigurable implements CommandEn
 
     for (int ii = 0; ii < oaDice.length; ++ii) {
       int[] rolls = new int[oaDice[ii].number];
-      if (!bReportTotal)
-        strVal += "[";
 
       // get the results of all rolls of this die
       for (int jj = 0; jj < oaDice[ii].number; ++jj) {
@@ -133,13 +139,10 @@ public class SpecialDiceButton extends AbstractConfigurable implements CommandEn
         nVal = oaDice[ii].getIntVal(rolls[jj]);
 
         // report single rolls to chatter
-        if (bResultToChatter && !bReportTotal) {
-          strVal += oaDice[ii].getStrVal(rolls[jj]);
-          if (jj < oaDice[ii].number - 1) {
-            strVal += ",";
-          }
+        if (bResultToChatter) {
+          format.setProperty("result"+(ii+1),oaDice[ii].getStrVal(rolls[jj]));
         }
-        if (bNumeric && bReportTotal) {
+        if (bNumeric) {
           nTotal += nVal;
         }
       }
@@ -149,22 +152,27 @@ public class SpecialDiceButton extends AbstractConfigurable implements CommandEn
                                    oaDice[ii].name,
                                    oaDice[ii].mod,
                                    rolls));
-      if (bNumeric && bReportTotal)
+      if (bNumeric)
         nTotal += oaDice[ii].mod;
-      if (!bReportTotal)
-        strVal += "] ";
     }
 
+    format.setProperty(RESULT_TOTAL,""+nTotal);
+
     // if numeric total can be reported
-    if (bNumeric && bReportTotal) {
-      strVal += nTotal;
+    if (bNumeric) {
       c.append(new RollSpecialDice(this, id, -1,
                                    0, "#total", nTotal, null));
     }
 
     if (bResultToChatter) {
-      strVal += getReportSuffix();
-      c.append(new Chatter.DisplayText(theModule.getChatter(), strVal));
+      String msg = format.getText();
+      if (msg.startsWith("*")) {
+        msg = "*"+msg;
+      }
+      else {
+        msg = "* "+msg;
+      }
+      c.append(new Chatter.DisplayText(theModule.getChatter(), msg));
     }
 
     c.execute();
@@ -195,7 +203,7 @@ public class SpecialDiceButton extends AbstractConfigurable implements CommandEn
    */
   public String[] getAttributeNames() {
     String s[] = {NAME, BUTTON_TEXT, ICON, HOTKEY,
-                  NUMERIC, REPORT_TOTAL, RESULT_CHATTER, RESULT_BUTTON,
+                  NUMERIC, RESULT_CHATTER, FORMAT, RESULT_BUTTON,
                   RESULT_WINDOW, WINDOW_X, WINDOW_Y};
     return s;
   }
@@ -206,8 +214,8 @@ public class SpecialDiceButton extends AbstractConfigurable implements CommandEn
                         "Button icon",
                         "Hotkey",
                         "Numeric values",
-                        "Report total",
                         "Report results as text",
+                        "Report format",
                         "Show result in button",
                         "Show result in window",
                         "Width",
@@ -220,6 +228,12 @@ public class SpecialDiceButton extends AbstractConfigurable implements CommandEn
     }
   }
 
+  public static class ReportFormatConfig implements ConfigurerFactory {
+    public Configurer getConfigurer(AutoConfigurable c, String key, String name) {
+      return new FormattedStringConfigurer(key, name, new String[]{NAME,RESULT_N,RESULT_TOTAL,PLAYER_NAME,PLAYER_SIDE});
+    }
+  }
+
   public Class[] getAttributeTypes() {
     return new Class[]{String.class,
                        String.class,
@@ -227,7 +241,7 @@ public class SpecialDiceButton extends AbstractConfigurable implements CommandEn
                        KeyStroke.class,
                        Boolean.class,
                        Boolean.class,
-                       Boolean.class,
+                       ReportFormatConfig.class,
                        Boolean.class,
                        Boolean.class,
                        Integer.class,
@@ -235,19 +249,18 @@ public class SpecialDiceButton extends AbstractConfigurable implements CommandEn
   }
 
   public VisibilityCondition getAttributeVisibility(String name) {
-    // report total only if numeric
-    if (REPORT_TOTAL.equals(name)) {
-      return new VisibilityCondition() {
-        public boolean shouldBeVisible() {
-          return bNumeric;
-        }
-      };
-    }
 // get size only when output in window or on button
-    else if (WINDOW_X.equals(name) || WINDOW_Y.equals(name)) {
+    if (WINDOW_X.equals(name) || WINDOW_Y.equals(name)) {
       return new VisibilityCondition() {
         public boolean shouldBeVisible() {
           return bResultInWindow || bResultInButton;
+        }
+      };
+    }
+    else if (FORMAT.equals(name)) {
+      return new VisibilityCondition() {
+        public boolean shouldBeVisible() {
+          return bResultToChatter;
         }
       };
     }
@@ -353,11 +366,11 @@ public class SpecialDiceButton extends AbstractConfigurable implements CommandEn
     else if (NUMERIC.equals(key)) {
       bNumeric = getBoolVal(o);
     }
-    else if (REPORT_TOTAL.equals(key)) {
-      bReportTotal = getBoolVal(o);
-    }
     else if (RESULT_CHATTER.equals(key)) {
       bResultToChatter = getBoolVal(o);
+    }
+    else if (FORMAT.equals(key)) {
+      format.setFormat((String)o);
     }
     else if (RESULT_BUTTON.equals(key)) {
       bResultInButton = getBoolVal(o);
@@ -399,11 +412,11 @@ public class SpecialDiceButton extends AbstractConfigurable implements CommandEn
     else if (NUMERIC.equals(key)) {
       return "" + bNumeric;
     }
-    else if (REPORT_TOTAL.equals(key)) {
-      return "" + bReportTotal;
-    }
     else if (RESULT_CHATTER.equals(key)) {
       return "" + bResultToChatter;
+    }
+    else if (FORMAT.equals(key)) {
+      return format.getFormat();
     }
     else if (RESULT_BUTTON.equals(key)) {
       return "" + bResultInButton;

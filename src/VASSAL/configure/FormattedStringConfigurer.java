@@ -47,6 +47,11 @@ public class FormattedStringConfigurer
       String[] options) {
     super(key, name);
     optionsModel = new DefaultComboBoxModel();
+    setOptions(options);
+  }
+
+  public void setOptions(String[] options) {
+    optionsModel.removeAllElements();
     optionsModel.addElement("Insert");
     for (int i = 0; i < options.length; i++) {
       optionsModel.addElement(options[i]);
@@ -66,14 +71,6 @@ public class FormattedStringConfigurer
       p.add(dropList);
     }
     return p;
-  }
-
-  public void addOption(String s) {
-    optionsModel.addElement(s);
-  }
-
-  public void removeOption(String s) {
-    optionsModel.removeElement(s);
   }
 
   /*

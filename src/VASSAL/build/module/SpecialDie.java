@@ -3,7 +3,12 @@ package VASSAL.build.module;
 import VASSAL.build.AbstractConfigurable;
 import VASSAL.build.Buildable;
 import VASSAL.build.GameModule;
+import VASSAL.build.AutoConfigurable;
 import VASSAL.build.module.documentation.HelpFile;
+import VASSAL.tools.FormattedString;
+import VASSAL.configure.ConfigurerFactory;
+import VASSAL.configure.Configurer;
+import VASSAL.configure.FormattedStringConfigurer;
 
 import java.io.File;
 import java.net.MalformedURLException;
@@ -15,9 +20,12 @@ public class SpecialDie extends AbstractConfigurable {
 
   private List dieFaceList = new ArrayList();
   protected boolean bNumeric = false;
+  private FormattedString format = new FormattedString("$"+RESULT+"$");
 
   public static final String NAME = "name";
   public static final String NUMERIC = "numeric";
+  public static final String FORMAT = "format";
+  public static final String RESULT = "result";
 
 
   /**
@@ -57,15 +65,21 @@ public class SpecialDie extends AbstractConfigurable {
   }
 
   public String[] getAttributeDescriptions() {
-    return new String[]{"Name", "is numeric?"};
+    return new String[]{"Name", "is numeric?","Results format"};
   }
 
   public Class[] getAttributeTypes() {
-    return new Class[]{String.class, Boolean.class};
+    return new Class[]{String.class, Boolean.class, ResultFormatConfig.class};
+  }
+
+  public static class ResultFormatConfig implements ConfigurerFactory {
+    public Configurer getConfigurer(AutoConfigurable c, String key, String name) {
+      return new FormattedStringConfigurer(key, name, new String[]{NAME,RESULT});
+    }
   }
 
   public String[] getAttributeNames() {
-    String s[] = {NAME, NUMERIC};
+    String s[] = {NAME, NUMERIC,FORMAT};
     return s;
   }
 
@@ -81,6 +95,9 @@ public class SpecialDie extends AbstractConfigurable {
         bNumeric = "true".equals(o);
       }
     }
+    else if (FORMAT.equals(key)) {
+      format.setFormat((String)o);
+    }
   }
 
   public String getAttributeValueString(String key) {
@@ -89,6 +106,9 @@ public class SpecialDie extends AbstractConfigurable {
     }
     else if (NUMERIC.equals(key)) {
       return "" + bNumeric;
+    }
+    else if (FORMAT.equals(key)) {
+      return format.getFormat();
     }
     else {
       return null;
@@ -136,7 +156,9 @@ public class SpecialDie extends AbstractConfigurable {
   public String getStrVal(int pRoll) {
     if (pRoll > 0 && pRoll <= dieFaceList.size()) {
       SpecialDieFace aFace = (SpecialDieFace) dieFaceList.get(pRoll - 1);
-      return aFace.strValue;
+      format.setProperty(NAME,getConfigureName());
+      format.setProperty(RESULT,aFace.strValue);
+      return format.getText();
     }
     else
       return null;
