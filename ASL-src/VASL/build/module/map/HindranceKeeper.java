@@ -26,10 +26,7 @@ import VASSAL.build.module.Map;
 import VASSAL.build.module.map.Drawable;
 import VASSAL.configure.BooleanConfigurer;
 import VASSAL.configure.Configurer;
-import VASSAL.counters.GamePiece;
-import VASSAL.counters.PieceIterator;
-import VASSAL.counters.Properties;
-import VASSAL.counters.Stack;
+import VASSAL.counters.*;
 
 import javax.swing.*;
 import java.awt.*;
@@ -41,7 +38,7 @@ import java.awt.event.KeyListener;
  * {@link ASLProperties#HINDRANCE} property set.  It is enables when
  * the LOS Thread is being drawn.
  */
-public class HindranceKeeper extends AbstractBuildable implements Drawable, KeyListener {
+public class HindranceKeeper extends AbstractBuildable implements Drawable, KeyListener, PieceFilter {
   public static final String DRAW_HINDRANCES = "DrawHindrances";
   private Map map;
 
@@ -68,27 +65,57 @@ public class HindranceKeeper extends AbstractBuildable implements Drawable, KeyL
     if (!m.isPiecesVisible()
         && Boolean.TRUE.equals(GameModule.getGameModule().getPrefs().getValue(DRAW_HINDRANCES))) {
       GamePiece[] p = m.getPieces();
+      java.awt.Point pt;
       for (int i = 0; i < p.length; ++i) {
         if (p[i] instanceof Stack) {
-          for (PieceIterator pi = new PieceIterator(((Stack) p[i]).getPieces());
-               pi.hasMoreElements();) {
-            draw(pi.nextPiece(), m, g);
+          Stack temp = getVisibleHindrances((Stack) p[i]);
+          if (temp != null) {
+            pt = map.componentCoordinates(p[i].getPosition());
+            map.getStackMetrics().draw(temp,g,pt.x,pt.y,map.getView(),map.getZoom());
           }
         }
-        else {
-          draw(p[i], m, g);
+        else if (isVisibleHindrance(p[i])) {
+          pt = map.componentCoordinates(p[i].getPosition());
+          p[i].draw(g, pt.x, pt.y, map.getView(), map.getZoom());
         }
       }
     }
   }
 
-  private void draw(GamePiece p, Map map, Graphics g) {
-    if (p.getProperty(ASLProperties.HINDRANCE) != null
-        && !Boolean.TRUE.equals(p.getProperty(Properties.INVISIBLE_TO_ME))
-        && !Boolean.TRUE.equals(p.getProperty(Properties.OBSCURED_TO_ME))) {
-      java.awt.Point pt = map.componentCoordinates(p.getPosition());
-      p.draw(g, pt.x, pt.y, map.getView(), map.getZoom());
+  public boolean accept(GamePiece piece) {
+    return isVisibleHindrance(piece);
+  }
+
+  private boolean isVisibleHindrance(GamePiece p) {
+    return p.getProperty(ASLProperties.HINDRANCE) != null
+            && !Boolean.TRUE.equals(p.getProperty(Properties.INVISIBLE_TO_ME))
+            && !Boolean.TRUE.equals(p.getProperty(Properties.OBSCURED_TO_ME));
+  }
+
+  private Stack getVisibleHindrances(Stack s) {
+    class TempStack extends Stack {
+      // This method adds a piece to the stack without removing it from its current parent
+      // and without setting the parent on the child piece
+      public void add(GamePiece c) {
+        if (pieceCount >= contents.length) {
+          GamePiece[] newContents = new GamePiece[contents.length + 5];
+          System.arraycopy(contents, 0, newContents, 0, pieceCount);
+          contents = newContents;
+        }
+        contents[pieceCount++] = c;
+      }
+      public boolean isExpanded() {
+        return true;
+      }
     }
+    Stack tempStack = null;
+    for (PieceIterator pi = new PieceIterator(s.getPieces(),this);pi.hasMoreElements();) {
+      if (tempStack == null) {
+        tempStack = new TempStack();
+      }
+      tempStack.add(pi.nextPiece());
+    }
+    return tempStack;
   }
 
   public void keyPressed(KeyEvent e) {
