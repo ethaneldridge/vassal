@@ -237,7 +237,7 @@ public class ASLCommandEncoder extends VASSAL.build.module.BasicCommandEncoder i
                             + (large ? "Qmark58" : "qmark") + ";" + info.nation, p);
       }
     }
-    p.setProperty(Obscurable.ID, info.obscuredBy);
+    p.setProperty(Properties.OBSCURED_BY, info.obscuredBy);
     p = new MarkMoved(MarkMoved.ID + (large ? "moved58" : "moved"), p);
     return hideable(p, info);
   }
@@ -276,7 +276,7 @@ public class ASLCommandEncoder extends VASSAL.build.module.BasicCommandEncoder i
     else {
       p = new Concealable(Concealable.ID + "C;Qmark58;" + info.nation, p);
     }
-    p.setProperty(Obscurable.ID, info.obscuredBy);
+    p.setProperty(Properties.OBSCURED_BY, info.obscuredBy);
     p = new Labeler(Labeler.ID + 'L', p);
     p = new MarkMoved(MarkMoved.ID + "moved58", p);
     return hideable(p, info);
@@ -331,7 +331,7 @@ public class ASLCommandEncoder extends VASSAL.build.module.BasicCommandEncoder i
     else {
       p = new Concealable(Concealable.ID + "C;Qmark58;" + info.nation, p);
     }
-    p.setProperty(Obscurable.ID, info.obscuredBy);
+    p.setProperty(Properties.OBSCURED_BY, info.obscuredBy);
     p = new Labeler(Labeler.ID + 'L', p);
     p = new MarkMoved(MarkMoved.ID + "moved58", p);
     p = new Marker(Marker.ID + ASLProperties.HINDRANCE, p);

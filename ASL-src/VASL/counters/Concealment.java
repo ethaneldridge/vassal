@@ -149,7 +149,7 @@ public class Concealment extends Decorator implements EditablePiece {
   public Command setConcealed(GamePiece p, boolean concealed) {
     if (canConceal(p)) {
       String state = p.getState();
-      p.setProperty(Obscurable.ID,
+      p.setProperty(Properties.OBSCURED_BY,
                     concealed ? GameModule.getGameModule().getUserId()
                     : null);
       return new ChangePiece(p.getId(), state, p.getState());

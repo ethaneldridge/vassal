@@ -165,12 +165,12 @@ public class Concealable extends Obscurable implements EditablePiece {
     if (isMaskableBy(GameModule.getUserId())) {
       GamePiece outer = Decorator.getOutermost(this);
       String state = outer.getState();
-      setProperty(Obscurable.ID, null);
+      setProperty(Properties.OBSCURED_BY, null);
       if (getParent() != null) {
         for (int i = getParent().indexOf(outer),j = getParent().getPieceCount(); i < j; ++i) {
           Concealment p = (Concealment) Decorator.getDecorator(getParent().getPieceAt(i), Concealment.class);
           if (p != null && p.canConceal(this)) {
-            setProperty(Obscurable.ID, GameModule.getUserId());
+            setProperty(Properties.OBSCURED_BY, GameModule.getUserId());
             break;
           }
         }
