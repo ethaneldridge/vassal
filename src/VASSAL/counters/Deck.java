@@ -304,12 +304,6 @@ public class Deck extends Stack {
           int index = ((Integer) indices.get(i)).intValue();
           indices.remove(i);
           GamePiece p = getPieceAt(index);
-          if (drawFaceUp) {
-            p.setProperty(Properties.OBSCURED_BY, null);
-          }
-          else if (faceDown) {
-            p.setProperty(Properties.OBSCURED_BY, NO_USER);
-          }
           pieces.add(p);
         }
       }
@@ -317,12 +311,6 @@ public class Deck extends Stack {
         Enumeration e = getPiecesInReverseOrder();
         while (count-- > 0 && e.hasMoreElements()) {
           GamePiece p = (GamePiece) e.nextElement();
-          if (drawFaceUp) {
-            p.setProperty(Properties.OBSCURED_BY, null);
-          }
-          else if (faceDown) {
-            p.setProperty(Properties.OBSCURED_BY, NO_USER);
-          }
           pieces.add(p);
         }
       }
@@ -333,10 +321,7 @@ public class Deck extends Stack {
     return new PieceIterator(it) {
       public GamePiece nextPiece() {
         GamePiece p = super.nextPiece();
-        if (drawFaceUp) {
-          p.setProperty(Properties.OBSCURED_BY, null);
-        }
-        else if (faceDown) {
+        if (faceDown) {
           p.setProperty(Properties.OBSCURED_BY, NO_USER);
         }
         return p;
