@@ -43,12 +43,13 @@ import java.net.MalformedURLException;
  * are contained in {@link PieceSlot} components.  PieceWindow extends
  * {@link Widget}, so it may be composed of various tabs, lists, etc.  */
 public class PieceWindow extends Widget{
-  private JFrame frame;
+  private JDialog frame;
   private String id;
   private LaunchButton launch;
   public static final String WINDOW_NAME = "entryName";
   public static final String HOTKEY = "hotkey";
-  private Container root;
+  private JComponent root;
+  private ComponentSplitter.SplitPane mainWindowDock;
 
   public PieceWindow() {
     root = new JPanel(new BorderLayout());
@@ -62,7 +63,7 @@ public class PieceWindow extends Widget{
   }
 
   private void initFrame() {
-    frame = new JFrame();
+    frame = new JDialog(GameModule.getGameModule().getFrame());
     frame.getContentPane().add(root);
     frame.setDefaultCloseOperation(WindowConstants.HIDE_ON_CLOSE);
     frame.setTitle(getConfigureName());
@@ -78,7 +79,7 @@ public class PieceWindow extends Widget{
 
   public void launchButtonPressed() {
     if (frame == null) {
-      new ComponentSplitter().toggleVisibility(root,false);
+      mainWindowDock.toggleVisibility();
     }
     else {
       frame.setVisible(!frame.isVisible());
@@ -166,7 +167,7 @@ public class PieceWindow extends Widget{
 
     String key = PositionOption.key + getId();
     if (count == 0) {
-      new ComponentSplitter().splitLeft(GameModule.getGameModule().getControlPanel(),root);
+      mainWindowDock = new ComponentSplitter().splitLeft(GameModule.getGameModule().getControlPanel(),root, false);
     }
     else {
       initFrame();

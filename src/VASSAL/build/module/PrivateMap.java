@@ -126,8 +126,8 @@ public class PrivateMap extends Map {
     }
   }
 
-  protected JFrame createtParentFrame() {
-    return new JFrame() {
+  protected JDialog createParentFrame() {
+    return new JDialog(GameModule.getGameModule().getFrame()) {
       public void setVisible(boolean show) {
         super.setVisible(show && (visibleToAll
                                   || isAccessibleTo(PlayerRoster.getMySide())));

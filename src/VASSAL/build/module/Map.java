@@ -32,22 +32,21 @@ import VASSAL.command.Command;
 import VASSAL.command.RemovePiece;
 import VASSAL.configure.ColorConfigurer;
 import VASSAL.configure.VisibilityCondition;
-import VASSAL.configure.IntConfigurer;
 import VASSAL.counters.*;
 import VASSAL.preferences.PositionOption;
+import VASSAL.tools.ComponentSplitter;
 import VASSAL.tools.KeyStrokeSource;
 import VASSAL.tools.LaunchButton;
-import VASSAL.tools.ComponentSplitter;
 import org.w3c.dom.Element;
 
 import javax.swing.*;
 import javax.swing.plaf.basic.BasicSplitPaneUI;
 import java.awt.*;
 import java.awt.event.*;
-import java.util.Enumeration;
-import java.util.Vector;
 import java.io.File;
 import java.net.MalformedURLException;
+import java.util.Enumeration;
+import java.util.Vector;
 
 /**
  * The Map is the main component for displaying and containing {@link
@@ -76,8 +75,8 @@ public class Map extends AbstractConfigurable implements GameComponent,
   private Vector drawComponents = new Vector();
 
   protected JScrollPane scroll;
-  protected JFrame topWindow;
-  protected JSplitPane mainWindowDock;
+  protected JDialog topWindow;
+  protected ComponentSplitter.SplitPane mainWindowDock;
   protected BoardPicker picker;
   protected JToolBar toolBar = new JToolBar();
   protected Zoomer zoom;
@@ -102,8 +101,6 @@ public class Map extends AbstractConfigurable implements GameComponent,
   private boolean hideCounters = false;//  Option to hide counters to see map
   private boolean allowMultiple = false;
   private VisibilityCondition visibilityCondition;
-  private static final String LARGE_HEIGHT = "ControlWindowHeightWithMap";
-  private static final String SMALL_HEIGHT = "ControlWindowHeightNoMap";
 
   public Map() {
     getView();
@@ -400,13 +397,10 @@ public class Map extends AbstractConfigurable implements GameComponent,
       root.add(toolBar, BorderLayout.NORTH);
       root.add(scroll, BorderLayout.CENTER);
       ComponentSplitter splitter = new ComponentSplitter();
-      mainWindowDock = splitter.splitBottom(splitter.getSplitAncestor(GameModule.getGameModule().getControlPanel(), -1), root);
+      mainWindowDock = splitter.splitBottom(splitter.getSplitAncestor(GameModule.getGameModule().getControlPanel(), -1), root, false);
       mainWindowDock.setResizeWeight(0.0F);
       ((BasicSplitPaneUI) mainWindowDock.getUI()).getDivider().setVisible(false);
       mainWindowDock.getBottomComponent().setVisible(false);
-
-      GameModule.getGameModule().getPrefs().addOption(null, new IntConfigurer(LARGE_HEIGHT, null, new Integer(-1)));
-      GameModule.getGameModule().getPrefs().addOption(null, new IntConfigurer(SMALL_HEIGHT, null, new Integer(-1)));
     }
   }
 
@@ -966,8 +960,8 @@ public class Map extends AbstractConfigurable implements GameComponent,
   /**
    * @return the top-level window containing this map
    */
-  protected JFrame createParentFrame() {
-    return new JFrame();
+  protected JDialog createParentFrame() {
+    return new JDialog(GameModule.getGameModule().getFrame());
   }
 
   public boolean shouldDockIntoMainWindow() {
@@ -996,19 +990,7 @@ public class Map extends AbstractConfigurable implements GameComponent,
   public void setup(boolean show) {
     if (show) {
       if (shouldDockIntoMainWindow()) {
-        GameModule.getGameModule().getPrefs().getOption(SMALL_HEIGHT).setValue(new Integer(GameModule.getGameModule().getFrame().getSize().height));
-        int dividerPos = mainWindowDock.getInsets().top+mainWindowDock.getTopComponent().getSize().height;
-        int largeHeight = ((Integer) GameModule.getGameModule().getPrefs().getValue(LARGE_HEIGHT)).intValue();
-        mainWindowDock.getBottomComponent().setVisible(true);
-        ((BasicSplitPaneUI) mainWindowDock.getUI()).getDivider().setVisible(true);
-        if (largeHeight < 0) {
-          new ComponentSplitter().show(mainWindowDock.getBottomComponent(), true);
-          mainWindowDock.setDividerLocation(dividerPos);
-        }
-        else {
-          GameModule.getGameModule().getFrame().setSize(GameModule.getGameModule().getFrame().getSize().width, largeHeight);
-          mainWindowDock.setDividerLocation(dividerPos);
-        }
+        mainWindowDock.showComponent();
       }
       else {
         if (topWindow == null) {
@@ -1046,19 +1028,7 @@ public class Map extends AbstractConfigurable implements GameComponent,
         topWindow.setVisible(false);
       }
       if (mainWindowDock != null) {
-        if (mainWindowDock.getBottomComponent().isVisible()) {
-          GameModule.getGameModule().getPrefs().getOption(LARGE_HEIGHT).setValue(new Integer(GameModule.getGameModule().getFrame().getSize().height));
-          int smallHeight = ((Integer) GameModule.getGameModule().getPrefs().getValue(SMALL_HEIGHT)).intValue();
-          if (smallHeight < 0) {
-            new ComponentSplitter().hide(mainWindowDock.getBottomComponent(), true);
-          }
-          else {
-            GameModule.getGameModule().getFrame().setSize(GameModule.getGameModule().getFrame().getSize().width, smallHeight);
-            new ComponentSplitter().hide(mainWindowDock.getBottomComponent(), false);
-          }
-          ((BasicSplitPaneUI) mainWindowDock.getUI()).getDivider().setVisible(false);
-          mainWindowDock.getBottomComponent().setVisible(false);
-        }
+        mainWindowDock.hideComponent();
       }
     }
     launchButton.setEnabled(show);
