@@ -121,9 +121,11 @@ public class HexGridNumbering extends RegularGridNumbering {
     Rectangle region = bounds.intersection(visibleRect);
 
     Shape oldClip = g.getClip();
-    Area clipArea = new Area(oldClip);
-    clipArea.intersect(new Area(region));
-    g.setClip(clipArea);
+    if (oldClip != null) {
+      Area clipArea = new Area(oldClip);
+      clipArea.intersect(new Area(region));
+      g.setClip(clipArea);
+    }
 
     double deltaX = scale * grid.getHexWidth();
     double deltaY = scale * grid.getHexSize();

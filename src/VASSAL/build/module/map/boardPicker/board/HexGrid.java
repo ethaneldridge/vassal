@@ -496,9 +496,11 @@ public class HexGrid extends AbstractConfigurable implements MapGrid {
     Rectangle region = bounds.intersection(visibleRect);
 
     Shape oldClip = g.getClip();
-    Area clipArea = new Area(oldClip);
-    clipArea.intersect(new Area(region));
-    g.setClip(clipArea);
+    if (oldClip != null) {
+      Area clipArea = new Area(oldClip);
+      clipArea.intersect(new Area(region));
+      g.setClip(clipArea);
+    }
 
     if (sideways) {
       bounds = new Rectangle(bounds.y, bounds.x, bounds.height, bounds.width);

@@ -202,9 +202,11 @@ public class Region extends AbstractConfigurable {
     Rectangle region = bounds.intersection(visibleRect);
 
     Shape oldClip = g.getClip();
-    Area clipArea = new Area(oldClip);
-    clipArea.intersect(new Area(region));
-    g.setClip(clipArea);
+    if (oldClip != null) {
+      Area clipArea = new Area(oldClip);
+      clipArea.intersect(new Area(region));
+      g.setClip(clipArea);
+    }
 
     int posX = (int) (scale * origin.x + 0.5) + bounds.x - 1;
     int posY = (int) (scale * origin.y + 0.5) + bounds.y - 1;

@@ -346,9 +346,11 @@ public class SquareGrid extends AbstractConfigurable implements MapGrid {
     Rectangle region = bounds.intersection(visibleRect);
 
     Shape oldClip = g.getClip();
-    Area clipArea = new Area(oldClip);
-    clipArea.intersect(new Area(region));
-    g.setClip(clipArea);
+    if (oldClip != null) {
+      Area clipArea = new Area(oldClip);
+      clipArea.intersect(new Area(region));
+      g.setClip(clipArea);
+    }
 
     double deltaX = scale * dx;
     double deltaY = scale * dy;
