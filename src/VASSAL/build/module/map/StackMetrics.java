@@ -572,25 +572,44 @@ public class StackMetrics extends AbstractConfigurable {
   }
 
   /**
+   * Merge the two pieces if stacking is enabled.
+   * If stacking is disabled, place the moving piece at the same location as the fixed piece
+   * @param fixed
+   * @param moving
+   * @return a Command that accomplishes this task
+   * @see #merge
+   */
+  public Command placeOrMerge(GamePiece fixed, GamePiece moving) {
+    if (disabled) {
+      return fixed.getMap().placeAt(moving,fixed.getPosition());
+    }
+    else {
+      return merge(fixed,moving);
+    }
+  }
+
+  /**
    * Place a GamePiece on top of another GamePiece
-   * Create/remove stacks as necessary
+   * Create/remove stacks as necessary, even if stacking is disabled for this instance
+   * @param moving the GamePiece that will be merged into the stack
+   * @param fixed the GamePiece defining the location and contents of the existing stack
    * @return a Command that accomplishes this task
    */
-  public Command merge(GamePiece fixed, GamePiece add) {
+  public Command merge(GamePiece fixed, GamePiece moving) {
     Command comm;
     if (fixed instanceof Stack
         && ((Stack) fixed).topPiece() != null) {
-      comm = merge(((Stack) fixed).topPiece(), add);
+      comm = merge(((Stack) fixed).topPiece(), moving);
     }
     else {
-      MoveTracker tracker = new MoveTracker(add);
+      MoveTracker tracker = new MoveTracker(moving);
       comm = new NullCommand();
       Stack fixedParent = fixed.getParent();
       int index = fixedParent == null ? 1 : fixedParent.indexOf(fixed) + 1;
-      if (add != fixed
-          && add != fixed.getParent()) {
+      if (moving != fixed
+          && moving != fixed.getParent()) {
         boolean isNewPiece = GameModule.getGameModule().getGameState()
-            .getPieceForId(add.getId()) == null;
+            .getPieceForId(moving.getId()) == null;
         if (fixedParent == null) {
           if (fixed instanceof Stack) {
             fixedParent = (Stack) fixed;
@@ -603,12 +622,12 @@ public class StackMetrics extends AbstractConfigurable {
           }
         }
         if (isNewPiece) {
-          GameModule.getGameModule().getGameState().addPiece(add);
-          comm = comm.append(new AddPiece(add));
+          GameModule.getGameModule().getGameState().addPiece(moving);
+          comm = comm.append(new AddPiece(moving));
         }
-        if (add instanceof Stack) {
+        if (moving instanceof Stack) {
           java.util.List l = new ArrayList();
-          for (Enumeration e = ((Stack) add).getPieces();
+          for (Enumeration e = ((Stack) moving).getPieces();
                e.hasMoreElements();) {
             l.add(e.nextElement());
           }
@@ -621,10 +640,10 @@ public class StackMetrics extends AbstractConfigurable {
           }
         }
         else {
-          if (add.getParent() == fixedParent && fixedParent != null) {
+          if (moving.getParent() == fixedParent && fixedParent != null) {
             index--;
           }
-          fixedParent.insert(add, index);
+          fixedParent.insert(moving, index);
           comm = comm.append(tracker.getMoveCommand());
         }
       }

@@ -100,7 +100,7 @@ public class PlaceMarker extends Decorator implements EditablePiece {
     myGetKeyCommands();
     if (command.matches(stroke)) {
       GamePiece marker = ((AddPiece) GameModule.getGameModule().decode(markerSpec)).getTarget();
-      Command c = getMap().getStackMetrics().merge(Decorator.getOutermost(this), marker);
+      Command c = getMap().getStackMetrics().placeOrMerge(Decorator.getOutermost(this), marker);
       KeyBuffer.getBuffer().add(marker);
       if (markerText != null && getMap() != null) {
         GamePiece outer = getOutermost(this);

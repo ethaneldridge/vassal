@@ -46,6 +46,10 @@ public interface PieceFinder {
   public static final PieceFinder MOVABLE = new Movable();
 
   public static class StackOnly extends Movable {
+    public Object visitDefault(GamePiece piece) {
+      return null;
+    }
+
     public Object visitStack(Stack s) {
       GamePiece selected = (GamePiece) super.visitStack(s);
       if (selected != null
