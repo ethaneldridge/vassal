@@ -47,7 +47,6 @@ public class ChooseComponentDialog extends JDialog implements TreeSelectionListe
     getContentPane().setLayout(new BoxLayout(getContentPane(), BoxLayout.Y_AXIS));
     tree = new VASSAL.configure.ConfigureTree(GameModule.getGameModule(), null) {
       public void mouseReleased(MouseEvent e) {
-        super.mouseReleased(e);
       }
     };
     tree.addTreeSelectionListener(this);

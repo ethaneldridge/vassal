@@ -221,8 +221,8 @@ public class SendToLocation extends Decorator implements EditablePiece {
           clearBoard();
         }
       });
-      b.add(clear);
       b.add(select);
+      b.add(clear);
       controls.add(b);
 
       xInput = new IntConfigurer(null,"X Position:  ", new Integer(p.x));
