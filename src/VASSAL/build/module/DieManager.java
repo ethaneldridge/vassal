@@ -624,7 +624,7 @@ public class DieManager extends AbstractConfigurable {
      */
     protected String formatResult(String description, String result, FormattedString format) {
       format.setProperty(DiceButton.RESULT, result);
-      format.setProperty(DiceButton.DESCRIPTION, description);
+      format.setProperty(DiceButton.DETAILS, description);
       String text = format.getText();
       String report = text.startsWith("*") ? "*"+text : "* "+text;
       return report;

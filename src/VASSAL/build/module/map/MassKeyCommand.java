@@ -34,6 +34,7 @@ import VASSAL.build.module.Map;
 import VASSAL.build.module.documentation.HelpFile;
 import VASSAL.build.module.Chatter;
 import VASSAL.build.module.PlayerRoster;
+import VASSAL.build.module.GlobalOptions;
 import VASSAL.command.Command;
 import VASSAL.command.NullCommand;
 import VASSAL.configure.*;
@@ -101,8 +102,8 @@ public class MassKeyCommand extends AbstractConfigurable implements PieceVisitor
     suppressTraitReports = reportSingle;
 
     reportFormat.setProperty(COMMAND_NAME, getConfigureName());
-    reportFormat.setProperty(PLAYER_NAME, (String) GameModule.getGameModule().getPrefs().getValue(GameModule.REAL_NAME));
-    reportFormat.setProperty(PLAYER_SIDE, PlayerRoster.getMySide());
+    reportFormat.setProperty(GlobalOptions.PLAYER_NAME, (String) GameModule.getGameModule().getPrefs().getValue(GameModule.REAL_NAME));
+    reportFormat.setProperty(GlobalOptions.PLAYER_SIDE, PlayerRoster.getMySide());
     String reportText = reportFormat.getText();
     if (reportText.length() > 0) {
       keyCommand = new Chatter.DisplayText(GameModule.getGameModule().getChatter(), "*" + reportText);
@@ -223,14 +224,12 @@ public class MassKeyCommand extends AbstractConfigurable implements PieceVisitor
     }
   }
 
-  public static final String PLAYER_NAME="playerName";
-  public static final String PLAYER_SIDE="playerSide";
   public static final String COMMAND_NAME="commandName";
 
   // Options for Global Key Report
   private static final String[] getFormatParameters() {
-    return new String[]{PLAYER_NAME,
-                        PLAYER_SIDE,
+    return new String[]{GlobalOptions.PLAYER_NAME,
+                        GlobalOptions.PLAYER_SIDE,
                         COMMAND_NAME};
   }
 

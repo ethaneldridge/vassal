@@ -524,8 +524,8 @@ public class PieceMover extends AbstractBuildable implements
       else {
         format.setFormat(map.getMoveWithinFormat());
       }
-      format.setProperty(Map.PLAYER_NAME, (String) GameModule.getGameModule().getPrefs().getValue(GameModule.REAL_NAME));
-      format.setProperty(Map.PLAYER_SIDE, PlayerRoster.getMySide());
+      format.setProperty(GlobalOptions.PLAYER_NAME, (String) GameModule.getGameModule().getPrefs().getValue(GameModule.REAL_NAME));
+      format.setProperty(GlobalOptions.PLAYER_SIDE, PlayerRoster.getMySide());
       format.setProperty(Map.PIECE_NAME, movedPieceNames.toString());
       format.setProperty(Map.LOCATION, destination);
       if (fromMap != null) {

@@ -49,9 +49,7 @@ public class GlobalOptions extends AbstractConfigurable {
 
   public static final String PLAYER_NAME = "playerName";
   public static final String PLAYER_SIDE = "playerSide";
-  public static final String COMMAND_NAME = "commandName";
-  public static final String DECK_NAME = "deckName";
-  public static final String TEXT = "text";
+  public static final String PLAYER_ID = "playerId";
 
   private String promptString = "Opponents can unmask my pieces";
   private String nonOwnerUnmaskable = NEVER;

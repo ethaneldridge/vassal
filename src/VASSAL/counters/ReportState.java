@@ -29,6 +29,7 @@ package VASSAL.counters;
 import VASSAL.build.GameModule;
 import VASSAL.build.module.Chatter;
 import VASSAL.build.module.PlayerRoster;
+import VASSAL.build.module.GlobalOptions;
 import VASSAL.build.module.documentation.HelpFile;
 import VASSAL.build.module.map.MassKeyCommand;
 import VASSAL.command.Command;
@@ -108,8 +109,8 @@ public class ReportState extends Decorator implements EditablePiece {
     // Retrieve the name, location and visibilty of the unit prior to the
     // trait being executed if it is outside this one.
 
-    format.setProperty(PLAYER_NAME, (String) GameModule.getGameModule().getPrefs().getOption(GameModule.REAL_NAME).getValue());
-    format.setProperty(PLAYER_SIDE, PlayerRoster.getMySide());
+    format.setProperty(GlobalOptions.PLAYER_NAME, (String) GameModule.getGameModule().getPrefs().getOption(GameModule.REAL_NAME).getValue());
+    format.setProperty(GlobalOptions.PLAYER_SIDE, PlayerRoster.getMySide());
     format.setProperty(MAP_NAME, getMap() == null ? null : getMap().getConfigureName());
     format.setProperty(LOCATION_NAME, getMap() == null ? null : getMap().locationName(getPosition()));
 
@@ -241,8 +242,6 @@ public class ReportState extends Decorator implements EditablePiece {
     return new Ed(this);
   }
 
-  private static final String PLAYER_NAME = "playerName";
-  private static final String PLAYER_SIDE = "playerSide";
   private static final String OLD_UNIT_NAME = "oldPieceName";
   private static final String NEW_UNIT_NAME = "newPieceName";
   private static final String MAP_NAME = "mapName";
@@ -251,8 +250,8 @@ public class ReportState extends Decorator implements EditablePiece {
 
   // Options for Trait Command Report
   private static final String[] getFormatParameters() {
-    return new String[]{PLAYER_NAME,
-                        PLAYER_SIDE,
+    return new String[]{GlobalOptions.PLAYER_NAME,
+                        GlobalOptions.PLAYER_SIDE,
                         COMMAND_NAME,
                         OLD_UNIT_NAME,
                         NEW_UNIT_NAME,

@@ -23,6 +23,7 @@ import VASSAL.build.Buildable;
 import VASSAL.build.GameModule;
 import VASSAL.build.IllegalBuildException;
 import VASSAL.build.module.Map;
+import VASSAL.build.module.GlobalOptions;
 import VASSAL.build.module.documentation.HelpFile;
 import VASSAL.build.module.map.boardPicker.Board;
 import VASSAL.build.widget.CardSlot;
@@ -138,8 +139,6 @@ public class DrawPile extends SetupStack {
   public static final String NEVER = "Never";
   public static final String USE_MENU = "Via right-click Menu";
 
-  public static final String PLAYER_NAME = "playerName";
-  public static final String PLAYER_SIDE = "playerSide";
   public static final String COMMAND_NAME = "commandName";
   public static final String DECK_NAME = "deckName";
 
@@ -239,8 +238,8 @@ public class DrawPile extends SetupStack {
 
   public static class FormattedStringConfig implements ConfigurerFactory {
     public Configurer getConfigurer(AutoConfigurable c, String key, String name) {
-      return new FormattedStringConfigurer(key, name, new String[]{PLAYER_NAME,
-                                                                   PLAYER_SIDE,
+      return new FormattedStringConfigurer(key, name, new String[]{GlobalOptions.PLAYER_NAME,
+                                                                   GlobalOptions.PLAYER_SIDE,
                                                                    DECK_NAME,
                                                                    COMMAND_NAME});
     }

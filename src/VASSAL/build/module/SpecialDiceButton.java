@@ -61,7 +61,7 @@ public class SpecialDiceButton extends AbstractConfigurable implements CommandEn
   private ResultsIcon resultsIcon = new ResultsIcon();
 
   private FormattedString format = new FormattedString();
-  private String chatResultFormat = "** $" + NAME + "$ = [$result1$] *** <$" + PLAYER_NAME + "$>";
+  private String chatResultFormat = "** $" + NAME + "$ = [$result1$] *** <$" + GlobalOptions.PLAYER_NAME + "$>";
   private String windowTitleResultFormat = "$" + NAME + "$";
 
   public static final String BUTTON_TEXT = "text";
@@ -71,8 +71,6 @@ public class SpecialDiceButton extends AbstractConfigurable implements CommandEn
   public static final String CHAT_RESULT_FORMAT = "format";
   public static final String RESULT_N = "result#";
   public static final String RESULT_TOTAL = "numericalTotal";
-  public static final String PLAYER_NAME = "playerName";
-  public static final String PLAYER_SIDE = "playerSide";
   public static final String RESULT_WINDOW = "resultWindow";
   public static final String WINDOW_TITLE_RESULT_FORMAT = "windowTitleResultFormat";
   public static final String RESULT_BUTTON = "resultButton";
@@ -139,8 +137,8 @@ public class SpecialDiceButton extends AbstractConfigurable implements CommandEn
   }
 
   private Command reportResults(int[] results) {
-    format.setProperty(PLAYER_NAME, (String) GameModule.getGameModule().getPrefs().getValue(GameModule.REAL_NAME));
-    format.setProperty(PLAYER_SIDE, PlayerRoster.getMySide());
+    format.setProperty(GlobalOptions.PLAYER_NAME, (String) GameModule.getGameModule().getPrefs().getValue(GameModule.REAL_NAME));
+    format.setProperty(GlobalOptions.PLAYER_SIDE, PlayerRoster.getMySide());
     format.setProperty(NAME, getConfigureName());
 
     int total = 0;
@@ -243,7 +241,7 @@ public class SpecialDiceButton extends AbstractConfigurable implements CommandEn
 
   public static class ReportFormatConfig implements ConfigurerFactory {
     public Configurer getConfigurer(AutoConfigurable c, String key, String name) {
-      return new FormattedStringConfigurer(key, name, new String[]{NAME, RESULT_N, RESULT_TOTAL, PLAYER_NAME, PLAYER_SIDE});
+      return new FormattedStringConfigurer(key, name, new String[]{NAME, RESULT_N, RESULT_TOTAL, GlobalOptions.PLAYER_NAME, GlobalOptions.PLAYER_SIDE});
     }
   }
 

@@ -226,7 +226,7 @@ public class MultiRoll extends JDialog {
 //			col2.setHorizontalAlignment(JTextField.CENTER);
 //            col2.setBorder(myBorder);
 
-      JLabel col3 = new JLabel("Description");
+      JLabel col3 = new JLabel("Details");
       col3.setPreferredSize(new Dimension(COL3_WIDTH, ROW_HEIGHT));
       col3.setBorder(myBorder);
 
