@@ -42,11 +42,12 @@ import java.net.MalformedURLException;
 public class Translate extends Decorator implements EditablePiece {
   public static final String ID = "translate;";
   private KeyCommand[] commands;
-  private String menuCommand;
+  private String commandName;
   private KeyStroke keyCommand;
   private int xDist;
   private int yDist;
   private boolean moveStack;
+  private KeyCommand moveCommand;
 
   public Translate() {
     this(ID + "Move Forward", null);
@@ -64,7 +65,7 @@ public class Translate extends Decorator implements EditablePiece {
   public void mySetType(String type) {
     type = type.substring(ID.length());
     SequenceEncoder.Decoder st = new SequenceEncoder.Decoder(type, ';');
-    menuCommand = st.nextToken("Move Forward");
+    commandName = st.nextToken("Move Forward");
     keyCommand = st.nextKeyStroke('M');
     xDist = st.nextInt(0);
     yDist = st.nextInt(60);
@@ -74,16 +75,15 @@ public class Translate extends Decorator implements EditablePiece {
 
   protected KeyCommand[] myGetKeyCommands() {
     if (commands == null) {
-      if (menuCommand.length() > 0) {
-        commands = new KeyCommand[]{new KeyCommand(menuCommand, keyCommand, Decorator.getOutermost(this))};
+      moveCommand = new KeyCommand(commandName, keyCommand, Decorator.getOutermost(this));
+      if (commandName.length() > 0) {
+        commands = new KeyCommand[]{moveCommand};
       }
       else {
         commands = new KeyCommand[0];
       }
     }
-    if (commands.length > 0) {
-      commands[0].setEnabled(getMap() != null);
-    }
+    moveCommand.setEnabled(getMap() != null);
     return commands;
   }
 
@@ -93,13 +93,14 @@ public class Translate extends Decorator implements EditablePiece {
 
   public String myGetType() {
     SequenceEncoder se = new SequenceEncoder(';');
-    se.append(menuCommand).append(keyCommand).append(xDist).append(yDist).append(moveStack);
+    se.append(commandName).append(keyCommand).append(xDist).append(yDist).append(moveStack);
     return ID + se.getValue();
   }
 
   public Command myKeyEvent(KeyStroke stroke) {
+    myGetKeyCommands();
     Command c = null;
-    if (commands[0].matches(stroke)) {
+    if (moveCommand.matches(stroke)) {
       GamePiece outer = Decorator.getOutermost(this);
       GamePiece target = outer;
       if (moveStack
@@ -172,7 +173,7 @@ public class Translate extends Decorator implements EditablePiece {
     public Editor(Translate t) {
       controls = new JPanel();
       controls.setLayout(new BoxLayout(controls, BoxLayout.Y_AXIS));
-      name = new StringConfigurer(null, "Command Name:  ", t.menuCommand);
+      name = new StringConfigurer(null, "Command Name:  ", t.commandName);
       controls.add(name.getControls());
       key = new HotKeyConfigurer(null, "Keyboard shortcut:  ", t.keyCommand);
       controls.add(key.getControls());

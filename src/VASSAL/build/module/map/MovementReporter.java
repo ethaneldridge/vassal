@@ -38,7 +38,7 @@ import java.util.Iterator;
 import java.util.List;
 
 /**
- * Builds an auto-report message for a collection of {@link MovementSummary}s
+ * Builds an auto-report message for a collection of Move Commands
  */
 public class MovementReporter {
   private FormattedString format = new PlayerIdFormattedString();
@@ -119,12 +119,12 @@ public class MovementReporter {
   public static class MoveSummary {
     private String oldMapId, newMapId;
     private Point oldPosition, newPosition;
-    private StringBuffer names = new StringBuffer();
+    private List pieces = new ArrayList();
 
     public MoveSummary(AddPiece c) {
       newMapId = c.getTarget().getMap().getConfigureName();
       newPosition = c.getTarget().getPosition();
-      names.append(c.getTarget().getName());
+      pieces.add(c.getTarget());
     }
 
     public MoveSummary(MovePiece c) {
@@ -134,10 +134,7 @@ public class MovementReporter {
       oldPosition = c.getOldPosition();
       newPosition = c.getNewPosition();
       if (target != null) {
-        names.append(target.getName());
-      }
-      else {
-        names.append("???");
+        pieces.add(target);
       }
     }
 
@@ -183,14 +180,19 @@ public class MovementReporter {
     public void append(MovePiece movePiece) {
       GamePiece target = GameModule.getGameModule().getGameState().getPieceForId(movePiece.getId());
       if (target != null) {
-        names.append(", ").append(target.getName());
-      }
-      else {
-        names.append(", ").append("???");
+        pieces.add(target);
       }
     }
 
     public String getPieceName() {
+      StringBuffer names = new StringBuffer();
+      for (Iterator it = pieces.iterator(); it.hasNext();) {
+        GamePiece gamePiece = (GamePiece) it.next();
+        names.append(gamePiece.getName());
+        if (it.hasNext()) {
+          names.append(", ");
+        }
+      }
       return names.toString();
     }
   }

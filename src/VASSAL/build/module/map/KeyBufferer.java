@@ -24,11 +24,10 @@ import VASSAL.counters.*;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
-import java.awt.event.MouseEvent;
-import java.awt.event.MouseMotionAdapter;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseMotionListener;
 import java.awt.*;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseMotionListener;
 
 /**
  * This component listens for mouse clicks on a map.
@@ -91,7 +90,7 @@ public class KeyBufferer extends MouseAdapter implements Buildable, MouseMotionL
       if (map.getHighlighter() instanceof ColoredBorder) {
         ColoredBorder b = (ColoredBorder) map.getHighlighter();
         color = b.getColor();
-        thickness = b.getThickness();
+        thickness = Math.max(1,(int)Math.round(map.getZoom()*b.getThickness()));
       }
     }
   }
