@@ -65,9 +65,6 @@ public class GlobalOptions extends AbstractConfigurable {
   private boolean scalerAlgorithm;
 
   public void addTo(Buildable parent) {
-    if (GameModule.getGameModule().getComponents(GlobalOptions.class).hasMoreElements()) {
-      throw new IllegalBuildException("Only one Global Options allowed");
-    }
     instance = this;
 
     BooleanConfigurer config = new BooleanConfigurer(SINGLE_WINDOW, "Use combined application window (requires restart)", Boolean.TRUE);
@@ -77,6 +74,8 @@ public class GlobalOptions extends AbstractConfigurable {
     config = new BooleanConfigurer(SCALER_ALGORITHM, "Smooth image scaling", Boolean.TRUE);
     GameModule.getGameModule().getPrefs().addOption(config);
     scalerAlgorithm = !Boolean.FALSE.equals(config.getValue());
+
+    validator = new SingleChildInstance(GameModule.getGameModule(), getClass());
   }
 
   public static GlobalOptions getInstance() {

@@ -24,10 +24,7 @@ import VASSAL.build.module.documentation.HelpFile;
 import VASSAL.command.Command;
 import VASSAL.command.CommandEncoder;
 import VASSAL.command.Logger;
-import VASSAL.configure.DirectoryConfigurer;
-import VASSAL.configure.MandatoryComponent;
-import VASSAL.configure.ValidityChecker;
-import VASSAL.configure.ValidationReport;
+import VASSAL.configure.*;
 import VASSAL.preferences.Prefs;
 import VASSAL.tools.ArchiveWriter;
 import VASSAL.tools.DataArchive;
@@ -90,8 +87,6 @@ public abstract class GameModule extends AbstractConfigurable implements Command
   protected Vector keyStrokeListeners = new Vector();
   protected CommandEncoder[] commandEncoders = new CommandEncoder[0];
 
-  protected ValidityChecker checkGlobalOptions;
-
   /**
    * @return the top-level frame of the controls window
    */
@@ -115,7 +110,7 @@ public abstract class GameModule extends AbstractConfigurable implements Command
     fileMenu.setMnemonic('F');
     frame.getJMenuBar().add(fileMenu);
 
-    toolBar.setLayout(new VASSAL.tools.WrapLayout(FlowLayout.LEFT,0,0));
+    toolBar.setLayout(new VASSAL.tools.WrapLayout(FlowLayout.LEFT, 0, 0));
     toolBar.setAlignmentX(0.0F);
     toolBar.setFloatable(false);
     frame.getContentPane().add(toolBar, BorderLayout.NORTH);
@@ -126,19 +121,15 @@ public abstract class GameModule extends AbstractConfigurable implements Command
              JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT));
     frame.getContentPane().add(controlPanel, BorderLayout.CENTER);
 
-    validator = new MandatoryComponent(this,Documentation.class);
-    checkGlobalOptions = new MandatoryComponent(this,GlobalOptions.class);
+    validator = new CompoundValidityChecker
+        (new MandatoryComponent(this, Documentation.class),
+         new MandatoryComponent(this, GlobalOptions.class));
   }
 
   /**
    * Initialize the module
    */
   protected abstract void build() throws IOException;
-
-  public void validate(Buildable target, ValidationReport report) {
-    checkGlobalOptions.validate(target, report);
-    super.validate(target, report);
-  }
 
   public void setAttribute(String name, Object value) {
     if (MODULE_NAME.equals(name)) {

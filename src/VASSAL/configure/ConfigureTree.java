@@ -514,7 +514,8 @@ public class ConfigureTree extends JTree implements PropertyChangeListener, Mous
   }
 
   public static String getConfigureName(Configurable c) {
-    if (c.getConfigureName() != null) {
+    if (c.getConfigureName() != null
+      && c.getConfigureName().length() > 0) {
       return c.getConfigureName();
     }
     else {

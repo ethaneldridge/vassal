@@ -21,18 +21,18 @@ package VASSAL.build.module.map;
 import VASSAL.build.AbstractConfigurable;
 import VASSAL.build.Buildable;
 import VASSAL.build.GameModule;
-import VASSAL.build.IllegalBuildException;
 import VASSAL.build.module.Map;
 import VASSAL.build.module.documentation.HelpFile;
 import VASSAL.configure.BooleanConfigurer;
+import VASSAL.configure.SingleChildInstance;
 import VASSAL.counters.*;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseMotionListener;
-import java.awt.event.KeyListener;
-import java.awt.event.KeyEvent;
 import java.io.File;
 import java.net.MalformedURLException;
 import java.util.Enumeration;
@@ -82,12 +82,7 @@ public class CounterDetailViewer extends AbstractConfigurable implements Drawabl
 
   public void addTo(Buildable b) {
     map = (Map) b;
-    Enumeration e = map.getComponents(getClass());
-    while (e.hasMoreElements()) {
-      if (e.nextElement() != this) {
-        throw new IllegalBuildException("Mouse-over Stack Viewer already enabled");
-      }
-    }
+    validator = new SingleChildInstance(map,getClass());
     map.addDrawComponent(this);
     GameModule.getGameModule().getPrefs().addOption(
         "General",

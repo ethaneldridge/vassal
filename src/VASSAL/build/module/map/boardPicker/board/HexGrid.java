@@ -24,10 +24,7 @@ import VASSAL.build.module.map.boardPicker.Board;
 import VASSAL.build.module.map.boardPicker.board.mapgrid.GridNumbering;
 import VASSAL.build.module.map.boardPicker.board.mapgrid.HexGridNumbering;
 import VASSAL.build.module.documentation.HelpFile;
-import VASSAL.configure.AutoConfigurer;
-import VASSAL.configure.ColorConfigurer;
-import VASSAL.configure.Configurer;
-import VASSAL.configure.VisibilityCondition;
+import VASSAL.configure.*;
 
 import java.awt.*;
 import java.io.File;
@@ -188,9 +185,9 @@ public class HexGrid extends AbstractConfigurable implements MapGrid {
   }
 
   public Board getBoard() {
-	return board;
+    return board;
   }
-  
+
   public void addTo(Buildable b) {
     board = (Board) b;
     ((Board) b).setGrid(this);

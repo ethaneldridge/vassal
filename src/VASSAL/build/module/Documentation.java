@@ -23,9 +23,7 @@ import VASSAL.build.Buildable;
 import VASSAL.build.GameModule;
 import VASSAL.build.module.documentation.AboutScreen;
 import VASSAL.build.module.documentation.HelpFile;
-import VASSAL.configure.Configurer;
-import VASSAL.configure.DirectoryConfigurer;
-import VASSAL.configure.MandatoryComponent;
+import VASSAL.configure.*;
 import org.w3c.dom.Element;
 
 import java.io.File;
@@ -92,7 +90,9 @@ public class Documentation extends AbstractConfigurable {
   public void addTo(Buildable b) {
     GameModule.getGameModule().getGlobalPrefs().addOption(null, new DirectoryConfigurer(DOCS_DIR, null));
     GameModule.getGameModule().getFrame().getJMenuBar().add(controls);
-    validator = new MandatoryComponent(this, AboutScreen.class);
+    validator = new CompoundValidityChecker
+        (new MandatoryComponent(this, AboutScreen.class),
+         new SingleChildInstance(GameModule.getGameModule(), getClass()));
   }
 
   public void removeFrom(Buildable b) {

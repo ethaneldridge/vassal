@@ -28,6 +28,9 @@ import VASSAL.build.module.map.boardPicker.BoardSlot;
 import VASSAL.command.Command;
 import VASSAL.command.CommandEncoder;
 import VASSAL.configure.Configurer;
+import VASSAL.configure.ValidityChecker;
+import VASSAL.configure.ValidationReport;
+import VASSAL.configure.ConfigureTree;
 import VASSAL.tools.SequenceEncoder;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
@@ -39,6 +42,8 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.Enumeration;
 import java.util.Vector;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * This class is responsible for maintaining the {@link Board}s on a
@@ -47,7 +52,7 @@ import java.util.Vector;
  * {@link GameComponent} it reacts to the start of a game by prompting
  * the player to select boards if none have been specified */
 public class BoardPicker extends JDialog
-  implements ActionListener, GameComponent, Configurable, CommandEncoder {
+  implements ActionListener, GameComponent, Configurable, CommandEncoder, ValidityChecker {
   public static final String ID = "BoardPicker";
 
   protected Vector possibleBoards = new Vector();
@@ -166,6 +171,21 @@ public class BoardPicker extends JDialog
     }
   }
 
+  public void validate(Buildable target, ValidationReport report) {
+    if (possibleBoards.size() == 0) {
+      report.addWarning("Must define at least one board in "+ConfigureTree.getConfigureName(map));
+    }
+    Set names = new HashSet();
+    for (Enumeration e = possibleBoards.elements(); e.hasMoreElements();) {
+      Board b = (Board) e.nextElement();
+      if (names.contains(b.getName())) {
+        report.addWarning("More than one board named '"+b.getName()+"' in "+ConfigureTree.getConfigureName(map));
+      }
+      names.add(b.getName());
+      b.validate(b, report);
+    }
+  }
+
   private String getDefaultSetup() {
     String s = defaultSetup;
     if (defaultSetup == null
@@ -198,8 +218,6 @@ public class BoardPicker extends JDialog
   }
 
   public void removeFrom(Buildable parent) {
-    throw new IllegalBuildException
-      ("Required Component");
   }
 
   public static String getConfigureTypeName() {

@@ -22,7 +22,6 @@ import VASSAL.Info;
 import VASSAL.build.AbstractConfigurable;
 import VASSAL.build.Buildable;
 import VASSAL.build.GameModule;
-import VASSAL.build.IllegalBuildException;
 import VASSAL.build.module.Map;
 import VASSAL.build.module.documentation.HelpFile;
 import VASSAL.command.AddPiece;
@@ -483,7 +482,6 @@ public class StackMetrics extends AbstractConfigurable {
   }
 
   public void removeFrom(Buildable parent) {
-    throw new IllegalBuildException("Required Component");
   }
 
   public String getConfigureName() {

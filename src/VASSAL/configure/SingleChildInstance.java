@@ -13,7 +13,7 @@
  * Library General Public License for more details.
  *
  * You should have received a copy of the GNU Library General Public
- * License along with this library; if not, copies are available
+ * License along with this library; if not, copies are available 
  * at http://www.opensource.org.
  */
 package VASSAL.configure;
@@ -21,23 +21,29 @@ package VASSAL.configure;
 import VASSAL.build.AbstractConfigurable;
 import VASSAL.build.Buildable;
 
-/**
- * Requires that at least one child of a given type
- * exist within a target component
- */
-public class MandatoryComponent implements ValidityChecker {
-  private Class requiredChildClass;
-  private AbstractConfigurable target;
+import java.util.Enumeration;
 
-  public MandatoryComponent(AbstractConfigurable target, Class requiredChildClass) {
-    this.requiredChildClass = requiredChildClass;
+/**
+ * Ensures that at most a single instance of a given type
+ * belongs to a given parent
+ */
+public class SingleChildInstance implements ValidityChecker {
+  private AbstractConfigurable target;
+  private Class childClass;
+
+  public SingleChildInstance(AbstractConfigurable target, Class childClass) {
+    this.childClass = childClass;
     this.target = target;
   }
 
   public void validate(Buildable b, ValidationReport report) {
-    if (b == this.target) {
-      if (!target.getComponents(requiredChildClass).hasMoreElements()) {
-        report.addWarning(ConfigureTree.getConfigureName(target)+" must contain at least one "+ConfigureTree.getConfigureName(requiredChildClass));
+    if (b == target) {
+      Enumeration e = target.getComponents(childClass);
+      if (e.hasMoreElements()) {
+        e.nextElement();
+        if (e.hasMoreElements()) {
+          report.addWarning("No more than one "+ConfigureTree.getConfigureName(childClass)+" allowed in "+ConfigureTree.getConfigureName(target));
+        }
       }
     }
   }

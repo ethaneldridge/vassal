@@ -415,6 +415,10 @@ public class Map extends AbstractConfigurable implements GameComponent,
   public void addTo(Buildable b) {
     idMgr.add(this);
 
+    validator = new CompoundValidityChecker
+        (new MandatoryComponent(this,BoardPicker.class),
+         new MandatoryComponent(this,StackMetrics.class));
+
     if (Info.isDndEnabled()) {
       DragGestureListener dgl = new DragGestureListener() {
         public void dragGestureRecognized(DragGestureEvent dge) {

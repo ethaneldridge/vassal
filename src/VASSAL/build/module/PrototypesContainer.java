@@ -3,6 +3,7 @@ package VASSAL.build.module;
 import VASSAL.build.*;
 import VASSAL.build.module.documentation.HelpFile;
 import VASSAL.configure.Configurer;
+import VASSAL.configure.SingleChildInstance;
 
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
@@ -62,11 +63,7 @@ public class PrototypesContainer extends AbstractConfigurable {
   }
 
   public void addTo(Buildable parent) {
-    if (parent instanceof AbstractBuildable) {
-      if (((AbstractBuildable) parent).getComponents(getClass()).hasMoreElements()) {
-        throw new IllegalBuildException("Only one instance allowed");
-      }
-    }
+    validator = new SingleChildInstance(GameModule.getGameModule(),getClass());
   }
 
   public Class[] getAllowableConfigureComponents() {

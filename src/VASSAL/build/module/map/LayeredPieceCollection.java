@@ -20,9 +20,9 @@ package VASSAL.build.module.map;
 
 import VASSAL.build.AbstractConfigurable;
 import VASSAL.build.Buildable;
-import VASSAL.build.IllegalBuildException;
 import VASSAL.build.module.Map;
 import VASSAL.build.module.documentation.HelpFile;
+import VASSAL.configure.SingleChildInstance;
 import VASSAL.configure.StringArrayConfigurer;
 import VASSAL.counters.*;
 
@@ -78,9 +78,7 @@ public class LayeredPieceCollection extends AbstractConfigurable {
 
   public void addTo(Buildable parent) {
     map = (Map)parent;
-    if (map.getComponents(getClass()).hasMoreElements()) {
-      throw new IllegalBuildException("Only one instance allowed");
-    }
+    validator = new SingleChildInstance(map,getClass());
     map.setPieceCollection(collection);
   }
 

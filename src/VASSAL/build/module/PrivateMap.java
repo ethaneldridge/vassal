@@ -26,17 +26,22 @@
  */
 package VASSAL.build.module;
 
+import VASSAL.Info;
 import VASSAL.build.Buildable;
 import VASSAL.build.GameModule;
-import VASSAL.build.IllegalBuildException;
 import VASSAL.build.module.documentation.HelpFile;
+import VASSAL.configure.ConfigureTree;
 import VASSAL.configure.StringArrayConfigurer;
-import VASSAL.Info;
+import VASSAL.configure.ValidationReport;
+import VASSAL.configure.ValidityChecker;
 
 import javax.swing.*;
-import java.awt.event.*;
 import java.awt.*;
 import java.awt.dnd.DropTarget;
+import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
+import java.awt.event.MouseListener;
+import java.awt.event.MouseMotionListener;
 import java.io.File;
 import java.net.MalformedURLException;
 import java.util.Enumeration;
@@ -215,15 +220,16 @@ public class PrivateMap extends Map {
   }
 
   public void build(org.w3c.dom.Element el) {
+    validator = new ValidityChecker() {
+      public void validate(Buildable target, ValidationReport report) {
+        if (!PlayerRoster.isActive()) {
+          report.addWarning("Must add "+ConfigureTree.getConfigureName(PlayerRoster.class)
+                            +" in order to use "+ConfigureTree.getConfigureName(getClass()));
+        }
+      }
+    };
     surrogate = null;
     super.build(el);
-  }
-
-  public void addTo(Buildable b) {
-    if (!PlayerRoster.isActive()) {
-      throw new IllegalBuildException("Must define player sides first");
-    }
-    super.addTo(b);
   }
 
   public static class View extends Map.View {

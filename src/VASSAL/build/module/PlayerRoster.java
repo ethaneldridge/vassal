@@ -126,9 +126,6 @@ public class PlayerRoster implements Configurable, CommandEncoder, GameComponent
         }
       }
     });
-    if (GameModule.getGameModule().getComponents(getClass()).hasMoreElements()) {
-      throw new IllegalBuildException("Only one instance allowed");
-    }
     GameModule.getGameModule().getGameState().addGameComponent(this);
     GameModule.getGameModule().addCommandEncoder(this);
     GameModule.getGameModule().getToolBar().add(retireButton);

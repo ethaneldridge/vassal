@@ -25,6 +25,7 @@ import VASSAL.build.module.map.boardPicker.Board;
 import VASSAL.build.module.documentation.HelpFile;
 import VASSAL.tools.LaunchButton;
 import VASSAL.tools.BackgroundTask;
+import VASSAL.configure.SingleChildInstance;
 
 import javax.swing.*;
 import javax.swing.border.BevelBorder;
@@ -143,12 +144,8 @@ public class Zoomer extends AbstractConfigurable implements GameComponent {
 
     map = (Map) b;
 
-    Configurable c[] = map.getConfigureComponents();
-    for (int i = 0; i < c.length; ++i) {
-      if (c[i] instanceof Zoomer) {
-        throw new IllegalBuildException("Only one Zoom allowed per map");
-      }
-    }
+    validator = new SingleChildInstance(map,getClass());
+
     map.setZoomer(this);
     map.getToolBar().add(zoomInButton);
     java.net.URL image = getClass().getResource("/images/zoomIn.gif");

@@ -21,17 +21,16 @@ package VASSAL.build.module.map.boardPicker;
 import VASSAL.build.AbstractConfigurable;
 import VASSAL.build.Buildable;
 import VASSAL.build.GameModule;
-import VASSAL.build.IllegalBuildException;
 import VASSAL.build.module.GameComponent;
 import VASSAL.build.module.Map;
 import VASSAL.build.module.documentation.HelpFile;
-import VASSAL.build.module.map.BoardPicker;
 import VASSAL.build.module.map.boardPicker.board.HexGrid;
 import VASSAL.build.module.map.boardPicker.board.MapGrid;
 import VASSAL.build.module.map.boardPicker.board.RegionGrid;
 import VASSAL.build.module.map.boardPicker.board.SquareGrid;
 import VASSAL.command.Command;
 import VASSAL.configure.ColorConfigurer;
+import VASSAL.configure.SingleChildInstance;
 import VASSAL.configure.VisibilityCondition;
 
 import javax.swing.*;
@@ -39,10 +38,9 @@ import java.awt.*;
 import java.io.File;
 import java.io.IOException;
 import java.net.MalformedURLException;
-import java.util.Enumeration;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.Hashtable;
+import java.util.Iterator;
 
 public class Board extends AbstractConfigurable {
   /**
@@ -92,27 +90,10 @@ public class Board extends AbstractConfigurable {
   }
 
   public void addTo(Buildable b) {
-    BoardPicker picker = (BoardPicker) b;
-    String s[] = picker.getAllowableBoardNames();
-    for (int i = 0; i < s.length; ++i) {
-      if (s[i].equals(getName())) {
-        int count = 1;
-        try {
-          count = Integer.parseInt(s[i].substring(s[i].indexOf('-') + 1));
-          setAttribute(NAME, s[i].substring(0, s[i].indexOf('-')) + "-" + (count + 1));
-        }
-        catch (NumberFormatException ex) {
-          setAttribute(NAME, s[i] + "-2");
-        }
-      }
-    }
+    validator = new SingleChildInstance(this, MapGrid.class);
   }
 
   public void removeFrom(Buildable b) {
-    String s[] = ((BoardPicker) b).getAllowableBoardNames();
-    if (s.length == 1 && s[0].equals(getName()))
-      throw new IllegalBuildException
-          ("You must define at least one map board");
   }
 
   public String[] getAttributeNames() {
@@ -303,14 +284,6 @@ public class Board extends AbstractConfigurable {
   }
 
   public void setGrid(MapGrid mg) {
-    if (mg != null) {
-      for (Enumeration e = getBuildComponents();
-           e.hasMoreElements();) {
-        if (e.nextElement() instanceof MapGrid) {
-          throw new IllegalBuildException("Can only contain one grid");
-        }
-      }
-    }
     grid = mg;
   }
 
