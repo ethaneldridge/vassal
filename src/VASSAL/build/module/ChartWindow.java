@@ -30,6 +30,7 @@ import VASSAL.tools.LaunchButton;
 import javax.swing.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.*;
 import java.io.File;
 import java.net.MalformedURLException;
 
@@ -43,7 +44,7 @@ public class ChartWindow extends Widget {
 
   private LaunchButton launch;
   private JDialog frame;
-  private JComponent root;
+  private Container root;
 
   private String id;
 
@@ -77,7 +78,10 @@ public class ChartWindow extends Widget {
     GameModule.getGameModule().getToolBar().add(launch);
 
     frame = new JDialog(GameModule.getGameModule().getFrame());
-    frame.getContentPane().add(root);
+    while (root.getComponentCount() > 0) {
+      frame.getContentPane().add(root.getComponent(0));
+    }
+    root = frame.getContentPane();
     frame.setTitle(launch.getAttributeValueString(NAME));
     id = "ChartWindow" + count;
     String key = PositionOption.key + id;
