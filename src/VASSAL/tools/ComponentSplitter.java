@@ -257,36 +257,38 @@ public class ComponentSplitter {
 
     /** Hide the hideable component */
     public void hideComponent() {
-      if (resizeOnVisibilityChange) {
-        Container ancestor = getTopLevelAncestor();
-        if (ancestor != null) {
-          switch (hideablePosition) {
-            case HIDE_LEFT:
-            case HIDE_RIGHT:
-              ancestor.setSize(new Dimension(ancestor.getSize().width - getHideableComponent().getSize().width, ancestor.getSize().height - getDividerSize()));
-              break;
-            case HIDE_TOP:
-            case HIDE_BOTTOM:
-              ancestor.setSize(new Dimension(ancestor.getSize().width, ancestor.getSize().height - getHideableComponent().getSize().height - getDividerSize()));
-              break;
+      if (getHideableComponent().isVisible()) {
+        if (resizeOnVisibilityChange) {
+          Container ancestor = getTopLevelAncestor();
+          if (ancestor != null) {
+            switch (hideablePosition) {
+              case HIDE_LEFT:
+              case HIDE_RIGHT:
+                ancestor.setSize(new Dimension(ancestor.getSize().width - getHideableComponent().getSize().width, ancestor.getSize().height - getDividerSize()));
+                break;
+              case HIDE_TOP:
+              case HIDE_BOTTOM:
+                ancestor.setSize(new Dimension(ancestor.getSize().width, ancestor.getSize().height - getHideableComponent().getSize().height - getDividerSize()));
+                break;
+            }
+            ancestor.validate();
           }
-          ancestor.validate();
         }
-      }
-      ((BasicSplitPaneUI) getUI()).getDivider().setVisible(false);
-      getHideableComponent().setVisible(false);
-      switch (hideablePosition) {
-        case HIDE_LEFT:
-        case HIDE_TOP:
-          setDividerLocation(0.0);
-          break;
-        case HIDE_RIGHT:
-        case HIDE_BOTTOM:
-          setDividerLocation(1.0);
-      }
-      SplitPane split = getTransverseSplit();
-      if (split != null) {
-        split.hideTransverseComponent(this);
+        ((BasicSplitPaneUI) getUI()).getDivider().setVisible(false);
+        getHideableComponent().setVisible(false);
+        switch (hideablePosition) {
+          case HIDE_LEFT:
+          case HIDE_TOP:
+            setDividerLocation(0.0);
+            break;
+          case HIDE_RIGHT:
+          case HIDE_BOTTOM:
+            setDividerLocation(1.0);
+        }
+        SplitPane split = getTransverseSplit();
+        if (split != null) {
+          split.hideTransverseComponent(this);
+        }
       }
     }
 
@@ -378,36 +380,38 @@ public class ComponentSplitter {
      * Show the hideable component
      */
     public void showComponent() {
-      if (resizeOnVisibilityChange) {
-        Container ancestor = getTopLevelAncestor();
-        if (ancestor != null) {
-          int newLoc = 0;
-          switch (getOrientation()) {
-            case JSplitPane.HORIZONTAL_SPLIT:
-              ancestor.setSize(Math.min(ancestor.getSize().width + getHideableComponent().getPreferredSize().width,
-                                        Toolkit.getDefaultToolkit().getScreenSize().width - ancestor.getLocation().x), ancestor.getSize().height);
-              newLoc = getBaseComponent().getSize().width;
-              break;
-            case JSplitPane.VERTICAL_SPLIT:
-              ancestor.setSize(ancestor.getSize().width,
-                               Math.min(ancestor.getSize().height + getHideableComponent().getPreferredSize().height,
-                                        Toolkit.getDefaultToolkit().getScreenSize().height - ancestor.getLocation().y));
-              newLoc = getBaseComponent().getSize().height;
-              break;
+      if (!getHideableComponent().isVisible()) {
+        if (resizeOnVisibilityChange) {
+          Container ancestor = getTopLevelAncestor();
+          if (ancestor != null) {
+            int newLoc = 0;
+            switch (getOrientation()) {
+              case JSplitPane.HORIZONTAL_SPLIT:
+                ancestor.setSize(Math.min(ancestor.getSize().width + getHideableComponent().getPreferredSize().width,
+                                          Toolkit.getDefaultToolkit().getScreenSize().width - ancestor.getLocation().x), ancestor.getSize().height);
+                newLoc = getBaseComponent().getSize().width;
+                break;
+              case JSplitPane.VERTICAL_SPLIT:
+                ancestor.setSize(ancestor.getSize().width,
+                                 Math.min(ancestor.getSize().height + getHideableComponent().getPreferredSize().height,
+                                          Toolkit.getDefaultToolkit().getScreenSize().height - ancestor.getLocation().y));
+                newLoc = getBaseComponent().getSize().height;
+                break;
+            }
+            ancestor.validate();
+            getHideableComponent().setVisible(true);
+            ((BasicSplitPaneUI) getUI()).getDivider().setVisible(true);
+            setDividerLocation(newLoc);
           }
-          ancestor.validate();
+        }
+        else {
           getHideableComponent().setVisible(true);
           ((BasicSplitPaneUI) getUI()).getDivider().setVisible(true);
-          setDividerLocation(newLoc);
-        }
-      }
-      else {
-        getHideableComponent().setVisible(true);
-        ((BasicSplitPaneUI) getUI()).getDivider().setVisible(true);
-        setDividerLocation(getPreferredDividerLocation());
-        SplitPane split = getTransverseSplit();
-        if (split != null) {
-          split.showTransverseComponent(this);
+          setDividerLocation(getPreferredDividerLocation());
+          SplitPane split = getTransverseSplit();
+          if (split != null) {
+            split.showTransverseComponent(this);
+          }
         }
       }
     }

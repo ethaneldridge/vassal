@@ -305,7 +305,7 @@ public class GlobalMap extends JPanel implements MouseListener,
     if (f == null) {
       initWindow();
     }
-    if (visible) {
+    if (show) {
       f.setTitle(map.getMapName() + " overview");
       scroll.getViewport().setPreferredSize(getPreferredSize());
       f.pack();
