@@ -118,6 +118,9 @@ public class Stack implements GamePiece {
         contents[i] = contents[i + 1];
       }
     }
+    if (pieceCount <= 1) {
+      expanded = false;
+    }
   }
 
   private void insertPieceAt(GamePiece p, int index) {
@@ -168,18 +171,10 @@ public class Stack implements GamePiece {
     pos = Math.min(pos, pieceCount);
     if (indexOf(p) >= 0) {
       if (pos > indexOf(p)) {
-/*
-        pieces.insertElementAt(p, pos + 1);
-        pieces.removeElement(p);
-*/
         insertPieceAt(p, pos + 1);
         removePieceAt(indexOf(p));
       }
       else {
-/*
-        pieces.removeElement(p);
-        pieces.insertElementAt(p, pos);
-*/
         removePieceAt(indexOf(p));
         insertPieceAt(p, pos);
       }
@@ -317,7 +312,7 @@ public class Stack implements GamePiece {
   }
 
   public void setExpanded(boolean b) {
-    expanded = b;
+    expanded = b && pieceCount > 1;
   }
 
   public String getState() {
