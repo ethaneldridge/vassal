@@ -66,6 +66,9 @@ public class BasicCommandEncoder implements CommandEncoder, Buildable {
     else if (type.startsWith(TableInfo.ID)) {
       return new TableInfo(type, inner);
     }
+    else if (type.startsWith(PropertySheet.ID)) {
+      return new PropertySheet(type,inner);
+    }
     else if (type.startsWith(FreeRotator.ID)) {
       return new FreeRotator(type, inner);
     }

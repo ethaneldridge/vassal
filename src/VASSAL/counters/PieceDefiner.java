@@ -13,7 +13,7 @@
  * Library General Public License for more details.
  *
  * You should have received a copy of the GNU Library General Public
- * License along with this library; if not, copies are available 
+ * License along with this library; if not, copies are available
  * at http://www.opensource.org.
  */
 package VASSAL.counters;
@@ -58,6 +58,7 @@ public class PieceDefiner extends javax.swing.JPanel implements HelpWindowExtens
       availableModel.addElement(new SendToLocation());
       availableModel.addElement(new ReturnToDeck());
       availableModel.addElement(new Immobilized());
+      availableModel.addElement(new PropertySheet());
       availableModel.addElement(new TableInfo());
       availableModel.addElement(new PlaceMarker());
       availableModel.addElement(new Replace());
