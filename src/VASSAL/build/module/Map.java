@@ -392,7 +392,7 @@ public class Map extends AbstractConfigurable implements GameComponent,
 
     if (shouldDockIntoMainWindow()) {
       JPanel root = new JPanel(new BorderLayout());
-      root.add(toolBar, BorderLayout.NORTH);
+//      root.add(toolBar, BorderLayout.NORTH);
       root.add(scroll, BorderLayout.CENTER);
       ComponentSplitter splitter = new ComponentSplitter();
       mainWindowDock = splitter.splitBottom(splitter.getSplitAncestor(GameModule.getGameModule().getControlPanel(), -1), root, true);
@@ -1005,6 +1005,11 @@ public class Map extends AbstractConfigurable implements GameComponent,
     if (show) {
       if (shouldDockIntoMainWindow()) {
         mainWindowDock.showComponent();
+        if (toolBar.getParent() == null) {
+          GameModule.getGameModule().getToolBar().addSeparator();
+          GameModule.getGameModule().getToolBar().add(toolBar);
+        }
+        toolBar.setVisible(true);
       }
       else {
         if (topWindow == null) {
@@ -1043,6 +1048,7 @@ public class Map extends AbstractConfigurable implements GameComponent,
       }
       if (mainWindowDock != null) {
         mainWindowDock.hideComponent();
+        toolBar.setVisible(false);
       }
     }
     launchButton.setEnabled(show);
