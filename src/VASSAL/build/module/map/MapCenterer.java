@@ -21,10 +21,7 @@ package VASSAL.build.module.map;
 import VASSAL.build.AbstractBuildable;
 import VASSAL.build.Buildable;
 import VASSAL.build.module.Map;
-import VASSAL.counters.PieceFinder;
-import VASSAL.counters.Deck;
-import VASSAL.counters.GamePiece;
-import VASSAL.counters.Properties;
+import VASSAL.counters.*;
 
 import java.awt.event.MouseListener;
 import java.awt.event.MouseEvent;
@@ -73,8 +70,9 @@ public class MapCenterer extends AbstractBuildable implements MouseListener {
     if (e.isMetaDown()) {
       GamePiece found = map.findPiece(e.getPoint(), finder);
       if (found != null) {
-        if (Boolean.TRUE.equals(found.getProperty(Properties.TERRAIN))
-        && !e.isShiftDown()) {
+        EventFilter filter = (EventFilter) found.getProperty(Properties.EVENT_FILTER);
+        if (filter != null
+            && filter.rejectEvent(e)) {
           found = null;
         }
       }

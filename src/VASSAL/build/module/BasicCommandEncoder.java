@@ -145,7 +145,8 @@ public class BasicCommandEncoder implements CommandEncoder, Buildable {
 
     if (innerType != null) {
       GamePiece inner = createPiece(innerType);
-      return inner == null ? null : createDecorator(type, inner);
+      Decorator d = createDecorator(type,inner);
+      return d != null ? d : inner;
     }
     else {
       return createBasic(type);
