@@ -18,6 +18,8 @@
  */
 package VASSAL.configure;
 
+import VASSAL.build.module.Documentation;
+
 import java.io.File;
 import javax.swing.*;
 
@@ -53,6 +55,7 @@ public class DirectoryConfigurer extends FileConfigurer {
 
   private static class Pan extends JFileChooser {
     private Pan() {
+      setCurrentDirectory(Documentation.getDocumentationBaseDir());
       setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
       setFileFilter(new javax.swing.filechooser.FileFilter() {
         public boolean accept(File f) {

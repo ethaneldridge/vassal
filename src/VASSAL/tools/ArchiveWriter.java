@@ -19,6 +19,8 @@
 package VASSAL.tools;
 
 
+import VASSAL.build.module.Documentation;
+
 import java.io.*;
 import java.util.Enumeration;
 import java.util.Hashtable;
@@ -130,7 +132,7 @@ public class ArchiveWriter extends DataArchive {
    * select a new file into which to write archive */
   public void write() throws IOException {
     if (archiveName == null) {
-      javax.swing.JFileChooser fc = new javax.swing.JFileChooser();
+      javax.swing.JFileChooser fc = new javax.swing.JFileChooser(Documentation.getDocumentationBaseDir());
       if (fc.showSaveDialog(null)
         == javax.swing.JFileChooser.CANCEL_OPTION)
         return;

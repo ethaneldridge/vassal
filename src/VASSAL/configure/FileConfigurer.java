@@ -19,6 +19,7 @@
 package VASSAL.configure;
 
 import VASSAL.tools.ArchiveWriter;
+import VASSAL.build.module.Documentation;
 
 import java.io.File;
 import javax.swing.*;
@@ -31,11 +32,18 @@ public class FileConfigurer extends Configurer {
 
   protected JPanel p;
   protected JTextField tf;
-  private static final JFileChooser fc = new JFileChooser();
+  private static JFileChooser fc;
 
   public FileConfigurer(String key, String name) {
     super(key, name);
     setValue(null);
+    initFileChooser();
+  }
+
+  private static void initFileChooser() {
+    if (fc == null) {
+      fc = new JFileChooser(Documentation.getDocumentationBaseDir());
+    }
   }
 
   /**

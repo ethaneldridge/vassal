@@ -19,6 +19,7 @@
 package VASSAL.configure;
 
 import VASSAL.tools.ArchiveWriter;
+import VASSAL.build.module.Documentation;
 
 import javax.swing.*;
 
@@ -66,7 +67,7 @@ public class ImageConfigurer extends FileConfigurer {
 
   private static class Chooser extends JFileChooser {
     private Chooser() {
-      super();
+      super(Documentation.getDocumentationBaseDir());
       setFileFilter(new javax.swing.filechooser.FileFilter() {
         public boolean accept(java.io.File f) {
           return f.getName().endsWith(".gif")

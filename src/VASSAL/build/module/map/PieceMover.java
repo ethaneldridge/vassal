@@ -532,7 +532,8 @@ public class PieceMover extends AbstractBuildable implements
           if (dragCursor == null) {
             dragCursor = new JLabel();
             dragCursor.setVisible(false);
-            drawWin.add(dragCursor, JLayeredPane.DRAG_LAYER);
+            // Temporarily disabling the drag cursor
+//            drawWin.add(dragCursor, JLayeredPane.DRAG_LAYER);
           }
 
           // Record sizing info and resize our cursor
