@@ -42,7 +42,7 @@ public class SecretNote {
     this.text = text;
     this.hidden = hidden;
 
-    if (PlayerRoster.isActive()) {
+    if (PlayerRoster.isActive() && PlayerRoster.getMySide() != null) {
       this.handle = PlayerRoster.getMySide();
     }
     else {
