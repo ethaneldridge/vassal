@@ -28,7 +28,6 @@ import VASSAL.build.module.map.boardPicker.Board;
 import VASSAL.build.module.map.boardPicker.board.MapGrid;
 import VASSAL.command.AddPiece;
 import VASSAL.command.Command;
-import VASSAL.command.MovePiece;
 import VASSAL.command.MoveTracker;
 import VASSAL.configure.ColorConfigurer;
 import VASSAL.configure.VisibilityCondition;
@@ -443,7 +442,7 @@ public class Map extends AbstractConfigurable implements GameComponent,
    * @param name
    * @return null if no such board found
    */
-  public Board getboardByName(String name) {
+  public Board getBoardByName(String name) {
     Board board = null;
     if (name != null) {
       for (Enumeration e = getAllBoards(); e.hasMoreElements();) {
@@ -1385,7 +1384,9 @@ public class Map extends AbstractConfigurable implements GameComponent,
     }
 
     public void paint(Graphics g) {
-      map.paintRegion(g, getVisibleRect());
+      Rectangle r = getVisibleRect();
+      g.clearRect(r.x,r.y,r.width,r.height);
+      map.paintRegion(g, r);
 //      map.paint(g);
     }
 

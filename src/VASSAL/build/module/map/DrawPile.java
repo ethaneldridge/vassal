@@ -13,7 +13,7 @@
  * Library General Public License for more details.
  *
  * You should have received a copy of the GNU Library General Public
- * License along with this library; if not, copies are available 
+ * License along with this library; if not, copies are available
  * at http://www.opensource.org.
  */
 package VASSAL.build.module.map;
@@ -492,7 +492,7 @@ public class DrawPile extends AbstractConfigurable implements Drawable, GameComp
 
   public Point getPosition() {
     Point p = new Point(pos);
-    Board b = map.getboardByName(owningBoardName);
+    Board b = map.getBoardByName(owningBoardName);
     if (b != null) {
       p.translate(b.bounds().x,b.bounds().y);
     }

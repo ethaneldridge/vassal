@@ -99,6 +99,10 @@ public class FreeRotator extends Decorator implements EditablePiece {
     return validAngles[angleIndex];
   }
 
+  public void setAngle(double angle) {
+    validAngles[angleIndex] = angle;
+  }
+
   public Rectangle getRotatedBounds() {
     return (Rectangle) bounds.get(new Double(getAngle()));
   }
@@ -115,7 +119,8 @@ public class FreeRotator extends Decorator implements EditablePiece {
       validAngles[i] = -i * (360.0 / validAngles.length);
     }
     if (validAngles.length == 1) {
-      setAngleKey = st.nextToken().charAt(0);
+      String key = st.nextToken();
+      setAngleKey = key.length() > 0 ? key.charAt(0) : '\0';
       if (st.hasMoreTokens()) {
         setAngleText = st.nextToken();
       }
@@ -240,7 +245,7 @@ public class FreeRotator extends Decorator implements EditablePiece {
       String s = JOptionPane.showInputDialog(null, setAngleText);
       if (s != null) {
         try {
-          validAngles[0] = -Double.valueOf(s).doubleValue();
+          setAngle(-Double.valueOf(s).doubleValue());
           c = tracker.getChangeCommand();
         }
         catch (NumberFormatException ex) {

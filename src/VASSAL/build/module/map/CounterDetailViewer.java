@@ -32,6 +32,8 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseMotionListener;
+import java.awt.event.KeyListener;
+import java.awt.event.KeyEvent;
 import java.io.File;
 import java.net.MalformedURLException;
 import java.util.Enumeration;
@@ -45,11 +47,11 @@ import java.util.Vector;
  * @version      1.0
  */
 public class CounterDetailViewer
-  extends AbstractConfigurable
-  implements Drawable,
-  MouseMotionListener, Runnable {
+    extends AbstractConfigurable
+    implements Drawable,
+    MouseMotionListener, Runnable, KeyListener {
 
-  public static final String SHOW_DETAILS = "ShowCounterDetails";
+  public static final String USE_KEYBOARD = "ShowCounterDetails";
 
   protected Map map;
   protected Thread delayThread;
@@ -69,14 +71,15 @@ public class CounterDetailViewer
     }
     map.addDrawComponent(this);
     GameModule.getGameModule().getPrefs().addOption
-      ("General", new BooleanConfigurer(SHOW_DETAILS, "Enable mouse-over stack details", Boolean.TRUE));
+        ("General", new BooleanConfigurer(USE_KEYBOARD, "Use CTRL-space to view stack details", Boolean.FALSE));
 
     map.getView().addMouseMotionListener(this);
+    map.getView().addKeyListener(this);
   }
 
   public void draw(Graphics g, Map map) {
     if (currentMousePosition != null) {
-      draw(g,currentMousePosition.getPoint(),map.getView());
+      draw(g, currentMousePosition.getPoint(), map.getView());
     }
   }
 
@@ -101,25 +104,26 @@ public class CounterDetailViewer
         };
       }
       PieceIterator pi = PieceIterator.visible(pieces);
-      Rectangle bounds = new Rectangle(pt.x,pt.y,0,0);
+      Rectangle bounds = new Rectangle(pt.x, pt.y, 0, 0);
       Vector v = new Vector();
       while (pi.hasMoreElements()) {
         GamePiece piece = pi.nextPiece();
         v.addElement(piece);
         bounds.width += piece.selectionBounds().width;
-        bounds.height = Math.max(bounds.height,piece.selectionBounds().height);
+        bounds.height = Math.max(bounds.height, piece.selectionBounds().height);
       }
       if (bounds.width > 0) {
         Rectangle r = comp.getVisibleRect();
-        bounds.x = Math.min(bounds.x,r.x+r.width-bounds.width);
-        bounds.y = Math.min(bounds.y,r.y+r.height-bounds.height);
-        Color outline = map.getHighlighter() instanceof ColoredBorder ? ((ColoredBorder)map.getHighlighter()).getColor() : Color.black;;
-        Color background = new Color(255-outline.getRed(),255-outline.getGreen(),255-outline.getBlue());
+        bounds.x = Math.min(bounds.x, r.x + r.width - bounds.width);
+        bounds.y = Math.min(bounds.y, r.y + r.height - bounds.height);
+        Color outline = map.getHighlighter() instanceof ColoredBorder ? ((ColoredBorder) map.getHighlighter()).getColor() : Color.black;
+        ;
+        Color background = new Color(255 - outline.getRed(), 255 - outline.getGreen(), 255 - outline.getBlue());
         g.setColor(background);
-        g.fillRect(bounds.x-1,bounds.y-1,bounds.width+2,bounds.height+2);
+        g.fillRect(bounds.x - 1, bounds.y - 1, bounds.width + 2, bounds.height + 2);
         g.setColor(outline);
-        g.drawRect(bounds.x-2,bounds.y-2,bounds.width+3,bounds.height+3);
-        g.drawRect(bounds.x-3,bounds.y-3,bounds.width+5,bounds.height+5);
+        g.drawRect(bounds.x - 2, bounds.y - 2, bounds.width + 3, bounds.height + 3);
+        g.drawRect(bounds.x - 3, bounds.y - 3, bounds.width + 5, bounds.height + 5);
         pi = new PieceIterator(v.elements());
         while (pi.hasMoreElements()) {
           // Draw the next piece
@@ -142,6 +146,10 @@ public class CounterDetailViewer
       catch (InterruptedException e) {
       }
     }
+    showDetails();
+  }
+
+  protected void showDetails() {
     currentPiece = findPieceAtMousePosition();
     visible = shouldBeVisible();
     map.repaint();
@@ -156,7 +164,7 @@ public class CounterDetailViewer
       else if (currentPiece instanceof Stack) {
         Stack s = (Stack) currentPiece;
         val = !s.isExpanded()
-          && s.topPiece() != s.bottomPiece();
+            && s.topPiece() != s.bottomPiece();
       }
     }
     return val;
@@ -171,10 +179,6 @@ public class CounterDetailViewer
   }
 
   public void mouseMoved(MouseEvent e) {
-    // quit if not active
-    if (Boolean.FALSE.equals(GameModule.getGameModule().getPrefs().getValue(SHOW_DETAILS))) {
-      return;
-    }
 
     // clear details when mouse moved
     if (visible) {
@@ -184,10 +188,13 @@ public class CounterDetailViewer
     else {
       // set the timer
       currentMousePosition = e;
-      expirationTime = System.currentTimeMillis() + delay;
-      if (delayThread == null || !delayThread.isAlive()) {
-        delayThread = new Thread(this);
-        delayThread.start();
+      // quit if not active
+      if (Boolean.FALSE.equals(GameModule.getGameModule().getPrefs().getValue(USE_KEYBOARD))) {
+        expirationTime = System.currentTimeMillis() + delay;
+        if (delayThread == null || !delayThread.isAlive()) {
+          delayThread = new Thread(this);
+          delayThread.start();
+        }
       }
     }
   }
@@ -198,6 +205,24 @@ public class CounterDetailViewer
 
   public Configurer getConfigurer() {
     return null;
+  }
+
+  public void keyTyped(KeyEvent e) {
+  }
+
+  public void keyPressed(KeyEvent e) {
+    if (e.getKeyCode() == KeyEvent.VK_SPACE
+        && e.isControlDown()
+        && Boolean.TRUE.equals(GameModule.getGameModule().getPrefs().getValue(USE_KEYBOARD))) {
+      showDetails();
+    }
+  }
+
+  public void keyReleased(KeyEvent e) {
+    if (visible) {
+      visible = false;
+      map.repaint();
+    }
   }
 
   public String[] getAttributeNames() {

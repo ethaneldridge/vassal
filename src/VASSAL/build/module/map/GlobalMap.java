@@ -21,14 +21,14 @@ package VASSAL.build.module.map;
 import VASSAL.build.*;
 import VASSAL.build.module.GameComponent;
 import VASSAL.build.module.Map;
-import VASSAL.build.module.PlayerRoster;
-import VASSAL.build.module.PrivateMap;
 import VASSAL.build.module.documentation.HelpFile;
 import VASSAL.command.Command;
-import VASSAL.configure.*;
+import VASSAL.configure.AutoConfigurer;
+import VASSAL.configure.ColorConfigurer;
+import VASSAL.configure.Configurer;
+import VASSAL.configure.VisibilityCondition;
 import VASSAL.counters.GamePiece;
 import VASSAL.counters.Properties;
-import VASSAL.preferences.PositionOption;
 import VASSAL.tools.LaunchButton;
 import org.w3c.dom.Element;
 
@@ -48,38 +48,20 @@ import java.util.Enumeration;
 public class GlobalMap extends JPanel implements MouseListener,
     AutoConfigurable, GameComponent, Drawable {
   private Map map;
-  private String boundsKey;
   private double scale = 0.19444444;      // Zoom factor
   private Color rectColor = Color.black;
-  private JScrollPane scroll;
   private LaunchButton launch;
 
-  private JDialog f;
-  private BooleanConfigurer visibility;
-  private ComponentListener visListener;
+  private JWindow f;
   private CounterDetailViewer mouseOverViewer;
 
   public GlobalMap() {
-    setSize(350, 125);
-    scroll = new JScrollPane(this);
-    visListener = new ComponentAdapter() {
-      public void componentHidden(ComponentEvent e) {
-        if (visibility != null) {
-          visibility.setValue(Boolean.FALSE);
-        }
-      }
-
-      public void componentShown(ComponentEvent e) {
-        if (visibility != null) {
-          visibility.setValue(Boolean.TRUE);
-        }
-      }
-    };
-    launch = new LaunchButton(null, null, HOTKEY, new ActionListener() {
-      public void actionPerformed(ActionEvent e) {
-        f.setVisible(!f.isVisible());
-      }
-    });
+    ActionListener al = new ActionListener() {
+          public void actionPerformed(ActionEvent e) {
+            setWindowVisible(!f.isVisible());
+          }
+        };
+    launch = new LaunchButton(null,null,HOTKEY,al);
     launch.setToolTipText("Show/Hide overview window");
     launch.setAttribute(HOTKEY, KeyStroke.getKeyStroke(KeyEvent.VK_O, KeyEvent.CTRL_MASK + KeyEvent.SHIFT_MASK));
     URL imageURL = getClass().getResource("/images/overview.gif");
@@ -94,14 +76,17 @@ public class GlobalMap extends JPanel implements MouseListener,
   }
 
   private void initWindow() {
-    Component ancestor = map.getView().getTopLevelAncestor();
-    JFrame owner = ancestor instanceof JFrame ? (JFrame) ancestor : null;
-    f = new JDialog(owner);
-    f.getContentPane().add(scroll);
-    f.setDefaultCloseOperation(javax.swing.WindowConstants.HIDE_ON_CLOSE);
-    boundsKey = "BoundsOfGlobalMap" + map.getId();
-    GameModule.getGameModule().getPrefs().addOption
-        (new PositionOption(boundsKey, f));
+    if (f == null) {
+      Component ancestor = map.getView().getTopLevelAncestor();
+      JFrame owner = ancestor instanceof JFrame ? (JFrame) ancestor : null;
+      f = new JWindow(owner);
+      f.getContentPane().add(this);
+      map.getView().addHierarchyBoundsListener(new HierarchyBoundsAdapter() {
+        public void ancestorMoved(HierarchyEvent e) {
+          adjustWindowLocation();
+        }
+      });
+    }
   }
 
   /**
@@ -111,10 +96,6 @@ public class GlobalMap extends JPanel implements MouseListener,
     map = (Map) b;
 
     mouseOverViewer = new CounterViewer();
-
-    String visibilityKey = "GlobalMap" + map.getId() + "Visible";
-    visibility = new BooleanConfigurer(visibilityKey, null, Boolean.TRUE);
-    GameModule.getGameModule().getPrefs().addOption(null, visibility);
 
     GameModule.getGameModule().getGameState().addGameComponent(this);
 
@@ -275,11 +256,6 @@ public class GlobalMap extends JPanel implements MouseListener,
   }
 
   public String getToolTipText(MouseEvent e) {
-/*
-    Point p = mapCoordinates(e.getPoint());
-    GamePiece piece = map.findPiece(p, PieceFinder.MOVABLE);
-    return piece == null ? null : piece.getName();
-*/
     return null;
   }
 
@@ -295,38 +271,36 @@ public class GlobalMap extends JPanel implements MouseListener,
   }
 
   public void setup(boolean show) {
-    boolean visible = show
-        && map.getAllBoards().hasMoreElements()
-        && visibility.booleanValue().booleanValue();
-    if (map instanceof PrivateMap
-        && !((PrivateMap) map).isAccessibleTo(PlayerRoster.getMySide())) {
-      visible = false;
-    }
-    if (f == null) {
-      initWindow();
-    }
+    initWindow();
     if (show) {
-      f.setTitle(map.getMapName() + " overview");
-      scroll.getViewport().setPreferredSize(getPreferredSize());
-      f.pack();
-      Rectangle r = (Rectangle) GameModule.getGameModule().getPrefs()
-          .getValue(boundsKey);
-      if (r != null) {
-        f.setLocation(r.x, r.y);
-      }
+      f.setSize(getPreferredSize());
     }
-    f.removeComponentListener(visListener);
-    f.setVisible(visible);
-    f.addComponentListener(visListener);
+    else {
+      f.setVisible(false);
+    }
 
     if (show && map.getComponents(CounterDetailViewer.class).hasMoreElements()) {
       addMouseMotionListener(mouseOverViewer);
+      f.addKeyListener(mouseOverViewer);
     }
     else {
       removeMouseMotionListener(mouseOverViewer);
+      f.removeKeyListener(mouseOverViewer);
     }
-    if (show) {
-      revalidate();
+  }
+
+  public void setWindowVisible(final boolean visible) {
+    if (visible) {
+      adjustWindowLocation();
+    }
+    f.setVisible(visible);
+  }
+
+  protected void adjustWindowLocation() {
+    if (map.getView().isShowing()) {
+      Point p = map.getView().getLocationOnScreen();
+      p.translate(map.getView().getVisibleRect().x,map.getView().getVisibleRect().y);
+      f.setLocation(p);
     }
   }
 

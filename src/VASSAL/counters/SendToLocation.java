@@ -1,13 +1,21 @@
 package VASSAL.counters;
 
 import VASSAL.build.module.Map;
+import VASSAL.build.module.documentation.HelpFile;
 import VASSAL.build.module.map.boardPicker.Board;
 import VASSAL.command.Command;
 import VASSAL.tools.SequenceEncoder;
+import VASSAL.configure.IntConfigurer;
+import VASSAL.configure.ChooseComponentDialog;
+import VASSAL.configure.StringConfigurer;
 
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.InputEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.ActionEvent;
+import java.io.File;
+import java.net.MalformedURLException;
 
 /*
  * $Id$
@@ -32,7 +40,7 @@ import java.awt.event.InputEvent;
  * This traitadds a command that sends a piece to a particular location ona particular
  * board of a particular Map.
  */
-public class SendToLocation extends Decorator {
+public class SendToLocation extends Decorator implements EditablePiece {
   public static final String ID = "sendto;";
   private KeyCommand[] command;
   private String commandName;
@@ -43,7 +51,7 @@ public class SendToLocation extends Decorator {
   private int y;
 
   public SendToLocation() {
-    this(ID+";;;;;",null);
+    this(ID+";;;;0;0",null);
   }
 
   public SendToLocation(String type, GamePiece inner) {
@@ -51,7 +59,7 @@ public class SendToLocation extends Decorator {
     setInner(inner);
   }
 
-  private void mySetType(String type) {
+  public void mySetType(String type) {
     type = type.substring(ID.length());
     SequenceEncoder.Decoder st = new SequenceEncoder.Decoder(type,';');
     commandName = st.nextToken();
@@ -59,8 +67,18 @@ public class SendToLocation extends Decorator {
     key = s.length() > 0 ? s.charAt(0) : 0;
     mapId = st.nextToken();
     boardName = st.nextToken();
-    x = Integer.parseInt(st.nextToken());
-    y = Integer.parseInt(st.nextToken());
+    try {
+      x = Integer.parseInt(st.nextToken());
+    }
+    catch (NumberFormatException e) {
+      x=0;
+    }
+    try {
+      y = Integer.parseInt(st.nextToken());
+    }
+    catch (NumberFormatException e) {
+      y=0;
+    }
   }
 
   public String myGetType() {
@@ -85,7 +103,7 @@ public class SendToLocation extends Decorator {
         command = new KeyCommand[0];
       }
     }
-    command[0].setEnabled(mapId.length() > 0);
+    command[0].setEnabled(getMap() != null);
     return command;
   }
 
@@ -98,9 +116,12 @@ public class SendToLocation extends Decorator {
     myGetKeyCommands();
     if (command[0].matches(stroke)) {
       Map m = Map.getMapById(mapId);
+      if (m == null) {
+        m = getMap();
+      }
       if (m != null) {
         Point dest = new Point(x,y);
-        Board b = m.getboardByName(boardName);
+        Board b = m.getBoardByName(boardName);
         if (b != null) {
           dest.translate(b.bounds().x,b.bounds().y);
         }
@@ -127,5 +148,144 @@ public class SendToLocation extends Decorator {
 
   public Rectangle selectionBounds() {
     return getInner().selectionBounds();
+  }
+
+  public PieceEditor getEditor() {
+    return new Ed(this);
+  }
+
+  public String getDescription() {
+    return "Send to Location";
+  }
+
+  public HelpFile getHelpFile() {
+    File dir = new File("docs");
+    dir = new File(dir, "ReferenceManual");
+    try {
+      return new HelpFile(null, new File(dir, "SendToLocation.htm"));
+    }
+    catch (MalformedURLException ex) {
+      return null;
+    }
+  }
+
+  public static class Ed implements PieceEditor {
+    private StringConfigurer nameInput;
+    private KeySpecifier keyInput;
+    private JTextField mapIdInput;
+    private JTextField boardNameInput;
+    private IntConfigurer xInput;
+    private IntConfigurer yInput;
+    private Map map;
+    private JPanel controls;
+
+    public Ed(SendToLocation p) {
+      controls = new JPanel();
+      controls.setLayout(new BoxLayout(controls,BoxLayout.Y_AXIS));
+
+      nameInput = new StringConfigurer(null,"Command name:  ",p.commandName);
+      controls.add(nameInput.getControls());
+
+      keyInput = new KeySpecifier(p.key);
+      controls.add(keyInput);
+
+      Box b = Box.createHorizontalBox();
+      mapIdInput = new JTextField(12);
+      map = Map.getMapById(p.mapId);
+      if (map != null) {
+        mapIdInput.setText(map.getMapName());
+      }
+      mapIdInput.setEditable(false);
+      b.add(new JLabel("Map:  "));
+      b.add(mapIdInput);
+      JButton select = new JButton("Select");
+      select.addActionListener(new ActionListener() {
+        public void actionPerformed(ActionEvent e) {
+          selectMap();
+        }
+      });
+      b.add(select);
+      JButton clear = new JButton("Clear");
+      clear.addActionListener(new ActionListener() {
+        public void actionPerformed(ActionEvent e) {
+          clearMap();
+        }
+      });
+      b.add(clear);
+      controls.add(b);
+
+      b = Box.createHorizontalBox();
+      boardNameInput = new JTextField(12);
+      boardNameInput.setEditable(false);
+      b.add(new JLabel("Board:  "));
+      b.add(boardNameInput);
+      select = new JButton("Select");
+      select.addActionListener(new ActionListener() {
+        public void actionPerformed(ActionEvent e) {
+          selectBoard();
+        }
+      });
+      clear = new JButton("Clear");
+      clear.addActionListener(new ActionListener() {
+        public void actionPerformed(ActionEvent e) {
+          clearBoard();
+        }
+      });
+      b.add(clear);
+      b.add(select);
+      controls.add(b);
+
+      xInput = new IntConfigurer(null,"X Position:  ", new Integer(p.x));
+      controls.add(xInput.getControls());
+
+      yInput = new IntConfigurer(null,"Y Position:  ", new Integer(p.y));
+      controls.add(yInput.getControls());
+    }
+
+    private void clearBoard() {
+      boardNameInput.setText("");
+    }
+
+    private void clearMap() {
+      map = null;
+      mapIdInput.setText("");
+    }
+
+    private void selectBoard() {
+      ChooseComponentDialog d = new ChooseComponentDialog((Frame) SwingUtilities.getAncestorOfClass(Frame.class,controls),Board.class);
+      d.setVisible(true);
+      if (d.getTarget() != null) {
+        Board b = (Board) d.getTarget();
+        boardNameInput.setText(b.getName());
+      }
+    }
+
+    private void selectMap() {
+      ChooseComponentDialog d = new ChooseComponentDialog((Frame) SwingUtilities.getAncestorOfClass(Frame.class,controls),Map.class);
+      d.setVisible(true);
+      if (d.getTarget() != null) {
+        map = (Map) d.getTarget();
+        mapIdInput.setText(map.getMapName());
+      }
+    }
+
+    public Component getControls() {
+      return controls;
+    }
+
+    public String getType() {
+      SequenceEncoder se = new SequenceEncoder(';');
+      se.append(nameInput.getValueString())
+        .append(keyInput.getKey())
+        .append(map == null ? "" : map.getId())
+        .append(boardNameInput.getText())
+        .append(xInput.getValueString())
+        .append(yInput.getValueString());
+      return ID+se.getValue();
+    }
+
+    public String getState() {
+      return "";
+    }
   }
 }
