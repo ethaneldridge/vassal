@@ -52,6 +52,7 @@ public class DataArchive extends SecureClassLoader {
   public static final String IMAGE_DIR = "images/";
   private BooleanConfigurer smoothPrefs;
   private CodeSource cs;
+  private static Image NULL_IMAGE = new BufferedImage(1,1,BufferedImage.TYPE_4BYTE_ABGR); // empty image for images scaled to zero size
 
   protected DataArchive() {
     super(DataArchive.class.getClassLoader());
@@ -147,6 +148,9 @@ public class DataArchive extends SecureClassLoader {
     Dimension d = getImageBounds(base).getSize();
     d.width *= scale;
     d.height *= scale;
+    if (d.width == 0 || d.height == 0) {
+      return NULL_IMAGE;
+    }
     ScaledCacheKey key = new ScaledCacheKey(base, d, reversed);
     Image scaled = (Image) scaledImageCache.get(key);
     if (scaled == null) {
