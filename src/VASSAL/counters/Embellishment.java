@@ -171,15 +171,9 @@ public class Embellishment extends Decorator implements EditablePiece {
   }
 
   public void mySetState(String s) {
-    if (activateKey.length() < 2) {
-      value = Integer.parseInt(s);
-      activationStatus = value < 0 ? "" : activateKey;
-    }
-    else {
-      SequenceEncoder.Decoder st = new SequenceEncoder.Decoder(s, ';');
-      value = st.nextInt(1);
-      activationStatus = st.hasMoreTokens() ? st.nextToken() : "";
-    }
+    SequenceEncoder.Decoder st = new SequenceEncoder.Decoder(s, ';');
+    value = st.nextInt(1);
+    activationStatus = st.nextToken(value < 0 ? "" : activateKey);
   }
 
   public String myGetType() {
@@ -207,12 +201,8 @@ public class Embellishment extends Decorator implements EditablePiece {
   }
 
   public String myGetState() {
-    if (activateKey.length() < 2) {
-      return "" + value;
-    }
-    else {
-      return value + ";" + activationStatus;
-    }
+    SequenceEncoder se = new SequenceEncoder(';');
+    return se.append(String.valueOf(value)).append(activationStatus).getValue();
   }
 
   public void draw(Graphics g, int x, int y, Component obs, double zoom) {
@@ -324,7 +314,7 @@ public class Embellishment extends Decorator implements EditablePiece {
       if (tracker == null) {
         tracker = new ChangeTracker(this);
       }
-      setValue(resetLevel-1);
+      setValue(resetLevel - 1);
     }
     return tracker != null ? tracker.getChangeCommand() : null;
   }
