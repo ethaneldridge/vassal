@@ -216,7 +216,8 @@ public class Chatter extends JPanel implements CommandEncoder, Buildable {
    */
   public void keyCommand(KeyStroke e) {
     if ((e.getKeyCode() == 0 || e.getKeyCode() == KeyEvent.CHAR_UNDEFINED)
-        && !Character.isISOControl(e.getKeyChar())) {
+        && !Character.isISOControl(e.getKeyChar())
+        && (e.getModifiers() & (InputEvent.CTRL_DOWN_MASK + InputEvent.ALT_DOWN_MASK + InputEvent.META_DOWN_MASK)) == 0) {
       input.setText(input.getText() + e.getKeyChar());
     }
     else if (e.isOnKeyRelease()) {
