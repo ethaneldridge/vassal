@@ -25,13 +25,12 @@ import VASSAL.configure.HotKeyConfigurer;
 import javax.swing.*;
 
 public class KeyCommand extends AbstractAction {
-  private String key;
   private String name;
   private KeyStroke stroke;
   private GamePiece target;
 
   public KeyCommand(String name, KeyStroke key, GamePiece target) {
-    super(name + "  " + HotKeyConfigurer.getString(key));
+    super(key == null ? name : name + "  " + HotKeyConfigurer.getString(key));
     this.target = target;
     this.name = name;
     this.stroke = key;
