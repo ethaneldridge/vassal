@@ -409,7 +409,13 @@ public class PieceMover extends AbstractBuildable implements
     boolean isClick = false;
     if (dragBegin != null) {
       Board b = map.findBoard(pt);
-      if (b != null && b.getGrid() != null) {
+      boolean useGrid = b != null && b.getGrid() != null;
+      if (useGrid) {
+        PieceIterator it = DragBuffer.getBuffer().getIterator();
+        GamePiece dragging = it.hasMoreElements() ? it.nextPiece() : null;
+        useGrid = dragging != null && !Boolean.TRUE.equals(dragging.getProperty(Properties.IGNORE_GRID));
+      }
+      if (useGrid) {
         if (map.equals(DragBuffer.getBuffer().getFromMap())) {
           if (map.snapTo(pt).equals(map.snapTo(dragBegin))) {
             isClick = true;
