@@ -68,7 +68,7 @@ public class FileConfigurer extends Configurer {
     File f = (File) o;
     if (f != null) {
       if (!f.exists()) {
-        f = null;
+        //f = null;           // TODO: JU: RK, is this needed?
       }
       else if (archive != null) {
         archive.addFile(f.getPath(), f.getName());
