@@ -35,11 +35,13 @@ import java.awt.*;
 public class Turreted extends Embellishment implements EditablePiece {
   public static final String ID = "turr;";
 
-  private String front,back;
-  private boolean flipped = false;
+  protected String front,back;
+  protected boolean flipped;
+  protected boolean rotateWithCounter; // As of VASL 4.2+, vehicles counters rotate in their entirety,
+                                       // rather than just the silhouette
 
   public Turreted() {
-    this(ID + "tcaCE;tca;SX;AZ", null);
+    this(ID + "tcaCE;tca;S;A;r", null);
   }
 
   public Turreted(String type, GamePiece p) {
@@ -52,16 +54,16 @@ public class Turreted extends Embellishment implements EditablePiece {
     st.nextToken();
     front = st.nextToken();
     back = st.nextToken();
-    String embType = ID + ";;" + st.nextToken() + ";Rotate TCA Right;"
-        + st.nextToken() + ";Rotate TCA Left;0;0;,+ TCA = 1;,+ TCA = 2;,+ TCA = 3;,+ TCA = 4;,+ TCA = 5;,+ TCA = 6";
-    super.mySetType(embType);
-  }
-
-  public void draw(Graphics g, int x, int y, Component obs, double zoom) {
-    super.draw(g, x, y, obs, zoom);
-    if (Boolean.TRUE.equals(getProperty(Properties.SELECTED))) {
-      piece.draw(g, x, y, obs, zoom);
+    String embType = ID + ";_;" + st.nextToken() + ";Rotate TCA Right;"
+        + st.nextToken() + ";Rotate TCA Left;0;0";
+    if (st.hasMoreTokens()) {
+      rotateWithCounter = true;
+      embType += ";;;;;;";
     }
+    else {
+      embType += ";,+ TCA = 1;,+ TCA = 2;,+ TCA = 3;,+ TCA = 4;,+ TCA = 5;,+ TCA = 6";
+    }
+    super.mySetType(embType);
   }
 
   public Shape getShape() {
@@ -85,22 +87,23 @@ public class Turreted extends Embellishment implements EditablePiece {
       r = new Rectangle(super.getCurrentImageBounds());
       switch (value) {
         case 1:
-          r.translate(20,-10);;
+          r.translate(20, -10);
+          ;
           break;
         case 2:
-          r.translate(20,5);
+          r.translate(20, 5);
           break;
         case 3:
-          r.translate(20,20);
+          r.translate(20, 20);
           break;
         case 4:
-          r.translate(-10,20);
+          r.translate(-10, 20);
           break;
         case 5:
-          r.translate(-10,5);
+          r.translate(-10, 5);
           break;
         case 6:
-          r.translate(-10,-10);
+          r.translate(-10, -10);
           break;
       }
     }
@@ -111,10 +114,15 @@ public class Turreted extends Embellishment implements EditablePiece {
   }
 
   protected int getVehicleCA() {
-    for (GamePiece p = piece;p instanceof Decorator;p = ((Decorator) p).getInner()) {
-      if (p instanceof Embellishment
-          && p.getType().indexOf("Rotate") >= 0) {
-        return ((Embellishment) p).getValue() + 1;
+    if (rotateWithCounter) {
+      return 3;
+    }
+    else {
+      for (GamePiece p = piece; p instanceof Decorator; p = ((Decorator) p).getInner()) {
+        if (p instanceof Embellishment
+            && p.getType().indexOf("Rotate") >= 0) {
+          return ((Embellishment) p).getValue() + 1;
+        }
       }
     }
     return -1;
@@ -129,7 +137,11 @@ public class Turreted extends Embellishment implements EditablePiece {
   }
 
   public String myGetType() {
-    return ID + front + ';' + back + ';' + upKey + ';' + downKey;
+    String s = ID + front + ';' + back + ';' + upKey + ';' + downKey;
+    if (rotateWithCounter) {
+      s += ";r";
+    }
+    return s;
   }
 
   public String myGetState() {

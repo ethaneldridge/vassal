@@ -26,7 +26,7 @@ import java.awt.*;
 import java.util.StringTokenizer;
 
 /**
- * A GamePiece that draws itself as a box of a fixed size and color
+ * A trait that displays the vehicle/gun info (from the back of the physical counter) as a simple box of text
  */
 public class TextInfo extends Decorator implements EditablePiece {
   public static final String ID = "info;";
@@ -92,7 +92,7 @@ public class TextInfo extends Decorator implements EditablePiece {
     }
     else {
       Rectangle infoRec = new Rectangle
-          (getInfoOffset().x,getInfoOffset().y,
+          (getInfoOffset().x, getInfoOffset().y,
            infoSize.width, infoSize.height);
       return r.union(infoRec);
     }
@@ -182,9 +182,11 @@ public class TextInfo extends Decorator implements EditablePiece {
           g.setColor(Color.red);
           break;
         case 'R':
-          g.drawOval(x - 3, y - fm.getAscent(),
-                     fm.getAscent() + 2,
-                     fm.getAscent() + 2);
+          if (s.length() == 1) {
+            g.drawOval(x - 3, y - fm.getAscent(),
+                       fm.getAscent() + 2,
+                       fm.getAscent() + 2);
+          }
           break;
         case ',':
           s = "  ";
