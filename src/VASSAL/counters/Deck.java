@@ -279,6 +279,7 @@ public class Deck extends Stack {
     setContents(l.iterator());
     tracker.addPiece(this);
     tracker.repaint();
+    commands = null; // Force rebuild of popup menu
   }
 
   public Command setContentsFaceDown(boolean value) {

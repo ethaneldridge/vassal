@@ -22,6 +22,7 @@ import VASSAL.build.AbstractBuildable;
 import VASSAL.build.Buildable;
 import VASSAL.build.module.Map;
 import VASSAL.counters.PieceFinder;
+import VASSAL.counters.Deck;
 
 import java.awt.event.MouseListener;
 import java.awt.event.MouseEvent;
@@ -31,9 +32,24 @@ import java.awt.event.MouseEvent;
  */
 public class MapCenterer extends AbstractBuildable implements MouseListener {
   private Map map;
+  private PieceFinder finder;
   public void addTo(Buildable b) {
+    finder = createPieceFinder();
     map = (Map) b;
     map.addLocalMouseListener(this);
+  }
+
+  /**
+   * When the user right-clicks on the Map, the view will center on the location
+   * of the click unless this {@link PieceFinder} locates a piece there.
+   * @return
+   */
+  protected PieceFinder createPieceFinder() {
+    return new PieceFinder.PieceInStack() {
+      public Object visitDeck(Deck d) {
+        return d.getShape().contains(pt) ? d : null;
+      }
+    };
   }
 
   public String[] getAttributeNames() {
@@ -49,8 +65,7 @@ public class MapCenterer extends AbstractBuildable implements MouseListener {
 
   public void mouseReleased(MouseEvent e) {
     if (e.isMetaDown()
-      && map.findPiece(e.getPoint(), PieceFinder.PIECE_IN_STACK) == null
-      /*&& !e.isConsumed()*/) {
+      && map.findPiece(e.getPoint(), finder) == null) {
       Map.View m = (Map.View) e.getSource();
       m.getMap().centerAt(e.getPoint());
     }

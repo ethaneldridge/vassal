@@ -1180,40 +1180,6 @@ public class Map extends AbstractConfigurable implements GameComponent,
       c = tracker.getMoveCommand();
     }
     return c;
-/*
-    Command comm = null;
-    String oldState = null;
-    String oldParentState = null;
-    Stack oldParent = null;
-    if (GameModule.getGameModule().getGameState()
-      .getPieceForId(piece.getId()) != null) {
-      oldState = piece.getState();
-    }
-    if (piece.getParent() != null) {
-      oldParent = piece.getParent();
-      oldParentState = piece.getParent().getState();
-    }
-    piece.setPosition(pt);
-    addPiece(piece);
-    if (oldState != null) {
-      comm = new ChangePiece(piece.getId(), oldState, piece.getState());
-    }
-    else {
-      GameModule.getGameModule().getGameState().addPiece(piece);
-      comm = new AddPiece(piece);
-    }
-    if (oldParent != null) {
-      if (oldParent.getPieceCount() == 0) {
-        removePiece(oldParent);
-        oldParent.setMap(null);
-        comm = comm.append(new RemovePiece(oldParent));
-      }
-      else {
-        comm = comm.append(new ChangePiece(oldParent.getId(), oldParentState, oldParent.getState()));
-      }
-    }
-    return comm;
-*/
   }
 
   /**
@@ -1224,19 +1190,50 @@ public class Map extends AbstractConfigurable implements GameComponent,
    *
    * @see StackMetrics#merge
    */
-  public Command placeOrMerge(GamePiece p, Point pt) {
+  public Command placeOrMerge(final GamePiece p, final Point pt) {
     GamePiece[] stack = pieces.getPieces();
-    if (getStackMetrics().isStackingEnabled()
-        && !Boolean.TRUE.equals(p.getProperty(Properties.NO_STACK))) {
-      for (int i = 0; i < stack.length; ++i) {
-        if (stack[i].getPosition().equals(pt)
-            && !Boolean.TRUE.equals(stack[i].getProperty(Properties.NO_STACK))
-            && (!(stack[i] instanceof Stack) || ((Stack) stack[i]).getPieceCount() > 0)) {
-          return getStackMetrics().merge(stack[i], p);
+    PieceVisitorDispatcher dispatch = new DeckVisitorDispatcher(new DeckVisitor() {
+      public Object visitDeck(Deck d) {
+        if (d.getPosition().equals(pt)) {
+          return getStackMetrics().merge(d, p);
+        }
+        else {
+          return null;
         }
       }
+
+      public Object visitStack(Stack s) {
+        if (s.getPosition().equals(pt)
+            && getStackMetrics().isStackingEnabled()
+            && !Boolean.TRUE.equals(p.getProperty(Properties.NO_STACK))
+            && s.getPieceCount() > 0) {
+          return getStackMetrics().merge(s, p);
+        }
+        else {
+          return null;
+        }
+      }
+
+      public Object visitDefault(GamePiece piece) {
+        if (piece.getPosition().equals(pt)
+            && getStackMetrics().isStackingEnabled()
+            && !Boolean.TRUE.equals(p.getProperty(Properties.NO_STACK))
+            && !Boolean.TRUE.equals(piece.getProperty(Properties.NO_STACK))) {
+          return getStackMetrics().merge(piece, p);
+        }
+        else {
+          return null;
+        }
+      }
+    });
+    Command c = null;
+    for (int i = 0; i < stack.length && c == null; ++i) {
+      c = (Command) dispatch.accept(stack[i]);
     }
-    return placeAt(p, pt);
+    if (c == null) {
+      c = placeAt(p, pt);
+    }
+    return c;
   }
 
   /**
