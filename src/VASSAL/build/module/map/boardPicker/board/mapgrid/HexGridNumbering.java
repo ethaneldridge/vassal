@@ -127,17 +127,11 @@ public class HexGridNumbering extends RegularGridNumbering {
       alignment = Labeler.CENTER;
       offset = 0;
     }
-    int column = minCol;
-    int nextColumn = reversed ? -1 : 1;
-    int nextRow = reversed ? -1 : 0;
 
-    double gridx = 0, gridy = 0;
     Point gridp = new Point();
 
-    for (double x = xmin; x < xmax; x += 2 * deltaX, gridx += 2 * deltaX, column += 2 * nextColumn) {
-      int row = minRow;
-      gridy = 0;
-      for (double y = ymin; y < ymax; y += deltaY, gridy += deltaY, row += nextColumn) {
+    for (double x = xmin; x < xmax; x += 2 * deltaX) {
+      for (double y = ymin; y < ymax; y += deltaY) {
 
         p.setLocation((int) x, (int) y + offset);
         gridp = new Point(p);
@@ -148,6 +142,10 @@ public class HexGridNumbering extends RegularGridNumbering {
         grid.rotateIfSideways(gridp);
         gridp.x = (int) Math.round(gridp.x/scale);
         gridp.y = (int) Math.round(gridp.y/scale);
+        if (reversed) {
+          gridp.x = bounds.width - gridp.x;
+          gridp.y = bounds.height - gridp.y;
+        }
 
         Labeler.drawLabel(g, getName(getRow(gridp), getColumn(gridp)),
                           p.x,
@@ -165,6 +163,10 @@ public class HexGridNumbering extends RegularGridNumbering {
         grid.rotateIfSideways(gridp);
         gridp.x = (int) Math.round(gridp.x/scale);
         gridp.y = (int) Math.round(gridp.y/scale);
+        if (reversed) {
+          gridp.x = bounds.width - gridp.x;
+          gridp.y = bounds.height - gridp.y;
+        }
 
         Labeler.drawLabel(g, getName(getRow(gridp), getColumn(gridp)),
                           p.x,
@@ -242,7 +244,6 @@ public class HexGridNumbering extends RegularGridNumbering {
         }
       }
       else {
-        int rawCol = getRawColumn(p);
         if (getRawColumn(p) % 2 != 0) {
           if (vDescending) {
             ny--;
@@ -262,13 +263,13 @@ public class HexGridNumbering extends RegularGridNumbering {
     Point origin = grid.getOrigin();
     double dx = grid.getHexWidth();
     double dy = grid.getHexSize();
-    int nx = (int) Math.floor((p.x - origin.x + dx / 2) / dx);
+    int nx = (int) Math.round((p.x - origin.x) / dx);
     int ny;
     if (nx % 2 == 0) {
-      ny = (int) Math.floor((p.y - origin.y + dy / 2) / dy);
+      ny = (int) Math.round((p.y - origin.y) / dy);
     }
     else {
-      ny = (int) Math.floor((p.y - origin.y) / dy);
+      ny = (int) Math.round((p.y - origin.y - dy/2) / dy);
     }
     return ny;
   }
