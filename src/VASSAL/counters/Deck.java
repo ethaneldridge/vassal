@@ -29,6 +29,7 @@ import VASSAL.configure.ColorConfigurer;
 import VASSAL.tools.FormattedString;
 import VASSAL.tools.PlayerIdFormattedString;
 import VASSAL.tools.SequenceEncoder;
+import VASSAL.tools.UniqueIdManager;
 
 import javax.swing.*;
 import java.awt.*;
@@ -326,7 +327,7 @@ public class Deck extends Stack {
 
   public String getState() {
     SequenceEncoder se = new SequenceEncoder(';');
-    se.append(getMap() == null ? "null" : getMap().getId())
+    se.append(getMap() == null ? "null" : UniqueIdManager.getIdentifier(getMap()))
         .append("" + getPosition().x)
         .append("" + getPosition().y);
     se.append("" + faceDown);

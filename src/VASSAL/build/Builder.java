@@ -137,6 +137,8 @@ public abstract class Builder {
 
       // Write the DOM document to the file
       Transformer xformer = TransformerFactory.newInstance().newTransformer();
+      xformer.setOutputProperty(OutputKeys.INDENT, "yes");
+      xformer.setOutputProperty("{http://xml.apache.org/xslt}indent-amount", "4");
       xformer.transform(source, result);
     }
     catch (TransformerException e) {

@@ -32,6 +32,7 @@ import VASSAL.configure.ValidityChecker;
 import VASSAL.configure.ValidationReport;
 import VASSAL.configure.ConfigureTree;
 import VASSAL.tools.SequenceEncoder;
+import VASSAL.tools.UniqueIdManager;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 import org.w3c.dom.Node;
@@ -550,7 +551,8 @@ public class BoardPicker extends JDialog
   }
 
   public Command decode(String command) {
-    if (command.startsWith(map.getId() + ID)) {
+    if (command.startsWith(map.getId() + ID)
+      || command.startsWith(map.getConfigureName()+ID)) {
       Vector bds = new Vector();
       SequenceEncoder.Decoder st = new SequenceEncoder.Decoder(command, '\t');
       st.nextToken();
@@ -582,7 +584,7 @@ public class BoardPicker extends JDialog
     if (c instanceof SetBoards
       && map != null
       && ((SetBoards)c).target == this) {
-      SequenceEncoder se = new SequenceEncoder(map.getId() + ID, '\t');
+      SequenceEncoder se = new SequenceEncoder(UniqueIdManager.getIdentifier(map) + ID, '\t');
       Vector bds = ((SetBoards) c).bds;
       if (bds != null) {
         for (Enumeration e = bds.elements();

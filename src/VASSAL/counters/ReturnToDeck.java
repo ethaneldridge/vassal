@@ -23,6 +23,7 @@ import VASSAL.build.module.map.DrawPile;
 import VASSAL.command.Command;
 import VASSAL.configure.StringConfigurer;
 import VASSAL.tools.SequenceEncoder;
+import VASSAL.tools.UniqueIdManager;
 
 import javax.swing.*;
 import java.awt.*;
@@ -165,7 +166,7 @@ public class ReturnToDeck extends Decorator implements EditablePiece {
           d.setTitle("Select Deck");
           d.setVisible(true);
           if (d.getTarget() != null) {
-            deckId = d.getTarget().getConfigureName();
+            deckId = UniqueIdManager.getIdentifier((UniqueIdManager.Identifyable)d.getTarget());
             updateDeckName();
           }
         }

@@ -1,6 +1,7 @@
 package VASSAL.command;
 
 import VASSAL.counters.GamePiece;
+import VASSAL.tools.UniqueIdManager;
 
 import java.awt.*;
 
@@ -52,7 +53,7 @@ public class MoveTracker {
   }
 
   private String getMapId() {
-    return piece.getMap() == null ? null : piece.getMap().getId();
+    return piece.getMap() == null ? null : UniqueIdManager.getIdentifier(piece.getMap());
   }
 
   public Command getMoveCommand() {

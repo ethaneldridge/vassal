@@ -42,6 +42,7 @@ import java.util.List;
  */
 public class SpecialDiceButton extends AbstractConfigurable implements CommandEncoder, UniqueIdManager.Identifyable {
   private static UniqueIdManager idMgr = new UniqueIdManager("SpecialDiceButton");
+  public static final String SHOW_RESULTS_COMMAND = "SHOW_RESULTS\t";
 
   private List dice = new ArrayList();
   protected java.util.Random ran;
@@ -481,11 +482,11 @@ public class SpecialDiceButton extends AbstractConfigurable implements CommandEn
   public String encode(Command c) {
     if (c instanceof ShowResults) {
       ShowResults c2 = (ShowResults) c;
-      SequenceEncoder se = new SequenceEncoder(c2.target.getId(), '\t');
+      SequenceEncoder se = new SequenceEncoder(UniqueIdManager.getIdentifier(c2.target), '\t');
       for (int i = 0; i < c2.rolls.length; ++i) {
         se.append(c2.rolls[i] + "");
       }
-      return se.getValue();
+      return SHOW_RESULTS_COMMAND + se.getValue();
     }
     else {
       return null;
@@ -493,9 +494,18 @@ public class SpecialDiceButton extends AbstractConfigurable implements CommandEn
   }
 
   public Command decode(String s) {
-    if (s.startsWith(getId() + '\t')) {
-      SequenceEncoder.Decoder st = new SequenceEncoder.Decoder(s, '\t');
+    SequenceEncoder.Decoder st = null;
+    if (s.startsWith(SHOW_RESULTS_COMMAND + getConfigureName())
+        || s.startsWith(SHOW_RESULTS_COMMAND + getId())) {
+      st = new SequenceEncoder.Decoder(s, '\t');
       st.nextToken();
+      st.nextToken();
+    }
+    else if (s.startsWith(getId() + '\t')) { // Backward compatibility
+      st = new SequenceEncoder.Decoder(s, '\t');
+      st.nextToken();
+    }
+    if (st != null) {
       List l = new ArrayList();
       while (st.hasMoreTokens()) {
         l.add(st.nextToken());

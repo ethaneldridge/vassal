@@ -8,6 +8,7 @@ import VASSAL.build.module.documentation.HelpFile;
 import VASSAL.build.module.map.boardPicker.Board;
 import VASSAL.command.Command;
 import VASSAL.tools.SequenceEncoder;
+import VASSAL.tools.UniqueIdManager;
 import VASSAL.configure.IntConfigurer;
 import VASSAL.configure.ChooseComponentDialog;
 import VASSAL.configure.StringConfigurer;
@@ -280,7 +281,7 @@ public class SendToLocation extends Decorator implements EditablePiece {
       SequenceEncoder se = new SequenceEncoder(';');
       se.append(nameInput.getValueString())
         .append(keyInput.getKey())
-        .append(map == null ? "" : map.getId())
+        .append(map == null ? "" : UniqueIdManager.getIdentifier(map))
         .append(boardNameInput.getText())
         .append(xInput.getValueString())
         .append(yInput.getValueString());

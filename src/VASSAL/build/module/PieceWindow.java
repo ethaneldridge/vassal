@@ -180,7 +180,7 @@ public class PieceWindow extends Widget implements UniqueIdManager.Identifyable 
   public void addTo(Buildable parent) {
     idMgr.add(this);
 
-    String key = PositionOption.key + getId();
+    String key = PositionOption.key + getConfigureName();
     if ("PieceWindow0".equals(id) && GlobalOptions.getInstance().isUseSingleWindow()) {
       mainWindowDock = new ComponentSplitter().splitLeft(GameModule.getGameModule().getControlPanel(), root, false);
     }

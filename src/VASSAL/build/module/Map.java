@@ -417,7 +417,8 @@ public class Map extends AbstractConfigurable implements GameComponent,
 
     validator = new CompoundValidityChecker
         (new MandatoryComponent(this,BoardPicker.class),
-         new MandatoryComponent(this,StackMetrics.class));
+         new MandatoryComponent(this,StackMetrics.class))
+          .append(idMgr);
 
     if (Info.isDndEnabled()) {
       DragGestureListener dgl = new DragGestureListener() {
@@ -1222,7 +1223,7 @@ public class Map extends AbstractConfigurable implements GameComponent,
           ((RootPaneContainer) topWindow).getContentPane().add("North", getToolBar());
           ((RootPaneContainer) topWindow).getContentPane().add("Center", scroll);
           topWindow.setSize(600, 400);
-          PositionOption option = new PositionOption(PositionOption.key + getId(), topWindow);
+          PositionOption option = new PositionOption(PositionOption.key + UniqueIdManager.getIdentifier(this), topWindow);
           GameModule.getGameModule().getPrefs().addOption(option);
         }
         theMap.getTopLevelAncestor().setVisible(!launchButton.isVisible());
@@ -1635,16 +1636,7 @@ public class Map extends AbstractConfigurable implements GameComponent,
   }
 
   public static Map getMapById(String id) {
-    Map map = null;
-    for (Enumeration e = GameModule.getGameModule().getComponents(Map.class);
-         e.hasMoreElements();) {
-      Map m = (Map) e.nextElement();
-      if (m.getId().equals(id)) {
-        map = m;
-        break;
-      }
-    }
-    return map;
+    return (Map)idMgr.findInstance(id);
   }
 
   /**

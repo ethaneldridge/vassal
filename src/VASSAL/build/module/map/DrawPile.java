@@ -20,6 +20,7 @@ package VASSAL.build.module.map;
 
 import VASSAL.build.AutoConfigurable;
 import VASSAL.build.GameModule;
+import VASSAL.build.Buildable;
 import VASSAL.build.module.Map;
 import VASSAL.build.module.documentation.HelpFile;
 import VASSAL.build.module.map.boardPicker.Board;
@@ -70,6 +71,11 @@ public class DrawPile extends SetupStack {
   };
   private static UniqueIdManager idMgr = new UniqueIdManager("Deck");
 
+  public void addTo(Buildable parent) {
+    super.addTo(parent);
+    idMgr.add(this);
+  }
+
   protected JPopupMenu buildPopup() {
     JPopupMenu popup = new JPopupMenu();
     return popup.getComponentCount() > 0 ? popup : null;
@@ -83,14 +89,7 @@ public class DrawPile extends SetupStack {
    * @see VASSAL.build.AbstractConfigurable#getConfigureName
    */
   public static DrawPile findDrawPile(String id) {
-    for (Iterator it = idMgr.getAllInstances(); it.hasNext();) {
-      DrawPile p = (DrawPile) it.next();
-      if (id.equals(p.getId())
-          || id.equals(p.getConfigureName())) {
-        return p;
-      }
-    }
-    return null;
+    return (DrawPile) idMgr.findInstance(id);
   }
 
 

@@ -30,6 +30,7 @@ import VASSAL.command.Command;
 import VASSAL.command.RemovePiece;
 import VASSAL.tools.DataArchive;
 import VASSAL.tools.SequenceEncoder;
+import VASSAL.tools.UniqueIdManager;
 
 import javax.swing.*;
 import java.awt.*;
@@ -406,7 +407,7 @@ public class BasicPiece implements EditablePiece {
 
   public String getState() {
     SequenceEncoder se = new SequenceEncoder(';');
-    String mapName = map == null ? "null" : map.getId();
+    String mapName = map == null ? "null" : UniqueIdManager.getIdentifier(map);
     se.append(mapName);
     se.append("" + pos.x).append("" + pos.y);
     return se.getValue();
@@ -419,14 +420,7 @@ public class BasicPiece implements EditablePiece {
     String mapId = st.nextToken();
     Map newMap = null;
     if (!"null".equals(mapId)) {
-      for (Enumeration e = GameModule.getGameModule().getComponents(Map.class);
-           e.hasMoreElements();) {
-        Map m = (Map) e.nextElement();
-        if (mapId.equals(m.getId())) {
-          newMap = m;
-          break;
-        }
-      }
+      newMap = Map.getMapById(mapId);
       if (newMap == null) {
         System.err.println("Could not find map " + mapId);
         return;

@@ -13,10 +13,15 @@
  * Library General Public License for more details.
  *
  * You should have received a copy of the GNU Library General Public
- * License along with this library; if not, copies are available 
+ * License along with this library; if not, copies are available
  * at http://www.opensource.org.
  */
 package VASSAL.tools;
+
+import VASSAL.configure.ValidityChecker;
+import VASSAL.configure.ValidationReport;
+import VASSAL.configure.ConfigureTree;
+import VASSAL.build.Buildable;
 
 import java.util.List;
 import java.util.ArrayList;
@@ -25,12 +30,20 @@ import java.util.Iterator;
 /**
  * A class for assigning unique identifiers to objects.  Identifiers will be of
  * the form prefix#, where prefix is specified at initialization and the #
- * is an increasing digit.  When an object is removed, the other objects are reassigned
- * identifiers so that they end up with the same identifier they would have if the removed object
- * had never existed
+ * is an increasing digit.  Components will have the same ID provided they
+ * are loaded in the same order
+ *
+ * Unfortunately, this approach is flawed.  If a module is edited, saved games from previous
+ * versions can become broken.  Worse, two players with different extensions loaded
+ * could have incompatible behavior.
+ *
+ * The preferred way to have unique identifiers is to allow the user to provide
+ * names and use a {@link VASSAL.configure.ValidityChecker} to ensure that the
+ * names are unique.  This class provides some support for using this approach while
+ * providing backward compatibility with old saved games and modules.
  */
-public class UniqueIdManager {
-  private List instances=new ArrayList();
+public class UniqueIdManager implements ValidityChecker {
+  private List instances = new ArrayList();
   private String prefix;
 
   public UniqueIdManager(String prefix) {
@@ -38,18 +51,34 @@ public class UniqueIdManager {
   }
 
   public void add(Identifyable i) {
-    i.setId(prefix+instances.size());
+    i.setId(prefix + instances.size());
     instances.add(i);
   }
 
   public void remove(Identifyable i) {
     int index = instances.indexOf(i);
     if (index >= 0) {
-      for (int j=index+1,n=instances.size();j<n;++j) {
-        ((Identifyable)instances.get(j)).setId(prefix+(j-1));
+      for (int j = index + 1,n = instances.size(); j < n; ++j) {
+        ((Identifyable) instances.get(j)).setId(prefix + (j - 1));
       }
       instances.remove(index);
     }
+  }
+
+  /**
+   * Make a best gues for a unique identifier for the target.
+   * Use {@link Identifyable#getConfigureName if non-null, otherwise
+   * use {@link Identifyable#getId
+   * @param target
+   * @return
+   */
+  public static String getIdentifier(Identifyable target) {
+    String id = target.getConfigureName();
+    if (id == null
+      || id.length() == 0) {
+      id = target.getId();
+    }
+    return id;
   }
 
   public Iterator getAllInstances() {
@@ -57,10 +86,51 @@ public class UniqueIdManager {
   }
 
   /**
+   * Return the first instance whose name or id matches the argument
+   * @param id
+   * @return
+   */
+  public Identifyable findInstance(String id) {
+    for (Iterator it = instances.iterator(); it.hasNext();) {
+      Identifyable identifyable = (Identifyable) it.next();
+      if (id.equals(identifyable.getConfigureName())
+        || id.equals(identifyable.getId())) {
+        return identifyable;
+      }
+    }
+    return null;
+  }
+
+  /** Ensures that no other instance of the same class has the same name */
+  public void validate(Buildable target, ValidationReport report) {
+    if (target instanceof Identifyable) {
+      Identifyable iTarget = (Identifyable) target;
+      if (iTarget.getConfigureName() == null
+          || iTarget.getConfigureName().length() == 0) {
+        report.addWarning("A " + ConfigureTree.getConfigureName(target.getClass()) + " has not been given a name");
+      }
+      else if (instances.contains(iTarget)) {
+        for (Iterator it = instances.iterator(); it.hasNext();) {
+          Identifyable identifyable = (Identifyable) it.next();
+          if (identifyable != iTarget
+              && iTarget.getConfigureName().equals(identifyable.getConfigureName())) {
+            report.addWarning("More than one " + ConfigureTree.getConfigureName(target.getClass())
+                              + " named " + iTarget.getConfigureName());
+            break;
+          }
+        }
+      }
+    }
+  }
+
+  /**
    * An object with an identifier that can be manipulated by a {@link UniqueIdManager}
    */
   public static interface Identifyable {
     void setId(String id);
+
     String getId();
+
+    String getConfigureName(); // User-assigned name
   }
 }
