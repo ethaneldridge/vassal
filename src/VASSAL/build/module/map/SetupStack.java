@@ -211,13 +211,9 @@ public class SetupStack extends AbstractConfigurable implements GameComponent, C
       PieceSlot slot = (PieceSlot) c[i];
       GamePiece p = slot.getPiece();
       p = cloner.clonePiece(p);
-      p.setMap(map);
-      p.setPosition(pos);
       GameModule.getGameModule().getGameState().addPiece(p);
       s.add(p);
     }
-    s.setMap(map);
-    s.setPosition(pos);
     GameModule.getGameModule().getGameState().addPiece(s);
     return s;
   }
