@@ -13,7 +13,7 @@
  * Library General Public License for more details.
  *
  * You should have received a copy of the GNU Library General Public
- * License along with this library; if not, copies are available 
+ * License along with this library; if not, copies are available
  * at http://www.opensource.org.
  */
 package VASL.build.module;
@@ -26,37 +26,37 @@ import VASSAL.build.module.DiceButton;
  * Adds ability to detect SAN rolls
  */
 public class ASLDiceButton extends DiceButton {
-    private ScenInfo info;
+  private ScenInfo info;
 
-    public void addTo(Buildable b) {
-	super.addTo(b);
-	info = (ScenInfo)GameModule.getGameModule().getComponents(ScenInfo.class).nextElement();
+  public void addTo(Buildable b) {
+    super.addTo(b);
+    info = (ScenInfo) GameModule.getGameModule().getComponents(ScenInfo.class).nextElement();
+  }
+
+  protected void DR() {
+    String val = getReportPrefix();
+    int total = 0;
+    for (int i = 0; i < nDice; ++i) {
+      int roll = (int) (ran.nextFloat() * nSides + 1) + plus;
+      total += roll;
+      val += roll;
+      if (i < nDice - 1) {
+        val += ",";
+      }
     }
 
-    protected void DR() {
-        String val = getReportPrefix();
-        int total = 0;
-        for (int i=0;i<nDice;++i) {
-            int roll = (int)(ran.nextFloat()*nSides+1) + plus;
-	    total += roll;
-	    val += roll;
-	    if (i < nDice-1) {
-                val += ",";
-	    }
-        }
-
-        val +=getReportSuffix();
-	if (total == info.getAxisSAN()) {
-	    if (total == info.getAlliedSAN()) {
-		val += " Axis/Allied SAN";
-	    }
-	    else {
-		val += " Axis SAN";
-	    }
-	}
-	else if (total == info.getAlliedSAN()) {
-	    val += " Allied SAN";
-	}
-        GameModule.getGameModule().getChatter().send(val);
+    val += getReportSuffix();
+    if (total == info.getAxisSAN()) {
+      if (total == info.getAlliedSAN()) {
+        val += " Axis/Allied SAN";
+      }
+      else {
+        val += " Axis SAN";
+      }
     }
+    else if (total == info.getAlliedSAN()) {
+      val += " Allied SAN";
+    }
+    GameModule.getGameModule().getChatter().send(val);
+  }
 }

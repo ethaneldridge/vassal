@@ -13,7 +13,7 @@
  * Library General Public License for more details.
  *
  * You should have received a copy of the GNU Library General Public
- * License along with this library; if not, copies are available 
+ * License along with this library; if not, copies are available
  * at http://www.opensource.org.
  */
 package VASL.build.module.map.boardPicker;
@@ -53,7 +53,7 @@ public class SSROverlay extends Overlay {
     if (o != null) {
       try {
         image = DataArchive.findImage
-          (o.getFile(), name);
+            (o.getFile(), name);
       }
       catch (java.io.IOException e) {
         image = null;
@@ -62,7 +62,7 @@ public class SSROverlay extends Overlay {
     else {
       try {
         image = DataArchive.findImage
-          (b.getFile(), name);
+            (b.getFile(), name);
       }
       catch (java.io.IOException e2) {
         image = null;

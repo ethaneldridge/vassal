@@ -13,7 +13,7 @@
  * Library General Public License for more details.
  *
  * You should have received a copy of the GNU Library General Public
- * License along with this library; if not, copies are available 
+ * License along with this library; if not, copies are available
  * at http://www.opensource.org.
  */
 package VASL.build.module.map.boardPicker;
@@ -22,7 +22,7 @@ public class BoardException extends Exception {
   public BoardException() {
     super();
   }
-  
+
   public BoardException(String s) {
     super(s);
   }

@@ -13,7 +13,7 @@
  * Library General Public License for more details.
  *
  * You should have received a copy of the GNU Library General Public
- * License along with this library; if not, copies are available 
+ * License along with this library; if not, copies are available
  * at http://www.opensource.org.
  */
 package VASL.build.module.map;
@@ -49,7 +49,7 @@ public class HindranceKeeper extends AbstractBuildable implements Drawable, KeyL
     map = (Map) b;
     map.addDrawComponent(this);
     GameModule.getGameModule().getPrefs().addOption
-      ("LOS", new BooleanConfigurer(DRAW_HINDRANCES, "Retain LOS-hindrance counters (toggle with shift-F10)"));
+        ("LOS", new BooleanConfigurer(DRAW_HINDRANCES, "Retain LOS-hindrance counters (toggle with shift-F10)"));
     map.getView().addKeyListener(this);
   }
 
@@ -66,7 +66,7 @@ public class HindranceKeeper extends AbstractBuildable implements Drawable, KeyL
 
   public void draw(Graphics g, Map m) {
     if (!m.isPiecesVisible()
-      && Boolean.TRUE.equals(GameModule.getGameModule().getPrefs().getValue(DRAW_HINDRANCES))) {
+        && Boolean.TRUE.equals(GameModule.getGameModule().getPrefs().getValue(DRAW_HINDRANCES))) {
       GamePiece[] p = m.getPieces();
       for (int i = 0; i < p.length; ++i) {
         if (p[i] instanceof Stack) {
@@ -84,8 +84,8 @@ public class HindranceKeeper extends AbstractBuildable implements Drawable, KeyL
 
   private void draw(GamePiece p, Map map, Graphics g) {
     if (p.getProperty(ASLProperties.HINDRANCE) != null
-      && !Boolean.TRUE.equals(p.getProperty(Properties.INVISIBLE_TO_ME))
-      && !Boolean.TRUE.equals(p.getProperty(Properties.OBSCURED_TO_ME))) {
+        && !Boolean.TRUE.equals(p.getProperty(Properties.INVISIBLE_TO_ME))
+        && !Boolean.TRUE.equals(p.getProperty(Properties.OBSCURED_TO_ME))) {
       java.awt.Point pt = map.componentCoordinates(p.getPosition());
       p.draw(g, pt.x, pt.y, map.getView(), map.getZoom());
     }
@@ -96,7 +96,7 @@ public class HindranceKeeper extends AbstractBuildable implements Drawable, KeyL
 
   public void keyReleased(KeyEvent e) {
     if (!map.isPiecesVisible()
-      && KeyStroke.getKeyStrokeForEvent(e).equals(KeyStroke.getKeyStroke(KeyEvent.VK_F10, KeyEvent.SHIFT_MASK, true))) {
+        && KeyStroke.getKeyStrokeForEvent(e).equals(KeyStroke.getKeyStroke(KeyEvent.VK_F10, KeyEvent.SHIFT_MASK, true))) {
       Configurer config = GameModule.getGameModule().getPrefs().getOption(DRAW_HINDRANCES);
       config.setValue(Boolean.TRUE.equals(config.getValue()) ? Boolean.FALSE : Boolean.TRUE);
       map.getView().repaint();

@@ -13,7 +13,7 @@
  * Library General Public License for more details.
  *
  * You should have received a copy of the GNU Library General Public
- * License along with this library; if not, copies are available 
+ * License along with this library; if not, copies are available
  * at http://www.opensource.org.
  */
 package VASL.counters;
@@ -112,7 +112,7 @@ public class Concealment extends Decorator implements EditablePiece {
         }
         for (int i = lastIndex; i > newIndex; --i) {
           GamePiece child = parent.getPieceAt(i);
-          if (Decorator.getDecorator(child,Concealment.class) != null) {
+          if (Decorator.getDecorator(child, Concealment.class) != null) {
             break;
           }
           c.append(setConcealed(child, false));
@@ -150,7 +150,7 @@ public class Concealment extends Decorator implements EditablePiece {
   public boolean canConceal(GamePiece p) {
     Concealable c = (Concealable) Decorator.getDecorator(p, Concealable.class);
     if (c == null
-      || !c.isMaskableBy(GameModule.getUserId())) {
+        || !c.isMaskableBy(GameModule.getUserId())) {
       return false;
     }
     else {

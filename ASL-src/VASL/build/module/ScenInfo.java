@@ -13,7 +13,7 @@
  * Library General Public License for more details.
  *
  * You should have received a copy of the GNU Library General Public
- * License along with this library; if not, copies are available 
+ * License along with this library; if not, copies are available
  * at http://www.opensource.org.
  */
 package VASL.build.module;
@@ -223,7 +223,7 @@ public class ScenInfo extends AbstractBuildable implements GameComponent, Comman
   }
 
   private int getSAN(String s) {
-    int n=0;
+    int n = 0;
     try {
       n = Integer.parseInt(s.trim());
     }
@@ -268,8 +268,8 @@ public class ScenInfo extends AbstractBuildable implements GameComponent, Comman
 
     SequenceEncoder se = new SequenceEncoder('\t');
     se.append(turn.movesFirst).append(turn.player).append("" + turn.current)
-      .append(AxisELR.getText()).append(AxisSAN.getText())
-      .append(AlliedELR.getText()).append(AlliedSAN.getText());
+        .append(AxisELR.getText()).append(AxisSAN.getText())
+        .append(AlliedELR.getText()).append(AlliedSAN.getText());
     se.append(notes.getValueString());
     se.append(GameModule.getUserId()).append(myPrivate.getValueString());
     se.append(opponentId).append(yourPrivate.getValueString());

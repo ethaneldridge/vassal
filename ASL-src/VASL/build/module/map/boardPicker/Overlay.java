@@ -13,7 +13,7 @@
  * Library General Public License for more details.
  *
  * You should have received a copy of the GNU Library General Public
- * License along with this library; if not, copies are available 
+ * License along with this library; if not, copies are available
  * at http://www.opensource.org.
  */
 package VASL.build.module.map.boardPicker;
@@ -214,13 +214,13 @@ public class Overlay implements Cloneable {
 
   private static String trimName(String sin) {
     if (sin.charAt(0) <= '9' &&
-      sin.charAt(0) >= '0')
+        sin.charAt(0) >= '0')
       return sin.substring(0, sin.length() - 1);
     String s = sin.substring(0, sin.length() - 1);
     int n = s.length() - 1;
     while (s.charAt(n) <= '9' &&
-      s.charAt(n) >= '0' &&
-      n >= 0)
+        s.charAt(n) >= '0' &&
+        n >= 0)
       --n;
     if (n >= 0)
       s = s.substring(0, n + 1);
@@ -290,12 +290,12 @@ public class Overlay implements Cloneable {
   public void check(ASLBoard board) throws BoardException {
     if (isSingleHex()) {
       if (!hex2.equals(hex1) &&
-        hex1.length() > 0 && hex2.length() > 0)
+          hex1.length() > 0 && hex2.length() > 0)
         throw new BoardException("Specify a single hex");
     }
     else if (hex1.length() == 0 ||
-      hex2.length() == 0 ||
-      hex1.equals(hex2)) {
+        hex2.length() == 0 ||
+        hex1.equals(hex2)) {
       throw new BoardException("Specify two hexes");
     }
 
@@ -303,11 +303,11 @@ public class Overlay implements Cloneable {
       Point p1 = board.getGrid().getLocation(hex1);
       Point p2 = board.getGrid().getLocation(hex2);
       int dx = board.getGrid().getLocation("B1").x
-        - board.getGrid().getLocation("A1").x;
+          - board.getGrid().getLocation("A1").x;
       int dy = board.getGrid().getLocation("B1").y
-        - board.getGrid().getLocation("B0").y;
+          - board.getGrid().getLocation("B0").y;
       if (Math.abs(p2.x - p1.x) > 1.1 * dx ||
-        Math.abs(p2.y - p1.y) > 1.1 * dy)
+          Math.abs(p2.y - p1.y) > 1.1 * dy)
         throw new BoardException("Illegal coordinates");
 
       char c = getOrientation(board);
@@ -337,7 +337,7 @@ public class Overlay implements Cloneable {
       return board.getGrid().getLocation(origin);
     }
     catch (Exception e) {
-      throw new BoardException("Illegal orientation \'"+orient+"\' for overlay " + name);
+      throw new BoardException("Illegal orientation \'" + orient + "\' for overlay " + name);
     }
 
     /*
@@ -456,36 +456,36 @@ public class Overlay implements Cloneable {
     else if ("ef3".equals(ovr))
       o = "c5;d3;e2;e4;g3;f5";
     else if ("be1".equals(ovr) ||
-      "be2".equals(ovr) ||
-      "be3".equals(ovr) ||
-      "be7".equals(ovr))
+        "be2".equals(ovr) ||
+        "be3".equals(ovr) ||
+        "be7".equals(ovr))
       o = "g11;e10;b5;b1;k1;n5";
     else if ("be4".equals(ovr) ||
-      "be5".equals(ovr) ||
-      "be6".equals(ovr))
+        "be5".equals(ovr) ||
+        "be6".equals(ovr))
       o = "m7;i12;b9;b1;g1;n3";
     else if ("oc1".equals(ovr) ||
-      "oc2".equals(ovr))
+        "oc2".equals(ovr))
       o = "m13;h15;d9;b1;o1;s7";
     else if ("oc3".equals(ovr) ||
-      "oc4".equals(ovr))
+        "oc4".equals(ovr))
       o = "m14;h15;c9;b1;o1;t7";
 
     else if ("x20".equals(ovr) ||
-      "x21".equals(ovr))
+        "x21".equals(ovr))
       o = "c2;f2;f4;c5;c5;c2";
     else if ("x23".equals(ovr) ||
-      "x24".equals(ovr))
+        "x24".equals(ovr))
       o = "b2;d1;c2;e2;d3;d4";
     else if ("rr1".equals(ovr) ||
-      "rr2".equals(ovr) ||
-      "rr8".equals(ovr))
+        "rr2".equals(ovr) ||
+        "rr8".equals(ovr))
       o = "b5;h4;h4;b7;f5;f3";
     else if ("rr3".equals(ovr) ||
-      "rr11".equals(ovr))
+        "rr11".equals(ovr))
       o = "c5;d4;d2;c2;g3;g4";
     else if ("rr4".equals(ovr) ||
-      "rr12".equals(ovr))
+        "rr12".equals(ovr))
       o = "c4;d4;d2;c3;e3;e4";
     else if ("rr7".equals(ovr))
       o = "b7;f4;f3;b5;h3;h4";
@@ -504,28 +504,28 @@ public class Overlay implements Cloneable {
     else if ("re5".equals(ovr))
       o = "b4;b1;c1;e1;f3;d4";
     else if ("hd5".equals(ovr) ||
-      "hd6".equals(ovr) ||
-      "hd7".equals(ovr))
+        "hd6".equals(ovr) ||
+        "hd7".equals(ovr))
       o = "b4;b2;b1;c1;d1;d2";
     else if ("hd8".equals(ovr))
       o = "b3;c2;d1;d2;d2;d2;";
     else if ("hd9".equals(ovr) ||
-      "hd10".equals(ovr))
+        "hd10".equals(ovr))
       o = "b4;b3;b1;c1;f1;f3";
     else if ("hd11".equals(ovr))
       o = "d6;b5;b1;c1;g2;h4";
     else if ("ow1".equals(ovr))
       o = "c3;c3;d2;e3;d3;d3";
     else if (ovr.startsWith("wd") ||
-      ovr.startsWith("g") ||
-      ovr.startsWith("m") ||
-      ovr.startsWith("p") ||
-      ovr.startsWith("x") ||
-      ovr.startsWith("b") ||
-      ovr.startsWith("rp") ||
-      ovr.startsWith("rr") ||
-      ovr.startsWith("hd") ||
-      ovr.startsWith("o"))
+        ovr.startsWith("g") ||
+        ovr.startsWith("m") ||
+        ovr.startsWith("p") ||
+        ovr.startsWith("x") ||
+        ovr.startsWith("b") ||
+        ovr.startsWith("rp") ||
+        ovr.startsWith("rr") ||
+        ovr.startsWith("hd") ||
+        ovr.startsWith("o"))
       o = "b2;b1;c1;d1;d2;c3";
     else
       o = null;

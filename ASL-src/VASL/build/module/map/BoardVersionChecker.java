@@ -13,7 +13,7 @@
  * Library General Public License for more details.
  *
  * You should have received a copy of the GNU Library General Public
- * License along with this library; if not, copies are available 
+ * License along with this library; if not, copies are available
  * at http://www.opensource.org.
  */
 package VASL.build.module.map;
@@ -57,7 +57,7 @@ public class BoardVersionChecker extends AbstractBuildable implements GameCompon
   private static final String OVERLAY_VERSIONS = "overlayVersions";
 
   public String[] getAttributeNames() {
-    return new String[]{BOARD_VERSION_URL,OVERLAY_VERSION_URL};
+    return new String[]{BOARD_VERSION_URL, OVERLAY_VERSION_URL};
   }
 
   public String getAttributeValueString(String key) {
@@ -83,12 +83,12 @@ public class BoardVersionChecker extends AbstractBuildable implements GameCompon
     map = (Map) parent;
     GameModule.getGameModule().getGameState().addGameComponent(this);
     GameModule.getGameModule().getServer().addPropertyChangeListener(ServerConnection.CONNECTED, this);
-    GameModule.getGameModule().getPrefs().addOption(null,new StringConfigurer(BOARD_VERSIONS,null));
+    GameModule.getGameModule().getPrefs().addOption(null, new StringConfigurer(BOARD_VERSIONS, null));
     Properties p = readVersionList((String) GameModule.getGameModule().getPrefs().getValue(BOARD_VERSIONS));
     if (p != null) {
       boardVersions = p;
     }
-    GameModule.getGameModule().getPrefs().addOption(null,new StringConfigurer(OVERLAY_VERSIONS,null));
+    GameModule.getGameModule().getPrefs().addOption(null, new StringConfigurer(OVERLAY_VERSIONS, null));
     p = readVersionList((String) GameModule.getGameModule().getPrefs().getValue(OVERLAY_VERSIONS));
     if (p != null) {
       overlayVersions = p;
@@ -103,9 +103,9 @@ public class BoardVersionChecker extends AbstractBuildable implements GameCompon
     if (gameStarting) {
       if (boardVersions != null) {
         Vector obsolete = new Vector();
-        for (Enumeration e = map.getAllBoards();e.hasMoreElements();) {
+        for (Enumeration e = map.getAllBoards(); e.hasMoreElements();) {
           ASLBoard b = (ASLBoard) e.nextElement();
-          String availableVersion = boardVersions.getProperty(b.getName(),b.getVersion());
+          String availableVersion = boardVersions.getProperty(b.getName(), b.getVersion());
           if (!availableVersion.equals(b.getVersion())) {
             obsolete.addElement(b.getName());
           }
@@ -113,26 +113,26 @@ public class BoardVersionChecker extends AbstractBuildable implements GameCompon
         String msg = null;
         if (obsolete.size() == 1) {
           String name = (String) obsolete.firstElement();
-          msg = "Version "+boardVersions.getProperty(name)+" of board "+name+" is now available.\nhttp://www.vasl.org/boards.htm";
+          msg = "Version " + boardVersions.getProperty(name) + " of board " + name + " is now available.\nhttp://www.vasl.org/boards.htm";
         }
         else if (obsolete.size() > 1) {
           StringBuffer buff = new StringBuffer();
-          for (int i=0,j=obsolete.size();i<j;++i) {
-            buff.append((String)obsolete.elementAt(i));
-            if (i < j-2) {
+          for (int i = 0,j = obsolete.size(); i < j; ++i) {
+            buff.append((String) obsolete.elementAt(i));
+            if (i < j - 2) {
               buff.append(", ");
             }
-            else if (i<j-1) {
+            else if (i < j - 1) {
               buff.append(" and ");
             }
           }
-          msg = "New versions of boards "+buff+" are available.\nhttp://www.vasl.org/boards.htm";
+          msg = "New versions of boards " + buff + " are available.\nhttp://www.vasl.org/boards.htm";
         }
         if (msg != null) {
           final String message = msg;
           Runnable runnable = new Runnable() {
             public void run() {
-              JOptionPane.showMessageDialog(map.getView().getTopLevelAncestor(),message);
+              JOptionPane.showMessageDialog(map.getView().getTopLevelAncestor(), message);
             }
           };
           SwingUtilities.invokeLater(runnable);
@@ -140,12 +140,12 @@ public class BoardVersionChecker extends AbstractBuildable implements GameCompon
       }
       if (overlayVersions != null) {
         Vector obsolete = new Vector();
-        for (Enumeration e = map.getAllBoards();e.hasMoreElements();) {
+        for (Enumeration e = map.getAllBoards(); e.hasMoreElements();) {
           ASLBoard b = (ASLBoard) e.nextElement();
           for (Enumeration e2 = b.getOverlays(); e2.hasMoreElements();) {
             Overlay o = (Overlay) e2.nextElement();
             String name = o.getFile().getName();
-            String availableVersion = overlayVersions.getProperty(name,o.getVersion());
+            String availableVersion = overlayVersions.getProperty(name, o.getVersion());
             if (!availableVersion.equals(o.getVersion())) {
               obsolete.addElement(name);
             }
@@ -154,26 +154,26 @@ public class BoardVersionChecker extends AbstractBuildable implements GameCompon
         String msg = null;
         if (obsolete.size() == 1) {
           String name = (String) obsolete.firstElement();
-          msg = "Version "+overlayVersions.getProperty(name)+" of overlay "+name+" is now available.\nhttp://www.vasl.org/boards.htm";
+          msg = "Version " + overlayVersions.getProperty(name) + " of overlay " + name + " is now available.\nhttp://www.vasl.org/boards.htm";
         }
         else if (obsolete.size() > 1) {
           StringBuffer buff = new StringBuffer();
-          for (int i=0,j=obsolete.size();i<j;++i) {
-            buff.append((String)obsolete.elementAt(i));
-            if (i < j-2) {
+          for (int i = 0,j = obsolete.size(); i < j; ++i) {
+            buff.append((String) obsolete.elementAt(i));
+            if (i < j - 2) {
               buff.append(", ");
             }
-            else if (i<j-1) {
+            else if (i < j - 1) {
               buff.append(" and ");
             }
           }
-          msg = "New versions of overlays "+buff+" are available.\nhttp://www.vasl.org/boards.htm";
+          msg = "New versions of overlays " + buff + " are available.\nhttp://www.vasl.org/boards.htm";
         }
         if (msg != null) {
           final String message = msg;
           Runnable runnable = new Runnable() {
             public void run() {
-              JOptionPane.showMessageDialog(map.getView().getTopLevelAncestor(),message);
+              JOptionPane.showMessageDialog(map.getView().getTopLevelAncestor(), message);
             }
           };
           SwingUtilities.invokeLater(runnable);
@@ -185,7 +185,7 @@ public class BoardVersionChecker extends AbstractBuildable implements GameCompon
   private Properties readVersionList(String s) {
     Properties p = null;
     if (s != null
-      && s.length() > 0) {
+        && s.length() > 0) {
       try {
         p = new PropertiesEncoder(s).getProperties();
       }

@@ -13,10 +13,11 @@
  * Library General Public License for more details.
  *
  * You should have received a copy of the GNU Library General Public
- * License along with this library; if not, copies are available 
+ * License along with this library; if not, copies are available
  * at http://www.opensource.org.
  */
 package VASL.build.module.map.boardPicker;
+
 import VASSAL.build.GameModule;
 import VASSAL.tools.DataArchive;
 
@@ -34,65 +35,71 @@ public class Underlay extends SSROverlay {
    ** with certain colors turned transparent
    */
 
-    private int transparentList[];
-    private Image underlayImage;
-    private String imageName;
+  private int transparentList[];
+  private Image underlayImage;
+  private String imageName;
 
-    private static File archive;
+  private static File archive;
 
   public Underlay(String im, int trans[]) {
     imageName = im;
-	try {
-	    underlayImage = DataArchive.getImage(getStream("boardData/"+imageName));
-	}
-	catch (IOException ex) {
-	    ex.printStackTrace();
-	}
-	transparentList = trans;
+    try {
+      underlayImage = DataArchive.getImage(getStream("boardData/" + imageName));
+    }
+    catch (IOException ex) {
+      ex.printStackTrace();
+    }
+    transparentList = trans;
   }
 
-    public static void setGlobalArchive(File f) {
-	archive = f;
+  public static void setGlobalArchive(File f) {
+    archive = f;
+  }
+
+  public static InputStream getStream(String name) {
+    try {
+      return archive == null ?
+          GameModule.getGameModule().getDataArchive()
+          .getFileStream(name) :
+          DataArchive.getFileStream(archive, name);
     }
-    public static InputStream getStream(String name) {
-	try {
-	    return archive == null ? 
-		GameModule.getGameModule().getDataArchive()
-		.getFileStream(name) : 
-		DataArchive.getFileStream(archive,name);
-	} 
-	catch (IOException ex) {
-	    return null;
-	}
+    catch (IOException ex) {
+      return null;
     }
+  }
 
   public void readData() {
   }
 
   public void setImage(ASLBoard b, Component map) {
-      if (underlayImage == null) {
-	  try {
-	      underlayImage = DataArchive.findImage(b.getFile(),imageName);
-	  }
-	  catch (IOException ex) {
-	      image = map.createImage(1,1);
-	      System.err.println("Underlay image "+imageName+" not found in "
-				 +b.getFile().getName());
-	      return;
-	  }
+    if (underlayImage == null) {
+      try {
+        underlayImage = DataArchive.findImage(b.getFile(), imageName);
       }
+      catch (IOException ex) {
+        image = map.createImage(1, 1);
+        System.err.println("Underlay image " + imageName + " not found in "
+                           + b.getFile().getName());
+        return;
+      }
+    }
 
     MediaTracker mt = new MediaTracker(map);
 
-    try {mt.addImage(underlayImage,0); mt.waitForAll();} catch (Exception e) {}
+    try {
+      mt.addImage(underlayImage, 0);
+      mt.waitForAll();
+    }
+    catch (Exception e) {
+    }
     //    if (o != null) {
     //      underlayImage = o.getTerrain().recolor(underlayImage,map);
     //    }
     if (b.getTerrain() != null) {
-      underlayImage = b.getTerrain().recolor(underlayImage,map);
+      underlayImage = b.getTerrain().recolor(underlayImage, map);
     }
 
-    Point pos = new Point(0,0);
+    Point pos = new Point(0, 0);
 
     Image base = null;
 
@@ -100,7 +107,12 @@ public class Underlay extends SSROverlay {
     pos = b.getCropBounds().getLocation();
     boundaries.setSize(b.bounds().getSize());
     base = b.getBaseImage();
-    try {mt.addImage(base,0); mt.waitForAll();} catch (Exception e) {}
+    try {
+      mt.addImage(base, 0);
+      mt.waitForAll();
+    }
+    catch (Exception e) {
+    }
     //    }
     //    else {
     //    try {
@@ -110,28 +122,43 @@ public class Underlay extends SSROverlay {
     //			   o.getImage().getHeight(map));
     //    }
 
-    boundaries.setLocation(pos.x,pos.y);
+    boundaries.setLocation(pos.x, pos.y);
 
     base = map.createImage(new FilteredImageSource
-	(base.getSource(),
-	 new HolePunch(transparentList,0)));
+        (base.getSource(),
+         new HolePunch(transparentList, 0)));
 
     Image replacement = map.createImage(boundaries.width,
-					boundaries.height);
+                                        boundaries.height);
     Graphics g2 = replacement.getGraphics();
-    try {mt.addImage(underlayImage,0); mt.waitForAll();} catch (Exception e) {}
+    try {
+      mt.addImage(underlayImage, 0);
+      mt.waitForAll();
+    }
+    catch (Exception e) {
+    }
     int w = underlayImage.getWidth(map);
     int h = underlayImage.getHeight(map);
-    for (int x=0;x<boundaries.width;x+=w)
-      for (int y=0;y<boundaries.height;y+=h)
-	g2.drawImage(underlayImage,x,y,map);
-    try {mt.addImage(base,0); mt.waitForAll();} catch (Exception e) {}
-    g2.drawImage(base,-pos.x,-pos.y,map);
-    try {mt.addImage(replacement,0); mt.waitForAll();} catch (Exception e2) {}
+    for (int x = 0; x < boundaries.width; x += w)
+      for (int y = 0; y < boundaries.height; y += h)
+        g2.drawImage(underlayImage, x, y, map);
+    try {
+      mt.addImage(base, 0);
+      mt.waitForAll();
+    }
+    catch (Exception e) {
+    }
+    g2.drawImage(base, -pos.x, -pos.y, map);
+    try {
+      mt.addImage(replacement, 0);
+      mt.waitForAll();
+    }
+    catch (Exception e2) {
+    }
 
     image = map.createImage(new FilteredImageSource
-			    (replacement.getSource(),
-			     new HolePunch(new int[]{0})));
+        (replacement.getSource(),
+         new HolePunch(new int[]{0})));
     replacement = null;
     System.gc();
   }
@@ -143,7 +170,7 @@ class HolePunch extends RGBImageFilter {
    */
   int transparent[]; /* List of colors to turn transparent (and red) */
   int mask = -1;     /* All other colors become this (unchanged if -1) */
-  
+
   public HolePunch(int trans[], int mask) {
     transparent = trans;
     this.mask = mask;
@@ -151,14 +178,14 @@ class HolePunch extends RGBImageFilter {
   }
 
   public HolePunch(int trans[]) {
-    this(trans,-1);
+    this(trans, -1);
   }
 
   public int filterRGB(int x, int y, int rgb) {
     rgb = 0xffffff & rgb;
-    for (int i=0;i<transparent.length;++i) {
+    for (int i = 0; i < transparent.length; ++i) {
       if (rgb == transparent[i])
-	return 0xff;
+        return 0xff;
     }
     return 0xff000000 | (mask >= 0 ? mask : rgb);
   }

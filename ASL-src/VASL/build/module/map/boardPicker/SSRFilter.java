@@ -13,7 +13,7 @@
  * Library General Public License for more details.
  *
  * You should have received a copy of the GNU Library General Public
- * License along with this library; if not, copies are available 
+ * License along with this library; if not, copies are available
  * at http://www.opensource.org.
  */
 package VASL.build.module.map.boardPicker;
@@ -58,7 +58,7 @@ public class SSRFilter extends RGBImageFilter {
 
   //  public SSRFilter(String zip, String listOfRules)
   public SSRFilter(String listOfRules, File archive)
-    throws BoardException {
+      throws BoardException {
     canFilterIndexColorModel = true;
 
     saveRules = listOfRules;
@@ -77,9 +77,9 @@ public class SSRFilter extends RGBImageFilter {
   private static InputStream getStream(String name) {
     try {
       return globalArchive == null ?
-        GameModule.getGameModule().getDataArchive()
-        .getFileStream(name) :
-        DataArchive.getFileStream(getGlobalArchive(), name);
+          GameModule.getGameModule().getDataArchive()
+          .getFileStream(name) :
+          DataArchive.getFileStream(getGlobalArchive(), name);
     }
     catch (IOException ex) {
       return null;
@@ -139,8 +139,8 @@ public class SSRFilter extends RGBImageFilter {
           green = Integer.parseInt(st.nextToken());
           blue = Integer.parseInt(st.nextToken());
           if ((red >= 0 && red <= 255) &&
-            (green >= 0 && green <= 255) &&
-            (blue >= 0 && blue <= 255)) {
+              (green >= 0 && green <= 255) &&
+              (blue >= 0 && blue <= 255)) {
             rval = (red << 16) + (green << 8) + blue;
           }
         }
@@ -249,7 +249,7 @@ public class SSRFilter extends RGBImageFilter {
     if (in == null)
       return;
     StreamTokenizer st = new StreamTokenizer
-      (new BufferedReader(new InputStreamReader(in)));
+        (new BufferedReader(new InputStreamReader(in)));
     st.resetSyntax();
     st.wordChars((int) ' ', 0xff);
     st.commentChar((int) '/');
@@ -333,7 +333,7 @@ public class SSRFilter extends RGBImageFilter {
                 int n = 0;
                 while (st.hasMoreTokens()) {
                   trans[n++] =
-                    ((Integer) colorValues.get(st.nextToken())).intValue();
+                      ((Integer) colorValues.get(st.nextToken())).intValue();
                 }
                 overlays.addElement(new Underlay(underImage, trans));
               }
@@ -353,7 +353,7 @@ public class SSRFilter extends RGBImageFilter {
 
   public Image recolor(Image oldImage, Component observer) {
     return observer.createImage
-      (new FilteredImageSource(oldImage.getSource(), this));
+        (new FilteredImageSource(oldImage.getSource(), this));
   }
 }
 

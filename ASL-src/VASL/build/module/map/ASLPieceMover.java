@@ -13,7 +13,7 @@
  * Library General Public License for more details.
  *
  * You should have received a copy of the GNU Library General Public
- * License along with this library; if not, copies are available 
+ * License along with this library; if not, copies are available
  * at http://www.opensource.org.
  */
 package VASL.build.module.map;
@@ -160,7 +160,7 @@ public class ASLPieceMover extends PieceMover {
         }
       }
       if (Decorator.getDecorator(moving, Concealment.class) != null
-        && !it.hasMoreElements()) {
+          && !it.hasMoreElements()) {
         movingConcealment = moving;
         formerParent = movingConcealment.getParent();
       }
@@ -246,7 +246,7 @@ public class ASLPieceMover extends PieceMover {
           }
         }
         if (toMove.size() == ((Stack) p).getPieceCount()
-          || toMove.size() == 0) {
+            || toMove.size() == 0) {
           movable.addElement(p);
         }
         else {

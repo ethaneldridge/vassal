@@ -13,7 +13,7 @@
  * Library General Public License for more details.
  *
  * You should have received a copy of the GNU Library General Public
- * License along with this library; if not, copies are available 
+ * License along with this library; if not, copies are available
  * at http://www.opensource.org.
  */
 package VASL.build.module.map.boardPicker;
@@ -92,7 +92,7 @@ public class ASLBoardSlot extends BoardSlot {
   public void setBoard(Board b) {
     super.setBoard(b);
     if (b != null
-      && ((ASLBoard) b).getTerrain() != null) {
+        && ((ASLBoard) b).getTerrain() != null) {
       setTerrain(((ASLBoard) b).getTerrain().toString());
     }
   }

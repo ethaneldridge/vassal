@@ -13,7 +13,7 @@
  * Library General Public License for more details.
  *
  * You should have received a copy of the GNU Library General Public
- * License along with this library; if not, copies are available 
+ * License along with this library; if not, copies are available
  * at http://www.opensource.org.
  */
 package VASL.build.module.map;
@@ -52,7 +52,7 @@ import java.util.StringTokenizer;
 import java.util.Vector;
 
 public class ASLBoardPicker extends BoardPicker
-  implements ActionListener {
+    implements ActionListener {
   /** The key for the preferences setting giving the board directory */
   public static final String BOARD_DIR = "boardURL";
 
@@ -125,7 +125,7 @@ public class ASLBoardPicker extends BoardPicker
 
   public String encode(Command c) {
     if (c instanceof SetBoards
-      && map != null) {
+        && map != null) {
       String s = "bd\t";
       for (Enumeration e = getCurrentBoards();
            e.hasMoreElements();) {
@@ -152,7 +152,7 @@ public class ASLBoardPicker extends BoardPicker
         if (dir != null) {
           dir = dir.getParentFile();
         }
-        config.setValue(new File(dir,"boards"));
+        config.setValue(new File(dir, "boards"));
       }
     }
     catch (NoSuchMethodError err) {
@@ -160,11 +160,11 @@ public class ASLBoardPicker extends BoardPicker
     }
     setBoardDir((File) GameModule.getGameModule().getPrefs().getValue(BOARD_DIR));
     GameModule.getGameModule().getPrefs().getOption(BOARD_DIR).
-      addPropertyChangeListener(new PropertyChangeListener() {
-        public void propertyChange(PropertyChangeEvent evt) {
-          setBoardDir((File) evt.getNewValue());
-        }
-      });
+        addPropertyChangeListener(new PropertyChangeListener() {
+          public void propertyChange(PropertyChangeEvent evt) {
+            setBoardDir((File) evt.getNewValue());
+          }
+        });
     super.addTo(b);
   }
 
@@ -182,7 +182,7 @@ public class ASLBoardPicker extends BoardPicker
       terrain = new TerrainEditor(this);
       try {
         InputStream in = GameModule.getGameModule().getDataArchive()
-          .getFileStream("boardData/SSRControls");
+            .getFileStream("boardData/SSRControls");
         terrain.readOptions(in);
       }
       catch (java.io.IOException ex) {
@@ -194,9 +194,9 @@ public class ASLBoardPicker extends BoardPicker
     if (boardDir == null) {
       if (show) {
         javax.swing.JOptionPane.showMessageDialog
-          (null, "Please specify boards directory in preferences",
-           "Error",
-           javax.swing.JOptionPane.ERROR_MESSAGE);
+            (null, "Please specify boards directory in preferences",
+             "Error",
+             javax.swing.JOptionPane.ERROR_MESSAGE);
       }
     }
     else {
@@ -206,9 +206,9 @@ public class ASLBoardPicker extends BoardPicker
       }
       if (show && possibleBoards.size() == 0) {
         javax.swing.JOptionPane.showMessageDialog
-          (null, "No boards found in " + boardDir.getPath(),
-           "Error",
-           javax.swing.JOptionPane.ERROR_MESSAGE);
+            (null, "No boards found in " + boardDir.getPath(),
+             "Error",
+             javax.swing.JOptionPane.ERROR_MESSAGE);
       }
     }
     initTerrainEditor();
@@ -221,7 +221,7 @@ public class ASLBoardPicker extends BoardPicker
     Vector sorted = new Vector();
     for (int i = 0; i < files.length; ++i) {
       if (files[i].startsWith("bd")
-        && !(new File(boardDir, files[i])).isDirectory()) {
+          && !(new File(boardDir, files[i])).isDirectory()) {
         String name = files[i].substring(2);
         if (name.endsWith(".gif")) {
           name = name.substring(0, name.indexOf(".gif"));
@@ -333,13 +333,13 @@ public class ASLBoardPicker extends BoardPicker
     ASLBoard b = new ASLBoard();
     if (name != null) {
       if (name.length() == 1
-        && name.charAt(0) <= '9'
-        && name.charAt(0) >= '0') {
+          && name.charAt(0) <= '9'
+          && name.charAt(0) >= '0') {
         name = '0' + name;
       }
       else if (name.length() == 1
-        && name.charAt(0) <= 'H'
-        && name.charAt(0) >= 'A') {
+          && name.charAt(0) <= 'H'
+          && name.charAt(0) >= 'A') {
         name = "dx" + name.toLowerCase();
       }
       try {
@@ -365,7 +365,7 @@ public class ASLBoardPicker extends BoardPicker
         b.setBaseImageFileName("bd" + baseName + ".gif");
       }
       else if (baseName.startsWith("0") &&
-        (f = new File(boardDir, "bd" + baseName.substring(1))).exists()) {
+          (f = new File(boardDir, "bd" + baseName.substring(1))).exists()) {
         b.setFile(f);
         b.setCommonName(baseName.substring(1));
         b.setBaseImageFileName("bd" + baseName + ".gif");
@@ -376,7 +376,7 @@ public class ASLBoardPicker extends BoardPicker
         b.setBaseImageFileName("bd" + baseName + ".gif");
       }
       else if (baseName.startsWith("dx")
-        || baseName.startsWith("rdx")) {
+          || baseName.startsWith("rdx")) {
         int prefix = baseName.startsWith("dx") ? 2 : 3;
         if ((f = new File(boardDir, "bd" + baseName.substring(prefix))).exists()) {
           b.setFile(f);
@@ -398,7 +398,7 @@ public class ASLBoardPicker extends BoardPicker
           b.setBaseImageFileName("bd" + baseName + ".gif");
         }
         else if (baseName.startsWith("0") &&
-          (f = new File(boardDir, "bd" + baseName.substring(1))).exists()) {
+            (f = new File(boardDir, "bd" + baseName.substring(1))).exists()) {
           b.setFile(f);
           b.setCommonName(baseName.substring(1));
           b.setBaseImageFileName("bd" + baseName + ".gif");
@@ -797,7 +797,7 @@ class TerrainEditor extends JDialog implements ActionListener {
   private Vector basicOptions = new Vector();
   private JTextField board;
   private TerrainMediator mediator
-    = new TerrainMediator();
+      = new TerrainMediator();
   private Vector boards;
   protected JButton apply, reset, done;
 
@@ -826,12 +826,12 @@ class TerrainEditor extends JDialog implements ActionListener {
     optionList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
     optionList.setVisibleRowCount(4);
     optionList.addListSelectionListener
-      (new javax.swing.event.ListSelectionListener() {
-        public void valueChanged
-          (javax.swing.event.ListSelectionEvent e) {
-          showOption();
-        }
-      });
+        (new javax.swing.event.ListSelectionListener() {
+          public void valueChanged
+              (javax.swing.event.ListSelectionEvent e) {
+            showOption();
+          }
+        });
 
     getContentPane().add(status);
 
@@ -951,8 +951,8 @@ class TerrainEditor extends JDialog implements ActionListener {
               Element el2 = (Element) n.item(j);
               TerrainOption opt = new TerrainOption(mediator, el2);
               ((Container) opt.getComponent()).setLayout
-                (new BoxLayout((Container) opt.getComponent(),
-                               BoxLayout.Y_AXIS));
+                  (new BoxLayout((Container) opt.getComponent(),
+                                 BoxLayout.Y_AXIS));
               basicPanel.add(opt.getComponent());
               basicOptions.addElement(opt);
             }
@@ -1023,11 +1023,11 @@ class TerrainEditor extends JDialog implements ActionListener {
               break;
             }
             if (boardName.length() == 0 ||
-              (slot != null && maker.match(boardName) == slot)) {
+                (slot != null && maker.match(boardName) == slot)) {
               slot.setTerrain(slot.getTerrain()
                               + '\t' + optionRules());
               ((ASLBoard) slot.getBoard())
-                .setTerrain(basicRules() + slot.getTerrain());
+                  .setTerrain(basicRules() + slot.getTerrain());
               slot.getBoard().fixImage(slot);
               slot.repaint();
             }
@@ -1143,21 +1143,21 @@ class TerrainOption {
         public void itemStateChanged(ItemEvent evt) {
           invalidate();
           propChange.firePropertyChange
-            ("active", null, getActive());
+              ("active", null, getActive());
         }
       });
     }
     else if (e.getTagName().equals("ScrollList")) {
       comp = new JList(new DefaultListModel());
       ((JList) comp).addListSelectionListener
-        (new ListSelectionListener() {
-          public void valueChanged
-            (javax.swing.event.ListSelectionEvent evt) {
-            invalidate();
-            propChange.firePropertyChange
-              ("active", null, getActive());
-          }
-        });
+          (new ListSelectionListener() {
+            public void valueChanged
+                (javax.swing.event.ListSelectionEvent evt) {
+              invalidate();
+              propChange.firePropertyChange
+                  ("active", null, getActive());
+            }
+          });
     }
     else if (e.getTagName().equals("Checkbox")) {
       comp = new JCheckBox();
@@ -1165,7 +1165,7 @@ class TerrainOption {
         public void itemStateChanged(ItemEvent evt) {
           invalidate();
           propChange.firePropertyChange
-            ("active", null, getActive());
+              ("active", null, getActive());
         }
       });
     }
@@ -1184,11 +1184,11 @@ class TerrainOption {
       }
       else if (comp instanceof JList) {
         ((DefaultListModel) ((JList) comp).getModel())
-          .addElement(entryName);
+            .addElement(entryName);
       }
       else if (comp instanceof JComboBox) {
         ((DefaultComboBoxModel) ((JComboBox) comp).getModel())
-          .addElement(entryName);
+            .addElement(entryName);
         if (entry.getAttribute("default").length() > 0) {
           defaults.addElement(entryName);
         }
@@ -1226,7 +1226,7 @@ class TerrainOption {
       }
     }
     if (!(comp instanceof JCheckBox)
-      || !getName().equals(((JCheckBox) comp).getText())) {
+        || !getName().equals(((JCheckBox) comp).getText())) {
       panel.add(new JLabel(getName()));
     }
     if (comp instanceof JList) {
@@ -1258,7 +1258,7 @@ class TerrainOption {
 
     if (comp instanceof JCheckBox) {
       ((JCheckBox) comp).setSelected
-        (isActive && ((JCheckBox) comp).getText().equals(val));
+          (isActive && ((JCheckBox) comp).getText().equals(val));
     }
     else if (comp instanceof JComboBox) {
       if (val == null || !isActive) {
@@ -1346,7 +1346,7 @@ class TerrainOption {
   }
 
   public void addPropertyChangeListener
-    (PropertyChangeListener l) {
+      (PropertyChangeListener l) {
     propChange.addPropertyChangeListener(l);
   }
 }
@@ -1501,7 +1501,7 @@ class TerrainMediator implements PropertyChangeListener {
     for (Enumeration e = v.elements();
          e.hasMoreElements();) {
       ((Target) e.nextElement())
-        .sourceStateChanged((Vector) evt.getNewValue());
+          .sourceStateChanged((Vector) evt.getNewValue());
     }
   }
 
@@ -1600,7 +1600,7 @@ class Target {
 
   public String toString() {
     return target.getName() + "[" + targetProperty + "] "
-      + activators;
+        + activators;
   }
 }
 
@@ -1643,7 +1643,7 @@ class TransformOption extends TerrainOption {
   public String getRule() {
     String s = "";
     if (!from.getSelectedItem().equals("-") &&
-      !to.getSelectedItem().equals("-")) {
+        !to.getSelectedItem().equals("-")) {
       String fromRule = "";
       for (StringTokenizer st = new StringTokenizer((String) from.getSelectedItem());
            st.hasMoreTokens();) {
@@ -1672,11 +1672,11 @@ class TransformOption extends TerrainOption {
   public String getText() {
     String s = "";
     if (!from.getSelectedItem().equals("-") &&
-      !to.getSelectedItem().equals("-")) {
+        !to.getSelectedItem().equals("-")) {
       s = "all "
-        + ((String) from.getSelectedItem()).toLowerCase()
-        + " is "
-        + ((String) to.getSelectedItem()).toLowerCase();
+          + ((String) from.getSelectedItem()).toLowerCase()
+          + " is "
+          + ((String) to.getSelectedItem()).toLowerCase();
     }
     return s;
   }

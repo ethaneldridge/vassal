@@ -13,7 +13,7 @@
  * Library General Public License for more details.
  *
  * You should have received a copy of the GNU Library General Public
- * License along with this library; if not, copies are available 
+ * License along with this library; if not, copies are available
  * at http://www.opensource.org.
  */
 package VASL.counters;
@@ -60,9 +60,9 @@ public class Concealable extends Obscurable implements EditablePiece {
 
   public String myGetType() {
     String s = ID +
-      obscureKey + ";" +
-      imageName + ";" +
-      nation;
+        obscureKey + ";" +
+        imageName + ";" +
+        nation;
     if (nation2 != null) {
       s += ";" + nation2;
     }
@@ -103,9 +103,9 @@ public class Concealable extends Obscurable implements EditablePiece {
     myGetKeyCommands();
     Command c = null;
     if (commands[0].matches(stroke)
-      && getMap() != null
-      && !obscuredToOthers()
-      && !obscuredToMe()) {
+        && getMap() != null
+        && !obscuredToOthers()
+        && !obscuredToMe()) {
       c = super.myKeyEvent(stroke);
       boolean concealmentExists = false;
       GamePiece outer = Decorator.getOutermost(this);
@@ -113,7 +113,7 @@ public class Concealable extends Obscurable implements EditablePiece {
         for (int i = getParent().indexOf(outer),j = getParent().getPieceCount(); i < j; ++i) {
           Concealment conceal = (Concealment) Decorator.getDecorator(getParent().getPieceAt(i), Concealment.class);
           if (conceal != null
-            && conceal.canConceal(outer)) {
+              && conceal.canConceal(outer)) {
             concealmentExists = true;
             break;
           }
@@ -123,8 +123,8 @@ public class Concealable extends Obscurable implements EditablePiece {
         GamePiece concealOuter = createConcealment();
         Concealment conceal = (Concealment) Decorator.getDecorator(concealOuter, Concealment.class);
         c.append
-          (getMap().getStackMetrics().merge
-           (outer, concealOuter));
+            (getMap().getStackMetrics().merge
+             (outer, concealOuter));
         for (int i = 0,j = getParent().indexOf(outer);
              i < j; ++i) {
           c.append(conceal.setConcealed(getParent().getPieceAt(i), true));
@@ -175,7 +175,7 @@ public class Concealable extends Obscurable implements EditablePiece {
         getMap().repaint(getParent().boundingBox());
       }
       return outer.getState().equals(state) ? null
-        : new ChangePiece(outer.getId(), state, outer.getState());
+          : new ChangePiece(outer.getId(), state, outer.getState());
     }
     else {
       return null;
@@ -208,7 +208,7 @@ public class Concealable extends Obscurable implements EditablePiece {
   public GamePiece createConcealment() {
     GamePiece p = new BasicPiece(BasicPiece.ID + "K;D;" + imageName + ";?");
     boolean large = imageName.substring(0, 1).toUpperCase().
-      equals(imageName.substring(0, 1));
+        equals(imageName.substring(0, 1));
     String size = large ? "60;60" : "48;48";
     if (nation2 != null) {
       p = new ColoredBox(ColoredBox.ID + "ru" + ";" + size, p);
@@ -238,7 +238,7 @@ public class Concealable extends Obscurable implements EditablePiece {
     if (concealedToOthers == null) {
       try {
         concealedToOthers =
-          GameModule.getGameModule().getDataArchive().getCachedImage("qmarkme.gif");
+            GameModule.getGameModule().getDataArchive().getCachedImage("qmarkme.gif");
       }
       catch (java.io.IOException ex) {
         concealedToOthers = obs.createImage(20, 20);
@@ -249,13 +249,13 @@ public class Concealable extends Obscurable implements EditablePiece {
     if (concealedToMe == null) {
       try {
         concealedToMe = GameModule.getGameModule().getDataArchive()
-          .getCachedImage(imageName + ".gif");
+            .getCachedImage(imageName + ".gif");
         if (concealedToMe != null) {
           JLabel l = new JLabel(new ImageIcon(concealedToMe));
           imageSize = l.getPreferredSize();
         }
         else {
-          imageSize.setSize(0,0);
+          imageSize.setSize(0, 0);
         }
       }
       catch (java.io.IOException ex) {
@@ -280,7 +280,7 @@ public class Concealable extends Obscurable implements EditablePiece {
 
   public Object getProperty(Object key) {
     if (ASLProperties.HINDRANCE.equals(key)
-      && obscuredToMe()) {
+        && obscuredToMe()) {
       return null;
     }
     else {

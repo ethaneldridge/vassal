@@ -13,7 +13,7 @@
  * Library General Public License for more details.
  *
  * You should have received a copy of the GNU Library General Public
- * License along with this library; if not, copies are available 
+ * License along with this library; if not, copies are available
  * at http://www.opensource.org.
  */
 package VASL.build.module;
@@ -77,7 +77,7 @@ public class BackTranslater extends AbstractBuildable implements CommandEncoder 
       encoded = true;
     }
     else if (s.startsWith("bd\t")
-      && (s.indexOf("\n") > 0 || s.indexOf("\r") > 0)) {
+        && (s.indexOf("\n") > 0 || s.indexOf("\r") > 0)) {
       encoded = false;
     }
     else {

@@ -13,7 +13,7 @@
  * Library General Public License for more details.
  *
  * You should have received a copy of the GNU Library General Public
- * License along with this library; if not, copies are available 
+ * License along with this library; if not, copies are available
  * at http://www.opensource.org.
  */
 package VASL.build.module.map.boardPicker;
@@ -99,7 +99,7 @@ public class ASLBoard extends Board {
   }
 
   public void setTerrain(String changes)
-    throws BoardException {
+      throws BoardException {
     terrainChanges = changes;
     terrain = null;
     if (changes == null) {
@@ -174,11 +174,11 @@ public class ASLBoard extends Board {
       notFound.printStackTrace();
       baseImage = null;
       javax.swing.JOptionPane.showMessageDialog
-        (null,
-         "Board image " + imageFile + " not found in "
-         + boardFile,
-         "Not Found",
-         javax.swing.JOptionPane.ERROR_MESSAGE);
+          (null,
+           "Board image " + imageFile + " not found in "
+           + boardFile,
+           "Not Found",
+           javax.swing.JOptionPane.ERROR_MESSAGE);
       return;
     }
     for (int i = 0; i < overlays.size(); ++i)
@@ -206,18 +206,18 @@ public class ASLBoard extends Board {
                                   baseImage.getHeight(map));
 
     if (terrain == null
-      && overlays.size() == 0
-      && cropBounds.width < 0
-      && cropBounds.height < 0
-      && !reversed) {
+        && overlays.size() == 0
+        && cropBounds.width < 0
+        && cropBounds.height < 0
+        && !reversed) {
       boardImage = baseImage;
       return;
     }
     boardImage = map.createImage(boundaries.width, boundaries.height);
     Graphics g = boardImage.getGraphics();
     if (reversed) {
-      g.drawImage(im,0,0,boundaries.width,boundaries.height,
-                  cropBounds.x+boundaries.width,cropBounds.y+boundaries.height,cropBounds.x,cropBounds.y,map);
+      g.drawImage(im, 0, 0, boundaries.width, boundaries.height,
+                  cropBounds.x + boundaries.width, cropBounds.y + boundaries.height, cropBounds.x, cropBounds.y, map);
     }
     else {
       g.drawImage(im, -cropBounds.x, -cropBounds.y, map);
@@ -229,8 +229,8 @@ public class ASLBoard extends Board {
       if (reversed) {
         Point p = globalCoordinates(o.bounds().getLocation());
         g.drawImage(o.getImage(),
-                    p.x,p.y,p.x-o.bounds().width,p.y-o.bounds().height,
-                    0,0,o.bounds().width,o.bounds().height,
+                    p.x, p.y, p.x - o.bounds().width, p.y - o.bounds().height,
+                    0, 0, o.bounds().width, o.bounds().height,
                     map);
       }
       else {
@@ -246,8 +246,8 @@ public class ASLBoard extends Board {
             Rectangle r = ssrOverlay.bounds();
             if (o.getOrientation(this) == 'a') {
               if (reversed) {
-                Point p = globalCoordinates(new Point(r.x+o.bounds().x,r.y+o.bounds().y));
-                g.drawImage(ssrOverlay.getImage(),p.x, p.y,p.x-r.width,p.y-r.height,0,0,r.width,r.height,map);
+                Point p = globalCoordinates(new Point(r.x + o.bounds().x, r.y + o.bounds().y));
+                g.drawImage(ssrOverlay.getImage(), p.x, p.y, p.x - r.width, p.y - r.height, 0, 0, r.width, r.height, map);
               }
               else {
                 g.drawImage(ssrOverlay.getImage(), r.x + o.bounds().x - cropBounds.x,
@@ -256,15 +256,15 @@ public class ASLBoard extends Board {
             }
             else {
               try {
-                Point p1 = o.offset(o.getOrientation(this),this);
-                Point p2 = o.offset('a',this);
-                Point p = globalCoordinates(new Point(p1.x+p2.x+o.bounds().x,p1.y+p2.y+o.bounds().y));
+                Point p1 = o.offset(o.getOrientation(this), this);
+                Point p2 = o.offset('a', this);
+                Point p = globalCoordinates(new Point(p1.x + p2.x + o.bounds().x, p1.y + p2.y + o.bounds().y));
                 if (reversed) {
-                  p.translate(r.x,r.y);
-                  g.drawImage(ssrOverlay.getImage(),p.x,p.y,map);
+                  p.translate(r.x, r.y);
+                  g.drawImage(ssrOverlay.getImage(), p.x, p.y, map);
                 }
                 else {
-                  p.translate(-r.x,-r.y);
+                  p.translate(-r.x, -r.y);
                   g.drawImage(ssrOverlay.getImage(),
                               p.x, p.y,
                               p.x - r.width, p.y - r.height,
@@ -323,13 +323,13 @@ public class ASLBoard extends Board {
 
   public void crop(String row1, String row2,
                    String coord1, String coord2)
-    throws MapGrid.BadCoords {
+      throws MapGrid.BadCoords {
     crop(row1, row2, coord1, coord2, true);
   }
 
   public void crop(String row1, String row2,
                    String coord1, String coord2, boolean nearestFullRow)
-    throws MapGrid.BadCoords {
+      throws MapGrid.BadCoords {
     double dx = ((HexGrid) getGrid()).getHexWidth();
     double dy = ((HexGrid) getGrid()).getHexSize();
 
@@ -339,7 +339,7 @@ public class ASLBoard extends Board {
     cropBounds.width = row2.length() == 0 ? -1 : (getGrid().getLocation(row2 + "0").x - cropBounds.x);
     cropBounds.y = coord1.length() == 0 ? 0 : (getGrid().getLocation("a" + coord1).y - (int) (dy / 2));
     cropBounds.height = coord2.length() == 0 ? -1 : (getGrid().getLocation("a" + coord2).y + (int) (dy / 2)
-      - cropBounds.y);
+        - cropBounds.y);
 
     if (baseImage == null) {
       System.err.println("Cropping with null base image");
@@ -349,7 +349,7 @@ public class ASLBoard extends Board {
     int baseWidth = baseImage.getWidth(GameModule.getGameModule().getFrame());
     if (nearestFullRow) {
       if (cropBounds.width > 0
-        && Math.abs(cropBounds.x + cropBounds.width - baseWidth) > dx / 4) {
+          && Math.abs(cropBounds.x + cropBounds.width - baseWidth) > dx / 4) {
         cropBounds.width += (int) (dx / 2);
       }
       if (cropBounds.x != 0) {
@@ -399,15 +399,15 @@ public class ASLBoard extends Board {
 
   public Point snapToVertex(Point p) {
     return globalCoordinates
-      (((HexGrid) getGrid()).snapToHexVertex
-       (localCoordinates(p)));
+        (((HexGrid) getGrid()).snapToHexVertex
+         (localCoordinates(p)));
   }
 
   public String getState() {
     String val =
-      relativePosition().x + "\t" + relativePosition().y + "\t"
-      + (reversed ? "r" : "")
-      + imageFile.substring(2, imageFile.indexOf(".gif")) + "\t";
+        relativePosition().x + "\t" + relativePosition().y + "\t"
+        + (reversed ? "r" : "")
+        + imageFile.substring(2, imageFile.indexOf(".gif")) + "\t";
     if (cropBounds.width > 0 || cropBounds.height > 0)
       val += cropBounds.x + "\t" + cropBounds.y + "\t" + cropBounds.width + "\t" + cropBounds.height + "\t";
     for (int i = 0; i < overlays.size(); ++i) {

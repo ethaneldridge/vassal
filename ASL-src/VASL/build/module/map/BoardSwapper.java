@@ -13,7 +13,7 @@
  * Library General Public License for more details.
  *
  * You should have received a copy of the GNU Library General Public
- * License along with this library; if not, copies are available 
+ * License along with this library; if not, copies are available
  * at http://www.opensource.org.
  */
 package VASL.build.module.map;
@@ -128,6 +128,7 @@ public class BoardSwapper extends AbstractBuildable {
 
   private static class Picker extends ASLBoardPicker {
     private Vector oldBoards;
+
     public Picker(Map m) {
       this.map = m;
       setBoardDir((File) GameModule.getGameModule().getPrefs().getValue(BOARD_DIR));
@@ -164,6 +165,7 @@ public class BoardSwapper extends AbstractBuildable {
         super.actionPerformed(e);
       }
     }
+
     public void save() {
       for (Enumeration e = GameModule.getGameModule().getGameState().getGameComponentsEnum();
            e.hasMoreElements();) {

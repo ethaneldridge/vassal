@@ -13,10 +13,11 @@
  * Library General Public License for more details.
  *
  * You should have received a copy of the GNU Library General Public
- * License along with this library; if not, copies are available 
+ * License along with this library; if not, copies are available
  * at http://www.opensource.org.
  */
 package VASL.build.module.map;
+
 import VASL.counters.ASLProperties;
 import VASSAL.build.module.map.StackMetrics;
 import VASSAL.counters.GamePiece;
@@ -24,13 +25,13 @@ import VASSAL.counters.GamePiece;
 import java.awt.*;
 
 public class ASLStackMetrics extends StackMetrics {
-    protected void drawUnexpanded(GamePiece p, Graphics g, 
-				  int x, int y, Component obs, double zoom) {
-	if (p.getProperty(ASLProperties.LOCATION) != null) {
-	    p.draw(g,x-(int)(zoom*15),y,obs,zoom);
-	}
-	else {
-	    super.drawUnexpanded(p,g,x,y,obs,zoom);
-	}
-    }    
+  protected void drawUnexpanded(GamePiece p, Graphics g,
+                                int x, int y, Component obs, double zoom) {
+    if (p.getProperty(ASLProperties.LOCATION) != null) {
+      p.draw(g, x - (int) (zoom * 15), y, obs, zoom);
+    }
+    else {
+      super.drawUnexpanded(p, g, x, y, obs, zoom);
+    }
+  }
 }

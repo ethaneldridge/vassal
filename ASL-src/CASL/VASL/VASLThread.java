@@ -13,7 +13,7 @@
  * Library General Public License for more details.
  *
  * You should have received a copy of the GNU Library General Public
- * License along with this library; if not, copies are available 
+ * License along with this library; if not, copies are available
  * at http://www.opensource.org.
  */
 package CASL.VASL;
@@ -50,11 +50,11 @@ import java.beans.PropertyChangeEvent;
 import java.io.IOException;
 
 /**
-* Extends the LOS thread to take advantage of CASL's LOS logic and report 
-*/
+ * Extends the LOS thread to take advantage of CASL's LOS logic and report
+ */
 public class VASLThread
-  extends ASLThread
-  implements KeyListener, GameComponent {
+    extends ASLThread
+    implements KeyListener, GameComponent {
 
   public static final String ENABLED = "LosCheckEnabled";
   // status flag
@@ -194,11 +194,11 @@ public class VASLThread
         // load the map files
         GameMap newCASLMap;
         try {
-            newCASLMap = CASL.Map.Map.readMap(VASSAL.tools.DataArchive.getFileStream(b.getFile(), "bd" + boardName + ".map"));
+          newCASLMap = CASL.Map.Map.readMap(VASSAL.tools.DataArchive.getFileStream(b.getFile(), "bd" + boardName + ".map"));
         }
         catch (IOException e) {
           freeResources();
-          return "Board "+boardName+" does not support LOS checking";
+          return "Board " + boardName + " does not support LOS checking";
         }
 
         if (newCASLMap == null) {
@@ -234,7 +234,7 @@ public class VASLThread
         return "LOS checking turned off... No board found";
       }
     }
-      // give up with any exception
+        // give up with any exception
     catch (Exception e) {
       freeResources();
       e.printStackTrace();
@@ -353,8 +353,8 @@ public class VASLThread
 
   private boolean isEnabled() {
     return visible
-      && status == LOADED
-      && isPreferenceEnabled();
+        && status == LOADED
+        && isPreferenceEnabled();
   }
 
   private boolean isPreferenceEnabled() {
@@ -402,7 +402,7 @@ public class VASLThread
 
   public void draw(Graphics g, VASSAL.build.module.Map m) {
     if (!isPreferenceEnabled()) {
-      super.draw(g,m);
+      super.draw(g, m);
     }
     else if (LOADING == status) {
       if (loadingStatus == null) {
@@ -458,59 +458,59 @@ public class VASLThread
           if (result.hasHindrance()) {
             g.setColor(LOSColor);
             g.drawLine(
-              sourceLOSPoint.x,
-              sourceLOSPoint.y,
-              h.x,
-              h.y);
+                sourceLOSPoint.x,
+                sourceLOSPoint.y,
+                h.x,
+                h.y);
             g.setColor(hindranceColor);
             g.drawLine(
-              h.x,
-              h.y,
-              b.x,
-              b.y);
+                h.x,
+                h.y,
+                b.x,
+                b.y);
             g.setColor(blockedColor);
             g.drawLine(
-              b.x,
-              b.y,
-              targetLOSPoint.x,
-              targetLOSPoint.y);
+                b.x,
+                b.y,
+                targetLOSPoint.x,
+                targetLOSPoint.y);
           }
           else {
             g.setColor(LOSColor);
             g.drawLine(
-              sourceLOSPoint.x,
-              sourceLOSPoint.y,
-              b.x,
-              b.y);
+                sourceLOSPoint.x,
+                sourceLOSPoint.y,
+                b.x,
+                b.y);
             g.setColor(blockedColor);
             g.drawLine(
-              b.x,
-              b.y,
-              targetLOSPoint.x,
-              targetLOSPoint.y);
+                b.x,
+                b.y,
+                targetLOSPoint.x,
+                targetLOSPoint.y);
           }
         }
         else if (result.hasHindrance()) {
           g.setColor(LOSColor);
           g.drawLine(
-            sourceLOSPoint.x,
-            sourceLOSPoint.y,
-            h.x,
-            h.y);
+              sourceLOSPoint.x,
+              sourceLOSPoint.y,
+              h.x,
+              h.y);
           g.setColor(hindranceColor);
           g.drawLine(
-            h.x,
-            h.y,
-            targetLOSPoint.x,
-            targetLOSPoint.y);
+              h.x,
+              h.y,
+              targetLOSPoint.x,
+              targetLOSPoint.y);
         }
         else {
           g.setColor(LOSColor);
           g.drawLine(
-            sourceLOSPoint.x,
-            sourceLOSPoint.y,
-            targetLOSPoint.x,
-            targetLOSPoint.y);
+              sourceLOSPoint.x,
+              sourceLOSPoint.y,
+              targetLOSPoint.x,
+              targetLOSPoint.y);
         }
         // use the draw range property to turn all text on/off
         boolean verbose = Boolean.TRUE.equals(GameModule.getGameModule().getPrefs().getValue("verboseLOS"));
@@ -657,16 +657,16 @@ public class VASLThread
     int code = e.getKeyCode();
     // do movement if not zoomed
     if (map.getZoom() == 1.0 &&
-      (code == KeyEvent.VK_NUMPAD0 ||
-      code == KeyEvent.VK_NUMPAD1 ||
-      code == KeyEvent.VK_NUMPAD2 ||
-      code == KeyEvent.VK_NUMPAD3 ||
-      code == KeyEvent.VK_NUMPAD4 ||
-      code == KeyEvent.VK_NUMPAD5 ||
-      code == KeyEvent.VK_NUMPAD6 ||
-      code == KeyEvent.VK_NUMPAD7 ||
-      code == KeyEvent.VK_NUMPAD8 ||
-      code == KeyEvent.VK_NUMPAD9)) {
+        (code == KeyEvent.VK_NUMPAD0 ||
+        code == KeyEvent.VK_NUMPAD1 ||
+        code == KeyEvent.VK_NUMPAD2 ||
+        code == KeyEvent.VK_NUMPAD3 ||
+        code == KeyEvent.VK_NUMPAD4 ||
+        code == KeyEvent.VK_NUMPAD5 ||
+        code == KeyEvent.VK_NUMPAD6 ||
+        code == KeyEvent.VK_NUMPAD7 ||
+        code == KeyEvent.VK_NUMPAD8 ||
+        code == KeyEvent.VK_NUMPAD9)) {
       doMovement(e);
       map.repaint();
       e.consume();
@@ -706,10 +706,10 @@ public class VASLThread
     // paint the background
     g.setColor(Color.black);
     g.fillRect(
-      x - border,
-      y - border - g.getFontMetrics().getHeight() + g.getFontMetrics().getDescent(),
-      g.getFontMetrics().stringWidth(s) + border * 2,
-      g.getFontMetrics().getHeight() + border * 2);
+        x - border,
+        y - border - g.getFontMetrics().getHeight() + g.getFontMetrics().getDescent(),
+        g.getFontMetrics().stringWidth(s) + border * 2,
+        g.getFontMetrics().getHeight() + border * 2);
 
     // draw the string
     g.setColor(Color.white);
@@ -725,14 +725,14 @@ public class VASLThread
     // set the result string
     if (result.isBlocked()) {
       resultsString =
-        "Range: " + result.getRange() +
-        "  Blocked in " + CASLMap.gridToHex(result.getBlockedAtPoint().x, result.getBlockedAtPoint().y).getName() +
-        " ( " + result.getReason() + ")";
+          "Range: " + result.getRange() +
+          "  Blocked in " + CASLMap.gridToHex(result.getBlockedAtPoint().x, result.getBlockedAtPoint().y).getName() +
+          " ( " + result.getReason() + ")";
     }
     else {
       resultsString =
-        "Range: " + result.getRange() +
-        (result.getHindrance() > 0 ? ("  Hindrances: " + result.getHindrance()) : "");
+          "Range: " + result.getRange() +
+          (result.getHindrance() > 0 ? ("  Hindrances: " + result.getHindrance()) : "");
     }
   }
 
@@ -823,7 +823,7 @@ public class VASLThread
     // game opening - start a new Thread to load CASL Map
     else if (isPreferenceEnabled()) {
       if (initThread == null
-        && status != DISABLED) {
+          && status != DISABLED) {
         status = LOADING;
         initThread = new BackgroundTask() {
           String error = null;
@@ -860,7 +860,7 @@ public class VASLThread
     temp.translate((int) (map.getEdgeBuffer().width * map.getZoom()), (int) (map.getEdgeBuffer().height * map.getZoom()));
     // adjust for board cropping
     if (upperLeftBoard != null) {
-      int deltaX=0, deltaY=0;
+      int deltaX = 0, deltaY = 0;
       Rectangle crop = upperLeftBoard.getCropBounds();
       if (upperLeftBoard.isReversed()) {
         if (crop.width >= 0) {
@@ -889,11 +889,11 @@ public class VASLThread
     for (Enumeration e = map.getAllBoards(); e.hasMoreElements();) {
       ASLBoard b2 = (ASLBoard) e.nextElement();
       if (b2.relativePosition().y == b.relativePosition().y
-        && b2.relativePosition().x < b.relativePosition().x) {
+          && b2.relativePosition().x < b.relativePosition().x) {
         p.translate(b2.getUncroppedSize().width - b2.bounds().width, 0);
       }
       else if (b2.relativePosition().x == b.relativePosition().x
-        && b2.relativePosition().y < b.relativePosition().y) {
+          && b2.relativePosition().y < b.relativePosition().y) {
         p.translate(0, b2.getUncroppedSize().height - b2.bounds().height);
       }
     }
@@ -911,9 +911,9 @@ public class VASLThread
       // if unit has moved into the center of a new hex containing a shellhole,
       // ask if they want to move directly into that shellhole
       if (moveResult.crossedHexside() &&
-        moveResult.getEndLocation().isCenterLocation() &&
-        moveResult.getEndLocation().getDownLocation() != null &&
-        moveResult.getEndLocation().getDownLocation().getTerrain().getType() == Terrain.SHELL_HOLES) {
+          moveResult.getEndLocation().isCenterLocation() &&
+          moveResult.getEndLocation().getDownLocation() != null &&
+          moveResult.getEndLocation().getDownLocation().getTerrain().getType() == Terrain.SHELL_HOLES) {
         int response = JOptionPane.showConfirmDialog(null, "Move directly INTO the shellholes?", "Select move Option", JOptionPane.YES_NO_OPTION);
         if (response == JOptionPane.YES_OPTION) {
           moveResult.setEndLocation(moveResult.getEndLocation().getDownLocation());
@@ -922,8 +922,8 @@ public class VASLThread
       // if unit has moved into the center of a new hex containing rice paddies,
       // ask if they want to move directly into the rice paddy
       else if (moveResult.crossedHexside() &&
-        moveResult.getEndLocation().isCenterLocation() &&
-        moveResult.getEndLocation().getTerrain().isRicePaddy()) {
+          moveResult.getEndLocation().isCenterLocation() &&
+          moveResult.getEndLocation().getTerrain().isRicePaddy()) {
         int response = JOptionPane.showConfirmDialog(null, "Move directly INTO the rice paddy?", "Select move option", JOptionPane.YES_NO_OPTION);
         if (response == JOptionPane.NO_OPTION) {
           moveResult.setEndLocation(moveResult.getEndLocation().getUpLocation());

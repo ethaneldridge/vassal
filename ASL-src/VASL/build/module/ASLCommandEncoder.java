@@ -13,7 +13,7 @@
  * Library General Public License for more details.
  *
  * You should have received a copy of the GNU Library General Public
- * License along with this library; if not, copies are available 
+ * License along with this library; if not, copies are available
  * at http://www.opensource.org.
  */
 package VASL.build.module;
@@ -73,7 +73,7 @@ public class ASLCommandEncoder extends VASSAL.build.module.BasicCommandEncoder i
 
   public Element getBuildElement(Document doc) {
     Element el = super.getBuildElement(doc);
-    el.setAttribute("noColorPreferences",promptForColors ? "" : "true");
+    el.setAttribute("noColorPreferences", promptForColors ? "" : "true");
     return el;
   }
 
@@ -203,7 +203,7 @@ public class ASLCommandEncoder extends VASSAL.build.module.BasicCommandEncoder i
   public GamePiece createUnit(UnitInfo info) {
     GamePiece p = createBasic(info);
     boolean large = info.front.substring(0, 1).toUpperCase().
-      equals(info.front.substring(0, 1));
+        equals(info.front.substring(0, 1));
     String size = large ? "60;60" : "48;48";
     if ("ch".equals(info.nation)) {
       p = new ColoredBox(ColoredBox.ID + "ru" + ";" + size, p);
@@ -223,7 +223,7 @@ public class ASLCommandEncoder extends VASSAL.build.module.BasicCommandEncoder i
                             + info.front + "," + names.nameOf(info.front), p);
     }
     if (info.front.equals("qmark")
-      || info.front.equals("Qmark58")) {
+        || info.front.equals("Qmark58")) {
       p = new Concealment(Concealment.ID, p);
     }
     else {
@@ -395,12 +395,12 @@ public class ASLCommandEncoder extends VASSAL.build.module.BasicCommandEncoder i
         JButton b = new JButton("Default");
         p.add(b);
         b.addActionListener
-          (new java.awt.event.ActionListener() {
-            public void actionPerformed
-              (java.awt.event.ActionEvent e) {
-              setValue(defaultColor);
-            }
-          });
+            (new java.awt.event.ActionListener() {
+              public void actionPerformed
+                  (java.awt.event.ActionEvent e) {
+                setValue(defaultColor);
+              }
+            });
       }
       return p;
     }
@@ -538,8 +538,8 @@ class GunInfo extends UnitInfo {
     SequenceEncoder.Decoder st = new SequenceEncoder.Decoder(info, '\t');
     st.nextToken();
     unitInfo += st.nextToken() + '\t' + st.nextToken() + '\t'
-      + st.nextToken() + '\t' + st.nextToken() + '\t' + st.nextToken() + '\t'
-      + st.nextToken() + '\t' + st.nextToken() + '\t';
+        + st.nextToken() + '\t' + st.nextToken() + '\t' + st.nextToken() + '\t'
+        + st.nextToken() + '\t' + st.nextToken() + '\t';
     CA = Integer.parseInt(st.nextToken()) - 1;
     unitInfo += st.nextToken();
     super.read(info);
@@ -567,8 +567,8 @@ class VehicleInfo extends UnitInfo {
     SequenceEncoder.Decoder st = new SequenceEncoder.Decoder(info, '\t');
     st.nextToken();
     unitInfo += st.nextToken() + '\t' + st.nextToken() + '\t'
-      + st.nextToken() + '\t' + st.nextToken() + '\t' + st.nextToken() + '\t'
-      + st.nextToken() + '\t' + st.nextToken() + '\t';
+        + st.nextToken() + '\t' + st.nextToken() + '\t' + st.nextToken() + '\t'
+        + st.nextToken() + '\t' + st.nextToken() + '\t';
     CA = Integer.parseInt(st.nextToken()) - 1;
     TCA = Integer.parseInt(st.nextToken()) - 1;
     unitInfo += st.nextToken();

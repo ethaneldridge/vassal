@@ -13,14 +13,14 @@
  * Library General Public License for more details.
  *
  * You should have received a copy of the GNU Library General Public
- * License along with this library; if not, copies are available 
+ * License along with this library; if not, copies are available
  * at http://www.opensource.org.
  */
 package VASL.counters;
 
 import VASSAL.build.GameModule;
 import VASSAL.command.Command;
-import VASSAL.command.TrackPiece;
+import VASSAL.command.PieceTracker;
 import VASSAL.counters.*;
 import VASSAL.tools.SequenceEncoder;
 
@@ -96,10 +96,9 @@ public class MarkMoved extends Decorator implements EditablePiece {
 
   public Command myKeyEvent(javax.swing.KeyStroke stroke) {
     if (stroke.equals(markStroke)) {
-      TrackPiece c = new TrackPiece(this);
+      PieceTracker c = new PieceTracker(this);
       hasMoved = !hasMoved;
-      c.finalize();
-      return c;
+      return c.getChangeCommand();
     }
     else {
       return null;
@@ -128,7 +127,7 @@ public class MarkMoved extends Decorator implements EditablePiece {
       Point p = getInner().getPosition();
       try {
         Image im =
-          GameModule.getGameModule().getDataArchive().getCachedImage(markImage + ".gif");
+            GameModule.getGameModule().getDataArchive().getCachedImage(markImage + ".gif");
         g.drawImage(im,
                     x + (int) (zoom * (r.x - p.x + r.width)),
                     y + (int) (zoom * (r.y - p.y)),
