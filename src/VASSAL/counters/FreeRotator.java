@@ -255,7 +255,7 @@ public class FreeRotator extends Decorator implements EditablePiece, MouseListen
         setAngleCommand.setEnabled(false);
       }
     }
-    setAngleCommand.setEnabled(getMap() != null);
+    setAngleCommand.setEnabled(getMap() != null && validAngles.length == 1 && setAngleText.length() > 0);
     return commands;
   }
 
