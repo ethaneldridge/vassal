@@ -160,9 +160,9 @@ public class MultiRoll extends JDialog implements ListSelectionListener {
         descText = new JTextField(30);
         descText.setText(description);
 
-        descPanel.add(descLabel, BorderLayout.LINE_START);
-        descPanel.add(descText, BorderLayout.LINE_END);
-        topPanel.add(descPanel, BorderLayout.PAGE_START);
+        descPanel.add(descLabel, BorderLayout.BEFORE_LINE_BEGINS);
+        descPanel.add(descText, BorderLayout.AFTER_LINE_ENDS);
+        topPanel.add(descPanel, BorderLayout.BEFORE_FIRST_LINE);
 
         descText.addKeyListener(new KeyAdapter() {
             public void keyReleased(KeyEvent evt) {
@@ -193,8 +193,8 @@ public class MultiRoll extends JDialog implements ListSelectionListener {
         buttonPanel.add(rollButton);
         buttonPanel.add(canButton);
 
-        getContentPane().add(topPanel, BorderLayout.PAGE_START);
-        getContentPane().add(buttonPanel, BorderLayout.PAGE_END);
+        getContentPane().add(topPanel, BorderLayout.BEFORE_FIRST_LINE);
+        getContentPane().add(buttonPanel, BorderLayout.AFTER_LAST_LINE);
 
         pack();
     }
