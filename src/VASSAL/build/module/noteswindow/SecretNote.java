@@ -1,8 +1,6 @@
 package VASSAL.build.module.noteswindow;
 
-import java.text.DateFormat;
 import java.util.Date;
-import java.util.Locale;
 
 import VASSAL.build.GameModule;
 import VASSAL.build.module.PlayerRoster;
@@ -31,30 +29,32 @@ import VASSAL.build.module.PlayerRoster;
  * This is an immutable object
  */
 public class SecretNote {
-  private String owner;
-  private String name;
-  private String text;
-  private boolean hidden = true;
+  private String owner;				// Owner's Password
+  private String name;				// Name of Note
+  private String text;      		// Text of Note
+  private boolean hidden = true;	// Is note still hidden?
+  private Date date;				// Date/Time stamp
+  private String handle = "";		// Owner's handle
 
   public SecretNote(String name, String owner, String text, boolean hidden) {
-
-    String handle;
-
-    if (PlayerRoster.isActive()) {
-      handle = PlayerRoster.getMySide();
-    }
-    else {
-      handle = (String) GameModule.getGameModule().getPrefs().getOption(GameModule.REAL_NAME).getValue();
-    }
-    DateFormat formatter =
-        DateFormat.getDateTimeInstance(DateFormat.SHORT, DateFormat.SHORT, Locale.getDefault());
-    String dtm = formatter.format(new Date());
-    handle += " (" + dtm + ") ";
-
-    this.name = handle + ": " + name;
+    this.name = name;
     this.owner = owner;
     this.text = text;
     this.hidden = hidden;
+
+    if (PlayerRoster.isActive()) {
+      this.handle = PlayerRoster.getMySide();
+    }
+    else {
+      this.handle = (String) GameModule.getGameModule().getPrefs().getOption(GameModule.REAL_NAME).getValue();
+    }
+    this.date = new Date();
+  }
+
+  public SecretNote(String name, String owner, String text, boolean hidden, Date created, String id) {
+    this(name, owner, text, hidden);
+    this.date = created;
+    this.handle = id;
   }
 
   public boolean isHidden() {
@@ -67,6 +67,14 @@ public class SecretNote {
 
   public String getOwner() {
     return owner;
+  }
+
+  public Date getDate() {
+    return date;
+  }
+
+  public String getHandle() {
+    return handle;
   }
 
   /**
