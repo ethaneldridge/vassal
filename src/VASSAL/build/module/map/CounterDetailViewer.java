@@ -55,6 +55,8 @@ public class CounterDetailViewer extends AbstractConfigurable implements Drawabl
   public static final String SHOW_GRAPH_SINGLE = "showgraphsingle";
   public static final String SHOW_TEXT = "showtext";
   public static final String SHOW_TEXT_SINGLE = "showtextsingle";
+  public static final String SHOW_REF = "showref";
+  public static final String ZOOM_LEVEL = "zoomlevel";
 
   protected Map map;
   protected Thread delayThread;
@@ -70,6 +72,8 @@ public class CounterDetailViewer extends AbstractConfigurable implements Drawabl
   protected boolean showGraphSingle = false;
   protected boolean showText = false;
   protected boolean showTextSingle = false;
+  protected boolean showRef = false;
+  protected double zoomLevel = 1.0;
 
   public void addTo(Buildable b) {
     map = (Map) b;
@@ -96,8 +100,11 @@ public class CounterDetailViewer extends AbstractConfigurable implements Drawabl
 
   public void draw(Graphics g, Point pt, JComponent comp) {
 
-    if (currentPiece == null) {
-      return;
+//    if (currentPiece == null) {
+//      return;
+//    }
+    if (!graphicsVisible && !textVisible) {
+    	return;
     }
 
     PieceIterator pi;
@@ -184,26 +191,38 @@ public class CounterDetailViewer extends AbstractConfigurable implements Drawabl
      * name above the centre of the first piece in the stack.
      */
     String locationName = null;
-
+	
     while (pi.hasMoreElements()) {
+		Rectangle viewport = map.getView().bounds();
+		Rectangle vis = map.getView().getVisibleRect();
       GamePiece piece = pi.nextPiece();
       if (locationName == null) {
         locationName = map.locationName(piece.getPosition());
       }
     }
 
-    Color outline = map.getHighlighter() instanceof ColoredBorder ? ((ColoredBorder) map.getHighlighter()).getColor() : Color.black;
-    Color background = new Color(255 - outline.getRed(), 255 - outline.getGreen(), 255 - outline.getBlue());
-
-    if (locationName != null) {
-      Labeler.drawLabel(g, locationName,
-                        pt.x, pt.y - 5,
-                        new Font("Dialog", Font.PLAIN, 9),
-                        Labeler.RIGHT, Labeler.BOTTOM,
-                        outline, background, outline);
-    }
+	if (locationName == null) {
+		Point mapPt = map.mapCoordinates(currentMousePosition.getPoint());
+		Point snapPt = map.snapTo(mapPt);
+		locationName = map.locationName(snapPt);
+	}
+	drawLabel(g, pt, locationName);
   }
 
+  protected void drawLabel(Graphics g, Point pt, String locationName) {
+  	
+  	if (locationName != null) {
+	   Color outline = map.getHighlighter() instanceof ColoredBorder ? ((ColoredBorder) map.getHighlighter()).getColor() : Color.black;
+	   Color background = new Color(255 - outline.getRed(), 255 - outline.getGreen(), 255 - outline.getBlue());
+
+	   Labeler.drawLabel(g, locationName,
+					     pt.x, pt.y - 5,
+					     new Font("Dialog", Font.PLAIN, 9),
+					     Labeler.RIGHT, Labeler.BOTTOM,
+					     outline, background, outline);
+     }
+  }
+  
   public void run() {
     while (System.currentTimeMillis() < expirationTime) {
       try {
@@ -222,8 +241,13 @@ public class CounterDetailViewer extends AbstractConfigurable implements Drawabl
      *   Stack         - Depends on setting of showGraphics/showText
      *   Single Unit   - Depends on setting of showGraphics/showText and showGraphicsSingle/showTextSingle
      *                   and stack must not be expanded.
+     *   Empty space   - Depends on setting of 
      */
-    if (currentPiece != null) {
+    if (currentPiece == null) {
+   		textVisible = (showRef && map.getZoom() < zoomLevel);
+   		graphicsVisible = false;
+    }
+    else {
       if (map.getZoom() < 0.75) {
         boolean val = !Boolean.TRUE.equals(currentPiece.getProperty(Properties.IMMOBILE));
         graphicsVisible = (showGraph && val);
@@ -299,7 +323,7 @@ public class CounterDetailViewer extends AbstractConfigurable implements Drawabl
   }
 
   public String[] getAttributeNames() {
-    return new String[]{DELAY, SHOW_GRAPH, SHOW_GRAPH_SINGLE, SHOW_TEXT, SHOW_TEXT_SINGLE};
+    return new String[]{DELAY, SHOW_GRAPH, SHOW_GRAPH_SINGLE, SHOW_TEXT, SHOW_TEXT_SINGLE, SHOW_REF, ZOOM_LEVEL};
   }
 
   public String[] getAttributeDescriptions() {
@@ -308,11 +332,13 @@ public class CounterDetailViewer extends AbstractConfigurable implements Drawabl
       "Display Graphics?",
       "Display Graphics for single counter?",
       "Display Text?",
-      "Display Text for single counter?"};
+      "Display Text for single counter?",
+      "Display Text for empty grid?",
+      "When zoom level less than"};
   }
 
   public Class[] getAttributeTypes() {
-    return new Class[]{Integer.class, Boolean.class, Boolean.class, Boolean.class, Boolean.class};
+    return new Class[]{Integer.class, Boolean.class, Boolean.class, Boolean.class, Boolean.class, Boolean.class, Double.class};
   }
 
   public Class[] getAllowableConfigureComponents() {
@@ -376,7 +402,22 @@ public class CounterDetailViewer extends AbstractConfigurable implements Drawabl
         showTextSingle = "true".equals(value);
       }
     }
+	else if (SHOW_REF.equals(name)) {
+	  if (value instanceof Boolean) {
+		showRef = ((Boolean) value).booleanValue();
+	  }
+	  else if (value instanceof String) {
+		showRef = "true".equals(value);
+	  }
+	}
+	else if (ZOOM_LEVEL.equals(name)) {
+		if (value instanceof String) {
+		  value = new Double((String) value);
+		}
+		zoomLevel = ((Double) value).doubleValue();
+	}
   }
+  
 
   public String getAttributeValueString(String name) {
     if (DELAY.equals(name)) {
@@ -394,6 +435,12 @@ public class CounterDetailViewer extends AbstractConfigurable implements Drawabl
     else if (SHOW_TEXT_SINGLE.equals(name)) {
       return "" + showTextSingle;
     }
+	else if (SHOW_REF.equals(name)) {
+	  return "" + showRef;
+	}
+	else if (ZOOM_LEVEL.equals(name)) {
+	  return "" + zoomLevel;
+	}
     else
       return null;
   }
