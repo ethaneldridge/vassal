@@ -23,6 +23,7 @@ import VASSAL.build.Buildable;
 import VASSAL.build.GameModule;
 import VASSAL.build.module.documentation.AboutScreen;
 import VASSAL.build.module.documentation.HelpFile;
+import VASSAL.build.module.documentation.Tutorial;
 import VASSAL.configure.*;
 import org.w3c.dom.Element;
 
@@ -111,7 +112,7 @@ public class Documentation extends AbstractConfigurable {
   }
 
   public Class[] getAllowableConfigureComponents() {
-    return new Class[]{HelpFile.class, AboutScreen.class};
+    return new Class[]{HelpFile.class, AboutScreen.class, Tutorial.class};
   }
 
   public static String getConfigureTypeName() {
