@@ -13,7 +13,7 @@
  * Library General Public License for more details.
  *
  * You should have received a copy of the GNU Library General Public
- * License along with this library; if not, copies are available 
+ * License along with this library; if not, copies are available
  * at http://www.opensource.org.
  */
 package VASSAL.build.module.map;
@@ -172,7 +172,7 @@ public class StackMetrics extends AbstractConfigurable {
     }
     else if (COLOR.equals(name)) {
       return blankColor == null ? null
-        : ColorConfigurer.colorToString(blankColor);
+          : ColorConfigurer.colorToString(blankColor);
     }
     return null;
   }
@@ -197,13 +197,13 @@ public class StackMetrics extends AbstractConfigurable {
     unselectedVisible = new PieceFilter() {
       public boolean accept(GamePiece piece) {
         return !Boolean.TRUE.equals(piece.getProperty(Properties.INVISIBLE_TO_ME))
-          && !Boolean.TRUE.equals(piece.getProperty(Properties.SELECTED));
+            && !Boolean.TRUE.equals(piece.getProperty(Properties.SELECTED));
       }
     };
     selectedVisible = new PieceFilter() {
       public boolean accept(GamePiece piece) {
         return !Boolean.TRUE.equals(piece.getProperty(Properties.INVISIBLE_TO_ME))
-          && Boolean.TRUE.equals(piece.getProperty(Properties.SELECTED));
+            && Boolean.TRUE.equals(piece.getProperty(Properties.SELECTED));
       }
     };
   }
@@ -227,28 +227,28 @@ public class StackMetrics extends AbstractConfigurable {
     for (PieceIterator e = new PieceIterator(stack.getPieces(), unselectedVisible); e.hasMoreElements();) {
       GamePiece next = e.nextPiece();
       int index = stack.indexOf(next);
-      int nextX = x + (int)(zoom*(positions[index].x-x));
-      int nextY = y + (int)(zoom*(positions[index].y-y));
-        if (stack.isExpanded() || !e.hasMoreElements()) {
-          next.draw(g,
-                    nextX,
-                    nextY,
-                    obs, zoom);
-        }
-        else {
-          drawUnexpanded(next, g, nextX, nextY, obs, zoom);
-        }
+      int nextX = x + (int) (zoom * (positions[index].x - x));
+      int nextY = y + (int) (zoom * (positions[index].y - y));
+      if (stack.isExpanded() || !e.hasMoreElements()) {
+        next.draw(g,
+                  nextX,
+                  nextY,
+                  obs, zoom);
+      }
+      else {
+        drawUnexpanded(next, g, nextX, nextY, obs, zoom);
+      }
     }
     for (PieceIterator e = new PieceIterator(stack.getPieces(), selectedVisible); e.hasMoreElements();) {
       GamePiece next = e.nextPiece();
       int index = stack.indexOf(next);
-      int nextX = x + (int)(zoom*(positions[index].x-x));
-      int nextY = y + (int)(zoom*(positions[index].y-y));
-        next.draw(g,
-               nextX,
-               nextY,
-               obs, zoom);
-        highlighter.draw
+      int nextX = x + (int) (zoom * (positions[index].x - x));
+      int nextY = y + (int) (zoom * (positions[index].y - y));
+      next.draw(g,
+                nextX,
+                nextY,
+                obs, zoom);
+      highlighter.draw
           (next, g,
            nextX,
            nextY,
@@ -294,14 +294,14 @@ public class StackMetrics extends AbstractConfigurable {
       if (bounds == null || isVisible(region, bounds[index])) {
         Point pt = map.componentCoordinates(positions[index]);
         next.draw(g,
-               pt.x,
-               pt.y,
-               map.getView(), zoom);
+                  pt.x,
+                  pt.y,
+                  map.getView(), zoom);
         highlighter.draw
-          (next, g,
-           pt.x,
-           pt.y,
-           map.getView(), zoom);
+            (next, g,
+             pt.x,
+             pt.y,
+             map.getView(), zoom);
       }
     }
   }
@@ -499,10 +499,10 @@ public class StackMetrics extends AbstractConfigurable {
 
   public VisibilityCondition getAttributeVisibility(String name) {
     if (name.equals(EXSEP_X)
-      || name.equals(EXSEP_Y)
-      || name.equals(UNEXSEP_X)
-      || name.equals(UNEXSEP_Y)
-      || name.equals(COLOR)) {
+        || name.equals(EXSEP_Y)
+        || name.equals(UNEXSEP_X)
+        || name.equals(UNEXSEP_Y)
+        || name.equals(COLOR)) {
       return cond;
     }
     else {
@@ -550,10 +550,56 @@ public class StackMetrics extends AbstractConfigurable {
       comm = merge(((Stack) fixed).topPiece(), add);
     }
     else if (Boolean.TRUE.equals(add.getProperty(Properties.NO_STACK))
-      || Boolean.TRUE.equals(fixed.getProperty(Properties.NO_STACK))) {
+        || Boolean.TRUE.equals(fixed.getProperty(Properties.NO_STACK))) {
       comm = fixed.getMap().placeAt(add, fixed.getPosition());
     }
     else {
+      MoveTracker tracker = new MoveTracker(add);
+      comm = new NullCommand();
+      Stack fixedParent = fixed.getParent();
+      int index = fixedParent == null ? 1 : fixedParent.indexOf(fixed) + 1;
+      if (add != fixed
+          && add != fixed.getParent()) {
+        boolean isNewPiece = GameModule.getGameModule().getGameState()
+            .getPieceForId(add.getId()) == null;
+        if (fixedParent == null) {
+          if (fixed instanceof Stack) {
+            fixedParent = (Stack) fixed;
+          }
+          else {
+            fixedParent = createStack(fixed);
+            GameModule.getGameModule().getGameState().addPiece(fixedParent);
+            fixed.getMap().addPiece(fixedParent);
+            comm = comm.append(new AddPiece(fixedParent));
+          }
+        }
+        if (isNewPiece) {
+          GameModule.getGameModule().getGameState().addPiece(add);
+          comm = comm.append(new AddPiece(add));
+        }
+        if (add instanceof Stack) {
+          Vector v = new Vector();
+          for (Enumeration e = ((Stack) add).getPieces();
+               e.hasMoreElements();) {
+            v.addElement(e.nextElement());
+          }
+          for (Enumeration e = v.elements();
+               e.hasMoreElements();) {
+            GamePiece p = (GamePiece) e.nextElement();
+            MoveTracker t = new MoveTracker(p);
+            fixedParent.insert(p, index++);
+            comm = comm.append(t.getMoveCommand());
+          }
+        }
+        else {
+          if (add.getParent() == fixedParent && fixedParent != null) {
+            index--;
+          }
+          fixedParent.insert(add, index);
+          comm = comm.append(tracker.getMoveCommand());
+        }
+      }
+/*
       comm = new NullCommand();
       Stack fixedParent = fixed.getParent();
       String fixedParentOldState = fixedParent == null ? null : fixedParent.getState();
@@ -610,6 +656,7 @@ public class StackMetrics extends AbstractConfigurable {
           comm = comm.append(new AddPiece(fixedParent));
         }
       }
+*/
     }
     return comm;
   }

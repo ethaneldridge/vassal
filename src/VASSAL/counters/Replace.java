@@ -18,9 +18,9 @@
  */
 package VASSAL.counters;
 
+import VASSAL.build.module.documentation.HelpFile;
 import VASSAL.command.Command;
 import VASSAL.command.RemovePiece;
-import VASSAL.build.module.documentation.HelpFile;
 
 import javax.swing.*;
 import java.io.File;

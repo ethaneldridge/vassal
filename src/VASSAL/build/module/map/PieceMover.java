@@ -13,7 +13,7 @@
  * Library General Public License for more details.
  *
  * You should have received a copy of the GNU Library General Public
- * License along with this library; if not, copies are available 
+ * License along with this library; if not, copies are available
  * at http://www.opensource.org.
  */
 package VASSAL.build.module.map;
@@ -22,29 +22,30 @@ import VASSAL.build.AbstractBuildable;
 import VASSAL.build.Buildable;
 import VASSAL.build.GameModule;
 import VASSAL.build.module.Chatter;
+import VASSAL.build.module.GameComponent;
 import VASSAL.build.module.GlobalOptions;
 import VASSAL.build.module.Map;
-import VASSAL.build.module.GameComponent;
 import VASSAL.build.module.map.boardPicker.Board;
+import VASSAL.command.ChangeTracker;
 import VASSAL.command.Command;
 import VASSAL.command.NullCommand;
-import VASSAL.command.TrackPiece;
+import VASSAL.configure.BooleanConfigurer;
 import VASSAL.counters.*;
 import VASSAL.tools.Sort;
-import VASSAL.tools.TransparentFilter;
-import VASSAL.configure.BooleanConfigurer;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.image.FilteredImageSource;
-import java.awt.event.*;
-import java.util.Enumeration;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
 import java.net.URL;
+import java.util.Enumeration;
 
 /**
  * This is a MouseListener that moves pieces on a Map window
  */
-public class PieceMover extends AbstractBuildable implements MouseListener, Drawable, MouseMotionListener, GameComponent, PieceFinder, Sort.Comparator {
+public class PieceMover extends AbstractBuildable implements MouseListener, GameComponent, PieceFinder, Sort.Comparator {
   /* Test cases for moving pieces:
   - Simple click on piece -> no move
   - Click and drag piece to within its own outline:  move if to new grid snap point or > 5 pixels away
@@ -56,19 +57,11 @@ public class PieceMover extends AbstractBuildable implements MouseListener, Draw
 
   protected Map map;
   protected Point dragBegin;
-
-  protected Color outlineColor = Color.black;
-  protected int thickness = 3;
-  protected Rectangle outline;
-  protected Point outlineOffset;
-  protected boolean checkDragContents = false;
   private JButton markUnmovedButton;
 
   public void addTo(Buildable b) {
     map = (Map) b;
     map.addLocalMouseListener(this);
-//    map.addDrawComponent(this);
-//    map.getView().addMouseMotionListener(this);
     GameModule.getGameModule().getGameState().addGameComponent(this);
   }
 
@@ -144,17 +137,6 @@ public class PieceMover extends AbstractBuildable implements MouseListener, Draw
     return e.isShiftDown();
   }
 
-  public void draw(java.awt.Graphics g, Map map) {
-    if (outline != null) {
-      g.setColor(outlineColor);
-      for (int i = 0; i < thickness; ++i) {
-        g.drawRect(outline.x + outlineOffset.x - i,
-                   outline.y + outlineOffset.y - i,
-                   outline.width + 2 * i, outline.height + 2 * i);
-      }
-    }
-  }
-
   /** Invoked after a piece has been moved */
   protected Command movedPiece(GamePiece p, Point loc) {
     if (p instanceof Stack) {
@@ -185,10 +167,9 @@ public class PieceMover extends AbstractBuildable implements MouseListener, Draw
       }
       else if (p.getProperty(Properties.MOVED) != null) {
         if (p.getId() != null) {
-          TrackPiece comm = new TrackPiece(p);
+          ChangeTracker comm = new ChangeTracker(p);
           p.setProperty(Properties.MOVED, hasMoved ? Boolean.TRUE : Boolean.FALSE);
-          comm.finalize();
-          c = comm;
+          c = comm.getChangeCommand();
         }
       }
     }
@@ -331,10 +312,6 @@ public class PieceMover extends AbstractBuildable implements MouseListener, Draw
           DragBuffer.getBuffer().add(p);
         }
       }
-      if (p != null) {
-        setOutline(p);
-      }
-      checkDragContents = true;
     }
   }
 
@@ -344,18 +321,6 @@ public class PieceMover extends AbstractBuildable implements MouseListener, Draw
       && !e.isMetaDown()
       && e.getClickCount() < 2
       && !e.isConsumed();
-  }
-
-  protected void setOutline(GamePiece p) {
-    outline = p.selectionBounds();
-    outlineOffset = new Point((int) (map.getZoom() * (outline.x - p.getPosition().x)),
-                              (int) (map.getZoom() * (outline.y - p.getPosition().y)));
-    outline.width *= map.getZoom();
-    outline.height *= map.getZoom();
-    if (map.getHighlighter() instanceof ColoredBorder) {
-      outlineColor = ((ColoredBorder) map.getHighlighter()).getColor();
-      thickness = ((ColoredBorder) map.getHighlighter()).getThickness();
-    }
   }
 
   /**
@@ -393,7 +358,6 @@ public class PieceMover extends AbstractBuildable implements MouseListener, Draw
       }
     }
     dragBegin = null;
-    outline = null;
     map.getView().setCursor(null);
   }
 
@@ -404,44 +368,6 @@ public class PieceMover extends AbstractBuildable implements MouseListener, Draw
   }
 
   public void mouseClicked(MouseEvent e) {
-  }
-
-  public void mouseDragged(MouseEvent e) {
-/*
-    if (outline != null) {
-      outline.setLocation(e.getPoint());
-      map.repaint();
-    }
-    else if (checkDragContents) {
-      PieceIterator it = DragBuffer.getBuffer().getIterator();
-      if (it.hasMoreElements()) {
-        setOutline(it.nextPiece());
-      }
-      checkDragContents = false;
-    }
-*/
-    if (checkDragContents) {
-      PieceIterator it = DragBuffer.getBuffer().getIterator();
-      if (it.hasMoreElements()) {
-        setOutline(it.nextPiece());
-      }
-      if (outline != null) {
-        Component obs = map.getView();
-        Image im = obs.createImage(outline.width, outline.height);
-        im.getGraphics().setColor(outlineColor);
-        for (int i = 0; i < thickness; ++i) {
-          im.getGraphics().drawRect(i, i, outline.width - 2 * i, outline.height - 2 * i);
-        }
-        TransparentFilter f = new TransparentFilter();
-        f.setAlpha(0.0, TransparentFilter.getOffscreenEquivalent(obs.getBackground().getRGB(), obs));
-        im = obs.createImage(new FilteredImageSource(im.getSource(), f));
-        map.getView().setCursor(Toolkit.getDefaultToolkit().createCustomCursor(im, new Point(-outlineOffset.x,-outlineOffset.y), "outline"));
-      }
-      checkDragContents = false;
-    }
-  }
-
-  public void mouseMoved(MouseEvent e) {
   }
 
   /**

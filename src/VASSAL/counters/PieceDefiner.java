@@ -20,8 +20,8 @@ package VASSAL.counters;
 
 import VASSAL.build.GameModule;
 import VASSAL.build.module.documentation.HelpFile;
-import VASSAL.build.module.documentation.HelpWindowExtension;
 import VASSAL.build.module.documentation.HelpWindow;
+import VASSAL.build.module.documentation.HelpWindowExtension;
 import VASSAL.build.widget.PieceSlot;
 
 import javax.swing.*;
@@ -54,6 +54,7 @@ public class PieceDefiner extends javax.swing.JPanel implements HelpWindowExtens
     availableModel.addElement(new Labeler());
     availableModel.addElement(new Hideable());
     availableModel.addElement(new Obscurable());
+    availableModel.addElement(new SendToLocation());
     availableModel.addElement(new ReturnToDeck());
     availableModel.addElement(new Immobilized());
     availableModel.addElement(new TableInfo());

@@ -18,18 +18,22 @@
  */
 package VASSAL.build.module.documentation;
 
-import VASSAL.build.*;
-import VASSAL.tools.*;
-import VASSAL.configure.*;
+import VASSAL.Info;
+import VASSAL.build.AbstractConfigurable;
+import VASSAL.build.Buildable;
+import VASSAL.build.GameModule;
+import VASSAL.build.IllegalBuildException;
 import VASSAL.build.module.Documentation;
 import VASSAL.build.module.ModuleExtension;
-import VASSAL.build.GameModule;
+import VASSAL.tools.DataArchive;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.*;
-import java.io.*;
-import java.net.URL;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.io.File;
 import java.net.MalformedURLException;
 import java.util.Enumeration;
 
@@ -86,7 +90,7 @@ public class AboutScreen extends AbstractConfigurable {
       w.getContentPane().add(createLabel("Extension "+ext.getName()+" version "+ext.getVersion()));
     }
     w.getContentPane().add(createLabel("VASSAL engine version "
-                           + System.getProperty(GameModule.VASSAL_VERSION_RUNNING)));
+                           + Info.getVersion()));
     w.pack();
     Dimension d = Toolkit.getDefaultToolkit().getScreenSize();
     w.setLocation(d.width / 2 - w.getSize().width / 2,

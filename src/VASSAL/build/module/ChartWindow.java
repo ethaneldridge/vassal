@@ -24,7 +24,6 @@ import VASSAL.build.Widget;
 import VASSAL.build.module.documentation.HelpFile;
 import VASSAL.build.widget.PanelWidget;
 import VASSAL.build.widget.TabWidget;
-import VASSAL.configure.Configurer;
 import VASSAL.preferences.PositionOption;
 import VASSAL.tools.LaunchButton;
 
@@ -43,13 +42,13 @@ public class ChartWindow extends Widget {
   public static final String HOTKEY = "hotkey";
 
   private LaunchButton launch;
-  private JFrame frame;
+  private JDialog frame;
+  private JComponent root;
 
   private String id;
 
   public ChartWindow() {
-    frame = new JFrame();
-
+    root = new JPanel();
     ActionListener al = new ActionListener() {
       public void actionPerformed(ActionEvent e) {
         frame.setVisible(!frame.isVisible());
@@ -77,6 +76,9 @@ public class ChartWindow extends Widget {
     launch.setAlignmentY(0.0F);
     GameModule.getGameModule().getToolBar().add(launch);
 
+    frame = new JDialog(GameModule.getGameModule().getFrame());
+    frame.getContentPane().add(root);
+    frame.setTitle(launch.getAttributeValueString(NAME));
     id = "ChartWindow" + count;
     String key = PositionOption.key + id;
     GameModule.getGameModule().getPrefs().addOption
@@ -90,7 +92,9 @@ public class ChartWindow extends Widget {
   public void setAttribute(String key, Object val) {
     if (NAME.equals(key)) {
       setConfigureName(launch.getText());
-      frame.setTitle((String) val);
+      if (frame != null) {
+        frame.setTitle((String) val);
+      }
       launch.setAttribute(key, val);
     }
     else {
@@ -118,20 +122,20 @@ public class ChartWindow extends Widget {
 
   public void add(Buildable b) {
     if (b instanceof Widget) {
-      frame.getContentPane().add(((Widget) b).getComponent());
+      root.add(((Widget) b).getComponent());
     }
     super.add(b);
   }
 
   public void remove(Buildable b) {
     if (b instanceof Widget) {
-      frame.getContentPane().remove(((Widget) b).getComponent());
+      root.remove(((Widget) b).getComponent());
     }
     super.remove(b);
   }
 
   public java.awt.Component getComponent() {
-    return frame;
+    return root;
   }
 
   public static String getConfigureTypeName() {

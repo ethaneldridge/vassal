@@ -20,7 +20,7 @@ package VASSAL.counters;
 
 import VASSAL.build.module.documentation.HelpFile;
 import VASSAL.command.Command;
-import VASSAL.command.TrackPiece;
+import VASSAL.command.ChangeTracker;
 import VASSAL.configure.ColorConfigurer;
 import VASSAL.configure.IntConfigurer;
 import VASSAL.configure.StringConfigurer;
@@ -301,7 +301,7 @@ public class Labeler extends Decorator implements EditablePiece {
     Command c = null;
     if (commands.length > 0
       && commands[0].matches(stroke)) {
-      c = new TrackPiece(this);
+      ChangeTracker tracker = new ChangeTracker(this);
       String s = (String) JOptionPane.showInputDialog
         (getMap() == null ? null : getMap().getView(),
          commands[0].getName(),
@@ -311,11 +311,11 @@ public class Labeler extends Decorator implements EditablePiece {
          null,
          label);
       if (s == null) {
-        c = null;
+        tracker = null;
       }
       else {
         setLabel(s);
-        ((TrackPiece) c).finalize();
+        c = tracker.getChangeCommand();
       }
     }
     return c;

@@ -13,7 +13,7 @@
  * Library General Public License for more details.
  *
  * You should have received a copy of the GNU Library General Public
- * License along with this library; if not, copies are available 
+ * License along with this library; if not, copies are available
  * at http://www.opensource.org.
  */
 package VASSAL.counters;
@@ -21,17 +21,17 @@ package VASSAL.counters;
 import VASSAL.build.GameModule;
 import VASSAL.build.module.documentation.HelpFile;
 import VASSAL.command.Command;
-import VASSAL.command.TrackPiece;
+import VASSAL.command.ChangeTracker;
 import VASSAL.tools.SequenceEncoder;
 
 import javax.swing.*;
 import javax.swing.event.ListSelectionListener;
 import java.awt.*;
 import java.awt.event.*;
-import java.util.Enumeration;
-import java.util.Vector;
 import java.io.File;
 import java.net.MalformedURLException;
+import java.util.Enumeration;
+import java.util.Vector;
 
 public class Embellishment extends Decorator implements EditablePiece {
   public static final String ID = "emb;";
@@ -244,7 +244,7 @@ public class Embellishment extends Decorator implements EditablePiece {
   public Command myKeyEvent(KeyStroke stroke) {
     char strokeChar = getMatchingActivationChar(stroke);
     if (strokeChar != 0) {
-      TrackPiece c = new TrackPiece(this);
+      ChangeTracker c = new ChangeTracker(this);
       int index = activationStatus.indexOf(strokeChar);
       if (index < 0) {
         activationStatus += strokeChar;
@@ -260,30 +260,27 @@ public class Embellishment extends Decorator implements EditablePiece {
       else {
         value = -Math.abs(value);
       }
-      c.finalize();
-      return c;
+      return c.getChangeCommand();
     }
     else {
       for (int i = 0; i < upKey.length(); ++i) {
         if (KeyStroke.getKeyStroke(upKey.charAt(i), InputEvent.CTRL_MASK).equals(stroke)) {
-          TrackPiece c = new TrackPiece(this);
+          ChangeTracker c = new ChangeTracker(this);
           int val = Math.abs(value);
           if (++val > nValues)
             val = 1;
           value = value > 0 ? val : -val;
-          c.finalize();
-          return c;
+          return c.getChangeCommand();
         }
       }
       for (int i = 0; i < downKey.length(); ++i) {
         if (KeyStroke.getKeyStroke(downKey.charAt(i), InputEvent.CTRL_MASK).equals(stroke)) {
-          TrackPiece c = new TrackPiece(this);
+          ChangeTracker c = new ChangeTracker(this);
           int val = Math.abs(value);
           if (--val < 1)
             val = nValues;
           value = value > 0 ? val : -val;
-          c.finalize();
-          return c;
+          return c.getChangeCommand();
         }
       }
     }
@@ -362,7 +359,14 @@ public class Embellishment extends Decorator implements EditablePiece {
   }
 
   public String getDescription() {
-    return "Layer";
+    if (imageName.length == 0
+      || imageName[0] == null
+      || imageName[0].length() == 0) {
+      return "Layer";
+    }
+    else {
+      return "Layer - " + imageName[0];
+    }
   }
 
   public HelpFile getHelpFile() {

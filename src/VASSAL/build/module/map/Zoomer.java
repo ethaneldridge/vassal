@@ -219,7 +219,7 @@ public class Zoomer extends AbstractConfigurable implements GameComponent {
     File dir = new File("docs");
     dir = new File(dir, "ReferenceManual");
     try {
-      return new HelpFile(null, new File(dir, "Map.htm"), "Zoom");
+      return new HelpFile(null, new File(dir, "Map.htm"), "#Zoom");
     }
     catch (MalformedURLException ex) {
       return null;
