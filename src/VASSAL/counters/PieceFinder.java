@@ -89,21 +89,26 @@ class Movable implements PieceFinder {
     GamePiece selected = null;
     if (piece instanceof Stack) {
       Stack s = (Stack) piece;
-        if (shapes.length < s.getPieceCount()) {
-          shapes = new Shape[s.getPieceCount()];
+      if (shapes.length < s.getPieceCount()) {
+        shapes = new Shape[s.getPieceCount()];
+      }
+      map.getStackMetrics().getContents(s, null, shapes, null, s.getPosition().x, s.getPosition().y);
+      for (Enumeration e = s.getPiecesInVisibleOrder();
+           e.hasMoreElements();) {
+        GamePiece child = (GamePiece) e.nextElement();
+        if (Info.is2dEnabled() ? shapes[s.indexOf(child)].contains(pt) : shapes[s.indexOf(child)].getBounds().contains(pt)) {
+          selected = s.isExpanded() ? child : s;
+          break;
         }
-        map.getStackMetrics().getContents(s, null, shapes, null, s.getPosition().x, s.getPosition().y);
-        for (Enumeration e = s.getPiecesInVisibleOrder();
-             e.hasMoreElements();) {
-          GamePiece child = (GamePiece) e.nextElement();
-          if (Info.is2dEnabled() ? shapes[s.indexOf(child)].contains(pt) : shapes[s.indexOf(child)].getBounds().contains(pt)) {
-            selected = s.isExpanded() ? child : s;
-            break;
-          }
-        }
+      }
     }
-    else if (piece.getShape().contains(pt)) {
-      selected = piece;
+    else {
+      Shape s = piece.getShape();
+      Point pos = piece.getPosition();
+      Point p = new Point(pt.x - pos.x, pt.y - pos.y);
+      if (Info.is2dEnabled() ? s.contains(p) : s.getBounds().contains(p)) {
+        selected = piece;
+      }
     }
     return selected;
   }

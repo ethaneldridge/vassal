@@ -157,19 +157,21 @@ public class FreeRotator extends Decorator implements EditablePiece, MouseListen
     commands = null;
   }
 
-  public void draw(Graphics g, int x, int y, Component obs, double zoom) {
+  public void draw(final Graphics g, final int x, final int y, final Component obs, final double zoom) {
     if (getAngle() == 0.0) {
       piece.draw(g, x, y, obs, zoom);
     }
     if (Info.is2dEnabled()) {
       Graphics2D g2d = (Graphics2D) g;
       AffineTransform oldT = g2d.getTransform();
-//      g2d.setRenderingHint(RenderingHints.KEY_INTERPOLATION,RenderingHints.VALUE_INTERPOLATION_BILINEAR);
-      g2d.translate(x,y);
+      g2d.translate(x, y);
       g2d.transform(AffineTransform.getRotateInstance(getAngleInRadians()));
-//      g2d.setClip(piece.getShape());
+      g2d.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_NEAREST_NEIGHBOR);
       piece.draw(g, 0, 0, obs, zoom);
-//      g2d.setClip(null);
+      g2d.setClip(piece.getShape());
+      g2d.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR);
+      piece.draw(g, 0, 0, obs, zoom);
+      g2d.setClip(null);
       g2d.setTransform(oldT);
     }
     else {
@@ -192,10 +194,10 @@ public class FreeRotator extends Decorator implements EditablePiece, MouseListen
       Graphics2D g2d = (Graphics2D) g;
       AffineTransform t = g2d.getTransform();
       g2d.transform(AffineTransform.getRotateInstance(-Math.PI * tempAngle / 180., p.x, p.y));
-      g2d.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER,0.5F));
-      g2d.setRenderingHint(RenderingHints.KEY_INTERPOLATION,RenderingHints.VALUE_INTERPOLATION_BILINEAR);
-      g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING,RenderingHints.VALUE_ANTIALIAS_ON);
-      piece.draw(g,p.x,p.y,map.getView(),map.getZoom());
+      g2d.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.5F));
+      g2d.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR);
+      g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+      piece.draw(g, p.x, p.y, map.getView(), map.getZoom());
       g2d.setTransform(t);
     }
   }
