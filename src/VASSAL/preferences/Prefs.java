@@ -18,7 +18,6 @@
  */
 package VASSAL.preferences;
 
-import VASSAL.build.GameModule;
 import VASSAL.configure.Configurer;
 
 import java.io.ByteArrayOutputStream;
@@ -82,12 +81,22 @@ public class Prefs {
     }
   }
 
+  public void setValue(String option, Object value) {
+    Configurer c = (Configurer) options.get(option);
+    c.setValue(value);
+  }
+
   public Configurer getOption(String s) {
     return (Configurer) options.get(s);
   }
 
-  public Object getValue(String s) {
-    Configurer c = (Configurer) options.get(s);
+  /**
+   *
+   * @param key
+   * @return the value of the preferences setting stored under key
+   */
+  public Object getValue(String key) {
+    Configurer c = (Configurer) options.get(key);
     return c == null ? null : c.getValue();
   }
 

@@ -265,7 +265,7 @@ public class DieManager extends AbstractConfigurable {
     }
 
     Command chatCommand = new Chatter.DisplayText(GameModule.getGameModule().getChatter(),
-                                                    " - Roll sent to "+server.getDescription());
+                                                  " - Roll sent to " + server.getDescription());
 
     if (desc == null || desc.length() == 0) {
       desc = GameModule.getGameModule().getChatter().getInputField().getText();
@@ -273,13 +273,13 @@ public class DieManager extends AbstractConfigurable {
     if (server.getUseEmail()) {
       if (desc == null || desc.length() == 0) {
         chatCommand.append(new Chatter.DisplayText(GameModule.getGameModule().getChatter(),
-                                                      " - Emailing "+server.getSecondaryEmail()+" (no subject line)"));
+                                                   " - Emailing " + server.getSecondaryEmail() + " (no subject line)"));
         chatCommand.append(new Chatter.DisplayText(GameModule.getGameModule().getChatter(),
-                                                      " - Leave text in the chat input area to provide a subject line"));
+                                                   " - Leave text in the chat input area to provide a subject line"));
       }
       else {
         chatCommand.append(new Chatter.DisplayText(GameModule.getGameModule().getChatter(),
-                                                      " - Emailing "+server.getSecondaryEmail()+" (Subject:  "+desc+")"));
+                                                   " - Emailing " + server.getSecondaryEmail() + " (Subject:  " + desc + ")"));
       }
     }
     chatCommand.execute();
@@ -391,6 +391,11 @@ public class DieManager extends AbstractConfigurable {
 
   public static String getConfigureTypeName() {
     return "Die Manager";
+  }
+
+  public void setSecondaryEmail(String email) {
+    GameModule.getGameModule().getPrefs().setValue(SECONDARY_EMAIL, email);
+    server.setSecondaryEmail(email);
   }
 
   /** Describes a set of {@link DieRoll}s */

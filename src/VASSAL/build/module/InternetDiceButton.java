@@ -26,20 +26,24 @@ package VASSAL.build.module;
  *
  */
 
+import VASSAL.build.Buildable;
+import VASSAL.build.GameModule;
+import VASSAL.build.module.documentation.HelpFile;
+import VASSAL.command.Command;
+import VASSAL.command.CommandEncoder;
+
 import java.io.File;
 import java.net.MalformedURLException;
-
-import VASSAL.build.Buildable;
-import VASSAL.build.module.documentation.HelpFile;
 
 /**
  * This component places a button into the controls window toolbar.
  * Pressing the button generates random numbers and displays the
  * result in the Chatter */
 
-public class InternetDiceButton extends DiceButton {
+public class InternetDiceButton extends DiceButton implements GameComponent, CommandEncoder {
 
   protected static DieManager dieManager;
+  private static final String COMMAND_PREFIX = "SEMAIL\t";
 
   public InternetDiceButton() {
     super();
@@ -62,6 +66,8 @@ public class InternetDiceButton extends DiceButton {
   public void addTo(Buildable parent) {
     initDieManager();
     dieManager.addDieButton(this);
+    GameModule.getGameModule().addCommandEncoder(this);
+    GameModule.getGameModule().getGameState().addGameComponent(this);
     super.addTo(parent);
   }
 
@@ -75,7 +81,49 @@ public class InternetDiceButton extends DiceButton {
 
   public void removeFrom(Buildable b) {
     dieManager.removeDieButton(this);
+    GameModule.getGameModule().removeCommandEncoder(this);
+    GameModule.getGameModule().getGameState().removeGameComponent(this);
     super.removeFrom(b);
+  }
+
+  public void setup(boolean gameStarting) {
+  }
+
+  public Command getRestoreCommand() {
+    Command c = new SetSecondaryEmail(dieManager.getServer().getSecondaryEmail());
+    return c;
+  }
+
+  public Command decode(String command) {
+    Command comm = null;
+    if (command.startsWith(COMMAND_PREFIX)) {
+      comm = new SetSecondaryEmail(command.substring(COMMAND_PREFIX.length()));
+    }
+    return comm;
+  }
+
+  public String encode(Command c) {
+    String s = null;
+    if (c instanceof SetSecondaryEmail) {
+      s = COMMAND_PREFIX + ((SetSecondaryEmail) c).msg;
+    }
+    return s;
+  }
+
+  private class SetSecondaryEmail extends Command {
+    private String msg;
+
+    private SetSecondaryEmail(String s) {
+      msg = s;
+    }
+
+    protected void executeCommand() {
+      dieManager.setSecondaryEmail(msg);
+    }
+
+    protected Command myUndoCommand() {
+      return null;
+    }
   }
 
   public HelpFile getHelpFile() {
