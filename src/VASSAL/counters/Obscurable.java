@@ -52,6 +52,7 @@ public class Obscurable extends Decorator implements EditablePiece {
   protected GamePiece obscuredToOthersView;
   protected boolean peeking;
   protected char displayStyle = INSET; // I = inset, B = background
+  protected String maskName = "?";
 
   protected KeyCommand[] commands;
 
@@ -99,6 +100,9 @@ public class Obscurable extends Decorator implements EditablePiece {
           }
       }
     }
+    if (st.hasMoreTokens()) {
+    	maskName = st.nextToken();
+    }
     commands = null;
   }
 
@@ -115,6 +119,7 @@ public class Obscurable extends Decorator implements EditablePiece {
       default:
         se.append("" + displayStyle);
     }
+    se.append(maskName);
     return ID + se.getValue();
   }
 
@@ -251,11 +256,12 @@ public class Obscurable extends Decorator implements EditablePiece {
   }
 
   public String getName() {
+  	String maskedName = maskName == null ? "?" : maskName;
     if (obscuredToMe()) {
-      return "?";
+      return maskedName;
     }
     else if (obscuredToOthers()) {
-      return piece.getName() + "(?)";
+      return piece.getName() + "(" + maskedName + ")";
     }
     else {
       return piece.getName();
@@ -352,7 +358,7 @@ public class Obscurable extends Decorator implements EditablePiece {
   private static class Ed implements PieceEditor {
     private ImagePicker picker;
     private KeySpecifier obscureKeyInput;
-    private StringConfigurer obscureCommandInput;
+    private StringConfigurer obscureCommandInput, maskNameInput;
     private StringEnumConfigurer displayOption;
     private KeySpecifier peekKeyInput;
     private JPanel controls = new JPanel();
@@ -378,6 +384,11 @@ public class Obscurable extends Decorator implements EditablePiece {
       box.add(picker);
       controls.add(box);
 
+	  box = Box.createHorizontalBox();
+	  maskNameInput = new StringConfigurer(null, "Name when masked", p.maskName);
+	  box.add(maskNameInput.getControls());
+	  controls.add(box);
+	  
       box = Box.createHorizontalBox();
       displayOption = new StringEnumConfigurer(null, "Display style", optionNames);
       for (int i = 0; i < optionNames.length; ++i) {
@@ -474,6 +485,7 @@ public class Obscurable extends Decorator implements EditablePiece {
         default:
           se.append("" + optionChar);
       }
+      se.append(maskNameInput.getValueString());
       return ID + se.getValue();
     }
 
