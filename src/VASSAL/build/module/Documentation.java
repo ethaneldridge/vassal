@@ -36,7 +36,7 @@ import java.net.MalformedURLException;
  */
 public class Documentation extends AbstractConfigurable {
   /** Preferences key for the directory where VASSAL documentation is stored */
-  public static final String DOCS_DIR="docsDirectory";
+  public static final String DOCS_DIR = "docsDirectory";
 
   private javax.swing.JMenu controls;
 
@@ -81,14 +81,19 @@ public class Documentation extends AbstractConfigurable {
   }
 
   public static File getDocumentationBaseDir() {
-    return (File)GameModule.getGameModule().getGlobalPrefs().getValue(DOCS_DIR);
+    File f = null;
+    if (GameModule.getGameModule() != null
+        && GameModule.getGameModule().getGlobalPrefs() != null) {
+      f = (File) GameModule.getGameModule().getGlobalPrefs().getValue(DOCS_DIR);
+    }
+    return f;
   }
 
   public void addTo(Buildable b) {
     if (GameModule.getGameModule().getComponents(getClass()).hasMoreElements()) {
       throw new IllegalBuildException("Only one Help menu allowed");
     }
-    GameModule.getGameModule().getGlobalPrefs().addOption(null,new DirectoryConfigurer(DOCS_DIR,null));
+    GameModule.getGameModule().getGlobalPrefs().addOption(null, new DirectoryConfigurer(DOCS_DIR, null));
     GameModule.getGameModule().getFrame().getJMenuBar().add(controls);
   }
 
