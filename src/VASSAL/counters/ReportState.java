@@ -96,10 +96,6 @@ public class ReportState extends Decorator implements EditablePiece {
   }
 
   public Command myKeyEvent(KeyStroke stroke) {
-    return null;
-  }
-
-  public Command keyEvent(KeyStroke stroke) {
     GamePiece outer = getOutermost(this);
 
     // Retrieve the name, location and visibilty of the unit prior to the
@@ -110,8 +106,7 @@ public class ReportState extends Decorator implements EditablePiece {
     format.setProperty(MAP_NAME, getMap() == null ? null : getMap().getConfigureName());
     format.setProperty(LOCATION_NAME, getMap() == null ? null : getMap().locationName(getPosition()));
 
-    // The following line will execute the trait if it is inside this one
-    Command c = super.keyEvent(stroke);
+    Command c = null;
 
     GamePiece oldPiece = (GamePiece) getProperty(Properties.SNAPSHOT);
 
@@ -171,7 +166,7 @@ public class ReportState extends Decorator implements EditablePiece {
           if (reportText.length() > 0) {
             Command display = new Chatter.DisplayText(GameModule.getGameModule().getChatter(), "* " + reportText);
             display.execute();
-            c = c == null ? display : c.append(display);
+            c = display;
           }
           c = tracker.getChangeCommand().append(c);
           break;

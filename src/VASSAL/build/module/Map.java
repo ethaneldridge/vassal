@@ -1557,15 +1557,54 @@ public class Map extends AbstractConfigurable implements GameComponent,
   }
 
   public String getCreateFormat() {
-    return createFormat != null ? createFormat : "$" + PIECE_NAME + "$ created in $" + LOCATION + "$";
+    if (createFormat != null) {
+      return createFormat;
+    }
+    else {
+      String val = "";
+      if (boards.size() > 0) {
+        Board b = (Board) boards.firstElement();
+        if (b.getGrid() != null
+          && b.getGrid().getGridNumbering() != null) {
+          val = "$" + PIECE_NAME + "$ created in $" + LOCATION + "$";
+        }
+      }
+      return val;
+    }
   }
 
   public String getMoveToFormat() {
-    return moveToFormat != null ? moveToFormat : "$" + PIECE_NAME + "$" + " moves $" + OLD_LOCATION + "$ -> $" + LOCATION + "$ *";
+    if (moveToFormat != null) {
+      return moveToFormat;
+    }
+    else {
+      String val = "";
+      if (boards.size() > 0) {
+        Board b = (Board) boards.firstElement();
+        if (b.getGrid() != null
+          && b.getGrid().getGridNumbering() != null) {
+          val = "$" + PIECE_NAME + "$" + " moves $" + OLD_LOCATION + "$ -> $" + LOCATION + "$ *";
+        }
+      }
+      return val;
+    }
   }
 
   public String getMoveWithinFormat() {
-    return moveWithinFormat != null ? moveWithinFormat : "$" + PIECE_NAME + "$" + " moves $" + OLD_LOCATION + "$ -> $" + LOCATION + "$ *";
+    if (moveWithinFormat != null) {
+      return moveWithinFormat;
+    }
+    else {
+      String val = "";
+      if (boards.size() > 0) {
+        Board b = (Board) boards.firstElement();
+        if (b.getGrid() != null
+          && b.getGrid().getGridNumbering() != null) {
+          val = "$" + PIECE_NAME + "$" + " moves $" + OLD_LOCATION + "$ -> $" + LOCATION + "$ *";
+        }
+      }
+      return val;
+    }
   }
 
   public Class[] getAllowableConfigureComponents() {
