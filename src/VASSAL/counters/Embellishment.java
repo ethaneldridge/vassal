@@ -13,7 +13,7 @@
  * Library General Public License for more details.
  *
  * You should have received a copy of the GNU Library General Public
- * License along with this library; if not, copies are available 
+ * License along with this library; if not, copies are available
  * at http://www.opensource.org.
  */
 package VASSAL.counters;
@@ -362,7 +362,13 @@ public class Embellishment extends Decorator implements EditablePiece {
   }
 
   public String getDescription() {
-    return "Layer";
+    if (imageName.length == 0
+      || imageName[0] == null) {
+      return "Layer";
+    }
+    else {
+      return "Layer (" + imageName[0] + ")";
+    }
   }
 
   public HelpFile getHelpFile() {

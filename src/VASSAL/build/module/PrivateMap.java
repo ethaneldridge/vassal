@@ -135,6 +135,10 @@ public class PrivateMap extends Map {
     };
   }
 
+  public boolean shouldDockIntoMainWindow() {
+    return false;
+  }
+
   /** Return true if the player playing the given side can access this map
    * @see PlayerRoster
    */

@@ -30,14 +30,19 @@ public class PositionOption extends VASSAL.configure.Configurer
 
   protected Window theFrame;
   protected Rectangle bounds = new Rectangle();
+  protected Rectangle defaultValue;
 
-  public PositionOption(String key, Window f) {
-    super(key, null);
-    bounds.translate(initialPos.x, initialPos.y);
+  public PositionOption(String key, Window f, Rectangle defaultValue) {
+    super(key, null, defaultValue);
     initialPos.translate(30, 30);
     theFrame = f;
     theFrame.pack();
+    this.defaultValue = defaultValue;
     theFrame.addComponentListener(this);
+  }
+
+  public PositionOption(String key, Window f) {
+    this(key,f,new Rectangle(initialPos,new Dimension(0,0)));
   }
 
   public Object getValue() {
@@ -45,8 +50,10 @@ public class PositionOption extends VASSAL.configure.Configurer
   }
 
   public void setValue(Object o) {
+    super.setValue(o);
     if (o instanceof Rectangle) {
       bounds = new Rectangle((Rectangle)o);
+      setFrameBounds();
     }
   }
 
@@ -62,7 +69,6 @@ public class PositionOption extends VASSAL.configure.Configurer
                              Integer.parseInt(st.nextToken()),
                              Integer.parseInt(st.nextToken()),
                              Integer.parseInt(st.nextToken())));
-      initializeSize();
     }
     catch (NumberFormatException e) {
     }
@@ -100,7 +106,7 @@ public class PositionOption extends VASSAL.configure.Configurer
   public void componentHidden(ComponentEvent e) {
   }
 
-  protected void initializeSize() {
+  protected void setFrameBounds() {
     Dimension maxSize = Toolkit.getDefaultToolkit().getScreenSize();
     if (bounds.width != 0 && bounds.height != 0) {
       theFrame.setSize(new Dimension(Math.abs(bounds.width),Math.abs(bounds.height)));

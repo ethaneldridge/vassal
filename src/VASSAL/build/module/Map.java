@@ -32,6 +32,7 @@ import VASSAL.command.Command;
 import VASSAL.command.RemovePiece;
 import VASSAL.configure.ColorConfigurer;
 import VASSAL.configure.VisibilityCondition;
+import VASSAL.configure.IntConfigurer;
 import VASSAL.counters.*;
 import VASSAL.preferences.PositionOption;
 import VASSAL.tools.KeyStrokeSource;
@@ -101,6 +102,8 @@ public class Map extends AbstractConfigurable implements GameComponent,
   private boolean hideCounters = false;//  Option to hide counters to see map
   private boolean allowMultiple = false;
   private VisibilityCondition visibilityCondition;
+  private static final String LARGE_HEIGHT = "ControlWindowHeightWithMap";
+  private static final String SMALL_HEIGHT = "ControlWindowHeightNoMap";
 
   public Map() {
     getView();
@@ -398,6 +401,12 @@ public class Map extends AbstractConfigurable implements GameComponent,
       root.add(scroll, BorderLayout.CENTER);
       ComponentSplitter splitter = new ComponentSplitter();
       mainWindowDock = splitter.splitBottom(splitter.getSplitAncestor(GameModule.getGameModule().getControlPanel(), -1), root);
+      mainWindowDock.setResizeWeight(0.0F);
+      ((BasicSplitPaneUI) mainWindowDock.getUI()).getDivider().setVisible(false);
+      mainWindowDock.getBottomComponent().setVisible(false);
+
+      GameModule.getGameModule().getPrefs().addOption(null, new IntConfigurer(LARGE_HEIGHT, null, new Integer(-1)));
+      GameModule.getGameModule().getPrefs().addOption(null, new IntConfigurer(SMALL_HEIGHT, null, new Integer(-1)));
     }
   }
 
@@ -460,12 +469,6 @@ public class Map extends AbstractConfigurable implements GameComponent,
     return r.getSize();
   }
 
-  /*    public MapGrid getGrid() {
-      if (boards.size() > 0)
-      return ((Board)boards.elementAt(0)).getGrid();
-      return null ;
-  }
-  */
   /**
    * @return the nearest allowable point according to the {@link MapGrid} on the {@link Board} at this point
    *
@@ -993,9 +996,19 @@ public class Map extends AbstractConfigurable implements GameComponent,
   public void setup(boolean show) {
     if (show) {
       if (shouldDockIntoMainWindow()) {
+        GameModule.getGameModule().getPrefs().getOption(SMALL_HEIGHT).setValue(new Integer(GameModule.getGameModule().getFrame().getSize().height));
+        int dividerPos = mainWindowDock.getInsets().top+mainWindowDock.getTopComponent().getSize().height;
+        int largeHeight = ((Integer) GameModule.getGameModule().getPrefs().getValue(LARGE_HEIGHT)).intValue();
         mainWindowDock.getBottomComponent().setVisible(true);
-        ((BasicSplitPaneUI)mainWindowDock.getUI()).getDivider().setVisible(true);
-        new ComponentSplitter().show(mainWindowDock.getBottomComponent(), true);
+        ((BasicSplitPaneUI) mainWindowDock.getUI()).getDivider().setVisible(true);
+        if (largeHeight < 0) {
+          new ComponentSplitter().show(mainWindowDock.getBottomComponent(), true);
+          mainWindowDock.setDividerLocation(dividerPos);
+        }
+        else {
+          GameModule.getGameModule().getFrame().setSize(GameModule.getGameModule().getFrame().getSize().width, largeHeight);
+          mainWindowDock.setDividerLocation(dividerPos);
+        }
       }
       else {
         if (topWindow == null) {
@@ -1033,9 +1046,19 @@ public class Map extends AbstractConfigurable implements GameComponent,
         topWindow.setVisible(false);
       }
       if (mainWindowDock != null) {
-        new ComponentSplitter().hide(mainWindowDock.getBottomComponent(), true);
-        ((BasicSplitPaneUI)mainWindowDock.getUI()).getDivider().setVisible(false);
-        mainWindowDock.getBottomComponent().setVisible(false);
+        if (mainWindowDock.getBottomComponent().isVisible()) {
+          GameModule.getGameModule().getPrefs().getOption(LARGE_HEIGHT).setValue(new Integer(GameModule.getGameModule().getFrame().getSize().height));
+          int smallHeight = ((Integer) GameModule.getGameModule().getPrefs().getValue(SMALL_HEIGHT)).intValue();
+          if (smallHeight < 0) {
+            new ComponentSplitter().hide(mainWindowDock.getBottomComponent(), true);
+          }
+          else {
+            GameModule.getGameModule().getFrame().setSize(GameModule.getGameModule().getFrame().getSize().width, smallHeight);
+            new ComponentSplitter().hide(mainWindowDock.getBottomComponent(), false);
+          }
+          ((BasicSplitPaneUI) mainWindowDock.getUI()).getDivider().setVisible(false);
+          mainWindowDock.getBottomComponent().setVisible(false);
+        }
       }
     }
     launchButton.setEnabled(show);
