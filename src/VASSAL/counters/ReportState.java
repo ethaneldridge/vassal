@@ -120,7 +120,7 @@ public class ReportState extends Decorator implements EditablePiece {
     File dir = VASSAL.build.module.Documentation.getDocumentationBaseDir();
     dir = new File(dir,"ReferenceManual");
     try {
-      return new HelpFile(null,new File(dir,"Report Changes"));
+      return new HelpFile(null,new File(dir,"ReportChanges.htm"));
     }
     catch (MalformedURLException ex) {
       return null;
