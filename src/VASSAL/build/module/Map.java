@@ -18,6 +18,7 @@
  */
 package VASSAL.build.module;
 
+import VASSAL.Info;
 import VASSAL.build.AbstractConfigurable;
 import VASSAL.build.Buildable;
 import VASSAL.build.Configurable;
@@ -30,19 +31,17 @@ import VASSAL.command.AddPiece;
 import VASSAL.command.Command;
 import VASSAL.command.MoveTracker;
 import VASSAL.configure.ColorConfigurer;
-import VASSAL.configure.VisibilityCondition;
 import VASSAL.configure.IntConfigurer;
+import VASSAL.configure.VisibilityCondition;
 import VASSAL.counters.*;
 import VASSAL.preferences.PositionOption;
 import VASSAL.tools.ComponentSplitter;
 import VASSAL.tools.KeyStrokeSource;
 import VASSAL.tools.LaunchButton;
-import VASSAL.Info;
 import org.w3c.dom.Element;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.datatransfer.StringSelection;
 import java.awt.dnd.*;
 import java.awt.event.*;
 import java.io.File;
@@ -104,6 +103,7 @@ public class Map extends AbstractConfigurable implements GameComponent,
   private boolean hideCounters = false;//  Option to hide counters to see map
   private boolean allowMultiple = false;
   private VisibilityCondition visibilityCondition;
+  private DragGestureListener dragGestureListener;
 
   public Map() {
     getView();
@@ -389,8 +389,16 @@ public class Map extends AbstractConfigurable implements GameComponent,
     setID("Map" + mapCount);
 
     if (Info.isDndEnabled()) {
-      DragSource.getDefaultDragSource().createDefaultDragGestureRecognizer(theMap,DnDConstants.ACTION_MOVE,new DGL());
-      theMap.setDropTarget(new DropTarget(theMap,DnDConstants.ACTION_MOVE,new DT()));
+      DragGestureListener dgl = new DragGestureListener() {
+        public void dragGestureRecognized(DragGestureEvent dge) {
+          if (mouseListenerStack.size() == 0
+              && dragGestureListener != null) {
+            dragGestureListener.dragGestureRecognized(dge);
+          }
+        }
+      };
+      DragSource.getDefaultDragSource().createDefaultDragGestureRecognizer(theMap, DnDConstants.ACTION_MOVE, dgl);
+      theMap.setDropTarget(new DropTarget(theMap, DnDConstants.ACTION_MOVE, new DT()));
     }
     else {
       DragBuffer.getBuffer().addDropTarget(theMap, this);
@@ -404,7 +412,7 @@ public class Map extends AbstractConfigurable implements GameComponent,
 
     if (shouldDockIntoMainWindow()) {
       IntConfigurer config = new IntConfigurer(MAIN_WINDOW_HEIGHT, null, new Integer(-1));
-      GameModule.getGameModule().getGlobalPrefs().addOption(null,config);
+      GameModule.getGameModule().getGlobalPrefs().addOption(null, config);
       JPanel root = new JPanel(new BorderLayout());
 //      root.add(toolBar, BorderLayout.NORTH);
       root.add(scroll, BorderLayout.CENTER);
@@ -703,34 +711,24 @@ public class Map extends AbstractConfigurable implements GameComponent,
     theMap.repaint();
   }
 
-  public void dragGestureRecognized(DragGestureEvent dge) {
-    if (mouseListenerStack.size() == 0
-        && DragBuffer.getBuffer().getIterator().hasMoreElements()) {
-      dge.startDrag(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR),new StringSelection(""),new DSL());
-    }
+  /**
+   * This listener will be notified when a drag event is initiated, assuming that no MouseListeners are on the stack.
+   * @see #pushMouseListener
+   * @param dragGestureListener
+   */
+  public void setDragGestureListener(DragGestureListener dragGestureListener) {
+    this.dragGestureListener = dragGestureListener;
   }
 
-  public void dragEnter(DragSourceDragEvent dsde) {
-  }
-
-  public void dragOver(DragSourceDragEvent dsde) {
-  }
-
-  public void dropActionChanged(DragSourceDragEvent dsde) {
-  }
-
-  public void dragExit(DragSourceEvent dse) {
-  }
-
-  public void dragDropEnd(DragSourceDropEvent dsde) {
-    repaint();
+  public DragGestureListener getDragGestureListener() {
+    return dragGestureListener;
   }
 
   public void dragEnter(DropTargetDragEvent dtde) {
   }
 
   public void dragOver(DropTargetDragEvent dtde) {
-    scrollAtEdge(dtde.getLocation());
+    scrollAtEdge(dtde.getLocation(), 15);
   }
 
   public void dropActionChanged(DropTargetDragEvent dtde) {
@@ -740,7 +738,7 @@ public class Map extends AbstractConfigurable implements GameComponent,
   }
 
   public void drop(DropTargetDropEvent dtde) {
-    MouseEvent evt = new MouseEvent(theMap,MouseEvent.MOUSE_RELEASED,System.currentTimeMillis(),0,dtde.getLocation().x,dtde.getLocation().y,1,false);
+    MouseEvent evt = new MouseEvent(theMap, MouseEvent.MOUSE_RELEASED, System.currentTimeMillis(), 0, dtde.getLocation().x, dtde.getLocation().y, 1, false);
     theMap.dispatchEvent(evt);
   }
 
@@ -757,32 +755,34 @@ public class Map extends AbstractConfigurable implements GameComponent,
    * The map scrolls when dragging the mouse near the edge */
   public void mouseDragged(MouseEvent e) {
     if (!e.isMetaDown()) {
-      scrollAtEdge(e.getPoint());
+      scrollAtEdge(e.getPoint(), 15);
     }
   }
 
-  private void scrollAtEdge(Point evtPt) {
+  /**
+   * Scoll map so that the argument point is at least a certain distance from the visible edte
+   * @param evtPt
+   */
+  public void scrollAtEdge(Point evtPt, int dist) {
     Point p = new Point
         (evtPt.x - scroll.getViewport().getViewPosition().x,
          evtPt.y - scroll.getViewport().getViewPosition().y);
-    int xBuf = 15;
-    int yBuf = 15;
     int dx = 0, dy = 0;
-    if (p.x < xBuf
+    if (p.x < dist
         && p.x >= 0)
       dx = -1;
-    if (p.x >= scroll.getViewport().getSize().width - xBuf
+    if (p.x >= scroll.getViewport().getSize().width - dist
         && p.x < scroll.getViewport().getSize().width)
       dx = 1;
-    if (p.y < yBuf
+    if (p.y < dist
         && p.y >= 0)
       dy = -1;
-    if (p.y >= scroll.getViewport().getSize().height - yBuf
+    if (p.y >= scroll.getViewport().getSize().height - dist
         && p.y < scroll.getViewport().getSize().height)
       dy = 1;
 
     if (dx != 0 || dy != 0) {
-      scroll(dx * 25, dy * 25);
+      scroll(2*dist*dx, 2*dist*dy);
     }
   }
 
@@ -902,7 +902,7 @@ public class Map extends AbstractConfigurable implements GameComponent,
     }
     Rectangle r = p.boundingBox();
     Point pos = p.getPosition();
-    r.translate(pos.x,pos.y);
+    r.translate(pos.x, pos.y);
     if (Boolean.TRUE.equals(p.getProperty(Properties.SELECTED))) {
       r = r.union(highlighter.boundingBox(p));
     }
@@ -924,7 +924,7 @@ public class Map extends AbstractConfigurable implements GameComponent,
       throw new RuntimeException("Piece is not on this map");
     }
     Rectangle r = p.getShape().getBounds();
-    r.translate(p.getPosition().x,p.getPosition().y);
+    r.translate(p.getPosition().x, p.getPosition().y);
     if (p.getParent() != null) {
       Point pt = getStackMetrics().relativePosition(p.getParent(), p);
       r.translate(pt.x, pt.y);
@@ -1491,33 +1491,6 @@ public class Map extends AbstractConfigurable implements GameComponent,
 
     public Map getMap() {
       return map;
-    }
-  }
-  private class DGL implements DragGestureListener {
-    public void dragGestureRecognized(DragGestureEvent dge) {
-      Map.this.dragGestureRecognized(dge);
-    }
-  }
-
-  private class DSL implements DragSourceListener {
-    public void dragEnter(DragSourceDragEvent dsde) {
-      Map.this.dragEnter(dsde);
-    }
-
-    public void dragOver(DragSourceDragEvent dsde) {
-      Map.this.dragOver(dsde);
-    }
-
-    public void dropActionChanged(DragSourceDragEvent dsde) {
-      Map.this.dropActionChanged(dsde);
-    }
-
-    public void dragExit(DragSourceEvent dse) {
-      Map.this.dragExit(dse);
-    }
-
-    public void dragDropEnd(DragSourceDropEvent dsde) {
-      Map.this.dragDropEnd(dsde);
     }
   }
 

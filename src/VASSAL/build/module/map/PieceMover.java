@@ -36,6 +36,8 @@ import VASSAL.Info;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.datatransfer.StringSelection;
+import java.awt.dnd.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
@@ -65,6 +67,10 @@ public class PieceMover extends AbstractBuildable implements
     map = (Map) b;
     map.addLocalMouseListener(this);
     GameModule.getGameModule().getGameState().addGameComponent(this);
+    if (Info.isDndEnabled()) {
+      DragHandler dh = new DragHandler();
+      map.setDragGestureListener(dh);
+    }
   }
 
   public void setup(boolean gameStarting) {
@@ -482,4 +488,29 @@ public class PieceMover extends AbstractBuildable implements
     }
     return result;
   }
+
+  private class DragHandler implements DragSourceListener, DragGestureListener {
+    public void dragGestureRecognized(DragGestureEvent dge) {
+      if (DragBuffer.getBuffer().getIterator().hasMoreElements()) {
+        dge.startDrag(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR), new StringSelection(""), this);
+      }
+    }
+
+    public void dragEnter(DragSourceDragEvent dsde) {
+    }
+
+    public void dragOver(DragSourceDragEvent dsde) {
+    }
+
+    public void dropActionChanged(DragSourceDragEvent dsde) {
+    }
+
+    public void dragExit(DragSourceEvent dse) {
+    }
+
+    public void dragDropEnd(DragSourceDropEvent dsde) {
+      map.repaint();
+    }
+  }
+
 }

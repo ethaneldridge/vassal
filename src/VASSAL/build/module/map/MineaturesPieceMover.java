@@ -44,6 +44,7 @@ public class MineaturesPieceMover extends PieceMover implements MouseMotionListe
 
   public void addTo(Buildable b) {
     super.addTo(b);
+    map.setDragGestureListener(null);
     ((Map) b).addDrawComponent(this);
     ((Map) b).getView().addMouseMotionListener(this);
   }
