@@ -317,6 +317,7 @@ public class Obscurable extends Decorator implements EditablePiece {
   }
 
   public Command myKeyEvent(KeyStroke stroke) {
+    Command retVal = null;
     myGetKeyCommands();
     if (commands[0].matches(stroke)) {
       ChangeTracker c = new ChangeTracker(this);
@@ -327,14 +328,28 @@ public class Obscurable extends Decorator implements EditablePiece {
       else if (!obscuredToMe()) {
         obscuredBy = GameModule.getUserId();
       }
-      return c.getChangeCommand();
+      retVal = c.getChangeCommand();
     }
     else if (commands[1].matches(stroke)) {
       if (obscuredToOthers() && Boolean.TRUE.equals(getProperty(Properties.SELECTED))) {
         peeking = true;
       }
     }
-    return null;
+    // For the "peek" display style with no key command (i.e. appears face-up whenever selected)
+    // It looks funny if we turn something face down but we can still see it.
+    // Therefore, un-select the piece if turning it face down
+    if (retVal != null
+      && PEEK == displayStyle
+      && peekKey == 0
+      && obscuredToOthers()) {
+      Runnable runnable = new Runnable() {
+        public void run() {
+          KeyBuffer.getBuffer().remove(Decorator.getOutermost(Obscurable.this));
+        }
+      };
+      SwingUtilities.invokeLater(runnable);
+    }
+    return retVal;
   }
 
   public String getDescription() {
