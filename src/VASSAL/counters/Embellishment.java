@@ -94,9 +94,9 @@ public class Embellishment extends Decorator implements EditablePiece {
 
     activateKey = st.nextToken().toUpperCase();
     activateCommand = st.nextToken();
-    if (activateCommand.startsWith("_")) {
+    drawUnderneathWhenSelected = activateCommand.startsWith("_");
+    if (drawUnderneathWhenSelected) {
       activateCommand = activateCommand.substring(1);
-      drawUnderneathWhenSelected = true;
     }
 
     value = activateKey.length() > 0 ? -1 : 1;
