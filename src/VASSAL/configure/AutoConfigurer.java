@@ -98,7 +98,7 @@ public class AutoConfigurer extends Configurer
       }
       else if (StringEnum.class.isAssignableFrom(type[i])) {
         try {
-          String[] validValues = ((StringEnum) type[i].newInstance()).getValidValues();
+          String[] validValues = ((StringEnum) type[i].newInstance()).getValidValues(target);
           config = new StringEnumConfigurer(name[i], prompt[i], validValues);
         }
         catch (Exception e) {

@@ -27,6 +27,7 @@
 package VASSAL.build.module.map.boardPicker.board.mapgrid;
 
 import VASSAL.build.AbstractConfigurable;
+import VASSAL.build.AutoConfigurable;
 import VASSAL.build.module.documentation.HelpFile;
 import VASSAL.configure.*;
 
@@ -224,13 +225,13 @@ public abstract class RegularGridNumbering extends AbstractConfigurable implemen
   }
 
   public static class F extends StringEnum {
-    public String[] getValidValues() {
+    public String[] getValidValues(AutoConfigurable target) {
       return new String[]{"Horizontal first", "Vertical first"};
     }
   }
 
   public static class T extends StringEnum {
-    public String[] getValidValues() {
+    public String[] getValidValues(AutoConfigurable target) {
       return new String[]{"Numerical", "Alphabetic"};
     }
   }

@@ -26,10 +26,7 @@
  */
 package VASSAL.build.module;
 
-import VASSAL.build.AbstractConfigurable;
-import VASSAL.build.Buildable;
-import VASSAL.build.GameModule;
-import VASSAL.build.IllegalBuildException;
+import VASSAL.build.*;
 import VASSAL.build.module.documentation.HelpFile;
 import VASSAL.configure.BooleanConfigurer;
 import VASSAL.configure.StringEnum;
@@ -95,7 +92,7 @@ public class GlobalOptions extends AbstractConfigurable {
   }
 
   public static class Prompt extends StringEnum {
-    public String[] getValidValues() {
+    public String[] getValidValues(AutoConfigurable target) {
       return new String[]{ALWAYS, NEVER, PROMPT};
     }
   }

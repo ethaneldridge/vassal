@@ -1396,7 +1396,7 @@ public class Map extends AbstractConfigurable implements GameComponent,
 
   public Class[] getAllowableConfigureComponents() {
     Class[] c = {GlobalMap.class, LOS_Thread.class,
-                 Zoomer.class, CounterDetailViewer.class, ImageSaver.class, TextSaver.class, DrawPile.class, MassKeyCommand.class};
+                 Zoomer.class, CounterDetailViewer.class, ImageSaver.class, TextSaver.class, DrawPile.class, SetupStack.class, MassKeyCommand.class};
     return c;
   }
 

@@ -26,6 +26,8 @@
  */
 package VASSAL.configure;
 
+import VASSAL.build.AutoConfigurable;
+
 /**
  * Wrapper class for an enumerated type.  If an AutoConfigurable object lists an attribute of type StringEnum.class,
  * the AutoConfigurer class will build a StringEnumConfigurer as that attribute's editor.
@@ -34,5 +36,5 @@ package VASSAL.configure;
 public abstract class StringEnum {
     public StringEnum() {
     }
-    public abstract String[] getValidValues();
+    public abstract String[] getValidValues(AutoConfigurable target);
 }

@@ -165,7 +165,7 @@ public class MassKeyCommand extends AbstractConfigurable {
   }
 
   public static class Prompt extends StringEnum {
-    public String[] getValidValues() {
+    public String[] getValidValues(AutoConfigurable target) {
       return new String[]{ALWAYS, IF_ACTIVE, IF_INACTIVE};
     }
   }
