@@ -19,14 +19,17 @@
 package VASL.build.module.map.boardPicker;
 
 import VASL.build.module.map.boardPicker.board.ASLHexGrid;
+import VASSAL.Info;
 import VASSAL.build.GameModule;
 import VASSAL.build.module.map.boardPicker.Board;
 import VASSAL.build.module.map.boardPicker.board.HexGrid;
 import VASSAL.build.module.map.boardPicker.board.MapGrid;
 import VASSAL.tools.DataArchive;
+import VASSAL.tools.RotateFilter;
 
 import java.awt.*;
-import java.awt.image.BufferedImage;
+import java.awt.image.FilteredImageSource;
+import java.awt.image.ImageProducer;
 import java.io.*;
 import java.util.Enumeration;
 import java.util.StringTokenizer;
@@ -215,12 +218,30 @@ public class ASLBoard extends Board {
       boardImage = baseImage;
       return;
     }
-//    boardImage = map.createImage(boundaries.width, boundaries.height);
-    boardImage = new BufferedImage(boundaries.width,boundaries.height,BufferedImage.TYPE_4BYTE_ABGR);
+    boardImage = map.createImage(boundaries.width, boundaries.height);
     Graphics g = boardImage.getGraphics();
     if (reversed) {
-      g.drawImage(im, 0, 0, boundaries.width, boundaries.height,
-                  cropBounds.x + boundaries.width, cropBounds.y + boundaries.height, cropBounds.x, cropBounds.y, map);
+      if (Info.isMacOsX()) {
+        System.err.println("Using fail-safe rotation for board "+getName());
+        RotateFilter filter = new RotateFilter(180);
+//        filter.transformSpace(rotatedBounds);
+        ImageProducer producer = new FilteredImageSource
+            (im.getSource(), filter);
+        Image rotated = map.createImage(producer);
+        track.addImage(rotated,0);
+        try {
+          track.waitForID(0);
+        }
+        catch (InterruptedException e) {
+          e.printStackTrace();
+        }
+        g.drawImage(rotated, -baseImage.getWidth(map)+boundaries.width+cropBounds.x,
+                    -baseImage.getHeight(map)+boundaries.height+cropBounds.y, map);
+      }
+      else {
+        g.drawImage(im, 0, 0, boundaries.width, boundaries.height,
+                    cropBounds.x + boundaries.width, cropBounds.y + boundaries.height, cropBounds.x, cropBounds.y, map);
+      }
     }
     else {
       g.drawImage(im, -cropBounds.x, -cropBounds.y, map);
