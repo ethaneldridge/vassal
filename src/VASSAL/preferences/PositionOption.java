@@ -13,7 +13,7 @@
  * Library General Public License for more details.
  *
  * You should have received a copy of the GNU Library General Public
- * License along with this library; if not, copies are available 
+ * License along with this library; if not, copies are available
  * at http://www.opensource.org.
  */
 package VASSAL.preferences;
@@ -29,7 +29,7 @@ public class PositionOption extends VASSAL.configure.Configurer
   private static Point initialPos = new Point(0, 0);
 
   protected Window theFrame;
-  protected Rectangle bounds = new Rectangle();
+  protected Rectangle bounds;
   protected Rectangle defaultValue;
 
   public PositionOption(String key, Window f, Rectangle defaultValue) {
@@ -37,6 +37,7 @@ public class PositionOption extends VASSAL.configure.Configurer
     initialPos.translate(30, 30);
     theFrame = f;
     theFrame.pack();
+    setFrameBounds();
     this.defaultValue = defaultValue;
     theFrame.addComponentListener(this);
   }
@@ -50,11 +51,13 @@ public class PositionOption extends VASSAL.configure.Configurer
   }
 
   public void setValue(Object o) {
-    super.setValue(o);
     if (o instanceof Rectangle) {
       bounds = new Rectangle((Rectangle)o);
-      setFrameBounds();
+      if (theFrame != null) {
+        setFrameBounds();
+      }
     }
+    super.setValue(o);
   }
 
   public java.awt.Component getControls() {

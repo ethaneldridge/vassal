@@ -62,8 +62,10 @@ public class CounterDetailViewer
   public void addTo(Buildable b) {
     map = (Map) b;
     Enumeration e = map.getComponents(getClass());
-    if (e.hasMoreElements()) {
-      throw new IllegalBuildException("Mouse-over Stack Viewer already enabled");
+    while (e.hasMoreElements()) {
+      if (e.nextElement() != this) {
+        throw new IllegalBuildException("Mouse-over Stack Viewer already enabled");
+      }
     }
     map.addDrawComponent(this);
     GameModule.getGameModule().getPrefs().addOption

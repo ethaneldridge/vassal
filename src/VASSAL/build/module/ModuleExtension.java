@@ -24,6 +24,7 @@ import VASSAL.command.Command;
 import VASSAL.configure.StringConfigurer;
 import VASSAL.tools.ArchiveWriter;
 import VASSAL.tools.DataArchive;
+import VASSAL.Info;
 import org.w3c.dom.Document;
 
 import javax.swing.*;
@@ -162,7 +163,7 @@ public class ModuleExtension extends AbstractBuildable implements GameComponent 
     }
     else if (BASE_MODULE_VERSION.equals(key)) {
       String version = (String) value;
-      if (GameModule.compareVersions(version, GameModule.getGameModule().getGameVersion()) < 0) {
+      if (Info.compareVersions(version, GameModule.getGameModule().getGameVersion()) < 0) {
         JOptionPane.showMessageDialog(GameModule.getGameModule().getFrame(),
                                       "Extension \'" + getName() + "\' was built for module version "
                                       + version + ".\n  You are running version " + GameModule.getGameModule().getGameVersion()
@@ -300,7 +301,7 @@ public class ModuleExtension extends AbstractBuildable implements GameComponent 
         final ModuleExtension ext = (ModuleExtension) e.nextElement();
         if (ext.getName().equals(name)) {
           containsExtension = true;
-          if (GameModule.compareVersions(ext.getVersion(), version) < 0) {
+          if (Info.compareVersions(ext.getVersion(), version) < 0) {
             Runnable runnable = new Runnable() {
               public void run() {
                 JOptionPane.showMessageDialog(f,
