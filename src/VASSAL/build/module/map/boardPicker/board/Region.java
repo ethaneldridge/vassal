@@ -23,6 +23,7 @@ import VASSAL.build.Buildable;
 import VASSAL.counters.Labeler;
 
 import java.awt.*;
+import java.awt.geom.Area;
 
 import javax.swing.JComponent;
 
@@ -201,7 +202,9 @@ public class Region extends AbstractConfigurable {
     Rectangle region = bounds.intersection(visibleRect);
 
     Shape oldClip = g.getClip();
-    g.setClip(region.x, region.y, region.width, region.height);
+    Area clipArea = new Area(oldClip);
+    clipArea.intersect(new Area(region));
+    g.setClip(clipArea);
 
     int posX = (int) (scale * origin.x + 0.5) + bounds.x - 1;
     int posY = (int) (scale * origin.y + 0.5) + bounds.y - 1;

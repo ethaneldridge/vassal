@@ -20,13 +20,17 @@ package VASSAL.build.module.map.boardPicker.board;
 
 import VASSAL.build.AbstractConfigurable;
 import VASSAL.build.Buildable;
-import VASSAL.build.module.map.boardPicker.Board;
+import VASSAL.build.module.documentation.HelpFile;
+import VASSAL.build.module.map.boardPicker.board.mapgrid.GridContainer;
 import VASSAL.build.module.map.boardPicker.board.mapgrid.GridNumbering;
 import VASSAL.build.module.map.boardPicker.board.mapgrid.HexGridNumbering;
-import VASSAL.build.module.documentation.HelpFile;
-import VASSAL.configure.*;
+import VASSAL.configure.AutoConfigurer;
+import VASSAL.configure.ColorConfigurer;
+import VASSAL.configure.Configurer;
+import VASSAL.configure.VisibilityCondition;
 
 import java.awt.*;
+import java.awt.geom.Area;
 import java.io.File;
 import java.net.MalformedURLException;
 
@@ -39,7 +43,7 @@ public class HexGrid extends AbstractConfigurable implements MapGrid {
   protected double dx;
   protected double dy;
 
-  protected Board board;
+  protected GridContainer container;
 
   protected GridNumbering numbering;
 
@@ -184,18 +188,17 @@ public class HexGrid extends AbstractConfigurable implements MapGrid {
     dx = w;
   }
 
-  public Board getBoard() {
-    return board;
+  public GridContainer getContainer() {
+    return container;
   }
 
   public void addTo(Buildable b) {
-    board = (Board) b;
-    ((Board) b).setGrid(this);
+    container = (GridContainer) b;
+    container.setGrid(this);
   }
 
   public void removeFrom(Buildable b) {
-    if (((Board) b).getGrid() == this)
-      ((Board) b).setGrid(null);
+  ((GridContainer) b).removeGrid(this);
   }
 
   public static String getConfigureTypeName() {
@@ -461,7 +464,18 @@ public class HexGrid extends AbstractConfigurable implements MapGrid {
     return ((int) (dy / 2 * (int) Math.floor((y - origin.y + dy / 4) * 2 / dy) + origin.y));
   }
 
+  /** Draw the grid, if visible, and the accompanying numbering */
   public void draw(Graphics g, Rectangle bounds, Rectangle visibleRect, double zoom, boolean reversed) {
+    if (visible) {
+      forceDraw(g, bounds, visibleRect, zoom, reversed);
+    }
+    if (numbering != null) {
+      numbering.draw(g, bounds, visibleRect, zoom, reversed);
+    }
+  }
+
+  /** Draw the grid even if set to be not visible */
+  public void forceDraw(Graphics g, Rectangle bounds, Rectangle visibleRect, double zoom, boolean reversed) {
     if (!bounds.intersects(visibleRect)) {
       return;
     }
@@ -482,7 +496,9 @@ public class HexGrid extends AbstractConfigurable implements MapGrid {
     Rectangle region = bounds.intersection(visibleRect);
 
     Shape oldClip = g.getClip();
-    g.setClip(region.x, region.y, region.width, region.height);
+    Area clipArea = new Area(oldClip);
+    clipArea.intersect(new Area(region));
+    g.setClip(clipArea);
 
     if (sideways) {
       bounds = new Rectangle(bounds.y, bounds.x, bounds.height, bounds.width);

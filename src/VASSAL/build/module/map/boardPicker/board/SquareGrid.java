@@ -13,21 +13,22 @@
  * Library General Public License for more details.
  *
  * You should have received a copy of the GNU Library General Public
- * License along with this library; if not, copies are available 
+ * License along with this library; if not, copies are available
  * at http://www.opensource.org.
  */
 package VASSAL.build.module.map.boardPicker.board;
 
 import VASSAL.build.AbstractConfigurable;
 import VASSAL.build.Buildable;
-import VASSAL.build.module.map.boardPicker.Board;
+import VASSAL.build.module.documentation.HelpFile;
+import VASSAL.build.module.map.boardPicker.board.mapgrid.GridContainer;
 import VASSAL.build.module.map.boardPicker.board.mapgrid.GridNumbering;
 import VASSAL.build.module.map.boardPicker.board.mapgrid.SquareGridNumbering;
-import VASSAL.build.module.documentation.HelpFile;
 import VASSAL.configure.ColorConfigurer;
 import VASSAL.configure.VisibilityCondition;
 
 import java.awt.*;
+import java.awt.geom.Area;
 import java.io.File;
 import java.net.MalformedURLException;
 
@@ -40,7 +41,7 @@ public class SquareGrid extends AbstractConfigurable implements MapGrid {
   private boolean cornersLegal = false;
   private boolean dotsVisible = false;
   private Color color;
-  protected Board board;
+  protected GridContainer container;
 
   private GridNumbering gridNumbering;
 
@@ -76,8 +77,8 @@ public class SquareGrid extends AbstractConfigurable implements MapGrid {
 
   }
 
-  public Board getBoard() {
-  	return board;
+  public GridContainer getContainer() {
+    return container;
   }
 
   public static final String DX = "dx";
@@ -133,13 +134,12 @@ public class SquareGrid extends AbstractConfigurable implements MapGrid {
   }
 
   public void addTo(Buildable b) {
-	board = (Board) b;
-    ((Board) b).setGrid(this);
+    container = (GridContainer) b;
+    container.setGrid(this);
   }
 
   public void removeFrom(Buildable b) {
-    if (((Board) b).getGrid() == this)
-      ((Board) b).setGrid(null);
+    ((GridContainer) b).removeGrid(this);
   }
 
   public static String getConfigureTypeName() {
@@ -271,10 +271,10 @@ public class SquareGrid extends AbstractConfigurable implements MapGrid {
 // (1,0) is the east edge of the origin cell
 // (1,1) is the lower-right corner of the origin cell
 
-   int nx = (int) Math.round((p.x - origin.x) / (.5 * dx));
-   int ny = (int) Math.round((p.y - origin.y) / (.5 * dy));
-   int nx2 = (int) Math.round((p.x - origin.x - .25 * dx) / (.5 * dx));
-   int ny2 = (int) Math.round((p.y - origin.y - .25 * dy) / (.5 * dy));
+    int nx = (int) Math.round((p.x - origin.x) / (.5 * dx));
+    int ny = (int) Math.round((p.y - origin.y) / (.5 * dy));
+    int nx2 = (int) Math.round((p.x - origin.x - .25 * dx) / (.5 * dx));
+    int ny2 = (int) Math.round((p.y - origin.y - .25 * dy) / (.5 * dy));
 
 
     if (cornersLegal && edgesLegal) {
@@ -304,8 +304,8 @@ public class SquareGrid extends AbstractConfigurable implements MapGrid {
     else {
 //      nx = 2 * (int) Math.round((float) nx * .5);
 //      ny = 2 * (int) Math.round((float) ny * .5);
-	  nx = 2 * (int) Math.round((float) nx2 * .5);
-	  ny = 2 * (int) Math.round((float) ny2 * .5);
+      nx = 2 * (int) Math.round((float) nx2 * .5);
+      ny = 2 * (int) Math.round((float) ny2 * .5);
     }
     return new Point(origin.x + (int) (nx * dx / 2), origin.y + (int) (ny * dy / 2));
   }
@@ -323,7 +323,18 @@ public class SquareGrid extends AbstractConfigurable implements MapGrid {
     p.y = bounds.y + bounds.height - (p.y - bounds.y);
   }
 
+  /** Draw the grid, if visible, and accompanying numbering, if set */
   public void draw(Graphics g, Rectangle bounds, Rectangle visibleRect, double scale, boolean reversed) {
+    if (visible) {
+      forceDraw(g, bounds, visibleRect, scale, reversed);
+    }
+    if (gridNumbering != null) {
+      gridNumbering.draw(g, bounds, visibleRect, scale, reversed);
+    }
+  }
+
+  /** Draw the grid even if not marked visible */
+  public void forceDraw(Graphics g, Rectangle bounds, Rectangle visibleRect, double scale, boolean reversed) {
     if (!bounds.intersects(visibleRect)) {
       return;
     }
@@ -335,16 +346,18 @@ public class SquareGrid extends AbstractConfigurable implements MapGrid {
     Rectangle region = bounds.intersection(visibleRect);
 
     Shape oldClip = g.getClip();
-    g.setClip(region.x,region.y,region.width,region.height);
+    Area clipArea = new Area(oldClip);
+    clipArea.intersect(new Area(region));
+    g.setClip(clipArea);
 
     double deltaX = scale * dx;
     double deltaY = scale * dy;
 
-    double xmin = reversed ? bounds.x+scale*origin.x+bounds.width - deltaX*Math.round((bounds.x+scale*origin.x+bounds.width-region.x)/deltaX) + deltaX/2
-      : bounds.x + scale * origin.x + deltaX * Math.round((region.x - bounds.x - scale * origin.x) / deltaX) + deltaX / 2;
+    double xmin = reversed ? bounds.x + scale * origin.x + bounds.width - deltaX * Math.round((bounds.x + scale * origin.x + bounds.width - region.x) / deltaX) + deltaX / 2
+        : bounds.x + scale * origin.x + deltaX * Math.round((region.x - bounds.x - scale * origin.x) / deltaX) + deltaX / 2;
     double xmax = region.x + region.width;
-    double ymin = reversed ? bounds.y+scale*origin.y+bounds.height - deltaY*Math.round((bounds.y+scale*origin.y+bounds.height-region.y)/deltaY) + deltaY/2
-      : bounds.y + scale * origin.y + deltaY * Math.round((region.y - bounds.y - scale * origin.y) / deltaY) + deltaY / 2;
+    double ymin = reversed ? bounds.y + scale * origin.y + bounds.height - deltaY * Math.round((bounds.y + scale * origin.y + bounds.height - region.y) / deltaY) + deltaY / 2
+        : bounds.y + scale * origin.y + deltaY * Math.round((region.y - bounds.y - scale * origin.y) / deltaY) + deltaY / 2;
     double ymax = region.y + region.height;
 
     Point p1 = new Point();
@@ -360,10 +373,10 @@ public class SquareGrid extends AbstractConfigurable implements MapGrid {
       g.drawLine(region.x, (int) Math.round(y), region.x + region.width, (int) Math.round(y));
     }
     if (dotsVisible) {
-      xmin = reversed ? bounds.x+scale*origin.x+bounds.width - deltaX*Math.round((bounds.x+scale*origin.x+bounds.width-region.x)/deltaX)
-        : bounds.x + scale * origin.x + deltaX * Math.round((region.x - bounds.x - scale * origin.x) / deltaX);
-      ymin = reversed ? bounds.y+scale*origin.y+bounds.height - deltaY*Math.round((bounds.y+scale*origin.y+bounds.height-region.y)/deltaY)
-        : bounds.y + scale * origin.y + deltaY * Math.round((region.y - bounds.y - scale * origin.y) / deltaY);
+      xmin = reversed ? bounds.x + scale * origin.x + bounds.width - deltaX * Math.round((bounds.x + scale * origin.x + bounds.width - region.x) / deltaX)
+          : bounds.x + scale * origin.x + deltaX * Math.round((region.x - bounds.x - scale * origin.x) / deltaX);
+      ymin = reversed ? bounds.y + scale * origin.y + bounds.height - deltaY * Math.round((bounds.y + scale * origin.y + bounds.height - region.y) / deltaY)
+          : bounds.y + scale * origin.y + deltaY * Math.round((region.y - bounds.y - scale * origin.y) / deltaY);
       for (double x = xmin; x < xmax; x += deltaX) {
         for (double y = ymin; y < ymax; y += deltaY) {
           p1.move((int) Math.round(x - .5), (int) Math.round(y - .5));

@@ -32,6 +32,7 @@ import VASSAL.counters.Labeler;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.geom.Area;
 
 public class SquareGridNumbering extends RegularGridNumbering {
 
@@ -48,8 +49,8 @@ public class SquareGridNumbering extends RegularGridNumbering {
         public void paint(Graphics g) {
           g.clearRect(0, 0, getWidth(), getHeight());
           Rectangle bounds = new Rectangle(0, 0, getWidth(), getHeight());
-          grid.draw(g, bounds, bounds, 1.0, false);
-          draw(g, bounds, bounds, 1.0, false);
+          grid.forceDraw(g, bounds, bounds, 1.0, false);
+          forceDraw(g, bounds, bounds, 1.0, false);
         }
 
         public Dimension getPreferredSize() {
@@ -60,14 +61,24 @@ public class SquareGridNumbering extends RegularGridNumbering {
     return visualizer;
   }
 
+  /** Draw the numbering, if visible */
   public void draw(Graphics g, Rectangle bounds, Rectangle visibleRect, double scale, boolean reversed) {
+    if (visible) {
+      forceDraw(g, bounds, visibleRect, scale, reversed);
+    }
+  }
+
+  /** Draw the numbering, even if not visible */
+  public void forceDraw(Graphics g, Rectangle bounds, Rectangle visibleRect, double scale, boolean reversed) {
     int size = (int) (scale * fontSize + 0.5);
     if (size < 5 || !bounds.intersects(visibleRect)) {
       return;
     }
     Rectangle region = bounds.intersection(visibleRect);
     Shape oldClip = g.getClip();
-    g.setClip(region.x, region.y, region.width, region.height);
+    Area clipArea = new Area(oldClip);
+    clipArea.intersect(new Area(region));
+    g.setClip(clipArea);
 
     double deltaX = scale * grid.getDx();
     double deltaY = scale * grid.getDy();
@@ -134,10 +145,10 @@ public class SquareGridNumbering extends RegularGridNumbering {
   }
 
   protected int getMaxRows() {
-    return (int) (grid.getBoard().bounds().height / grid.getDy() + 0.5);
+    return (int) (grid.getContainer().getSize().height / grid.getDy() + 0.5);
   }
 
   protected int getMaxColumns() {
-    return (int) (grid.getBoard().bounds().width / grid.getDx() + 0.5);
+    return (int) (grid.getContainer().getSize().width / grid.getDx() + 0.5);
   }
 }

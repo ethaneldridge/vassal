@@ -24,10 +24,8 @@ import VASSAL.build.GameModule;
 import VASSAL.build.module.GameComponent;
 import VASSAL.build.module.Map;
 import VASSAL.build.module.documentation.HelpFile;
-import VASSAL.build.module.map.boardPicker.board.HexGrid;
-import VASSAL.build.module.map.boardPicker.board.MapGrid;
-import VASSAL.build.module.map.boardPicker.board.RegionGrid;
-import VASSAL.build.module.map.boardPicker.board.SquareGrid;
+import VASSAL.build.module.map.boardPicker.board.*;
+import VASSAL.build.module.map.boardPicker.board.mapgrid.GridContainer;
 import VASSAL.command.Command;
 import VASSAL.configure.ColorConfigurer;
 import VASSAL.configure.SingleChildInstance;
@@ -42,7 +40,7 @@ import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.Iterator;
 
-public class Board extends AbstractConfigurable {
+public class Board extends AbstractConfigurable implements GridContainer {
   /**
    * A Board is a piece of a Map.  A Map can cantain a set of boards
    * layed out in a rectangular grid.
@@ -212,7 +210,7 @@ public class Board extends AbstractConfigurable {
 
 
   public Class[] getAllowableConfigureComponents() {
-    Class[] c = {HexGrid.class, SquareGrid.class, RegionGrid.class};
+    Class[] c = {HexGrid.class, SquareGrid.class, RegionGrid.class, ZonedGrid.class};
     return c;
   }
 
@@ -239,13 +237,7 @@ public class Board extends AbstractConfigurable {
         }
       }
       if (grid != null) {
-        if (grid.isVisible()) {
-          grid.draw(g, bounds, visibleRect, zoom, reversed);
-        }
-        if (grid.getGridNumbering() != null
-            && grid.getGridNumbering().isVisible()) {
-          grid.getGridNumbering().draw(g, bounds, visibleRect, zoom, reversed);
-        }
+        grid.draw(g, bounds, visibleRect, zoom, reversed);
       }
     }
   }
@@ -285,6 +277,16 @@ public class Board extends AbstractConfigurable {
 
   public void setGrid(MapGrid mg) {
     grid = mg;
+  }
+
+  public void removeGrid(MapGrid grid) {
+    if (this.grid == grid) {
+      this.grid = null;
+    }
+  }
+
+  public Dimension getSize() {
+    return bounds().getSize();
   }
 
   public MapGrid getGrid() {

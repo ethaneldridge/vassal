@@ -33,6 +33,7 @@ import VASSAL.counters.Labeler;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.geom.AffineTransform;
+import java.awt.geom.Area;
 import java.awt.event.*;
 
 public class HexGridNumbering extends RegularGridNumbering {
@@ -91,7 +92,15 @@ public class HexGridNumbering extends RegularGridNumbering {
     }
   }
 
+  /** Draw the numbering if visible */
   public void draw(Graphics g, Rectangle bounds, Rectangle visibleRect, double scale, boolean reversed) {
+    if (visible){
+      forceDraw(g, bounds, visibleRect, scale, reversed);
+    }
+  }
+
+  /** Draw the numbering, even if not visible */
+  public void forceDraw(Graphics g, Rectangle bounds, Rectangle visibleRect, double scale, boolean reversed) {
     int size = (int) (scale * fontSize + 0.5);
     if (size < 5) {
       return;
@@ -112,7 +121,9 @@ public class HexGridNumbering extends RegularGridNumbering {
     Rectangle region = bounds.intersection(visibleRect);
 
     Shape oldClip = g.getClip();
-    g.setClip(region.x, region.y, region.width, region.height);
+    Area clipArea = new Area(oldClip);
+    clipArea.intersect(new Area(region));
+    g.setClip(clipArea);
 
     double deltaX = scale * grid.getHexWidth();
     double deltaY = scale * grid.getHexSize();
@@ -212,8 +223,8 @@ public class HexGridNumbering extends RegularGridNumbering {
         public void paint(Graphics g) {
           g.clearRect(0, 0, getWidth(), getHeight());
           Rectangle bounds = new Rectangle(0, 0, getWidth(), getHeight());
-          grid.draw(g, bounds, bounds, 1.0, false);
-          draw(g, bounds, bounds, 1.0, false);
+          grid.forceDraw(g, bounds, bounds, 1.0, false);
+          forceDraw(g, bounds, bounds, 1.0, false);
         }
 
         public Dimension getPreferredSize() {
@@ -282,11 +293,11 @@ public class HexGridNumbering extends RegularGridNumbering {
   }
 
   protected int getMaxRows() {
-    return (int) Math.floor(grid.getBoard().bounds().height / grid.getHexWidth() + 0.5);
+    return (int) Math.floor(grid.getContainer().getSize().height / grid.getHexWidth() + 0.5);
   }
 
   protected int getMaxColumns() {
-    return (int) Math.floor(grid.getBoard().bounds().width / grid.getHexSize() + 0.5);
+    return (int) Math.floor(grid.getContainer().getSize().width / grid.getHexSize() + 0.5);
   }
 
   public static void main(String[] args) {
@@ -338,8 +349,8 @@ public class HexGridNumbering extends RegularGridNumbering {
           public void paint(Graphics g) {
             Rectangle r = new Rectangle(0,0,getWidth(),getHeight());
             g.clearRect(r.x,r.y,r.width,r.height);
-            grid.draw(g, r, getVisibleRect(), scale, reversed);
-            numbering.draw(g, getBounds(), getVisibleRect(), scale, reversed);
+            grid.forceDraw(g, r, getVisibleRect(), scale, reversed);
+            numbering.forceDraw(g, getBounds(), getVisibleRect(), scale, reversed);
           }
         };
         Dimension d = new Dimension(4000,4000);

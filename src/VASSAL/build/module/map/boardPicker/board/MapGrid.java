@@ -13,7 +13,7 @@
  * Library General Public License for more details.
  *
  * You should have received a copy of the GNU Library General Public
- * License along with this library; if not, copies are available 
+ * License along with this library; if not, copies are available
  * at http://www.opensource.org.
  */
 package VASSAL.build.module.map.boardPicker.board;
@@ -24,52 +24,52 @@ import VASSAL.build.module.map.boardPicker.board.mapgrid.GridNumbering;
 import java.awt.Point;
 
 /**
- * A MapGrid overlays a map board to constrain 
+ * A MapGrid overlays a map board to constrain
  * the legal locations of GamePieces
  */
 public interface MapGrid {
-    /**
-     * @return the nearest grid location to the given point
-     */
-  public Point snapTo(java.awt.Point p); 
+  /**
+   * @return the nearest grid location to the given point
+   */
+  public Point snapTo(java.awt.Point p);
 
-    /**
-     * @return a string describing the location containing the given point
-     */
+  /**
+   * @return a string describing the location containing the given point
+   */
   public String locationName(Point p);
 
-    /**
-     * @return A point p such that locationName(p).equals(location)
-     */
+  /**
+   * @return A point p such that locationName(p).equals(location)
+   */
   public Point getLocation(String location) throws BadCoords;
 
-    /** 
-     * @return the range between two points, in some unit appropriate
-     * to the grid (e.g. hexes or squares)
-     */
-    public int range(Point p1, Point p2);
-    
+  /**
+   * @return the range between two points, in some unit appropriate
+   * to the grid (e.g. hexes or squares)
+   */
+  public int range(Point p1, Point p2);
 
-    /** Whether this grid should be drawn on the map */
-    public boolean isVisible();
 
-    /**
-     * Draw the grid
-     * @param bounds the boundaries of the grid (in magnified coordinates)
-     * @param scale the magnification factor
-     */
-    public void draw(java.awt.Graphics g, java.awt.Rectangle bounds, java.awt.Rectangle visibleRect, double scale, boolean reversed);
+  /** Whether this grid should be drawn on the map */
+  public boolean isVisible();
 
-    public GridNumbering getGridNumbering();
+  /**
+   * Draw the grid
+   * @param bounds the boundaries of the grid (in magnified coordinates)
+   * @param scale the magnification factor
+   */
+  public void draw(java.awt.Graphics g, java.awt.Rectangle bounds, java.awt.Rectangle visibleRect, double scale, boolean reversed);
 
-    public static final class BadCoords extends Exception {
-	public BadCoords() {
-	    super();
-	}
-	
-	public BadCoords(String s) {
-	    super(s);
-	}
+  public GridNumbering getGridNumbering();
+
+  public static final class BadCoords extends Exception {
+    public BadCoords() {
+      super();
     }
+
+    public BadCoords(String s) {
+      super(s);
+    }
+  }
 
 }
