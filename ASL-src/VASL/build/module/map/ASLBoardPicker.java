@@ -359,7 +359,8 @@ public class ASLBoardPicker extends BoardPicker
                                 Integer.parseInt(st2.nextToken()));
       String baseName = st2.nextToken();
       File f;
-      if ((f = new File(boardDir, "bd" + baseName)).exists()) {
+      if ((f = new File(boardDir, "bd" + baseName)).exists()
+        && !"rb".equals(baseName)) { // Kludge to get around case-insensitive name conflict between RB and reversed b
         b.setFile(f);
         b.setCommonName(baseName);
         b.setBaseImageFileName("bd" + baseName + ".gif");
@@ -402,6 +403,9 @@ public class ASLBoardPicker extends BoardPicker
           b.setFile(f);
           b.setCommonName(baseName.substring(1));
           b.setBaseImageFileName("bd" + baseName + ".gif");
+        }
+        else {
+          throw new BoardException("Unable to find board "+baseName);
         }
         b.setReversed(true);
       }
