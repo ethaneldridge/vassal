@@ -23,14 +23,10 @@ import VASSAL.build.module.GlobalOptions;
 import VASSAL.build.module.documentation.HelpFile;
 import VASSAL.configure.BooleanConfigurer;
 
-import javax.media.jai.Interpolation;
-import javax.media.jai.JAI;
-import javax.media.jai.PlanarImage;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.geom.AffineTransform;
-import java.awt.image.BufferedImage;
-import java.awt.image.renderable.ParameterBlock;
+import java.awt.image.*;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.io.*;
@@ -141,10 +137,10 @@ public class DataArchive extends SecureClassLoader {
    * @param base
    * @param scale
    * @param reversed
-   * @param useJAI If true, use JAI library to force smoothing.  This usually yields better results, but can be slow for large images
+   * @param forceSmoothing If true, force smoothing.  This usually yields better results, but can be slow for large images
    * @return
    */
-  public Image getScaledImage(Image base, double scale, boolean reversed, boolean useJAI) {
+  public Image getScaledImage(Image base, double scale, boolean reversed, boolean forceSmoothing) {
     if (base == null) {
       return null;
     }
@@ -154,7 +150,8 @@ public class DataArchive extends SecureClassLoader {
     ScaledCacheKey key = new ScaledCacheKey(base, d, reversed);
     Image scaled = (Image) scaledImageCache.get(key);
     if (scaled == null) {
-      scaled = createScaledInstance(base, d, reversed, useJAI);
+      scaled = createScaledInstance(base, d, reversed, forceSmoothing);
+
       new ImageIcon(scaled); // Wait for the image to load
       scaledImageCache.put(key, scaled);
     }
@@ -166,9 +163,10 @@ public class DataArchive extends SecureClassLoader {
    * @param im
    * @param size
    * @param reversed
+   * @param forceSmoothing If true, force a smoothing algorithm.  May be too slow for large images
    * @return
    */
-  protected Image createScaledInstance(Image im, Dimension size, boolean reversed, boolean useJAI) {
+  protected Image createScaledInstance(Image im, Dimension size, boolean reversed, boolean forceSmoothing) {
     Dimension fullSize = getImageBounds(im).getSize();
     if (fullSize.equals(size) && !reversed) {
       return im;
@@ -197,46 +195,13 @@ public class DataArchive extends SecureClassLoader {
       g2d.drawImage(im, t, null);
       return rev;
     }
-    else if (smooth && useJAI) {
-      double zoom = (double) size.width / fullSize.width;
-      return JAIScaling(im, zoom);
+    else if (smooth && forceSmoothing) {
+      return improvedScaling(im, size.width, size.height);
     }
     else {
       return im.getScaledInstance(size.width, size.height, smooth ? Image.SCALE_AREA_AVERAGING : Image.SCALE_DEFAULT);
     }
   }
-
-  private Image JAIScaling(Image img, double zoom) {
-    BufferedImage buffImg = toBufferedImage(img);
-
-    Interpolation interp = Interpolation.getInstance(Interpolation.INTERP_BILINEAR);
-    ParameterBlock pb = new ParameterBlock();
-    pb.add(buffImg);
-
-    PlanarImage image1 = JAI.create("awtImage", pb);
-
-    ParameterBlock params = new ParameterBlock();
-    params.addSource(image1);
-    params.add(new Float(zoom)); // x scale factor
-    params.add(new Float(zoom)); // y scale factor
-    params.add(0.0F); // x translate
-    params.add(0.0F); // y translate
-    params.add(interp); // interpolation method
-
-    PlanarImage image3 = JAI.create("scale", params);
-    return image3.getAsBufferedImage();
-  }
-
-  public BufferedImage toBufferedImage(Image img) {
-    BufferedImage bimg =
-        new BufferedImage(img.getWidth(null),
-                          img.getHeight(null),
-                          BufferedImage.TYPE_INT_ARGB);
-    //or whatever type is appropriate
-    bimg.getGraphics().drawImage(img, 0, 0, null);
-    return bimg;
-  }
-
 
   /**
    *
@@ -246,6 +211,18 @@ public class DataArchive extends SecureClassLoader {
   public static Rectangle getImageBounds(Image im) {
     ImageIcon icon = new ImageIcon(im);
     return new Rectangle(-icon.getIconWidth() / 2, -icon.getIconHeight() / 2, icon.getIconWidth(), icon.getIconHeight());
+  }
+
+  public Image improvedScaling(Image img, int width, int height) {
+    ImageFilter filter;
+
+    filter = new ImprovedAveragingScaleFilter(img.getWidth(null),
+                                              img.getHeight(null),
+                                              width, height);
+
+    ImageProducer prod;
+    prod = new FilteredImageSource(img.getSource(), filter);
+    return Toolkit.getDefaultToolkit().createImage(prod);
   }
 
 /*
