@@ -597,6 +597,9 @@ public class Deck extends Stack {
         catch (NumberFormatException ex) {
         }
       }
+      else {
+        break;
+      }
     }
   }
 
