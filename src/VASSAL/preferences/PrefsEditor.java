@@ -18,7 +18,6 @@
  */
 package VASSAL.preferences;
 
-import VASSAL.build.GameModule;
 import VASSAL.configure.Configurer;
 import VASSAL.tools.ArchiveWriter;
 
@@ -26,26 +25,24 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.io.IOException;
 import java.util.Enumeration;
 import java.util.Hashtable;
 import java.util.Vector;
-import java.io.IOException;
 
-public class PrefsEditor extends JDialog {
+public class PrefsEditor {
+  private JDialog dialog;
   private Vector options = new Vector();
   private Hashtable savedValues;
   private Vector prefs;
   private JButton save, cancel;
-  private JTabbedPane tab;
-  private JMenuItem launch;
+  private JTabbedPane optionsTab;
   private JDialog setupDialog;
   private ArchiveWriter archive;
   private Action editAction;
+  private final JPanel buttonPanel = new JPanel();
 
   public PrefsEditor(ArchiveWriter archive) {
-    super(GameModule.getGameModule() == null ? (Frame)null
-	: GameModule.getGameModule().getFrame(), true);
-    setTitle("Preferences");
 
     savedValues = new Hashtable();
     this.archive = archive;
@@ -53,15 +50,13 @@ public class PrefsEditor extends JDialog {
     editAction = new AbstractAction("Edit Preferences") {
       public void actionPerformed(ActionEvent e) {
         storeValues();
-        pack();
+        dialog.pack();
         Dimension d = Toolkit.getDefaultToolkit().getScreenSize();
-        setLocation(d.width/2-getWidth()/2,0);
-        setVisible(true);
+        dialog.setLocation(d.width/2-dialog.getWidth()/2,0);
+        dialog.setVisible(true);
       }
     };
     editAction.putValue(Action.MNEMONIC_KEY,new Integer((int)'P'));
-
-    setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
 
     prefs = new Vector();
 
@@ -78,14 +73,26 @@ public class PrefsEditor extends JDialog {
       }
     });
 
-    JPanel pan = new JPanel();
-    pan.add(save);
-    pan.add(cancel);
-    getContentPane().setLayout
-      (new BoxLayout(getContentPane(), BoxLayout.Y_AXIS));
-    tab = new JTabbedPane();
-    getContentPane().add(tab);
-    getContentPane().add(pan);
+    buttonPanel.add(save);
+    buttonPanel.add(cancel);
+    optionsTab = new JTabbedPane();
+  }
+
+  public void initDialog(Frame parent) {
+    if (dialog == null) {
+      dialog = new JDialog(parent,true);
+      dialog.setTitle("Preferences");
+      dialog.setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
+
+      dialog.getContentPane().setLayout
+        (new BoxLayout(dialog.getContentPane(), BoxLayout.Y_AXIS));
+      dialog.getContentPane().add(optionsTab);
+      dialog.getContentPane().add(buttonPanel);
+    }
+  }
+
+  public JDialog getDialog() {
+    return dialog;
   }
 
   public void addPrefs(Prefs p) {
@@ -128,16 +135,16 @@ public class PrefsEditor extends JDialog {
     }
     JPanel pan = null;
     int i = 0;
-    for (i = 0; i < tab.getTabCount(); ++i) {
-      if (category.equals(tab.getTitleAt(i))) {
-        pan = (JPanel) tab.getComponentAt(i);
+    for (i = 0; i < optionsTab.getTabCount(); ++i) {
+      if (category.equals(optionsTab.getTitleAt(i))) {
+        pan = (JPanel) optionsTab.getComponentAt(i);
         break;
       }
     }
-    if (i >= tab.getTabCount()) { // No match
+    if (i >= optionsTab.getTabCount()) { // No match
       pan = new JPanel();
       pan.setLayout(new BoxLayout(pan, BoxLayout.Y_AXIS));
-      tab.addTab(category, pan);
+      optionsTab.addTab(category, pan);
     }
     options.addElement(c);
     Box b = Box.createHorizontalBox();
@@ -169,7 +176,7 @@ public class PrefsEditor extends JDialog {
       c.setValue(savedValues.get(c));
       c.setFrozen(false);
     }
-    setVisible(false);
+    dialog.setVisible(false);
   }
 
   protected void save() {
@@ -180,15 +187,12 @@ public class PrefsEditor extends JDialog {
       c.setFrozen(false);
     }
     try {
-      for (Enumeration e = prefs.elements(); e.hasMoreElements();) {
-        ((Prefs)e.nextElement()).save();
-      }
       write();
     }
     catch (IOException e) {
-      JOptionPane.showMessageDialog(getOwner(),"Unable to save preferences.\n","Save error",JOptionPane.ERROR_MESSAGE);
+      JOptionPane.showMessageDialog(dialog.getOwner(),"Unable to save preferences.\n","Save error",JOptionPane.ERROR_MESSAGE);
     }
-    setVisible(false);
+    dialog.setVisible(false);
   }
 
   public Action getEditAction() {
@@ -196,6 +200,9 @@ public class PrefsEditor extends JDialog {
   }
 
   public void write() throws IOException {
+    for (Enumeration e = prefs.elements(); e.hasMoreElements();) {
+      ((Prefs)e.nextElement()).save();
+    }
     archive.write();
   }
 }

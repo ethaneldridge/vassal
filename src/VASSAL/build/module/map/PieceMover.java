@@ -643,10 +643,12 @@ public class PieceMover extends AbstractBuildable implements
     }
 
     public void convertDropPoint(Point p) {
+/*
       if (isValid) {
         p.translate(piecePosition.x - mouseDownPosition.x, piecePosition.y -
                                                            mouseDownPosition.y);
       }
+*/
     }
   }
 }

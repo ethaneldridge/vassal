@@ -364,6 +364,7 @@ public abstract class GameModule extends AbstractConfigurable implements Command
 
   public void setPrefs(Prefs p) {
     preferences = p;
+    preferences.getEditor().initDialog(getFrame());
   }
 
   public void setGlobalPrefs(Prefs p) {

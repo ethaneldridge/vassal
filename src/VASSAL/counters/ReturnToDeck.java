@@ -18,8 +18,6 @@
  */
 package VASSAL.counters;
 
-import VASSAL.build.GameModule;
-import VASSAL.build.module.Map;
 import VASSAL.build.module.documentation.HelpFile;
 import VASSAL.build.module.map.DrawPile;
 import VASSAL.command.Command;
@@ -33,7 +31,6 @@ import java.awt.event.ActionListener;
 import java.awt.event.InputEvent;
 import java.io.File;
 import java.net.MalformedURLException;
-import java.util.Enumeration;
 
 /**
  * GamePiece trait that returns a piece to a {@link DrawPile}
@@ -112,19 +109,9 @@ public class ReturnToDeck extends Decorator implements EditablePiece {
   }
 
   private void findDeck() {
-    DrawPile pile = null;
-    for (Enumeration e = GameModule.getGameModule().getComponents(Map.class); e.hasMoreElements();) {
-      Map m = (Map) e.nextElement();
-      for (Enumeration e2 = m.getComponents(DrawPile.class); e2.hasMoreElements();) {
-        pile = (DrawPile) e2.nextElement();
-        if (pile.getId().equals(deckId)) {
-          deck = pile;
-          return;
-        }
-      }
-    }
+    DrawPile pile = DrawPile.findDrawPile(deckId);
     if (pile == null) {
-      throw new IllegalArgumentException("No Deck to return to");
+      throw new IllegalArgumentException("Could not find deck "+deckId);
     }
     deck = pile;
   }
@@ -156,6 +143,7 @@ public class ReturnToDeck extends Decorator implements EditablePiece {
     private KeySpecifier menuKey;
     private JPanel controls;
     private String deckId;
+    private final JTextField tf = new JTextField(12);
 
     public Ed(ReturnToDeck p) {
       controls = new JPanel();
@@ -169,6 +157,8 @@ public class ReturnToDeck extends Decorator implements EditablePiece {
       b.add(menuKey);
       controls.add(b);
       JButton select = new JButton("Select Deck");
+      tf.setEditable(false);
+      updateDeckName();
       select.addActionListener(new ActionListener() {
         public void actionPerformed(ActionEvent e) {
           VASSAL.configure.ChooseComponentDialog d = new VASSAL.configure.ChooseComponentDialog((Frame) SwingUtilities.getAncestorOfClass(Frame.class, controls), DrawPile.class);
@@ -176,10 +166,19 @@ public class ReturnToDeck extends Decorator implements EditablePiece {
           d.setVisible(true);
           if (d.getTarget() != null) {
             deckId = ((DrawPile) d.getTarget()).getId();
+            updateDeckName();
           }
         }
       });
-      controls.add(select);
+      Box box = Box.createHorizontalBox();
+      box.add(select);
+      box.add(tf);
+      controls.add(box);
+    }
+
+    private void updateDeckName() {
+      DrawPile p = DrawPile.findDrawPile(deckId);
+      tf.setText(p != null ? p.getConfigureName() : "<none>");
     }
 
     public Component getControls() {

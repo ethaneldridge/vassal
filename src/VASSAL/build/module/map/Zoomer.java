@@ -202,7 +202,7 @@ public class Zoomer extends AbstractConfigurable implements GameComponent {
     zoomFactor = new double[maxZoom];
     zoomFactor[0] = 1.0;
     for (int i = 1; i < zoomFactor.length; ++i) {
-      zoomFactor[i] = -1;
+      zoomFactor[i] = zoomFactor[i-1]/zoomStep;
     }
   }
 
@@ -218,15 +218,14 @@ public class Zoomer extends AbstractConfigurable implements GameComponent {
   }
 
   public double getZoomFactor() {
-    for (int i = zoomLevel; zoomFactor[zoomLevel] < 0; --i) {
-      zoomFactor[i] = zoomFactor[i - 1] / zoomStep;
-    }
     return zoomFactor[zoomLevel];
   }
 
   private void scaleBoards(double zoom) {
     for (Enumeration e = map.getAllBoards(); e.hasMoreElements();) {
-      ((Board) e.nextElement()).getScaledImage(zoom, map.getView());
+      Board b = (Board) e.nextElement();
+      b.fixImage(map.getView());
+      b.getScaledImage(zoom, map.getView());
     }
   }
 

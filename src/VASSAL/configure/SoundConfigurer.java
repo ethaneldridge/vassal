@@ -114,9 +114,6 @@ public class SoundConfigurer extends Configurer {
     if (DEFAULT.equals(s)) {
       url = getClass().getResource("/images/"+defaultResource);
       clipName = s;
-      if (textField != null) {
-        textField.setText(defaultResource);
-      }
     }
     else if (NO_VALUE.equals(s)) {
       clipName = s;
@@ -132,7 +129,7 @@ public class SoundConfigurer extends Configurer {
       }
     }
     if (textField != null) {
-      textField.setText(clipName);
+      textField.setText(DEFAULT.equals(clipName) ? defaultResource : clipName);
     }
     if (url != null) {
       try {

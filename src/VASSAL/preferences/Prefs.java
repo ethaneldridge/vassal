@@ -135,7 +135,6 @@ public class Prefs {
 
   /** Save these preferences and write to disk */
   public void write() throws IOException {
-    save();
     editor.write();
   }
 }

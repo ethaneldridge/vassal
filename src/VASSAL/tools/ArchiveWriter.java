@@ -13,7 +13,7 @@
  * Library General Public License for more details.
  *
  * You should have received a copy of the GNU Library General Public
- * License along with this library; if not, copies are available 
+ * License along with this library; if not, copies are available
  * at http://www.opensource.org.
  */
 package VASSAL.tools;
@@ -58,6 +58,7 @@ public class ArchiveWriter extends DataArchive {
 
   public ArchiveWriter(ZipFile archive) {
     this.archive = archive;
+    archiveName = archive.getName();
   }
 
   /** Add an image file to the archive.  The file will be copied into an

@@ -189,6 +189,25 @@ public class DrawPile extends AbstractConfigurable implements Drawable, GameComp
     this.id = id;
   }
 
+  /**
+   *
+   * @param id
+   * @return the {@link DrawPile} with the given id
+   */
+  public static DrawPile findDrawPile(String id) {
+    for (Enumeration e = GameModule.getGameModule().getComponents(Map.class); e.hasMoreElements();) {
+      Map m = (Map) e.nextElement();
+      for (Enumeration e2 = m.getComponents(DrawPile.class); e2.hasMoreElements();) {
+        DrawPile p = (DrawPile) e2.nextElement();
+        if (p.getId().equals(id)) {
+          return p;
+        }
+      }
+    }
+    return null;
+  }
+
+
   public String getId() {
     return id;
   }

@@ -143,7 +143,7 @@ public class StringArrayConfigurer extends Configurer {
   }
 
   public static String arrayToString(String[] s) {
-    if (s == null) {
+    if (s == null || s.length == 0) {
       return "";
     }
     SequenceEncoder se = new SequenceEncoder(',');
