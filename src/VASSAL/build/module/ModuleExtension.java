@@ -48,7 +48,7 @@ public class ModuleExtension extends AbstractBuildable implements GameComponent 
   public static final String VERSION = "version";
 
   private DataArchive archive;
-  private String version;
+  private String version="0.0";
 
   private String lastSave;
 
@@ -75,6 +75,7 @@ public class ModuleExtension extends AbstractBuildable implements GameComponent 
       catch (IOException ex) {
       }
     }
+    GameModule.getGameModule().getDataArchive().addExtension(archive);
     try {
       if (inStream == null) {
         build(null);
@@ -88,7 +89,6 @@ public class ModuleExtension extends AbstractBuildable implements GameComponent 
       throw new IllegalBuildException(ex.getMessage());
     }
     GameModule.getGameModule().add(this);
-    GameModule.getGameModule().getDataArchive().addExtension(archive);
     GameModule.getGameModule().getGameState().addGameComponent(this);
     if (archive instanceof ArchiveWriter) {
       lastSave = buildString();
