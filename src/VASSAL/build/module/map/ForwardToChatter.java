@@ -41,7 +41,6 @@ public class ForwardToChatter implements Buildable, KeyListener {
   }
 
   public void add(Buildable b) {
-    throw new IllegalBuildException("Cannot contain children");
   }
 
   public org.w3c.dom.Element getBuildElement(org.w3c.dom.Document doc) {

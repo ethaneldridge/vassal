@@ -13,7 +13,7 @@
  * Library General Public License for more details.
  *
  * You should have received a copy of the GNU Library General Public
- * License along with this library; if not, copies are available 
+ * License along with this library; if not, copies are available
  * at http://www.opensource.org.
  */
 package VASSAL.build.module.map;
@@ -35,37 +35,41 @@ import javax.swing.KeyStroke;
  * @see VASSAL.counters.GamePiece#keyEvent
  * @see InputEvent#isConsumed */
 public class ForwardToKeyBuffer implements Buildable, KeyListener {
-    public void build(org.w3c.dom.Element e) {
-    }
+  public void build(org.w3c.dom.Element e) {
+  }
 
-    public void addTo(Buildable parent) {
-	Map map = (Map)parent;
-	map.getView().addKeyListener(this);
-    }
-    public void add(Buildable b) {
-	throw new IllegalBuildException("Cannot contain children");
-    }
+  public void addTo(Buildable parent) {
+    Map map = (Map) parent;
+    map.getView().addKeyListener(this);
+  }
 
-    public org.w3c.dom.Element getBuildElement(org.w3c.dom.Document doc) {
-	return doc.createElement(getClass().getName());
+  public void add(Buildable b) {
+  }
+
+  public org.w3c.dom.Element getBuildElement(org.w3c.dom.Document doc) {
+    return doc.createElement(getClass().getName());
+  }
+
+  public void keyPressed(KeyEvent e) {
+    process(e);
+  }
+
+  public void keyReleased(KeyEvent e) {
+    process(e);
+  }
+
+  public void keyTyped(KeyEvent e) {
+    process(e);
+  }
+
+  private void process(KeyEvent e) {
+    if (!e.isConsumed()) {
+      Command comm = KeyBuffer.getBuffer().keyCommand
+          (KeyStroke.getKeyStrokeForEvent(e));
+      if (comm != null && !comm.isNull()) {
+        GameModule.getGameModule().sendAndLog(comm);
+        e.consume();
+      }
     }
-    public void keyPressed(KeyEvent e) {
-	process(e);
-    }
-    public void keyReleased(KeyEvent e) {
-	process(e);
-    }
-    public void keyTyped(KeyEvent e) {
-	process(e);
-    }
-    private void process(KeyEvent e) {
-	if (!e.isConsumed()) {
-	    Command comm = KeyBuffer.getBuffer().keyCommand
-		(KeyStroke.getKeyStrokeForEvent(e));
-	    if (comm != null && !comm.isNull()) {
-		GameModule.getGameModule().sendAndLog(comm);
-		e.consume();
-	    }
-	}
-    }
+  }
 }

@@ -21,11 +21,11 @@ package VASSAL.build.module;
 import VASSAL.build.AbstractConfigurable;
 import VASSAL.build.Buildable;
 import VASSAL.build.GameModule;
-import VASSAL.build.IllegalBuildException;
 import VASSAL.build.module.documentation.AboutScreen;
 import VASSAL.build.module.documentation.HelpFile;
 import VASSAL.configure.Configurer;
 import VASSAL.configure.DirectoryConfigurer;
+import VASSAL.configure.MandatoryComponent;
 import org.w3c.dom.Element;
 
 import java.io.File;
@@ -90,15 +90,12 @@ public class Documentation extends AbstractConfigurable {
   }
 
   public void addTo(Buildable b) {
-    if (GameModule.getGameModule().getComponents(getClass()).hasMoreElements()) {
-      throw new IllegalBuildException("Only one Help menu allowed");
-    }
     GameModule.getGameModule().getGlobalPrefs().addOption(null, new DirectoryConfigurer(DOCS_DIR, null));
     GameModule.getGameModule().getFrame().getJMenuBar().add(controls);
+    validator = new MandatoryComponent(this, AboutScreen.class);
   }
 
   public void removeFrom(Buildable b) {
-    throw new IllegalBuildException("Cannot remove Help menu");
   }
 
   public String[] getAttributeDescriptions() {

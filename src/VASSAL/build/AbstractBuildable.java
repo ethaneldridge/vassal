@@ -22,8 +22,10 @@ import org.w3c.dom.Attr;
 import org.w3c.dom.Element;
 import org.w3c.dom.NamedNodeMap;
 
-import java.util.Enumeration;
-import java.util.Vector;
+import java.util.*;
+
+import VASSAL.configure.ValidityChecker;
+import VASSAL.configure.ValidationReport;
 
 /**
  * Abstract implementation of the Buildable interface
@@ -31,8 +33,9 @@ import java.util.Vector;
  * implement the methods and specify the Buildable attributes of this class,
  * and the build process is handled automatically.
  */
-public abstract class AbstractBuildable implements Buildable {
-  protected Vector buildComponents = new Vector();;
+public abstract class AbstractBuildable implements Buildable, ValidityChecker {
+  protected List buildComponents = new ArrayList();
+  protected ValidityChecker validator; // Sub-classes can set this reference to perform validity checking
 
   /**
    * Build this component by getting all XML attributes of the XML
@@ -84,15 +87,23 @@ public abstract class AbstractBuildable implements Buildable {
    * @return all build components that are an instance of the given class
    */
   public Enumeration getComponents(Class target) {
-    Vector v = new Vector();
-    for (Enumeration e = getBuildComponents();
-         e.hasMoreElements();) {
-      Object o = e.nextElement();
+    List l = new ArrayList();
+    for (Iterator it = buildComponents.iterator(); it.hasNext();) {
+      Object o = it.next();
       if (target.isInstance(o)) {
-        v.addElement(o);
+        l.add(o);
       }
     }
-    return v.elements();
+    final Iterator it = l.iterator();
+    return new Enumeration() {
+      public boolean hasMoreElements() {
+        return it.hasNext();
+      }
+
+      public Object nextElement() {
+        return it.next();
+      }
+    };
   }
 
   public org.w3c.dom.Element getBuildElement(org.w3c.dom.Document doc) {
@@ -115,10 +126,7 @@ public abstract class AbstractBuildable implements Buildable {
    * Add a Buildable object to this object
    */
   public void add(Buildable b) {
-    if (buildComponents.contains(b)) {
-      throw new IllegalBuildException("Already contains component");
-    }
-    buildComponents.addElement(b);
+    buildComponents.add(b);
   }
 
   /**
@@ -128,6 +136,27 @@ public abstract class AbstractBuildable implements Buildable {
    * the XML element from which this object can be built.
    */
   public Enumeration getBuildComponents() {
-    return buildComponents.elements();
+    final Iterator it = buildComponents.iterator();
+    return new Enumeration() {
+      public boolean hasMoreElements() {
+        return it.hasNext();
+      }
+
+      public Object nextElement() {
+        return it.next();
+      }
+    };
+  }
+
+  public void validate(Buildable target, ValidationReport report) {
+    if (validator != null) {
+      validator.validate(target,report);
+    }
+    for (Iterator it = buildComponents.iterator(); it.hasNext();) {
+      Buildable child = (Buildable) it.next();
+      if (child instanceof ValidityChecker) {
+        ((ValidityChecker)child).validate(child,report);
+      }
+    }
   }
 }

@@ -13,7 +13,7 @@
  * Library General Public License for more details.
  *
  * You should have received a copy of the GNU Library General Public
- * License along with this library; if not, copies are available 
+ * License along with this library; if not, copies are available
  * at http://www.opensource.org.
  */
 package VASSAL.build.module.map;
@@ -27,35 +27,34 @@ import java.awt.event.*;
 import org.w3c.dom.*;
 
 public class StackExpander extends MouseAdapter implements Buildable {
-    protected Map map;
+  protected Map map;
 
-    public void addTo(Buildable b) {
-        map = (Map) b;
-        map.addLocalMouseListener(this);
-    }
+  public void addTo(Buildable b) {
+    map = (Map) b;
+    map.addLocalMouseListener(this);
+  }
 
-    public void add(Buildable b) {
-        throw new IllegalBuildException("Cannot contain children");
-    }
+  public void add(Buildable b) {
+  }
 
-    public Element getBuildElement(Document doc) {
-        return doc.createElement(getClass().getName());
-    }
+  public Element getBuildElement(Document doc) {
+    return doc.createElement(getClass().getName());
+  }
 
-    public void build(Element e) {
-    }
+  public void build(Element e) {
+  }
 
-    public void mouseReleased(MouseEvent e) {
-        if (!e.isConsumed()) {
-            if (e.getClickCount() == 2) {
-                GamePiece p = map.findPiece(e.getPoint(),PieceFinder.STACK_ONLY);
-                KeyBuffer.getBuffer().clear();
-                if (p != null) {
-                    ((Stack) p).setExpanded(!((Stack) p).isExpanded());
-                    KeyBuffer.getBuffer().add(((Stack)p).topPiece());
-                }
-                e.consume();
-            }
+  public void mouseReleased(MouseEvent e) {
+    if (!e.isConsumed()) {
+      if (e.getClickCount() == 2) {
+        GamePiece p = map.findPiece(e.getPoint(), PieceFinder.STACK_ONLY);
+        KeyBuffer.getBuffer().clear();
+        if (p != null) {
+          ((Stack) p).setExpanded(!((Stack) p).isExpanded());
+          KeyBuffer.getBuffer().add(((Stack) p).topPiece());
         }
+        e.consume();
+      }
     }
+  }
 }

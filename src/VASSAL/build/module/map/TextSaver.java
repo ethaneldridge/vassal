@@ -13,26 +13,28 @@
  * Library General Public License for more details.
  *
  * You should have received a copy of the GNU Library General Public
- * License along with this library; if not, copies are available 
+ * License along with this library; if not, copies are available
  * at http://www.opensource.org.
  */
 package VASSAL.build.module.map;
 
-import VASSAL.build.module.documentation.HelpFile;
-import VASSAL.counters.*;
-import VASSAL.build.*;
+import VASSAL.build.Buildable;
+import VASSAL.build.Configurable;
+import VASSAL.build.GameModule;
 import VASSAL.build.module.Map;
-import VASSAL.configure.*;
 import VASSAL.build.module.documentation.HelpFile;
+import VASSAL.configure.Configurer;
+import VASSAL.counters.GamePiece;
+import org.w3c.dom.Element;
 
-import org.w3c.dom.*;
-
-import java.io.*;
-import java.awt.*;
-import java.awt.event.*;
-import java.net.URL;
+import javax.swing.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.PrintWriter;
 import java.net.MalformedURLException;
-import javax.swing.JOptionPane;
 
 public class TextSaver implements ActionListener, Configurable {
   private javax.swing.JButton launch = new javax.swing.JButton("Save text");
@@ -49,11 +51,9 @@ public class TextSaver implements ActionListener, Configurable {
   }
 
   public void add(Buildable b) {
-    throw new IllegalBuildException("Cannot contain children");
   }
 
   public void remove(Buildable b) {
-    throw new IllegalBuildException("Cannot contain children");
   }
 
   public void build(Element e) {
@@ -64,7 +64,7 @@ public class TextSaver implements ActionListener, Configurable {
   public void actionPerformed(ActionEvent e) {
 
     switch (JOptionPane.showConfirmDialog
-      (null, "Write contents as seen by opponents?", "", JOptionPane.YES_NO_OPTION)) {
+        (null, "Write contents as seen by opponents?", "", JOptionPane.YES_NO_OPTION)) {
       case JOptionPane.NO_OPTION:
         writeMapAsText();
         break;
@@ -79,13 +79,13 @@ public class TextSaver implements ActionListener, Configurable {
 
   protected void writeMapAsText() {
     javax.swing.JFileChooser fc
-      = GameModule.getGameModule().getFileChooser();
+        = GameModule.getGameModule().getFileChooser();
     if (fc.showSaveDialog(null) == javax.swing.JFileChooser.CANCEL_OPTION) {
       return;
     }
     try {
       PrintWriter p = new PrintWriter
-        (new FileOutputStream(fc.getSelectedFile().getPath()));
+          (new FileOutputStream(fc.getSelectedFile().getPath()));
       GamePiece stack[] = map.getPieces();
       for (int i = 0; i < stack.length; ++i) {
         String s = stack[i].getName();

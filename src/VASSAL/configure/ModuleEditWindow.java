@@ -67,7 +67,7 @@ public class ModuleEditWindow extends JFrame implements WindowListener {
     });
     toolbar.add(new SaveAsAction() {
       public void actionPerformed(ActionEvent e) {
-        saveAs();
+        ModuleEditWindow.this.saveAs();
       }
     });
     try {
@@ -85,11 +85,38 @@ public class ModuleEditWindow extends JFrame implements WindowListener {
   }
 
   protected void saveAs() {
-    GameModule.getGameModule().saveAs();
+    ValidationReport report = new ValidationReport();
+    GameModule.getGameModule().validate(GameModule.getGameModule(),report);
+    if (report.getWarnings().size() == 0) {
+      GameModule.getGameModule().saveAs();
+    }
+    else {
+      new ValidationReportDialog(report, new ValidationReportDialog.CallBack() {
+        public void ok() {
+          GameModule.getGameModule().saveAs();
+        }
+
+        public void cancel() {
+        }
+      }).setVisible(true);
+    }
   }
 
   protected void save() {
-    GameModule.getGameModule().save();
+    ValidationReport report = new ValidationReport();
+    GameModule.getGameModule().validate(GameModule.getGameModule(),report);
+    if (report.getWarnings().size() == 0) {
+      GameModule.getGameModule().save();
+    }
+    else {
+      new ValidationReportDialog(report, new ValidationReportDialog.CallBack() {
+        public void ok() {
+          GameModule.getGameModule().save();
+        }
+        public void cancel() {
+        }
+      }).setVisible(true);
+    }
   }
 
   protected void refreshTitle() {

@@ -88,11 +88,9 @@ public class HidePiecesButton extends JPanel implements MouseListener,
   }
 
   public void add(Buildable b) {
-    throw new IllegalBuildException("Cannot contain children");
   }
 
   public void remove(Buildable b) {
-    throw new IllegalBuildException("Cannot contain children");
   }
 
   public void removeFrom(Buildable b) {

@@ -13,7 +13,7 @@
  * Library General Public License for more details.
  *
  * You should have received a copy of the GNU Library General Public
- * License along with this library; if not, copies are available 
+ * License along with this library; if not, copies are available
  * at http://www.opensource.org.
  */
 package VASSAL.build;
@@ -24,55 +24,53 @@ import java.beans.*;
 import java.util.*;
 
 /**
- * An abstract implementation of the Configurable interface.  Takes care of 
+ * An abstract implementation of the Configurable interface.  Takes care of
  * most of the Configurable functionality
  */
 public abstract class AbstractConfigurable extends AbstractBuildable implements AutoConfigurable {
-    protected PropertyChangeSupport changeSupport;
-    protected String name;
-    protected Configurer config;
+  protected PropertyChangeSupport changeSupport;
+  protected String name;
+  protected Configurer config;
 
-    /**
-     * Remove a Buildable object from this object
-     */
-    public void remove(Buildable b) {
-        if (!buildComponents.contains(b)) {
-            throw new IllegalBuildException("Does not contain component");
-        }
-        buildComponents.removeElement(b);
+  /**
+   * Remove a Buildable object from this object
+   */
+  public void remove(Buildable b) {
+    buildComponents.remove(b);
+  }
+
+  public String getConfigureName() {
+    return name;
+  }
+
+  /**
+   * Sets the name and fires a PropertyChangeEvent
+   */
+  public void setConfigureName(String s) {
+    String oldName = name;
+    name = s;
+    if (changeSupport != null) {
+      changeSupport.firePropertyChange(NAME_PROPERTY, oldName, name);
     }
+  }
 
-    public String getConfigureName() {
-        return name;
-    }
-    /**
-     * Sets the name and fires a PropertyChangeEvent
-     */
-    public void setConfigureName(String s) {
-        String oldName = name;
-        name = s;
-        if (changeSupport != null) {
-            changeSupport.firePropertyChange(NAME_PROPERTY,oldName,name);
-        }
-    }
+  /**
+   * Return an array of Strings describing the attributes
+   * of this object.  These strings are used as prompts in
+   * the Properties window for this object.  The order of
+   * descriptions should be the same as the order of names
+   * in {@link AbstractBuildable#getAttributeNames}
+   */
+  public abstract String[] getAttributeDescriptions();
 
-    /**
-     * Return an array of Strings describing the attributes
-     * of this object.  These strings are used as prompts in 
-     * the Properties window for this object.  The order of 
-     * descriptions should be the same as the order of names
-     * in {@link AbstractBuildable#getAttributeNames}
-     */
-    public abstract String[] getAttributeDescriptions();
-
-    /**
-     * Return the Class for the attributes of this object.
-     * Valid classes are:  String, Integer, Double, Boolean, Image,
-     * Color, and KeyStroke
-     * 
-     * The order of classes should be the same as the order of names
-     * in {@link AbstractBuildable#getAttributeNames} */
-    public abstract Class[] getAttributeTypes();
+  /**
+   * Return the Class for the attributes of this object.
+   * Valid classes are:  String, Integer, Double, Boolean, Image,
+   * Color, and KeyStroke
+   *
+   * The order of classes should be the same as the order of names
+   * in {@link AbstractBuildable#getAttributeNames} */
+  public abstract Class[] getAttributeTypes();
 
   /**
    * By default, all attributes are visible
@@ -84,36 +82,38 @@ public abstract class AbstractConfigurable extends AbstractBuildable implements 
   }
 
   public void addPropertyChangeListener(PropertyChangeListener l) {
-        if (changeSupport == null) {
-            changeSupport = new PropertyChangeSupport(this);
-        }
-        changeSupport.addPropertyChangeListener(l);
+    if (changeSupport == null) {
+      changeSupport = new PropertyChangeSupport(this);
     }
-    public Configurable[] getConfigureComponents() {
-        Vector v = new Vector();
-        for (Enumeration e = getBuildComponents();
-        e.hasMoreElements();) {
-            Buildable b = (Buildable)e.nextElement();
-            if (b instanceof Configurable) {
-                v.addElement(b);
-            }
-        }
-        Configurable c[] = new Configurable[v.size()];
-        for (int i=0;i<v.size();++i) {
-            c[i] = (Configurable)v.elementAt(i);
-        }
-        return c;
+    changeSupport.addPropertyChangeListener(l);
+  }
+
+  public Configurable[] getConfigureComponents() {
+    Vector v = new Vector();
+    for (Enumeration e = getBuildComponents();
+         e.hasMoreElements();) {
+      Buildable b = (Buildable) e.nextElement();
+      if (b instanceof Configurable) {
+        v.addElement(b);
+      }
     }
-    /**
-     * The default {@link Configurer} of an {@link AbstractConfigurable} class is an instance of {@link AutoConfigurer}
-     */
-    public Configurer getConfigurer() {
-        if (config == null) {
-            config = new AutoConfigurer(this);
-        }
-        else {
-          ((AutoConfigurer)config).reset();
-        }
-        return config;
+    Configurable c[] = new Configurable[v.size()];
+    for (int i = 0; i < v.size(); ++i) {
+      c[i] = (Configurable) v.elementAt(i);
     }
+    return c;
+  }
+
+  /**
+   * The default {@link Configurer} of an {@link AbstractConfigurable} class is an instance of {@link AutoConfigurer}
+   */
+  public Configurer getConfigurer() {
+    if (config == null) {
+      config = new AutoConfigurer(this);
+    }
+    else {
+      ((AutoConfigurer) config).reset();
+    }
+    return config;
+  }
 }

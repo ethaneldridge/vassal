@@ -45,7 +45,6 @@ public class KeyBufferer extends MouseAdapter implements Buildable {
   }
 
   public void add(Buildable b) {
-    throw new IllegalBuildException("Cannot contain children");
   }
 
   public Element getBuildElement(Document doc) {

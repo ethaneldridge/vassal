@@ -251,7 +251,7 @@ public class ModuleExtension extends AbstractBuildable implements GameComponent 
   }
 
   public void remove(ExtensionElement el) {
-    buildComponents.removeElement(el);
+    buildComponents.remove(el);
   }
 
   public Action getEditAction(final JDialog d) {

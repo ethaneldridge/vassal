@@ -176,7 +176,6 @@ public class Chatter extends JPanel implements CommandEncoder, Buildable {
   }
 
   public void add(Buildable b) {
-    throw new IllegalBuildException("Cannot contain children");
   }
 
   public Command decode(String s) {

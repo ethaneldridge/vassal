@@ -21,7 +21,6 @@ package VASSAL.build.module;
 import VASSAL.build.Buildable;
 import VASSAL.build.Builder;
 import VASSAL.build.GameModule;
-import VASSAL.build.IllegalBuildException;
 import VASSAL.command.*;
 import VASSAL.counters.*;
 import VASSAL.tools.SequenceEncoder;
@@ -162,7 +161,6 @@ public class BasicCommandEncoder implements CommandEncoder, Buildable {
   }
 
   public void add(Buildable b) {
-    throw new IllegalBuildException("Cannot contain children");
   }
 
   public org.w3c.dom.Element getBuildElement(org.w3c.dom.Document doc) {
