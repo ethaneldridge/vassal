@@ -218,7 +218,8 @@ public class SecretNotesController implements GameComponent, CommandEncoder, Add
     public void refresh() {
       Object selected = box.getSelectedItem();
       box.setModel(new DefaultComboBoxModel(notes.toArray()));
-      box.setSelectedItem(selected);
+      box.setSelectedItem(notes.contains(selected) ? selected : null);
+      displaySelected();
     }
 
     private void revealSelectedNote() {
@@ -250,13 +251,14 @@ public class SecretNotesController implements GameComponent, CommandEncoder, Add
       final JButton okButton = new JButton("Ok");
       okButton.addActionListener(new ActionListener() {
         public void actionPerformed(ActionEvent e) {
-          SecretNote note = new SecretNote(name.getValueString(), GameModule.getUserId(), text.getValueString(), true);
+          SecretNote note = new SecretNote(name.getValueString(), GameModule.getUserId(), (String) text.getValue(), true);
           if (notes.contains(note)) {
             JOptionPane.showMessageDialog(Controls.this, "A note of this name already exists");
           }
           else {
             notes.add(note);
             refresh();
+            d.dispose();
           }
         }
       });

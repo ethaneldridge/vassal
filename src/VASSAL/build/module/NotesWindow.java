@@ -55,6 +55,7 @@ public class NotesWindow extends AbstractConfigurable
   private PrivateNotesController privateNotes;
   private SecretNotesController secretNotes;
   private static final String COMMAND_PREFIX = "NOTES\t";
+  public static final String HOT_KEY = "hotkey";
   private String lastSavedNotes;
 
   public NotesWindow() {
@@ -239,12 +240,20 @@ public class NotesWindow extends AbstractConfigurable
     launch.setAlignmentY(0.0F);
     GameModule.getGameModule().addCommandEncoder(this);
     GameModule.getGameModule().getGameState().addGameComponent(this);
+    GameModule.getGameModule().addCommandEncoder(privateNotes);
+    GameModule.getGameModule().getGameState().addGameComponent(privateNotes);
+    GameModule.getGameModule().addCommandEncoder(secretNotes);
+    GameModule.getGameModule().getGameState().addGameComponent(secretNotes);
   }
 
   public void removeFrom(Buildable b) {
     GameModule.getGameModule().getToolBar().remove(launch);
     GameModule.getGameModule().removeCommandEncoder(this);
     GameModule.getGameModule().getGameState().removeGameComponent(this);
+    GameModule.getGameModule().removeCommandEncoder(privateNotes);
+    GameModule.getGameModule().getGameState().removeGameComponent(privateNotes);
+    GameModule.getGameModule().removeCommandEncoder(secretNotes);
+    GameModule.getGameModule().getGameState().removeGameComponent(secretNotes);
   }
 
   public void setup(boolean show) {

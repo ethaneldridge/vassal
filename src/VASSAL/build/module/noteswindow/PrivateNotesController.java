@@ -116,6 +116,7 @@ public class PrivateNotesController implements GameComponent, CommandEncoder, Se
     Command comm = null;
     if (!myLastSavedNotes.equals(text.getValue())) {
       comm = new SetPrivateTextCommand(this, new PrivateText(GameModule.getUserId(), (String) text.getValue()));
+      comm.execute();
     }
     return comm;
   }
