@@ -13,7 +13,7 @@
  * Library General Public License for more details.
  *
  * You should have received a copy of the GNU Library General Public
- * License along with this library; if not, copies are available 
+ * License along with this library; if not, copies are available
  * at http://www.opensource.org.
  */
 package VASSAL.build.module.map;
@@ -130,8 +130,6 @@ public class BoardPicker extends JDialog
   public void addTo(Buildable b) {
     map = (Map) b;
     map.setBoardPicker(this);
-    GameModule.getGameModule().addCommandEncoder(this);
-    GameModule.getGameModule().getGameState().addGameComponent(this);
   }
 
   public void build(Element e) {

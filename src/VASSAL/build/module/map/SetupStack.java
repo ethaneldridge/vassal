@@ -12,6 +12,7 @@ import VASSAL.configure.StringEnum;
 import VASSAL.counters.GamePiece;
 import VASSAL.counters.PieceCloner;
 import VASSAL.counters.Stack;
+import VASSAL.tools.UniqueIdManager;
 
 import java.awt.*;
 import java.io.File;
@@ -45,7 +46,8 @@ import java.util.Enumeration;
  * of counters than a {@link DrawPile}
  *
  */
-public class SetupStack extends AbstractConfigurable implements GameComponent, CommandEncoder {
+public class SetupStack extends AbstractConfigurable implements GameComponent, CommandEncoder, UniqueIdManager.Identifyable {
+  private static UniqueIdManager idMgr = new UniqueIdManager("SetupStack");
   public static final String COMMAND_PREFIX = "SETUP_STACK\t";
   protected Point pos = new Point();
   public static final String OWNING_BOARD = "owningBoard";
@@ -162,10 +164,9 @@ public class SetupStack extends AbstractConfigurable implements GameComponent, C
     }
   }
 
-  private static int instanceCount = 0;
   public void addTo(Buildable parent) {
     map = (Map)parent;
-    setId("SetupStack"+instanceCount++);
+    idMgr.add(this);
 
     GameModule.getGameModule().addCommandEncoder(this);
     GameModule.getGameModule().getGameState().addGameComponent(this);
@@ -192,7 +193,7 @@ public class SetupStack extends AbstractConfigurable implements GameComponent, C
   }
 
   public void removeFrom(Buildable parent) {
-    instanceCount--;
+    idMgr.remove(this);
   }
 
   protected boolean isOwningBoardActive() {

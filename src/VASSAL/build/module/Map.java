@@ -29,10 +29,7 @@ import VASSAL.command.MoveTracker;
 import VASSAL.configure.*;
 import VASSAL.counters.*;
 import VASSAL.preferences.PositionOption;
-import VASSAL.tools.ComponentSplitter;
-import VASSAL.tools.KeyStrokeSource;
-import VASSAL.tools.LaunchButton;
-import VASSAL.tools.FormattedString;
+import VASSAL.tools.*;
 import org.w3c.dom.Element;
 
 import javax.swing.*;
@@ -55,14 +52,14 @@ import java.util.Vector;
  * Components which are added directly to a Map are contained in the
  * <code>VASSAL.build.module.map</code> package */
 public class Map extends AbstractConfigurable implements GameComponent,
-    FocusListener, MouseListener, MouseMotionListener, DropTargetListener, // jimu
-    Configurable {
+    FocusListener, MouseListener, MouseMotionListener, DropTargetListener,
+    Configurable, UniqueIdManager.Identifyable {
 
   private String mapID = "";
   private String mapName = "";
 
   private static final String MAIN_WINDOW_HEIGHT = "mainWindowHeight";
-  private static int instanceCount;
+  private static UniqueIdManager idMgr = new UniqueIdManager("Map");
 
   protected JPanel theMap;
 
@@ -311,9 +308,15 @@ public class Map extends AbstractConfigurable implements GameComponent,
    * Every map must include a {@link BoardPicker} as one of its
    * build components */
   public void setBoardPicker(BoardPicker picker) {
+    if (this.picker != null) {
+      GameModule.getGameModule().removeCommandEncoder(picker);
+      GameModule.getGameModule().getGameState().addGameComponent(picker);
+    }
     this.picker = picker;
     if (picker != null) {
       picker.setAllowMultiple(allowMultiple);
+      GameModule.getGameModule().addCommandEncoder(picker);
+      GameModule.getGameModule().getGameState().addGameComponent(picker);
     }
   }
 
@@ -410,7 +413,7 @@ public class Map extends AbstractConfigurable implements GameComponent,
    * @see #getId
    * @see DragBuffer */
   public void addTo(Buildable b) {
-    setID("Map" + instanceCount++);
+    idMgr.add(this);
 
     if (Info.isDndEnabled()) {
       DragGestureListener dgl = new DragGestureListener() {
@@ -456,7 +459,11 @@ public class Map extends AbstractConfigurable implements GameComponent,
       w.dispose();
     }
     GameModule.getGameModule().getToolBar().remove(launchButton);
-    instanceCount--;
+    idMgr.remove(this);
+    if (picker != null) {
+      GameModule.getGameModule().removeCommandEncoder(picker);
+      GameModule.getGameModule().getGameState().addGameComponent(picker);
+    }
   }
 
   /**
@@ -1574,9 +1581,16 @@ public class Map extends AbstractConfigurable implements GameComponent,
   }
 
   /**
-   * Each Map must have a unique String id
+   * @deprecated see {@link #setId}
    */
   public void setID(String id) {
+    setId(id);
+  }
+
+  /**
+   * Each Map must have a unique String id
+   */
+  public void setId(String id) {
     mapID = id;
   }
 

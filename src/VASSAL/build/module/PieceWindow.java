@@ -26,6 +26,7 @@ import VASSAL.preferences.PositionOption;
 import VASSAL.preferences.VisibilityOption;
 import VASSAL.tools.ComponentSplitter;
 import VASSAL.tools.LaunchButton;
+import VASSAL.tools.UniqueIdManager;
 import VASSAL.configure.ConfigurerFactory;
 import VASSAL.configure.Configurer;
 import VASSAL.configure.IconConfigurer;
@@ -42,7 +43,7 @@ import java.net.MalformedURLException;
  * clicking and dragging from the PieceWindow.  The actual GamePieces
  * are contained in {@link PieceSlot} components.  PieceWindow extends
  * {@link Widget}, so it may be composed of various tabs, lists, etc.  */
-public class PieceWindow extends Widget {
+public class PieceWindow extends Widget implements UniqueIdManager.Identifyable {
   private String id;
   private LaunchButton launch;
   public static final String DEPRECATED_NAME = "entryName";
@@ -50,7 +51,7 @@ public class PieceWindow extends Widget {
   public static final String BUTTON_TEXT = "text";
   public static final String ICON = "icon";
   public static final String HOTKEY = "hotkey";
-  private static int instanceCount;
+  private static UniqueIdManager idMgr = new UniqueIdManager("PieceWindow");
   private JComponent root;
   private ComponentSplitter.SplitPane mainWindowDock;
 
@@ -177,10 +178,10 @@ public class PieceWindow extends Widget {
    * Expects to be added to a {@link GameModule}.  When added, sets
    * the containing window to visible */
   public void addTo(Buildable parent) {
-    setId("PieceWindow" + instanceCount++);
+    idMgr.add(this);
 
     String key = PositionOption.key + getId();
-    if (instanceCount == 1 && GlobalOptions.getInstance().isUseSingleWindow()) {
+    if ("PieceWindow0".equals(id) && GlobalOptions.getInstance().isUseSingleWindow()) {
       mainWindowDock = new ComponentSplitter().splitLeft(GameModule.getGameModule().getControlPanel(), root, false);
     }
     else {
@@ -196,7 +197,7 @@ public class PieceWindow extends Widget {
       root.getTopLevelAncestor().setVisible(false);
     }
     GameModule.getGameModule().getToolBar().remove(launch);
-    instanceCount--;
+    idMgr.remove(this);
   }
 
   public String[] getAttributeDescriptions() {

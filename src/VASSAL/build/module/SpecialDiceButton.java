@@ -23,6 +23,7 @@ import VASSAL.build.module.documentation.HelpFile;
 import VASSAL.configure.*;
 import VASSAL.tools.LaunchButton;
 import VASSAL.tools.SequenceEncoder;
+import VASSAL.tools.UniqueIdManager;
 import VASSAL.command.*;
 
 import javax.swing.*;
@@ -38,7 +39,9 @@ import java.util.*;
 /**
  * ...
  */
-public class SpecialDiceButton extends AbstractConfigurable implements CommandEncoder {
+public class SpecialDiceButton extends AbstractConfigurable implements CommandEncoder, UniqueIdManager.Identifyable {
+  private static UniqueIdManager idMgr = new UniqueIdManager("SpecialDiceButton");
+
   protected java.util.Random ran;
   protected boolean bNumeric = false;
   protected boolean bReportTotal = false;
@@ -268,19 +271,12 @@ public class SpecialDiceButton extends AbstractConfigurable implements CommandEn
    * control window's toolbar and registers itself as a {@link
    * KeyStrokeListener} */
   public void addTo(Buildable parent) {
-    int count = 0;
-
     GameModule mod = GameModule.getGameModule();
     ran = mod.getRNG();
 
     mod.getToolBar().add(launch);
 
-    // Our button doesn't yet appear in the GameModule
-    for (Enumeration e = mod.getComponents(SpecialDiceButton.class); e.hasMoreElements();) {
-      e.nextElement();
-      count++;
-    }
-    setId("SpecialDiceButton" + count);
+    idMgr.add(this);
 
     mod.addCommandEncoder(this);
   }

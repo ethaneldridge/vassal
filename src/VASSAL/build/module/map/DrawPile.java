@@ -38,6 +38,7 @@ import VASSAL.counters.Deck;
 import VASSAL.counters.GamePiece;
 import VASSAL.counters.Stack;
 import VASSAL.tools.SequenceEncoder;
+import VASSAL.tools.UniqueIdManager;
 
 import javax.swing.*;
 import java.awt.*;
@@ -61,7 +62,7 @@ public class DrawPile extends SetupStack {
       return dummy.getReshuffleCommand().length() > 0;
     }
   };
-  private static int instanceCount;
+  private static UniqueIdManager idMgr = new UniqueIdManager("Deck");
 
   protected JPopupMenu buildPopup() {
     JPopupMenu popup = new JPopupMenu();
@@ -70,7 +71,7 @@ public class DrawPile extends SetupStack {
 
   public void addTo(Buildable b) {
     map = (Map) b;
-    setId("Deck" + instanceCount++);
+    idMgr.add(this);
 
     GameModule.getGameModule().addCommandEncoder(this);
     GameModule.getGameModule().getGameState().addGameComponent(this);
@@ -82,7 +83,7 @@ public class DrawPile extends SetupStack {
     }
     GameModule.getGameModule().removeCommandEncoder(this);
     GameModule.getGameModule().getGameState().removeGameComponent(this);
-    instanceCount--;
+    idMgr.remove(this);
   }
 
   /**
