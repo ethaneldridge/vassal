@@ -27,6 +27,7 @@ import javax.swing.*;
 import javax.swing.border.*;
 
 import VASSAL.build.GameModule;
+import VASSAL.preferences.Prefs;
 
 /**
  * @author Brent Easton
@@ -34,13 +35,17 @@ import VASSAL.build.GameModule;
  * Dialog for defining a {@link DieManager.RollSet}
  * For use with internet dice rollers
  */
-public class MultiRoll extends JDialog {
+public class MultiRoll extends JDialog implements ActionListener {
 
   private JButton rollButton = new JButton("Roll");
   private JButton canButton = new JButton("Cancel");
+  private JButton emailButton = new JButton("Change Email Address");
 
-  private JPanel statPanel;
-  private JLabel statLabel;
+  private JDialog me;
+  private JPanel serverPanel;
+  private JLabel serverLabel;
+  private JPanel emailPanel;
+  private JLabel emailLabel;
   private JPanel descPanel;
   private JTextField descText;
   private JPanel topPanel;
@@ -78,7 +83,18 @@ public class MultiRoll extends JDialog {
   protected boolean rollCancelled = false;
   protected boolean singleRoll;
 
+  protected MultiRoll() {
+
+    addWindowListener(new WindowAdapter() {
+      public void windowClosing(WindowEvent e) {
+        rollCancelled = true;
+        setVisible(false);
+      }
+    });
+  }
+
   public MultiRoll(DieManager d, int dfltNDice, int dfltNSides) {
+    this();
     dieManager = d;
     for (int i = 0; i < MAX_ROLLS; i++) {
       rolls[i] = new DieRoll("", dfltNDice, dfltNSides);
@@ -122,7 +138,8 @@ public class MultiRoll extends JDialog {
    * have been changed.
    */
   public void setVisible(boolean b) {
-    statLabel.setText(getStatText());
+    setServerHeader();
+    setEmailHeader();
     super.setVisible(b);
   }
 
@@ -139,11 +156,20 @@ public class MultiRoll extends JDialog {
     topPanel = new JPanel();
     topPanel.setLayout(new BoxLayout(topPanel, BoxLayout.PAGE_AXIS));
 
-    statPanel = new JPanel();
-    statLabel = new JLabel(getStatText());
-    statPanel.add(statLabel);
-    topPanel.add(statPanel);
+    // Build the Server/Email header
+    serverPanel = new JPanel();
+    serverLabel = new JLabel();
+    setServerHeader();
+    serverPanel.add(serverLabel);
+    topPanel.add(serverPanel);
 
+    emailPanel = new JPanel();
+    emailLabel = new JLabel();
+    setEmailHeader();
+    emailPanel.add(emailLabel);
+    topPanel.add(emailPanel);
+
+    // And the body
     descPanel = new JPanel();
     JLabel descLabel = new JLabel("Roll Description");
     descText = new JTextField(20);
@@ -176,6 +202,14 @@ public class MultiRoll extends JDialog {
     rollButton.addActionListener(new java.awt.event.ActionListener() {
       public void actionPerformed(java.awt.event.ActionEvent e) {
         rollCancelled = false;
+        int dieCount = 0;
+        for (int i = 0; i < MAX_ROLLS; i++) {
+          dieCount += useDie[i] ? 1 : 0;
+        }
+        if (dieCount == 0) {
+          JOptionPane.showMessageDialog(me, "No dice selected for Roll.", "Roll Cancelled", JOptionPane.ERROR_MESSAGE);
+          return;
+        }
         setVisible(false);
       }
     });
@@ -186,8 +220,15 @@ public class MultiRoll extends JDialog {
       }
     });
 
+    emailButton.addActionListener(new java.awt.event.ActionListener() {
+      public void actionPerformed(java.awt.event.ActionEvent e) {
+        updateEmailAddress();
+      }
+    });
+
     buttonPanel.add(rollButton);
     buttonPanel.add(canButton);
+    buttonPanel.add(emailButton);
 
     getContentPane().add(topPanel, BorderLayout.PAGE_START);
     getContentPane().add(buttonPanel, BorderLayout.PAGE_END);
@@ -195,15 +236,57 @@ public class MultiRoll extends JDialog {
     pack();
   }
 
-  private String getStatText() {
-    String stat = "Server: " + dieManager.getServer().getName() + "  Email: ";
-    if (dieManager.getServer().getUseEmail()) {
-      stat += dieManager.getServer().getSecondaryEmail();
+  protected void setServerHeader() {
+    serverLabel.setText("Server: " + dieManager.getServer().getName());
+  }
+
+  private static final String EMAIL_OFF = "Off";
+
+  protected void setEmailHeader() {
+
+    String label;
+    Prefs prefs = GameModule.getGameModule().getPrefs();
+
+    if (((Boolean) prefs.getValue(DieManager.USE_EMAIL)).booleanValue()) {
+      label = (String) prefs.getValue(DieManager.SECONDARY_EMAIL);
     }
     else {
-      stat += "Off";
+      label = EMAIL_OFF;
     }
-    return stat;
+    emailLabel.setText("Email: " + label);
+  }
+
+  protected void updateEmailAddress() {
+
+    Prefs prefs = GameModule.getGameModule().getPrefs();
+    String[] aBook = (String[]) prefs.getValue(DieManager.ADDRESS_BOOK);
+
+    JPopupMenu popup = new JPopupMenu();
+
+    JMenuItem menuItem = new JMenuItem(EMAIL_OFF);
+    menuItem.addActionListener(this);
+    popup.add(menuItem);
+
+    for (int i = 0; i < aBook.length; i++) {
+      menuItem = new JMenuItem(aBook[i]);
+      menuItem.addActionListener(this);
+      popup.add(menuItem);
+    }
+
+    popup.show(emailButton, emailButton.getX(), emailButton.getY());
+  }
+
+  public void actionPerformed(ActionEvent e) {
+    String address = e.getActionCommand();
+    Prefs prefs = GameModule.getGameModule().getPrefs();
+    if (address.equals(EMAIL_OFF)) {
+      prefs.setValue(DieManager.USE_EMAIL, new Boolean(false));
+    }
+    else {
+      prefs.setValue(DieManager.SECONDARY_EMAIL, address);
+      prefs.setValue(DieManager.USE_EMAIL, new Boolean(true));
+    }
+    setEmailHeader();
   }
 
   class HeaderRow extends JPanel {
@@ -438,5 +521,6 @@ public class MultiRoll extends JDialog {
       setState(!state);
     }
   }
+
 
 }

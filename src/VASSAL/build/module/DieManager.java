@@ -697,6 +697,22 @@ public class DieManager extends AbstractConfigurable {
 
     }
 
+    /**
+     *
+     * Extract the portion of the email address withing the  angle brackets.
+     * Allows Email addresses like 'Joe Blow <j.blow@somewhere.com>'
+     */
+    public String extractEmail(String email) {
+      int start = email.indexOf("<");
+      int end = email.indexOf(">");
+      if (start >= 0 && end >= 0 && end > start) {
+        return email.substring(start + 1, end);
+      }
+      else {
+        return email;
+      }
+    }
+
   }
 
   /*
@@ -878,8 +894,8 @@ public class DieManager extends AbstractConfigurable {
       String desc, s, pEmail = "", sEmail = "";
 
       if (getUseEmail()) {
-        pEmail = getPrimaryEmail();
-        sEmail = getSecondaryEmail();
+        pEmail = extractEmail(getPrimaryEmail());
+        sEmail = extractEmail(getSecondaryEmail());
       }
 
       desc = hexify(toss.description);
