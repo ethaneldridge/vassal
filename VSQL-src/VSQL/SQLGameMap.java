@@ -63,7 +63,7 @@ public class SQLGameMap extends GameMap {
 		int numBlindHexes = 0;
 		int temp = 0;
 
-		boolean result;
+		boolean result = false;
 
 		// if LOS raising, swap source/target and use the same logic as LOS falling
 		if (sourceElevation < targetElevation) {
@@ -80,10 +80,14 @@ public class SQLGameMap extends GameMap {
 		}
 
 		// 2 blind hexes behind multi-story buildings, otherwise 1.
-		if (currentTerrain.isBuildingTerrain() && currentTerrain.getHeight() > 1 ) {
+		if (currentTerrainHgt == 0 && !isCliffHexside) {
+		    return rangeToTarget <= Math.max(2 * (groundLevel + currentTerrainHgt) + Math.min(((int) rangeToSource / 5), 1)
+	          - sourceElevation - targetElevation, 0);
+		}
+		else if (currentTerrain.isBuildingTerrain() && currentTerrain.getHeight() > 1 ) {
 			result = (rangeToTarget <= 2);
 		}
-		else {        
+		else if (!currentTerrain.isOpenTerrain()) {        
 			result = (rangeToTarget <= 1);
 		}
 		return result;
