@@ -42,6 +42,7 @@ import java.awt.image.ImageProducer;
 import java.io.File;
 import java.net.MalformedURLException;
 import java.util.Hashtable;
+import java.util.Iterator;
 
 /**
  * A Decorator that rotates a GamePiece to an arbitrary angle
@@ -333,7 +334,7 @@ public class FreeRotator extends Decorator implements EditablePiece, MouseListen
 
   public void mousePressed(MouseEvent e) {
     drawGhost = true;
-    startAngle = getRelativeAngle(getMap().mapCoordinates(e.getPoint()),getPosition());
+    startAngle = getRelativeAngle(e.getPoint(),getPosition());
   }
 
   public void mouseReleased(MouseEvent e) {
@@ -378,14 +379,10 @@ public class FreeRotator extends Decorator implements EditablePiece, MouseListen
   }
 
   public Image getRotatedImage(double angle, Component obs) {
-    Image rotated = (Image) images.get(new Double(angle));
+    Image rotated = getCachedUnrotatedImage(angle);
     if (unrotated.isChanged()) {
-      images.clear();
-      bounds.clear();
-      if (rotated != null) {
-        GameModule.getGameModule().getDataArchive().unCacheImage(rotated);
-        rotated = null;
-      }
+      clearCachedImages();
+      rotated = null;
     }
     if (rotated == null) {
       Rectangle rotatedBounds;
@@ -414,6 +411,23 @@ public class FreeRotator extends Decorator implements EditablePiece, MouseListen
       bounds.put(new Double(angle), rotatedBounds);
     }
     return rotated;
+  }
+
+  private Image getCachedUnrotatedImage(double angle) {
+    if (validAngles.length == 1) {
+      angle = validAngles[0];
+    }
+    Image rotated = (Image) images.get(new Double(angle));
+    return rotated;
+  }
+
+  private void clearCachedImages() {
+    for (Iterator it = images.values().iterator(); it.hasNext();) {
+      Image im = (Image) it.next();
+      GameModule.getGameModule().getDataArchive().unCacheImage(im);
+    }
+    images.clear();
+    bounds.clear();
   }
 
   public String getDescription() {
