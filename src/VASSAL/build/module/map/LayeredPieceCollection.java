@@ -13,22 +13,18 @@
  * Library General Public License for more details.
  *
  * You should have received a copy of the GNU Library General Public
- * License along with this library; if not, copies are available 
+ * License along with this library; if not, copies are available
  * at http://www.opensource.org.
  */
 package VASSAL.build.module.map;
 
 import VASSAL.build.AbstractConfigurable;
 import VASSAL.build.Buildable;
-import VASSAL.build.GameModule;
 import VASSAL.build.module.Map;
 import VASSAL.build.module.documentation.HelpFile;
-import VASSAL.configure.Configurer;
 import VASSAL.configure.StringArrayConfigurer;
 import VASSAL.counters.*;
 
-import javax.swing.*;
-import java.awt.*;
 import java.io.File;
 import java.net.MalformedURLException;
 

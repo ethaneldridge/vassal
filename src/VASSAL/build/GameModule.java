@@ -110,6 +110,7 @@ public abstract class GameModule extends AbstractConfigurable implements Command
     fileMenu.setMnemonic('F');
     frame.getJMenuBar().add(fileMenu);
 
+    toolBar.setLayout(new VASSAL.tools.WrapLayout(FlowLayout.LEFT,0,0));
     toolBar.setAlignmentX(0.0F);
     toolBar.setFloatable(false);
     frame.getContentPane().add(toolBar, BorderLayout.NORTH);
