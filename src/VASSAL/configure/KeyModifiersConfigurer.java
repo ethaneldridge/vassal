@@ -68,7 +68,7 @@ public class KeyModifiersConfigurer extends Configurer implements KeyListener {
     if (!noUpdate && tf != null) {
       if (o instanceof Integer
           && ((Integer) o).intValue() != 0) {
-        tf.setText(KeyEvent.getKeyModifiersText(((Integer) o).intValue()));
+        tf.setText(KeyEvent.getKeyModifiersText(((Integer) o).intValue()).toUpperCase());
       }
       else {
         tf.setText("");

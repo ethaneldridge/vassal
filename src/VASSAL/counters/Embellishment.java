@@ -19,16 +19,15 @@
 package VASSAL.counters;
 
 import VASSAL.Info;
-import VASSAL.configure.HotKeyConfigurer;
-import VASSAL.configure.KeyModifiersConfigurer;
 import VASSAL.build.GameModule;
 import VASSAL.build.module.documentation.HelpFile;
 import VASSAL.command.ChangeTracker;
 import VASSAL.command.Command;
+import VASSAL.configure.HotKeyConfigurer;
+import VASSAL.configure.KeyModifiersConfigurer;
 import VASSAL.tools.DataArchive;
 import VASSAL.tools.SequenceEncoder;
 
-import java.util.List;
 import javax.swing.*;
 import javax.swing.event.ListSelectionListener;
 import java.awt.*;
@@ -36,9 +35,10 @@ import java.awt.event.*;
 import java.awt.geom.Area;
 import java.io.File;
 import java.net.MalformedURLException;
-import java.util.Enumeration;
-import java.util.Vector;
 import java.util.ArrayList;
+import java.util.Enumeration;
+import java.util.List;
+import java.util.Vector;
 
 /**
  * The "Layer" trait. Contains a list of images that the user may cycle through.
@@ -55,6 +55,7 @@ public class Embellishment extends Decorator implements EditablePiece {
   protected String upCommand, downCommand, activateCommand;
   protected String resetCommand;
   protected int resetLevel;
+  protected boolean loopLevels;
   protected KeyStroke resetKey;
 
   protected int value = -1;  // Index of the image to draw.  Negative if inactive
@@ -69,7 +70,7 @@ public class Embellishment extends Decorator implements EditablePiece {
   protected KeyCommand[] commands;
 
   public Embellishment() {
-    this(ID, null);
+    this(ID + "Activate", null);
   }
 
   public Embellishment(String type, GamePiece d) {
@@ -120,6 +121,7 @@ public class Embellishment extends Decorator implements EditablePiece {
       yOff = st.nextInt(0);
       imageName = st.nextStringArray(0);
       commonName = st.nextStringArray(imageName.length);
+      loopLevels = st.nextBoolean(true);
 
       value = activateKey.length() > 0 ? -1 : 1;
       nValues = imageName.length;
@@ -191,7 +193,7 @@ public class Embellishment extends Decorator implements EditablePiece {
 
   public String getName() {
     String name = null;
-    if (value > 0 && commonName[value - 1] != null && commonName[value-1].length() > 0) {
+    if (value > 0 && commonName[value - 1] != null && commonName[value - 1].length() > 0) {
       SequenceEncoder.Decoder st = new SequenceEncoder.Decoder(commonName[value - 1], '+');
       String first = st.nextToken();
       if (st.hasMoreTokens()) {
@@ -237,7 +239,8 @@ public class Embellishment extends Decorator implements EditablePiece {
         .append(xOff)
         .append(yOff)
         .append(imageName)
-        .append(commonName);
+        .append(commonName)
+        .append(loopLevels);
     return ID + se.getValue();
   }
 
@@ -354,8 +357,9 @@ public class Embellishment extends Decorator implements EditablePiece {
           tracker = new ChangeTracker(this);
         }
         int val = Math.abs(value);
-        if (++val > nValues)
-          val = 1;
+          if (++val > nValues) {
+            val = loopLevels ? 1 : nValues;
+          }
         value = value > 0 ? val : -val;
         break;
       }
@@ -366,8 +370,9 @@ public class Embellishment extends Decorator implements EditablePiece {
           tracker = new ChangeTracker(this);
         }
         int val = Math.abs(value);
-        if (--val < 1)
-          val = nValues;
+        if (--val < 1) {
+          val = loopLevels ? nValues : 1;
+        }
         value = value > 0 ? val : -val;
         break;
       }
@@ -506,11 +511,11 @@ public class Embellishment extends Decorator implements EditablePiece {
     private JTextField upKeyInput = new JTextField("]");
     private JTextField downKeyInput = new JTextField("[");
     private JTextField activateCommand = new JTextField("Activate");
-    private KeyModifiersConfigurer activateModifiers = new KeyModifiersConfigurer(null,"key:  ");
+    private KeyModifiersConfigurer activateModifiers = new KeyModifiersConfigurer(null, "key:  ");
     private JTextField upCommand = new JTextField("Increase");
-    private KeyModifiersConfigurer upModifiers = new KeyModifiersConfigurer(null,"key:  ");
+    private KeyModifiersConfigurer upModifiers = new KeyModifiersConfigurer(null, "key:  ");
     private JTextField downCommand = new JTextField("Decrease");
-    private KeyModifiersConfigurer downModifiers = new KeyModifiersConfigurer(null,"key:  ");
+    private KeyModifiersConfigurer downModifiers = new KeyModifiersConfigurer(null, "key:  ");
     private JTextField xOffInput = new JTextField(2);
     private JTextField yOffInput = new JTextField(2);
     private JTextField levelNameInput = new JTextField(8);
@@ -520,6 +525,7 @@ public class Embellishment extends Decorator implements EditablePiece {
     private JCheckBox drawUnderneath = new JCheckBox("Underneath when highlighted");
     private JTextField resetLevel = new JTextField(2);
     private JTextField resetCommand = new JTextField(8);
+    private JCheckBox loop = new JCheckBox("Loop through levels");
     private HotKeyConfigurer resetKey = new HotKeyConfigurer(null, "Keyboard:  ");
 
     private JPanel controls;
@@ -533,7 +539,7 @@ public class Embellishment extends Decorator implements EditablePiece {
       Box box;
 
       controls = new JPanel();
-      controls.setLayout(new BoxLayout(controls, BoxLayout.X_AXIS));
+      controls.setLayout(new BoxLayout(controls, BoxLayout.Y_AXIS));
 
       JPanel p = new JPanel();
       p.setLayout(new GridLayout(4, 3));
@@ -550,14 +556,14 @@ public class Embellishment extends Decorator implements EditablePiece {
       p.add(downModifiers.getControls());
       p.add(downKeyInput);
 
-      Box box2 = Box.createHorizontalBox();
-      box2.add(new JLabel("Reset to level"));
-      box2.add(resetLevel);
-      p.add(box2);
-      box2 = Box.createHorizontalBox();
-      box2.add(new JLabel("Command"));
-      box2.add(resetCommand);
-      p.add(box2);
+      Box resetControls = Box.createHorizontalBox();
+      resetControls.add(new JLabel("Reset to level"));
+      resetControls.add(resetLevel);
+      p.add(resetControls);
+      resetControls = Box.createHorizontalBox();
+      resetControls.add(new JLabel("Command: "));
+      resetControls.add(resetCommand);
+      p.add(resetControls);
       p.add(resetKey.getControls());
 
       box = Box.createVerticalBox();
@@ -578,20 +584,25 @@ public class Embellishment extends Decorator implements EditablePiece {
               }
             }
           });
-      box.add(alwaysActive);
-      box.add(drawUnderneath);
+      JPanel checkBoxes = new JPanel();
+      checkBoxes.setLayout(new GridLayout(2, 2));
+      checkBoxes.add(alwaysActive);
+      checkBoxes.add(drawUnderneath);
+      checkBoxes.add(loop);
+      box.add(checkBoxes);
       box.add(p);
 
-      box2 = Box.createHorizontalBox();
+      Box offsetControls = Box.createHorizontalBox();
       xOffInput.setMaximumSize(xOffInput.getPreferredSize());
       xOffInput.setText("0");
       yOffInput.setMaximumSize(xOffInput.getPreferredSize());
       yOffInput.setText("0");
-      box2.add(new JLabel("Offset: "));
-      box2.add(xOffInput);
-      box2.add(new JLabel(","));
-      box2.add(yOffInput);
-      box.add(box2);
+      offsetControls.add(new JLabel("Offset: "));
+      offsetControls.add(xOffInput);
+      offsetControls.add(new JLabel(","));
+      offsetControls.add(yOffInput);
+      checkBoxes.add(offsetControls);
+
       controls.add(box);
 
       images = new MultiImagePicker();
@@ -709,7 +720,7 @@ public class Embellishment extends Decorator implements EditablePiece {
       SequenceEncoder se = new SequenceEncoder(';');
       List imageNames = new ArrayList();
       List commonNames = new ArrayList();
-      int i=0;
+      int i = 0;
       for (Enumeration e = images.getImageNames();
            e.hasMoreElements();) {
         imageNames.add(e.nextElement());
@@ -752,16 +763,18 @@ public class Embellishment extends Decorator implements EditablePiece {
           .append(downModifiers.getValueString())
           .append(downKeyInput.getText())
           .append(resetCommand.getText())
-          .append((KeyStroke)resetKey.getValue())
+          .append((KeyStroke) resetKey.getValue())
           .append(resetLevel.getText())
           .append(drawUnderneath.isSelected())
           .append(xOffInput.getText())
           .append(yOffInput.getText())
-          .append((String[])imageNames.toArray(new String[imageNames.size()]))
-          .append((String[])commonNames.toArray(new String[commonNames.size()]));
+          .append((String[]) imageNames.toArray(new String[imageNames.size()]))
+          .append((String[]) commonNames.toArray(new String[commonNames.size()]))
+          .append(loop.isSelected());
       return ID + se.getValue();
 
     }
+
     public String oldgetType() {
       SequenceEncoder imageList = new SequenceEncoder(';');
       int i = 0;
@@ -834,7 +847,7 @@ public class Embellishment extends Decorator implements EditablePiece {
         String s = e.commonName[i];
         Integer is = NEITHER;
         if (s != null
-          && s.length() > 0) {
+            && s.length() > 0) {
           SequenceEncoder.Decoder st = new SequenceEncoder.Decoder(s, '+');
           String first = st.nextToken();
           if (st.hasMoreTokens()) {
@@ -858,6 +871,7 @@ public class Embellishment extends Decorator implements EditablePiece {
 
       alwaysActive.setSelected(e.activateKey.length() == 0);
       drawUnderneath.setSelected(e.drawUnderneathWhenSelected);
+      loop.setSelected(e.loopLevels);
 
       images.clear();
 
@@ -876,6 +890,13 @@ public class Embellishment extends Decorator implements EditablePiece {
       xOffInput.setText("" + e.xOff);
       yOffInput.setText("" + e.yOff);
       images.setImageList(e.imageName);
+
+      /** Add at least one level if none defined */
+      if (!images.getImageNames().hasMoreElements()) {
+        names.add(null);
+        isPrefix.add(null);
+        images.addEntry();
+      }
 
       updateLevelName();
     }
