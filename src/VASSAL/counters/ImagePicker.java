@@ -38,7 +38,7 @@ public class ImagePicker extends javax.swing.JPanel implements MouseListener, It
   public ImagePicker() {
     noImage = new JTextArea(1,10);
     noImage.setFont(FONT);
-    noImage.setText("double-click to add new image");
+    noImage.setText("Double-click here to add new image");
     noImage.addMouseListener(this);
     noImage.setEditable(false);
     noImage.setLineWrap(true);
