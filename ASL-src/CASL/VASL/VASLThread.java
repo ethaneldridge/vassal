@@ -838,7 +838,6 @@ public class VASLThread
               status = ERROR;
             }
             else {
-              GameModule.getGameModule().warn("");
               status = LOADED;
             }
             map.repaint();
