@@ -49,6 +49,7 @@ public class GlobalOptions extends AbstractConfigurable {
   public static final String NEVER = "Never";
   public static final String PROMPT = "Use Preferences Setting";
   public static final String SINGLE_WINDOW = "singleWindow";
+  public static final String SCALER_ALGORITHM = "scalerAlgorithm";
 
   private String promptString = "Opponents can unmask my pieces";
   private String nonOwnerUnmaskable = NEVER;
@@ -57,15 +58,21 @@ public class GlobalOptions extends AbstractConfigurable {
   private String markMoved = NEVER;
   private static GlobalOptions instance;
   private boolean useSingleWindow;
+	private boolean scalerAlgorithm;
 
   public void addTo(Buildable parent) {
     if (GameModule.getGameModule().getComponents(GlobalOptions.class).hasMoreElements()) {
       throw new IllegalBuildException("Only one Global Options allowed");
     }
     instance = this;
+
     BooleanConfigurer config = new BooleanConfigurer(SINGLE_WINDOW, "Use combined application window (requires restart)",Boolean.TRUE);
     GameModule.getGameModule().getPrefs().addOption(config);
     useSingleWindow = !Boolean.FALSE.equals(config.getValue());
+
+		config = new BooleanConfigurer(SCALER_ALGORITHM, "Smooth image scaling",Boolean.TRUE);
+		GameModule.getGameModule().getPrefs().addOption(config);
+		scalerAlgorithm = !Boolean.FALSE.equals(config.getValue());
   }
 
   public static GlobalOptions getInstance() {
@@ -77,6 +84,10 @@ public class GlobalOptions extends AbstractConfigurable {
 
   public boolean isUseSingleWindow() {
     return useSingleWindow && Info.is2dEnabled();
+  }
+
+  public boolean isAveragedScaling() {
+		return scalerAlgorithm;
   }
 
   public static String getConfigureTypeName() {
@@ -101,7 +112,7 @@ public class GlobalOptions extends AbstractConfigurable {
   }
 
   public String[] getAttributeNames() {
-    return new String[]{NON_OWNER_UNMASKABLE, PROMPT_STRING, CENTER_ON_MOVE, AUTO_REPORT};
+    return new String[]{NON_OWNER_UNMASKABLE, PROMPT_STRING, CENTER_ON_MOVE, AUTO_REPORT };
   }
 
   public Class[] getAttributeTypes() {

@@ -18,8 +18,10 @@
  */
 package VASSAL.tools;
 
-import VASSAL.build.module.documentation.HelpFile;
 import VASSAL.build.module.GlobalOptions;
+import VASSAL.build.module.documentation.HelpFile;
+import VASSAL.build.GameModule;
+import VASSAL.configure.BooleanConfigurer;
 
 import javax.swing.*;
 import java.awt.*;
@@ -31,6 +33,8 @@ import java.util.Vector;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 import java.util.zip.ZipInputStream;
+import java.beans.PropertyChangeListener;
+import java.beans.PropertyChangeEvent;
 
 /**
  * Wrapper around a Zip archive with methods to cache images
@@ -39,10 +43,10 @@ public class DataArchive extends ClassLoader {
   protected ZipFile archive = null;
   protected Vector extensions = new Vector();
   private Hashtable imageCache = new Hashtable();
+  private Hashtable scaledImageCache = new Hashtable();
   protected String[] imageNames;
   public static final String IMAGE_DIR = "images/";
-  private Scaler scaler = new Scaler();
-  MediaTracker tracker = new MediaTracker(new JLabel());
+  private BooleanConfigurer smoothPrefs;
 
   protected DataArchive() {
   }
@@ -109,8 +113,37 @@ public class DataArchive extends ClassLoader {
     }
   }
 
-  public Image getScaledImage(String file, double scale) throws IOException {
-    return scaler.scale(getCachedImage(file),scale,null);
+  /**
+   * Return a scaled instance of the image.  Each zoom factory of each image is stored in a cache
+   * @param base
+   * @param scale
+   * @return
+   */
+  public Image getScaledImage(Image base, double scale) {
+    Dimension d = getImageBounds(base).getSize();
+    d.width *= scale;
+    d.height *= scale;
+    ScaledCacheKey key = new ScaledCacheKey(base,d);
+    Image scaled = (Image) scaledImageCache.get(key);
+    if (scaled == null) {
+      scaled = getScaledInstance(base, d);
+      new ImageIcon(scaled); // Wait for the image to load
+      scaledImageCache.put(key,scaled);
+    }
+    return scaled;
+  }
+
+  private Image getScaledInstance(Image im, Dimension size) {
+    if (smoothPrefs == null) {
+      smoothPrefs = (BooleanConfigurer) GameModule.getGameModule().getPrefs().getOption(GlobalOptions.SCALER_ALGORITHM);
+      smoothPrefs.addPropertyChangeListener(new PropertyChangeListener() {
+        public void propertyChange(PropertyChangeEvent evt) {
+          scaledImageCache.clear();
+        }
+      });
+    }
+    int algorithm = Boolean.TRUE.equals(smoothPrefs.getValue()) ? Image.SCALE_AREA_AVERAGING : Image.SCALE_DEFAULT;
+    return im.getScaledInstance(size.width,size.height,algorithm);
   }
 
   /**
@@ -465,6 +498,34 @@ public class DataArchive extends ClassLoader {
       catch (InterruptedException e) {
       }
       return scaled;
+    }
+  }
+  private static class ScaledCacheKey {
+    private Image base;
+    private Dimension bounds;
+
+    public ScaledCacheKey(Image base, Dimension bounds) {
+      this.bounds = bounds;
+      this.base = base;
+    }
+
+    public boolean equals(Object o) {
+      if (this == o) return true;
+      if (!(o instanceof ScaledCacheKey)) return false;
+
+      final ScaledCacheKey scaledCacheKey = (ScaledCacheKey) o;
+
+      if (!bounds.equals(scaledCacheKey.bounds)) return false;
+      if (!base.equals(scaledCacheKey.base)) return false;
+
+      return true;
+    }
+
+    public int hashCode() {
+      int result;
+      result = base.hashCode();
+      result = 29 * result + bounds.hashCode();
+      return result;
     }
   }
 }

@@ -26,8 +26,8 @@ import VASSAL.command.AddPiece;
 import VASSAL.command.ChangePiece;
 import VASSAL.command.Command;
 import VASSAL.command.RemovePiece;
-import VASSAL.tools.SequenceEncoder;
 import VASSAL.tools.DataArchive;
+import VASSAL.tools.SequenceEncoder;
 
 import javax.swing.*;
 import java.awt.*;
@@ -140,12 +140,16 @@ public class BasicPiece implements EditablePiece {
 
   public void draw(Graphics g, int x, int y, Component obs, double zoom) {
     if (image != null) {
-      g.drawImage(image,
-                  x + (int) (zoom * imageBounds.x),
-                  y + (int) (zoom * imageBounds.y),
-                  (int) (zoom * imageBounds.width),
-                  (int) (zoom * imageBounds.height),
-                  obs);
+        if (zoom == 1.0) {
+          g.drawImage(image,x+imageBounds.x,y+imageBounds.y,obs);
+        }
+        else {
+          Image scaledImage = GameModule.getGameModule().getDataArchive().getScaledImage(image,zoom);
+          g.drawImage(scaledImage,
+                      x + (int) (zoom * imageBounds.x),
+                      y + (int) (zoom * imageBounds.y),
+                      obs);
+        }
     }
   }
 

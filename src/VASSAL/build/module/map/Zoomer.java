@@ -13,7 +13,7 @@
  * Library General Public License for more details.
  *
  * You should have received a copy of the GNU Library General Public
- * License along with this library; if not, copies are available 
+ * License along with this library; if not, copies are available
  * at http://www.opensource.org.
  */
 package VASSAL.build.module.map;
@@ -21,8 +21,10 @@ package VASSAL.build.module.map;
 import VASSAL.build.*;
 import VASSAL.build.module.GameComponent;
 import VASSAL.build.module.Map;
+import VASSAL.build.module.map.boardPicker.Board;
 import VASSAL.build.module.documentation.HelpFile;
 import VASSAL.tools.LaunchButton;
+import VASSAL.tools.BackgroundTask;
 
 import javax.swing.*;
 import java.awt.*;
@@ -30,6 +32,8 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
 import java.net.MalformedURLException;
+import java.util.Enumeration;
+import java.util.Vector;
 
 /**
  * Controls the zooming in/out of a Map Window
@@ -51,7 +55,44 @@ public class Zoomer extends AbstractConfigurable implements GameComponent {
     };
     ActionListener zoomOut = new ActionListener() {
       public void actionPerformed(ActionEvent e) {
-        zoomOut();
+        if (zoomLevel < zoomFactor.length - 1) {
+          final JWindow w = new JWindow(SwingUtilities.getWindowAncestor(map.getView()));
+          w.getContentPane().setBackground(Color.white);
+          JLabel l = new JLabel("Scaling Map ...");
+          l.setFont(new Font("Dialog",Font.PLAIN,48));
+          l.setBackground(Color.white);
+          l.setForeground(Color.black);
+          w.getContentPane().add(l);
+          w.pack();
+          Dimension d = Toolkit.getDefaultToolkit().getScreenSize();
+          w.setLocation(d.width/2-w.getSize().width/2,d.height/2-w.getSize().height/2);
+          final Vector finished = new Vector();
+          Runnable runnable = new Runnable() {
+            public void run() {
+              try {
+                Thread.sleep(100);
+                if (!finished.contains(w)) {
+                  w.setVisible(true);
+                }
+              }
+              catch (InterruptedException e1) {
+              }
+            }
+          };
+          new Thread(runnable).start();
+          BackgroundTask task = new BackgroundTask() {
+            public void doFirst() {
+              scaleBoards(zoomFactor[zoomLevel + 1]);
+            }
+
+            public void doLater() {
+              zoomOut();
+              finished.add(w);
+              w.dispose();
+            }
+          };
+          task.start();
+        }
       }
     };
 
@@ -95,6 +136,7 @@ public class Zoomer extends AbstractConfigurable implements GameComponent {
     GameModule.getGameModule().getGameState().addGameComponent(this);
 
     map = (Map) b;
+
     Configurable c[] = map.getConfigureComponents();
     for (int i = 0; i < c.length; ++i) {
       if (c[i] instanceof Zoomer) {
@@ -159,7 +201,7 @@ public class Zoomer extends AbstractConfigurable implements GameComponent {
   private void initZoomFactors() {
     zoomFactor = new double[maxZoom];
     zoomFactor[0] = 1.0;
-    for (int i=1;i<zoomFactor.length;++i) {
+    for (int i = 1; i < zoomFactor.length; ++i) {
       zoomFactor[i] = -1;
     }
   }
@@ -176,10 +218,16 @@ public class Zoomer extends AbstractConfigurable implements GameComponent {
   }
 
   public double getZoomFactor() {
-    for (int i=zoomLevel;zoomFactor[zoomLevel] < 0;--i) {
-      zoomFactor[i] = zoomFactor[i-1] / zoomStep;
+    for (int i = zoomLevel; zoomFactor[zoomLevel] < 0; --i) {
+      zoomFactor[i] = zoomFactor[i - 1] / zoomStep;
     }
     return zoomFactor[zoomLevel];
+  }
+
+  private void scaleBoards(double zoom) {
+    for (Enumeration e = map.getAllBoards(); e.hasMoreElements();) {
+      ((Board) e.nextElement()).getScaledImage(zoom, map.getView());
+    }
   }
 
   public void zoomIn() {

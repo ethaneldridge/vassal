@@ -13,7 +13,7 @@
  * Library General Public License for more details.
  *
  * You should have received a copy of the GNU Library General Public
- * License along with this library; if not, copies are available 
+ * License along with this library; if not, copies are available
  * at http://www.opensource.org.
  */
 package VASSAL.build.module.map.boardPicker;
@@ -26,16 +26,13 @@ import VASSAL.build.module.documentation.HelpFile;
 import VASSAL.build.module.map.BoardPicker;
 import VASSAL.build.module.map.boardPicker.board.HexGrid;
 import VASSAL.build.module.map.boardPicker.board.MapGrid;
-import VASSAL.build.module.map.boardPicker.board.RegionGrid;
 import VASSAL.build.module.map.boardPicker.board.SquareGrid;
 import VASSAL.configure.ColorConfigurer;
 import VASSAL.configure.VisibilityCondition;
-import VASSAL.tools.RotateFilter;
+import VASSAL.tools.BackgroundTask;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.image.FilteredImageSource;
-import java.awt.image.ImageProducer;
 import java.io.File;
 import java.io.IOException;
 import java.net.MalformedURLException;
@@ -97,7 +94,7 @@ public class Board extends AbstractConfigurable {
     String s[] = ((BoardPicker) b).getAllowableBoardNames();
     if (s.length == 1 && s[0].equals(getName()))
       throw new IllegalBuildException
-        ("You must define at least one map board");
+          ("You must define at least one map board");
   }
 
   public String[] getAttributeNames() {
@@ -136,8 +133,8 @@ public class Board extends AbstractConfigurable {
       };
     }
     else if (WIDTH.equals(name)
-      || HEIGHT.equals(name)
-      || COLOR.equals(name)) {
+        || HEIGHT.equals(name)
+        || COLOR.equals(name)) {
       return new VisibilityCondition() {
         public boolean shouldBeVisible() {
           return imageFile == null;
@@ -216,7 +213,7 @@ public class Board extends AbstractConfigurable {
 
 
   public Class[] getAllowableConfigureComponents() {
-    Class[] c = {HexGrid.class, SquareGrid.class, RegionGrid.class};
+    Class[] c = {HexGrid.class, SquareGrid.class};
     return c;
   }
 
@@ -225,12 +222,12 @@ public class Board extends AbstractConfigurable {
     drawRegion(g, new Point(x, y), new Rectangle(x, y, Math.round((float) zoom * boundaries.width), Math.round((float) zoom * boundaries.height)), zoom, obs);
   }
 
-  public void drawRegion(Graphics g, Point location, Rectangle visibleRect, double zoom, Component obs) {
+  public void drawRegion(final Graphics g, final Point location, Rectangle visibleRect, final double zoom, final Component obs) {
     Rectangle bounds = new Rectangle(location.x, location.y, Math.round(boundaries.width * (float) zoom), Math.round(boundaries.height * (float) zoom));
     if (visibleRect.intersects(bounds)) {
       visibleRect = visibleRect.intersection(bounds);
-      Image scaled = getScaledImage(zoom, obs);
-      if (scaled != null) {
+      if (boardImage != null) {
+        Image scaled = getScaledImage(zoom, obs);
         g.drawImage(scaled, location.x, location.y, obs);
       }
       else {
@@ -247,35 +244,36 @@ public class Board extends AbstractConfigurable {
           grid.draw(g, bounds, visibleRect, zoom, reversed);
         }
         if (grid.getGridNumbering() != null
-          && grid.getGridNumbering().isVisible()) {
+            && grid.getGridNumbering().isVisible()) {
           grid.getGridNumbering().draw(g, bounds, visibleRect, zoom, reversed);
         }
       }
     }
   }
 
-  public Image getScaledImage(double zoom, Component obs) {
-    Image scaled = (Image) scaledCache.get(new Double(zoom));
-    if (scaled == null
-      && boardImage != null) {
-      scaled = boardImage;
-      if ((zoom != 1.0 || reversed)
+  public synchronized Image getScaledImage(double zoom, Component obs) {
+    Image scaledImage = (Image) scaledCache.get(new Double(zoom));
+    if (scaledImage == null
         && boardImage != null) {
+      scaledImage = boardImage;
+      if ((zoom != 1.0 || reversed)
+          && boardImage != null) {
         Dimension d = new Dimension((int) Math.round(zoom * boundaries.width),
                                     (int) Math.round(zoom * boundaries.height));
-        scaled = obs.createImage(d.width, d.height);
-        Graphics g = scaled.getGraphics();
+
+        scaledImage = GameModule.getGameModule().getDataArchive().getScaledImage(boardImage, zoom);
+
         if (reversed) {
-          g.drawImage(boardImage, d.width, d.height, 0, 0,
-                      0, 0, boundaries.width, boundaries.height, obs);
-        }
-        else {
-          g.drawImage(boardImage, 0, 0, d.width, d.height, obs);
+          Image reverseScaled = obs.createImage(d.width, d.height);
+          Graphics g = reverseScaled.getGraphics();
+          g.drawImage(scaledImage, d.width, d.height, 0, 0,
+                      0, 0, d.width, d.height, obs);
+          scaledImage = reverseScaled;
         }
       }
-      scaledCache.put(new Double(zoom), scaled);
+      scaledCache.put(new Double(zoom), scaledImage);
     }
-    return scaled;
+    return scaledImage;
   }
 
   public void setReversed(boolean val) {
@@ -332,8 +330,8 @@ public class Board extends AbstractConfigurable {
     try {
       try {
         boardImage = GameModule.getGameModule().getDataArchive().getImage
-          (GameModule.getGameModule().getDataArchive().getFileStream
-           ("images/" + imageFile));
+            (GameModule.getGameModule().getDataArchive().getFileStream
+             ("images/" + imageFile));
       }
       catch (IOException e) {
         boardImage = null;
@@ -341,11 +339,11 @@ public class Board extends AbstractConfigurable {
 
       if (boardImage == null && imageFile != null) {
         JOptionPane.showMessageDialog
-          (null,
-           "Error reading board image " + imageFile + " in "
-           + GameModule.getGameModule().getDataArchive().getName(),
-           "Not Found",
-           JOptionPane.ERROR_MESSAGE);
+            (null,
+             "Error reading board image " + imageFile + " in "
+             + GameModule.getGameModule().getDataArchive().getName(),
+             "Not Found",
+             JOptionPane.ERROR_MESSAGE);
         return;
       }
 
@@ -364,11 +362,11 @@ public class Board extends AbstractConfigurable {
     }
     catch (OutOfMemoryError err) {
       JOptionPane.showMessageDialog
-        (null,
-         "Insufficient memory to load board " + getName()
-         + "\nTry setting your display to use fewer colors",
-         "Out of memory",
-         JOptionPane.ERROR_MESSAGE);
+          (null,
+           "Insufficient memory to load board " + getName()
+           + "\nTry setting your display to use fewer colors",
+           "Out of memory",
+           JOptionPane.ERROR_MESSAGE);
     }
   }
 

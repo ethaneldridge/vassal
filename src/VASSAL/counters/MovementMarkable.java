@@ -30,8 +30,8 @@ import VASSAL.build.GameModule;
 import VASSAL.build.module.GlobalOptions;
 import VASSAL.build.module.Map;
 import VASSAL.build.module.documentation.HelpFile;
-import VASSAL.command.Command;
 import VASSAL.command.ChangeTracker;
+import VASSAL.command.Command;
 import VASSAL.configure.Configurer;
 import VASSAL.configure.ImageConfigurer;
 import VASSAL.configure.IntConfigurer;
@@ -135,11 +135,12 @@ public class MovementMarkable extends Decorator implements EditablePiece {
       try {
         Image im =
           GameModule.getGameModule().getDataArchive().getCachedImage(markImage);
+        if (zoom != 1.0) {
+          im = GameModule.getGameModule().getDataArchive().getScaledImage(im,zoom);
+        }
         g.drawImage(im,
                     x + (int) Math.round(zoom * xOffset),
                     y + (int) Math.round(zoom * yOffset),
-                    (int) Math.round(zoom * im.getWidth(obs)),
-                    (int) Math.round(zoom * im.getHeight(obs)),
                     obs);
         if (imageSize == null) {
           JLabel l = new JLabel();

@@ -18,19 +18,19 @@
  */
 package VASSAL.counters;
 
+import VASSAL.Info;
 import VASSAL.build.GameModule;
 import VASSAL.build.module.documentation.HelpFile;
-import VASSAL.command.Command;
 import VASSAL.command.ChangeTracker;
-import VASSAL.tools.SequenceEncoder;
+import VASSAL.command.Command;
 import VASSAL.tools.DataArchive;
-import VASSAL.Info;
+import VASSAL.tools.SequenceEncoder;
 
 import javax.swing.*;
 import javax.swing.event.ListSelectionListener;
 import java.awt.*;
-import java.awt.geom.Area;
 import java.awt.event.*;
+import java.awt.geom.Area;
 import java.io.File;
 import java.net.MalformedURLException;
 import java.util.Enumeration;
@@ -169,13 +169,13 @@ public class Embellishment extends Decorator implements EditablePiece {
   public String myGetType() {
     SequenceEncoder se = new SequenceEncoder(null, ';');
     se.append(activateKey)
-      .append(drawUnderneathWhenSelected ? "_" + activateCommand : activateCommand)
-      .append(upKey)
-      .append(upCommand)
-      .append(downKey)
-      .append(downCommand)
-      .append("" + xOff)
-      .append("" + yOff);
+        .append(drawUnderneathWhenSelected ? "_" + activateCommand : activateCommand)
+        .append(upKey)
+        .append(upCommand)
+        .append(downKey)
+        .append(downCommand)
+        .append("" + xOff)
+        .append("" + yOff);
     for (int i = 0; i < nValues; ++i) {
       if (commonName[i] != null) {
         SequenceEncoder sub = new SequenceEncoder(imageName[i], ',');
@@ -207,18 +207,22 @@ public class Embellishment extends Decorator implements EditablePiece {
       Image im = getCurrentImage();
       if (im != null) {
         Rectangle r = getCurrentImageBounds();
-        g.drawImage(im,
-                    x + (int) (zoom * r.x),
-                    y + (int) (zoom * r.y),
-                    (int) (zoom * r.width),
-                    (int) (zoom * r.height),
-                    obs);
+        if (zoom == 1.0) {
+          g.drawImage(im, x + r.x, y + r.y, obs);
+        }
+        else {
+          Image scaled = GameModule.getGameModule().getDataArchive().getScaledImage(im, zoom);
+          g.drawImage(scaled,
+                      x + (int) (zoom * r.x),
+                      y + (int) (zoom * r.y),
+                      obs);
+        }
       }
     }
     catch (java.io.IOException ex) {
     }
     if (drawUnderneathWhenSelected
-      && Boolean.TRUE.equals(getProperty(Properties.SELECTED))) {
+        && Boolean.TRUE.equals(getProperty(Properties.SELECTED))) {
       piece.draw(g, x, y, obs, zoom);
     }
   }
@@ -307,8 +311,8 @@ public class Embellishment extends Decorator implements EditablePiece {
   protected Image getCurrentImage() throws java.io.IOException {
     if (value > 0) {
       return GameModule.getGameModule() == null ? null
-        : GameModule.getGameModule().getDataArchive()
-        .getCachedImage(imageName[value - 1] + ".gif");
+          : GameModule.getGameModule().getDataArchive()
+          .getCachedImage(imageName[value - 1] + ".gif");
     }
     else {
       return null;
@@ -331,7 +335,7 @@ public class Embellishment extends Decorator implements EditablePiece {
           Image im = getCurrentImage();
           if (im != null) {
             size[value - 1] = DataArchive.getImageBounds(im);
-            size[value-1].translate(xOff,yOff);
+            size[value - 1].translate(xOff, yOff);
           }
           else {
             size[value - 1] = new Rectangle();
@@ -366,8 +370,8 @@ public class Embellishment extends Decorator implements EditablePiece {
 
   public String getDescription() {
     if (imageName.length == 0
-      || imageName[0] == null
-      || imageName[0].length() == 0) {
+        || imageName[0] == null
+        || imageName[0].length() == 0) {
       return "Layer";
     }
     else {
@@ -457,22 +461,22 @@ public class Embellishment extends Decorator implements EditablePiece {
 
       box = Box.createVerticalBox();
       alwaysActive.addItemListener
-        (new ItemListener() {
-          public void itemStateChanged(ItemEvent evt) {
-            if (alwaysActive.isSelected()) {
-              activateCommand.setText("");
-              activateKeyInput.setKey("");
-              activateCommand.setEnabled(false);
-              activateKeyInput.setEnabled(false);
+          (new ItemListener() {
+            public void itemStateChanged(ItemEvent evt) {
+              if (alwaysActive.isSelected()) {
+                activateCommand.setText("");
+                activateKeyInput.setKey("");
+                activateCommand.setEnabled(false);
+                activateKeyInput.setEnabled(false);
+              }
+              else {
+                activateCommand.setText("Activate");
+                activateKeyInput.setKey("A");
+                activateCommand.setEnabled(true);
+                activateKeyInput.setEnabled(true);
+              }
             }
-            else {
-              activateCommand.setText("Activate");
-              activateKeyInput.setKey("A");
-              activateCommand.setEnabled(true);
-              activateKeyInput.setEnabled(true);
-            }
-          }
-        });
+          });
       box.add(alwaysActive);
       box.add(drawUnderneath);
       box.add(p);
@@ -555,7 +559,7 @@ public class Embellishment extends Decorator implements EditablePiece {
 
       images.getList().addListSelectionListener(new ListSelectionListener() {
         public void valueChanged
-          (javax.swing.event.ListSelectionEvent evt) {
+            (javax.swing.event.ListSelectionEvent evt) {
           updateLevelName();
         }
       });
@@ -608,8 +612,8 @@ public class Embellishment extends Decorator implements EditablePiece {
         String imageName = (String) e.nextElement();
         String commonName = (String) names.elementAt(i);
         if (names.elementAt(i) != null
-          && commonName != null
-          && commonName.length() > 0) {
+            && commonName != null
+            && commonName.length() > 0) {
           SequenceEncoder sub = new SequenceEncoder(imageName, ',');
           if (PREFIX.equals(isPrefix.elementAt(i))) {
             commonName = new SequenceEncoder(commonName, '+').append("").getValue();
@@ -645,15 +649,15 @@ public class Embellishment extends Decorator implements EditablePiece {
       }
       SequenceEncoder se = new SequenceEncoder(activateKeyInput.getKey(), ';');
       se.append(command)
-        .append(upKeyInput.getKey())
-        .append(upCommand.getText())
-        .append(downKeyInput.getKey())
-        .append(downCommand.getText())
-        .append(xOffInput.getText())
-        .append(yOffInput.getText());
+          .append(upKeyInput.getKey())
+          .append(upCommand.getText())
+          .append(downKeyInput.getKey())
+          .append(downCommand.getText())
+          .append(xOffInput.getText())
+          .append(yOffInput.getText());
 
       String type = ID + se.getValue() + ';'
-        + (imageList.getValue() == null ? "" : imageList.getValue());
+          + (imageList.getValue() == null ? "" : imageList.getValue());
       return type;
     }
 

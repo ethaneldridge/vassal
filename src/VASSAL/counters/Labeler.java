@@ -13,14 +13,15 @@
  * Library General Public License for more details.
  *
  * You should have received a copy of the GNU Library General Public
- * License along with this library; if not, copies are available 
+ * License along with this library; if not, copies are available
  * at http://www.opensource.org.
  */
 package VASSAL.counters;
 
+import VASSAL.build.GameModule;
 import VASSAL.build.module.documentation.HelpFile;
-import VASSAL.command.Command;
 import VASSAL.command.ChangeTracker;
+import VASSAL.command.Command;
 import VASSAL.configure.ColorConfigurer;
 import VASSAL.configure.IntConfigurer;
 import VASSAL.configure.StringConfigurer;
@@ -184,15 +185,20 @@ public class Labeler extends Decorator implements EditablePiece {
       Point p = getLabelPosition();
       x += (int) (zoom * p.x);
       y += (int) (zoom * p.y);
-
-      g.drawImage(labelImage, x, y,
-                  (int) (zoom * lbl.getWidth()),
-                  (int) (zoom * lbl.getHeight()),
-                  obs);
+      if (zoom != 1.0) {
+        Image scaled = labelImage;
+        scaled = GameModule.getGameModule().getDataArchive().getScaledImage(labelImage, zoom);
+        g.drawImage(scaled, x, y, obs);
+      }
+      else {
+        g.drawImage(labelImage, x, y, obs);
+      }
     }
   }
 
-  /** return the relative position of the upper-left corner     * of the label, for a piece with position (0,0)     */
+  /**
+   * Return the relative position of the upper-left corner of the label, for a piece at position (0,0)
+   */
   private Point getLabelPosition() {
     int x = horizontalOffset;
     int y = verticalOffset;
@@ -296,16 +302,16 @@ public class Labeler extends Decorator implements EditablePiece {
     myGetKeyCommands();
     Command c = null;
     if (commands.length > 0
-      && commands[0].matches(stroke)) {
+        && commands[0].matches(stroke)) {
       ChangeTracker tracker = new ChangeTracker(this);
       String s = (String) JOptionPane.showInputDialog
-        (getMap() == null ? null : getMap().getView(),
-         commands[0].getName(),
-         null,
-         JOptionPane.QUESTION_MESSAGE,
-         null,
-         null,
-         label);
+          (getMap() == null ? null : getMap().getView(),
+           commands[0].getName(),
+           null,
+           JOptionPane.QUESTION_MESSAGE,
+           null,
+           null,
+           label);
       if (s == null) {
         tracker = null;
       }
@@ -323,9 +329,9 @@ public class Labeler extends Decorator implements EditablePiece {
 
   public HelpFile getHelpFile() {
     File dir = new File("docs");
-    dir = new File(dir,"ReferenceManual");
+    dir = new File(dir, "ReferenceManual");
     try {
-      return new HelpFile(null,new File(dir,"Label.htm"));
+      return new HelpFile(null, new File(dir, "Label.htm"));
     }
     catch (MalformedURLException ex) {
       return null;
@@ -428,7 +434,7 @@ public class Labeler extends Decorator implements EditablePiece {
 
       Integer i = (Integer) font.getValue();
       if (i == null
-        || i.intValue() < 0) {
+          || i.intValue() < 0) {
         i = new Integer(10);
       }
       se.append(i.toString());

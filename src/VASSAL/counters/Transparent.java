@@ -18,6 +18,7 @@
  */
 package VASSAL.counters;
 
+import VASSAL.build.GameModule;
 import VASSAL.tools.TransparentFilter;
 
 import java.awt.*;
@@ -63,18 +64,20 @@ public class Transparent {
       im = opaque.getImage(obs);
       Image im2 = obs.createImage(im.getWidth(obs), im.getHeight(obs));
       Graphics gg = im2.getGraphics();
-      gg.drawImage(im, 0, 0, obs);
+      gg.drawImage(  im, 0, 0, obs);
       im = obs.createImage(new FilteredImageSource
         (im2.getSource(), filter));
       offset = new Point(piece.boundingBox().x,
                          piece.boundingBox().y);
 
     }
-    g.drawImage(im,
+    Image scaled = im;
+    if (zoom != 1.0) {
+      scaled = GameModule.getGameModule().getDataArchive().getScaledImage(im,zoom);
+    }
+    g.drawImage(scaled,
                 x + (int) (zoom * offset.x),
                 y + (int) (zoom * offset.y),
-                (int) (zoom * im.getWidth(obs)),
-                (int) (zoom * im.getHeight(obs)),
                 obs);
   }
 }
