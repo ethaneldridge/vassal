@@ -442,7 +442,7 @@ public class DataArchive extends SecureClassLoader {
       String slashname = name.replace('.', '/');
       InputStream in = getFileStream(slashname + ".class");
       byte[] data = getBytes(in);
-      return defineClass(slashname, data, 0, data.length, cs);
+      return defineClass(name, data, 0, data.length, cs);
     }
     catch (IOException e) {
       throw new ClassNotFoundException("Unable to load " + name + "\n" + e.getMessage());
