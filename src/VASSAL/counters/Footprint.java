@@ -20,6 +20,7 @@ package VASSAL.counters;
 
 import VASSAL.build.GameModule;
 import VASSAL.build.module.Map;
+import VASSAL.build.module.documentation.HelpFile;
 import VASSAL.command.ChangeTracker;
 import VASSAL.command.Command;
 import VASSAL.configure.*;
@@ -29,6 +30,8 @@ import javax.swing.*;
 import java.awt.*;
 import java.util.Enumeration;
 import java.util.Vector;
+import java.io.File;
+import java.net.MalformedURLException;
 
 public class Footprint extends MovementMarkable {
 
@@ -65,6 +68,7 @@ public class Footprint extends MovementMarkable {
   protected static final int DEFULT_UNSELECTED_TRANSPARENCY = 50;
   protected static final int DEFAULT_EDGE_POINT_BUFFER = 20;
   protected static final int DEFAULT_EDGE_DISPLAY_BUFFER = 30;
+  protected static final float LINE_WIDTH = 1.0f;
 
   // Local Variables
   protected int minX, minY, maxX, maxY;
@@ -73,7 +77,7 @@ public class Footprint extends MovementMarkable {
   protected double lastZoom;
   protected boolean localVisibility;
 
-  protected static final float LINE_WIDTH = 1.0f;
+  protected double lineWidth;
   private KeyCommand showTrailCommand;
 
   public Footprint() {
@@ -136,6 +140,7 @@ public class Footprint extends MovementMarkable {
     unSelectedTransparency = st.nextInt(DEFULT_UNSELECTED_TRANSPARENCY);
     edgePointBuffer = st.nextInt(DEFAULT_EDGE_POINT_BUFFER);
     edgeDisplayBuffer = st.nextInt(DEFAULT_EDGE_DISPLAY_BUFFER);
+    lineWidth = st.nextDouble(LINE_WIDTH);
 
     commands = null;
     showTrailCommand = null;
@@ -160,7 +165,8 @@ public class Footprint extends MovementMarkable {
         .append(selectedTransparency)
         .append(unSelectedTransparency)
         .append(edgePointBuffer)
-        .append(edgeDisplayBuffer);
+        .append(edgeDisplayBuffer)
+        .append(lineWidth);
     return se.getValue();
   }
 
@@ -204,6 +210,17 @@ public class Footprint extends MovementMarkable {
     myBoundingBox = null;
     localVisibility = initiallyVisible;
     globalVisibility = initiallyVisible;
+  }
+
+  public HelpFile getHelpFile() {
+    File dir = VASSAL.build.module.Documentation.getDocumentationBaseDir();
+    dir = new File(dir, "ReferenceManual");
+    try {
+      return new HelpFile(null, new File(dir, "MovementTrail.htm"));
+    }
+    catch (MalformedURLException ex) {
+      return null;
+    }
   }
 
   /**
@@ -311,7 +328,8 @@ public class Footprint extends MovementMarkable {
 
     g2d.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, transparency));
 
-    g2d.setStroke(new BasicStroke(LINE_WIDTH));
+    float thickness = Math.max(1.0f,(float)(zoom*lineWidth));
+    g2d.setStroke(new BasicStroke(thickness));
     g2d.setColor(lineColor);
     Enumeration e = getPointList();
     Point lastP = null;
@@ -547,6 +565,7 @@ public class Footprint extends MovementMarkable {
     private IntConfigurer ut;
     private IntConfigurer pb;
     private IntConfigurer db;
+    private DoubleConfigurer lw;
 
     public Ed(Footprint p) {
       controls = new JPanel();
@@ -571,8 +590,11 @@ public class Footprint extends MovementMarkable {
       fc = new ColorConfigurer(null, "Circle Fill Color", p.fillColor);
       controls.add(fc.getControls());
 
-      lc = new ColorConfigurer(null, "Line & Text Color", p.lineColor);
+      lc = new ColorConfigurer(null, "Line Color", p.lineColor);
       controls.add(lc.getControls());
+
+      lw = new DoubleConfigurer(null,"Line thickness",new Double(p.lineWidth));
+      controls.add(lw.getControls());
 
       st = new IntConfigurer(null, "Selected Unit Trail Transparency (0-100)", new Integer(p.selectedTransparency));
       controls.add(st.getControls());
@@ -610,7 +632,8 @@ public class Footprint extends MovementMarkable {
           .append(st.getValueString())
           .append(ut.getValueString())
           .append(pb.getValueString())
-          .append(db.getValueString());
+          .append(db.getValueString())
+          .append(lw.getValueString());
       return se.getValue();
     }
 
