@@ -22,12 +22,16 @@ import VASSAL.build.AutoConfigurable;
 import VASSAL.build.Buildable;
 import VASSAL.build.GameModule;
 import VASSAL.build.IllegalBuildException;
+import VASSAL.build.module.GlobalOptions;
 import VASSAL.build.module.Map;
 import VASSAL.build.module.documentation.HelpFile;
 import VASSAL.build.module.map.boardPicker.Board;
 import VASSAL.build.widget.CardSlot;
 import VASSAL.command.Command;
 import VASSAL.configure.ColorConfigurer;
+import VASSAL.configure.Configurer;
+import VASSAL.configure.ConfigurerFactory;
+import VASSAL.configure.FormattedStringConfigurer;
 import VASSAL.configure.StringEnum;
 import VASSAL.configure.VisibilityCondition;
 import VASSAL.counters.Deck;
@@ -44,6 +48,8 @@ import java.util.ArrayList;
 
 public class DrawPile extends SetupStack {
   protected Deck dummy = new Deck(); // Used for storing type information
+  private Deck myDeck;
+  private String reportFormat = "";
   private String mostRecentReshuffleCommand = "Re-shuffle"; // Maintained independent of the Deck because setting the Deck's value to null disables reshuffling
   private VisibilityCondition colorVisibleCondition = new VisibilityCondition() {
     public boolean shouldBeVisible() {
@@ -62,7 +68,7 @@ public class DrawPile extends SetupStack {
     return popup.getComponentCount() > 0 ? popup : null;
   }
 
-  public void addTo(Buildable b) {
+    public void addTo(Buildable b) {
     map = (Map) b;
     setId("Deck" + instanceCount++);
 
@@ -114,6 +120,7 @@ public class DrawPile extends SetupStack {
   public static final String RESHUFFLE_COMMAND = "reshuffleCommand";
   public static final String RESHUFFLE_TARGET = "reshuffleTarget";
   public static final String RESHUFFLE_MESSAGE = "reshuffleMessage";
+  public static final String REPORT_FORMAT = "reportFormat";
 
   public static final String ALWAYS = "Always";
   public static final String NEVER = "Never";
@@ -122,7 +129,8 @@ public class DrawPile extends SetupStack {
   public String[] getAttributeNames() {
     return new String[]{NAME, OWNING_BOARD, X_POSITION, Y_POSITION, WIDTH, HEIGHT, ALLOW_MULTIPLE,
                         ALLOW_SELECT, FACE_DOWN, SHUFFLE, REVERSIBLE, DRAW, COLOR,
-                        RESHUFFLABLE, RESHUFFLE_COMMAND, RESHUFFLE_MESSAGE, RESHUFFLE_TARGET};
+                        RESHUFFLABLE, RESHUFFLE_COMMAND, RESHUFFLE_MESSAGE, RESHUFFLE_TARGET,
+                        REPORT_FORMAT};
   }
 
   public String[] getAttributeDescriptions() {
@@ -142,7 +150,8 @@ public class DrawPile extends SetupStack {
                         "Include command to send entire deck to another deck",
                         "Menu text",
                         "Message to echo to chat area",
-                        "Name of deck to send to"};
+                        "Name of deck to send to",
+                        "Report Format"};
   }
 
   public static class Prompt extends StringEnum {
@@ -204,9 +213,16 @@ public class DrawPile extends SetupStack {
                        Boolean.class,
                        String.class,
                        String.class,
-                       AssignedDeckPrompt.class};
+                       AssignedDeckPrompt.class,
+					   FormattedString1.class};
   }
 
+  public static class FormattedString1 implements ConfigurerFactory {
+	  public Configurer getConfigurer(AutoConfigurable c, String key, String name) {
+		  return new FormattedStringConfigurer(key, name, GlobalOptions.getDeckOptions());
+	  }
+  }
+  
   public String getAttributeValueString(String key) {
     if (WIDTH.equals(key)) {
       return "" + dummy.getSize().width;
@@ -247,6 +263,9 @@ public class DrawPile extends SetupStack {
     else if (RESHUFFLE_MESSAGE.equals(key)) {
       return dummy.getReshuffleMessage();
     }
+	else if (REPORT_FORMAT.equals(key)) {
+	  return reportFormat;
+	}
     else {
       return super.getAttributeValueString(key);
     }
@@ -331,6 +350,9 @@ public class DrawPile extends SetupStack {
     else if (RESHUFFLE_MESSAGE.equals(key)) {
       dummy.setReshuffleMessage((String) value);
     }
+	else if (REPORT_FORMAT.equals(key)) {
+	  reportFormat = ((String) value);
+	}
     else {
       super.setAttribute(key, value);
     }
@@ -363,23 +385,29 @@ public class DrawPile extends SetupStack {
     }
     return p;
   }
-
+  
   public Map getMap() {
     return map;
   }
 
+  public Rectangle boundingBox() {
+  	return (myDeck == null) ? null : myDeck.boundingBox();
+  }
+  
   public Command addToContents(GamePiece p) {
     return map.placeOrMerge(p, getPosition());
   }
 
   protected Stack initializeContents() {
     Stack s = super.initializeContents();
-    Deck d = new Deck(getDeckType());
+    myDeck = new Deck(getDeckType());
+	myDeck.setDeckName(getConfigureName());
+	myDeck.setReportFormat(reportFormat);
     for (Enumeration e = s.getPieces(); e.hasMoreElements();) {
-      d.add((GamePiece) e.nextElement());
+		myDeck.add((GamePiece) e.nextElement());
     }
-    d.setFaceDown(!Deck.NEVER.equals(dummy.getFaceDownOption()));
-    return d;
+	myDeck.setFaceDown(!Deck.NEVER.equals(dummy.getFaceDownOption()));
+    return myDeck;
   }
 
   private String getDeckType() {

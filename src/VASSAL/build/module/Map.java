@@ -78,6 +78,7 @@ public class Map extends AbstractConfigurable implements GameComponent,
   protected LaunchButton launchButton;
   protected boolean useLaunchButton = false;
   protected String markMovedOption;
+  protected boolean suppressAutoReportWithin;
 
   protected MouseListener multicaster = null;
   protected Vector mouseListenerStack = new Vector();
@@ -113,7 +114,8 @@ public class Map extends AbstractConfigurable implements GameComponent,
   public static final String BUTTON_NAME = "buttonName";
   public static final String ICON = "icon";
   public static final String HOTKEY = "hotkey";
-
+  public static final String SUPPRESS_AUTO = "suppressAuto";
+  
   public void setAttribute(String key, Object value) {
     if (NAME.equals(key)) {
       setMapName((String) value);
@@ -181,6 +183,12 @@ public class Map extends AbstractConfigurable implements GameComponent,
       }
       launchButton.setVisible(((Boolean) value).booleanValue());
     }
+	else if (SUPPRESS_AUTO.equals(key)) {
+	  if (value instanceof String) {
+		value = new Boolean((String) value);
+	  }
+	  suppressAutoReportWithin = ((Boolean) value).booleanValue();
+	}
     else {
       launchButton.setAttribute(key, value);
     }
@@ -221,6 +229,9 @@ public class Map extends AbstractConfigurable implements GameComponent,
     else if (USE_LAUNCH_BUTTON.equals(key)) {
       return "" + launchButton.isVisible();
     }
+	else if (SUPPRESS_AUTO.equals(key)) {
+	  return "" + suppressAutoReportWithin;
+	}
     else {
       return launchButton.getAttributeValueString(key);
     }
@@ -569,7 +580,73 @@ public class Map extends AbstractConfigurable implements GameComponent,
     }
     return name;
   }
+  
+  /**
+	 * @return a String name for the given location on the map. Include Map name
+	 *         if requested. Report deck name instead of location if point is inside
+	 *         the bounds of a deck. Do not include location if this map is not visible
+	 *         to all players.
+	 */
+	public String getFullLocationName (Point p, boolean includeMap) {
+	  String loc = "";
+  	
+	  if (includeMap && getMapName() != null && getMapName().length() > 0) {
+		 loc = "[" + getMapName() + "]";
+	  }
+  	
+	  if (isVisibleToAll() && p != null) {
+		  String pos = getDeckName(p);
+		  if (pos == null) {
+			  if (locationName(p) != null) {
+			      loc = locationName(p) + loc;
+			  }
+		  }
+		  else {
+		      loc = pos;
+		  }
+	  }
+	  return loc;
+	}
+	
+	public boolean getSuppressAutoReportWithin() {
+	  return suppressAutoReportWithin;
+	}
+	
+  /**
+   * Is this map visible to all players
+   */
+  public boolean isVisibleToAll() {
+	if (this instanceof PrivateMap) {
+		if (!getAttributeValueString(PrivateMap.VISIBLE).equals("true")) {
+		   return false;
+		}
+	}
+	return true;
+  }
 
+  /**
+	* Return the name of the deck at p
+	*/
+   public String getDeckName(Point p) {
+  	
+	 String deck = null;
+	 if (p == null) {
+		 return deck;
+	 }
+  	
+	 Enumeration e = buildComponents.elements();
+	 while (e.hasMoreElements()) {
+		 Object o = e.nextElement();
+		 if (o instanceof DrawPile) {
+			 DrawPile d = (DrawPile) o;
+			 if (d.boundingBox().contains(p)) { 
+				 return d.getConfigureName();
+			 }
+		 }
+	 }
+  	
+	 return deck;
+   }
   public void focusGained(FocusEvent e) {
   }
 
@@ -1351,15 +1428,16 @@ public class Map extends AbstractConfigurable implements GameComponent,
   public String[] getAttributeDescriptions() {
     return new String[]{"Map Name", "Mark pieces that move (if they possess the proper trait)", "Horizontal Padding", "Vertical Padding", "Can contain multiple boards",
                         "Border color for selected counters", "Border thickness for selected counters",
-                        "Include toolbar button to show/hide", "Toolbar button name", "Toolbar button icon", "Hotkey"};
+                        "Include toolbar button to show/hide", "Toolbar button name", "Toolbar button icon", "Hotkey",
+                        "Suppress auto-reporting for movement within this window"};
   }
 
   public String[] getAttributeNames() {
-    return new String[]{NAME, MARK_MOVED, EDGE_WIDTH, EDGE_HEIGHT, ALLOW_MULTIPLE, HIGHLIGHT_COLOR, HIGHLIGHT_THICKNESS, USE_LAUNCH_BUTTON, BUTTON_NAME, ICON, HOTKEY};
+    return new String[]{NAME, MARK_MOVED, EDGE_WIDTH, EDGE_HEIGHT, ALLOW_MULTIPLE, HIGHLIGHT_COLOR, HIGHLIGHT_THICKNESS, USE_LAUNCH_BUTTON, BUTTON_NAME, ICON, HOTKEY, SUPPRESS_AUTO};
   }
 
   public Class[] getAttributeTypes() {
-    return new Class[]{String.class, GlobalOptions.Prompt.class, Integer.class, Integer.class, Boolean.class, Color.class, Integer.class, Boolean.class, String.class, IconConfig.class, KeyStroke.class};
+    return new Class[]{String.class, GlobalOptions.Prompt.class, Integer.class, Integer.class, Boolean.class, Color.class, Integer.class, Boolean.class, String.class, IconConfig.class, KeyStroke.class, Boolean.class};
   }
 
   public static class IconConfig implements ConfigurerFactory {

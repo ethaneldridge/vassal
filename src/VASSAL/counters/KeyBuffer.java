@@ -18,6 +18,7 @@
  */
 package VASSAL.counters;
 
+import VASSAL.build.module.GlobalOptions;
 import VASSAL.command.Command;
 import VASSAL.command.NullCommand;
 
@@ -102,7 +103,9 @@ public class KeyBuffer {
     }
     for (Enumeration e = targets.elements();
          e.hasMoreElements();) {
-      Command c2 = ((GamePiece) e.nextElement()).keyEvent(stroke);
+      GamePiece g = (GamePiece) e.nextElement();
+      GlobalOptions.setInitialState(g);
+      Command c2 = g.keyEvent(stroke);
       comm = comm.append(c2);
     }
 

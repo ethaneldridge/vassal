@@ -19,6 +19,7 @@
 package VASSAL.counters;
 
 import VASSAL.build.GameModule;
+import VASSAL.build.module.GlobalOptions;
 import VASSAL.command.Command;
 import VASSAL.configure.HotKeyConfigurer;
 
@@ -56,6 +57,7 @@ public class KeyCommand extends AbstractAction {
     BoundsTracker t = new BoundsTracker();
     GamePiece outer = Decorator.getOutermost(target);
     t.addPiece(outer);
+    GlobalOptions.setInitialState(outer);
     Command c = target.keyEvent(stroke);
     if (target.getId() != null) {
       GameModule.getGameModule().sendAndLog(c);

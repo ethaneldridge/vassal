@@ -77,7 +77,7 @@ public class Chatter extends JPanel implements CommandEncoder, Buildable {
     };
     input.addActionListener(new ActionListener() {
       public void actionPerformed(ActionEvent e) {
-        send(handle() + e.getActionCommand());
+        send(GlobalOptions.formatChat(e.getActionCommand()));
         input.setText("");
       }
     });
@@ -109,7 +109,8 @@ public class Chatter extends JPanel implements CommandEncoder, Buildable {
   }
 
   protected String handle() {
-    return "<" + getHandle() + "> - ";
+    //return "<" + getHandle() + "> - ";
+    return GlobalOptions.getPlayerId();
   }
 
   /**
@@ -301,8 +302,8 @@ public class Chatter extends JPanel implements CommandEncoder, Buildable {
           case '-':
             col = (Color) GameModule.getGameModule().getGlobalPrefs().getValue(SYS_MSG_COLOR);
             break;
-          case '<':
-            if (s.startsWith(handle())) {
+          default:
+            if (s.startsWith(GlobalOptions.getPlayerId())) {
               col = (Color) GameModule.getGameModule().getGlobalPrefs().getValue(MY_CHAT_COLOR);
             }
             else {

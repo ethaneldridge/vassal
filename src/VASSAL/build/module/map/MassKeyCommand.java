@@ -30,12 +30,15 @@ import VASSAL.build.AbstractConfigurable;
 import VASSAL.build.AutoConfigurable;
 import VASSAL.build.Buildable;
 import VASSAL.build.GameModule;
+import VASSAL.build.module.GlobalOptions;
 import VASSAL.build.module.Map;
 import VASSAL.build.module.documentation.HelpFile;
+import VASSAL.build.module.Chatter;
 import VASSAL.command.Command;
 import VASSAL.command.NullCommand;
 import VASSAL.configure.*;
 import VASSAL.counters.*;
+import VASSAL.tools.FormattedString;
 import VASSAL.tools.LaunchButton;
 
 import javax.swing.*;
@@ -56,6 +59,8 @@ public class MassKeyCommand extends AbstractConfigurable implements PieceVisitor
   public static final String HOTKEY = "buttonHotkey";
   public static final String KEY_COMMAND = "hotkey";
   public static final String AFFECTED_PIECE_NAMES = "names";
+  public static final String REPORT_SINGLE = "reportSingle";
+  public static final String REPORT_FORMAT = "reportFormat";
   public static final String CONDITION = "condition";
   private static final String IF_ACTIVE = "If layer is active";
   private static final String IF_INACTIVE = "If layer is inactive";
@@ -73,6 +78,9 @@ public class MassKeyCommand extends AbstractConfigurable implements PieceVisitor
   private Map map;
   private Command keyCommand;
   private BoundsTracker tracker;
+  protected boolean reportSingle;
+  protected static boolean suppressTraitReports = false;
+  protected FormattedString reportFormat = new FormattedString("");
 
   public MassKeyCommand() {
     ActionListener al = new ActionListener() {
@@ -89,7 +97,18 @@ public class MassKeyCommand extends AbstractConfigurable implements PieceVisitor
   }
 
   public void apply() {
-    keyCommand = new NullCommand();
+  	
+  	suppressTraitReports = reportSingle;
+  	
+  	reportFormat.setProperty(GlobalOptions.COMMAND_NAME, getConfigureName());
+	reportFormat.setProperty(GlobalOptions.PLAYER_ID, GlobalOptions.getPlayerId());
+  	String reportText = "* " + reportFormat.getText();
+  	if (reportText.length() > 0) {
+  		keyCommand = new Chatter.DisplayText(GameModule.getGameModule().getChatter(), reportText);
+  		keyCommand.execute();
+  	} else {
+  		keyCommand = new NullCommand();
+  	}
     tracker = new BoundsTracker();
     GamePiece[] p = map.getPieces();
     for (int i = 0; i < p.length; ++i) {
@@ -97,6 +116,8 @@ public class MassKeyCommand extends AbstractConfigurable implements PieceVisitor
     }
     tracker.repaint();
     GameModule.getGameModule().sendAndLog(keyCommand);
+    
+	suppressTraitReports = false;
   }
 
   /* We don't treat {@link Deck}s any differently than {@link Stack}s, so
@@ -116,6 +137,7 @@ public class MassKeyCommand extends AbstractConfigurable implements PieceVisitor
   private void apply(GamePiece p, Command c, BoundsTracker tracker) {
     if (isValidTarget(p)) {
       tracker.addPiece(p);
+	  GlobalOptions.setInitialState(p);
       c.append(p.keyEvent(stroke));
       tracker.addPiece(p);
     }
@@ -161,16 +183,25 @@ public class MassKeyCommand extends AbstractConfigurable implements PieceVisitor
     return affected;
   }
 
+  /**
+   * Return true if a Global Command is currently in action
+   */
+  public static boolean suppressTraitReporting() {
+  	return suppressTraitReports;
+  }
+  
   public Class[] getAllowableConfigureComponents() {
     return new Class[0];
   }
 
   public String[] getAttributeDescriptions() {
-    return new String[]{"Description", "Key Command", "Apply to pieces whose property", "is equal to this value", "Apply command", "Button text", "Button Icon", "Hotkey"};
+    return new String[]{"Description", "Key Command", "Apply to pieces whose property", "is equal to this value", "Apply command", "Button text", "Button Icon", "Hotkey",
+    	"Report as single Command", "Report Format"};
   }
 
   public String[] getAttributeNames() {
-    return new String[]{NAME, KEY_COMMAND, CHECK_PROPERTY, CHECK_VALUE, CONDITION, BUTTON_TEXT, ICON, HOTKEY, AFFECTED_PIECE_NAMES};
+    return new String[]{NAME, KEY_COMMAND, CHECK_PROPERTY, CHECK_VALUE, CONDITION, BUTTON_TEXT, ICON, HOTKEY, 
+    	REPORT_SINGLE, REPORT_FORMAT};
   }
 
   public static class Prompt extends StringEnum {
@@ -180,7 +211,8 @@ public class MassKeyCommand extends AbstractConfigurable implements PieceVisitor
   }
 
   public Class[] getAttributeTypes() {
-    return new Class[]{String.class, KeyStroke.class, String.class, String.class, Prompt.class, String.class, IconConfig.class, KeyStroke.class, };
+    return new Class[]{String.class, KeyStroke.class, String.class, String.class, Prompt.class, String.class, IconConfig.class, KeyStroke.class, 
+    	Boolean.class, FormattedString1.class};
   }
 
   public static class IconConfig implements ConfigurerFactory {
@@ -189,6 +221,12 @@ public class MassKeyCommand extends AbstractConfigurable implements PieceVisitor
     }
   }
 
+  public static class FormattedString1 implements ConfigurerFactory {
+	  public Configurer getConfigurer(AutoConfigurable c, String key, String name) {
+		  return new FormattedStringConfigurer(key, name, GlobalOptions.getMassKeyOptions());
+	  }
+  }
+  
   public String getAttributeValueString(String key) {
     if (NAME.equals(key)) {
       return getConfigureName();
@@ -208,6 +246,12 @@ public class MassKeyCommand extends AbstractConfigurable implements PieceVisitor
     else if (CONDITION.equals(key)) {
       return condition;
     }
+	else if (REPORT_SINGLE.equals(key)) {
+	  return reportSingle + "";
+	}
+	else if (REPORT_FORMAT.equals(key)) {
+	  return reportFormat.getFormat();
+	}    
     else {
       return launch.getAttributeValueString(key);
     }
@@ -271,6 +315,15 @@ public class MassKeyCommand extends AbstractConfigurable implements PieceVisitor
     else if (CONDITION.equals(key)) {
       condition = (String) value;
     }
+	else if (REPORT_SINGLE.equals(key)) {
+	  if (value instanceof String) {
+		value = new Boolean((String) value);
+	  }
+	  reportSingle = ((Boolean) value).booleanValue();
+	}
+	else if (REPORT_FORMAT.equals(key)) {
+	  reportFormat.setFormat((String) value);
+	}
     else {
       launch.setAttribute(key, value);
     }

@@ -19,6 +19,7 @@
 package VASSAL.counters;
 
 import VASSAL.build.GameModule;
+import VASSAL.build.module.GlobalOptions;
 import VASSAL.build.module.Map;
 import VASSAL.build.module.Chatter;
 import VASSAL.build.module.map.DrawPile;
@@ -26,6 +27,7 @@ import VASSAL.command.ChangeTracker;
 import VASSAL.command.Command;
 import VASSAL.command.NullCommand;
 import VASSAL.configure.ColorConfigurer;
+import VASSAL.tools.FormattedString;
 import VASSAL.tools.SequenceEncoder;
 
 import javax.swing.*;
@@ -62,6 +64,8 @@ public class Deck extends Stack {
   private String reshuffleCommand = "";
   private String reshuffleTarget;
   private String reshuffleMessage;
+  private String name;
+  private FormattedString reportFormat = new FormattedString();
 
   private boolean faceDown;
   protected int dragCount = 0;
@@ -149,6 +153,17 @@ public class Deck extends Stack {
     this.reversible = reversible;
   }
 
+  public void setDeckName(String n) {
+  	name = n;
+  }
+  
+  public String getDeckName() {
+  	return name;
+  }
+  
+  public void setReportFormat(String s) {
+  	reportFormat.setFormat(s);
+  }
   /**
    * The popup menu text for the command that sends the entire deck to another deck
    * @return
@@ -455,7 +470,12 @@ public class Deck extends Stack {
       if (USE_MENU.equals(shuffleOption)) {
         c = new KeyCommand("Shuffle", null, this) {
           public void actionPerformed(ActionEvent e) {
-            GameModule.getGameModule().sendAndLog(shuffle());
+          	Command c = shuffle();
+          	Command rep = reportCommand("Shuffle");
+          	if (rep != null) {
+          		c.append(rep);
+          	}
+            GameModule.getGameModule().sendAndLog(c);
             map.repaint();
           }
         };
@@ -473,7 +493,12 @@ public class Deck extends Stack {
       if (USE_MENU.equals(faceDownOption)) {
         KeyCommand faceDownAction = new KeyCommand(faceDown ? "Face up" : "Face down", null, this) {
           public void actionPerformed(ActionEvent e) {
-            GameModule.getGameModule().sendAndLog(setContentsFaceDown(!faceDown));
+          	Command c = setContentsFaceDown(!faceDown);
+			Command rep = reportCommand(!faceDown ? "Face up" : "Face down");
+			if (rep != null) {
+				c.append(rep);
+			}
+            GameModule.getGameModule().sendAndLog(c);
             map.repaint();
           }
         };
@@ -482,7 +507,12 @@ public class Deck extends Stack {
       if (reversible) {
         c = new KeyCommand("Reverse order", null, this) {
           public void actionPerformed(ActionEvent e) {
-            GameModule.getGameModule().sendAndLog(reverse());
+          	Command c = reverse();
+			Command rep = reportCommand("Reverse order");
+			if (rep != null) {
+				c.append(rep);
+			}
+            GameModule.getGameModule().sendAndLog(c);
             map.repaint();
           }
         };
@@ -509,6 +539,22 @@ public class Deck extends Stack {
     return commands;
   }
 
+  private Command reportCommand (String commandName) {
+  	
+  	Command c = null;
+  	
+	reportFormat.setProperty(GlobalOptions.PLAYER_ID, GlobalOptions.getPlayerId());
+	reportFormat.setProperty(GlobalOptions.DECK_NAME, getDeckName());
+	reportFormat.setProperty(GlobalOptions.COMMAND_NAME, commandName);
+	String rep = reportFormat.getText();
+	if (rep.length() > 0) {
+		c = new Chatter.DisplayText(GameModule.getGameModule().getChatter(), "* " + reportFormat.getText());
+	    c.execute();
+	}
+	
+	return c;
+  }
+  
   public void promptForDragCount() {
     while (true) {
       String s = JOptionPane.showInputDialog("Enter number to grab.\nThen click and drag to draw that number.");
@@ -574,7 +620,11 @@ public class Deck extends Stack {
     DrawPile target = DrawPile.findDrawPile(reshuffleTarget);
     if (target != null) {
       if (reshuffleMessage.length() > 0) {
-        c = new Chatter.DisplayText(GameModule.getGameModule().getChatter(), "*** " + reshuffleMessage + " ***");
+      	FormattedString fmt = new FormattedString(reshuffleMessage);
+		fmt.setProperty(GlobalOptions.PLAYER_ID, GlobalOptions.getPlayerId());
+		fmt.setProperty(GlobalOptions.DECK_NAME, getDeckName());
+		fmt.setProperty(GlobalOptions.COMMAND_NAME, reshuffleCommand);
+        c = new Chatter.DisplayText(GameModule.getGameModule().getChatter(), "*" + fmt.getText());
         c.execute();
       }
       else {
