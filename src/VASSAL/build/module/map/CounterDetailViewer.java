@@ -25,7 +25,6 @@ import VASSAL.build.IllegalBuildException;
 import VASSAL.build.module.Map;
 import VASSAL.build.module.documentation.HelpFile;
 import VASSAL.configure.BooleanConfigurer;
-import VASSAL.configure.Configurer;
 import VASSAL.counters.*;
 
 import javax.swing.*;
@@ -46,22 +45,31 @@ import java.util.Vector;
  * @author       David Sullivan
  * @version      1.0
  */
-public class CounterDetailViewer
-    extends AbstractConfigurable
-    implements Drawable,
-    MouseMotionListener, Runnable, KeyListener {
+public class CounterDetailViewer extends AbstractConfigurable implements Drawable, MouseMotionListener, Runnable, KeyListener {
 
   public static final String USE_KEYBOARD = "ShowCounterDetails";
+
+  public static final String DELAY = "delay";
   public static final String ALWAYS_SHOW_LOC = "alwaysshowloc";
+  public static final String SHOW_GRAPH = "showgraph";
+  public static final String SHOW_GRAPH_SINGLE = "showgraphsingle";
+  public static final String SHOW_TEXT = "showtext";
+  public static final String SHOW_TEXT_SINGLE = "showtextsingle";
 
   protected Map map;
   protected Thread delayThread;
   protected int delay = 700;
   protected long expirationTime;
-  protected boolean visible = false;
+  protected boolean graphicsVisible = false;
+  protected boolean textVisible = false;
   protected MouseEvent currentMousePosition;
   protected GamePiece currentPiece;
+
   protected boolean alwaysShowLoc = false;
+  protected boolean showGraph = true;
+  protected boolean showGraphSingle = false;
+  protected boolean showText = false;
+  protected boolean showTextSingle = false;
 
   public void addTo(Buildable b) {
     map = (Map) b;
@@ -72,8 +80,9 @@ public class CounterDetailViewer
       }
     }
     map.addDrawComponent(this);
-    GameModule.getGameModule().getPrefs().addOption
-        ("General", new BooleanConfigurer(USE_KEYBOARD, "Use CTRL-space to view stack details", Boolean.FALSE));
+    GameModule.getGameModule().getPrefs().addOption(
+        "General",
+        new BooleanConfigurer(USE_KEYBOARD, "Use CTRL-space to view stack details", Boolean.FALSE));
 
     map.getView().addMouseMotionListener(this);
     map.getView().addKeyListener(this);
@@ -86,95 +95,112 @@ public class CounterDetailViewer
   }
 
   public void draw(Graphics g, Point pt, JComponent comp) {
-  	
-  	String locationName = null;
-  	
-    if (currentPiece != null) {
-    	if (visible || alwaysShowLoc) {
-    	
-      Enumeration pieces;
-      if (currentPiece instanceof Stack) {
-        pieces = ((Stack) currentPiece).getPieces();
-      }
-      else {
-        pieces = new Enumeration() {
-          boolean finished = false;
 
-          public boolean hasMoreElements() {
-            return !finished;
-          }
+    if (currentPiece == null) {
+      return;
+    }
 
-          public Object nextElement() {
-            finished = true;
-            return currentPiece;
-          }
-        };
-      }
-      PieceIterator pi = PieceIterator.visible(pieces);
-      Rectangle bounds = new Rectangle(pt.x,pt.y,0,0);
-      Vector v = new Vector();
+    PieceIterator pi;
+
+    if (graphicsVisible) {
+      pi = PieceIterator.visible(buildPieceEnum());
+      drawGraphics(g, pt, comp, pi);
+    }
+
+    if (textVisible) {
+      pi = PieceIterator.visible(buildPieceEnum());
+      drawText(g, pt, comp, pi);
+    }
+  }
+
+  private Enumeration buildPieceEnum() {
+
+    Enumeration pieces;
+
+    if (currentPiece instanceof Stack) {
+      pieces = ((Stack) currentPiece).getPieces();
+    }
+    else {
+      pieces = new Enumeration() {
+        boolean finished = false;
+
+        public boolean hasMoreElements() {
+          return !finished;
+        }
+
+        public Object nextElement() {
+          finished = true;
+          return currentPiece;
+        }
+      };
+    }
+    return pieces;
+  }
+
+  protected void drawGraphics(Graphics g, Point pt, JComponent comp, PieceIterator pi) {
+
+    Rectangle bounds = new Rectangle(pt.x, pt.y, 0, 0);
+    Vector v = new Vector();
+    while (pi.hasMoreElements()) {
+      GamePiece piece = pi.nextPiece();
+      v.addElement(piece);
+      Rectangle pieceBounds = piece.getShape().getBounds();
+      bounds.width += pieceBounds.width;
+      bounds.height = Math.max(bounds.height, pieceBounds.height);
+    }
+
+    if (bounds.width > 0) {
+
+      Color outline = map.getHighlighter() instanceof ColoredBorder ? ((ColoredBorder) map.getHighlighter()).getColor() : Color.black;
+      Color background = new Color(255 - outline.getRed(), 255 - outline.getGreen(), 255 - outline.getBlue());
+
+      Rectangle visibleRect = comp.getVisibleRect();
+      bounds.x = Math.min(bounds.x, visibleRect.x + visibleRect.width - bounds.width);
+      bounds.y = Math.min(bounds.y, visibleRect.y + visibleRect.height - bounds.height);
+      g.setColor(background);
+      g.fillRect(bounds.x - 1, bounds.y - 1, bounds.width + 2, bounds.height + 2);
+      g.setColor(outline);
+      g.drawRect(bounds.x - 2, bounds.y - 2, bounds.width + 3, bounds.height + 3);
+      g.drawRect(bounds.x - 3, bounds.y - 3, bounds.width + 5, bounds.height + 5);
+      pi = new PieceIterator(v.elements());
       while (pi.hasMoreElements()) {
+        // Draw the next piece
+        // pt is the location of the left edge of the piece
         GamePiece piece = pi.nextPiece();
-        v.addElement(piece);
         Rectangle pieceBounds = piece.getShape().getBounds();
-        bounds.width += pieceBounds.width;
-        bounds.height = Math.max(bounds.height, pieceBounds.height);
-        if (locationName == null) {
-        	locationName = map.locationName(piece.getPosition());
-        }
-      }
-      
-	  Color outline = map.getHighlighter() instanceof ColoredBorder ? ((ColoredBorder) map.getHighlighter()).getColor() : Color.black;
-	  Color background = new Color(255 - outline.getRed(), 255 - outline.getGreen(), 255 - outline.getBlue());
-      
-	  /*
-	   * Label with the location
-	   * If the counter viewer is being displayed, then place the location name just above the 
-	   * left hand end of the counters.
-	   * If no counter viewer (i.e. single piece or expanded stack), then place the location
-	   * name above the centre of the first piece in the stack.
-	   */
-	  if (locationName != null) {
-	     if (visible) {
-	  	   	 Labeler.drawLabel(g, locationName, pt.x, pt.y-5, new Font("Dialog", Font.PLAIN, 9), Labeler.RIGHT,
-							Labeler.BOTTOM, outline, background, outline);
-	  	 }
-	  	 else {
-	  		Point p = currentPiece.getPosition();
-			Labeler.drawLabel(g, locationName, p.x, p.y, new Font("Dialog", Font.PLAIN, 9), Labeler.CENTER,
-						  Labeler.BOTTOM, outline, background, outline);
-	  	}
-	  }
-	  
-	  if (!visible) {
-	  	return;
-	  }
-	  
-      if (bounds.width > 0) {
-        Rectangle visibleRect = comp.getVisibleRect();
-        bounds.x = Math.min(bounds.x, visibleRect.x + visibleRect.width - bounds.width);
-        bounds.y = Math.min(bounds.y, visibleRect.y + visibleRect.height - bounds.height);
-//        Color outline = map.getHighlighter() instanceof ColoredBorder ? ((ColoredBorder) map.getHighlighter()).getColor() : Color.black;
-//        Color background = new Color(255 - outline.getRed(), 255 - outline.getGreen(), 255 - outline.getBlue());
-        g.setColor(background);
-        g.fillRect(bounds.x - 1, bounds.y - 1, bounds.width + 2, bounds.height + 2);
-        g.setColor(outline);
-        g.drawRect(bounds.x - 2, bounds.y - 2, bounds.width + 3, bounds.height + 3);
-        g.drawRect(bounds.x - 3, bounds.y - 3, bounds.width + 5, bounds.height + 5);
-        pi = new PieceIterator(v.elements());
-        while (pi.hasMoreElements()) {
-          // Draw the next piece
-          // pt is the location of the left edge of the piece
-          GamePiece piece = pi.nextPiece();
-          Rectangle pieceBounds = piece.getShape().getBounds();
-          piece.draw(g, bounds.x - pieceBounds.x,
-                     bounds.y - pieceBounds.y, comp, 1.0);
+        piece.draw(g, bounds.x - pieceBounds.x, bounds.y - pieceBounds.y, comp, 1.0);
 
-          bounds.translate(pieceBounds.width, 0);
-        }
-
+        bounds.translate(pieceBounds.width, 0);
       }
-    	}
+    }
+  }
+
+  protected void drawText(Graphics g, Point pt, JComponent comp, PieceIterator pi) {
+    /*
+     * Label with the location
+     * If the counter viewer is being displayed, then place the location name just above the
+     * left hand end of the counters.
+     * If no counter viewer (i.e. single piece or expanded stack), then place the location
+     * name above the centre of the first piece in the stack.
+     */
+    String locationName = null;
+
+    while (pi.hasMoreElements()) {
+      GamePiece piece = pi.nextPiece();
+      if (locationName == null) {
+        locationName = map.locationName(piece.getPosition());
+      }
+    }
+
+    Color outline = map.getHighlighter() instanceof ColoredBorder ? ((ColoredBorder) map.getHighlighter()).getColor() : Color.black;
+    Color background = new Color(255 - outline.getRed(), 255 - outline.getGreen(), 255 - outline.getBlue());
+
+    if (locationName != null) {
+      Labeler.drawLabel(g, locationName,
+                        pt.x, pt.y - 5,
+                        new Font("Dialog", Font.PLAIN, 9),
+                        Labeler.RIGHT, Labeler.BOTTOM,
+                        outline, background, outline);
     }
   }
 
@@ -191,23 +217,32 @@ public class CounterDetailViewer
 
   protected void showDetails() {
     currentPiece = findPieceAtMousePosition();
-    visible = shouldBeVisible();
-    map.repaint();
-  }
-
-  protected boolean shouldBeVisible() {
-    boolean val = false;
+    /*
+     * Visibility Rules:
+     *   Stack         - Depends on setting of showGraphics/showText
+     *   Single Unit   - Depends on setting of showGraphics/showText and showGraphicsSingle/showTextSingle
+     *                   and stack must not be expanded.
+     */
     if (currentPiece != null) {
       if (map.getZoom() < 0.75) {
-        val = !Boolean.TRUE.equals(currentPiece.getProperty(Properties.IMMOBILE));
+        boolean val = !Boolean.TRUE.equals(currentPiece.getProperty(Properties.IMMOBILE));
+        graphicsVisible = (showGraph && val);
+        textVisible = (showText && val);
       }
       else if (currentPiece instanceof Stack) {
         Stack s = (Stack) currentPiece;
-        val = !s.isExpanded()
-            && s.topPiece() != s.bottomPiece();
+        if (s.topPiece() == s.bottomPiece()) {
+          graphicsVisible = (showGraph && showGraphSingle);
+          textVisible = (showText && showTextSingle);
+        }
+        else {
+          graphicsVisible = (showGraph && !s.isExpanded());
+          textVisible = (showText && !s.isExpanded());
+        }
       }
     }
-    return val;
+
+    map.repaint();
   }
 
   protected GamePiece findPieceAtMousePosition() {
@@ -221,8 +256,9 @@ public class CounterDetailViewer
   public void mouseMoved(MouseEvent e) {
 
     // clear details when mouse moved
-    if (visible) {
-      visible = false;
+    if (graphicsVisible || textVisible) {
+      graphicsVisible = false;
+      textVisible = false;
       map.repaint();
     }
     else {
@@ -243,10 +279,6 @@ public class CounterDetailViewer
     mouseMoved(e);
   }
 
-//  public Configurer getConfigurer() {
-//    return null;
-//  }
-
   public void keyTyped(KeyEvent e) {
   }
 
@@ -259,22 +291,28 @@ public class CounterDetailViewer
   }
 
   public void keyReleased(KeyEvent e) {
-    if (visible) {
-      visible = false;
+    if (graphicsVisible || textVisible) {
+      graphicsVisible = false;
+      textVisible = false;
       map.repaint();
     }
   }
 
   public String[] getAttributeNames() {
-    return new String[] { ALWAYS_SHOW_LOC };
+    return new String[]{DELAY, SHOW_GRAPH, SHOW_GRAPH_SINGLE, SHOW_TEXT, SHOW_TEXT_SINGLE};
   }
 
   public String[] getAttributeDescriptions() {
-    return new String[] { "Always Show Location"};
+    return new String[]{
+      "Delay before display (ms)",
+      "Display Graphics?",
+      "Display Graphics for single counter?",
+      "Display Text?",
+      "Display Text for single counter?"};
   }
 
   public Class[] getAttributeTypes() {
-    return new Class[] { Boolean.class };
+    return new Class[]{Integer.class, Boolean.class, Boolean.class, Boolean.class, Boolean.class};
   }
 
   public Class[] getAllowableConfigureComponents() {
@@ -298,22 +336,66 @@ public class CounterDetailViewer
   }
 
   public void setAttribute(String name, Object value) {
-	if (ALWAYS_SHOW_LOC.equals(name)) {
-		if (value instanceof Boolean) {
-		   alwaysShowLoc = ((Boolean) value).booleanValue();
-		}
-		else if (value instanceof String) {
-		   alwaysShowLoc = "true".equals(value);
-		}
-	}
+    if (DELAY.equals(name)) {
+      if (value instanceof String) {
+        value = new Integer((String) value);
+      }
+      if (value != null) {
+        delay = ((Integer) value).intValue();
+      }
+    }
+    else if (SHOW_GRAPH.equals(name)) {
+      if (value instanceof Boolean) {
+        showGraph = ((Boolean) value).booleanValue();
+      }
+      else if (value instanceof String) {
+        showGraph = "true".equals(value);
+      }
+    }
+    else if (SHOW_GRAPH_SINGLE.equals(name)) {
+      if (value instanceof Boolean) {
+        showGraphSingle = ((Boolean) value).booleanValue();
+      }
+      else if (value instanceof String) {
+        showGraphSingle = "true".equals(value);
+      }
+    }
+    else if (SHOW_TEXT.equals(name)) {
+      if (value instanceof Boolean) {
+        showText = ((Boolean) value).booleanValue();
+      }
+      else if (value instanceof String) {
+        showText = "true".equals(value);
+      }
+    }
+    else if (SHOW_TEXT_SINGLE.equals(name)) {
+      if (value instanceof Boolean) {
+        showTextSingle = ((Boolean) value).booleanValue();
+      }
+      else if (value instanceof String) {
+        showTextSingle = "true".equals(value);
+      }
+    }
   }
 
   public String getAttributeValueString(String name) {
-  	if (ALWAYS_SHOW_LOC.equals(name)) {
-  		return "" + alwaysShowLoc;
-  	}
-  	else
-        return null;
+    if (DELAY.equals(name)) {
+      return "" + delay;
+    }
+    else if (SHOW_GRAPH.equals(name)) {
+      return "" + showGraph;
+    }
+    else if (SHOW_GRAPH_SINGLE.equals(name)) {
+      return "" + showGraphSingle;
+    }
+    else if (SHOW_TEXT.equals(name)) {
+      return "" + showText;
+    }
+    else if (SHOW_TEXT_SINGLE.equals(name)) {
+      return "" + showTextSingle;
+    }
+    else
+      return null;
   }
 
   public static String getConfigureTypeName() {
@@ -321,4 +403,3 @@ public class CounterDetailViewer
   }
 
 }
-
