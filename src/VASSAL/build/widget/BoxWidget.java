@@ -129,7 +129,7 @@ public class BoxWidget extends Widget
   }
 
   private boolean allChildrenBuilt() {
-    return box.getModel().getSize() == built.size();
+    return box != null && box.getModel().getSize() == built.size();
   }
 
   public String[] getAttributeNames() {
