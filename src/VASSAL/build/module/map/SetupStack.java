@@ -205,7 +205,7 @@ public class SetupStack extends AbstractConfigurable implements GameComponent, C
   }
 
   protected Stack initializeContents() {
-    Stack s = new Stack();
+    Stack s = createStack();
     Configurable[] c = getConfigureComponents();
     for (int i = 0; i < c.length; ++i) {
       PieceSlot slot = (PieceSlot) c[i];
@@ -219,6 +219,11 @@ public class SetupStack extends AbstractConfigurable implements GameComponent, C
     s.setMap(map);
     s.setPosition(pos);
     GameModule.getGameModule().getGameState().addPiece(s);
+    return s;
+  }
+
+  protected Stack createStack() {
+    Stack s = new Stack();
     return s;
   }
 
