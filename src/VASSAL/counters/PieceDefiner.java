@@ -52,7 +52,9 @@ public class PieceDefiner extends javax.swing.JPanel implements HelpWindowExtens
       availableModel = new DefaultListModel();
       availableModel.addElement(new BasicPiece());
       availableModel.addElement(new Embellishment());
+      availableModel.addElement(new UsePrototype());
       availableModel.addElement(new Labeler());
+      availableModel.addElement(new FreeRotator());
       availableModel.addElement(new Hideable());
       availableModel.addElement(new Obscurable());
       availableModel.addElement(new SendToLocation());
@@ -62,7 +64,6 @@ public class PieceDefiner extends javax.swing.JPanel implements HelpWindowExtens
       availableModel.addElement(new TableInfo());
       availableModel.addElement(new PlaceMarker());
       availableModel.addElement(new Replace());
-      availableModel.addElement(new FreeRotator());
       availableModel.addElement(new NonRectangular());
       availableModel.addElement(new MovementMarkable());
       availableModel.addElement(new Restricted());

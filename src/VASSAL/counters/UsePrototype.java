@@ -18,15 +18,14 @@
  */
 package VASSAL.counters;
 
-import VASSAL.build.module.documentation.HelpFile;
-import VASSAL.build.module.PrototypesContainer;
 import VASSAL.build.module.PrototypeDefinition;
+import VASSAL.build.module.PrototypesContainer;
+import VASSAL.build.module.documentation.HelpFile;
 import VASSAL.command.Command;
 import VASSAL.configure.StringConfigurer;
 
 import javax.swing.*;
 import java.awt.*;
-import java.util.ArrayList;
 
 /**
  * This trait is a placeholder for a pre-defined series of traits specified
@@ -43,6 +42,7 @@ import java.util.ArrayList;
 public class UsePrototype extends Decorator implements EditablePiece {
   public static final String ID = "prototype;";
   private String prototypeName;
+  private String lastCachedPrototype;
   private GamePiece prototype;
 
   public UsePrototype() {
@@ -88,22 +88,32 @@ public class UsePrototype extends Decorator implements EditablePiece {
   }
 
   protected KeyCommand[] getKeyCommands() {
-    return (KeyCommand[]) getNext().getProperty(Properties.KEY_COMMANDS);
+    return (KeyCommand[]) getExpandedInner().getProperty(Properties.KEY_COMMANDS);
   }
 
   protected void buildPrototype() {
     PrototypeDefinition def = PrototypesContainer.getPrototype(prototypeName);
     if (def != null) {
+      String type = def.getPiece().getType(); // Check to see if prototype definition has changed
+      if (!type.equals(lastCachedPrototype)) {
+        lastCachedPrototype = type;
         prototype = new PieceCloner().clonePiece(def.getPiece());
         ((Decorator)Decorator.getInnermost(prototype).getProperty(Properties.OUTER)).setInner(piece);
         prototype.setProperty(Properties.OUTER, this);
+      }
     }
     else {
       prototype = null;
     }
   }
 
-  protected GamePiece getNext() {
+  /**
+   * Build a new GamePiece instance based on the traits in the referenced {@link PrototypeDefinition}.
+   * Substitute the new instance for {@link #getInner} and return it.
+   * If the referenced definition does not exist, return the default inner piece.
+   * @return the new instance
+   */
+  public GamePiece getExpandedInner() {
     buildPrototype();
     return prototype != null ? prototype : piece;
   }
@@ -117,7 +127,7 @@ public class UsePrototype extends Decorator implements EditablePiece {
   }
 
   public Command keyEvent(KeyStroke stroke) {
-    return getNext().keyEvent(stroke);
+    return getExpandedInner().keyEvent(stroke);
   }
 
   public Command myKeyEvent(KeyStroke stroke) {
@@ -128,19 +138,19 @@ public class UsePrototype extends Decorator implements EditablePiece {
   }
 
   public Rectangle boundingBox() {
-    return getNext().boundingBox();
+    return getExpandedInner().boundingBox();
   }
 
   public void draw(Graphics g, int x, int y, Component obs, double zoom) {
-    getNext().draw(g,x,y,obs,zoom);
+    getExpandedInner().draw(g,x,y,obs,zoom);
   }
 
   public String getName() {
-    return getNext().getName();
+    return getExpandedInner().getName();
   }
 
   public Shape getShape() {
-    return getNext().getShape();
+    return getExpandedInner().getShape();
   }
 
   public String getPrototypeName() {

@@ -14,6 +14,8 @@ import java.awt.*;
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
 import java.util.Enumeration;
+import java.io.File;
+import java.net.MalformedURLException;
 
 /*
  * $Id$
@@ -39,7 +41,6 @@ public class PrototypeDefinition implements Configurable {
   private String name = "Prototype";
   private GamePiece piece;
   private String pieceDefinition;
-  private PrototypesContainer parent;
 
   private PropertyChangeSupport propSupport = new PropertyChangeSupport(this);
 
@@ -70,7 +71,14 @@ public class PrototypeDefinition implements Configurable {
   }
 
   public HelpFile getHelpFile() {
-    return null;
+    File dir = VASSAL.build.module.Documentation.getDocumentationBaseDir();
+    dir = new File(dir, "ReferenceManual");
+    try {
+      return new HelpFile(null, new File(dir, "GameModule.htm"),"#Definition");
+    }
+    catch (MalformedURLException ex) {
+      return null;
+    }
   }
 
   public void remove(Buildable child) {
@@ -92,9 +100,6 @@ public class PrototypeDefinition implements Configurable {
         }
       }
     }
-    if (parent instanceof PrototypesContainer) {
-      this.parent = (PrototypesContainer) parent;
-    }
   }
 
   public GamePiece getPiece() {
@@ -113,10 +118,10 @@ public class PrototypeDefinition implements Configurable {
     return piece;
   }
 
-  private void setPiece(GamePiece p) {
-    piece = p;
-    pieceDefinition = piece == null ? null
-        : GameModule.getGameModule().encode(new AddPiece(piece));
+  public void setPiece(GamePiece p) {
+    pieceDefinition = p == null ? null
+        : GameModule.getGameModule().encode(new AddPiece(p));
+    piece = null;
   }
 
   public void build(Element e) {
