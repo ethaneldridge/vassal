@@ -152,13 +152,13 @@ public class Turreted extends Embellishment implements EditablePiece {
   }
 
   public String myGetState() {
-    return super.myGetState() + ";" + flipped;
+    return new SequenceEncoder(super.myGetState(),';').append(String.valueOf(flipped)).getValue();
   }
 
   public void mySetState(String s) {
     SequenceEncoder.Decoder st = new SequenceEncoder.Decoder(s, ';');
     super.mySetState(st.nextToken());
-    flipped = new Boolean(st.nextToken()).booleanValue();
+    flipped = st.nextBoolean(false);
   }
 
   public KeyCommand[] myGetKeyCommands() {
