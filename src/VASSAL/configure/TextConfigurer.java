@@ -57,8 +57,12 @@ public class TextConfigurer extends Configurer {
   public void setValue(String s) {
     String text = restoreNewlines(s);
     setValue((Object) text);
+  }
+
+  public void setValue(Object o) {
+    super.setValue(o);
     if (!noUpdate && textArea != null) {
-      textArea.setText(text);
+      textArea.setText((String) o);
     }
   }
 
