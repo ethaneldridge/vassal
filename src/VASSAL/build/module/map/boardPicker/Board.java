@@ -464,11 +464,6 @@ public class Board extends AbstractConfigurable {
       }
       gameStarted = gameStarting;
       System.gc();
-      System.err.println("----"+(gameStarting ? "start" : "end")+"----");
-      double oneMeg = 1024*1024;
-      System.err.println("free "+Runtime.getRuntime().freeMemory()/oneMeg);
-      System.err.println("max "+Runtime.getRuntime().maxMemory()/oneMeg);
-      System.err.println("total "+Runtime.getRuntime().totalMemory()/oneMeg);
     }
   }
 }
