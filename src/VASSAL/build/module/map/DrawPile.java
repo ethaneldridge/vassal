@@ -439,6 +439,10 @@ public class DrawPile extends SetupStack {
     return myDeck;
   }
 
+  protected boolean placeNonStackingSeparately() {
+    return false;
+  }
+
   private String getDeckType() {
     return dummy.getType();
   }
