@@ -22,18 +22,12 @@ import VASSAL.build.AutoConfigurable;
 import VASSAL.build.Buildable;
 import VASSAL.build.GameModule;
 import VASSAL.build.IllegalBuildException;
-import VASSAL.build.module.GlobalOptions;
 import VASSAL.build.module.Map;
 import VASSAL.build.module.documentation.HelpFile;
 import VASSAL.build.module.map.boardPicker.Board;
 import VASSAL.build.widget.CardSlot;
 import VASSAL.command.Command;
-import VASSAL.configure.ColorConfigurer;
-import VASSAL.configure.Configurer;
-import VASSAL.configure.ConfigurerFactory;
-import VASSAL.configure.FormattedStringConfigurer;
-import VASSAL.configure.StringEnum;
-import VASSAL.configure.VisibilityCondition;
+import VASSAL.configure.*;
 import VASSAL.counters.Deck;
 import VASSAL.counters.GamePiece;
 import VASSAL.counters.Stack;
@@ -44,8 +38,8 @@ import javax.swing.*;
 import java.awt.*;
 import java.io.File;
 import java.net.MalformedURLException;
-import java.util.Enumeration;
 import java.util.ArrayList;
+import java.util.Enumeration;
 
 public class DrawPile extends SetupStack {
   protected Deck dummy = new Deck(); // Used for storing type information
@@ -112,8 +106,8 @@ public class DrawPile extends SetupStack {
       Map m = (Map) e.nextElement();
       for (Enumeration e2 = m.getComponents(DrawPile.class); e2.hasMoreElements();) {
         DrawPile p = (DrawPile) e2.nextElement();
-        if (p.getId().equals(id)
-            || p.getConfigureName().equals(id)) {
+        if (id.equals(p.getId())
+            || id.equals(p.getConfigureName())) {
           return p;
         }
       }
@@ -143,6 +137,11 @@ public class DrawPile extends SetupStack {
   public static final String ALWAYS = "Always";
   public static final String NEVER = "Never";
   public static final String USE_MENU = "Via right-click Menu";
+
+  public static final String PLAYER_NAME = "playerName";
+  public static final String PLAYER_SIDE = "playerSide";
+  public static final String COMMAND_NAME = "commandName";
+  public static final String DECK_NAME = "deckName";
 
   public static class Prompt extends StringEnum {
     public String[] getValidValues(AutoConfigurable target) {
@@ -240,10 +239,10 @@ public class DrawPile extends SetupStack {
 
   public static class FormattedStringConfig implements ConfigurerFactory {
     public Configurer getConfigurer(AutoConfigurable c, String key, String name) {
-      return new FormattedStringConfigurer(key, name, new String[]{GlobalOptions.PLAYER_NAME,
-                                  GlobalOptions.PLAYER_SIDE,
-                                    GlobalOptions.DECK_NAME,
-                                    GlobalOptions.COMMAND_NAME});
+      return new FormattedStringConfigurer(key, name, new String[]{PLAYER_NAME,
+                                                                   PLAYER_SIDE,
+                                                                   DECK_NAME,
+                                                                   COMMAND_NAME});
     }
   }
 

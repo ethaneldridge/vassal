@@ -76,7 +76,7 @@ public class Chatter extends JPanel implements CommandEncoder, Buildable {
     };
     input.addActionListener(new ActionListener() {
       public void actionPerformed(ActionEvent e) {
-        send(GlobalOptions.formatChat(e.getActionCommand()));
+        send(formatChat(e.getActionCommand()));
         input.setText("");
       }
     });
@@ -86,6 +86,10 @@ public class Chatter extends JPanel implements CommandEncoder, Buildable {
     scroll.setViewportView(conversation);
     add(scroll);
     add(input);
+  }
+
+  private String formatChat(String text) {
+    return "<"+getHandle()+"> - "+text;
   }
 
   public JTextField getInputField() {
@@ -217,7 +221,7 @@ public class Chatter extends JPanel implements CommandEncoder, Buildable {
       switch (e.getKeyCode()) {
         case KeyEvent.VK_ENTER:
           if (input.getText().length() > 0)
-            send(GlobalOptions.formatChat(input.getText()));
+            send(formatChat(input.getText()));
           input.setText("");
           break;
         case KeyEvent.VK_BACK_SPACE:
@@ -297,7 +301,7 @@ public class Chatter extends JPanel implements CommandEncoder, Buildable {
             col = (Color) GameModule.getGameModule().getGlobalPrefs().getValue(SYS_MSG_COLOR);
             break;
           default:
-            if (s.startsWith(GlobalOptions.formatChat(""))) {
+            if (s.startsWith(formatChat(""))) {
               col = (Color) GameModule.getGameModule().getGlobalPrefs().getValue(MY_CHAT_COLOR);
             }
             else {

@@ -104,9 +104,7 @@ public class StringArrayConfigurer extends Configurer {
       ActionListener al = new ActionListener() {
         public void actionPerformed(ActionEvent e) {
           String s = tf.getText();
-          if (s.length() > 0) {
-            addValue(s);
-          }
+          addValue(s);
           tf.setText("");
         }
       };

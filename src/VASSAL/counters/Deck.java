@@ -573,9 +573,9 @@ public class Deck extends Stack {
   private Command reportCommand(String format, String commandName) {
     Command c = null;
     FormattedString reportFormat = new FormattedString(format);
-    reportFormat.setProperty(GlobalOptions.PLAYER_NAME, (String) GameModule.getGameModule().getPrefs().getValue(GameModule.REAL_NAME));
-    reportFormat.setProperty(GlobalOptions.DECK_NAME, getDeckName());
-    reportFormat.setProperty(GlobalOptions.COMMAND_NAME, commandName);
+    reportFormat.setProperty(DrawPile.PLAYER_NAME, (String) GameModule.getGameModule().getPrefs().getValue(GameModule.REAL_NAME));
+    reportFormat.setProperty(DrawPile.DECK_NAME, getDeckName());
+    reportFormat.setProperty(DrawPile.COMMAND_NAME, commandName);
     String rep = reportFormat.getText();
     if (rep.length() > 0) {
       c = new Chatter.DisplayText(GameModule.getGameModule().getChatter(), "* " + rep);

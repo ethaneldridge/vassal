@@ -161,7 +161,7 @@ public class HexGridNumbering extends RegularGridNumbering {
                           alignment, color, null, null);
 
         p.setLocation((int) Math.round(x + deltaX), (int) Math.round(y + deltaY / 2) + offset);
-        gridp = new Point(p);
+        gridp = new Point(p.x,p.y-offset);
         grid.rotateIfSideways(p);
 
         // Convert from map co-ordinates to board co-ordinates

@@ -249,16 +249,16 @@ public class Map extends AbstractConfigurable implements GameComponent,
       return "" + launchButton.isVisible();
     }
     else if (LOCATION_FORMAT.equals(key)) {
-      return locationFormat;
+      return getLocationFormat();
     }
     else if (MOVE_WITHIN_FORMAT.equals(key)) {
-      return moveWithinFormat;
+      return getMoveWithinFormat();
     }
     else if (MOVE_TO_FORMAT.equals(key)) {
-      return moveToFormat;
+      return getMoveToFormat();
     }
     else if (CREATE_FORMAT.equals(key)) {
-      return createFormat;
+      return getCreateFormat();
     }
     else {
       return launchButton.getAttributeValueString(key);

@@ -29,8 +29,8 @@ package VASSAL.build.module;
 import VASSAL.Info;
 import VASSAL.build.*;
 import VASSAL.build.module.documentation.HelpFile;
-import VASSAL.configure.*;
-import VASSAL.tools.FormattedString;
+import VASSAL.configure.BooleanConfigurer;
+import VASSAL.configure.StringEnum;
 
 import java.io.File;
 import java.net.MalformedURLException;
@@ -53,18 +53,11 @@ public class GlobalOptions extends AbstractConfigurable {
   public static final String DECK_NAME = "deckName";
   public static final String TEXT = "text";
 
-  public static final String CHAT_FMT = "chatfmt";
-  public static final String MOVE_FMT = "movefmt";
-  public static final String CREATE_FMT = "createfmt";
-
   private String promptString = "Opponents can unmask my pieces";
   private String nonOwnerUnmaskable = NEVER;
   private String centerOnMoves = ALWAYS;
   private String autoReport = NEVER;
   private String markMoved = NEVER;
-
-  // Default Report Formats
-  private static String chatFmt = "<$"+PLAYER_NAME+"$> - $"+TEXT+"$";
 
   private static GlobalOptions instance;
   private boolean useSingleWindow;
@@ -118,21 +111,15 @@ public class GlobalOptions extends AbstractConfigurable {
     return new String[]{"Allow non-owners to un-mask pieces",
                         null,
                         "Center on opponent's moves",
-                        "Auto-report moves",
-                        "Chat Line Format",
-                        "Move report format",
-                        "Create Piece report format"};
+                        "Auto-report moves"};
   }
 
   public String[] getAttributeNames() {
-    return new String[]{NON_OWNER_UNMASKABLE, PROMPT_STRING, CENTER_ON_MOVE, AUTO_REPORT,
-                        CHAT_FMT,
-                        MOVE_FMT, CREATE_FMT};
+    return new String[]{NON_OWNER_UNMASKABLE, PROMPT_STRING, CENTER_ON_MOVE, AUTO_REPORT};
   }
 
   public Class[] getAttributeTypes() {
-    return new Class[]{Prompt.class, null, Prompt.class, Prompt.class,
-                       ChatFormatConfig.class};
+    return new Class[]{Prompt.class, null, Prompt.class, Prompt.class};
   }
 
   public String getAttributeValueString(String key) {
@@ -150,9 +137,6 @@ public class GlobalOptions extends AbstractConfigurable {
     }
     else if (MARK_MOVED.equals(key)) {
       return markMoved;
-    }
-    else if (CHAT_FMT.equals(key)) {
-      return chatFmt;
     }
     else {
       return null;
@@ -213,9 +197,6 @@ public class GlobalOptions extends AbstractConfigurable {
         GameModule.getGameModule().getPrefs().addOption(config);
       }
     }
-    else if (CHAT_FMT.equals(key)) {
-      chatFmt = (String) value;
-    }
   }
 
   public boolean autoReportEnabled() {
@@ -239,24 +220,6 @@ public class GlobalOptions extends AbstractConfigurable {
     }
     else {
       return Boolean.TRUE.equals(GameModule.getGameModule().getPrefs().getValue(prefsPrompt));
-    }
-  }
-
-  // Format the Chat Line
-  public static String formatChat(String chatText) {
-    String id = "";
-    FormattedString fmt = new FormattedString(chatFmt);
-    fmt.setProperty(PLAYER_NAME, (String)GameModule.getGameModule().getPrefs().getValue(GameModule.REAL_NAME));
-    fmt.setProperty(PLAYER_SIDE, PlayerRoster.getMySide());
-    fmt.setProperty(TEXT, chatText);
-    id = fmt.getText();
-    return id;
-  }
-
-  public static class ChatFormatConfig implements ConfigurerFactory {
-    public Configurer getConfigurer(AutoConfigurable c, String key, String name) {
-      return new FormattedStringConfigurer(key, name, new String[]{GlobalOptions.PLAYER_NAME,PLAYER_SIDE,
-                                    GlobalOptions.TEXT});
     }
   }
 }
