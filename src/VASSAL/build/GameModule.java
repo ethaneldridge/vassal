@@ -273,8 +273,8 @@ public abstract class GameModule extends AbstractConfigurable implements Command
    */
   public Prefs getPrefs() {
     if (preferences == null) {
-      (new Prefs(System.getProperty("user.dir")
-                 + java.io.File.separator + "Preferences")).addTo(this);
+      (new Prefs(System.getProperty("user.home")
+                 + java.io.File.separator + ".VassalPreferences")).addTo(this);
     }
     return preferences;
   }
