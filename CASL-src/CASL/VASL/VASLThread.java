@@ -66,7 +66,7 @@ public class VASLThread
   private int mapHeight = 0;
 
   // LOS stuff
-  private LOSResult result;
+  protected LOSResult result;
   private String resultsString;
   private boolean useAuxSourceLOSPoint;
   private boolean useAuxTargetLOSPoint;
@@ -161,7 +161,8 @@ public class VASLThread
       resultsString = "";
 
       // create the map
-      CASLMap = new GameMap(mapWidth * 32 + 1, mapHeight * 10);
+      //CASLMap = new GameMap(mapWidth * 32 + 1, mapHeight * 10);
+      CASLMap = createCASLMap(mapWidth * 32 + 1, mapHeight * 10);
 
       // load the CASL maps
       boolean mapFound = false;
@@ -229,6 +230,10 @@ public class VASLThread
     return null;
   }
 
+  protected GameMap createCASLMap (int w, int h) {
+	return new GameMap(w, h);
+  }
+  
   public void addTo(Buildable buildable) {
     super.addTo(buildable);
     if (status != DISABLED) {
@@ -260,7 +265,7 @@ public class VASLThread
     }
   }
 
-  private JCheckBox findBox(Component c) {
+  protected JCheckBox findBox(Component c) {
     JCheckBox val = null;
     if (c instanceof JCheckBox) {
       val = (JCheckBox) c;

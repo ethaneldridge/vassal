@@ -33,26 +33,26 @@ public class LOSResult {
 	public static final int UNKNOWN = -1;
 
 	// private variables
-	private Location sourceLocation;
+	protected Location sourceLocation;
 	private Location targetLocation;
 	private boolean useAuxSourceLOSPoint;
 	private boolean useAuxTargetLOSPoint;
 
 	private boolean blocked;
 	private Point   blockedAtPoint;
-	private Point   firstHindranceAt;
+	protected Point firstHindranceAt;
 	private int	 	range;
 	private int	 	sourceExitHexside;
 	private int	 	targetEnterHexside;
-	private int	 	sourceExitHexspine	= UNKNOWN;
+	protected int	sourceExitHexspine	= UNKNOWN;
 	private int	 	targetEnterHexspine	= UNKNOWN;
 	private String	reason				= "";
 	private boolean continuousSlope;
-	private boolean LOSis60Degree;
+	protected boolean LOSis60Degree;
 	private boolean LOSisHorizontal;
 
 	private	HashSet	hexes				= new HashSet();
-	private	HashSet	mapHindranceHexes	= new HashSet();
+	protected HashSet mapHindranceHexes	= new HashSet();
 	private	HashSet	smokeHindrances		= new HashSet();
 	private	HashSet	vehicleHindrances	= new HashSet();
 

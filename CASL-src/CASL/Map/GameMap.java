@@ -1601,6 +1601,22 @@ try{
 		Pt2PtLOS(source, useAuxSourceLOSPoint, target, useAuxTargetLOSPoint, result, scenario);
 	}
 
+	protected static String LOS_err_A6_3_1  = "Exits depression before range/elevation restictions are satisfied (A6.3)";
+	protected static String LOS_err_A6_3_2  = "Does not enter depression while range/elevation restictions are satisfied (A6.3)";
+	protected static String LOS_err_A6_8    = "LOS must leave the building before leaving the source hex to see a location with a different elevation (A6.8 Example 2)";
+	protected static String LOS_err_B23_71  = "Cannot see through rowhouse wall (B23.71)";
+	protected static String LOS_err_B27_2_1 = "Unit in entrenchment cannot see over hexside terrain to non-adjacent lower target (B27.2)";
+	protected static String LOS_err_B27_2_2 = "Cannot see non-adjacent unit in higher elevation entrenchment over hexside terrain (B27.2)";
+	protected static String LOS_err_B9_52_1 = "Cannot see through/over bocage (B9.52)";
+	protected static String LOS_err_B9_52_2 = "Source or Target location is in a blind hex (B9.52)";
+	protected static String LOS_err_B9_2    = "Intervening hexside terrain (B9.2)";
+	protected static String LOS_err_A6_2_1  = "Ground level is higher than both the source and target (A6.2)";
+	protected static String LOS_err_A6_2_2  = "Half level terrain is higher than both the source and target (A6.2)";
+	protected static String LOS_err_A6_2_3  = "Terrain is higher than both the source and target (A6.2)";
+	protected static String LOS_err_A6_2_4  = "Must have a height advantage to see over this terrain (A6.2)";
+	protected static String LOS_err_A6_4_1  = "Source or Target location is in a blind hex (A6.4)";
+	protected static String LOS_err_B10_23  = "Source or Target location is in a blind hex (B10.23)";
+	
 	// point to point LOS
 	protected void Pt2PtLOS(Location source, boolean useAuxSourceLOSPoint, Location target, boolean useAuxTargetLOSPoint, LOSResult result, Scenario scenario) {
 
@@ -2091,7 +2107,7 @@ try{
 					if(groundLevel > currentHex.getBaseHeight()){
 
 						blocked = true;
-						reason  = "Exits depression before range/elevation restictions are satisfied (A6.3)";
+						reason = LOS_err_A6_3_1;
 					}
 				}
 
@@ -2102,7 +2118,7 @@ try{
 						!(currentHex.isDepressionTerrain() && groundLevel == currentHex.getBaseHeight())){
 
 						blocked = true;
-						reason  = "Does not enter depression while range/elevation restictions are satisfied (A6.3)";
+						reason = LOS_err_A6_3_2;
 					}
 				}
 
@@ -2117,8 +2133,7 @@ try{
 					sourceElevation != targetElevation &&
 					groundLevel + currentTerrainHgt >= sourceElevation
 				){
-
-					reason  = "LOS must leave the building before leaving the source hex to see a location with a different elevation (A6.8 Example 2)";
+					reason  = LOS_err_A6_8;
 					blocked = true;
 				}
 
@@ -2146,7 +2161,7 @@ try{
 							 groundLevel + currentTerrainHgt >  Math.min(sourceElevation, targetElevation) )
 						) {
 
-							reason  = "Cannot see through rowhouse wall (B23.71)";
+							reason  = LOS_err_B23_71;
 							blocked = true;
 						}
 
@@ -2175,7 +2190,7 @@ try{
 							if (range > 1 && targetElevation <= sourceElevation){
 
 								blocked = true;
-								reason = "Unit in entrenchment cannot see over hexside terrain to non-adjacent lower target (B27.2)";
+								reason = LOS_err_B27_2_1;
 							}
 						}
 						else if (target.getTerrain().isEntrenchmentTerrain()) {
@@ -2183,7 +2198,7 @@ try{
 							if (range > 1 && targetElevation >= sourceElevation){
 
 								blocked = true;
-								reason = "Cannot see non-adjacent unit in higher elevation entrenchment over hexside terrain (B27.2)";
+								reason = LOS_err_B27_2_2;
 							}
 						}
 						else {
@@ -2211,7 +2226,7 @@ try{
 										 groundLevel + currentTerrainHgt >  Math.min(sourceElevation, targetElevation) )
 									) {
 
-										reason  = "Cannot see through/over bocage (B9.52)";
+										reason = LOS_err_B9_52_1;
 										blocked = true;
 									}
 
@@ -2227,7 +2242,7 @@ try{
 								 		currentHex
 										)){
 
-										reason  = "Source or Target location is in a blind hex (B9.52)";
+										reason = LOS_err_B9_52_2;
 										blocked = true;
 									}
 								}
@@ -2236,7 +2251,7 @@ try{
 								else if (groundLevel == sourceElevation && groundLevel == targetElevation) {
 
 									blocked = true;
-									reason = "Intervening hexside terrain (B9.2)";
+									reason = LOS_err_B9_2;
 								}
 							}
 						}
@@ -2270,7 +2285,7 @@ try{
 					******************************/
 					if (groundLevel > sourceElevation && groundLevel > targetElevation) {
 
-						reason  = "Ground level is higher than both the source and target (A6.2)";
+						reason = LOS_err_A6_2_1;
 						blocked = true;
 					}
 
@@ -2302,7 +2317,7 @@ try{
 
 						// terrain blocks LOS?
 						if(currentTerrain.isLOSObstacle()){
-							reason  = "Half level terrain is higher than both the source and target (A6.2)";
+							reason  = LOS_err_A6_2_2;
 							blocked = true;
 						}
 						// must be hindrance
@@ -2321,7 +2336,7 @@ try{
 
 						// terrain blocks LOS?
 						if(currentTerrain.isLOSObstacle()){
-							reason  = "Terrain is higher than both the source and target (A6.2)";
+							reason  = LOS_err_A6_2_3;
 							blocked = true;
 						}
 						// must be hindrance
@@ -2359,8 +2374,7 @@ try{
 								
 							}
 							else {
-								
-								reason  = "Must have a height advantage to see over this terrain (A6.2)";
+								reason  = LOS_err_A6_2_4;
 								blocked = true;								
 							}
 
@@ -2402,7 +2416,7 @@ try{
 						)){
 							// blocked if terrain is obstacle
 							if(currentTerrain.isLOSObstacle()){
-								reason  = "Source or Target location is in a blind hex (A6.4)";
+								reason  = LOS_err_A6_4_1;
 								blocked = true;
 							}
 
@@ -2421,7 +2435,7 @@ try{
 									nearestHexsideIsCliff(currentCol, currentRow)
 								)
 							){
-								reason  = "Source or Target location is in a blind hex (B10.23)";
+								reason = LOS_err_B10_23;
 								blocked = true;
 							}
 
