@@ -58,50 +58,16 @@ public class Turreted extends Embellishment implements EditablePiece {
   }
 
   public void draw(Graphics g, int x, int y, Component obs, double zoom) {
-    offsets();
     super.draw(g, x, y, obs, zoom);
     if (Boolean.TRUE.equals(getProperty(Properties.SELECTED))) {
       piece.draw(g, x, y, obs, zoom);
     }
   }
 
-  public Rectangle boundingBox() {
-    offsets();
-    return super.boundingBox();
-  }
-
   public Shape getShape() {
     return piece.getShape();
   }
 
-  private void offsets() {
-    switch (value) {
-      case 1:
-        xOff = 20;
-        yOff = -10;
-        break;
-      case 2:
-        xOff = 20;
-        yOff = 5;
-        break;
-      case 3:
-        xOff = 20;
-        yOff = 20;
-        break;
-      case 4:
-        xOff = -10;
-        yOff = 20;
-        break;
-      case 5:
-        xOff = -10;
-        yOff = 5;
-        break;
-      case 6:
-        xOff = -10;
-        yOff = -10;
-        break;
-    }
-  }
 
   protected Image getCurrentImage() throws java.io.IOException {
     if (flipped || value != getVehicleCA()) {
@@ -113,13 +79,35 @@ public class Turreted extends Embellishment implements EditablePiece {
     }
   }
 
-  public Dimension getCurrentImageSize() {
+  public Rectangle getCurrentImageBounds() {
+    Rectangle r;
     if (flipped || value != getVehicleCA()) {
-      return super.getCurrentImageSize();
+      r = new Rectangle(super.getCurrentImageBounds());
+      switch (value) {
+        case 1:
+          r.translate(20,-10);;
+          break;
+        case 2:
+          r.translate(20,5);
+          break;
+        case 3:
+          r.translate(20,20);
+          break;
+        case 4:
+          r.translate(-10,20);
+          break;
+        case 5:
+          r.translate(-10,5);
+          break;
+        case 6:
+          r.translate(-10,-10);
+          break;
+      }
     }
     else {
-      return new Dimension(0, 0);
+      r = new Rectangle();
     }
+    return r;
   }
 
   protected int getVehicleCA() {
