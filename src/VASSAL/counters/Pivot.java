@@ -120,24 +120,24 @@ public class Pivot extends Decorator implements EditablePiece {
     Command c = null;
     if (pivotCommand.matches(stroke)) {
       if (fixedAngle) {
-      ChangeTracker t = new ChangeTracker(this);
-      double oldAngle = rotator.getAngle();
-      rotator.setAngle(oldAngle - angle);
-      double newAngle = rotator.getAngle();
-      if (getMap() != null) {
-        Point pos = getPosition();
-        pivotPoint(pos, -Math.PI*oldAngle/180.0, -Math.PI*newAngle/180.0);
-        pos = getMap().snapTo(pos);
-        GamePiece outer = Decorator.getOutermost(this);
-        MoveTracker moveTracker = new MoveTracker(outer);
-        getMap().placeOrMerge(outer, pos);
-        c = moveTracker.getMoveCommand();
-        outer.setProperty(Properties.MOVED, Boolean.TRUE);
-        c = c.append(t.getChangeCommand());
-      }
-      else {
-        c = t.getChangeCommand();
-      }
+        ChangeTracker t = new ChangeTracker(this);
+        double oldAngle = rotator.getAngle();
+        rotator.setAngle(oldAngle - angle);
+        double newAngle = rotator.getAngle();
+        if (getMap() != null) {
+          Point pos = getPosition();
+          pivotPoint(pos, -Math.PI * oldAngle / 180.0, -Math.PI * newAngle / 180.0);
+          pos = getMap().snapTo(pos);
+          GamePiece outer = Decorator.getOutermost(this);
+          outer.setProperty(Properties.MOVED, Boolean.TRUE);
+          c = t.getChangeCommand();
+          MoveTracker moveTracker = new MoveTracker(outer);
+          getMap().placeOrMerge(outer, pos);
+          c = c.append(moveTracker.getMoveCommand());
+        }
+        else {
+          c = t.getChangeCommand();
+        }
       }
       else if (getMap() != null) {
         final double oldAngle = rotator.getAngleInRadians();
@@ -145,8 +145,8 @@ public class Pivot extends Decorator implements EditablePiece {
         AffineTransform t = AffineTransform.getRotateInstance(oldAngle);
         t.transform(pivot2D, pivot2D);
         rotator.beginInteractiveRotate();
-        rotator.setPivot(getPosition().x + (int)Math.round(pivot2D.getX()),
-                         getPosition().y + (int)Math.round(pivot2D.getY()));
+        rotator.setPivot(getPosition().x + (int) Math.round(pivot2D.getX()),
+                         getPosition().y + (int) Math.round(pivot2D.getY()));
       }
     }
     return c;
@@ -216,7 +216,7 @@ public class Pivot extends Decorator implements EditablePiece {
       b.add(yOff.getControls());
       controls.add(b);
 
-      fixedAngle = new BooleanConfigurer(null,"Pivot through fixed angle",new Boolean(p.fixedAngle));
+      fixedAngle = new BooleanConfigurer(null, "Pivot through fixed angle", new Boolean(p.fixedAngle));
       controls.add(fixedAngle.getControls());
 
       angle = new DoubleConfigurer(null, "Angle: ", new Double(p.angle));

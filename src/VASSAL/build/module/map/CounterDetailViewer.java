@@ -185,6 +185,8 @@ public class CounterDetailViewer extends AbstractConfigurable implements Drawabl
       g.setColor(outline);
       g.drawRect(bounds.x - 2, bounds.y - 2, bounds.width + 3, bounds.height + 3);
       g.drawRect(bounds.x - 3, bounds.y - 3, bounds.width + 5, bounds.height + 5);
+      Shape oldClip = g.getClip();
+      g.setClip(bounds.x - 3, bounds.y - 3, bounds.width + 5, bounds.height + 5);
       pi = new PieceIterator(v.elements());
       while (pi.hasMoreElements()) {
         // Draw the next piece
@@ -195,6 +197,7 @@ public class CounterDetailViewer extends AbstractConfigurable implements Drawabl
 
         bounds.translate(pieceBounds.width, 0);
       }
+      g.setClip(oldClip);
     }
   }
 

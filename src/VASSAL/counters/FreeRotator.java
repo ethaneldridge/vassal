@@ -356,8 +356,8 @@ public class FreeRotator extends Decorator implements EditablePiece, MouseListen
       ChangeTracker tracker = new ChangeTracker(this);
       if (!getPosition().equals(ghostPosition)) {
         GamePiece outer = Decorator.getOutermost(this);
-        c = getMap().placeOrMerge(outer,getMap().snapTo(ghostPosition));
         outer.setProperty(Properties.MOVED, Boolean.TRUE);
+        c = getMap().placeOrMerge(outer,getMap().snapTo(ghostPosition));
       }
       setAngle(tempAngle);
       c = tracker.getChangeCommand().append(c);

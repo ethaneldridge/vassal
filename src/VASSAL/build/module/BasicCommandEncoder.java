@@ -97,6 +97,9 @@ public class BasicCommandEncoder implements CommandEncoder, Buildable {
     else if (type.startsWith(MovementMarkable.ID)) {
       return new MovementMarkable(type, inner);
     }
+    else if (type.startsWith(Footprint.ID)) {
+      return new Footprint(type, inner);
+    }
     else if (type.startsWith(ReturnToDeck.ID)) {
       return new ReturnToDeck(type, inner);
     }

@@ -22,6 +22,7 @@ import VASSAL.build.module.documentation.HelpFile;
 import VASSAL.command.Command;
 import VASSAL.command.MoveTracker;
 import VASSAL.command.ChangeTracker;
+import VASSAL.command.NullCommand;
 import VASSAL.configure.BooleanConfigurer;
 import VASSAL.configure.HotKeyConfigurer;
 import VASSAL.configure.IntConfigurer;
@@ -34,6 +35,7 @@ import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
 import java.io.File;
 import java.net.MalformedURLException;
+import java.util.Enumeration;
 
 /**
  * Give a piece a command that moves it a fixed amount in a particular direction,
@@ -107,6 +109,18 @@ public class Translate extends Decorator implements EditablePiece {
           && outer.getParent() != null
           && !outer.getParent().isExpanded()) {
         target = outer.getParent();
+        c = new NullCommand();
+        for (Enumeration e = outer.getParent().getPieces(); e.hasMoreElements();) {
+          GamePiece p = (GamePiece) e.nextElement();
+          ChangeTracker ct = new ChangeTracker(p);
+          p.setProperty(Properties.MOVED, Boolean.TRUE);
+          c = c.append(ct.getChangeCommand());
+        }
+      }
+      else {
+        ChangeTracker ct = new ChangeTracker(outer);
+        outer.setProperty(Properties.MOVED, Boolean.TRUE);
+        c = ct.getChangeCommand();
       }
       MoveTracker t = new MoveTracker(target);
       Point p = new Point(getPosition());
@@ -120,10 +134,7 @@ public class Translate extends Decorator implements EditablePiece {
       }
       p = getMap().snapTo(p);
       getMap().placeOrMerge(target, p);
-      c = t.getMoveCommand();
-      ChangeTracker ct = new ChangeTracker(outer);
-      outer.setProperty(Properties.MOVED, Boolean.TRUE);
-      c = c.append(ct.getChangeCommand());
+      c = c.append(t.getMoveCommand());
     }
     return c;
   }
