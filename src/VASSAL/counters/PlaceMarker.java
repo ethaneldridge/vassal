@@ -26,33 +26,31 @@
  */
 package VASSAL.counters;
 
-import VASSAL.build.GameModule;
 import VASSAL.build.Configurable;
+import VASSAL.build.GameModule;
+import VASSAL.build.module.BasicCommandEncoder;
 import VASSAL.build.module.Chatter;
 import VASSAL.build.module.documentation.HelpFile;
 import VASSAL.build.widget.CardSlot;
 import VASSAL.build.widget.PieceSlot;
 import VASSAL.command.AddPiece;
 import VASSAL.command.Command;
+import VASSAL.configure.ChooseComponentDialog;
 import VASSAL.configure.ConfigurerWindow;
 import VASSAL.configure.StringConfigurer;
-import VASSAL.configure.ChooseComponentDialog;
-import VASSAL.tools.SequenceEncoder;
 import VASSAL.tools.ComponentPathBuilder;
-import VASSAL.counters.*;
+import VASSAL.tools.SequenceEncoder;
 
 import javax.swing.*;
-import javax.swing.tree.TreePath;
-import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.event.TreeSelectionEvent;
-import java.util.List;
+import javax.swing.tree.DefaultMutableTreeNode;
+import javax.swing.tree.TreePath;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.InputEvent;
 import java.io.File;
 import java.net.MalformedURLException;
-import java.util.Arrays;
 
 /**
  * This Decorator defines a key command to places another counter on top of this one.
@@ -108,18 +106,21 @@ public class PlaceMarker extends Decorator implements EditablePiece {
     myGetKeyCommands();
     if (command.matches(stroke)) {
       GamePiece marker = createMarker();
-      Command c = getMap().getStackMetrics().placeOrMerge(Decorator.getOutermost(this), marker);
-      KeyBuffer.getBuffer().add(marker);
-      if (markerText != null && getMap() != null) {
-        GamePiece outer = getOutermost(this);
-        if (!Boolean.TRUE.equals(outer.getProperty(Properties.OBSCURED_TO_OTHERS))
-            && !Boolean.TRUE.equals(outer.getProperty(Properties.OBSCURED_TO_ME))
-            && !Boolean.TRUE.equals(outer.getProperty(Properties.INVISIBLE_TO_OTHERS))) {
-          String location = getMap().locationName(getPosition());
-          if (location != null) {
-            Command display = new Chatter.DisplayText(GameModule.getGameModule().getChatter(), " * " + location + ":  " + outer.getName() + " " + markerText + " * ");
-            display.execute();
-            c = c == null ? display : c.append(display);
+      Command c = null;
+      if (marker != null) {
+        c = getMap().getStackMetrics().placeOrMerge(Decorator.getOutermost(this), marker);
+        KeyBuffer.getBuffer().add(marker);
+        if (markerText != null && getMap() != null) {
+          GamePiece outer = getOutermost(this);
+          if (!Boolean.TRUE.equals(outer.getProperty(Properties.OBSCURED_TO_OTHERS))
+              && !Boolean.TRUE.equals(outer.getProperty(Properties.OBSCURED_TO_ME))
+              && !Boolean.TRUE.equals(outer.getProperty(Properties.INVISIBLE_TO_OTHERS))) {
+            String location = getMap().locationName(getPosition());
+            if (location != null) {
+              Command display = new Chatter.DisplayText(GameModule.getGameModule().getChatter(), " * " + location + ":  " + outer.getName() + " " + markerText + " * ");
+              display.execute();
+              c = c == null ? display : c.append(display);
+            }
           }
         }
       }
@@ -131,19 +132,23 @@ public class PlaceMarker extends Decorator implements EditablePiece {
   }
 
   private GamePiece createMarker() {
+    if (markerSpec != null) {
+      return null;
+    }
     GamePiece piece = null;
-    if (markerSpec.startsWith(GameModule.class.getName())) {
+    if (markerSpec.startsWith(BasicCommandEncoder.ADD)) {
+      AddPiece comm = (AddPiece) GameModule.getGameModule().decode(markerSpec);
+      piece = comm.getTarget();
+    }
+    else {
       try {
         Configurable[] c = ComponentPathBuilder.getInstance().getPath(markerSpec);
-        if (c[c.length-1] instanceof PieceSlot) {
-          piece = PieceCloner.getInstance().clonePiece(((PieceSlot)c[c.length-1]).getPiece());
+        if (c[c.length - 1] instanceof PieceSlot) {
+          piece = PieceCloner.getInstance().clonePiece(((PieceSlot) c[c.length - 1]).getPiece());
         }
       }
       catch (ComponentPathBuilder.PathFormatException e) {
       }
-    }
-    else {
-      piece = ((AddPiece) GameModule.getGameModule().decode(markerSpec)).getTarget();
     }
     if (piece == null) {
       piece = new BasicPiece();
@@ -205,8 +210,7 @@ public class PlaceMarker extends Decorator implements EditablePiece {
     protected Ed(PlaceMarker piece) {
       keyInput = new KeySpecifier(piece.key);
       commandInput = new StringConfigurer(null, "Command: ", piece.command.getName());
-      GamePiece marker = piece.markerSpec == null ? null
-          : ((AddPiece) GameModule.getGameModule().decode(piece.markerSpec)).getTarget();
+      GamePiece marker = piece.createMarker();
       pieceInput = new PieceSlot(marker);
 
       markerSlotPath = piece.markerSpec;
@@ -284,8 +288,9 @@ public class PlaceMarker extends Decorator implements EditablePiece {
         TreePath p = e.getPath();
         if (p != null) {
           DefaultMutableTreeNode node = (DefaultMutableTreeNode) p.getLastPathComponent();
-          List l = Arrays.asList(node.getUserObjectPath());
-          path = (Configurable[]) l.toArray(new Configurable[l.size()]);
+          Object[] userObjectPath = node.getUserObjectPath();
+          path = new Configurable[userObjectPath.length - 1];
+          System.arraycopy(userObjectPath, 1, path, 0, userObjectPath.length - 1);
         }
         else {
           path = null;

@@ -167,10 +167,10 @@ public class BasicCommandEncoder implements CommandEncoder, Buildable {
   }
 
   private static final char PARAM_SEPARATOR = '/';
-  private static final String ADD = "+" + PARAM_SEPARATOR;
-  private static final String REMOVE = "-" + PARAM_SEPARATOR;
-  private static final String CHANGE = "D" + PARAM_SEPARATOR;
-  private static final String MOVE = "M" + PARAM_SEPARATOR;
+  public static final String ADD = "+" + PARAM_SEPARATOR;
+  public static final String REMOVE = "-" + PARAM_SEPARATOR;
+  public static final String CHANGE = "D" + PARAM_SEPARATOR;
+  public static final String MOVE = "M" + PARAM_SEPARATOR;
 
   public Command decode(String command) {
     if (command.length() == 0) {
