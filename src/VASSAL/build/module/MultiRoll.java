@@ -96,25 +96,25 @@ public class MultiRoll extends JDialog {
   public boolean wasCancelled() {
     return rollCancelled;
   }
-  
+
   public void setDescription(String s) {
-  	description = s;
-  	descText.setText(s);
+    description = s;
+    descText.setText(s);
   }
-  
+
   public String getDescription() {
-  	return description;
+    return description;
   }
-  
+
   public DieManager.RollSet getRollSet() {
     ArrayList l = new ArrayList();
-    for (int i=0;i<MAX_ROLLS;++i) {
+    for (int i = 0; i < MAX_ROLLS; ++i) {
       if (useDie[i]) {
         l.add(rolls[i]);
       }
     }
     DieRoll[] rolls = (DieRoll[]) l.toArray(new DieRoll[l.size()]);
-    return new DieManager.RollSet(getDescription(),rolls);
+    return new DieManager.RollSet(getDescription(), rolls);
   }
 
   /*
@@ -122,10 +122,10 @@ public class MultiRoll extends JDialog {
    * have been changed.
    */
   public void setVisible(boolean b) {
-  	statLabel.setText(getStatText());
-  	super.setVisible(b);
+    statLabel.setText(getStatText());
+    super.setVisible(b);
   }
-  
+
   // Multi-roll Configuration code
   private void initConfig(int nd, int ns) {
 
@@ -139,24 +139,24 @@ public class MultiRoll extends JDialog {
     topPanel = new JPanel();
     topPanel.setLayout(new BoxLayout(topPanel, BoxLayout.PAGE_AXIS));
 
-	statPanel = new JPanel();
-	statLabel = new JLabel(getStatText());
-	statPanel.add(statLabel);
-	topPanel.add(statPanel);
-	
-	descPanel = new JPanel();
-	JLabel descLabel = new JLabel("Roll Description");
-	descText = new JTextField(20);
-	descText.setText(GameModule.getGameModule().getChatter().getInputField().getText());
-	descText.addKeyListener(new java.awt.event.KeyAdapter() {
-	  public void keyReleased(java.awt.event.KeyEvent e) {
-		description = descText.getText();
-	  }
-	});
-	descPanel.add(descLabel);
-	descPanel.add(descText);
-	topPanel.add(descPanel);
-	
+    statPanel = new JPanel();
+    statLabel = new JLabel(getStatText());
+    statPanel.add(statLabel);
+    topPanel.add(statPanel);
+
+    descPanel = new JPanel();
+    JLabel descLabel = new JLabel("Roll Description");
+    descText = new JTextField(20);
+    descText.setText(GameModule.getGameModule().getChatter().getInputField().getText());
+    descText.addKeyListener(new java.awt.event.KeyAdapter() {
+      public void keyReleased(java.awt.event.KeyEvent e) {
+        description = descText.getText();
+      }
+    });
+    descPanel.add(descLabel);
+    descPanel.add(descText);
+    topPanel.add(descPanel);
+
     detailPanel = new JPanel();
     detailPanel.setLayout(new BoxLayout(detailPanel, BoxLayout.PAGE_AXIS));
     detailPanel.setBorder(BorderFactory.createLineBorder(Color.black));
@@ -196,16 +196,16 @@ public class MultiRoll extends JDialog {
   }
 
   private String getStatText() {
-	String stat = "Server: " + dieManager.getServer().getName() + "  Email: ";
-	if (dieManager.getServer().getUseEmail()) {
-		stat += dieManager.getServer().getSecondaryEmail();
-	}
-	else {
-		stat += "Off";
-	}
-	return stat;
+    String stat = "Server: " + dieManager.getServer().getName() + "  Email: ";
+    if (dieManager.getServer().getUseEmail()) {
+      stat += dieManager.getServer().getSecondaryEmail();
+    }
+    else {
+      stat += "Off";
+    }
+    return stat;
   }
-  
+
   class HeaderRow extends JPanel {
 
     public HeaderRow() {
@@ -279,6 +279,14 @@ public class MultiRoll extends JDialog {
     Border loweredbevel = BorderFactory.createLoweredBevelBorder();
     Border myBorder = raisedbevel;
 
+    public void setEnabled(boolean enabled) {
+      col3.setEnabled(enabled);
+      col4.setEnabled(enabled);
+      col5.setEnabled(enabled);
+      col6.setEnabled(enabled);
+      col7.setEnabled(enabled);
+    }
+
     public RollRow(int row, int nd, int ns) {
 
       myRow = row;
@@ -292,27 +300,9 @@ public class MultiRoll extends JDialog {
         public void actionPerformed(ActionEvent e) {
           col1.switchState();
           useDie[myRow] = col1.getState();
+          setEnabled(col1.getState());
         }
       });
-
-
-      // Roll Number
-//            col1 = new JLabel((row + 1) + "");
-//            col1.setPreferredSize(new Dimension(COL1_WIDTH, ROW_HEIGHT));
-//            col1.setHorizontalAlignment(JTextField.CENTER);
-//            col1.setBorder(myBorder);
-//
-//            // Selection Checkbox
-//            col2 = new JCheckBox();
-//            col2.setBorder(myBorder);
-//            col2.setPreferredSize(new Dimension(COL2_WIDTH, ROW_HEIGHT));
-//            col2.setSelected(useDie[myRow]);
-//            col2.setHorizontalAlignment(JCheckBox.CENTER);
-//            col2.addItemListener(new ItemListener() {
-//                public void itemStateChanged(ItemEvent e) {
-//                    useDie[myRow] = (e.getStateChange() == ItemEvent.SELECTED);
-//                }
-//            });
 
       // Roll Description
       col3 = new JTextField(12);
@@ -324,13 +314,14 @@ public class MultiRoll extends JDialog {
           rolls[myRow].setDescription(col3.getText());
         }
       });
-      col3.addMouseListener(new MouseAdapter(){
+      col3.addMouseListener(new MouseAdapter() {
         public void mousePressed(MouseEvent e) {
-        	if (!col3.hasFocus()) {
-        	   col3.selectAll();
-        	}
+          if (!col3.hasFocus()) {
+            col3.selectAll();
+          }
         }
       });
+      col3.setEnabled(false);
 
       // Number of Dice
       int allowableDice[] = dieManager.getServer().getnDiceList();
@@ -350,6 +341,7 @@ public class MultiRoll extends JDialog {
           rolls[myRow].setNumDice(Integer.valueOf((String) cb.getSelectedItem()).intValue());
         }
       });
+      col4.setEnabled(false);
 
       // Number of Sides
       int[] allowableSides = dieManager.getServer().getnSideList();
@@ -369,6 +361,7 @@ public class MultiRoll extends JDialog {
           rolls[myRow].setNumSides(Integer.valueOf((String) cb.getSelectedItem()).intValue());
         }
       });
+      col5.setEnabled(false);
 
       // Add to Total
       col6 = new JTextField(2);
@@ -385,6 +378,8 @@ public class MultiRoll extends JDialog {
           }
         }
       });
+      col6.setEnabled(false);
+
       // Report Total Only
       col7 = new JCheckBox();
       col7.setBorder(myBorder);
@@ -396,9 +391,9 @@ public class MultiRoll extends JDialog {
           rolls[myRow].setReportTotal((e.getStateChange() == ItemEvent.SELECTED));
         }
       });
+      col7.setEnabled(false);
 
       add(col1);
-      //add(col2);
       add(col3);
       add(col4);
       add(col5);
