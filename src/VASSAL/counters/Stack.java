@@ -230,10 +230,9 @@ public class Stack implements GamePiece {
   }
 
   public Rectangle boundingBox() {
-    Point pt = getPosition();
-    Rectangle r = new Rectangle(pt, new Dimension(0, 0));
+    Rectangle r = new Rectangle();
     Rectangle[] childBounds = new Rectangle[getPieceCount()];
-    getMap().getStackMetrics().getContents(this, null, null, childBounds, pt.x, pt.y);
+    getMap().getStackMetrics().getContents(this, null, null, childBounds, 0, 0);
     for (PieceIterator e = PieceIterator.visible(getPieces());
          e.hasMoreElements();) {
       GamePiece p = e.nextPiece();
