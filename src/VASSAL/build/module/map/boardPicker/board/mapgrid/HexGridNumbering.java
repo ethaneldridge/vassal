@@ -47,6 +47,10 @@ public class HexGridNumbering extends RegularGridNumbering {
 
   public static final String STAGGER = "stagger";
 
+  public HexGrid getGrid() {
+    return grid;
+  }
+
   public String[] getAttributeDescriptions() {
     String[] s = super.getAttributeDescriptions();
     String[] val = new String[s.length + 1];
@@ -94,7 +98,7 @@ public class HexGridNumbering extends RegularGridNumbering {
 
   /** Draw the numbering if visible */
   public void draw(Graphics g, Rectangle bounds, Rectangle visibleRect, double scale, boolean reversed) {
-    if (visible){
+    if (visible) {
       forceDraw(g, bounds, visibleRect, scale, reversed);
     }
   }
@@ -109,13 +113,13 @@ public class HexGridNumbering extends RegularGridNumbering {
     Graphics2D g2d = (Graphics2D) g;
     AffineTransform oldT = g2d.getTransform();
     if (reversed) {
-      AffineTransform t = AffineTransform.getRotateInstance(Math.PI,bounds.x+.5*bounds.width,bounds.y+.5*bounds.height);
+      AffineTransform t = AffineTransform.getRotateInstance(Math.PI, bounds.x + .5 * bounds.width, bounds.y + .5 * bounds.height);
       g2d.transform(t);
       visibleRect = t.createTransformedShape(visibleRect).getBounds();
     }
 
     if (!bounds.intersects(visibleRect)) {
-       return;
+      return;
     }
 
     Rectangle region = bounds.intersection(visibleRect);
@@ -146,18 +150,25 @@ public class HexGridNumbering extends RegularGridNumbering {
     Point p = new Point();
     int alignment = Labeler.TOP;
     int offset = -(int) Math.round(deltaY / 2);
-    if (grid.isSideways()) {
+    if (grid.isSideways() || rotateTextDegrees != 0) {
       alignment = Labeler.CENTER;
       offset = 0;
     }
 
     Point gridp = new Point();
 
+    Point centerPoint = null;
+    double radians = 0;
+    if (rotateTextDegrees != 0) {
+      radians = Math.toRadians(rotateTextDegrees);
+      g2d.rotate(radians);
+    }
+
     for (double x = xmin; x < xmax; x += 2 * deltaX) {
       for (double y = ymin; y < ymax; y += deltaY) {
 
         p.setLocation((int) Math.round(x), (int) Math.round(y) + offset);
-        gridp = new Point(p.x,p.y-offset);
+        gridp = new Point(p.x, p.y - offset);
         grid.rotateIfSideways(p);
 
         // Convert from map co-ordinates to board co-ordinates
@@ -166,15 +177,16 @@ public class HexGridNumbering extends RegularGridNumbering {
         gridp.x = (int) Math.round(gridp.x / scale);
         gridp.y = (int) Math.round(gridp.y / scale);
 
-        Labeler.drawLabel(g, getName(getRow(gridp), getColumn(gridp)),
-                          p.x,
-                          p.y,
+        centerPoint = offsetLabelCenter(p, scale);
+        Labeler.drawLabel(g2d, getName(getRow(gridp), getColumn(gridp)),
+                          centerPoint.x,
+                          centerPoint.y,
                           f,
                           Labeler.CENTER,
                           alignment, color, null, null);
 
         p.setLocation((int) Math.round(x + deltaX), (int) Math.round(y + deltaY / 2) + offset);
-        gridp = new Point(p.x,p.y-offset);
+        gridp = new Point(p.x, p.y - offset);
         grid.rotateIfSideways(p);
 
         // Convert from map co-ordinates to board co-ordinates
@@ -183,18 +195,21 @@ public class HexGridNumbering extends RegularGridNumbering {
         gridp.x = (int) Math.round(gridp.x / scale);
         gridp.y = (int) Math.round(gridp.y / scale);
 
-        Labeler.drawLabel(g, getName(getRow(gridp), getColumn(gridp)),
-                          p.x,
-                          p.y,
+        centerPoint = offsetLabelCenter(p, scale);
+        Labeler.drawLabel(g2d, getName(getRow(gridp), getColumn(gridp)),
+                          centerPoint.x,
+                          centerPoint.y,
                           f,
                           Labeler.CENTER,
                           alignment, color, null, null);
       }
     }
+    if (rotateTextDegrees != 0) {
+      g2d.rotate(-radians);
+    }
     g.setClip(oldClip);
     g2d.setTransform(oldT);
   }
-
 
   public int getColumn(Point p) {
 
@@ -349,13 +364,13 @@ public class HexGridNumbering extends RegularGridNumbering {
         numbering.addTo(grid);
         JPanel p = new JPanel() {
           public void paint(Graphics g) {
-            Rectangle r = new Rectangle(0,0,getWidth(),getHeight());
-            g.clearRect(r.x,r.y,r.width,r.height);
+            Rectangle r = new Rectangle(0, 0, getWidth(), getHeight());
+            g.clearRect(r.x, r.y, r.width, r.height);
             grid.forceDraw(g, r, getVisibleRect(), scale, reversed);
             numbering.forceDraw(g, getBounds(), getVisibleRect(), scale, reversed);
           }
         };
-        Dimension d = new Dimension(4000,4000);
+        Dimension d = new Dimension(4000, 4000);
         p.setPreferredSize(d);
         add(BorderLayout.CENTER, new JScrollPane(p));
       }

@@ -85,6 +85,14 @@ public class SquareGridNumbering extends RegularGridNumbering {
     double deltaX = scale * grid.getDx();
     double deltaY = scale * grid.getDy();
 
+    Point centerPoint = null;
+    Graphics2D g2d = (Graphics2D) g;
+    double radians = 0;
+    if (rotateTextDegrees != 0) {
+      radians = Math.toRadians(rotateTextDegrees);
+      g2d.rotate(radians);
+    }
+
     int minCol = reversed ? (int) Math.ceil((bounds.x - scale * grid.getOrigin().x + bounds.width - region.x) / deltaX)
         : (int) Math.floor((region.x - bounds.x - scale * grid.getOrigin().x) / deltaX);
     double xmin = reversed ? bounds.x - scale * grid.getOrigin().x + bounds.width - deltaX * minCol
@@ -110,13 +118,39 @@ public class SquareGridNumbering extends RegularGridNumbering {
         if (hDescending) {
           printColumn = getMaxColumns() - column;
         }
+
+        // When rotating text, keep basic label position as in center along edge
+        int newX = 0, newY = 0;
+        switch (rotateTextDegrees) {
+          case 90:
+            newX = (int) (x + deltaX / 2);
+            newY = (int) y;
+            break;
+          case 180:
+            newX = (int) x;
+            newY = (int) (y + deltaY / 2);
+            break;
+          case 270:
+            newX = (int) (x - deltaX / 2);
+            newY = (int) y;
+            break;
+          default :
+            newX = (int) x;
+            newY = (int) (y - deltaY / 2);
+            break;
+        }
+
+        centerPoint = offsetLabelCenter(newX, newY, scale);
         Labeler.drawLabel(g, getName(printRow, printColumn),
-                          (int) x,
-                          (int) (y - deltaY / 2),
+                          centerPoint.x,
+                          centerPoint.y,
                           f,
                           Labeler.CENTER,
                           Labeler.TOP, color, null, null);
       }
+    }
+    if (rotateTextDegrees != 0) {
+      g2d.rotate(-radians);
     }
     g.setClip(oldClip);
   }

@@ -58,6 +58,9 @@ public abstract class RegularGridNumbering extends AbstractConfigurable implemen
   protected boolean visible = false;
   protected int fontSize = 9;
   protected Color color = Color.black;
+  protected int rotateTextDegrees = 0;
+  protected int hDrawOff = 0;
+  protected int vDrawOff = 0;
   protected JComponent visualizer;
   protected String locationFormat = "$" + GRID_LOCATION + "$";
   protected FormattedString format = new FormattedString();
@@ -75,8 +78,10 @@ public abstract class RegularGridNumbering extends AbstractConfigurable implemen
   public static final String FONT_SIZE = "fontSize";
   public static final String COLOR = "color";
   public static final String VISIBLE = "visible";
+  public static final String ROTATE_TEXT = "rotateText";
+  public static final String H_DRAW_OFF = "hDrawOff";
+  public static final String V_DRAW_OFF = "vDrawOff";
   public static final String LOCATION_FORMAT = "locationFormat";
-
   public static final String GRID_LOCATION = "gridLocation";
 
   public String getAttributeValueString(String key) {
@@ -121,6 +126,15 @@ public abstract class RegularGridNumbering extends AbstractConfigurable implemen
     }
     else if (LOCATION_FORMAT.equals(key)) {
       return locationFormat;
+    }
+    else if (ROTATE_TEXT.equals(key)) {
+      return "" + rotateTextDegrees;
+    }
+    else if (H_DRAW_OFF.equals(key)) {
+      return "" + hDrawOff;
+    }
+    else if (V_DRAW_OFF.equals(key)) {
+      return "" + vDrawOff;
     }
     else {
       return null;
@@ -197,6 +211,24 @@ public abstract class RegularGridNumbering extends AbstractConfigurable implemen
     else if (LOCATION_FORMAT.equals(key)) {
       locationFormat = (String) value;
     }
+    else if (ROTATE_TEXT.equals(key)) {
+      if (value instanceof String) {
+        value = new Integer((String) value);
+      }
+      rotateTextDegrees = ((Integer) value).intValue();
+    }
+    else if (H_DRAW_OFF.equals(key)) {
+      if (value instanceof String) {
+        value = new Integer((String) value);
+      }
+      hDrawOff = ((Integer) value).intValue();
+    }
+    else if (V_DRAW_OFF.equals(key)) {
+      if (value instanceof String) {
+        value = new Integer((String) value);
+      }
+      vDrawOff = ((Integer) value).intValue();
+    }
   }
 
   public boolean isVisible() {
@@ -217,7 +249,8 @@ public abstract class RegularGridNumbering extends AbstractConfigurable implemen
 
   public String[] getAttributeNames() {
     return new String[]{FIRST, SEP, H_TYPE, H_LEADING, H_OFF, H_DESCEND,
-                        V_TYPE, V_LEADING, V_OFF, V_DESCEND, LOCATION_FORMAT, VISIBLE, FONT_SIZE, COLOR};
+                        V_TYPE, V_LEADING, V_OFF, V_DESCEND, LOCATION_FORMAT, VISIBLE, FONT_SIZE, COLOR,
+                        ROTATE_TEXT, H_DRAW_OFF, V_DRAW_OFF};
   }
 
   public String[] getAttributeDescriptions() {
@@ -234,7 +267,10 @@ public abstract class RegularGridNumbering extends AbstractConfigurable implemen
                         "Location format",
                         "Draw Numbering",
                         "Font size",
-                        "Color"};
+                        "Color",
+                        "Rotate text (Degrees)",
+                        "Text X offset",
+                        "Text Y offset"};
   }
 
   public static class F extends StringEnum {
@@ -255,6 +291,12 @@ public abstract class RegularGridNumbering extends AbstractConfigurable implemen
     }
   }
 
+  public static class R extends StringEnum {
+    public String[] getValidValues(AutoConfigurable target) {
+      return new String[]{"0", "90", "180", "270"};
+    }
+  }
+
   public Class[] getAttributeTypes() {
     return new Class[]{F.class,
                        String.class,
@@ -269,7 +311,10 @@ public abstract class RegularGridNumbering extends AbstractConfigurable implemen
                        LocationFormatConfig.class,
                        Boolean.class,
                        Integer.class,
-                       Color.class};
+                       Color.class,
+                       R.class,
+                       Integer.class,
+                       Integer.class};
 
   }
 
@@ -373,5 +418,39 @@ public abstract class RegularGridNumbering extends AbstractConfigurable implemen
         }
         return val + rowOrColumn;
     }
+  }
+
+  /*
+   * Translate the label center point based on the x, Y offset and
+   * the rotation factor
+   */
+  public Point offsetLabelCenter(Point p, double zoom) {
+    return offsetLabelCenter(p.x, p.y, zoom);
+  }
+
+  public Point offsetLabelCenter(int x, int y, double zoom) {
+    Point n = new Point(x, y);
+    switch (rotateTextDegrees) {
+      case 0:
+        break;
+      case 90:
+        n.x = y;
+        n.y = -x;
+        break;
+      case 180:
+        n.x = -x;
+        n.y = -y;
+        break;
+      case 270:
+        n.x = -y;
+        n.y = x;
+        break;
+      default  :
+        break;
+    }
+    n.x += (hDrawOff * zoom);
+    n.y += (vDrawOff * zoom);
+
+    return n;
   }
 }
