@@ -17,32 +17,31 @@
  */
 package VASSAL.build.module;
 
-import java.awt.Component;
-import java.awt.Container;
-import java.beans.PropertyChangeEvent;
-import java.beans.PropertyChangeListener;
-import java.io.*;
-import java.net.*;
-import java.util.Enumeration;
-import java.util.Hashtable;
-import java.util.StringTokenizer;
-import java.util.Vector;
-
-import javax.swing.DefaultListModel;
-import javax.swing.JList;
-import javax.swing.event.ListDataEvent;
-import javax.swing.event.ListDataListener;
-
 import VASSAL.build.AbstractConfigurable;
 import VASSAL.build.Buildable;
 import VASSAL.build.GameModule;
 import VASSAL.build.module.documentation.HelpFile;
+import VASSAL.command.Command;
 import VASSAL.configure.BooleanConfigurer;
 import VASSAL.configure.StringArrayConfigurer;
 import VASSAL.configure.StringConfigurer;
 import VASSAL.configure.StringEnumConfigurer;
 import VASSAL.preferences.Prefs;
 import VASSAL.tools.BackgroundTask;
+
+import javax.swing.*;
+import javax.swing.event.ListDataEvent;
+import javax.swing.event.ListDataListener;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.PrintWriter;
+import java.net.URL;
+import java.net.URLConnection;
+import java.util.Enumeration;
+import java.util.Hashtable;
+import java.util.StringTokenizer;
+import java.util.Vector;
 
 /**
  * @author Brent Easton
@@ -64,7 +63,7 @@ public class DieManager extends AbstractConfigurable {
   private String lastServerName = "";
   private MultiRoll myMultiRoll;
   final StringEnumConfigurer semail;
-  
+
   public static final String USE_INTERNET_DICE = "useinternetdice";
   public static final String DICE_SERVER = "diceserver";
   public static final String SERVER_PW = "serverpw";
@@ -111,48 +110,48 @@ public class DieManager extends AbstractConfigurable {
     final StringConfigurer serverpw = new StringConfigurer(SERVER_PW, "Dice Server Password");
     final BooleanConfigurer useemail = new BooleanConfigurer(USE_EMAIL, "Email results?");
     final StringConfigurer pemail = new StringConfigurer(PRIMARY_EMAIL, "Primary Email");
-	final StringArrayConfigurer abook = new StringArrayConfigurer(ADDRESS_BOOK, "Address Book");
-	final BooleanConfigurer multiroll = new BooleanConfigurer(MULTI_ROLL, "Put multiple rolls into single email");
-	
-	GameModule.getGameModule().getPrefs().addOption(null, dieserver);
+    final StringArrayConfigurer abook = new StringArrayConfigurer(ADDRESS_BOOK, "Address Book");
+    final BooleanConfigurer multiroll = new BooleanConfigurer(MULTI_ROLL, "Put multiple rolls into single email");
+
+    GameModule.getGameModule().getPrefs().addOption(null, dieserver);
     GameModule.getGameModule().getPrefs().addOption(null, serverpw);
     GameModule.getGameModule().getPrefs().addOption(DIE_MANAGER, useemail);
-    
-	GameModule.getGameModule().getPrefs().addOption(DIE_MANAGER, abook);
-	String[] addressList = (String[]) GameModule.getGameModule().getPrefs().getValue(ADDRESS_BOOK);
-	semail = new StringEnumConfigurer(SECONDARY_EMAIL, "Secondary Email", addressList);
-	
-	GameModule.getGameModule().getPrefs().addOption(DIE_MANAGER, pemail);
-	GameModule.getGameModule().getPrefs().addOption(DIE_MANAGER, semail);
+
+    GameModule.getGameModule().getPrefs().addOption(DIE_MANAGER, abook);
+    String[] addressList = (String[]) GameModule.getGameModule().getPrefs().getValue(ADDRESS_BOOK);
+    semail = new StringEnumConfigurer(SECONDARY_EMAIL, "Secondary Email", addressList);
+
+    GameModule.getGameModule().getPrefs().addOption(DIE_MANAGER, pemail);
+    GameModule.getGameModule().getPrefs().addOption(DIE_MANAGER, semail);
     GameModule.getGameModule().getPrefs().addOption(DIE_MANAGER, multiroll);
 
     setSemailValues();
-    
-	DefaultListModel m = abook.getModel();
-	ListDataListener ldl = new ListDataListener () {
-		
-        public void contentsChanged(ListDataEvent arg0) {
-			setSemailValues();           
-        }
 
-        public void intervalAdded(ListDataEvent arg0) {
-			setSemailValues();  
-        }
+    DefaultListModel m = abook.getModel();
+    ListDataListener ldl = new ListDataListener() {
 
-        public void intervalRemoved(ListDataEvent arg0) {
-			setSemailValues();
-        }
-	};
-	m.addListDataListener(ldl);	
+      public void contentsChanged(ListDataEvent arg0) {
+        setSemailValues();
+      }
+
+      public void intervalAdded(ListDataEvent arg0) {
+        setSemailValues();
+      }
+
+      public void intervalRemoved(ListDataEvent arg0) {
+        setSemailValues();
+      }
+    };
+    m.addListDataListener(ldl);
   }
-  
+
   public void setSemailValues() {
-	String currentSemail = (String) GameModule.getGameModule().getPrefs().getValue(SECONDARY_EMAIL); 
-	String[] addressBook = (String[]) GameModule.getGameModule().getPrefs().getValue(ADDRESS_BOOK);
-	semail.setValidValues(addressBook);
-	semail.setValue(currentSemail); 	
+    String currentSemail = (String) GameModule.getGameModule().getPrefs().getValue(SECONDARY_EMAIL);
+    String[] addressBook = (String[]) GameModule.getGameModule().getPrefs().getValue(ADDRESS_BOOK);
+    semail.setValidValues(addressBook);
+    semail.setValue(currentSemail);
   }
-  
+
   // Return names of all known Dice Servers
   public String[] getNames() {
     if (servers == null) {
@@ -240,13 +239,12 @@ public class DieManager extends AbstractConfigurable {
     getPrefs();
 
     RollSet rollSet;
-    String mess;
 
-	String desc = GameModule.getGameModule().getChatter().getInputField().getText();
-	if (desc != null && desc.length() > 0) {
-	   mroll.setDescription(desc);
-	}
-	
+    String desc = GameModule.getGameModule().getChatter().getInputField().getText();
+    if (desc != null && desc.length() > 0) {
+      mroll.setDescription(desc);
+    }
+
     // Do we want full multi-roll capabilities? If required, pop-up the multi-roll
     // cofigurer to get the details
     if (useMultiRoll) {
@@ -256,7 +254,7 @@ public class DieManager extends AbstractConfigurable {
         return;
       }
       rollSet = mroll.getRollSet();
-	  desc = rollSet.getDescription();
+      desc = rollSet.getDescription();
     }
 
     // Multi Roll preference not selected, so build a dummy MultiRoll object
@@ -266,25 +264,27 @@ public class DieManager extends AbstractConfigurable {
       desc = "";
     }
 
-	if (desc == null || desc.length() == 0) {
-		desc = GameModule.getGameModule().getChatter().getInputField().getText();
-	}
-	
+    Command chatCommand = new Chatter.DisplayText(GameModule.getGameModule().getChatter(),
+                                                    " - Roll sent to "+server.getDescription());
+
     if (desc == null || desc.length() == 0) {
-      desc = "(Leave text in the chat input area to provide a subject line)";
-      mess = "";
-    } 
-    else {
-      mess = desc + " ";
+      desc = GameModule.getGameModule().getChatter().getInputField().getText();
     }
-    
-    mess += "[Roll sent to " + server.getDescription();
-	if (server.getUseEmail()) {
-	    mess += " (Emailing " + server.getSecondaryEmail() + ")";
-	} 
-	mess += "]";
-	GameModule.getGameModule().getChatter().send(mess);
-	
+    if (server.getUseEmail()) {
+      if (desc == null || desc.length() == 0) {
+        chatCommand.append(new Chatter.DisplayText(GameModule.getGameModule().getChatter(),
+                                                      " - Emailing "+server.getSecondaryEmail()+" (no subject line)"));
+        chatCommand.append(new Chatter.DisplayText(GameModule.getGameModule().getChatter(),
+                                                      " - Leave text in the chat input area to provide a subject line"));
+      }
+      else {
+        chatCommand.append(new Chatter.DisplayText(GameModule.getGameModule().getChatter(),
+                                                      " - Emailing "+server.getSecondaryEmail()+" (Subject:  "+desc+")"));
+      }
+    }
+    chatCommand.execute();
+    GameModule.getGameModule().sendAndLog(chatCommand);
+
     GameModule.getGameModule().getChatter().getInputField().setText("");
     rollSet.setDescription(desc);
 
