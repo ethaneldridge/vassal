@@ -26,6 +26,8 @@ import VASSAL.configure.StringConfigurer;
 
 import javax.swing.*;
 import java.awt.*;
+import java.io.File;
+import java.net.MalformedURLException;
 
 /**
  * This trait is a placeholder for a pre-defined series of traits specified
@@ -59,7 +61,14 @@ public class UsePrototype extends Decorator implements EditablePiece {
   }
 
   public HelpFile getHelpFile() {
-    return null;
+    File dir = VASSAL.build.module.Documentation.getDocumentationBaseDir();
+    dir = new File(dir, "ReferenceManual");
+    try {
+      return new HelpFile(null, new File(dir, "UsePrototype.htm"));
+    }
+    catch (MalformedURLException ex) {
+      return null;
+    }
   }
 
   public void mySetType(String type) {
@@ -98,8 +107,14 @@ public class UsePrototype extends Decorator implements EditablePiece {
       if (!type.equals(lastCachedPrototype)) {
         lastCachedPrototype = type;
         prototype = new PieceCloner().clonePiece(def.getPiece());
-        ((Decorator)Decorator.getInnermost(prototype).getProperty(Properties.OUTER)).setInner(piece);
-        prototype.setProperty(Properties.OUTER, this);
+        Decorator outer = (Decorator)Decorator.getInnermost(prototype).getProperty(Properties.OUTER);
+        if (outer != null) { // Will be null for an empty prototype
+          outer.setInner(piece);
+          prototype.setProperty(Properties.OUTER, this);
+        }
+        else {
+          prototype = null;
+        }
       }
     }
     else {

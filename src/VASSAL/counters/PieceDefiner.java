@@ -111,7 +111,12 @@ public class PieceDefiner extends javax.swing.JPanel implements HelpWindowExtens
   }
 
   private void refresh() {
-    piece = (GamePiece) inUseModel.lastElement();
+    if (inUseModel.getSize() > 0) {
+      piece = (GamePiece) inUseModel.lastElement();
+    }
+    else {
+      piece = null;
+    }
     slot.setPiece(piece);
     slot.getComponent().repaint();
   }
@@ -202,11 +207,27 @@ public class PieceDefiner extends javax.swing.JPanel implements HelpWindowExtens
     addButton.setText("Add ->");
     addButton.addActionListener(new java.awt.event.ActionListener() {
       public void actionPerformed(java.awt.event.ActionEvent evt) {
-        Decorator c = (Decorator) availableList.getSelectedValue();
-        if (c != null) {
-          addTrait(c);
-          if (inUseModel.lastElement().getClass() == c.getClass()) { // Add was successful
-            edit(inUseModel.size() - 1);
+        Object selected = availableList.getSelectedValue();
+        if (selected instanceof Decorator) {
+          if (inUseModel.getSize() > 0) {
+            Decorator c = (Decorator) selected;
+            addTrait(c);
+            if (inUseModel.lastElement().getClass() == c.getClass()) { // Add was successful
+              edit(inUseModel.size() - 1);
+            }
+          }
+        }
+        else if (selected instanceof GamePiece
+            && inUseModel.getSize() == 0) {
+          try {
+            GamePiece p = (GamePiece) selected.getClass().newInstance();
+            setPiece(p);
+            if (inUseModel.getSize() > 0) {
+              edit(0);
+            }
+          }
+          catch (Exception e) {
+            e.printStackTrace();
           }
         }
       }
@@ -221,6 +242,9 @@ public class PieceDefiner extends javax.swing.JPanel implements HelpWindowExtens
         int index = inUseList.getSelectedIndex();
         if (index >= 0) {
           removeTrait(index);
+          if (inUseModel.getSize() > 0) {
+            inUseList.setSelectedIndex(Math.min(inUseModel.getSize() - 1, Math.max(index, 0)));
+          }
         }
       }
     }
@@ -399,28 +423,30 @@ public class PieceDefiner extends javax.swing.JPanel implements HelpWindowExtens
       return;
     }
     EditablePiece p = (EditablePiece) o;
-    Ed ed = null;
-    Window w = SwingUtilities.getWindowAncestor(this);
-    if (w instanceof Frame) {
-      ed = new Ed((Frame)w, p);
-    }
-    else if (w instanceof Dialog) {
-      ed = new Ed((Dialog)w,p);
-    }
-    else {
-      ed = new Ed((Frame)null,p);
-    }
-    ed.setVisible(true);
-    PieceEditor c = ed.getEditor();
-    if (c != null) {
-      p.mySetType(c.getType());
-      if (p instanceof Decorator) {
-        ((Decorator) p).mySetState(c.getState());
+    if (p.getEditor() != null) {
+      Ed ed = null;
+      Window w = SwingUtilities.getWindowAncestor(this);
+      if (w instanceof Frame) {
+        ed = new Ed((Frame) w, p);
+      }
+      else if (w instanceof Dialog) {
+        ed = new Ed((Dialog) w, p);
       }
       else {
-        p.setState(c.getState());
+        ed = new Ed((Frame) null, p);
       }
-      refresh();
+      ed.setVisible(true);
+      PieceEditor c = ed.getEditor();
+      if (c != null) {
+        p.mySetType(c.getType());
+        if (p instanceof Decorator) {
+          ((Decorator) p).mySetState(c.getState());
+        }
+        else {
+          p.setState(c.getState());
+        }
+        refresh();
+      }
     }
   }
 
@@ -509,7 +535,7 @@ public class PieceDefiner extends javax.swing.JPanel implements HelpWindowExtens
   // End of variables declaration//GEN-END:variables
   private static class Renderer extends DefaultListCellRenderer {
     public java.awt.Component getListCellRendererComponent
-      (JList list, Object value, int index, boolean selected, boolean hasFocus) {
+        (JList list, Object value, int index, boolean selected, boolean hasFocus) {
       super.getListCellRendererComponent(list, value, index, selected, hasFocus);
       if (value instanceof EditablePiece) {
         setText(((EditablePiece) value).getDescription());

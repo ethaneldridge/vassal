@@ -184,7 +184,10 @@ public class PrototypeDefinition implements Configurable {
           GamePiece inner = Decorator.getInnermost(piece);
           if (!(inner instanceof Plain)) {
             Plain plain = new Plain();
-            ((Decorator)inner.getProperty(Properties.OUTER)).setInner(plain);
+            Object outer = inner.getProperty(Properties.OUTER);
+            if (outer instanceof Decorator) {
+              ((Decorator)outer).setInner(plain);
+            }
             piece = Decorator.getOutermost(plain);
           }
         }
@@ -193,6 +196,13 @@ public class PrototypeDefinition implements Configurable {
         }
         super.setPiece(piece);
       }
+
+      protected void removeTrait(int index) {
+        if (index > 0) {
+          super.removeTrait(index);
+        }
+      }
+
       private static class Plain extends BasicPiece {
         public Plain() {
           super(ID + ";;;;");
