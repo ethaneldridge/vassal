@@ -120,6 +120,11 @@ public class FileConfigurer extends Configurer {
             setValue(f);
             noUpdate = false;
           }
+          else {
+            noUpdate = true;
+            setValue(null);
+            noUpdate = false;
+          }
         }
       });
       p.add(tf);

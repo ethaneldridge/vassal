@@ -80,6 +80,7 @@ public class Tutorial extends AbstractConfigurable {
       GameModule.getGameModule().getGameState().loadGame(tmp);
     }
     catch (IOException e1) {
+      e1.printStackTrace();
       String msg = "Unable to launch tutorial " + name;
       if (e1.getMessage() != null) {
         msg += ":  " + e1.getMessage();

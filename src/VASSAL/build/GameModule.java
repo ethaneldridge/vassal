@@ -221,7 +221,7 @@ public abstract class GameModule extends AbstractConfigurable implements Command
 
   public Class[] getAllowableConfigureComponents() {
     Class[] c = {Map.class, PieceWindow.class, PrototypesContainer.class, DiceButton.class, InternetDiceButton.class,
-                 RandomTextButton.class, SpecialDiceButton.class, ChartWindow.class, PrivateMap.class, PlayerHand.class, NotesWindow.class};
+                 RandomTextButton.class, SpecialDiceButton.class, PredefinedSetup.class, ChartWindow.class, PrivateMap.class, PlayerHand.class, NotesWindow.class};
     return c;
   }
 
