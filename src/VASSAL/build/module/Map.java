@@ -840,7 +840,7 @@ public class Map extends AbstractConfigurable implements GameComponent,
       GamePiece[] stack = pieces.getPieces();
       for (int i = 0; i < stack.length; ++i) {
         Point pt = componentCoordinates(stack[i].getPosition());
-        stack[i].draw(g, pt.x - xOffset, pt.y - yOffset, theMap, getZoom());
+        stack[i].draw(g, pt.x + xOffset, pt.y + yOffset, theMap, getZoom());
         if (Boolean.TRUE.equals(stack[i].getProperty(Properties.SELECTED))) {
           highlighter.draw
               (stack[i], g, pt.x - xOffset, pt.y - yOffset, theMap, getZoom());
@@ -863,8 +863,7 @@ public class Map extends AbstractConfigurable implements GameComponent,
   public void paint(Graphics g, int xOffset, int yOffset) {
     clearMapBorder(g); // To avoid ghost pieces around the edge
 
-    Point p = componentCoordinates(new Point(-xOffset, -yOffset));
-    drawBoards(g, p.x, p.y, getZoom(), theMap);
+    drawBoards(g, xOffset, yOffset, getZoom(), theMap);
     drawPieces(g, xOffset, yOffset);
     drawDrawable(g);
   }

@@ -223,8 +223,8 @@ public class ImageSaver extends AbstractConfigurable {
 
       Image output = map.getView().createImage(totalWidth, height);
       Graphics gg = output.getGraphics();
-      map.paint(gg, (int) (map.getZoom() * buffer.width),
-                (int) (map.getZoom() * buffer.height) + height * i);
+      map.paint(gg, -(int) (map.getZoom() * buffer.width),
+                -(int) (map.getZoom() * buffer.height) + height * i);
       try {
         MediaTracker t = new MediaTracker(map.getView());
         t.addImage(output, 0);
