@@ -25,8 +25,8 @@ import VASSAL.build.module.map.boardPicker.board.MapGrid;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.ItemListener;
 import java.awt.event.ItemEvent;
+import java.awt.event.ItemListener;
 import java.io.File;
 
 public class ASLBoardSlot extends BoardSlot {

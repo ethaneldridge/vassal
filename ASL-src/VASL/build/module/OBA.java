@@ -18,17 +18,21 @@
  */
 package VASL.build.module;
 
-import VASSAL.build.*;
-import VASSAL.command.*;
-import VASSAL.build.module.*;
-import VASSAL.tools.*;
-import VASSAL.configure.*;
-import VASSAL.preferences.*;
+import VASSAL.build.AbstractBuildable;
+import VASSAL.build.Buildable;
+import VASSAL.build.GameModule;
+import VASSAL.build.module.Chatter;
+import VASSAL.build.module.GameComponent;
+import VASSAL.command.Command;
+import VASSAL.command.CommandEncoder;
+import VASSAL.command.NullCommand;
+import VASSAL.tools.LaunchButton;
+import VASSAL.tools.SequenceEncoder;
 
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
-import java.util.*;
+import java.util.Random;
 
 /**
  * This components keeps track of OBA draw piles

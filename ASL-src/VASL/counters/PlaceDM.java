@@ -26,11 +26,14 @@
  */
 package VASL.counters;
 
-import VASSAL.counters.*;
 import VASSAL.command.Command;
+import VASSAL.counters.Decorator;
+import VASSAL.counters.GamePiece;
+import VASSAL.counters.KeyCommand;
+import VASSAL.counters.PlaceMarker;
 
+import javax.swing.*;
 import java.util.Enumeration;
-import javax.swing.KeyStroke;
 
 /**
  * Places a DM Marker only if the underlying counter is not broken

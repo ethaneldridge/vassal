@@ -18,18 +18,14 @@
  */
 package VASL.build.module.map.boardPicker;
 
-import VASL.build.module.map.ASLBoardPicker;
-import VASL.tools.*;
-
-import VASSAL.tools.DataArchive;
-import VASSAL.preferences.*;
 import VASSAL.build.GameModule;
+import VASSAL.tools.DataArchive;
 
+import java.awt.*;
+import java.awt.image.FilteredImageSource;
+import java.awt.image.RGBImageFilter;
 import java.io.*;
 import java.util.*;
-import java.util.zip.*;
-import java.awt.image.*;
-import java.awt.*;
 
 public class SSRFilter extends RGBImageFilter {
   /*

@@ -18,19 +18,10 @@
  */
 package VASL.build.module.map.boardPicker;
 
-import VASL.build.module.map.boardPicker.ASLBoard;
-import VASL.build.module.map.ASLBoardPicker;
-import VASL.tools.*;
-
 import VASSAL.tools.DataArchive;
-import VASSAL.preferences.*;
-import VASSAL.build.GameModule;
 
-import java.io.File;
-import java.util.*;
-import java.util.zip.*;
-import java.awt.image.*;
 import java.awt.*;
+import java.util.StringTokenizer;
 
 public class SSROverlay extends Overlay {
   private Point basePos;

@@ -18,12 +18,11 @@
  */
 package VASL.counters;
 
-import VASSAL.counters.*;
 import VASSAL.command.Command;
-import VASSAL.tools.SequenceEncoder;
+import VASSAL.counters.*;
 
+import javax.swing.*;
 import java.awt.*;
-import javax.swing.KeyStroke;
 import java.util.StringTokenizer;
 
 /**

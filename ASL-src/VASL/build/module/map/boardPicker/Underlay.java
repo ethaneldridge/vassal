@@ -17,19 +17,15 @@
  * at http://www.opensource.org.
  */
 package VASL.build.module.map.boardPicker;
-import VASL.build.module.map.boardPicker.ASLBoard;
-import VASL.build.module.map.ASLBoardPicker;
-import VASL.tools.*;
-
-import VASSAL.tools.DataArchive;
-import VASSAL.preferences.*;
 import VASSAL.build.GameModule;
+import VASSAL.tools.DataArchive;
 
-import java.util.*;
-import java.util.zip.*;
-import java.awt.image.*;
 import java.awt.*;
-import java.io.*;
+import java.awt.image.FilteredImageSource;
+import java.awt.image.RGBImageFilter;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
 
 public class Underlay extends SSROverlay {
   /*

@@ -18,13 +18,14 @@
  */
 package VASL.counters;
 
-import VASSAL.counters.*;
 import VASSAL.build.GameModule;
-import VASSAL.command.*;
+import VASSAL.command.Command;
+import VASSAL.command.TrackPiece;
+import VASSAL.counters.*;
 import VASSAL.tools.SequenceEncoder;
 
-import java.awt.*;
 import javax.swing.*;
+import java.awt.*;
 
 /**
  * Allows a piece to be marked as having moved

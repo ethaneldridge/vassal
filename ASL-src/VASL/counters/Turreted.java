@@ -18,13 +18,14 @@
  */
 package VASL.counters;
 
-import VASSAL.counters.*;
-import VASSAL.command.*;
-import VASSAL.tools.SequenceEncoder;
 import VASSAL.build.GameModule;
+import VASSAL.command.Command;
+import VASSAL.command.TrackPiece;
+import VASSAL.counters.*;
+import VASSAL.tools.SequenceEncoder;
 
+import javax.swing.*;
 import java.awt.*;
-import javax.swing.KeyStroke;
 
 /**
  * This class draws a turret counter at different offsets depending on the CA

@@ -18,18 +18,24 @@
  */
 package VASL.build.module.map;
 
-import VASSAL.build.*;
+import VASSAL.build.Buildable;
+import VASSAL.build.Builder;
+import VASSAL.build.GameModule;
+import VASSAL.build.IllegalBuildException;
 import VASSAL.build.module.Map;
-import VASSAL.counters.*;
-import VASSAL.command.*;
-import VASSAL.tools.SequenceEncoder;
+import VASSAL.command.Command;
+import VASSAL.command.NullCommand;
+import VASSAL.command.RemovePiece;
+import VASSAL.counters.GamePiece;
+import VASSAL.counters.Stack;
+import org.w3c.dom.Element;
+import org.w3c.dom.NodeList;
 
-
-import org.w3c.dom.*;
-import java.awt.event.*;
 import javax.swing.*;
-import java.util.Hashtable;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.util.Enumeration;
+import java.util.Hashtable;
 import java.util.Vector;
 
 /**

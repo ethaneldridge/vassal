@@ -18,13 +18,15 @@
  */
 package VASL.counters;
 
-import VASSAL.counters.*;
-import VASSAL.command.*;
 import VASSAL.build.GameModule;
+import VASSAL.command.ChangePiece;
+import VASSAL.command.Command;
+import VASSAL.command.NullCommand;
+import VASSAL.counters.*;
 import VASSAL.tools.SequenceEncoder;
 
-import java.awt.*;
 import javax.swing.*;
+import java.awt.*;
 
 public class Concealable extends Obscurable implements EditablePiece {
   public static final String ID = "conceal;";

@@ -19,18 +19,19 @@
 package VASL.build.module;
 
 import VASL.counters.*;
+import VASSAL.build.Buildable;
+import VASSAL.build.GameModule;
+import VASSAL.build.module.Map;
+import VASSAL.command.AddPiece;
+import VASSAL.command.Command;
+import VASSAL.configure.ColorConfigurer;
 import VASSAL.counters.*;
-import VASSAL.command.*;
-import VASSAL.build.module.*;
-import VASSAL.build.*;
-import VASSAL.configure.*;
 import VASSAL.tools.SequenceEncoder;
-
-import java.awt.*;
-import javax.swing.*;
-
-import org.w3c.dom.Element;
 import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+
+import javax.swing.*;
+import java.awt.*;
 
 public class ASLCommandEncoder extends VASSAL.build.module.BasicCommandEncoder implements ColorTable {
   public static VASL.counters.CounterNames names = new VASL.counters.CounterNames();

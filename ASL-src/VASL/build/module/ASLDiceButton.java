@@ -18,7 +18,8 @@
  */
 package VASL.build.module;
 
-import VASSAL.build.*;
+import VASSAL.build.Buildable;
+import VASSAL.build.GameModule;
 import VASSAL.build.module.DiceButton;
 
 /**

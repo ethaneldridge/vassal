@@ -18,13 +18,16 @@
  */
 package VASL.build.module;
 
-import VASSAL.build.*;
+import VASSAL.build.AbstractBuildable;
+import VASSAL.build.Buildable;
+import VASSAL.build.GameModule;
 import VASSAL.build.module.GameState;
-import VASSAL.command.*;
+import VASSAL.command.Command;
+import VASSAL.command.CommandEncoder;
 import VASSAL.tools.Decoder;
 
-import java.util.StringTokenizer;
 import java.io.ByteArrayOutputStream;
+import java.util.StringTokenizer;
 
 /**
  * Provides backward-compatibility for VASL 3.0 savefiles

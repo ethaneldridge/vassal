@@ -18,9 +18,12 @@
  */
 package VASL.counters;
 
-import VASSAL.counters.*;
 import VASSAL.build.GameModule;
 import VASSAL.command.Command;
+import VASSAL.counters.Decorator;
+import VASSAL.counters.EditablePiece;
+import VASSAL.counters.GamePiece;
+import VASSAL.counters.KeyCommand;
 import VASSAL.tools.SequenceEncoder;
 
 import java.awt.*;

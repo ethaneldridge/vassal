@@ -17,10 +17,9 @@
  * at http://www.opensource.org.
  */
 package VASL.build.module.map;
-import VASL.counters.*;
-
-import VASSAL.build.module.map.*;
-import VASSAL.counters.*;
+import VASL.counters.ASLProperties;
+import VASSAL.build.module.map.StackMetrics;
+import VASSAL.counters.GamePiece;
 
 import java.awt.*;
 
