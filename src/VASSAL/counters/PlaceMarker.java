@@ -87,7 +87,7 @@ public class PlaceMarker extends Decorator implements EditablePiece {
   public String myGetType() {
     SequenceEncoder se = new SequenceEncoder(';');
     se.append(command.getName());
-    se.append("" + key);
+    se.append(key != 0 ? "" + key : "");
     se.append(markerSpec == null ? "null " : markerSpec);
     return ID + se.getValue();
   }

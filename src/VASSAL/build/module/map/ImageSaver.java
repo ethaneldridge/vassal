@@ -29,6 +29,7 @@ import VASSAL.tools.LaunchButton;
 import com.keypoint.PngEncoder;
 
 import javax.swing.*;
+import javax.swing.border.BevelBorder;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -131,8 +132,10 @@ public class ImageSaver extends AbstractConfigurable {
       final String fileName = fc.getSelectedFile().getPath();
       final JWindow w = new JWindow((Frame) SwingUtilities.getAncestorOfClass(Frame.class,map.getView()));
       final JLabel text = new JLabel("Saving Map Image ...");
+      text.setFont(new Font("Dialog",Font.PLAIN,48));
       text.setBackground(Color.white);
       text.setForeground(Color.black);
+      text.setBorder(new BevelBorder(BevelBorder.RAISED,Color.lightGray,Color.darkGray));
       w.getContentPane().setBackground(Color.white);
       w.getContentPane().add(text);
       w.pack();

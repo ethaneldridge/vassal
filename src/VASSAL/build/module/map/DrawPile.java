@@ -113,12 +113,12 @@ public class DrawPile extends AbstractConfigurable implements Drawable, GameComp
   }
 
   private void promptForNextDraw() {
-    final JDialog d = new JDialog((Frame)SwingUtilities.getAncestorOfClass(Frame.class, map.getView()),true);
+    final JDialog d = new JDialog((Frame) SwingUtilities.getAncestorOfClass(Frame.class, map.getView()), true);
     d.setTitle("Draw");
-    d.getContentPane().setLayout(new BoxLayout(d.getContentPane(),BoxLayout.Y_AXIS));
+    d.getContentPane().setLayout(new BoxLayout(d.getContentPane(), BoxLayout.Y_AXIS));
     final String[] pieces = new String[contents.getPieceCount()];
-    for (int i=0;i<pieces.length;++i) {
-      pieces[i] = Decorator.getInnermost(contents.getPieceAt(i)).getName();
+    for (int i = 0; i < pieces.length; ++i) {
+      pieces[pieces.length - i - 1] = Decorator.getInnermost(contents.getPieceAt(i)).getName();
     }
     final JList list = new JList(pieces);
     list.setSelectionMode(ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
@@ -131,8 +131,8 @@ public class DrawPile extends AbstractConfigurable implements Drawable, GameComp
       public void actionPerformed(ActionEvent e) {
         nextDraw = new Vector();
         int[] selection = list.getSelectedIndices();
-        for (int i=0;i<selection.length;++i) {
-          nextDraw.addElement(contents.getPieceAt(selection[i]));
+        for (int i = 0; i < selection.length; ++i) {
+          nextDraw.addElement(contents.getPieceAt(pieces.length - selection[i] - 1));
         }
         d.dispose();
       }
@@ -166,8 +166,8 @@ public class DrawPile extends AbstractConfigurable implements Drawable, GameComp
     }
     // Our map doesn't yet appear in the GameModule
     for (Enumeration e = map.getComponents(DrawPile.class); e.hasMoreElements();) {
-        e.nextElement();
-        count++;
+      e.nextElement();
+      count++;
     }
     setId("Deck" + count);
 
@@ -224,14 +224,14 @@ public class DrawPile extends AbstractConfigurable implements Drawable, GameComp
   public static final String REVERSIBLE = "reversible";
   public static final String DRAW = "draw";
   public static final String COLOR = "color";
-  public static final String NAME="name";
+  public static final String NAME = "name";
 
   public static final String ALWAYS = "Always";
   public static final String NEVER = "Never";
   public static final String USE_MENU = "Via right-click Menu";
 
   public String[] getAttributeNames() {
-    return new String[]{NAME, OWNING_BOARD,X_POSITION, Y_POSITION, WIDTH, HEIGHT, ALLOW_MULTIPLE, ALLOW_SELECT, FACE_DOWN, SHUFFLE, REVERSIBLE, DRAW, COLOR};
+    return new String[]{NAME, OWNING_BOARD, X_POSITION, Y_POSITION, WIDTH, HEIGHT, ALLOW_MULTIPLE, ALLOW_SELECT, FACE_DOWN, SHUFFLE, REVERSIBLE, DRAW, COLOR};
   }
 
   public String[] getAttributeDescriptions() {
@@ -410,10 +410,10 @@ public class DrawPile extends AbstractConfigurable implements Drawable, GameComp
   public VisibilityCondition getAttributeVisibility(String name) {
     if (COLOR.equals(name)) {
       return new VisibilityCondition() {
-      public boolean shouldBeVisible() {
-        return drawOutline;
-      }
-    };
+        public boolean shouldBeVisible() {
+          return drawOutline;
+        }
+      };
     }
     else {
       return null;
@@ -430,7 +430,7 @@ public class DrawPile extends AbstractConfigurable implements Drawable, GameComp
     DragBuffer.getBuffer().clear();
     for (int count = contents.getPieceCount(); count > 0; --count) {
       int i = (int) (GameModule.getGameModule().getRNG().nextFloat()
-        * indices.size());
+          * indices.size());
       int index = ((Integer) indices.elementAt(i)).intValue();
       indices.removeElementAt(i);
       newContents.addElement(contents.getPieceAt(index));
@@ -476,15 +476,16 @@ public class DrawPile extends AbstractConfigurable implements Drawable, GameComp
 
   public void draw(java.awt.Graphics g, Map map) {
     Point p = map.componentCoordinates(getPosition());
-    draw(g,p.x,p.y,map.getView(),map.getZoom());
+    draw(g, p.x, p.y, map.getView(), map.getZoom());
   }
+
   public void draw(java.awt.Graphics g, int x, int y, Component obs, double zoom) {
     int count = 0;
     if (contents != null
-      && (count = contents.getPieceCount()) > 0) {
+        && (count = contents.getPieceCount()) > 0) {
       GamePiece top = contents.topPiece();
       Rectangle r = top.getShape().getBounds();
-      r.setLocation(x+(int)(zoom*(r.x)),y+(int)(zoom*(r.y)));
+      r.setLocation(x + (int) (zoom * (r.x)), y + (int) (zoom * (r.y)));
       r.setSize((int) (zoom * r.width), (int) (zoom * r.height));
       count = count > 10 ? 10 : count;
       for (int i = 0; i < count - 1; ++i) {
@@ -495,22 +496,22 @@ public class DrawPile extends AbstractConfigurable implements Drawable, GameComp
         g.drawRect(r.x + (int) (zoom * 2 * i),
                    r.y - (int) (zoom * 2 * i), r.width, r.height);
       }
-      if (faceDown && top.getProperty(Obscurable.ID) !=  null) {
+      if (faceDown && top.getProperty(Obscurable.ID) != null) {
         Object oldValue = top.getProperty(Obscurable.ID);
-        top.setProperty(Obscurable.ID,HIDDEN_TO_ALL);
+        top.setProperty(Obscurable.ID, HIDDEN_TO_ALL);
         top.draw(g, x + (int) (zoom * 2 * (count - 1)),
                  y - (int) (zoom * 2 * (count - 1)), obs, zoom);
-        top.setProperty(Obscurable.ID,oldValue);
+        top.setProperty(Obscurable.ID, oldValue);
       }
       else {
-      top.draw(g, x + (int) (zoom * 2 * (count - 1)),
-               y - (int) (zoom * 2 * (count - 1)), obs, zoom);
+        top.draw(g, x + (int) (zoom * 2 * (count - 1)),
+                 y - (int) (zoom * 2 * (count - 1)), obs, zoom);
       }
     }
     else {
       if (drawOutline) {
         Rectangle r = boundingBox();
-        r.setLocation(x+(int)(zoom*(r.x-getPosition().x)), y+(int)(zoom*(r.y-getPosition().y)));
+        r.setLocation(x + (int) (zoom * (r.x - getPosition().x)), y + (int) (zoom * (r.y - getPosition().y)));
         r.setSize((int) (zoom * r.width), (int) (zoom * r.height));
         g.setColor(outlineColor);
         g.drawRect(r.x, r.y, r.width, r.height);
@@ -522,7 +523,7 @@ public class DrawPile extends AbstractConfigurable implements Drawable, GameComp
     Point p = new Point(pos);
     Board b = map.getBoardByName(owningBoardName);
     if (b != null) {
-      p.translate(b.bounds().x,b.bounds().y);
+      p.translate(b.bounds().x, b.bounds().y);
     }
     return p;
   }
@@ -534,11 +535,11 @@ public class DrawPile extends AbstractConfigurable implements Drawable, GameComp
   public Rectangle boundingBox() {
     Rectangle r = null;
     if (contents != null
-      && contents.getPieceCount() > 0) {
+        && contents.getPieceCount() > 0) {
       GamePiece p = contents.topPiece();
       r = p.getShape().getBounds();
-      r.translate(pos.x,pos.y);
-      for (int i = 0, n = Math.min(10,contents.getPieceCount()); i < n; ++i) {
+      r.translate(pos.x, pos.y);
+      for (int i = 0, n = Math.min(10, contents.getPieceCount()); i < n; ++i) {
         r.setSize(r.width + 2, r.height + 2);
         r.y -= 2;
       }
@@ -550,7 +551,7 @@ public class DrawPile extends AbstractConfigurable implements Drawable, GameComp
       for (Enumeration e = map.getAllBoards(); e.hasMoreElements();) {
         Board b = (Board) e.nextElement();
         if (owningBoardName.equals(b.getName())) {
-          r.translate(b.bounds().x,b.bounds().y);
+          r.translate(b.bounds().x, b.bounds().y);
           break;
         }
       }
@@ -570,7 +571,7 @@ public class DrawPile extends AbstractConfigurable implements Drawable, GameComp
       }
       while (count-- > 0) {
         int i = (int) (GameModule.getGameModule().getRNG().nextFloat()
-          * indices.size());
+            * indices.size());
         int index = ((Integer) indices.elementAt(i)).intValue();
         indices.removeElementAt(i);
         GamePiece p = contents.getPieceAt(index);
@@ -611,7 +612,7 @@ public class DrawPile extends AbstractConfigurable implements Drawable, GameComp
 
   public void mousePressed(MouseEvent evt) {
     if (isActive && boundingBox().contains(evt.getPoint())
-      && contents.getPieceCount() > 0) {
+        && contents.getPieceCount() > 0) {
       if (!evt.isMetaDown()) {
         if (nextDraw != null) {
           DragBuffer.getBuffer().clear();
@@ -642,7 +643,8 @@ public class DrawPile extends AbstractConfigurable implements Drawable, GameComp
       if (evt.isMetaDown()) {
         JPopupMenu popup = buildPopup();
         if (popup != null) {
-          popup.show(map.getView(), evt.getX(), evt.getY());
+          Point p = map.componentCoordinates(evt.getPoint());
+          popup.show(map.getView(), p.x, p.y);
         }
       }
       else {
@@ -650,10 +652,10 @@ public class DrawPile extends AbstractConfigurable implements Drawable, GameComp
         if (p != null) {
           String oldContents = contents.getState();
           GameModule.getGameModule().sendAndLog
-            (addToContents(p).append
-             (new ChangePiece(contents.getId(),
-                              oldContents,
-                              contents.getState())));
+              (addToContents(p).append
+               (new ChangePiece(contents.getId(),
+                                oldContents,
+                                contents.getState())));
         }
       }
     }
@@ -717,7 +719,7 @@ public class DrawPile extends AbstractConfigurable implements Drawable, GameComp
       }
       else {
         for (Enumeration e = map.getAllBoards(); e.hasMoreElements();) {
-          if (owningBoardName.equals(((Board)e.nextElement()).getName())) {
+          if (owningBoardName.equals(((Board) e.nextElement()).getName())) {
             isActive = true;
             break;
           }
@@ -739,8 +741,8 @@ public class DrawPile extends AbstractConfigurable implements Drawable, GameComp
       for (int i = 0; i < c.length; ++i) {
         GamePiece p = ((PieceSlot) c[i]).getPiece();
         p = ((AddPiece) GameModule.getGameModule().decode
-          (GameModule.getGameModule().encode
-           (new AddPiece(p)))).getTarget();
+            (GameModule.getGameModule().encode
+             (new AddPiece(p)))).getTarget();
         p.setState(((PieceSlot) c[i]).getPiece().getState());
         if (faceDown) {
           p.setProperty(Obscurable.ID, HIDDEN_TO_ALL);
@@ -792,7 +794,7 @@ public class DrawPile extends AbstractConfigurable implements Drawable, GameComp
 
   public String encode(Command c) {
     if (c instanceof SetContents
-      && ((SetContents) c).deck == this) {
+        && ((SetContents) c).deck == this) {
       SequenceEncoder se = new SequenceEncoder(getId(), '\t');
       se.append(((SetContents) c).contentsId);
       se.append("" + ((SetContents) c).faceDown);
@@ -825,8 +827,8 @@ public class DrawPile extends AbstractConfigurable implements Drawable, GameComp
 
     public OwningBoardPrompt() {
       String[] s = picker == null ? new String[0] : picker.getAllowableBoardNames();
-      values = new String[s.length+1];
-      System.arraycopy(s,0,values,0,s.length);
+      values = new String[s.length + 1];
+      System.arraycopy(s, 0, values, 0, s.length);
       values[s.length] = ANY;
     }
 

@@ -48,7 +48,7 @@ public class ErrorLog {
       JButton disableButton = new JButton("Don't show this dialog again");
       String text = "An untrapped error has occurred.\n"
           + msg + "\n"
-          + "Plaease send a report to support@vassalengine.org and attach the log file.\n" + logFile;
+          + "Please send a report to support@vassalengine.org and attach the log file.\n" + logFile;
       if (t instanceof OutOfMemoryError) {
         text = "The application has run out of memory.\nTo decrease memory usage, try reducing the number of colors in your display.";
       }

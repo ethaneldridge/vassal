@@ -93,6 +93,12 @@ public final class Info {
     return is2dEnabled.booleanValue();
   }
 
+  public static boolean isMacOsX() {
+    String os = System.getProperty("os.name");
+    return os.toLowerCase().indexOf("mac") >= 0
+      && os.toLowerCase().indexOf("x") > 0;
+  }
+
   /**
    *
    * A valid verson format is "w.x.y[bz]", where
