@@ -547,6 +547,7 @@ public class DieManager extends AbstractConfigurable {
 
     /**
      * The text reported after the results of the roll;
+     * @deprecated
      */
     protected String getReportSuffix() {
       return " ***  <" + GameModule.getGameModule().getChatter().getHandle() + ">";
@@ -624,7 +625,7 @@ public class DieManager extends AbstractConfigurable {
      */
     protected String formatResult(String description, String result, FormattedString format) {
       format.setProperty(DiceButton.RESULT, result);
-      format.setProperty(DiceButton.DETAILS, description);
+      format.setProperty(InternetDiceButton.DETAILS, description);
       String text = format.getText();
       String report = text.startsWith("*") ? "*" + text : "* " + text;
       return report;

@@ -26,11 +26,14 @@ package VASSAL.build.module;
  *
  */
 
+import VASSAL.build.AutoConfigurable;
 import VASSAL.build.Buildable;
 import VASSAL.build.GameModule;
 import VASSAL.build.module.documentation.HelpFile;
 import VASSAL.command.Command;
 import VASSAL.command.CommandEncoder;
+import VASSAL.configure.Configurer;
+import VASSAL.configure.FormattedStringConfigurer;
 
 import java.io.File;
 import java.net.MalformedURLException;
@@ -45,12 +48,38 @@ public class InternetDiceButton extends DiceButton implements GameComponent, Com
   protected static DieManager dieManager;
   private static final String COMMAND_PREFIX = "SEMAIL\t";
 
+  /** Report format variale */
+  public static final String DETAILS = "rollDetails";
+
   public InternetDiceButton() {
     super();
   }
 
   public static String getConfigureTypeName() {
     return "Internet Dice Button";
+  }
+
+  public Class[] getAttributeTypes() {
+    Class[] c = super.getAttributeTypes();
+    for (int i=0;i<c.length;++i) {
+      if (c[i] == ReportFormatConfig.class) {
+        c[i] = InternetReportFormatConfig.class;
+      }
+    }
+    return c;
+  }
+
+
+  public static class InternetReportFormatConfig extends ReportFormatConfig {
+    public Configurer getConfigurer(AutoConfigurable c, String key, String name) {
+      FormattedStringConfigurer config = (FormattedStringConfigurer) super.getConfigurer(c, key, name);
+      String[] options = config.getOptions();
+      String[] newOptions = new String[options.length+1];
+      System.arraycopy(options,0,newOptions,0,options.length);
+      newOptions[options.length] = DETAILS;
+      config.setOptions(newOptions);
+      return config;
+    }
   }
 
   /**

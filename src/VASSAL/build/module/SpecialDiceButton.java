@@ -111,6 +111,7 @@ public class SpecialDiceButton extends AbstractConfigurable implements CommandEn
 
   /**
    * The text reported after the results of the roll;
+   * @deprecated
    */
   protected String getReportSuffix() {
     return " ***  <"

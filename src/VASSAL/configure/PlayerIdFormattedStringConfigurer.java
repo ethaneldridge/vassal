@@ -13,7 +13,7 @@
  * Library General Public License for more details.
  *
  * You should have received a copy of the GNU Library General Public
- * License along with this library; if not, copies are available 
+ * License along with this library; if not, copies are available
  * at http://www.opensource.org.
  */
 package VASSAL.configure;
@@ -26,10 +26,11 @@ import VASSAL.build.module.GlobalOptions;
 public class PlayerIdFormattedStringConfigurer extends FormattedStringConfigurer {
   public PlayerIdFormattedStringConfigurer(String key, String name, String[] options) {
     super(key, name);
-    String[] allOptions = new String[options.length+2];
+    String[] allOptions = new String[options.length+3];
     allOptions[0] = GlobalOptions.PLAYER_NAME;
     allOptions[1] = GlobalOptions.PLAYER_SIDE;
-    System.arraycopy(options,0,allOptions,2,options.length);
+    allOptions[2] = GlobalOptions.PLAYER_ID;
+    System.arraycopy(options,0,allOptions,3,options.length);
     setOptions(allOptions);
   }
 }

@@ -59,7 +59,6 @@ public class DiceButton extends AbstractConfigurable {
   public static final String REPORT_FORMAT = "reportFormat";
 
   /** Variable name for reporting format */
-  public static final String DETAILS = "details";
   public static final String RESULT = "result";
   public static final String REPORT_NAME = "name";
 
@@ -101,6 +100,7 @@ public class DiceButton extends AbstractConfigurable {
 
   /**
    * The text reported before the results of the roll
+   * @deprecated
    */
   protected String getReportPrefix() {
     return " *** " + getConfigureName() + " = ";
@@ -108,6 +108,7 @@ public class DiceButton extends AbstractConfigurable {
 
   /**
    * The text reported after the results of the roll;
+   * @deprecated
    */
   protected String getReportSuffix() {
     return " ***  <"
@@ -148,7 +149,6 @@ public class DiceButton extends AbstractConfigurable {
   protected String formatResult(String result) {
     reportFormat.setProperty(REPORT_NAME, getConfigureName());
     reportFormat.setProperty(RESULT, result);
-    reportFormat.setProperty(DETAILS, result);
     String text = reportFormat.getText();
     String report = text.startsWith("*") ? "*" + text : "* " + text;
     return report;
@@ -180,7 +180,7 @@ public class DiceButton extends AbstractConfigurable {
 
   public static class ReportFormatConfig implements ConfigurerFactory {
     public Configurer getConfigurer(AutoConfigurable c, String key, String name) {
-      return new PlayerIdFormattedStringConfigurer(key, name, new String[]{REPORT_NAME, DETAILS, RESULT});
+      return new PlayerIdFormattedStringConfigurer(key, name, new String[]{REPORT_NAME, RESULT});
     }
   }
 

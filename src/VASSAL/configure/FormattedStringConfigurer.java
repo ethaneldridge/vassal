@@ -58,6 +58,14 @@ public class FormattedStringConfigurer
     }
   }
 
+  public String[] getOptions() {
+    String[] s = new String[optionsModel.getSize()];
+    for (int i=0;i<s.length;++i) {
+      s[i] = (String) optionsModel.getElementAt(i);
+    }
+    return s;
+  }
+
   public java.awt.Component getControls() {
     if (p == null) {
       super.getControls();
