@@ -360,11 +360,12 @@ public class Embellishment extends Decorator implements EditablePiece {
 
   public String getDescription() {
     if (imageName.length == 0
-      || imageName[0] == null) {
+      || imageName[0] == null
+      || imageName[0].length() == 0) {
       return "Layer";
     }
     else {
-      return "Layer (" + imageName[0] + ")";
+      return "Layer - " + imageName[0];
     }
   }
 
