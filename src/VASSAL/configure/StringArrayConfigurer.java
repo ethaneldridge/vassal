@@ -27,6 +27,7 @@
 package VASSAL.configure;
 
 import VASSAL.tools.SequenceEncoder;
+import VASSAL.counters.PieceEditor;
 
 import javax.swing.*;
 import javax.swing.border.TitledBorder;
@@ -37,6 +38,7 @@ import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.lang.reflect.Array;
 import java.util.Vector;
+import java.util.ArrayList;
 
 /**
  * A Configurer that returns an array of Strings
@@ -174,15 +176,11 @@ public class StringArrayConfigurer extends Configurer {
       return EMPTY;
     }
     SequenceEncoder.Decoder st = new SequenceEncoder.Decoder(s, ',');
-    Vector v = new Vector();
+    java.util.List l = new ArrayList();
     while (st.hasMoreTokens()) {
-      v.addElement(st.nextToken());
+      l.add(st.nextToken());
     }
-    String[] val = new String[v.size()];
-    for (int i = 0; i < val.length; ++i) {
-      val[i] = (String) v.elementAt(i);
-    }
-    return val;
+    return (String[]) l.toArray(new String[l.size()]);
   }
 
   protected void updateModel() {

@@ -13,7 +13,7 @@
  * Library General Public License for more details.
  *
  * You should have received a copy of the GNU Library General Public
- * License along with this library; if not, copies are available 
+ * License along with this library; if not, copies are available
  * at http://www.opensource.org.
  */
 package VASSAL.counters;
@@ -22,17 +22,20 @@ import VASSAL.command.Command;
 import VASSAL.build.module.documentation.HelpFile;
 import VASSAL.tools.SequenceEncoder;
 import VASSAL.configure.StringArrayConfigurer;
+import VASSAL.configure.StringConfigurer;
 
 import javax.swing.*;
 import java.awt.*;
+import java.util.ArrayList;
+import java.util.Iterator;
 
 /** A trait that groups menu items of other traits into a sub-menu */
 public class SubMenu extends Decorator implements EditablePiece {
   public static final String ID = "submenu;";
-  private KeyCommandSubMenu subMenu = new KeyCommandSubMenu("Sub Menu",this);
-  private String menuCommand;
+  private KeyCommand[] keyCommands = new KeyCommand[1];
 
   public SubMenu() {
+    this(ID+"Sub-menu;",null);
   }
 
   public SubMenu(String type, GamePiece inner) {
@@ -41,32 +44,50 @@ public class SubMenu extends Decorator implements EditablePiece {
   }
 
   public String getDescription() {
-    return null;
+    return "Sub-Menu";
   }
 
   public HelpFile getHelpFile() {
     return null;
   }
 
+  public PieceEditor getEditor() {
+    return new Editor(this);
+  }
+
   public void mySetType(String type) {
     SequenceEncoder.Decoder st = new SequenceEncoder.Decoder(type,';');
     st.nextToken();
-    menuCommand = st.nextToken();
-    String[] subCommands = StringArrayConfigurer.stringToArray(st.nextToken());
+    KeyCommandSubMenu c = new KeyCommandSubMenu(st.nextToken(),this);
+    c.setCommands(StringArrayConfigurer.stringToArray(st.nextToken()));
+    keyCommands[0] = c;
   }
 
   protected KeyCommand[] myGetKeyCommands() {
-    return new KeyCommand[]{
-      new KeyCommandSubMenu(menuCommand,this)
-    };
+    return keyCommands;
   }
 
   public String myGetState() {
-    return null;
+    return "";
   }
 
   public String myGetType() {
-    return null;
+    SequenceEncoder se = new SequenceEncoder(';');
+    se.append(getMenuName()).append(StringArrayConfigurer.arrayToString(getSubcommands()));
+    return ID+se.getValue();
+  }
+
+  public String[] getSubcommands() {
+    KeyCommandSubMenu c = (KeyCommandSubMenu)keyCommands[0];
+    ArrayList l = new ArrayList();
+    for (Iterator it = c.getCommands(); it.hasNext();) {
+      l.add(it.next());
+    }
+    return (String[]) l.toArray(new String[l.size()]);
+  }
+
+  public String getMenuName() {
+    return keyCommands[0].getName();
   }
 
   public Command myKeyEvent(KeyStroke stroke) {
@@ -77,18 +98,45 @@ public class SubMenu extends Decorator implements EditablePiece {
   }
 
   public Rectangle boundingBox() {
-    return null;
+    return getInner().boundingBox();
   }
 
   public void draw(Graphics g, int x, int y, Component obs, double zoom) {
+    getInner().draw(g, x, y, obs, zoom);
   }
 
   public String getName() {
-    return null;
+    return getInner().getName();
   }
 
   public Shape getShape() {
-    return null;
+    return getInner().getShape();
   }
 
+  public static class Editor implements PieceEditor {
+    private StringConfigurer nameConfig;
+    private StringArrayConfigurer commandsConfig;
+    private Box box;
+    public Editor(SubMenu p) {
+      nameConfig = new StringConfigurer(null,"Menu name",p.getMenuName());
+      commandsConfig = new StringArrayConfigurer(null,"Sub-commands",p.getSubcommands());
+      box = Box.createVerticalBox();
+      box.add(nameConfig.getControls());
+      box.add(commandsConfig.getControls());
+    }
+
+    public Component getControls() {
+      return box;
+    }
+
+    public String getState() {
+      return "";
+    }
+
+    public String getType() {
+      SequenceEncoder se = new SequenceEncoder(';');
+      se.append(nameConfig.getValueString()).append(commandsConfig.getValueString());
+      return ID+se.getValue();
+    }
+  }
 }

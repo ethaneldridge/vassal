@@ -86,34 +86,41 @@ public class MenuDisplayer extends MouseAdapter implements Buildable {
       HashMap commandNames = new HashMap(); // Maps name to a list of commands with that name
       for (int i = 0; i < c.length; ++i) {
         KeyStroke stroke = c[i].getKeyStroke();
+        JMenuItem item = null;
         if (c[i] instanceof KeyCommandSubMenu) {
-          commands.add(c[i]);
           JMenu subMenu = new JMenu(c[i].getName());
           subMenu.setFont(POPUP_MENU_FONT);
           subMenus.put(c[i],subMenu);
+          item = subMenu;
+          commands.add(item);
         }
         else {
           if (strokes.contains(stroke)) {
             KeyCommand command = (KeyCommand) commands.get(strokes.indexOf(stroke));
             if (command.getName().length() < c[i].getName().length()) {
-              commands.set(strokes.indexOf(stroke), c[i]);
+              item = new JMenuItem(c[i]);
+              item.setFont(POPUP_MENU_FONT);
+              commands.set(strokes.indexOf(stroke), item);
             }
           }
           else {
             if (stroke != null) {
               strokes.add(stroke);
             }
-            commands.add(c[i]);
+            item = new JMenuItem(c[i]);
+            item.setFont(POPUP_MENU_FONT);
+            commands.add(item);
           }
         }
         if (c[i].getName() != null
-          && c[i].getName().length() > 0) {
+          && c[i].getName().length() > 0
+          && item != null) {
           List l = (List) commandNames.get(c[i].getName());
           if (l == null) {
             l = new ArrayList();
-            commandNames.put(c[i],l);
+            commandNames.put(c[i].getName(),l);
           }
-          l.add(c[i]);
+          l.add(item);
         }
       }
       // Move commands from main menu into submenus
@@ -122,23 +129,18 @@ public class MenuDisplayer extends MouseAdapter implements Buildable {
         JMenu subMenu = (JMenu) subMenus.get(menuCommand);
         for (Iterator it2 = menuCommand.getCommands(); it2.hasNext();) {
           List matchingCommands = (List) commandNames.get(it2.next());
-          for (Iterator it3 = matchingCommands.iterator(); it.hasNext();) {
-            KeyCommand subCommand = (KeyCommand)it3.next();
-            subMenu.add(subCommand).setFont(POPUP_MENU_FONT);
-            commands.remove(subCommand);
+          if (matchingCommands != null) {
+            for (Iterator it3 = matchingCommands.iterator(); it.hasNext();) {
+              JMenuItem item = (JMenuItem) it3.next();
+              subMenu.add(item);
+              commands.remove(item);
+            }
           }
         }
       }
       for (Iterator it = commands.iterator();
            it.hasNext();) {
-        KeyCommand command = (KeyCommand) it.next();
-        JMenu subMenu = (JMenu) subMenus.get(command);
-        if (subMenu == null) {
-          popup.add(subMenu);
-        }
-        else {
-          popup.add(command).setFont(POPUP_MENU_FONT);
-        }
+        popup.add((JMenuItem)it.next());
       }
     }
     return popup;
