@@ -19,16 +19,21 @@
 package VASL.counters;
 
 import VASSAL.build.module.GlobalOptions;
+import VASSAL.build.module.Map;
+import VASSAL.build.Buildable;
 import VASSAL.counters.ColoredBorder;
 import VASSAL.counters.GamePiece;
 import VASSAL.counters.Labeler;
 
 import java.awt.*;
 
+import org.w3c.dom.Element;
+import org.w3c.dom.Document;
+
 /**
  * In VASL, we draw the hex location when a unit is selected
  */
-public class ASLHighlighter extends ColoredBorder {
+public class ASLHighlighter extends ColoredBorder implements Buildable {
   Font f = new Font("Dialog", 0, 10);
 
   public void draw(GamePiece p, Graphics g, int x, int y, Component obs, double zoom) {
@@ -37,15 +42,13 @@ public class ASLHighlighter extends ColoredBorder {
         && GlobalOptions.getInstance().autoReportEnabled()
         && p.getMap().locationName(p.getPosition()) != null) {
       Rectangle r = p.getShape().getBounds();
-      Point pos = p.getPosition();
       if (p.getParent() != null) {
         Point rel = p.getMap().getStackMetrics().relativePosition(p.getParent(), p);
         x -= (int) (zoom * (rel.x));
         y -= (int) (zoom * (rel.y));
         r = p.getParent().bottomPiece().getShape().getBounds();
-        pos = p.getParent().bottomPiece().getPosition();
       }
-      y += (int) (zoom * (r.y + r.height - pos.y + 6));
+      y += (int) (zoom * (r.y + r.height + 6));
       Labeler.drawLabel(g, p.getMap().locationName(p.getPosition()),
                         x, y, f, Labeler.CENTER, Labeler.TOP,
                         Color.black, Color.white, Color.black);
@@ -57,5 +60,19 @@ public class ASLHighlighter extends ColoredBorder {
         : p.getParent().boundingBox();
     r.height += 20;
     return r;
+  }
+
+  public void build(Element e) {
+  }
+
+  public void addTo(Buildable parent) {
+    ((Map)parent).setHighlighter(this);
+  }
+
+  public void add(Buildable child) {
+  }
+
+  public Element getBuildElement(Document doc) {
+    return doc.createElement(getClass().getName());
   }
 }

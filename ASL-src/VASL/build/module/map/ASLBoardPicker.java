@@ -360,7 +360,7 @@ public class ASLBoardPicker extends BoardPicker
       String baseName = st2.nextToken();
       File f;
       if ((f = new File(boardDir, "bd" + baseName)).exists()
-        && !"rb".equals(baseName)) { // Kludge to get around case-insensitive name conflict between RB and reversed b
+          && !"rb".equals(baseName)) { // Kludge to get around case-insensitive name conflict between RB and reversed b
         b.setFile(f);
         b.setCommonName(baseName);
         b.setBaseImageFileName("bd" + baseName + ".gif");
@@ -405,7 +405,7 @@ public class ASLBoardPicker extends BoardPicker
           b.setBaseImageFileName("bd" + baseName + ".gif");
         }
         else {
-          throw new BoardException("Unable to find board "+baseName);
+          throw new BoardException("Unable to find board " + baseName);
         }
         b.setReversed(true);
       }
@@ -1018,16 +1018,10 @@ class TerrainEditor extends JDialog implements ActionListener {
         try {
           String boardName = board.getText().trim();
           int n = 0;
-          while (true) {
-            ASLBoardSlot slot = null;
-            try {
-              slot = (ASLBoardSlot) maker.getSlot(n++);
-            }
-            catch (Exception noSuchSlot) {
-              break;
-            }
+          ASLBoardSlot slot;
+          while ((slot = (ASLBoardSlot) maker.getSlot(n++)) != null) {
             if (boardName.length() == 0 ||
-                (slot != null && maker.match(boardName) == slot)) {
+                maker.match(boardName) == slot) {
               slot.setTerrain(slot.getTerrain()
                               + '\t' + optionRules());
               ((ASLBoard) slot.getBoard())
@@ -1042,9 +1036,9 @@ class TerrainEditor extends JDialog implements ActionListener {
           warn((boardName.length() == 0 ? "All boards" : "Board " + board.getText())
                + ": " + bText);                    //		    warn(optionText().length() == 0 ? basicText() :                    //			 (boardName.length() == 0 ?                    //			  "All boards" : "Board "+board.getText()) + ": "+                    //			 bText+", "+optionText());
         }
-        catch (Exception ex) {
-          ex.printStackTrace();
-          warn(ex.getMessage());
+        catch (BoardException e1) {
+          e1.printStackTrace();
+          warn(e1.getMessage());
         }
         reset(optionGroup);
       }
