@@ -38,10 +38,11 @@ public class Turreted extends Embellishment implements EditablePiece {
   protected String front,back;
   protected boolean flipped;
   protected boolean rotateWithCounter; // As of VASL 4.2+, vehicles counters rotate in their entirety,
-                                       // rather than just the silhouette
+  // rather than just the silhouette
 
   public Turreted() {
-    this(ID + "tcaCE;tca;S;A;r", null);
+//    this(ID + "tcaCE;tca;S;A;r", null);   // Enable this in VASL 5.0
+    this(ID + "tcaCE;tca;SX;AZ", null);
   }
 
   public Turreted(String type, GamePiece p) {
@@ -50,18 +51,24 @@ public class Turreted extends Embellishment implements EditablePiece {
   }
 
   public void mySetType(String type) {
-    SequenceEncoder.Decoder st = new SequenceEncoder.Decoder(type, ';');
-    st.nextToken();
-    front = st.nextToken();
-    back = st.nextToken();
-    String embType = ID + ";_;" + st.nextToken() + ";Rotate TCA Right;"
-        + st.nextToken() + ";Rotate TCA Left;0;0";
-    if (st.hasMoreTokens()) {
-      rotateWithCounter = true;
-      embType += ";;;;;;";
+    String embType;
+    if (type.startsWith(Embellishment.ID)) {
+      embType = type;
     }
     else {
-      embType += ";,+ TCA = 1;,+ TCA = 2;,+ TCA = 3;,+ TCA = 4;,+ TCA = 5;,+ TCA = 6";
+      SequenceEncoder.Decoder st = new SequenceEncoder.Decoder(type, ';');
+      st.nextToken();
+      front = st.nextToken();
+      back = st.nextToken();
+      embType = ID + ";_;" + st.nextToken() + ";Rotate TCA Right;"
+          + st.nextToken() + ";Rotate TCA Left;0;0";
+      if (st.hasMoreTokens()) {
+        rotateWithCounter = true;
+        embType += ";;;;;;";
+      }
+      else {
+        embType += ";,+ TCA = 1;,+ TCA = 2;,+ TCA = 3;,+ TCA = 4;,+ TCA = 5;,+ TCA = 6";
+      }
     }
     super.mySetType(embType);
   }
