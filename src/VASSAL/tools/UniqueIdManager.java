@@ -110,10 +110,11 @@ public class UniqueIdManager implements ValidityChecker {
         report.addWarning("A " + ConfigureTree.getConfigureName(target.getClass()) + " has not been given a name");
       }
       else if (instances.contains(iTarget)) {
-        for (Iterator it = instances.iterator(); it.hasNext();) {
-          Identifyable identifyable = (Identifyable) it.next();
-          if (identifyable != iTarget
-              && iTarget.getConfigureName().equals(identifyable.getConfigureName())) {
+        Identifyable compare = null;
+        for (Iterator it = instances.iterator(); it.hasNext() && compare != iTarget;) {
+          compare = (Identifyable) it.next();
+          if (compare != iTarget
+              && iTarget.getConfigureName().equals(compare.getConfigureName())) {
             report.addWarning("More than one " + ConfigureTree.getConfigureName(target.getClass())
                               + " named " + iTarget.getConfigureName());
             break;
