@@ -13,7 +13,7 @@
  * Library General Public License for more details.
  *
  * You should have received a copy of the GNU Library General Public
- * License along with this library; if not, copies are available 
+ * License along with this library; if not, copies are available
  * at http://www.opensource.org.
  */
 package VASSAL.configure;
@@ -108,10 +108,6 @@ public class AutoConfigurer extends Configurer
           config = new StringConfigurer(name[i], prompt[i]);
         }
       }
-      // Swamp Start
-	  else if (JButton.class.isAssignableFrom(type[i])) {
-		config = new ButtonConfigurer(name[i], prompt[i]);
-	  }
       else if (ConfigurerFactory.class.isAssignableFrom(type[i])) {
         try {
           ConfigurerFactory f = (ConfigurerFactory) type[i].newInstance();
