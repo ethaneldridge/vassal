@@ -13,7 +13,7 @@
  * Library General Public License for more details.
  *
  * You should have received a copy of the GNU Library General Public
- * License along with this library; if not, copies are available 
+ * License along with this library; if not, copies are available
  * at http://www.opensource.org.
  */
 package VASSAL.build.module.map.boardPicker.board;
@@ -113,15 +113,15 @@ public class HexGrid extends AbstractConfigurable implements MapGrid {
     AutoConfigurer c = (AutoConfigurer) super.getConfigurer();
     final Configurer dxConfig = c.getConfigurer(DX);
     c.getConfigurer(DY).addPropertyChangeListener
-      (new java.beans.PropertyChangeListener() {
-        public void propertyChange(java.beans.PropertyChangeEvent evt) {
-          if (evt.getNewValue() != null) {
-            double hgt = ((Double) evt.getNewValue()).doubleValue();
-            dxConfig.setValue(new Double(Math.sqrt(3) * hgt / 2.).toString());
+        (new java.beans.PropertyChangeListener() {
+          public void propertyChange(java.beans.PropertyChangeEvent evt) {
+            if (evt.getNewValue() != null) {
+              double hgt = ((Double) evt.getNewValue()).doubleValue();
+              dxConfig.setValue(new Double(Math.sqrt(3) * hgt / 2.).toString());
+            }
           }
         }
-      }
-      );
+        );
 
     return config;
   }
@@ -336,9 +336,9 @@ public class HexGrid extends AbstractConfigurable implements MapGrid {
       Point edge = snapToHexSide(p);
       Point vertex = snapToHexVertex(p);
       if ((p.x - edge.x) * (p.x - edge.x)
-        + (p.y - edge.y) * (p.y - edge.y)
-        < (p.x - vertex.x) * (p.x - vertex.x)
-        + (p.y - vertex.y) * (p.y - vertex.y)) {
+          + (p.y - edge.y) * (p.y - edge.y)
+          < (p.x - vertex.x) * (p.x - vertex.x)
+          + (p.y - vertex.y) * (p.y - vertex.y)) {
         return edge;
       }
       else {
@@ -426,10 +426,10 @@ public class HexGrid extends AbstractConfigurable implements MapGrid {
     int nx = (int) Math.floor((x - origin.x + dx / 2) / dx);
     if (nx % 2 == 0)
       return ((int)
-        (dy * (int) Math.floor((y - origin.y + dy / 2) / dy) + origin.y));
+          (dy * (int) Math.floor((y - origin.y + dy / 2) / dy) + origin.y));
     else
       return ((int)
-        (dy * (int) Math.floor((y - origin.y) / dy) + (int) (dy / 2) + origin.y));
+          (dy * (int) Math.floor((y - origin.y) / dy) + (int) (dy / 2) + origin.y));
   }
 
   protected int sideX(int x, int y) {
@@ -453,7 +453,7 @@ public class HexGrid extends AbstractConfigurable implements MapGrid {
     }
     else {
       return ((int) (2 * dx / 3 * (int) (Math.floor(x - origin.x + dx / 3 + dx / 3) * 3 / (2 * dx))
-        - (int) (dx / 3) + origin.x));
+          - (int) (dx / 3) + origin.x));
     }
   }
 
@@ -465,6 +465,11 @@ public class HexGrid extends AbstractConfigurable implements MapGrid {
     if (!bounds.intersects(visibleRect)) {
       return;
     }
+    if (g instanceof Graphics2D) {
+      ((Graphics2D) g).addRenderingHints(new RenderingHints(RenderingHints.KEY_ANTIALIASING,
+                                                            RenderingHints.VALUE_ANTIALIAS_ON));
+    }
+
     g.setColor(color == null ? Color.black : color);
 
     float x1,y1, x2,y2, x3,y3, x4, y4;
@@ -477,19 +482,19 @@ public class HexGrid extends AbstractConfigurable implements MapGrid {
     Rectangle region = bounds.intersection(visibleRect);
 
     Shape oldClip = g.getClip();
-    g.setClip(region.x,region.y,region.width,region.height);
+    g.setClip(region.x, region.y, region.width, region.height);
 
     if (sideways) {
       bounds = new Rectangle(bounds.y, bounds.x, bounds.height, bounds.width);
       region = new Rectangle(region.y, region.x, region.height, region.width);
     }
 
-    float xmin = reversed ? bounds.x+(float)zoom*origin.x+bounds.width - 2*deltaX*(float)Math.ceil((bounds.x+zoom*origin.x+bounds.width-region.x)/(2*deltaX))
-      : bounds.x + (float)zoom * origin.x + 2*deltaX * (float)Math.floor((region.x - bounds.x - zoom * origin.x) / (2*deltaX));
-    float xmax = region.x+region.width + 2*deltaX;
-    float ymin = reversed ? bounds.y+(float)zoom*origin.y+bounds.height - deltaY*(float)Math.ceil((bounds.y+zoom*origin.y+bounds.height-region.y)/deltaY)
-      : bounds.y + (float)zoom * origin.y + deltaY * (float)Math.floor((region.y - bounds.y - zoom * origin.y) / deltaY);
-    float ymax = region.y+region.height + deltaY;
+    float xmin = reversed ? bounds.x + (float) zoom * origin.x + bounds.width - 2 * deltaX * (float) Math.ceil((bounds.x + zoom * origin.x + bounds.width - region.x) / (2 * deltaX))
+        : bounds.x + (float) zoom * origin.x + 2 * deltaX * (float) Math.floor((region.x - bounds.x - zoom * origin.x) / (2 * deltaX));
+    float xmax = region.x + region.width + 2 * deltaX;
+    float ymin = reversed ? bounds.y + (float) zoom * origin.y + bounds.height - deltaY * (float) Math.ceil((bounds.y + zoom * origin.y + bounds.height - region.y) / deltaY)
+        : bounds.y + (float) zoom * origin.y + deltaY * (float) Math.floor((region.y - bounds.y - zoom * origin.y) / deltaY);
+    float ymax = region.y + region.height + deltaY;
 
     Point center = new Point();
     Point p1 = new Point();
@@ -552,7 +557,7 @@ public class HexGrid extends AbstractConfigurable implements MapGrid {
         g.drawLine(p3.x, p3.y, p4.x, p4.y);
         if (x == xmin) {
           p1.setLocation(Math.round(x - r), Math.round(y));
-          p2.setLocation(Math.round(x - r/2), Math.round(y + deltaY/2));
+          p2.setLocation(Math.round(x - r / 2), Math.round(y + deltaY / 2));
           if (sideways) {
             rotate(p1);
             rotate(p2);
@@ -650,21 +655,21 @@ public class HexGrid extends AbstractConfigurable implements MapGrid {
       add(boxes);
 
       java.awt.event.FocusListener fl =
-        new java.awt.event.FocusAdapter() {
-          public void focusLost(java.awt.event.FocusEvent e) {
-            setValues();
-          }
-        };
+          new java.awt.event.FocusAdapter() {
+            public void focusLost(java.awt.event.FocusEvent e) {
+              setValues();
+            }
+          };
       dyInput.addFocusListener(fl);
       x0Input.addFocusListener(fl);
       y0Input.addFocusListener(fl);
 
       java.awt.event.ActionListener al =
-        new java.awt.event.ActionListener() {
-          public void actionPerformed(java.awt.event.ActionEvent e) {
-            setValues();
-          }
-        };
+          new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent e) {
+              setValues();
+            }
+          };
       dyInput.addActionListener(al);
       x0Input.addActionListener(al);
       y0Input.addActionListener(al);

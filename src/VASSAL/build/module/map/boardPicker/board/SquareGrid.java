@@ -317,6 +317,10 @@ public class SquareGrid extends AbstractConfigurable implements MapGrid {
     if (!bounds.intersects(visibleRect)) {
       return;
     }
+    if (g instanceof Graphics2D) {
+      ((Graphics2D) g).addRenderingHints(new RenderingHints(RenderingHints.KEY_ANTIALIASING,
+                                                            RenderingHints.VALUE_ANTIALIAS_ON));
+    }
 
     Rectangle region = bounds.intersection(visibleRect);
 
