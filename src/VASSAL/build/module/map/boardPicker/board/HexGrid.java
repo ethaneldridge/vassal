@@ -46,7 +46,6 @@ public class HexGrid extends AbstractConfigurable implements MapGrid {
 
   protected GridNumbering numbering;
 
-
   protected boolean visible = false;
   protected boolean dotsVisible = false;
   protected boolean edgesLegal = false;
@@ -188,6 +187,10 @@ public class HexGrid extends AbstractConfigurable implements MapGrid {
     dx = w;
   }
 
+  public Board getBoard() {
+	return board;
+  }
+  
   public void addTo(Buildable b) {
     board = (Board) b;
     ((Board) b).setGrid(this);
