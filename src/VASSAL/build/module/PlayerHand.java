@@ -35,6 +35,7 @@ import VASSAL.command.Command;
 import VASSAL.counters.GamePiece;
 import VASSAL.counters.PieceFinder;
 import VASSAL.counters.Stack;
+import VASSAL.counters.Deck;
 
 import java.awt.*;
 import java.io.File;
@@ -96,12 +97,40 @@ public class PlayerHand extends PrivateMap {
   }
 
   public Command placeAt(GamePiece piece, Point pt) {
+    if (piece instanceof Deck) {
+      return super.placeAt(piece,pt);
+    }
     Command c = null;
-    GamePiece[] stack = pieces.getPieces();
-    if (stack.length == 0) {
+    GamePiece[] pieces = this.pieces.getPieces();
+    GamePiece merge = null;
+    for (int i=0;i<pieces.length;++i) {
+      if (pieces[i] instanceof Deck) {
+        continue;
+      }
+      else if (pieces[i] instanceof Stack) {
+        merge = findPiece(pt, PieceFinder.PIECE_IN_STACK);
+        if (merge == null) {
+          merge = pieces[i];
+          break;
+        }
+      }
+      else {
+        merge = pieces[i];
+      }
+    }
+    if (merge != null) {
+      c = getStackMetrics().merge(merge, piece);
+    }
+    else {
       Rectangle r;
       if (piece instanceof Stack)  {
-        r = ((Stack)piece).topPiece().getShape().getBounds();
+        GamePiece top = ((Stack)piece).topPiece();
+        if (top != null) {
+          r = top.getShape().getBounds();
+        }
+        else {
+          r = new Rectangle();
+        }
       }
       else {
         r = piece.getShape().getBounds();
@@ -109,16 +138,6 @@ public class PlayerHand extends PrivateMap {
       pt = new Point(-r.x,
                      -r.y);
       c = super.placeAt(piece, pt);
-    }
-    else if (stack[0] instanceof Stack) {
-      GamePiece target = findPiece(pt, PieceFinder.PIECE_IN_STACK);
-      if (target == null) {
-        target = stack[0];
-      }
-      c = getStackMetrics().merge(target, piece);
-    }
-    else {
-      c = getStackMetrics().merge(stack[0], piece);
     }
     getView().revalidate();
     return c;

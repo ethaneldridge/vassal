@@ -18,6 +18,7 @@
  */
 package VASSAL.build.module.map;
 
+import VASSAL.Info;
 import VASSAL.build.*;
 import VASSAL.build.module.GameComponent;
 import VASSAL.build.module.Map;
@@ -26,8 +27,8 @@ import VASSAL.command.Command;
 import VASSAL.configure.*;
 import VASSAL.counters.GamePiece;
 import VASSAL.counters.Properties;
+import VASSAL.tools.KeyStrokeSource;
 import VASSAL.tools.LaunchButton;
-import VASSAL.Info;
 import org.w3c.dom.Element;
 
 import javax.swing.*;
@@ -35,7 +36,6 @@ import java.awt.*;
 import java.awt.event.*;
 import java.io.File;
 import java.net.MalformedURLException;
-import java.util.Enumeration;
 
 /**
  * This is scaled version of a {@link Map} that gives an overview.
@@ -94,6 +94,9 @@ public class GlobalMap extends JPanel implements MouseListener,
 
     GameModule.getGameModule().getGameState().addGameComponent(this);
 
+    GameModule.getGameModule().addKeyStrokeSource
+        (new KeyStrokeSource(this, JComponent.WHEN_FOCUSED));
+
     map.addDrawComponent(this);
 
     map.getToolBar().add(launch);
@@ -115,11 +118,9 @@ public class GlobalMap extends JPanel implements MouseListener,
   }
 
   public void add(Buildable b) {
-    throw new IllegalBuildException("Cannot contain children");
   }
 
   public void remove(Buildable b) {
-    throw new IllegalBuildException("Cannot contain children");
   }
 
   public void removeFrom(Buildable b) {

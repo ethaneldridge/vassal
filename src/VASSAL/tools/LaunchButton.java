@@ -44,14 +44,20 @@ public class LaunchButton extends JButton {
   }
 
   public LaunchButton(String name, String nameAttribute,
-                      String hotkeyAttribute, String iconAttribute, ActionListener al) {
+                      String hotkeyAttribute, String iconAttribute, final ActionListener al) {
     super(name);
     nameAtt = nameAttribute;
     keyAtt = hotkeyAttribute;
     iconAtt = iconAttribute;
     iconConfig = new IconConfigurer(iconAtt,null,null);
     setAlignmentY(0.0F);
-    keyListener = new KeyStrokeListener(al);
+    keyListener = new KeyStrokeListener(new ActionListener() {
+      public void actionPerformed(ActionEvent e) {
+        if (isEnabled() && isShowing()) {
+          al.actionPerformed(e);
+        }
+      }
+    });
     GameModule.getGameModule().addKeyStrokeListener(keyListener);
     addActionListener(al);
   }
