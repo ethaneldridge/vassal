@@ -502,7 +502,12 @@ public class PieceMover extends AbstractBuildable implements
         origin = null;
       }
       comm = comm.append(movedPiece(next, bottom.getPosition()));
-      comm = comm.append(map.getStackMetrics().merge(bottom, next));
+      if (map.getStackMetrics().isStackingEnabled()) {
+        comm = comm.append(map.getStackMetrics().merge(bottom, next));
+      }
+      else {
+        comm = comm.append(map.placeAt(next,bottom.getPosition()));
+      }
       bottom = next;
     }
 
