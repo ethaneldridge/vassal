@@ -40,6 +40,7 @@ import VASSAL.tools.SequenceEncoder;
 import javax.swing.*;
 import java.awt.*;
 import java.io.File;
+import java.io.IOException;
 import java.net.MalformedURLException;
 import java.util.Enumeration;
 
@@ -78,6 +79,7 @@ public class MovementMarkable extends Decorator implements EditablePiece {
     SequenceEncoder.Decoder st = new SequenceEncoder.Decoder(type, ';');
     st.nextToken();
     markImage = st.nextToken();
+    imageSize = null;
     xOffset = st.nextInt(0);
     yOffset = st.nextInt(0);
   }
@@ -118,10 +120,9 @@ public class MovementMarkable extends Decorator implements EditablePiece {
   public Rectangle boundingBox() {
     Rectangle r = piece.boundingBox();
     Rectangle r2 = piece.getShape().getBounds();
-    if (imageSize != null) {
-      Rectangle r3 = new Rectangle(xOffset, yOffset, imageSize.width, imageSize.height);
-      r2 = r2.union(r3);
-    }
+    Dimension d = getImageSize();
+    Rectangle r3 = new Rectangle(xOffset, yOffset, d.width, d.height);
+    r2 = r2.union(r3);
     return r.union(r2);
   }
 
@@ -142,16 +143,24 @@ public class MovementMarkable extends Decorator implements EditablePiece {
                     x + (int) Math.round(zoom * xOffset),
                     y + (int) Math.round(zoom * yOffset),
                     obs);
-        if (imageSize == null) {
-          JLabel l = new JLabel();
-          l.setIcon(new ImageIcon(im));
-          imageSize = l.getPreferredSize();
-        }
       }
       catch (java.io.IOException ex) {
         ex.printStackTrace();
       }
     }
+  }
+
+  private Dimension getImageSize() {
+    if (imageSize == null) {
+      JLabel l = new JLabel();
+      try {
+        l.setIcon(new ImageIcon(GameModule.getGameModule().getDataArchive().getCachedImage(markImage)));
+      }
+      catch (IOException e) {
+      }
+      imageSize = l.getPreferredSize();
+    }
+    return imageSize;
   }
 
   public String getDescription() {
