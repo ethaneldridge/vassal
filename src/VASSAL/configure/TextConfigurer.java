@@ -85,7 +85,9 @@ public class TextConfigurer extends Configurer {
       textArea = new JTextArea(6, 20);
       textArea.addKeyListener(new java.awt.event.KeyAdapter() {
         public void keyReleased(java.awt.event.KeyEvent evt) {
+          noUpdate = true;
           setValue((Object) textArea.getText());
+          noUpdate = false;
         }
       });
       textArea.setText((String) getValue());
