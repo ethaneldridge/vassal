@@ -545,10 +545,12 @@ public class BoardPicker extends JDialog
         }
         Point p = new Point(st.nextInt(0),st.nextInt(0));
         Board b = getBoard(name);
-        b.setReversed(reversed);
-        b.relativePosition().move(p.x, p.y);
-        b.fixImage(GameModule.getGameModule().getFrame());
-        bds.addElement(b);
+        if (b != null) {
+          b.setReversed(reversed);
+          b.relativePosition().move(p.x, p.y);
+          b.fixImage(GameModule.getGameModule().getFrame());
+          bds.addElement(b);
+        }
       }
       return new SetBoards(this, bds);
     }

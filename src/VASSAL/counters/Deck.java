@@ -85,7 +85,7 @@ public class Deck extends Stack {
     st.nextToken();
     drawOutline = "true".equals(st.nextToken());
     outlineColor = ColorConfigurer.stringToColor(st.nextToken());
-    size = new Dimension(Integer.parseInt(st.nextToken()), Integer.parseInt(st.nextToken()));
+    size.setSize(Integer.parseInt(st.nextToken()), Integer.parseInt(st.nextToken()));
     faceDownOption = st.nextToken();
     shuffleOption = st.nextToken();
     allowMultipleDraw = "true".equals(st.nextToken());
@@ -110,7 +110,7 @@ public class Deck extends Stack {
   }
 
   public void setSize(Dimension size) {
-    this.size = size;
+    this.size.setSize(size);
   }
 
   public String getShuffleOption() {

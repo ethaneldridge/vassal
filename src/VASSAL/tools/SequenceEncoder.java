@@ -153,15 +153,14 @@ public class SequenceEncoder {
      * @return
      */
     public int nextInt(int defaultValue) {
-      try {
-        return Integer.parseInt(nextToken());
+      if (val != null) {
+        try {
+          defaultValue = Integer.parseInt(nextToken());
+        }
+        catch (NumberFormatException e) {
+        }
       }
-      catch (NumberFormatException e) {
-        return defaultValue;
-      }
-      catch (NoSuchElementException e) {
-        return defaultValue;
-      }
+      return defaultValue;
     }
 
     /**
@@ -170,13 +169,23 @@ public class SequenceEncoder {
      * @return
      */
     public char nextChar(char defaultValue) {
-      try {
+      if (val != null) {
         String s = nextToken();
-        return s.length() > 0 ? s.charAt(0) : defaultValue;
+        defaultValue =  s.length() > 0 ? s.charAt(0) : defaultValue;
       }
-      catch (NoSuchElementException e) {
-        return defaultValue;
+      return defaultValue;
+    }
+
+    /**
+     * Return the next token, or the default value if there are no more tokens
+     * @param defaultValue
+     * @return
+     */
+    public String nextToken(String defaultValue) {
+      if (val != null) {
+        defaultValue = nextToken();
       }
+      return defaultValue;
     }
   }
 

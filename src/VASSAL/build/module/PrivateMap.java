@@ -48,7 +48,7 @@ import java.util.Vector;
  * only from the player playing the assigned side
  */
 public class PrivateMap extends Map {
-  private String[] owners;
+  private String[] owners = new String[0];
   private boolean visibleToAll;
   private Map surrogate;
 
