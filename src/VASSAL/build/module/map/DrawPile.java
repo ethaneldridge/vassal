@@ -68,7 +68,7 @@ public class DrawPile extends SetupStack {
     return popup.getComponentCount() > 0 ? popup : null;
   }
 
-    public void addTo(Buildable b) {
+  public void addTo(Buildable b) {
     map = (Map) b;
     setId("Deck" + instanceCount++);
 
@@ -214,15 +214,15 @@ public class DrawPile extends SetupStack {
                        String.class,
                        String.class,
                        AssignedDeckPrompt.class,
-					   FormattedString1.class};
+                       FormattedString1.class};
   }
 
   public static class FormattedString1 implements ConfigurerFactory {
-	  public Configurer getConfigurer(AutoConfigurable c, String key, String name) {
-		  return new FormattedStringConfigurer(key, name, GlobalOptions.getDeckOptions());
-	  }
+    public Configurer getConfigurer(AutoConfigurable c, String key, String name) {
+      return new FormattedStringConfigurer(key, name, GlobalOptions.getDeckOptions());
+    }
   }
-  
+
   public String getAttributeValueString(String key) {
     if (WIDTH.equals(key)) {
       return "" + dummy.getSize().width;
@@ -263,9 +263,9 @@ public class DrawPile extends SetupStack {
     else if (RESHUFFLE_MESSAGE.equals(key)) {
       return dummy.getReshuffleMessage();
     }
-	else if (REPORT_FORMAT.equals(key)) {
-	  return reportFormat;
-	}
+    else if (REPORT_FORMAT.equals(key)) {
+      return reportFormat;
+    }
     else {
       return super.getAttributeValueString(key);
     }
@@ -339,7 +339,7 @@ public class DrawPile extends SetupStack {
     else if (RESHUFFLE_COMMAND.equals(key)) {
       String s = (String) value;
       if (s != null
-        && s.length() > 0) {
+          && s.length() > 0) {
         mostRecentReshuffleCommand = s;
       }
       dummy.setReshuffleCommand(mostRecentReshuffleCommand);
@@ -350,9 +350,9 @@ public class DrawPile extends SetupStack {
     else if (RESHUFFLE_MESSAGE.equals(key)) {
       dummy.setReshuffleMessage((String) value);
     }
-	else if (REPORT_FORMAT.equals(key)) {
-	  reportFormat = ((String) value);
-	}
+    else if (REPORT_FORMAT.equals(key)) {
+      reportFormat = ((String) value);
+    }
     else {
       super.setAttribute(key, value);
     }
@@ -385,15 +385,15 @@ public class DrawPile extends SetupStack {
     }
     return p;
   }
-  
+
   public Map getMap() {
     return map;
   }
 
   public Rectangle boundingBox() {
-  	return (myDeck == null) ? null : myDeck.boundingBox();
+    return (myDeck == null) ? null : myDeck.boundingBox();
   }
-  
+
   public Command addToContents(GamePiece p) {
     return map.placeOrMerge(p, getPosition());
   }
@@ -401,12 +401,12 @@ public class DrawPile extends SetupStack {
   protected Stack initializeContents() {
     Stack s = super.initializeContents();
     myDeck = new Deck(getDeckType());
-	myDeck.setDeckName(getConfigureName());
-	myDeck.setReportFormat(reportFormat);
+    myDeck.setDeckName(getConfigureName());
+    myDeck.setReportFormat(reportFormat);
     for (Enumeration e = s.getPieces(); e.hasMoreElements();) {
-		myDeck.add((GamePiece) e.nextElement());
+      myDeck.add((GamePiece) e.nextElement());
     }
-	myDeck.setFaceDown(!Deck.NEVER.equals(dummy.getFaceDownOption()));
+    myDeck.setFaceDown(!Deck.NEVER.equals(dummy.getFaceDownOption()));
     return myDeck;
   }
 
