@@ -27,7 +27,7 @@ import VASSAL.build.module.documentation.HelpFile;
 import VASSAL.command.Command;
 import VASSAL.configure.*;
 import VASSAL.counters.GamePiece;
-import VASSAL.counters.PieceFinder;
+import VASSAL.counters.Properties;
 import VASSAL.preferences.PositionOption;
 import VASSAL.tools.LaunchButton;
 import org.w3c.dom.Element;
@@ -38,6 +38,7 @@ import java.awt.event.*;
 import java.io.File;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.Enumeration;
 
 /**
  * This is scaled version of a {@link Map} that gives an overview.
@@ -56,6 +57,7 @@ public class GlobalMap extends JPanel implements MouseListener,
   private JFrame f;
   private BooleanConfigurer visibility;
   private ComponentListener visListener;
+  private CounterDetailViewer mouseOverViewer;
 
   public GlobalMap() {
     setSize(350, 125);
@@ -99,6 +101,8 @@ public class GlobalMap extends JPanel implements MouseListener,
    * GameComponent} and a {@link Drawable} component */
   public void addTo(Buildable b) {
     map = (Map) b;
+
+    mouseOverViewer = new CounterViewer();
 
     boundsKey = "BoundsOfGlobalMap" + map.getId();
     GameModule.getGameModule().getPrefs().addOption
@@ -197,10 +201,15 @@ public class GlobalMap extends JPanel implements MouseListener,
              -Math.round((float)scale * map.getEdgeBuffer().height), scale, this);
     GamePiece stack[] = map.getPieces();
     for (int i = 0; i < stack.length; i++) {
-      int x = Math.round((stack[i].getPosition().x - map.getEdgeBuffer().width) * (float)scale);
-      int y = Math.round((stack[i].getPosition().y - map.getEdgeBuffer().height) * (float)scale);
-      stack[i].draw(g, x, y, this, scale);
+      Point p = componentCoordinates(stack[i].getPosition());
+      stack[i].draw(g, p.x, p.y, this, scale);
     }
+    for (Enumeration e = map.getComponents(DrawPile.class); e.hasMoreElements();) {
+      DrawPile deck = (DrawPile) e.nextElement();
+      Point p = componentCoordinates(deck.getPosition());
+      deck.draw(g,p.x,p.y,this,scale);
+    }
+    mouseOverViewer.draw(g,map);
 
     // Draw a rectangle indicating the present viewing area
     g.setColor(rectColor);
@@ -209,12 +218,11 @@ public class GlobalMap extends JPanel implements MouseListener,
     Point ul = map.mapCoordinates(r.getLocation());
     ul.translate(-map.getEdgeBuffer().width,
                  -map.getEdgeBuffer().height);
-    int x0 = (int) (scale * ul.x);
-    int y0 = (int) (scale * ul.y);
+    ul = componentCoordinates(ul);
     int w = (int) (scale * r.width / map.getZoom());
     int h = (int) (scale * r.height / map.getZoom());
-    g.drawRect(x0, y0, w, h);
-    g.drawRect(x0 - 1, y0 - 1, w + 2, h + 2);
+    g.drawRect(ul.x, ul.y, w, h);
+    g.drawRect(ul.x - 1, ul.y - 1, w + 2, h + 2);
   }
 
   public void mousePressed(MouseEvent e) {
@@ -229,17 +237,44 @@ public class GlobalMap extends JPanel implements MouseListener,
   public void mouseClicked(MouseEvent e) {
   }
 
+  /**
+   * Transform a point from Map coordinates to coordinates in the overview window
+   * @param p
+   * @return
+   */
+  public Point componentCoordinates(Point p) {
+    p = new Point(p.x-map.getEdgeBuffer().width,
+                  p.y-map.getEdgeBuffer().height);
+    p.x *= scale;
+    p.y *= scale;
+    return p;
+  }
+
+  /**
+   * Transform a point from coordinates in the overview window to Map coordinates
+   * @param p
+   * @return
+   */
+  public Point mapCoordinates(Point p) {
+    p = new Point((int)Math.round(p.x/scale),
+                  (int)Math.round(p.y/scale));
+    p.translate(map.getEdgeBuffer().width,
+                map.getEdgeBuffer().height);
+    return p;
+  }
+
   public void mouseReleased(MouseEvent e) {
-    map.centerAt(new Point(map.getEdgeBuffer().width + (int) (e.getX() / scale),
-                           map.getEdgeBuffer().height + (int) (e.getY() / scale)));
+    map.centerAt(mapCoordinates(e.getPoint()));
     map.repaint();
   }
 
   public String getToolTipText(MouseEvent e) {
-    Point p = new Point(map.getEdgeBuffer().width + (int) (e.getX() / scale),
-                        map.getEdgeBuffer().height + (int) (e.getY() / scale));
+/*
+    Point p = mapCoordinates(e.getPoint());
     GamePiece piece = map.findPiece(p, PieceFinder.MOVABLE);
     return piece == null ? null : piece.getName();
+*/
+    return null;
   }
 
   public Command getRestoreCommand() {
@@ -275,6 +310,12 @@ public class GlobalMap extends JPanel implements MouseListener,
     f.setVisible(visible);
     f.addComponentListener(visListener);
 
+    if (show && map.getComponents(CounterDetailViewer.class).hasMoreElements()) {
+      addMouseMotionListener(mouseOverViewer);
+    }
+    else {
+      removeMouseMotionListener(mouseOverViewer);
+    }
     if (show) {
       revalidate();
     }
@@ -320,6 +361,33 @@ public class GlobalMap extends JPanel implements MouseListener,
 
   public org.w3c.dom.Element getBuildElement(org.w3c.dom.Document doc) {
     return AutoConfigurable.Util.getBuildElement(doc, this);
+  }
+
+  private class CounterViewer extends CounterDetailViewer {
+    public CounterViewer() {
+      this.map = GlobalMap.this.map;
+    }
+
+    public void draw(Graphics g, Map map) {
+      if (currentMousePosition != null) {
+        this.draw(g,currentMousePosition.getPoint(),GlobalMap.this);
+      }
+    }
+
+    protected GamePiece findPieceAtMousePosition() {
+      Point oldPoint = currentMousePosition.getPoint();
+      Point mapPoint = GlobalMap.this.map.componentCoordinates(mapCoordinates(oldPoint));
+
+      currentMousePosition.translatePoint(mapPoint.x-oldPoint.x,mapPoint.y-oldPoint.y);
+      GamePiece p = super.findPieceAtMousePosition();
+      currentMousePosition.translatePoint(oldPoint.x-mapPoint.x,oldPoint.y-mapPoint.y);
+      return p;
+    }
+
+    protected boolean shouldBeVisible() {
+      return currentPiece != null
+        && !Boolean.TRUE.equals(currentPiece.getProperty(Properties.IMMOBILE));
+    }
   }
 }
 

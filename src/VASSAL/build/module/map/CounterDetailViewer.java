@@ -18,21 +18,24 @@
  */
 package VASSAL.build.module.map;
 
-import VASSAL.build.*;
-import VASSAL.build.module.map.*;
-import VASSAL.build.module.GameComponent;
+import VASSAL.build.AbstractConfigurable;
+import VASSAL.build.Buildable;
+import VASSAL.build.GameModule;
+import VASSAL.build.IllegalBuildException;
 import VASSAL.build.module.Map;
 import VASSAL.build.module.documentation.HelpFile;
+import VASSAL.configure.BooleanConfigurer;
+import VASSAL.configure.Configurer;
 import VASSAL.counters.*;
-import VASSAL.command.Command;
-import VASSAL.configure.*;
 
-import java.awt.event.*;
-
-import javax.swing.Timer;
-
-
+import javax.swing.*;
 import java.awt.*;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseMotionListener;
+import java.io.File;
+import java.net.MalformedURLException;
+import java.util.Enumeration;
+import java.util.Vector;
 
 /**
  * This is a {@link Drawable} class that draws the counters horizontally
@@ -44,53 +47,120 @@ import java.awt.*;
 public class CounterDetailViewer
   extends AbstractConfigurable
   implements Drawable,
-  MouseMotionListener,
-  GameComponent {
+  MouseMotionListener, Runnable {
 
   public static final String SHOW_DETAILS = "ShowCounterDetails";
 
-  private Map map;
-  private Timer timer;
-  private int delay = 700;
-  private boolean visible = false;
-  private Stack currentPiece;
+  protected Map map;
+  protected Thread delayThread;
+  protected int delay = 700;
+  protected long expirationTime;
+  protected boolean visible = false;
+  protected MouseEvent currentMousePosition;
+  protected GamePiece currentPiece;
 
   public void addTo(Buildable b) {
     map = (Map) b;
+    Enumeration e = map.getComponents(getClass());
+    if (e.hasMoreElements()) {
+      throw new IllegalBuildException("Mouse-over Stack Viewer already enabled");
+    }
     map.addDrawComponent(this);
     GameModule.getGameModule().getPrefs().addOption
       ("General", new BooleanConfigurer(SHOW_DETAILS, "Enable mouse-over stack details", Boolean.TRUE));
 
-    GameModule.getGameModule().getGameState().addGameComponent(this);
     map.getView().addMouseMotionListener(this);
-
   }
 
-  public void draw(Graphics g, Map m) {
-    if (visible && (currentPiece).getPieceCount() > 1) {
+  public void draw(Graphics g, Map map) {
+    if (currentMousePosition != null) {
+      draw(g,currentMousePosition.getPoint(),map.getView());
+    }
+  }
 
-      int translateWidth = 0;
+  public void draw(Graphics g, Point pt, JComponent comp) {
+    if (visible && currentPiece != null) {
+      Enumeration pieces;
+      if (currentPiece instanceof Stack) {
+        pieces = ((Stack) currentPiece).getPieces();
+      }
+      else {
+        pieces = new Enumeration() {
+          boolean finished = false;
 
-      Point pt = map.componentCoordinates(currentPiece.getPosition());
-      PieceFilter visibleFilter = new PieceFilter() {
-        public boolean accept(GamePiece piece) {
-          return !Boolean.TRUE.equals(piece.getProperty(Properties.INVISIBLE_TO_ME));
-        }
-      };
-      for (PieceIterator pi = new PieceIterator(currentPiece.getPieces(),visibleFilter); pi.hasMoreElements();) {
+          public boolean hasMoreElements() {
+            return !finished;
+          }
 
+          public Object nextElement() {
+            finished = true;
+            return currentPiece;
+          }
+        };
+      }
+      PieceIterator pi = PieceIterator.visible(pieces);
+      int width = 0;
+      int height = 0;
+      Vector v = new Vector();
+      while (pi.hasMoreElements()) {
+        GamePiece piece = pi.nextPiece();
+        v.addElement(piece);
+        width += piece.selectionBounds().width;
+        height = Math.max(height,piece.selectionBounds().height);
+      }
+      Rectangle r = comp.getVisibleRect();
+      pt.x = Math.min(pt.x,r.x+r.width-width);
+      pt.y = Math.min(pt.y,r.y+r.height-height);
+      pi = new PieceIterator(v.elements());
+      while (pi.hasMoreElements()) {
         // Draw the next piece
         // pt is the location of the left edge of the piece
         GamePiece piece = pi.nextPiece();
-        piece.draw(g, pt.x+piece.getPosition().x-piece.selectionBounds().x, pt.y, map.getView(), 1.0);
+        piece.draw(g, pt.x + piece.getPosition().x - piece.selectionBounds().x,
+                   pt.y + piece.getPosition().y - piece.selectionBounds().y, comp, 1.0);
 
-        pt.translate(piece.selectionBounds().width,0);
+        pt.translate(piece.selectionBounds().width, 0);
       }
     }
   }
 
-  public void mouseMoved(MouseEvent e) {
+  public void run() {
+    while (System.currentTimeMillis() < expirationTime) {
+      try {
+        Thread.sleep(Math.max(0, expirationTime - System.currentTimeMillis()));
+      }
+      catch (InterruptedException e) {
+      }
+    }
+    currentPiece = findPieceAtMousePosition();
+    visible = shouldBeVisible();
+    map.repaint();
+  }
 
+  protected boolean shouldBeVisible() {
+    boolean val = false;
+    if (currentPiece != null) {
+      if (map.getZoom() < 0.5) {
+        val = !Boolean.TRUE.equals(currentPiece.getProperty(Properties.IMMOBILE));
+      }
+      else if (currentPiece instanceof Stack) {
+        Stack s = (Stack) currentPiece;
+        val = !s.isExpanded()
+          && s.topPiece() != s.bottomPiece();
+      }
+    }
+    return val;
+  }
+
+  protected GamePiece findPieceAtMousePosition() {
+    GamePiece p = map.findPiece(map.mapCoordinates(currentMousePosition.getPoint()), PieceFinder.MOVABLE);
+    if (p != null && p.getParent() != null) {
+      p = p.getParent();
+    }
+    return p;
+  }
+
+  public void mouseMoved(MouseEvent e) {
     // quit if not active
     if (Boolean.FALSE.equals(GameModule.getGameModule().getPrefs().getValue(SHOW_DETAILS))) {
       return;
@@ -98,52 +168,26 @@ public class CounterDetailViewer
 
     // clear details when mouse moved
     if (visible) {
-
       visible = false;
-      timer.stop();
       map.repaint();
     }
-
-    // set the timer
     else {
-      // are we on a counter?
-      GamePiece[] p = map.getPieces();
-
-      for (int i = 0; i < p.length; ++i) {
-        if (p[i] instanceof Stack) {
-          if (p[i].selectionBounds().contains(map.mapCoordinates(e.getPoint()))) {
-            currentPiece = (Stack) p[i];
-            timer.start();
-            return;
-          }
-        }
+      // set the timer
+      currentMousePosition = e;
+      expirationTime = System.currentTimeMillis() + delay;
+      if (delayThread == null || !delayThread.isAlive()) {
+        delayThread = new Thread(this);
+        delayThread.start();
       }
-
-      // not on a counter
-      timer.stop();
     }
-  }
-
-  public void setup(boolean arg0) {
-
-    // initiate the timer
-    timer = new Timer(delay, new ActionListener() {
-      public void actionPerformed(ActionEvent e) {
-        processTimer();
-      }
-    });
-    timer.setCoalesce(true);
-    timer.setDelay(delay);
-    timer.setRepeats(false);
-    timer.stop();
-  }
-
-  private void processTimer() {
-    visible = true;
-    map.repaint();
   }
 
   public void mouseDragged(MouseEvent e) {
+    mouseMoved(e);
+  }
+
+  public Configurer getConfigurer() {
+    return null;
   }
 
   public String[] getAttributeNames() {
@@ -163,12 +207,18 @@ public class CounterDetailViewer
   }
 
   public HelpFile getHelpFile() {
-    return null;
+    File dir = new File("docs");
+    dir = new File(dir, "ReferenceManual");
+    try {
+      return new HelpFile(null, new File(dir, "Map.htm"), "#StackViewer");
+    }
+    catch (MalformedURLException ex) {
+      return null;
+    }
   }
 
   public void removeFrom(Buildable parent) {
     map.removeDrawComponent(this);
-    GameModule.getGameModule().getGameState().removeGameComponent(this);
     map.getView().removeMouseMotionListener(this);
   }
 
@@ -179,12 +229,8 @@ public class CounterDetailViewer
     return null;
   }
 
-  public Command getRestoreCommand() {
-    return null;
-  }
-
   public static String getConfigureTypeName() {
-    return "Mouse-over Stack viewer";
+    return "Mouse-over Stack Viewer";
   }
 
 }

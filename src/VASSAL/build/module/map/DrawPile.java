@@ -449,48 +449,50 @@ public class DrawPile extends AbstractConfigurable implements Drawable, GameComp
   }
 
   public void draw(java.awt.Graphics g, Map map) {
+    Point p = map.componentCoordinates(getPosition());
+    draw(g,p.x,p.y,map.getView(),map.getZoom());
+  }
+  public void draw(java.awt.Graphics g, int x, int y, Component obs, double zoom) {
     int count = 0;
     if (contents != null
       && (count = contents.getPieceCount()) > 0) {
-      Point p = map.componentCoordinates(getPosition());
       GamePiece top = contents.topPiece();
       Rectangle r = top.selectionBounds();
-      r.translate(pos.x - top.getPosition().x, pos.y - top.getPosition().y);
-      r.setLocation(map.componentCoordinates(r.getLocation()));
-      r.setSize((int) (map.getZoom() * r.width), (int) (map.getZoom() * r.height));
+      r.setLocation(x+(int)(zoom*(r.x-top.getPosition().x)),y+(int)(zoom*(r.y-top.getPosition().y)));
+      r.setSize((int) (zoom * r.width), (int) (zoom * r.height));
       count = count > 10 ? 10 : count;
       for (int i = 0; i < count - 1; ++i) {
         g.setColor(Color.white);
-        g.fillRect(r.x + (int) (map.getZoom() * 2 * i),
-                   r.y - (int) (map.getZoom() * 2 * i), r.width, r.height);
+        g.fillRect(r.x + (int) (zoom * 2 * i),
+                   r.y - (int) (zoom * 2 * i), r.width, r.height);
         g.setColor(Color.black);
-        g.drawRect(r.x + (int) (map.getZoom() * 2 * i),
-                   r.y - (int) (map.getZoom() * 2 * i), r.width, r.height);
+        g.drawRect(r.x + (int) (zoom * 2 * i),
+                   r.y - (int) (zoom * 2 * i), r.width, r.height);
       }
       if (faceDown && top.getProperty(Obscurable.ID) !=  null) {
         Object oldValue = top.getProperty(Obscurable.ID);
         top.setProperty(Obscurable.ID,HIDDEN_TO_ALL);
-        top.draw(g, p.x + (int) (map.getZoom() * 2 * (count - 1)),
-                 p.y - (int) (map.getZoom() * 2 * (count - 1)), map.getView(), map.getZoom());
+        top.draw(g, x + (int) (zoom * 2 * (count - 1)),
+                 y - (int) (zoom * 2 * (count - 1)), obs, zoom);
         top.setProperty(Obscurable.ID,oldValue);
       }
       else {
-      top.draw(g, p.x + (int) (map.getZoom() * 2 * (count - 1)),
-               p.y - (int) (map.getZoom() * 2 * (count - 1)), map.getView(), map.getZoom());
+      top.draw(g, x + (int) (zoom * 2 * (count - 1)),
+               y - (int) (zoom * 2 * (count - 1)), obs, zoom);
       }
     }
     else {
       if (drawOutline) {
         Rectangle r = boundingBox();
-        r.setLocation(map.componentCoordinates(r.getLocation()));
-        r.setSize((int) (map.getZoom() * r.width), (int) (map.getZoom() * r.height));
+        r.setLocation(x+(int)(zoom*(r.x-getPosition().x)), y+(int)(zoom*(r.y-getPosition().y)));
+        r.setSize((int) (zoom * r.width), (int) (zoom * r.height));
         g.setColor(outlineColor);
         g.drawRect(r.x, r.y, r.width, r.height);
       }
     }
   }
 
-  private Point getPosition() {
+  public Point getPosition() {
     Point p = new Point(pos);
     if (owningBoardName != null) {
       for (Enumeration e = map.getAllBoards(); e.hasMoreElements();) {
