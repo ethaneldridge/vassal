@@ -224,7 +224,6 @@ public class Zoomer extends AbstractConfigurable implements GameComponent {
   private void scaleBoards(double zoom) {
     for (Enumeration e = map.getAllBoards(); e.hasMoreElements();) {
       Board b = (Board) e.nextElement();
-      b.fixImage(map.getView());
       b.getScaledImage(zoom, map.getView());
     }
   }
