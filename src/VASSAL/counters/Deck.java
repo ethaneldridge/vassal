@@ -150,7 +150,7 @@ public class Deck extends Stack {
         .append(shuffleOption)
         .append(allowMultipleDraw + "")
         .append(allowSelectDraw + "")
-        .append(reversible+"");
+        .append(reversible + "");
     return ID + se.getValue();
   }
 
@@ -184,7 +184,7 @@ public class Deck extends Stack {
       it = new PieceIterator(nextDraw.iterator());
     }
     else {
-      int count = Math.max(dragCount,Math.min(1,getPieceCount()));
+      int count = Math.max(dragCount, Math.min(1, getPieceCount()));
       ArrayList pieces = new ArrayList();
       if (ALWAYS.equals(shuffleOption)) {
         ArrayList indices = new ArrayList();
@@ -197,7 +197,7 @@ public class Deck extends Stack {
           indices.remove(i);
           GamePiece p = getPieceAt(index);
           if (faceDown) {
-            p.setProperty(Properties.OBSCURED_BY,NO_USER);
+            p.setProperty(Properties.OBSCURED_BY, NO_USER);
           }
           pieces.add(p);
         }
@@ -207,7 +207,7 @@ public class Deck extends Stack {
         while (count-- > 0 && e.hasMoreElements()) {
           GamePiece p = (GamePiece) e.nextElement();
           if (faceDown) {
-            p.setProperty(Properties.OBSCURED_BY,NO_USER);
+            p.setProperty(Properties.OBSCURED_BY, NO_USER);
           }
           pieces.add(p);
         }
@@ -232,8 +232,8 @@ public class Deck extends Stack {
   public String getState() {
     SequenceEncoder se = new SequenceEncoder(';');
     se.append(getMap() == null ? "null" : getMap().getId())
-          .append("" + getPosition().x)
-          .append("" + getPosition().y);
+        .append("" + getPosition().x)
+        .append("" + getPosition().y);
     se.append("" + faceDown);
     SequenceEncoder se2 = new SequenceEncoder(',');
     for (Enumeration e = getPieces(); e.hasMoreElements();) {
@@ -251,7 +251,7 @@ public class Deck extends Stack {
     tracker.addPiece(this);
     SequenceEncoder.Decoder st = new SequenceEncoder.Decoder(state, ';');
     String mapId = st.nextToken();
-    setPosition(new Point(st.nextInt(0),st.nextInt(0)));
+    setPosition(new Point(st.nextInt(0), st.nextInt(0)));
     Map m = null;
     if (!"null".equals(mapId)) {
       m = Map.getMapById(mapId);
@@ -324,30 +324,34 @@ public class Deck extends Stack {
   }
 
   public void draw(java.awt.Graphics g, int x, int y, Component obs, double zoom) {
-    int count = Math.min(getPieceCount(),10);
+    int count = Math.min(getPieceCount(), 10);
     GamePiece top = topPiece();
     if (top != null) {
+      top.setProperty(Properties.OBSCURED_BY, faceDown ? NO_USER : null);
+      Color blankColor = getBlankColor();
       Rectangle r = top.getShape().getBounds();
       r.setLocation(x + (int) (zoom * (r.x)), y + (int) (zoom * (r.y)));
       r.setSize((int) (zoom * r.width), (int) (zoom * r.height));
       for (int i = 0; i < count - 1; ++i) {
-        g.setColor(Color.white);
-        g.fillRect(r.x + (int) (zoom * 2 * i),
-                   r.y - (int) (zoom * 2 * i), r.width, r.height);
-        g.setColor(Color.black);
-        g.drawRect(r.x + (int) (zoom * 2 * i),
-                   r.y - (int) (zoom * 2 * i), r.width, r.height);
+        if (blankColor != null) {
+          g.setColor(blankColor);
+          g.fillRect(r.x + (int) (zoom * 2 * i),
+                     r.y - (int) (zoom * 2 * i), r.width, r.height);
+          g.setColor(Color.black);
+          g.drawRect(r.x + (int) (zoom * 2 * i),
+                     r.y - (int) (zoom * 2 * i), r.width, r.height);
+        }
+        else if (faceDown) {
+          top.draw(g, x + (int) (zoom * 2 * i),
+                   y - (int) (zoom * 2 * i), obs, zoom);
+        }
+        else {
+          getPieceAt(count-i-1).draw(g, x + (int) (zoom * 2 * i),
+                   y - (int) (zoom * 2 * i), obs, zoom);
+        }
       }
-      if (faceDown) {
-        top.setProperty(Properties.OBSCURED_BY,NO_USER);
-        top.draw(g, x + (int) (zoom * 2 * (count - 1)),
-                 y - (int) (zoom * 2 * (count - 1)), obs, zoom);
-      }
-      else {
-        top.setProperty(Properties.OBSCURED_BY,null);
-        top.draw(g, x + (int) (zoom * 2 * (count - 1)),
-                 y - (int) (zoom * 2 * (count - 1)), obs, zoom);
-      }
+      top.draw(g, x + (int) (zoom * 2 * (count - 1)),
+               y - (int) (zoom * 2 * (count - 1)), obs, zoom);
     }
     else {
       if (drawOutline) {
@@ -360,11 +364,25 @@ public class Deck extends Stack {
     }
   }
 
+  /**
+   * The color used to draw boxes representing cards underneath the top one.
+   * If null, then draw each card normally for face-up decks,
+   * and duplicate the top card for face-down decks
+   * @return
+   */
+  protected Color getBlankColor() {
+    Color c = Color.white;
+    if (getMap() != null) {
+      c = getMap().getStackMetrics().getBlankColor();
+    }
+    return c;
+  }
+
   public Rectangle boundingBox() {
     GamePiece top = topPiece();
     Dimension d = top == null ? size : top.getShape().getBounds().getSize();
-    Rectangle r = new Rectangle(getPosition(),d);
-    r.translate(-r.width/2,-r.height/2);
+    Rectangle r = new Rectangle(getPosition(), d);
+    r.translate(-r.width / 2, -r.height / 2);
     return r;
   }
 
@@ -389,11 +407,11 @@ public class Deck extends Stack {
       KeyCommand c = null;
       if (USE_MENU.equals(shuffleOption)) {
         c = new KeyCommand("Shuffle", null, this) {
-                public void actionPerformed(ActionEvent e) {
-                  GameModule.getGameModule().sendAndLog(shuffle());
-                  map.repaint();
-                }
-              };
+          public void actionPerformed(ActionEvent e) {
+            GameModule.getGameModule().sendAndLog(shuffle());
+            map.repaint();
+          }
+        };
         l.add(c);
       }
       if (USE_MENU.equals(faceDownOption)) {

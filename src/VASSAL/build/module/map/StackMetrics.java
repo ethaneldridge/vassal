@@ -351,6 +351,15 @@ public class StackMetrics extends AbstractConfigurable {
   }
 
   /**
+   * The color used to draw boxes representing counters beneath the top one in a stack.
+   * A value of null indicates that the counters should be drawn fully
+   * @return
+   */
+  public Color getBlankColor() {
+    return blankColor;
+  }
+
+  /**
    * Fill the argument arrays with the positions, selection bounds and bounding boxes of the pieces in the argument stack
    * @param parent The parent Stack
    * @param positions If non-null will contain a {@link Point} giving the position of each piece in <code>parent</code>
