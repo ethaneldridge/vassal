@@ -335,7 +335,7 @@ public class Chatter extends JPanel implements CommandEncoder, Buildable {
     }
 
     public Command myUndoCommand() {
-      return null;
+      return new DisplayText(c, "* UNDO: " + msg);
     }
 
     public String getMessage() {
