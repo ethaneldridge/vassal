@@ -22,18 +22,19 @@ import VASSAL.build.GameModule;
 import VASSAL.tools.DataArchive;
 
 import java.awt.*;
+import java.awt.image.BufferedImage;
 import java.awt.image.FilteredImageSource;
 import java.awt.image.RGBImageFilter;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 
+/**
+ * A special kind of SSROverlay constructed on the fly
+ * by underlaying a patterned GIF under a board GIF
+ * with certain colors turned transparent
+ */
 public class Underlay extends SSROverlay {
-  /*
-   ** A special kind of SSROverlay constructed on the fly
-   ** by underlaying a patterned GIF under a board GIF
-   ** with certain colors turned transparent
-   */
 
   private int transparentList[];
   private Image underlayImage;
@@ -92,9 +93,6 @@ public class Underlay extends SSROverlay {
     }
     catch (Exception e) {
     }
-    //    if (o != null) {
-    //      underlayImage = o.getTerrain().recolor(underlayImage,map);
-    //    }
     if (b.getTerrain() != null) {
       underlayImage = b.getTerrain().recolor(underlayImage, map);
     }
@@ -103,7 +101,6 @@ public class Underlay extends SSROverlay {
 
     Image base = null;
 
-    //    if (o == null) {
     pos = b.getCropBounds().getLocation();
     boundaries.setSize(b.bounds().getSize());
     base = b.getBaseImage();
@@ -113,14 +110,6 @@ public class Underlay extends SSROverlay {
     }
     catch (Exception e) {
     }
-    //    }
-    //    else {
-    //    try {
-    //	base = o.getImage();
-    //	mt.addImage(base,0); mt.waitForAll();} catch (Exception e) {}
-    //	boundaries.setSize(o.getImage().getWidth(map),
-    //			   o.getImage().getHeight(map));
-    //    }
 
     boundaries.setLocation(pos.x, pos.y);
 
@@ -128,9 +117,8 @@ public class Underlay extends SSROverlay {
         (base.getSource(),
          new HolePunch(transparentList, 0)));
 
-    Image replacement = map.createImage(boundaries.width,
-                                        boundaries.height);
-    Graphics g2 = replacement.getGraphics();
+    BufferedImage replacement = GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice().getDefaultConfiguration().createCompatibleImage(boundaries.width, boundaries.height, Transparency.BITMASK);
+    Graphics g2 = replacement.createGraphics();
     try {
       mt.addImage(underlayImage, 0);
       mt.waitForAll();
@@ -164,10 +152,10 @@ public class Underlay extends SSROverlay {
   }
 }
 
+/**
+ * Takes an image and turns a list of colors transparent
+ */
 class HolePunch extends RGBImageFilter {
-  /*
-   ** Takes an image and turns a list of colors transparent
-   */
   int transparent[]; /* List of colors to turn transparent (and red) */
   int mask = -1;     /* All other colors become this (unchanged if -1) */
 

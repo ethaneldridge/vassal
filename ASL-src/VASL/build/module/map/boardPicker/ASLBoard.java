@@ -19,17 +19,14 @@
 package VASL.build.module.map.boardPicker;
 
 import VASL.build.module.map.boardPicker.board.ASLHexGrid;
-import VASSAL.Info;
 import VASSAL.build.GameModule;
 import VASSAL.build.module.map.boardPicker.Board;
 import VASSAL.build.module.map.boardPicker.board.HexGrid;
 import VASSAL.build.module.map.boardPicker.board.MapGrid;
 import VASSAL.tools.DataArchive;
-import VASSAL.tools.RotateFilter;
 
 import java.awt.*;
-import java.awt.image.FilteredImageSource;
-import java.awt.image.ImageProducer;
+import java.awt.image.BufferedImage;
 import java.io.*;
 import java.util.Enumeration;
 import java.util.StringTokenizer;
@@ -218,30 +215,11 @@ public class ASLBoard extends Board {
       boardImage = baseImage;
       return;
     }
-    boardImage = map.createImage(boundaries.width, boundaries.height);
-    Graphics g = boardImage.getGraphics();
+    boardImage = GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice().getDefaultConfiguration().createCompatibleImage(boundaries.width, boundaries.height, Transparency.BITMASK);
+    Graphics g = ((BufferedImage) boardImage).createGraphics();
     if (reversed) {
-      if (Info.isMacOsX()) {
-        System.err.println("Using fail-safe rotation for board "+getName());
-        RotateFilter filter = new RotateFilter(180);
-//        filter.transformSpace(rotatedBounds);
-        ImageProducer producer = new FilteredImageSource
-            (im.getSource(), filter);
-        Image rotated = map.createImage(producer);
-        track.addImage(rotated,0);
-        try {
-          track.waitForID(0);
-        }
-        catch (InterruptedException e) {
-          e.printStackTrace();
-        }
-        g.drawImage(rotated, -baseImage.getWidth(map)+boundaries.width+cropBounds.x,
-                    -baseImage.getHeight(map)+boundaries.height+cropBounds.y, map);
-      }
-      else {
-        g.drawImage(im, 0, 0, boundaries.width, boundaries.height,
-                    cropBounds.x + boundaries.width, cropBounds.y + boundaries.height, cropBounds.x, cropBounds.y, map);
-      }
+      g.drawImage(im, 0, 0, boundaries.width, boundaries.height,
+                  cropBounds.x + boundaries.width, cropBounds.y + boundaries.height, cropBounds.x, cropBounds.y, map);
     }
     else {
       g.drawImage(im, -cropBounds.x, -cropBounds.y, map);
@@ -303,8 +281,8 @@ public class ASLBoard extends Board {
         }
       }
     }
-
     im = null;
+    g.dispose();
     System.gc();
   }
 
@@ -385,8 +363,8 @@ public class ASLBoard extends Board {
 
   public String locationName(Point p) {
     if (getMap() != null
-      && getMap().getBoardCount() > 1) {
-      return getName()+super.locationName(p);
+        && getMap().getBoardCount() > 1) {
+      return getName() + super.locationName(p);
     }
     else {
       return super.locationName(p);

@@ -23,6 +23,7 @@ import VASSAL.tools.DataArchive;
 import VASSAL.tools.SequenceEncoder;
 
 import java.awt.*;
+import java.awt.image.BufferedImage;
 import java.io.*;
 import java.util.StringTokenizer;
 
@@ -155,22 +156,22 @@ public class Overlay implements Cloneable {
       waitFor(image, map);
     }
     catch (BoardException e) {
-      image = map.createImage(100, 10);
-      Graphics g = image.getGraphics();
-      FontMetrics fm = g.getFontMetrics();
+      FontMetrics fm = map.getGraphics().getFontMetrics();
       String msg = e.getMessage();
-      image = map.createImage(fm.stringWidth(msg) + 10, fm.getHeight() * 2);
-      g = image.getGraphics();
+      int width = fm.stringWidth(msg) + 10;
+      int height = fm.getHeight() * 2;
+      image = GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice().getDefaultConfiguration().createCompatibleImage(width, height, Transparency.BITMASK );
+      Graphics2D g = ((BufferedImage)image).createGraphics();
       g.setColor(Color.black);
       g.drawString(msg, 5, fm.getHeight());
     }
     catch (MapGrid.BadCoords e) {
-      image = map.createImage(100, 10);
-      Graphics g = image.getGraphics();
-      FontMetrics fm = g.getFontMetrics();
+      FontMetrics fm = map.getGraphics().getFontMetrics();
       String msg = e.getMessage();
-      image = map.createImage(fm.stringWidth(msg) + 10, fm.getHeight() * 2);
-      g = image.getGraphics();
+      int width = fm.stringWidth(msg) + 10;
+      int height = fm.getHeight() * 2;
+      image = GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice().getDefaultConfiguration().createCompatibleImage(width, height, Transparency.BITMASK );
+      Graphics2D g = ((BufferedImage)image).createGraphics();
       g.setColor(Color.black);
       g.drawString(msg, 5, fm.getHeight());
     }
