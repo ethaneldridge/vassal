@@ -13,7 +13,7 @@
  * Library General Public License for more details.
  *
  * You should have received a copy of the GNU Library General Public
- * License along with this library; if not, copies are available 
+ * License along with this library; if not, copies are available
  * at http://www.opensource.org.
  */
 package VASSAL.build.widget;
@@ -32,123 +32,145 @@ import java.util.Vector;
 
 /**
  * A Widget that corresponds to a panel with a {@link JComboBox} above
- * a {@link JPanel} with a {@link CardLayout} layout.  
+ * a {@link JPanel} with a {@link CardLayout} layout.
  * Adding a Widget to a BoxWidget adds the child Widget's component
- * to the JPanel and add's the child's name 
+ * to the JPanel and add's the child's name
  * (via {@link Configurable#getConfigureName}) to the JComboBox.  Changing
  * the selection of the JComboBox shows the corresponding child's component
  */
 public class BoxWidget extends Widget
-implements ItemListener, PropertyChangeListener {
-    private JPanel panel;
-    private JComboBox box;
-    private DefaultComboBoxModel widgets = new DefaultComboBoxModel();
-    private CardLayout layout = new CardLayout();
-    private JPanel multiPanel = new JPanel();
-    private Vector built = new Vector();
+    implements ItemListener, PropertyChangeListener {
+  private JPanel panel;
+  private JComboBox box;
+  private DefaultComboBoxModel widgets = new DefaultComboBoxModel();
+  private CardLayout layout = new CardLayout();
+  private JPanel multiPanel = new JPanel();
+  private Vector built = new Vector();
+  private Dimension size = new Dimension();
 
-    private Hashtable keys = new Hashtable();
-    private int count = 0;
-    
-    public BoxWidget() {
-    }
+  private Hashtable keys = new Hashtable();
+  private int count = 0;
 
-    public static String getConfigureTypeName() {
-        return "Pull-down Menu";
-    }
-    public void add(Buildable b) {
-	if (b instanceof Widget) {
-	    Widget w = (Widget)b;
-	    widgets.addElement(w);
-	    w.addPropertyChangeListener(this);
-	    //	    w.setAllowableConfigureComponents(getAllowableConfigureComponents());
-	    if (panel != null) {
-		multiPanel.add(getKey(w),w.getComponent());
-	    }
-        }
-	super.add(b);
-    }
-    public void remove(Buildable b) {
-	if (b instanceof Widget) {
-	    widgets.removeElement((Widget)b);
-	}
-	super.remove(b);
-    }
+  public BoxWidget() {
+  }
 
-    public void propertyChange
-        (java.beans.PropertyChangeEvent evt) {
-	if (Configurable.NAME_PROPERTY.equals(evt.getPropertyName())
-	    && box != null) {
-	    box.revalidate();
-	}
-    }
+  public static String getConfigureTypeName() {
+    return "Pull-down Menu";
+  }
 
-    public java.awt.Component getComponent() {
-	if (panel == null) {
-	    rebuild();
-	    box = new JComboBox();
-	    panel = new JPanel();
-	    panel.setLayout(new BoxLayout(panel,BoxLayout.Y_AXIS));
-	    multiPanel.setLayout(layout);
-	    
-	    box.setModel(widgets);
-	    box.setRenderer(new Widget.MyCellRenderer());
-	    box.addItemListener(this);
-	    panel.add(box);
-	    panel.add(multiPanel);
-	    itemStateChanged(null);
-	}
-        return panel;
+  public void add(Buildable b) {
+    if (b instanceof Widget) {
+      Widget w = (Widget) b;
+      widgets.addElement(w);
+      w.addPropertyChangeListener(this);
+      //	    w.setAllowableConfigureComponents(getAllowableConfigureComponents());
+      if (panel != null) {
+        multiPanel.add(getKey(w), w.getComponent());
+      }
     }
-    private String getKey(Object o) {
-        String s = (String)keys.get(o);
-        if (s == null) {
-            s = ""+new Integer(count++);
-            keys.put(o,s);
-        }
-        return s;
-    }
-    public void itemStateChanged(ItemEvent e) {
-	if (box.getSelectedItem() != null) {
-	    Widget w = (Widget)box.getSelectedItem();
-	    if (!built.contains(w)) {
-		multiPanel.add(getKey(w),w.getComponent());
-		built.addElement(w);
-	    }
-	    layout.show(multiPanel,getKey(w));
-	}
-    }
-    /*
-    public Configurer[] getAttributeConfigurers() {
-        Configurer config[] = new Configurer[1];
-        config[0] = new StringConfigurer
-        (NAME,"Name");
-        config[0].setValue(getConfigureName());
-	listenTo(config[0]);
-        return config;
-    }
-    */
-    public String[] getAttributeNames() {
-	return new String[]{NAME};
-    }
-    public String[] getAttributeDescriptions() {
-	return new String[]{"Name"};
-    }
+    super.add(b);
+  }
 
-    public Class[] getAttributeTypes() {
-	return new Class[]{String.class};
+  public void remove(Buildable b) {
+    if (b instanceof Widget) {
+      widgets.removeElement(b);
     }
+    super.remove(b);
+  }
 
-    public void setAttribute(String name, Object value) {
-	if (NAME.equals(name)) {
-	    setConfigureName((String)value);
-	}
+  public void propertyChange
+      (java.beans.PropertyChangeEvent evt) {
+    if (Configurable.NAME_PROPERTY.equals(evt.getPropertyName())
+        && box != null) {
+      box.revalidate();
     }
-    public String getAttributeValueString(String name) {
-	if (NAME.equals(name)) {
-	    return getConfigureName();
-	}
-	return null;
+  }
+
+  public java.awt.Component getComponent() {
+    if (panel == null) {
+      rebuild();
+      box = new JComboBox();
+      panel = new JPanel();
+      panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
+      multiPanel.setLayout(layout);
+      if (size.width > 0
+        && size.height > 0) {
+        multiPanel.setPreferredSize(size);
+      }
+
+      box.setModel(widgets);
+      box.setRenderer(new Widget.MyCellRenderer());
+      box.addItemListener(this);
+      panel.add(box);
+      panel.add(multiPanel);
+      itemStateChanged(null);
     }
-    
+    return panel;
+  }
+
+  private String getKey(Object o) {
+    String s = (String) keys.get(o);
+    if (s == null) {
+      s = "" + new Integer(count++);
+      keys.put(o, s);
+    }
+    return s;
+  }
+
+  public void itemStateChanged(ItemEvent e) {
+    if (box.getSelectedItem() != null) {
+      Widget w = (Widget) box.getSelectedItem();
+      if (!built.contains(w)) {
+        multiPanel.add(getKey(w), w.getComponent());
+        built.addElement(w);
+      }
+      layout.show(multiPanel, getKey(w));
+    }
+  }
+
+  private boolean allChildrenBuilt() {
+    return box.getModel().getSize() == built.size();
+  }
+
+  public String[] getAttributeNames() {
+    return new String[]{NAME,WIDTH,HEIGHT};
+  }
+
+  public String[] getAttributeDescriptions() {
+    return new String[]{"Name"};
+  }
+
+  public Class[] getAttributeTypes() {
+    return new Class[]{String.class};
+  }
+
+  public void setAttribute(String name, Object value) {
+    if (NAME.equals(name)) {
+      setConfigureName((String) value);
+    }
+    else if (WIDTH.equals(name)) {
+      size.width = Integer.parseInt(value.toString());
+    }
+    else if (HEIGHT.equals(name)) {
+      size.height = Integer.parseInt(value.toString());
+    }
+  }
+
+  public String getAttributeValueString(String name) {
+    if (NAME.equals(name)) {
+      return getConfigureName();
+    }
+    else if (WIDTH.equals(name)) {
+      int w = allChildrenBuilt() ? multiPanel.getLayout().preferredLayoutSize(multiPanel).width
+        : size.width;
+      return new Integer(w).toString();
+    }
+    else if (HEIGHT.equals(name)) {
+      int h = allChildrenBuilt() ? multiPanel.getLayout().preferredLayoutSize(multiPanel).height
+        : size.height;
+      return new Integer(h).toString();
+    }
+    return null;
+  }
+
 }

@@ -33,6 +33,8 @@ import org.w3c.dom.NamedNodeMap;
  */
 public abstract class Widget extends AbstractConfigurable {
   public static final String NAME = "entryName";
+  public static final String WIDTH="width";
+  public static final String HEIGHT="height";
   protected Element buildElement;
 
   protected Widget parent;

@@ -25,8 +25,6 @@ import javax.swing.*;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import java.awt.*;
-import java.awt.event.ComponentAdapter;
-import java.awt.event.ComponentEvent;
 import java.util.Enumeration;
 import java.util.Hashtable;
 
@@ -62,6 +60,7 @@ public class ListWidget extends Widget
       rebuild();
       panel = new JPanel();
       split = new JSplitPane();
+      split.setResizeWeight(1.0);
       list = new JList(widgets);
       layout = new CardLayout();
       multiPanel = new JPanel();
@@ -76,21 +75,11 @@ public class ListWidget extends Widget
 
       list.setModel(widgets);
       list.addListSelectionListener(this);
-      list.setPrototypeCellValue("MMMMMMMM");
-      list.setVisibleRowCount(3);
       list.setCellRenderer(new Widget.MyCellRenderer());
+      list.setFixedCellWidth(80);
+      list.setVisibleRowCount(3);
       split.setLeftComponent(multiPanel);
       split.setRightComponent(new JScrollPane(list));
-/*
-      split.addComponentListener(new ComponentAdapter() {
-        public void componentShown(ComponentEvent e) {
-          split.setDividerLocation(split.getWidth()-split.getDividerSize()-list.getPreferredScrollableViewportSize().width);
-          System.err.println("Divider set to "+split.getDividerLocation());
-          split.removeComponentListener(this);
-        }
-      });
-      split.setDividerLocation(split.getWidth()-split.getDividerSize()-list.getPreferredScrollableViewportSize().width);
-*/
     }
     return split;
   }
@@ -131,7 +120,7 @@ public class ListWidget extends Widget
   }
 
   public String[] getAttributeNames() {
-    String s[] = {NAME};
+    String s[] = {NAME,WIDTH,HEIGHT};
     return s;
   }
 
