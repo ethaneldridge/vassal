@@ -35,7 +35,6 @@ import java.awt.*;
 import java.awt.event.*;
 import java.io.File;
 import java.net.MalformedURLException;
-import java.net.URL;
 import java.util.Enumeration;
 
 /**
@@ -55,36 +54,33 @@ public class GlobalMap extends JPanel implements MouseListener,
 
   public GlobalMap() {
     ActionListener al = new ActionListener() {
-          public void actionPerformed(ActionEvent e) {
-            setWindowVisible(!f.isVisible());
-          }
-        };
-    launch = new LaunchButton(null,null,HOTKEY,ICON_NAME,al);
+      public void actionPerformed(ActionEvent e) {
+        setWindowVisible(!f.isVisible());
+      }
+    };
+    launch = new LaunchButton(null, null, HOTKEY, ICON_NAME, al);
     launch.setToolTipText("Show/Hide overview window");
     launch.setAttribute(HOTKEY, KeyStroke.getKeyStroke(KeyEvent.VK_O, KeyEvent.CTRL_MASK + KeyEvent.SHIFT_MASK));
     addMouseListener(this);
   }
 
   private void initWindow() {
-    if (f == null) {
-      Component ancestor = map.getView().getTopLevelAncestor();
-      JFrame owner = ancestor instanceof JFrame ? (JFrame) ancestor : null;
-      f = new JWindow(owner);
-      f.getContentPane().add(this);
-      if (Info.is2dEnabled()) {
-        map.getView().addHierarchyBoundsListener(new HierarchyBoundsAdapter() {
-          public void ancestorMoved(HierarchyEvent e) {
-            adjustWindowLocation();
-          }
-        });
-      }
-      else {
-        map.getView().addComponentListener(new ComponentAdapter() {
-          public void componentMoved(ComponentEvent e) {
-            adjustWindowLocation();
-          }
-        });
-      }
+    f = new JWindow(SwingUtilities.getWindowAncestor(map.getView()));
+    f.getContentPane().add(this);
+    f.setSize(getPreferredSize());
+    if (Info.is2dEnabled()) {
+      map.getView().addHierarchyBoundsListener(new HierarchyBoundsAdapter() {
+        public void ancestorMoved(HierarchyEvent e) {
+          adjustWindowLocation();
+        }
+      });
+    }
+    else {
+      map.getView().addComponentListener(new ComponentAdapter() {
+        public void componentMoved(ComponentEvent e) {
+          adjustWindowLocation();
+        }
+      });
     }
   }
 
@@ -101,6 +97,16 @@ public class GlobalMap extends JPanel implements MouseListener,
     map.addDrawComponent(this);
 
     map.getToolBar().add(launch);
+
+    f = new JWindow(); // Dummy window until the parent map is added to a Window of its own
+    map.getView().addHierarchyListener(new HierarchyListener() {
+      public void hierarchyChanged(HierarchyEvent e) {
+        if (SwingUtilities.getWindowAncestor(map.getView()) != null) {
+          initWindow();
+          map.getView().removeHierarchyListener(this);
+        }
+      }
+    });
   }
 
   public void add(Buildable b) {
@@ -181,7 +187,7 @@ public class GlobalMap extends JPanel implements MouseListener,
 
   public static class IconConfig implements ConfigurerFactory {
     public Configurer getConfigurer(AutoConfigurable c, String key, String name) {
-      return new IconConfigurer(key,name,"/images/overview.gif");
+      return new IconConfigurer(key, name, "/images/overview.gif");
     }
   }
 
@@ -276,11 +282,7 @@ public class GlobalMap extends JPanel implements MouseListener,
   }
 
   public void setup(boolean show) {
-    initWindow();
-    if (show) {
-      f.setSize(getPreferredSize());
-    }
-    else {
+    if (!show) {
       f.setVisible(false);
     }
 
@@ -304,7 +306,7 @@ public class GlobalMap extends JPanel implements MouseListener,
   protected void adjustWindowLocation() {
     if (map.getView().isShowing()) {
       Point p = map.getView().getLocationOnScreen();
-      p.translate(map.getView().getVisibleRect().x,map.getView().getVisibleRect().y);
+      p.translate(map.getView().getVisibleRect().x, map.getView().getVisibleRect().y);
       f.setLocation(p);
     }
   }
