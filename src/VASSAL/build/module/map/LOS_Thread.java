@@ -13,29 +13,33 @@
  * Library General Public License for more details.
  *
  * You should have received a copy of the GNU Library General Public
- * License along with this library; if not, copies are available 
+ * License along with this library; if not, copies are available
  * at http://www.opensource.org.
  */
 package VASSAL.build.module.map;
 
-import VASSAL.build.module.documentation.HelpFile;
-import VASSAL.tools.LaunchButton;
+import VASSAL.build.AbstractConfigurable;
+import VASSAL.build.Buildable;
+import VASSAL.build.Configurable;
+import VASSAL.build.GameModule;
 import VASSAL.build.module.Map;
+import VASSAL.build.module.documentation.HelpFile;
 import VASSAL.build.module.map.boardPicker.Board;
 import VASSAL.build.module.map.boardPicker.board.MapGrid;
-import VASSAL.build.*;
-import VASSAL.counters.*;
-import VASSAL.configure.*;
-import VASSAL.configure.HotKeyConfigurer;
+import VASSAL.configure.BooleanConfigurer;
+import VASSAL.configure.ColorConfigurer;
+import VASSAL.configure.VisibilityCondition;
+import VASSAL.counters.GamePiece;
+import VASSAL.tools.LaunchButton;
 
-import java.awt.*;
-import java.beans.*;
 import javax.swing.*;
+import java.awt.*;
 import java.awt.event.*;
-import java.awt.image.ImageObserver;
-import java.net.URL;
-import java.net.MalformedURLException;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 import java.io.File;
+import java.net.MalformedURLException;
+import java.net.URL;
 
 /**
  * A class that allows the user to draw a straight line on a Map (LOS
@@ -46,8 +50,8 @@ import java.io.File;
  * distance between endpoints of the line
  * */
 public class LOS_Thread extends AbstractConfigurable implements
-  MouseListener, MouseMotionListener,
-  Drawable, Configurable {
+    MouseListener, MouseMotionListener,
+    Drawable, Configurable {
   public static final String SNAP_LOS = "snapLOS";
   public static final String LOS_COLOR = "threadColor";
   public static final String HOTKEY = "hotkey";
@@ -56,6 +60,7 @@ public class LOS_Thread extends AbstractConfigurable implements
   public static final String HIDE_COUNTERS = "hideCounters";
   public static final String RANGE_BACKGROUND = "rangeBg";
   public static final String RANGE_FOREGROUND = "rangeFg";
+  public static final String RANGE_SCALE = "scale";
   public static Font RANGE_FONT = new Font("Dialog", 0, 11);
 
   protected boolean retainAfterRelease = false;
@@ -68,6 +73,7 @@ public class LOS_Thread extends AbstractConfigurable implements
   protected Point arrow;
   protected boolean visible;
   protected boolean drawRange;
+  protected int rangeScale;
   protected boolean hideCounters;
   protected String fixedColor;
   protected Color threadColor = Color.black, rangeFg = Color.white, rangeBg = Color.black;
@@ -118,12 +124,12 @@ public class LOS_Thread extends AbstractConfigurable implements
     map.addDrawComponent(this);
     map.getToolBar().add(launch);
     GameModule.getGameModule().getPrefs().addOption
-      (getAttributeValueString(LABEL),
-       new BooleanConfigurer(SNAP_LOS, "Snap Thread to grid"));
+        (getAttributeValueString(LABEL),
+         new BooleanConfigurer(SNAP_LOS, "Snap Thread to grid"));
     if (fixedColor == null) {
       ColorConfigurer config = new ColorConfigurer(LOS_COLOR, "Thread Color");
       GameModule.getGameModule().getPrefs().addOption
-        (getAttributeValueString(LABEL), config);
+          (getAttributeValueString(LABEL), config);
       config.addPropertyChangeListener(new PropertyChangeListener() {
         public void propertyChange(PropertyChangeEvent evt) {
           threadColor = (Color) evt.getNewValue();
@@ -151,7 +157,7 @@ public class LOS_Thread extends AbstractConfigurable implements
    * </pre>
    */
   public String[] getAttributeNames() {
-    return new String[]{HOTKEY, LABEL, DRAW_RANGE, HIDE_COUNTERS, LOS_COLOR, RANGE_FOREGROUND, RANGE_BACKGROUND};
+    return new String[]{HOTKEY, LABEL, DRAW_RANGE, RANGE_SCALE, HIDE_COUNTERS, LOS_COLOR, RANGE_FOREGROUND, RANGE_BACKGROUND};
   }
 
   public void setAttribute(String key, Object value) {
@@ -160,6 +166,12 @@ public class LOS_Thread extends AbstractConfigurable implements
         value = new Boolean((String) value);
       }
       drawRange = ((Boolean) value).booleanValue();
+    }
+    else if (RANGE_SCALE.equals(key)) {
+      if (value instanceof String) {
+        value = Integer.valueOf((String) value);
+      }
+      rangeScale = ((Integer) value).intValue();
     }
     else if (HIDE_COUNTERS.equals(key)) {
       if (value instanceof String) {
@@ -184,7 +196,7 @@ public class LOS_Thread extends AbstractConfigurable implements
         value = ColorConfigurer.colorToString((Color) value);
       }
       fixedColor = (String) value;
-      threadColor = (Color) ColorConfigurer.stringToColor(fixedColor);
+      threadColor = ColorConfigurer.stringToColor(fixedColor);
     }
     else {
       launch.setAttribute(key, value);
@@ -194,6 +206,9 @@ public class LOS_Thread extends AbstractConfigurable implements
   public String getAttributeValueString(String key) {
     if (DRAW_RANGE.equals(key)) {
       return "" + drawRange;
+    }
+    else if (RANGE_SCALE.equals(key)) {
+      return "" + rangeScale;
     }
     else if (HIDE_COUNTERS.equals(key)) {
       return "" + hideCounters;
@@ -225,10 +240,15 @@ public class LOS_Thread extends AbstractConfigurable implements
     Point mapArrow = map.componentCoordinates(arrow);
     g.drawLine(mapAnchor.x, mapAnchor.y, mapArrow.x, mapArrow.y);
     Board b;
-    if (drawRange
-      && (b = map.findBoard(anchor)) != null
-      && b.getGrid() != null) {
-      drawRange(g, b.getGrid().range(anchor, arrow));
+    if (drawRange) {
+      if ((b = map.findBoard(anchor)) != null
+          && b.getGrid() != null) {
+        drawRange(g, b.getGrid().range(anchor, arrow));
+      }
+      else if (rangeScale > 0) {
+        int dist = (int) Math.round(anchor.getLocation().distance(arrow.getLocation())/rangeScale);
+        drawRange(g, dist);
+      }
     }
   }
 
@@ -262,7 +282,7 @@ public class LOS_Thread extends AbstractConfigurable implements
     if (visible) {
       Point p = e.getPoint();
       if (Boolean.TRUE.equals
-        (GameModule.getGameModule().getPrefs().getValue(SNAP_LOS))) {
+          (GameModule.getGameModule().getPrefs().getValue(SNAP_LOS))) {
         p = map.snapTo(p);
       }
       anchor = p;
@@ -294,7 +314,7 @@ public class LOS_Thread extends AbstractConfigurable implements
 
       Point p = e.getPoint();
       if (Boolean.TRUE.equals
-        (GameModule.getGameModule().getPrefs().getValue(SNAP_LOS))) {
+          (GameModule.getGameModule().getPrefs().getValue(SNAP_LOS))) {
         p = map.componentCoordinates(map.snapTo(map.mapCoordinates(p)));
       }
       arrow = map.mapCoordinates(p);
@@ -314,7 +334,13 @@ public class LOS_Thread extends AbstractConfigurable implements
     g.setColor(Color.black);
     g.setFont(RANGE_FONT);
     FontMetrics fm = g.getFontMetrics();
-    int wid = fm.stringWidth(" Range 88 ");
+    StringBuffer buffer = new StringBuffer();
+    int dummy = range;
+    while (dummy >= 1) {
+      dummy = dummy / 10;
+      buffer.append("8");
+    }
+    int wid = fm.stringWidth(" Range  "+buffer.toString());
     int hgt = fm.getAscent() + 2;
     int w = mapArrow.x - mapAnchor.x;
     int h = mapArrow.y - mapAnchor.y;
@@ -349,6 +375,7 @@ public class LOS_Thread extends AbstractConfigurable implements
     return new String[]{"Hotkey",
                         "Button text",
                         "Draw Range",
+                        "Pixels per range unit",
                         "Hide Pieces while drawing",
                         "Thread color"};
   }
@@ -357,8 +384,21 @@ public class LOS_Thread extends AbstractConfigurable implements
     return new Class[]{KeyStroke.class,
                        String.class,
                        Boolean.class,
+                       Integer.class,
                        Boolean.class,
                        Color.class};
+  }
+
+  public VisibilityCondition getAttributeVisibility(String name) {
+    VisibilityCondition cond = null;
+    if (RANGE_SCALE.equals(name)) {
+      cond = new VisibilityCondition() {
+        public boolean shouldBeVisible() {
+          return drawRange;
+        }
+      };
+    }
+    return cond;
   }
 
   public Configurable[] getConfigureComponents() {
