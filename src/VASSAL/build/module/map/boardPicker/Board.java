@@ -23,6 +23,7 @@ import VASSAL.build.Buildable;
 import VASSAL.build.GameModule;
 import VASSAL.build.IllegalBuildException;
 import VASSAL.build.module.GameComponent;
+import VASSAL.build.module.Map;
 import VASSAL.build.module.documentation.HelpFile;
 import VASSAL.build.module.map.BoardPicker;
 import VASSAL.build.module.map.boardPicker.board.HexGrid;
@@ -70,6 +71,17 @@ public class Board extends AbstractConfigurable {
   private Color color = null;
 
   private MapGrid grid = null;
+
+  private Map map;
+
+  /** Until a game is started that is using this board, the map will be null */
+  public Map getMap() {
+    return map;
+  }
+
+  public void setMap(Map map) {
+    this.map = map;
+  }
 
   public Board() {
     setConfigureName(boardName);

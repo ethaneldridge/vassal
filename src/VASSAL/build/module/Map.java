@@ -462,7 +462,9 @@ public class Map extends AbstractConfigurable implements GameComponent,
     boards.removeAllElements();
     System.gc();
     while (boardList.hasMoreElements()) {
-      boards.addElement(boardList.nextElement());
+      Board board = (Board) boardList.nextElement();
+      board.setMap(this);
+      boards.addElement(board);
     }
     setBoardBoundaries();
   }
@@ -986,6 +988,10 @@ public class Map extends AbstractConfigurable implements GameComponent,
    * @return an Enumeration of all {@link Board}s on the map */
   public Enumeration getAllBoards() {
     return boards.elements();
+  }
+
+  public int getBoardCount() {
+    return boards.size();
   }
 
   /**
