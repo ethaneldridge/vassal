@@ -47,19 +47,6 @@ public class FormattedString {
         buffer.append(token);
       }
     }
-/*
-		Enumeration e = p.keys();
-		while (e.hasMoreElements()) {
-			String key = (String) e.nextElement();
-			String val = p.getProperty(key);
-      if (val != null) {
-        s = s.replaceAll("\\$"+key+"\\$", "");
-      }
-      else {
-        s = s.replaceAll("\\$"+key+"\\$", val);
-      }
-    }
-*/
 
     return buffer.toString();
   }
