@@ -46,11 +46,13 @@ public class ModuleExtension extends AbstractBuildable implements GameComponent 
   public static final String BASE_MODULE_NAME = "module";
   public static final String BASE_MODULE_VERSION = "moduleVersion";
   public static final String VERSION = "version";
+  public static final String VASSAL_VERSION_CREATED = "vassalVersion";
 
   private DataArchive archive;
   private String version="0.0";
 
   private String lastSave;
+  private String vassalVersionCreated;
 
   public ModuleExtension(DataArchive archive) {
     this.archive = archive;
@@ -103,7 +105,7 @@ public class ModuleExtension extends AbstractBuildable implements GameComponent 
   }
 
   public String[] getAttributeNames() {
-    return new String[]{VERSION, BASE_MODULE_NAME, BASE_MODULE_VERSION};
+    return new String[]{VERSION, BASE_MODULE_NAME, BASE_MODULE_VERSION, VASSAL_VERSION_CREATED};
   }
 
   public Class[] getAllowableConfigureComponents() {
@@ -152,6 +154,9 @@ public class ModuleExtension extends AbstractBuildable implements GameComponent 
     else if (VERSION.equals(key)) {
       s = version;
     }
+    else if (VASSAL_VERSION_CREATED.equals(key)) {
+      s = vassalVersionCreated;
+    }
     return s;
   }
 
@@ -163,12 +168,25 @@ public class ModuleExtension extends AbstractBuildable implements GameComponent 
     }
     else if (BASE_MODULE_VERSION.equals(key)) {
       String version = (String) value;
-      if (Info.compareVersions(version, GameModule.getGameModule().getGameVersion()) < 0) {
+      if (Info.compareVersions(GameModule.getGameModule().getGameVersion(), version) < 0) {
         JOptionPane.showMessageDialog(GameModule.getGameModule().getFrame(),
                                       "Extension \'" + getName() + "\' was built for module version "
                                       + version + ".\n  You are running version " + GameModule.getGameModule().getGameVersion()
                                       + ".\n  It's recommended you upgrade to the latest version of " + GameModule.getGameModule().getGameName(),
                                       "Version mismatch", JOptionPane.WARNING_MESSAGE);
+      }
+    }
+    else if (VASSAL_VERSION_CREATED.equals(key)) {
+      vassalVersionCreated = (String) value;
+      String runningVersion = Info.getVersion();
+      if (Info.compareVersions(vassalVersionCreated, runningVersion) > 0) {
+        javax.swing.JOptionPane.showMessageDialog
+          (GameModule.getGameModule().getFrame(),
+           "This extension was created using version " + value
+           + " of the VASSAL engine\nYou are using version "
+           + runningVersion + "\nIt's recommended you upgrade to the latest version of the VASSAL engine.",
+           "Older version in use",
+           javax.swing.JOptionPane.ERROR_MESSAGE);
       }
     }
     else if (VERSION.equals(key)) {
@@ -202,6 +220,7 @@ public class ModuleExtension extends AbstractBuildable implements GameComponent 
   }
 
   public void save() throws IOException {
+    vassalVersionCreated = Info.getVersion();
     if (archive instanceof ArchiveWriter) {
       String save = buildString();
       ((ArchiveWriter) archive).addFile
@@ -216,6 +235,7 @@ public class ModuleExtension extends AbstractBuildable implements GameComponent 
   }
 
   public void saveAs() throws IOException {
+    vassalVersionCreated = Info.getVersion();
     if (archive instanceof ArchiveWriter) {
       String save = buildString();
       ((ArchiveWriter) archive).addFile

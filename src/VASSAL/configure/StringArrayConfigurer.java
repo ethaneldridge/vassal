@@ -154,6 +154,9 @@ public class StringArrayConfigurer extends Configurer {
   }
 
   public void setValue(Object o) {
+    if (o == null) {
+      o = EMPTY;
+    }
     super.setValue(o);
     updateModel();
   }

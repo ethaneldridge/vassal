@@ -93,7 +93,7 @@ public class StringEnumConfigurer extends Configurer {
   }
 
   public String getValueString() {
-    return box != null ? (String) box.getSelectedItem() : validValues[0];
+    return box != null ? (String) box.getSelectedItem() : (validValues.length > 0 ? validValues[0] : "");
   }
 
   public void setValue(String s) {

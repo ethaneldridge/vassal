@@ -125,7 +125,13 @@ public class Prefs {
   public void save() throws IOException {
     for (Enumeration e = options.elements(); e.hasMoreElements();) {
       Configurer c = (Configurer) e.nextElement();
-      storedValues.put(c.getKey(), c.getValueString());
+      String val = c.getValueString();
+      if (val != null) {
+        storedValues.put(c.getKey(), val);
+      }
+      else {
+        storedValues.remove(c.getKey());
+      }
     }
     ByteArrayOutputStream out = new ByteArrayOutputStream();
     storedValues.store(out, null);
