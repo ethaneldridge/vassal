@@ -47,7 +47,7 @@ public class HandMetrics extends StackMetrics {
 
   protected void nextPosition(Point currentPos, Rectangle currentBounds, Point nextPos, Rectangle nextBounds, int dx, int dy) {
     int x = currentPos.x + currentBounds.width + dx;
-    int y = -nextBounds.y;
+    int y = currentPos.y;
     nextBounds.setLocation(x, y);
     nextPos.setLocation(x, y);
   }

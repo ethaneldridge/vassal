@@ -26,18 +26,14 @@
  */
 package VASSAL.build.module;
 
+import VASSAL.build.Buildable;
 import VASSAL.build.module.documentation.HelpFile;
+import VASSAL.build.module.map.CounterDetailViewer;
 import VASSAL.build.module.map.HandMetrics;
 import VASSAL.build.module.map.StackExpander;
 import VASSAL.build.module.map.StackMetrics;
-import VASSAL.build.module.map.CounterDetailViewer;
-import VASSAL.build.Buildable;
-import VASSAL.command.Command;
-import VASSAL.counters.GamePiece;
-import VASSAL.counters.PieceFinder;
-import VASSAL.counters.Stack;
-import VASSAL.counters.Deck;
 import VASSAL.configure.ValidationReport;
+import VASSAL.counters.GamePiece;
 
 import java.awt.*;
 import java.io.File;
@@ -64,6 +60,7 @@ public class PlayerHand extends PrivateMap {
   }
 
   public void validate(Buildable target, ValidationReport report) {
+    report.addWarning("Player Hand is no longer supported.  Use Private Map instead");
   }
 
   public static String getConfigureTypeName() {
@@ -100,50 +97,4 @@ public class PlayerHand extends PrivateMap {
     return r.getSize();
   }
 
-  public Command placeAt(GamePiece piece, Point pt) {
-    if (piece instanceof Deck) {
-      return super.placeAt(piece,pt);
-    }
-    Command c = null;
-    GamePiece[] pieces = this.pieces.getPieces();
-    GamePiece merge = null;
-    for (int i=0;i<pieces.length;++i) {
-      if (pieces[i] instanceof Deck) {
-        continue;
-      }
-      else if (pieces[i] instanceof Stack) {
-        merge = findPiece(pt, PieceFinder.PIECE_IN_STACK);
-        if (merge == null) {
-          merge = pieces[i];
-          break;
-        }
-      }
-      else {
-        merge = pieces[i];
-      }
-    }
-    if (merge != null) {
-      c = getStackMetrics().merge(merge, piece);
-    }
-    else {
-      Rectangle r;
-      if (piece instanceof Stack)  {
-        GamePiece top = ((Stack)piece).topPiece();
-        if (top != null) {
-          r = top.getShape().getBounds();
-        }
-        else {
-          r = new Rectangle();
-        }
-      }
-      else {
-        r = piece.getShape().getBounds();
-      }
-      pt = new Point(-r.x,
-                     -r.y);
-      c = super.placeAt(piece, pt);
-    }
-    getView().revalidate();
-    return c;
-  }
 }
