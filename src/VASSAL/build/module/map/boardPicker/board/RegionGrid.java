@@ -193,7 +193,7 @@ public class RegionGrid extends AbstractConfigurable implements MapGrid {
 
   public void configureRegions() {
   	inConfig = true;
-  	regionConfigurer = new Config(container.getBoard());
+  	regionConfigurer = new Config(this);
   	regionConfigurer.setVisible(true);
   }
 
@@ -230,18 +230,18 @@ public class RegionGrid extends AbstractConfigurable implements MapGrid {
     if (!snapTo || regionList.isEmpty()) {
       return p;
     }
-    
+
     return doSnap(p);
   }
-  
-  // 
+
+  //
   // Internal routine to find closest point for region name reporting
   //
   protected Point doSnap(Point p) {
-  	
+
 	double distSq, minDistSq = 999999999;
 	Point snapPoint, checkPoint;
-	
+
     //
     // Enumerate through each grid point and determine the closest.
     //
@@ -262,13 +262,13 @@ public class RegionGrid extends AbstractConfigurable implements MapGrid {
   }
 
   public String locationName(Point p) {
-  	
+
   	Point checkPoint;
-  	
+
   	if (regionList.isEmpty()) {
   		return null;
   	}
-  	
+
   	//
   	// If snap-to is turned off, then p has not been snapped to a grid point yet
   	//
@@ -308,6 +308,16 @@ public class RegionGrid extends AbstractConfigurable implements MapGrid {
       Rectangle visibleRect,
       double scale,
       boolean reversed) {
+      if (visible) {
+        forceDraw(g, bounds, visibleRect, scale, reversed);
+      }
+  }
+  public void forceDraw(
+      Graphics g,
+      Rectangle bounds,
+      Rectangle visibleRect,
+      double scale,
+      boolean reversed) {
 
     Enumeration e = regionList.elements();
     while (e.hasMoreElements()) {
@@ -341,10 +351,10 @@ public class RegionGrid extends AbstractConfigurable implements MapGrid {
     private Region selectedRegion = null;
     private Point lastClick;
 
-    public Config(Board b) {
-      super("Regions for " + b.getName());
-      board = b;
-      grid = (RegionGrid) board.getGrid();
+    public Config(RegionGrid grid) {
+      super("Regions for " + grid.container.getBoard().getName());
+      board = grid.container.getBoard();
+      this.grid = grid;
       initComponents();
     }
 
@@ -352,7 +362,7 @@ public class RegionGrid extends AbstractConfigurable implements MapGrid {
     private void initComponents() {
       setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
 
-      view = new Config.View(board);
+      view = new Config.View(board, grid);
 
       view.addMouseListener(this);
       view.addMouseMotionListener(this);
@@ -432,13 +442,17 @@ public class RegionGrid extends AbstractConfigurable implements MapGrid {
      */
     public static class View extends JPanel {
       protected Board myBoard;
+      protected RegionGrid grid;
 
-      public View(Board b) {
+      public View(Board b, RegionGrid grid) {
         myBoard = b;
+        this.grid = grid;
       }
 
       public void paint(Graphics g) {
         myBoard.draw(g, 0, 0, 1.0, this);
+        Rectangle bounds = new Rectangle(new Point(),myBoard.bounds().getSize());
+        grid.forceDraw(g,bounds,bounds,1.0,false);
       }
 
       public void update(Graphics g) {

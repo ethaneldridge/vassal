@@ -39,7 +39,7 @@ public class Zone extends AbstractConfigurable implements GridContainer {
   public static final String NAME = "name";
   public static final String PATH = "path";
   public static final String LOCATION_FORMAT = "locationFormat";
-  public static final String GRID_LOCATION = "Grid Location";
+  public static final String GRID_LOCATION = "gridLocation";
 
   protected String locationFormat = "$" + NAME + "$";
   protected FormattedString format = new FormattedString();
@@ -211,7 +211,7 @@ public class Zone extends AbstractConfigurable implements GridContainer {
     private JButton button;
     private PolygonEditor editor;
     private Board board;
-    private JFrame frame;
+    private JDialog frame;
 
     public Editor(final Zone zone) {
       super(PATH, null);
@@ -231,7 +231,7 @@ public class Zone extends AbstractConfigurable implements GridContainer {
           }
         }
       };
-      frame = new JFrame(zone.getConfigureName());
+      frame = new JDialog((Frame)null,zone.getConfigureName(),true);
       frame.getContentPane().setLayout(new BoxLayout(frame.getContentPane(), BoxLayout.Y_AXIS));
       JPanel labels = new JPanel();
       labels.setLayout(new GridLayout(2,2));
@@ -260,6 +260,8 @@ public class Zone extends AbstractConfigurable implements GridContainer {
       }
       editor.setPreferredSize(board != null ? board.getSize() : new Dimension(600,600));
       frame.pack();
+      Dimension d = Toolkit.getDefaultToolkit().getScreenSize();
+      frame.setSize(Math.min(frame.getWidth(),d.width*2/3),Math.min(frame.getHeight(),d.height*2/3));
       frame.setVisible(true);
     }
 

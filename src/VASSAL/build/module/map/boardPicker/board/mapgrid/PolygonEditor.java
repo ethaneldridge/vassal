@@ -33,7 +33,7 @@ public class PolygonEditor extends JPanel {
   public PolygonEditor(Polygon p) {
     polygon = p;
     if (polygon == null
-      || polygon.npoints == 0) {
+        || polygon.npoints == 0) {
       setupForCreate();
     }
     else {
@@ -109,7 +109,7 @@ public class PolygonEditor extends JPanel {
         g2d.setColor(Color.red);
         int x = polygon.xpoints[selected];
         int y = polygon.ypoints[selected];
-        g2d.fillOval(x-10,y-10,20,20);
+        g2d.fillOval(x - 10, y - 10, 20, 20);
       }
 
       g2d.setComposite(AlphaComposite.SrcAtop);
@@ -156,18 +156,23 @@ public class PolygonEditor extends JPanel {
     // implements java.awt.event.MouseListener
     public void mousePressed(MouseEvent e) {
       selected = -1;
+      double minDist = Float.MAX_VALUE;
+      for (int i = 0; i < polygon.npoints; ++i) {
+        double dist = Point2D.distance(polygon.xpoints[i], polygon.ypoints[i], e.getX(), e.getY());
+        if (dist < minDist) {
+          minDist = dist;
+          selected = i;
+        }
+      }
       if (e.isMetaDown()) {
         polygon.addPoint(e.getX(), e.getY());
-        selected = polygon.npoints - 1;
-      }
-      else {
-        double minDist = Float.MAX_VALUE;
-        for (int i = 0; i < polygon.npoints; ++i) {
-          double dist = Point2D.distance(polygon.xpoints[i], polygon.ypoints[i], e.getX(), e.getY());
-          if (dist < minDist) {
-            minDist = dist;
-            selected = i;
+        if (selected >= 0) {
+          for (int i = polygon.npoints - 1; i > selected; --i) {
+            polygon.xpoints[i] = polygon.xpoints[i - 1];
+            polygon.ypoints[i] = polygon.ypoints[i - 1];
           }
+          polygon.xpoints[selected] = e.getX();
+          polygon.ypoints[selected] = e.getY();
         }
       }
     }
