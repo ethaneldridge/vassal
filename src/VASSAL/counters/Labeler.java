@@ -436,7 +436,7 @@ public class Labeler extends Decorator implements EditablePiece {
 
       Integer i = (Integer) font.getValue();
       if (i == null
-          || i.intValue() < 0) {
+          || i.intValue() <= 0) {
         i = new Integer(10);
       }
       se.append(i.toString());
