@@ -492,14 +492,9 @@ public class DrawPile extends AbstractConfigurable implements Drawable, GameComp
 
   public Point getPosition() {
     Point p = new Point(pos);
-    if (owningBoardName != null) {
-      for (Enumeration e = map.getAllBoards(); e.hasMoreElements();) {
-        Board b = (Board) e.nextElement();
-        if (owningBoardName.equals(b.getName())) {
-          p.translate(b.bounds().x,b.bounds().y);
-          break;
-        }
-      }
+    Board b = map.getboardByName(owningBoardName);
+    if (b != null) {
+      p.translate(b.bounds().x,b.bounds().y);
     }
     return p;
   }

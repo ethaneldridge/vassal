@@ -438,6 +438,25 @@ public class Map extends AbstractConfigurable implements GameComponent,
     return null;
   }
 
+  /**
+   * Return the board with the given name
+   * @param name
+   * @return null if no such board found
+   */
+  public Board getboardByName(String name) {
+    Board board = null;
+    if (name != null) {
+      for (Enumeration e = getAllBoards(); e.hasMoreElements();) {
+        Board b = (Board) e.nextElement();
+        if (name.equals(b.getName())) {
+          board = b;
+          break;
+        }
+      }
+    }
+    return board;
+  }
+
   public Dimension getPreferredSize() {
     return new Dimension((int) (getZoom() * mapSize().width),
                          (int) (getZoom() * mapSize().height));

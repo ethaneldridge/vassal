@@ -90,6 +90,9 @@ public class BasicCommandEncoder implements CommandEncoder, Buildable {
     else if (type.startsWith(ReturnToDeck.ID)) {
       return new ReturnToDeck(type, inner);
     }
+    else if (type.startsWith(SendToLocation.ID)) {
+      return new SendToLocation(type, inner);
+    }
     return null;
   }
 
