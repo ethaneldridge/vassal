@@ -40,7 +40,7 @@ public class HexGridNumbering extends RegularGridNumbering {
   public void addTo(Buildable parent) {
     grid = (HexGrid) parent;
     grid.setGridNumbering(this);
-  }
+ }
 
   public static final String STAGGER = "stagger";
 
@@ -134,16 +134,18 @@ public class HexGridNumbering extends RegularGridNumbering {
       int row = minRow;
       for (double y = ymin; y < ymax; y += deltaY, row += nextColumn) {
         p.setLocation((int)x,(int)y+offset);
-        grid.rotateIfSideways(p);
-        Labeler.drawLabel(g, getName(row, column),
+		grid.rotateIfSideways(p);
+        Labeler.drawLabel(g, getName(getRow(p), getColumn(p)),        				 
+        				  //getName(row, column),
                           p.x,
                           p.y,
                           f,
                           Labeler.CENTER,
                           alignment, color, null, null);
         p.setLocation((int)(x+deltaX),(int)(y+deltaY/2)+offset);
-        grid.rotateIfSideways(p);
-        Labeler.drawLabel(g, getName(row + nextRow, column + nextColumn),
+		grid.rotateIfSideways(p);
+        Labeler.drawLabel(g, getName(getRow(p), getColumn(p)), 
+        				  //getName(row + nextRow, column + nextColumn),
                           p.x,
                           p.y,
                           f,
@@ -160,6 +162,14 @@ public class HexGridNumbering extends RegularGridNumbering {
     int x = p.x - grid.getOrigin().x;
 
     x = (int) Math.floor(x / grid.getHexWidth() + 0.5);
+    
+	if (vDescending && grid.isSideways()) {
+		return (getMaxRows()-x);
+	}
+	if (hDescending && !grid.isSideways()) {
+		return (getMaxColumns()-x);
+	}
+	
     return x;
   }
 
@@ -195,6 +205,14 @@ public class HexGridNumbering extends RegularGridNumbering {
     else {
       ny = (int) Math.floor((p.y - origin.y) / dy);
     }
+    
+	if (vDescending && !grid.isSideways()) {
+		return (getMaxRows()-ny);
+	}
+	if (hDescending && grid.isSideways()) {
+		return (getMaxColumns()-ny);
+	}
+	
     return ny;
   }
 
@@ -209,4 +227,13 @@ public class HexGridNumbering extends RegularGridNumbering {
   public void removeFrom(Buildable parent) {
     grid.setGridNumbering(null);
   }
+  
+  protected int getMaxRows() {
+    return (int) Math.floor(grid.getBoard().bounds().height / grid.getHexWidth() + 0.5);
+  }
+  
+  protected int getMaxColumns() {
+    return (int) Math.floor(grid.getBoard().bounds().width  / grid.getHexSize() + 0.5);
+  }
+ 
 }

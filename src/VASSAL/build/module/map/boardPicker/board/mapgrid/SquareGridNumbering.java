@@ -13,7 +13,7 @@
  * Library General Public License for more details.
  *
  * You should have received a copy of the GNU Library General Public
- * License along with this library; if not, copies are available 
+ * License along with this library; if not, copies are available
  * at http://www.opensource.org.
  */
 /*
@@ -28,14 +28,13 @@ package VASSAL.build.module.map.boardPicker.board.mapgrid;
 
 import VASSAL.build.Buildable;
 import VASSAL.build.module.map.boardPicker.board.SquareGrid;
-import VASSAL.build.module.map.PieceMover;
 import VASSAL.counters.Labeler;
-import VASSAL.configure.ConfigurerWindow;
 
 import javax.swing.*;
 import java.awt.*;
 
 public class SquareGridNumbering extends RegularGridNumbering {
+
   private SquareGrid grid;
 
   public void addTo(Buildable parent) {
@@ -68,30 +67,39 @@ public class SquareGridNumbering extends RegularGridNumbering {
     }
     Rectangle region = bounds.intersection(visibleRect);
     Shape oldClip = g.getClip();
-    g.setClip(region.x,region.y,region.width,region.height);
+    g.setClip(region.x, region.y, region.width, region.height);
 
     double deltaX = scale * grid.getDx();
     double deltaY = scale * grid.getDy();
 
-    int minCol = reversed ? (int)Math.ceil((bounds.x-scale*grid.getOrigin().x+bounds.width-region.x)/deltaX)
-      : (int)Math.floor((region.x - bounds.x - scale * grid.getOrigin().x) / deltaX);
-    double xmin = reversed ? bounds.x-scale*grid.getOrigin().x+bounds.width - deltaX*minCol
-      : bounds.x + scale * grid.getOrigin().x + deltaX * minCol;
-    double xmax = region.x+region.width+deltaX;
-    int minRow = reversed ? (int)Math.ceil((bounds.y-scale*grid.getOrigin().y+bounds.height-region.y)/deltaY)
-    : (int)Math.floor((region.y - bounds.y - scale * grid.getOrigin().y) / deltaY);
-    double ymin = reversed ? bounds.y-scale*grid.getOrigin().y+bounds.height - deltaY*minRow
-      : bounds.y + scale * grid.getOrigin().y + deltaY * minRow;
-    double ymax = region.y+region.height + deltaY;
+    int minCol = reversed ? (int) Math.ceil((bounds.x - scale * grid.getOrigin().x + bounds.width - region.x) / deltaX)
+        : (int) Math.floor((region.x - bounds.x - scale * grid.getOrigin().x) / deltaX);
+    double xmin = reversed ? bounds.x - scale * grid.getOrigin().x + bounds.width - deltaX * minCol
+        : bounds.x + scale * grid.getOrigin().x + deltaX * minCol;
+    double xmax = region.x + region.width + deltaX;
+    int minRow = reversed ? (int) Math.ceil((bounds.y - scale * grid.getOrigin().y + bounds.height - region.y) / deltaY)
+        : (int) Math.floor((region.y - bounds.y - scale * grid.getOrigin().y) / deltaY);
+    double ymin = reversed ? bounds.y - scale * grid.getOrigin().y + bounds.height - deltaY * minRow
+        : bounds.y + scale * grid.getOrigin().y + deltaY * minRow;
+    double ymax = region.y + region.height + deltaY;
 
     Font f = new Font("Dialog", Font.PLAIN, size);
     int column = minCol;
     for (double x = xmin; x < xmax; x += deltaX, column += reversed ? -1 : 1) {
+      int printRow, printColumn;
       int row = minRow;
       for (double y = ymin; y < ymax; y += deltaY, row += reversed ? -1 : 1) {
-        Labeler.drawLabel(g, getName(row, column),
-                          (int)x,
-                          (int)(y-deltaY/2),
+        printRow = row;
+        printColumn = column;
+        if (vDescending) {
+          printRow = getMaxRows() - row;
+        }
+        if (hDescending) {
+          printColumn = getMaxColumns() - column;
+        }
+        Labeler.drawLabel(g, getName(printRow, printColumn),
+                          (int) x,
+                          (int) (y - deltaY / 2),
                           f,
                           Labeler.CENTER,
                           Labeler.TOP, color, null, null);
@@ -101,14 +109,35 @@ public class SquareGridNumbering extends RegularGridNumbering {
   }
 
   public int getColumn(Point p) {
-    return (int) ((p.x - grid.getOrigin().x) / grid.getDx() + 0.5);
+    int col = (int) ((p.x - grid.getOrigin().x) / grid.getDx() + 0.5);
+    if (hDescending) {
+      return (getMaxColumns() - col);
+    }
+    else {
+      return col;
+    }
   }
 
   public int getRow(Point p) {
-    return (int) ((p.y - grid.getOrigin().y) / grid.getDy() + 0.5);
+    int row = (int) ((p.y - grid.getOrigin().y) / grid.getDy() + 0.5);
+    if (vDescending) {
+      return (getMaxRows() - row);
+    }
+    else {
+      return row;
+    }
   }
+
 
   public void removeFrom(Buildable parent) {
     grid.setGridNumbering(null);
+  }
+
+  protected int getMaxRows() {
+    return (int) (grid.getBoard().bounds().height / grid.getDy() + 0.5);
+  }
+
+  protected int getMaxColumns() {
+    return (int) (grid.getBoard().bounds().width / grid.getDx() + 0.5);
   }
 }

@@ -51,6 +51,8 @@ public abstract class RegularGridNumbering extends AbstractConfigurable implemen
   protected int vLeading = 1;
   protected int hOff = 1;
   protected int vOff = 1;
+  protected boolean hDescending = false;
+  protected boolean vDescending = false;
   protected boolean visible = false;
   protected int fontSize = 9;
   protected Color color = Color.black;
@@ -64,6 +66,8 @@ public abstract class RegularGridNumbering extends AbstractConfigurable implemen
   public static final String V_LEADING = "vLeading";
   public static final String H_OFF = "hOff";
   public static final String V_OFF = "vOff";
+  public static final String V_DESCEND = "vDescend";
+  public static final String H_DESCEND = "hDescend";
   public static final String FONT_SIZE = "fontSize";
   public static final String COLOR = "color";
   public static final String VISIBLE = "visible";
@@ -93,6 +97,12 @@ public abstract class RegularGridNumbering extends AbstractConfigurable implemen
     else if (V_OFF.equals(key)) {
       return "" + vOff;
     }
+	else if (H_DESCEND.equals(key)) {
+		return "" + hDescending;
+	}
+	else if (V_DESCEND.equals(key)) {
+		return "" + vDescending;
+	}
     else if (FONT_SIZE.equals(key)) {
       return "" + fontSize;
     }
@@ -144,6 +154,18 @@ public abstract class RegularGridNumbering extends AbstractConfigurable implemen
       }
       vOff = ((Integer) value).intValue();
     }
+	else if (H_DESCEND.equals(key)) {
+		  if (value instanceof String) {
+			value = new Boolean((String) value);
+		  }
+		  hDescending = ((Boolean) value).booleanValue();
+		}
+	else if (V_DESCEND.equals(key)) {
+		  if (value instanceof String) {
+			value = new Boolean((String) value);
+		  }
+		  vDescending = ((Boolean) value).booleanValue();
+		}		    
     else if (FONT_SIZE.equals(key)) {
       if (value instanceof String) {
         value = new Integer((String) value);
@@ -181,7 +203,8 @@ public abstract class RegularGridNumbering extends AbstractConfigurable implemen
   }
 
   public String[] getAttributeNames() {
-    return new String[]{FIRST, SEP, H_TYPE, H_LEADING, H_OFF, V_TYPE, V_LEADING, V_OFF, VISIBLE, FONT_SIZE, COLOR};
+    return new String[]{FIRST, SEP, H_TYPE, H_LEADING, H_OFF, H_DESCEND, 
+    	                V_TYPE, V_LEADING, V_OFF, V_DESCEND, VISIBLE, FONT_SIZE, COLOR};
   }
 
   public String[] getAttributeDescriptions() {
@@ -190,9 +213,11 @@ public abstract class RegularGridNumbering extends AbstractConfigurable implemen
                         "Horizontal numbering",
                         "Leading zeros in horizontal",
                         "Starting number in horizontal",
+                        "Horizontal numbering descending",
                         "Vertical numbering",
                         "Leading zeros in vertical",
                         "Starting number in vertical",
+                        "Vertical numbering descending",
                         "Draw Numbering",
                         "Font size",
                         "Color"};
@@ -216,9 +241,11 @@ public abstract class RegularGridNumbering extends AbstractConfigurable implemen
                        T.class,
                        Integer.class,
                        Integer.class,
+                       Boolean.class,
                        T.class,
                        Integer.class,
                        Integer.class,
+                       Boolean.class,
                        Boolean.class,
                        Integer.class,
                        Color.class};
@@ -325,5 +352,4 @@ public abstract class RegularGridNumbering extends AbstractConfigurable implemen
         return val + rowOrColumn;
     }
   }
-
 }

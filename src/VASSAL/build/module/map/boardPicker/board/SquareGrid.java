@@ -40,6 +40,7 @@ public class SquareGrid extends AbstractConfigurable implements MapGrid {
   private boolean cornersLegal = false;
   private boolean dotsVisible = false;
   private Color color;
+  protected Board board;
 
   private GridNumbering gridNumbering;
 
@@ -75,6 +76,9 @@ public class SquareGrid extends AbstractConfigurable implements MapGrid {
 
   }
 
+  public Board getBoard() {
+  	return board;
+  }
 
   public static final String DX = "dx";
   public static final String DY = "dy";
@@ -129,6 +133,7 @@ public class SquareGrid extends AbstractConfigurable implements MapGrid {
   }
 
   public void addTo(Buildable b) {
+	board = (Board) b;
     ((Board) b).setGrid(this);
   }
 
