@@ -336,8 +336,7 @@ public class Stack implements GamePiece {
     tracker.addPiece(this);
     SequenceEncoder.Decoder st = new SequenceEncoder.Decoder(s, ';');
     String mapId = st.nextToken();
-    setPosition(new Point(Integer.parseInt(st.nextToken()),
-                          Integer.parseInt(st.nextToken())));
+    setPosition(new Point(st.nextInt(0),st.nextInt(0)));
     pieceCount = 0;
     while (st.hasMoreTokens()) {
       String id = st.nextToken();

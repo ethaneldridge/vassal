@@ -543,8 +543,7 @@ public class BoardPicker extends JDialog
         if (st2.hasMoreTokens()) {
           reversed = "rev".equals(st2.nextToken());
         }
-        Point p = new Point(Integer.parseInt(st.nextToken()),
-                            Integer.parseInt(st.nextToken()));
+        Point p = new Point(st.nextInt(0),st.nextInt(0));
         Board b = getBoard(name);
         b.setReversed(reversed);
         b.relativePosition().move(p.x, p.y);

@@ -67,18 +67,8 @@ public class SendToLocation extends Decorator implements EditablePiece {
     key = s.length() > 0 ? s.charAt(0) : 0;
     mapId = st.nextToken();
     boardName = st.nextToken();
-    try {
-      x = Integer.parseInt(st.nextToken());
-    }
-    catch (NumberFormatException e) {
-      x=0;
-    }
-    try {
-      y = Integer.parseInt(st.nextToken());
-    }
-    catch (NumberFormatException e) {
-      y=0;
-    }
+    x = st.nextInt(0);
+    y = st.nextInt(0);
   }
 
   public String myGetType() {

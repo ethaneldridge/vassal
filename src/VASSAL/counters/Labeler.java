@@ -63,7 +63,7 @@ public class Labeler extends Decorator implements EditablePiece {
   private int horizontalOffset = 0;
 
   public Labeler() {
-    this(ID + " ", null);
+    this(ID, null);
   }
 
   public Labeler(String s, GamePiece d) {
@@ -76,8 +76,7 @@ public class Labeler extends Decorator implements EditablePiece {
     commands = null;
     SequenceEncoder.Decoder st = new SequenceEncoder.Decoder(type, ';');
     st.nextToken();
-    String lkey = st.nextToken().toUpperCase().trim();
-    labelKey = lkey.length() > 0 ? lkey.charAt(0) : (char) 0;
+    labelKey = st.nextChar('\0');
     if (st.hasMoreTokens()) {
       menuCommand = st.nextToken();
       font = new Font("Dialog", Font.PLAIN, Integer.parseInt(st.nextToken()));
@@ -89,12 +88,12 @@ public class Labeler extends Decorator implements EditablePiece {
       if (c != null) {
         textFg = c;
       }
-      verticalPos = st.nextToken().charAt(0);
-      verticalOffset = Integer.parseInt(st.nextToken());
-      horizontalPos = st.nextToken().charAt(0);
-      horizontalOffset = Integer.parseInt(st.nextToken());
-      verticalJust = st.nextToken().charAt(0);
-      horizontalJust = st.nextToken().charAt(0);
+      verticalPos = st.nextChar('t');
+      verticalOffset = st.nextInt(0);
+      horizontalPos = st.nextChar('c');
+      horizontalOffset = st.nextInt(0);
+      verticalJust = st.nextChar('b');
+      horizontalJust = st.nextChar('c');
     }
     lbl.setForeground(textFg);
     lbl.setFont(font);

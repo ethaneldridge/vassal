@@ -128,8 +128,7 @@ public class FreeRotator extends Decorator implements EditablePiece, MouseListen
       validAngles[i] = -i * (360.0 / validAngles.length);
     }
     if (validAngles.length == 1) {
-      String key = st.nextToken();
-      setAngleKey = key.length() > 0 ? key.charAt(0) : '\0';
+      setAngleKey = st.nextChar('\0');
       if (st.hasMoreTokens()) {
         setAngleText = st.nextToken();
       }
@@ -151,36 +150,27 @@ public class FreeRotator extends Decorator implements EditablePiece, MouseListen
     if (getAngle() == 0.0) {
       getInner().draw(g, x, y, obs, zoom);
     }
-    else if (false && Info.is2dEnabled() && g instanceof Graphics2D) {
-      Graphics2D g2d = (Graphics2D) g;
-      AffineTransform t = g2d.getTransform();
-      g2d.setTransform(AffineTransform.getRotateInstance(-getAngle(),x,y));
-      getInner().draw(g,x,y,obs,zoom);
-      g2d.setTransform(t);
-    }
-    else {
-      Image rotated = getRotatedImage(getAngle(), obs);
-      Rectangle r = getRotatedBounds();
-      g.drawImage(rotated,
-                  x + (int) (zoom * r.x),
-                  y + (int) (zoom * r.y),
-                  (int) (zoom * r.width),
-                  (int) (zoom * r.height),
-                  obs);
-    }
+    Image rotated = getRotatedImage(getAngle(), obs);
+    Rectangle r = getRotatedBounds();
+    g.drawImage(rotated,
+                x + (int) (zoom * r.x),
+                y + (int) (zoom * r.y),
+                (int) (zoom * r.width),
+                (int) (zoom * r.height),
+                obs);
   }
 
   public void draw(Graphics g, Map map) {
     if (trans != null
-      && Info.is2dEnabled()
-      && g instanceof Graphics2D) {
+        && Info.is2dEnabled()
+        && g instanceof Graphics2D) {
       Point p = map.componentCoordinates(getPosition());
       Rectangle r = map.getView().getVisibleRect();
-      p.translate(-r.x,-r.y);
+      p.translate(-r.x, -r.y);
       Graphics2D g2d = (Graphics2D) g;
       AffineTransform t = g2d.getTransform();
-      g2d.setTransform(AffineTransform.getRotateInstance(Math.PI*(getAngle()-tempAngle)/180.,p.x,p.y));
-      trans.draw(g,p.x,p.y,map.getView(),map.getZoom());
+      g2d.setTransform(AffineTransform.getRotateInstance(Math.PI * (getAngle() - tempAngle) / 180., p.x, p.y));
+      trans.draw(g, p.x, p.y, map.getView(), map.getZoom());
       g2d.setTransform(t);
     }
   }
@@ -194,9 +184,9 @@ public class FreeRotator extends Decorator implements EditablePiece, MouseListen
     }
     else {
       se.append(rotateCWKey == 0 ? "" : "" + rotateCWKey)
-        .append(rotateCCWKey == 0 ? "" : "" + rotateCCWKey)
-        .append(rotateCWText)
-        .append(rotateCCWText);
+          .append(rotateCCWKey == 0 ? "" : "" + rotateCCWKey)
+          .append(rotateCWText)
+          .append(rotateCCWText);
     }
     return ID + se.getValue();
   }
@@ -222,21 +212,21 @@ public class FreeRotator extends Decorator implements EditablePiece, MouseListen
   public KeyCommand[] myGetKeyCommands() {
     if (commands == null) {
       setAngleCommand = new KeyCommand
-        (setAngleText,
-         KeyStroke.getKeyStroke(setAngleKey,
-                                java.awt.event.InputEvent.CTRL_MASK),
-         Decorator.getOutermost(this));
+          (setAngleText,
+           KeyStroke.getKeyStroke(setAngleKey,
+                                  java.awt.event.InputEvent.CTRL_MASK),
+           Decorator.getOutermost(this));
       rotateCWCommand = new KeyCommand
-        (rotateCWText,
-         KeyStroke.getKeyStroke(rotateCWKey,
-                                java.awt.event.InputEvent.CTRL_MASK),
-         Decorator.getOutermost(this));
+          (rotateCWText,
+           KeyStroke.getKeyStroke(rotateCWKey,
+                                  java.awt.event.InputEvent.CTRL_MASK),
+           Decorator.getOutermost(this));
 
       rotateCCWCommand = new KeyCommand
-        (rotateCCWText,
-         KeyStroke.getKeyStroke(rotateCCWKey,
-                                java.awt.event.InputEvent.CTRL_MASK),
-         Decorator.getOutermost(this));
+          (rotateCCWText,
+           KeyStroke.getKeyStroke(rotateCCWKey,
+                                  java.awt.event.InputEvent.CTRL_MASK),
+           Decorator.getOutermost(this));
 
       if (validAngles.length == 1) {
         if (setAngleText.length() > 0) {
@@ -251,7 +241,7 @@ public class FreeRotator extends Decorator implements EditablePiece, MouseListen
       }
       else {
         if (rotateCWText.length() > 0
-          && rotateCCWText.length() > 0) {
+            && rotateCCWText.length() > 0) {
           commands = new KeyCommand[]{rotateCWCommand, rotateCCWCommand};
         }
         else if (rotateCWText.length() > 0) {
@@ -340,7 +330,7 @@ public class FreeRotator extends Decorator implements EditablePiece, MouseListen
         myAngle = p.x < p2.x ? Math.PI / 2 : -Math.PI / 2;
       }
       else {
-        myAngle = Math.atan((float)(p.x - p2.x) / (float)(p2.y - p.y));
+        myAngle = Math.atan((float) (p.x - p2.x) / (float) (p2.y - p.y));
         if (p2.y < p.y) {
           myAngle += Math.PI;
         }
@@ -352,7 +342,7 @@ public class FreeRotator extends Decorator implements EditablePiece, MouseListen
 
   public Object getProperty(Object key) {
     if (Properties.SHAPE.equals(key)) {
-      Shape s = AffineTransform.getRotateInstance(-Math.PI*getAngle()/180.0,getPosition().x,getPosition().y).createTransformedShape(getInner().selectionBounds());
+      Shape s = AffineTransform.getRotateInstance(-Math.PI * getAngle() / 180.0, getPosition().x, getPosition().y).createTransformedShape(getInner().selectionBounds());
       return s;
     }
     else {
@@ -376,7 +366,7 @@ public class FreeRotator extends Decorator implements EditablePiece, MouseListen
       rotatedBounds.translate(-innerPos.x, -innerPos.y);
       filter.transformSpace(rotatedBounds);
       ImageProducer producer = new FilteredImageSource
-        (unrotated.getImage(obs).getSource(), filter);
+          (unrotated.getImage(obs).getSource(), filter);
       rotated = obs.createImage(producer);
       images.put(new Double(angle), rotated);
       bounds.put(new Double(angle), rotatedBounds);
@@ -404,7 +394,7 @@ public class FreeRotator extends Decorator implements EditablePiece, MouseListen
   }
 
   private static class Ed implements PieceEditor,
-    java.beans.PropertyChangeListener {
+      java.beans.PropertyChangeListener {
     private BooleanConfigurer anyConfig;
     private KeySpecifier anyKeyConfig;
     private IntConfigurer facingsConfig;
@@ -423,12 +413,12 @@ public class FreeRotator extends Decorator implements EditablePiece, MouseListen
       cwKeyConfig = new KeySpecifier(p.rotateCWKey);
       ccwKeyConfig = new KeySpecifier(p.rotateCCWKey);
       anyConfig = new BooleanConfigurer
-        (null, "Allow arbitrary rotations",
-         new Boolean(p.validAngles.length == 1));
+          (null, "Allow arbitrary rotations",
+           new Boolean(p.validAngles.length == 1));
       anyKeyConfig = new KeySpecifier(p.setAngleKey);
       facingsConfig = new IntConfigurer
-        (null, "Number of allowed facings :",
-         new Integer(p.validAngles.length == 1 ? 6 : p.validAngles.length));
+          (null, "Number of allowed facings :",
+           new Integer(p.validAngles.length == 1 ? 6 : p.validAngles.length));
 
       panel = new JPanel();
       panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));

@@ -73,10 +73,8 @@ public class BasicPiece implements EditablePiece {
   public void mySetType(String type) {
     SequenceEncoder.Decoder st = new SequenceEncoder.Decoder(type, ';');
     st.nextToken();
-    String key = st.nextToken();
-    cloneKey = key.length() > 0 ? key.toUpperCase().charAt(0) : (char) 0;
-    key = st.nextToken();
-    deleteKey = key.length() > 0 ? key.toUpperCase().charAt(0) : (char) 0;
+    cloneKey = st.nextChar('\0');
+    deleteKey = st.nextChar('\0');
     imageName = st.nextToken();
     commonName = st.nextToken();
 
@@ -422,8 +420,7 @@ public class BasicPiece implements EditablePiece {
         return;
       }
     }
-    Point newPos = new Point(Integer.parseInt(st.nextToken()),
-                             Integer.parseInt(st.nextToken()));
+    Point newPos = new Point(st.nextInt(0),st.nextInt(0));
     setPosition(newPos);
     if (newMap != oldMap) {
       if (newMap != null) {

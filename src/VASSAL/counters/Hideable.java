@@ -82,7 +82,7 @@ public class Hideable extends Decorator implements EditablePiece {
   public void mySetType(String type) {
     SequenceEncoder.Decoder st = new SequenceEncoder.Decoder(type, ';');
     st.nextToken();
-    hideKey = st.nextToken().toUpperCase().charAt(0);
+    hideKey = st.nextChar('I');
     if (st.hasMoreTokens()) {
       command = st.nextToken();
     }

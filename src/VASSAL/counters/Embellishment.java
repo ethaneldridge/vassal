@@ -99,8 +99,8 @@ public class Embellishment extends Decorator implements EditablePiece {
     downKey = st.nextToken().toUpperCase();
     downCommand = st.nextToken();
 
-    xOff = Integer.parseInt(st.nextToken());
-    yOff = Integer.parseInt(st.nextToken());
+    xOff = st.nextInt(0);
+    yOff = st.nextInt(0);
 
     Vector v = new Vector();
     while (st.hasMoreTokens()) {
@@ -153,7 +153,7 @@ public class Embellishment extends Decorator implements EditablePiece {
     }
     else {
       SequenceEncoder.Decoder st = new SequenceEncoder.Decoder(s, ';');
-      value = Integer.parseInt(st.nextToken());
+      value = st.nextInt(1);
       activationStatus = st.hasMoreTokens() ? st.nextToken() : "";
     }
   }

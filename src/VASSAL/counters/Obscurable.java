@@ -71,7 +71,7 @@ public class Obscurable extends Decorator implements EditablePiece {
   public void mySetType(String in) {
     SequenceEncoder.Decoder st = new SequenceEncoder.Decoder(in, ';');
     st.nextToken();
-    obscureKey = st.nextToken().toUpperCase().charAt(0);
+    obscureKey = st.nextChar('\0');
     imageName = st.nextToken();
     obscuredToMeView = new BasicPiece(BasicPiece.ID + ";;" + imageName + ";;");
     if (st.hasMoreTokens()) {

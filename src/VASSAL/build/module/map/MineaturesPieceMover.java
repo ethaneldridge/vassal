@@ -28,14 +28,19 @@ import java.awt.event.MouseMotionListener;
  */
 
 /**
- * A class for moving pieces, as for mineatures-based games
+ * Moves pieces on a map with an interface appropriate for mineatures-type games.
+ * Only one piece may be moved at a time, with a transparent outline of the
+ * piece being dragged and a line connecting it to its original location.
+ * An maximum distance for moving pieces may be specified.
  */
-public class FreePieceMover extends PieceMover implements MouseMotionListener, Drawable {
+public class MineaturesPieceMover extends PieceMover implements MouseMotionListener, Drawable {
   protected GamePiece dragging;
   protected Transparent trans;
+  /** The piece's original location in component coordinates */
   protected Point anchor;
+  /** The piece's final destination, in component coordinates */
   protected Point arrow;
-  private Color lineColor = Color.black;
+  protected Color lineColor = Color.black;
 
   public void addTo(Buildable b) {
     super.addTo(b);
@@ -123,7 +128,7 @@ public class FreePieceMover extends PieceMover implements MouseMotionListener, D
    * @return
    */
   protected int getMaxDragDistance(GamePiece piece) {
-    return 300;
+    return Integer.MAX_VALUE;
   }
 
   public void mouseMoved(MouseEvent e) {
