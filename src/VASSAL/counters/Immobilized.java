@@ -13,25 +13,39 @@
  * Library General Public License for more details.
  *
  * You should have received a copy of the GNU Library General Public
- * License along with this library; if not, copies are available 
+ * License along with this library; if not, copies are available
  * at http://www.opensource.org.
  */
 package VASSAL.counters;
 
-import VASSAL.build.module.Map;
 import VASSAL.build.module.documentation.HelpFile;
 import VASSAL.command.Command;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.InputEvent;
 import java.io.File;
 import java.net.MalformedURLException;
 
 public class Immobilized extends Decorator implements EditablePiece {
 
   public static final String ID = "immob;";
-  private boolean immobile = false;
+  private boolean useShift = false;
   private boolean ignoreGrid = false;
+  private boolean neverSelect = false;
+  private EventFilter filter;
+
+  private static EventFilter USE_SHIFT = new EventFilter() {
+    public boolean rejectEvent(InputEvent evt) {
+      return !evt.isShiftDown();
+    }
+  };
+
+  private static EventFilter NEVER_SELECT = new EventFilter() {
+    public boolean rejectEvent(InputEvent evt) {
+      return true;
+    }
+  };
 
   public Immobilized() {
     this(null, Immobilized.ID);
@@ -43,11 +57,18 @@ public class Immobilized extends Decorator implements EditablePiece {
   }
 
   public void mySetType(String type) {
-    immobile = false;
+    useShift = false;
     if (type.length() > ID.length()) {
       type = type.substring(ID.length());
-      immobile = type.indexOf('i') >= 0;
+      useShift = type.indexOf('i') >= 0;
       ignoreGrid = type.indexOf('g') >= 0;
+      neverSelect = type.indexOf('n') >= 0;
+    }
+    if (neverSelect) {
+      filter = NEVER_SELECT;
+    }
+    else if (useShift) {
+      filter = USE_SHIFT;
     }
   }
 
@@ -67,11 +88,14 @@ public class Immobilized extends Decorator implements EditablePiece {
     if (Properties.NO_STACK.equals(key)) {
       return Boolean.TRUE;
     }
-    else if (Properties.IMMOBILE.equals(key)) {
-      return new Boolean(immobile);
+    else if (Properties.TERRAIN.equals(key)) {
+      return new Boolean(useShift || neverSelect);
     }
     else if (Properties.IGNORE_GRID.equals(key)) {
       return new Boolean(ignoreGrid);
+    }
+    else if (Properties.EVENT_FILTER.equals(key)) {
+      return filter;
     }
     else {
       return super.getProperty(key);
@@ -92,7 +116,10 @@ public class Immobilized extends Decorator implements EditablePiece {
 
   public String myGetType() {
     String s = ID;
-    if (immobile) {
+    if (neverSelect) {
+      s += 'n';
+    }
+    else if (useShift) {
       s += 'i';
     }
     if (ignoreGrid) {
@@ -114,9 +141,9 @@ public class Immobilized extends Decorator implements EditablePiece {
 
   public HelpFile getHelpFile() {
     File dir = VASSAL.build.module.Documentation.getDocumentationBaseDir();
-    dir = new File(dir,"ReferenceManual");
+    dir = new File(dir, "ReferenceManual");
     try {
-      return new HelpFile(null,new File(dir,"NonStacking.htm"));
+      return new HelpFile(null, new File(dir, "NonStacking.htm"));
     }
     catch (MalformedURLException ex) {
       return null;
@@ -128,17 +155,31 @@ public class Immobilized extends Decorator implements EditablePiece {
   }
 
   private static class Ed implements PieceEditor {
-    private JCheckBox immobileBox;
+    private JComboBox selectionOption;
     private JCheckBox ignoreGridBox;
     private Box controls;
 
     public Ed(Immobilized p) {
-      immobileBox = new JCheckBox("Use shift-click to move/select");
-      immobileBox.setSelected(p.immobile);
+      selectionOption = new JComboBox();
+      selectionOption.addItem("normally");
+      selectionOption.addItem("when shift-key down");
+      selectionOption.addItem("never");
+      if (p.neverSelect) {
+        selectionOption.setSelectedIndex(2);
+      }
+      else if (p.useShift) {
+        selectionOption.setSelectedIndex(1);
+      }
+      else {
+        selectionOption.setSelectedIndex(0);
+      }
       ignoreGridBox = new JCheckBox("Ignore map grid when moving");
       ignoreGridBox.setSelected(p.ignoreGrid);
       controls = Box.createVerticalBox();
-      controls.add(immobileBox);
+      Box b = Box.createHorizontalBox();
+      b.add(new JLabel("Select piece"));
+      b.add(selectionOption);
+      controls.add(b);
       controls.add(ignoreGridBox);
     }
 
@@ -148,8 +189,12 @@ public class Immobilized extends Decorator implements EditablePiece {
 
     public String getType() {
       String s = ID;
-      if (immobileBox.isSelected()) {
-        s += 'i';
+      switch (selectionOption.getSelectedIndex()) {
+        case 1:
+          s += 'i';
+          break;
+        case 2:
+          s += 'n';
       }
       if (ignoreGridBox.isSelected()) {
         s += 'g';

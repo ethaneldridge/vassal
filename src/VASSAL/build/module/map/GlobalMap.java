@@ -376,7 +376,7 @@ public class GlobalMap extends JPanel implements MouseListener,
 
     protected boolean shouldBeVisible() {
       return currentPiece != null
-          && !Boolean.TRUE.equals(currentPiece.getProperty(Properties.IMMOBILE));
+          && !Boolean.TRUE.equals(currentPiece.getProperty(Properties.TERRAIN));
     }
   }
 }

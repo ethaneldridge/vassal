@@ -194,7 +194,7 @@ public class PieceMover extends AbstractBuildable implements
         if (p == null) {
           DragBuffer.getBuffer().clear();
         }
-        else if (Boolean.TRUE.equals(p.getProperty(Properties.IMMOBILE))) {
+        else if (Boolean.TRUE.equals(p.getProperty(Properties.TERRAIN))) {
           DragBuffer.getBuffer().clear();
 
           if (KeyBuffer.getBuffer().contains(p)) {
@@ -926,8 +926,13 @@ public class PieceMover extends AbstractBuildable implements
         }
 
         // begin dragging
-        dge.startDrag(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR), new StringSelection(""), this); //DEBUG
-        dge.getDragSource().addDragSourceMotionListener(this);
+        try {
+          dge.startDrag(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR), new StringSelection(""), this); //DEBUG
+          dge.getDragSource().addDragSourceMotionListener(this);
+        }
+        catch (InvalidDnDOperationException e) {
+          e.printStackTrace();
+        }
       }
     }
 

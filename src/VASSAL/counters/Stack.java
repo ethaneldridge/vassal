@@ -287,6 +287,38 @@ public class Stack implements GamePiece, StateMergeable {
     return null;
   }
 
+  /**
+   * @return the top piece in this stack that is visible to the player with the given id
+   * @param playerId
+   * @see GameModule#getUserId
+   */
+  public GamePiece topPiece(String playerId) {
+    for (int i=pieceCount-1;i>=0;--i) {
+      String hiddenBy = (String) contents[i].getProperty(Properties.HIDDEN_BY);
+      if (hiddenBy == null
+        || hiddenBy.equals(playerId)) {
+        return contents[i];
+      }
+    }
+    return null;
+  }
+
+  /**
+   * @return the bottom piece in this stack that is visible to the player with the given id
+   * @param playerId
+   * @see GameModule#getUserId
+   */
+  public GamePiece bottomPiece(String playerId) {
+    for (int i=0;i<pieceCount;++i) {
+      String hiddenBy = (String) contents[i].getProperty(Properties.HIDDEN_BY);
+      if (hiddenBy == null
+        || hiddenBy.equals(playerId)) {
+        return contents[i];
+      }
+    }
+    return null;
+  }
+
   /** @return the bottom visible piece in this stack */
   public GamePiece bottomPiece() {
     for (int i=0;i<pieceCount;++i) {

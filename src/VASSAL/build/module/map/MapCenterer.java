@@ -72,9 +72,13 @@ public class MapCenterer extends AbstractBuildable implements MouseListener {
   public void mouseReleased(MouseEvent e) {
     if (e.isMetaDown()) {
       GamePiece found = map.findPiece(e.getPoint(), finder);
-      if (found == null
-          || (Boolean.TRUE.equals(found.getProperty(Properties.IMMOBILE))
-          && !e.isShiftDown())) {
+      if (found != null) {
+        if (Boolean.TRUE.equals(found.getProperty(Properties.TERRAIN))
+        && !e.isShiftDown()) {
+          found = null;
+        }
+      }
+      if (found != null) {
         Map.View m = (Map.View) e.getSource();
         m.getMap().centerAt(e.getPoint());
       }

@@ -1,8 +1,6 @@
 package VASSAL.command;
 
-import VASSAL.counters.GamePiece;
-import VASSAL.counters.BoundsTracker;
-import VASSAL.counters.Properties;
+import VASSAL.counters.*;
 import VASSAL.build.GameModule;
 import VASSAL.build.module.Map;
 import VASSAL.build.module.GlobalOptions;
@@ -24,7 +22,7 @@ import java.awt.*;
  * Library General Public License for more details.
  *
  * You should have received a copy of the GNU Library General Public
- * License along with this library; if not, copies are available 
+ * License along with this library; if not, copies are available
  * at http://www.opensource.org.
  */
 
@@ -44,6 +42,7 @@ public class MovePiece extends Command {
   private Point oldPosition;
   private String newUnderneathId;
   private String oldUnderneathId;
+  private String playerId;
 
   /**
    *
@@ -54,8 +53,9 @@ public class MovePiece extends Command {
    * @param oldMapId The id of the map being moved from
    * @param oldPosition the old position
    * @param oldUnderneathId The id of the piece which was immediately beneath this piece in its original containing Stack.
+   * @param playerId the id of the player making this move
    */
-  public MovePiece(String id, String newMapId, Point newPosition, String newUnderneathId, String oldMapId, Point oldPosition, String oldUnderneathId) {
+  public MovePiece(String id, String newMapId, Point newPosition, String newUnderneathId, String oldMapId, Point oldPosition, String oldUnderneathId, String playerId) {
     this.id = id;
     this.newMapId = newMapId;
     this.oldMapId = oldMapId;
@@ -63,6 +63,7 @@ public class MovePiece extends Command {
     this.oldPosition = oldPosition;
     this.newUnderneathId = newUnderneathId;
     this.oldUnderneathId = oldUnderneathId;
+    this.playerId = playerId;
   }
 
   public String getId() {
@@ -93,6 +94,10 @@ public class MovePiece extends Command {
     return oldUnderneathId;
   }
 
+  public String getPlayerId() {
+    return playerId;
+  }
+
   protected void executeCommand() {
     GamePiece piece = GameModule.getGameModule().getGameState().getPieceForId(id);
     if (piece != null) {
@@ -100,18 +105,23 @@ public class MovePiece extends Command {
       bounds.addPiece(piece);
       Map newMap = Map.getMapById(newMapId);
       if (newMap != null) {
+        PieceVisitorDispatcher mergeFinder = createMergeFinder(newMap, piece, newPosition);
         if (newUnderneathId != null) {
           GamePiece under = GameModule.getGameModule().getGameState().getPieceForId(newUnderneathId);
           if (under != null
-            && under.getPosition().equals(newPosition)) {
-            newMap.getStackMetrics().merge(under,piece);
+              && under.getPosition().equals(newPosition)) {
+            newMap.getStackMetrics().merge(under, piece);
           }
           else {
-            newMap.placeOrMerge(piece,newPosition);
+            if (newMap.apply(mergeFinder) == null) {
+              newMap.placeAt(piece, newPosition);
+            }
           }
         }
         else {
-          newMap.placeOrMerge(piece,newPosition);
+          if (newMap.apply(mergeFinder) == null) {
+            newMap.placeAt(piece, newPosition);
+          }
         }
       }
       else {
@@ -123,15 +133,67 @@ public class MovePiece extends Command {
       bounds.addPiece(piece);
       bounds.repaint();
       if (piece.getMap() != null
-        && GlobalOptions.getInstance().centerOnOpponentsMove()
-        && !Boolean.TRUE.equals(piece.getProperty(Properties.INVISIBLE_TO_ME))) {
+          && GlobalOptions.getInstance().centerOnOpponentsMove()
+          && !Boolean.TRUE.equals(piece.getProperty(Properties.INVISIBLE_TO_ME))) {
         piece.getMap().ensureVisible(piece.getMap().selectionBoundsOf(piece));
       }
     }
   }
 
   protected Command myUndoCommand() {
-    return new MovePiece(id,oldMapId,oldPosition,oldUnderneathId,newMapId,newPosition,newUnderneathId);
+    return new MovePiece(id, oldMapId, oldPosition, oldUnderneathId, newMapId, newPosition, newUnderneathId, playerId);
   }
 
+  /**
+   * Creates a new {@link PieceVisitorDispatcher} that will create a {@link Command} object
+   * to merge the target piece with any applicable pieces at the target location
+   * @param map
+   * @param p
+   * @param pt
+   * @return
+   */
+  protected PieceVisitorDispatcher createMergeFinder(final Map map, final GamePiece p, final Point pt) {
+    PieceVisitorDispatcher dispatch = new DeckVisitorDispatcher(new DeckVisitor() {
+      public Object visitDeck(Deck d) {
+        if (d.getPosition().equals(pt)) {
+          return map.getStackMetrics().merge(d, p);
+        }
+        else {
+          return null;
+        }
+      }
+
+      public Object visitStack(Stack s) {
+        if (s.getPosition().equals(pt)
+            && map.getStackMetrics().isStackingEnabled()
+            && !Boolean.TRUE.equals(p.getProperty(Properties.NO_STACK))
+            && s.topPiece(playerId) != null) {
+          return map.getStackMetrics().merge(s, p);
+        }
+        else {
+          return null;
+        }
+      }
+
+      public Object visitDefault(GamePiece piece) {
+        if (piece.getPosition().equals(pt)
+            && map.getStackMetrics().isStackingEnabled()
+            && !Boolean.TRUE.equals(p.getProperty(Properties.NO_STACK))
+            && !Boolean.TRUE.equals(piece.getProperty(Properties.NO_STACK))) {
+          String hiddenBy = (String) piece.getProperty(Properties.HIDDEN_BY);
+          if (hiddenBy == null
+              || hiddenBy.equals(playerId)) {
+            return map.getStackMetrics().merge(piece, p);
+          }
+          else {
+            return null;
+          }
+        }
+        else {
+          return null;
+        }
+      }
+    });
+    return dispatch;
+  }
 }

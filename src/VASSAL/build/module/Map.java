@@ -1313,6 +1313,23 @@ public class Map extends AbstractConfigurable implements GameComponent,
   }
 
   /**
+   * Apply the provided {@link PieceVisitorDispatcher}
+   * to all pieces on this map.  Returns the first non-null {@link Command}
+   * returned by <code>commandFactory</code>
+   *
+   * @param commandFactory
+   *
+   */
+  public Command apply(PieceVisitorDispatcher commandFactory) {
+    GamePiece[] stack = pieces.getPieces();
+    Command c = null;
+    for (int i = 0; i < stack.length && c == null; ++i) {
+      c = (Command) commandFactory.accept(stack[i]);
+    }
+    return c;
+
+  }
+  /**
    * Move a piece to the destination point.  If a piece is at the point
    * (i.e. has a location exactly equal to it), merge with the piece
    * by forwarding to {@link StackMetrics#merge}.
@@ -1321,7 +1338,6 @@ public class Map extends AbstractConfigurable implements GameComponent,
    * @see StackMetrics#merge
    */
   public Command placeOrMerge(final GamePiece p, final Point pt) {
-    GamePiece[] stack = pieces.getPieces();
     PieceVisitorDispatcher dispatch = new DeckVisitorDispatcher(new DeckVisitor() {
       public Object visitDeck(Deck d) {
         if (d.getPosition().equals(pt)) {
@@ -1336,7 +1352,7 @@ public class Map extends AbstractConfigurable implements GameComponent,
         if (s.getPosition().equals(pt)
             && getStackMetrics().isStackingEnabled()
             && !Boolean.TRUE.equals(p.getProperty(Properties.NO_STACK))
-            && s.getPieceCount() > 0) {
+            && s.topPiece() != null) {
           return getStackMetrics().merge(s, p);
         }
         else {
@@ -1348,6 +1364,7 @@ public class Map extends AbstractConfigurable implements GameComponent,
         if (piece.getPosition().equals(pt)
             && getStackMetrics().isStackingEnabled()
             && !Boolean.TRUE.equals(p.getProperty(Properties.NO_STACK))
+            && !Boolean.TRUE.equals(piece.getProperty(Properties.INVISIBLE_TO_ME))
             && !Boolean.TRUE.equals(piece.getProperty(Properties.NO_STACK))) {
           return getStackMetrics().merge(piece, p);
         }
@@ -1356,10 +1373,7 @@ public class Map extends AbstractConfigurable implements GameComponent,
         }
       }
     });
-    Command c = null;
-    for (int i = 0; i < stack.length && c == null; ++i) {
-      c = (Command) dispatch.accept(stack[i]);
-    }
+    Command c = apply(dispatch);
     if (c == null) {
       c = placeAt(p, pt);
     }

@@ -40,14 +40,26 @@ public interface Properties {
   /**
    * If a piece is obscured to other players, return a String
    * identifying the player who obscured it
-   * @see VASSAL.build.GameModule.getUserId()
+   * @see VASSAL.build.GameModule#getUserId
    */
   public static final String OBSCURED_BY = Obscurable.ID;
 
   /**
-   * Return Boolean.TRUE if the piece cannot move;
+   * If non-null, then return an instance of {@link EventFilter}.
+   * The piece will not respond to events if the filter rejects them
    */
-  public static final String IMMOBILE = "Immobile";
+  public static final String EVENT_FILTER = "eventFilter";
+
+  /**
+   * If a piece is hidden to other players, return a STring
+   * identifying the player who hit it
+   * @see VASSAL.build.GameModule#getUserId
+   */
+  public static final String HIDDEN_BY = Hideable.HIDDEN_BY;
+  /**
+   * Return Boolean.TRUE if the piece behaves more like a terrain feature than a playing piece
+   */
+  public static final String TERRAIN = "Immobile";
 
   /**
    * Return Boolean.TRUE if the piece should ignore map grids when being moved

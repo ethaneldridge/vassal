@@ -1,6 +1,7 @@
 package VASSAL.command;
 
 import VASSAL.counters.GamePiece;
+import VASSAL.build.GameModule;
 
 import java.awt.*;
 
@@ -56,6 +57,6 @@ public class MoveTracker {
   }
 
   public Command getMoveCommand() {
-    return new MovePiece(piece.getId(),getMapId(),piece.getPosition(),getUnderneathId(),oldMapId,oldPosition,oldUnderneathId);
+    return new MovePiece(piece.getId(),getMapId(),piece.getPosition(),getUnderneathId(),oldMapId,oldPosition,oldUnderneathId, GameModule.getUserId());
   }
 }

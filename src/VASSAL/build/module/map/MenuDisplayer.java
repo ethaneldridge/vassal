@@ -150,30 +150,32 @@ public class MenuDisplayer extends MouseAdapter implements Buildable {
   public void mouseReleased(MouseEvent e) {
     if (e.isMetaDown()) {
       final GamePiece p = map.findPiece(e.getPoint(), targetSelector);
-      if (p != null
-          && (e.isShiftDown()
-          || !Boolean.TRUE.equals(p.getProperty(Properties.IMMOBILE)))) {
-        JPopupMenu popup = createPopup(p);
-        Point pt = map.componentCoordinates(e.getPoint());
-        popup.addPopupMenuListener(new javax.swing.event.PopupMenuListener() {
-          public void popupMenuCanceled
-              (javax.swing.event.PopupMenuEvent evt) {
-            map.repaint();
-          }
+      if (p != null) {
+        EventFilter filter = (EventFilter) p.getProperty(Properties.EVENT_FILTER);
+        if (filter == null
+            || !filter.rejectEvent(e)) {
+          JPopupMenu popup = createPopup(p);
+          Point pt = map.componentCoordinates(e.getPoint());
+          popup.addPopupMenuListener(new javax.swing.event.PopupMenuListener() {
+            public void popupMenuCanceled
+                (javax.swing.event.PopupMenuEvent evt) {
+              map.repaint();
+            }
 
-          public void popupMenuWillBecomeInvisible
-              (javax.swing.event.PopupMenuEvent evt) {
-            KeyBuffer.getBuffer().add(p);
-            map.repaint();
-          }
+            public void popupMenuWillBecomeInvisible
+                (javax.swing.event.PopupMenuEvent evt) {
+              KeyBuffer.getBuffer().add(p);
+              map.repaint();
+            }
 
-          public void popupMenuWillBecomeVisible
-              (javax.swing.event.PopupMenuEvent evt) {
-          }
-        });
-        KeyBuffer.getBuffer().clear();
-        popup.show(map.getView(), pt.x, pt.y);
-        e.consume();
+            public void popupMenuWillBecomeVisible
+                (javax.swing.event.PopupMenuEvent evt) {
+            }
+          });
+          KeyBuffer.getBuffer().clear();
+          popup.show(map.getView(), pt.x, pt.y);
+          e.consume();
+        }
       }
     }
   }

@@ -223,7 +223,8 @@ public class BasicCommandEncoder implements CommandEncoder, Buildable {
       int oldX = Integer.parseInt(st.nextToken());
       int oldY = Integer.parseInt(st.nextToken());
       String oldUnderId = unwrapNull(st.nextToken());
-      return new MovePiece(id, newMapId, new Point(newX, newY), newUnderId, oldMapId, new Point(oldX, oldY), oldUnderId);
+      String playerid = st.nextToken(GameModule.getUserId());
+      return new MovePiece(id, newMapId, new Point(newX, newY), newUnderId, oldMapId, new Point(oldX, oldY), oldUnderId, playerid);
     }
     else {
       return null;
@@ -268,7 +269,8 @@ public class BasicCommandEncoder implements CommandEncoder, Buildable {
           .append(wrapNull(mp.getOldMapId()))
           .append(mp.getOldPosition().x + "")
           .append(mp.getOldPosition().y + "")
-          .append(wrapNull(mp.getOldUnderneathId()));
+          .append(wrapNull(mp.getOldUnderneathId()))
+          .append(mp.getPlayerId());
       return MOVE + se.getValue();
     }
     else if (c instanceof NullCommand) {

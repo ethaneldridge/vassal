@@ -263,7 +263,7 @@ public class CounterDetailViewer extends AbstractConfigurable implements Drawabl
     }
     else {
       if (map.getZoom() < zoomLevel) {
-        boolean val = !Boolean.TRUE.equals(currentPiece.getProperty(Properties.IMMOBILE));
+        boolean val = !Boolean.TRUE.equals(currentPiece.getProperty(Properties.TERRAIN));
         graphicsVisible = (showGraph && val);
         textVisible = (showText && val);
       }
