@@ -21,17 +21,16 @@ package VASSAL.counters;
 import VASSAL.command.Command;
 import VASSAL.command.NullCommand;
 
-import java.util.Enumeration;
-import java.util.Vector;
+import java.util.*;
 
 
 public class KeyBuffer {
   private static KeyBuffer theBuffer;
-  private Vector pieces;
+  private List pieces;
   private BoundsTracker bounds;
 
   private KeyBuffer() {
-    pieces = new Vector();
+    pieces = new ArrayList();
     bounds = new BoundsTracker();
   }
 
@@ -50,20 +49,20 @@ public class KeyBuffer {
   public void add(GamePiece p) {
     if (p != null
         && !pieces.contains(p)) {
-      pieces.addElement(p);
+      pieces.add(p);
       p.setProperty(Properties.SELECTED, Boolean.TRUE);
     }
   }
 
   public void clear() {
     while (pieces.size() > 0) {
-      remove((GamePiece) pieces.lastElement());
+      remove((GamePiece) pieces.get(pieces.size()-1));
     }
   }
 
   public void remove(GamePiece p) {
     if (p != null) {
-      pieces.removeElement(p);
+      pieces.remove(p);
       p.setProperty(Properties.SELECTED, null);
     }
   }
@@ -91,32 +90,25 @@ public class KeyBuffer {
 
     bounds.clear();
 
-    for (Enumeration e = pieces.elements();
-         e.hasMoreElements();) {
-      bounds.addPiece((GamePiece) e.nextElement());
+    // Copy contents into new list, because contents may change
+    // as a result of key commands
+    List targets = new ArrayList();
+    for (Iterator it = pieces.iterator(); it.hasNext();) {
+      targets.add(it.next());
     }
-    Vector targets = new Vector();
-    for (Enumeration e = pieces.elements();
-         e.hasMoreElements();) {
-      targets.addElement(e.nextElement());
-    }
-    for (Enumeration e = targets.elements();
-         e.hasMoreElements();) {
-      GamePiece g = (GamePiece) e.nextElement();
-      g.setProperty(Properties.SNAPSHOT,PieceCloner.getInstance().clonePiece(g)); // save state prior to command
-      Command c2 = g.keyEvent(stroke);
+    for (Iterator it = targets.iterator(); it.hasNext();) {
+      GamePiece p = (GamePiece) it.next();
+      bounds.addPiece(p);
+      p.setProperty(Properties.SNAPSHOT,PieceCloner.getInstance().clonePiece(p)); // save state prior to command
+      Command c2 = p.keyEvent(stroke);
       comm = comm.append(c2);
-    }
-
-    for (Enumeration e = targets.elements();
-         e.hasMoreElements();) {
-      bounds.addPiece((GamePiece) e.nextElement());
+      bounds.addPiece(p);
     }
     bounds.repaint();
     return comm;
   }
 
   public Enumeration getPieces() {
-    return pieces.elements();
+    return new Vector(pieces).elements();
   }
 }

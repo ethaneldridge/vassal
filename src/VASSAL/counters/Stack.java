@@ -132,42 +132,62 @@ public class Stack implements GamePiece {
     return contents[index];
   }
 
+  /**
+   * Adds a piece to the stack.  If the piece already exists in the stack,
+   * moves it to the top
+   * @param c
+   */
   public void add(GamePiece c) {
     insert(c, pieceCount);
+  }
+
+  /**
+   * Adds a GamePiece to this Stack.  Slightly more efficient than {@link #insert} because
+   * it assumes the piece does not already belong to this Stack.
+   * @param child
+   * @param index
+   */
+  public void insertChild(GamePiece child, int index) {
+    if (child.getParent() != null) {
+      child.getParent().remove(child);
+    }
+    else if (child.getMap() != null) {
+      child.getMap().removePiece(child);
+    }
+    child.setParent(this);
+    insertPieceAt(child,index);
   }
 
   public int getPieceCount() {
     return pieceCount;
   }
 
+  /**
+   * Inserts a child GamePiece at a given index.
+   * If the child piece already belongs to this Stack,
+   * it will be repositioned to the given index.
+   * @param p
+   * @param pos
+   */
   public void insert(GamePiece p, int pos) {
     if (p == null) {
       return;
     }
     pos = Math.max(pos, 0);
     pos = Math.min(pos, pieceCount);
-    if (indexOf(p) >= 0) {
-      if (pos > indexOf(p)) {
+    int index = indexOf(p);
+    if (index >= 0) {
+      if (pos > index) {
         insertPieceAt(p, pos + 1);
-        removePieceAt(indexOf(p));
+        removePieceAt(index);
       }
       else {
-        removePieceAt(indexOf(p));
+        removePieceAt(index);
         insertPieceAt(p, pos);
       }
     }
     else {
-      if (p.getParent() != null) {
-        p.getParent().remove(p);
-      }
-      else if (p.getMap() != null) {
-        p.getMap().removePiece(p);
-      }
-      insertPieceAt(p, pos);
-      p.setParent(this);
-    }
-    if (getMap() != null) {
-      getMap().repaint(getMap().boundingBoxOf(this));
+      insertChild(p, pos);
     }
   }
 
@@ -318,15 +338,15 @@ public class Stack implements GamePiece {
   }
 
   public void setState(String s) {
-    BoundsTracker tracker = new BoundsTracker();
-    tracker.addPiece(this);
     SequenceEncoder.Decoder st = new SequenceEncoder.Decoder(s, ';');
     String mapId = st.nextToken();
     setPosition(new Point(st.nextInt(0),st.nextInt(0)));
     pieceCount = 0;
     while (st.hasMoreTokens()) {
-      String id = st.nextToken();
-      add(GameModule.getGameModule().getGameState().getPieceForId(id));
+      GamePiece child = GameModule.getGameModule().getGameState().getPieceForId(st.nextToken());
+      if (child != null) {
+        insertChild(child, pieceCount);
+      }
     }
     Map m = null;
     if (!"null".equals(mapId)) {
@@ -343,8 +363,6 @@ public class Stack implements GamePiece {
         setMap(null);
       }
     }
-    tracker.addPiece(this);
-    tracker.repaint();
   }
 
   /**

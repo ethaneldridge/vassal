@@ -319,7 +319,8 @@ public class Deck extends Stack {
     ChangeTracker track = new ChangeTracker(this);
     removeAll();
     while (it.hasNext()) {
-      add((GamePiece) it.next());
+      GamePiece child = (GamePiece) it.next();
+      insertChild(child,pieceCount);
     }
     return track.getChangeCommand();
   }
@@ -342,8 +343,6 @@ public class Deck extends Stack {
   }
 
   public void setState(String state) {
-    BoundsTracker tracker = new BoundsTracker();
-    tracker.addPiece(this);
     SequenceEncoder.Decoder st = new SequenceEncoder.Decoder(state, ';');
     String mapId = st.nextToken();
     setPosition(new Point(st.nextInt(0), st.nextInt(0)));
@@ -372,8 +371,6 @@ public class Deck extends Stack {
       }
     }
     setContents(l.iterator());
-    tracker.addPiece(this);
-    tracker.repaint();
     commands = null; // Force rebuild of popup menu
   }
 

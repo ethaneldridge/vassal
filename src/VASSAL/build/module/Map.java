@@ -1371,7 +1371,6 @@ public class Map extends AbstractConfigurable implements GameComponent,
       }
       pieces.add(p);
       p.setMap(this);
-      //	repaint(boundingBoxOf(p));
       theMap.repaint();
     }
   }
@@ -1396,11 +1395,8 @@ public class Map extends AbstractConfigurable implements GameComponent,
    * Removes a piece from the map
    */
   public void removePiece(GamePiece p) {
-    Rectangle r = boundingBoxOf(p);
     pieces.remove(p);
-    if (r != null) {
-      repaint(r);
-    }
+    theMap.repaint();
   }
 
   /** Center the map at given map coordinates within its JScrollPane
@@ -1681,7 +1677,6 @@ public class Map extends AbstractConfigurable implements GameComponent,
       Rectangle r = getVisibleRect();
       g.clearRect(r.x, r.y, r.width, r.height);
       map.paintRegion(g, r);
-//      map.paint(g);
     }
 
     public void update(Graphics g) {

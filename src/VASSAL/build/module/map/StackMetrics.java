@@ -18,24 +18,31 @@
  */
 package VASSAL.build.module.map;
 
-import VASSAL.build.module.documentation.HelpFile;
-import VASSAL.build.*;
-import VASSAL.build.module.Map;
-import VASSAL.configure.*;
-import VASSAL.counters.*;
-import VASSAL.command.*;
 import VASSAL.Info;
+import VASSAL.build.AbstractConfigurable;
+import VASSAL.build.Buildable;
+import VASSAL.build.GameModule;
+import VASSAL.build.IllegalBuildException;
+import VASSAL.build.module.Map;
+import VASSAL.build.module.documentation.HelpFile;
+import VASSAL.command.AddPiece;
+import VASSAL.command.Command;
+import VASSAL.command.MoveTracker;
+import VASSAL.command.NullCommand;
+import VASSAL.configure.ColorConfigurer;
+import VASSAL.configure.HotKeyConfigurer;
+import VASSAL.configure.VisibilityCondition;
+import VASSAL.counters.*;
 
-import java.awt.*;
-import java.awt.geom.AffineTransform;
 import javax.swing.*;
+import java.awt.*;
 import java.awt.event.KeyEvent;
-import java.util.Enumeration;
-import java.util.Vector;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.net.MalformedURLException;
+import java.awt.geom.AffineTransform;
 import java.io.File;
+import java.net.MalformedURLException;
+import java.util.ArrayList;
+import java.util.Enumeration;
+import java.util.Iterator;
 
 /**
  * Encapsulates information on how to draw expanded and unexpanded
@@ -607,7 +614,7 @@ public class StackMetrics extends AbstractConfigurable {
       Stack fixedParent = fixed.getParent();
       int index = fixedParent == null ? 1 : fixedParent.indexOf(fixed) + 1;
       if (moving != fixed
-          && moving != fixed.getParent()) {
+          && moving != fixedParent) {
         boolean isNewPiece = GameModule.getGameModule().getGameState()
             .getPieceForId(moving.getId()) == null;
         if (fixedParent == null) {
@@ -635,7 +642,7 @@ public class StackMetrics extends AbstractConfigurable {
                it.hasNext();) {
             GamePiece p = (GamePiece) it.next();
             MoveTracker t = new MoveTracker(p);
-            fixedParent.insert(p, index++);
+            fixedParent.insertChild(p, index++);
             comm = comm.append(t.getMoveCommand());
           }
         }

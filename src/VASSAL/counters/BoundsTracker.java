@@ -20,9 +20,8 @@ package VASSAL.counters;
 
 import VASSAL.build.module.Map;
 
-import java.awt.*;
-import java.util.Enumeration;
-import java.util.Hashtable;
+import java.util.HashSet;
+import java.util.Iterator;
 
 /**
  * Records the bounding boxes of GamePieces.  Use addPiece() to
@@ -31,34 +30,26 @@ import java.util.Hashtable;
  * added pieces belonged.
  */
 public class BoundsTracker {
-  private Hashtable rects;
+  private HashSet maps;
 
   public BoundsTracker() {
-    rects = new Hashtable();
+    maps = new HashSet();
   }
 
   public void clear() {
-    rects.clear();
+    maps.clear();
   }
 
   public void addPiece(GamePiece p) {
     if (p.getMap() != null) {
-      Rectangle r = p.getMap().boundingBoxOf(p);
-      if (rects.get(p.getMap()) == null) {
-        rects.put(p.getMap(), r);
-      }
-      else {
-        rects.put(p.getMap(), r.union((Rectangle) rects.get(p.getMap())));
-      }
+      maps.add(p.getMap());
     }
   }
 
   public void repaint() {
-    for (Enumeration e = rects.keys();
-         e.hasMoreElements();) {
-      Map m = (Map) e.nextElement();
-      Rectangle r = (Rectangle) rects.get(m);
-      m.repaint(r);
+    for (Iterator it = maps.iterator(); it.hasNext();) {
+      Map m = (Map) it.next();
+      m.repaint();
     }
   }
 }
