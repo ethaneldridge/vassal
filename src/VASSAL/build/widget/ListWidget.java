@@ -13,22 +13,20 @@
  * Library General Public License for more details.
  *
  * You should have received a copy of the GNU Library General Public
- * License along with this library; if not, copies are available 
+ * License along with this library; if not, copies are available
  * at http://www.opensource.org.
  */
 package VASSAL.build.widget;
 
-import VASSAL.build.*;
-import VASSAL.configure.*;
-
-import org.w3c.dom.*;
+import VASSAL.build.Buildable;
+import VASSAL.build.Widget;
 
 import javax.swing.*;
-import javax.swing.event.*;
-import java.beans.*;
-import java.awt.event.*;
+import javax.swing.event.ListSelectionEvent;
+import javax.swing.event.ListSelectionListener;
 import java.awt.*;
-import java.util.*;
+import java.util.Enumeration;
+import java.util.Hashtable;
 
 /**
  * A Widget that corresponds to a panel with a {@link JList} sitting
@@ -39,110 +37,113 @@ import java.util.*;
  * selection of the JList shows the corresponding child's
  * component */
 public class ListWidget extends Widget
-implements  ListSelectionListener {
-    private JPanel panel;
-    private JSplitPane split;
-    private JList list;
-    private DefaultListModel widgets = new DefaultListModel();
-    private CardLayout layout;
-    private JPanel multiPanel;
+    implements ListSelectionListener {
+  private JPanel panel;
+  private JSplitPane split;
+  private JList list;
+  private DefaultListModel widgets = new DefaultListModel();
+  private CardLayout layout;
+  private JPanel multiPanel;
 
-    private Hashtable keys = new Hashtable();
-    private int count = 0;
+  private Hashtable keys = new Hashtable();
+  private int count = 0;
 
-    public ListWidget() {
-    }
-    public static String getConfigureTypeName() {
-        return "Scrollable List";
-    }
-    public Component getComponent() {
-	if (panel == null) {
-	    rebuild();
-	    panel = new JPanel();
-	    split = new JSplitPane();
-	    list = new JList(widgets);
-	    layout = new CardLayout();
-	    multiPanel = new JPanel();
-	    panel.setLayout(new BoxLayout(panel,BoxLayout.X_AXIS));
-	    multiPanel.setLayout(layout);
+  public ListWidget() {
+  }
 
-	    for (Enumeration e = getBuildComponents();
-		 e.hasMoreElements();) {
-		Widget w = (Widget)e.nextElement();
-		multiPanel.add(getKey(w),w.getComponent());
-	    }
+  public static String getConfigureTypeName() {
+    return "Scrollable List";
+  }
 
-	    list.setModel(widgets);
-	    list.addListSelectionListener(this);
-	    list.setPrototypeCellValue("MMMMMMMM");
-	    list.setVisibleRowCount(3);
-	    list.setCellRenderer(new Widget.MyCellRenderer());
-	    //	    panel.add(multiPanel);
-	    //	    panel.add(new JScrollPane(list));
-	    split.setLeftComponent(multiPanel);
-	    split.setRightComponent(new JScrollPane(list));
-	}
-	//	return panel;
-	return split;
-    }
-    public void add(Buildable b) {
-	if (b instanceof Widget) {
-	    Widget w = (Widget)b;
-	    widgets.addElement(w);
-	    if (panel != null) {
-		multiPanel.add(getKey(w),w.getComponent());
-		list.revalidate();
-	    }
-        }
-	super.add(b);
-    }
-    public void remove(Buildable b) {
-	if (b instanceof Widget) {
-	    widgets.removeElement((Widget)b);
-	}
-	super.remove(b);
-    }
-    private String getKey(Object o) {
-        String s = (String)keys.get(o);
-        if (s == null) {
-            s = ""+new Integer(count++);
-            keys.put(o,s);
-        }
-        return s;
-    }
-    public void valueChanged(ListSelectionEvent e) {
-        layout.show(multiPanel,getKey(list.getSelectedValue()));
-    }
-    /*
-    public Configurer[] getAttributeConfigurers() {
-        Configurer config[] = new Configurer[1];
-        config[0] = new StringConfigurer
-        (NAME,"Name");
-        config[0].setValue(getConfigureName());
-	listenTo(config[0]);
-        return config;
-    }
-    */
-    public String[] getAttributeNames() {
-	String s[] = {NAME};
-	return s;
-    }
-    public String[] getAttributeDescriptions() {
-	return new String[]{"Name"};
-    }
-    public Class[] getAttributeTypes() {
-	return new Class[]{String.class};
-    }
+  public Component getComponent() {
+    if (panel == null) {
+      rebuild();
+      panel = new JPanel();
+      split = new JSplitPane();
+      list = new JList(widgets);
+      layout = new CardLayout();
+      multiPanel = new JPanel();
+      panel.setLayout(new BoxLayout(panel, BoxLayout.X_AXIS));
+      multiPanel.setLayout(layout);
 
-    public void setAttribute(String name, Object value) {
-	if (NAME.equals(name)) {
-	    setConfigureName((String)value);
-	}
+      for (Enumeration e = getBuildComponents();
+           e.hasMoreElements();) {
+        Widget w = (Widget) e.nextElement();
+        multiPanel.add(getKey(w), w.getComponent());
+      }
+
+      list.setModel(widgets);
+      list.addListSelectionListener(this);
+      list.setPrototypeCellValue("MMMMMMMM");
+      list.setVisibleRowCount(3);
+      list.setCellRenderer(new Widget.MyCellRenderer());
+      //	    panel.add(multiPanel);
+      //	    panel.add(new JScrollPane(list));
+      split.setLeftComponent(multiPanel);
+      split.setRightComponent(new JScrollPane(list));
     }
-    public String getAttributeValueString(String name) {
-	if (NAME.equals(name)) {
-	    return getConfigureName();
-	}
-	return null;
+//	return panel;
+    return split;
+  }
+
+  public void add(Buildable b) {
+    if (b instanceof Widget) {
+      Widget w = (Widget) b;
+      widgets.addElement(w);
+      if (panel != null) {
+        multiPanel.add(getKey(w), w.getComponent());
+        list.revalidate();
+      }
     }
+    super.add(b);
+  }
+
+  public void remove(Buildable b) {
+    if (b instanceof Widget) {
+      widgets.removeElement(b);
+    }
+    super.remove(b);
+  }
+
+  private String getKey(Object o) {
+    String s = (String) keys.get(o);
+    if (s == null) {
+      s = "" + new Integer(count++);
+      keys.put(o, s);
+    }
+    return s;
+  }
+
+  public void valueChanged(ListSelectionEvent e) {
+    Object selected = list.getSelectedValue();
+    if (selected != null) {
+      layout.show(multiPanel, getKey(selected));
+    }
+  }
+
+  public String[] getAttributeNames() {
+    String s[] = {NAME};
+    return s;
+  }
+
+  public String[] getAttributeDescriptions() {
+    return new String[]{"Name"};
+  }
+
+  public Class[] getAttributeTypes() {
+    return new Class[]{String.class};
+  }
+
+  public void setAttribute(String name, Object value) {
+    if (NAME.equals(name)) {
+      setConfigureName((String) value);
+    }
+  }
+
+  public String getAttributeValueString(String name) {
+    if (NAME.equals(name)) {
+      return getConfigureName();
+    }
+    return null;
+  }
 }
