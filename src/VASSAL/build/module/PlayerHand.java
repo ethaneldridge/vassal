@@ -31,11 +31,13 @@ import VASSAL.build.module.map.HandMetrics;
 import VASSAL.build.module.map.StackExpander;
 import VASSAL.build.module.map.StackMetrics;
 import VASSAL.build.module.map.CounterDetailViewer;
+import VASSAL.build.Buildable;
 import VASSAL.command.Command;
 import VASSAL.counters.GamePiece;
 import VASSAL.counters.PieceFinder;
 import VASSAL.counters.Stack;
 import VASSAL.counters.Deck;
+import VASSAL.configure.ValidationReport;
 
 import java.awt.*;
 import java.io.File;
@@ -59,6 +61,9 @@ public class PlayerHand extends PrivateMap {
         cdv.removeFrom(this);
       }
     }
+  }
+
+  public void validate(Buildable target, ValidationReport report) {
   }
 
   public static String getConfigureTypeName() {
@@ -88,12 +93,11 @@ public class PlayerHand extends PrivateMap {
 
   public Dimension mapSize() {
     GamePiece[] stack = pieces.getPieces();
-    if (stack.length > 0 && stack[0] != null) {
-      return boundingBoxOf(stack[0]).getSize();
+    Rectangle r = new Rectangle(0,0,200,200);
+    for (int i=0;i<stack.length;++i) {
+      r = r.union(boundingBoxOf(stack[i]));
     }
-    else {
-      return super.mapSize();
-    }
+    return r.getSize();
   }
 
   public Command placeAt(GamePiece piece, Point pt) {

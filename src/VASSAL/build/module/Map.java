@@ -1545,12 +1545,12 @@ public class Map extends AbstractConfigurable implements GameComponent,
       return createFormat;
     }
     else {
-      String val = "";
+      String val = "$" + PIECE_NAME + "$ created in $" + LOCATION + "$";
       if (boards.size() > 0) {
         Board b = (Board) boards.firstElement();
-        if (b.getGrid() != null
-            && b.getGrid().getGridNumbering() != null) {
-          val = "$" + PIECE_NAME + "$ created in $" + LOCATION + "$";
+        if (b.getGrid() == null
+            || b.getGrid().getGridNumbering() == null) {
+          val = "";
         }
       }
       return val;
@@ -1566,12 +1566,12 @@ public class Map extends AbstractConfigurable implements GameComponent,
       return moveToFormat;
     }
     else {
-      String val = "";
+      String val = "$" + PIECE_NAME + "$" + " moves $" + OLD_LOCATION + "$ -> $" + LOCATION + "$ *";
       if (boards.size() > 0) {
         Board b = (Board) boards.firstElement();
-        if (b.getGrid() != null
-            && b.getGrid().getGridNumbering() != null) {
-          val = "$" + PIECE_NAME + "$" + " moves $" + OLD_LOCATION + "$ -> $" + LOCATION + "$ *";
+        if (b.getGrid() == null
+            || b.getGrid().getGridNumbering() != null) {
+          val = "";
         }
       }
       return val;
@@ -1583,11 +1583,11 @@ public class Map extends AbstractConfigurable implements GameComponent,
       return moveWithinFormat;
     }
     else {
-      String val = "";
+      String val = "$" + PIECE_NAME + "$" + " moves $" + OLD_LOCATION + "$ -> $" + LOCATION + "$ *";
       if (boards.size() > 0) {
         Board b = (Board) boards.firstElement();
-        if (b.getGrid() != null) {
-          val = "$" + PIECE_NAME + "$" + " moves $" + OLD_LOCATION + "$ -> $" + LOCATION + "$ *";
+        if (b.getGrid() == null) {
+          val = "";
         }
       }
       return val;

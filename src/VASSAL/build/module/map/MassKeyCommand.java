@@ -194,7 +194,7 @@ public class MassKeyCommand extends AbstractConfigurable implements PieceVisitor
 
   public String[] getAttributeNames() {
     return new String[]{NAME, KEY_COMMAND, CHECK_PROPERTY, CHECK_VALUE, CONDITION, BUTTON_TEXT, ICON, HOTKEY,
-                        REPORT_SINGLE, REPORT_FORMAT};
+                        REPORT_SINGLE, REPORT_FORMAT, AFFECTED_PIECE_NAMES};
   }
 
   public static class Prompt extends StringEnum {

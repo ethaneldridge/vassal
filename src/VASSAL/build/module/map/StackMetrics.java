@@ -72,6 +72,7 @@ public class StackMetrics extends AbstractConfigurable {
   public static final String UP_KEY = "up";
   public static final String DOWN_KEY = "down";
   public static final String COLOR = "color";
+  protected Map map;
 
   public void setAttribute(String name, Object value) {
     if (EXSEP_X.equals(name)) {
@@ -188,7 +189,8 @@ public class StackMetrics extends AbstractConfigurable {
   }
 
   public void addTo(Buildable b) {
-    ((Map) b).setStackMetrics(this);
+    map = (Map) b;
+    map.setStackMetrics(this);
   }
 
   public StackMetrics() {

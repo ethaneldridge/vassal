@@ -20,7 +20,9 @@
 package VASSAL.build.module.map;
 
 import VASSAL.counters.Stack;
+import VASSAL.counters.GamePiece;
 import VASSAL.build.module.Map;
+import VASSAL.command.Command;
 
 import java.awt.*;
 
@@ -48,5 +50,11 @@ public class HandMetrics extends StackMetrics {
     int y = -nextBounds.y;
     nextBounds.setLocation(x, y);
     nextPos.setLocation(x, y);
+  }
+
+  public Command merge(GamePiece fixed, GamePiece moving) {
+    Command c =  super.merge(fixed, moving);
+    map.getView().revalidate();
+    return c;
   }
 }
