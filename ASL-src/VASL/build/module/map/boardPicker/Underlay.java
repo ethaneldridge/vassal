@@ -113,12 +113,12 @@ public class Underlay extends SSROverlay {
 
     boundaries.setLocation(pos.x, pos.y);
 
-    base = map.createImage(new FilteredImageSource
+    base = Toolkit.getDefaultToolkit().createImage(new FilteredImageSource
         (base.getSource(),
          new HolePunch(transparentList, 0)));
 
     BufferedImage replacement = GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice().getDefaultConfiguration().createCompatibleImage(boundaries.width, boundaries.height, Transparency.BITMASK);
-    Graphics g2 = replacement.createGraphics();
+    Graphics2D g2 = replacement.createGraphics();
     try {
       mt.addImage(underlayImage, 0);
       mt.waitForAll();
@@ -148,6 +148,7 @@ public class Underlay extends SSROverlay {
         (replacement.getSource(),
          new HolePunch(new int[]{0})));
     replacement = null;
+    g2.dispose();
     System.gc();
   }
 }
