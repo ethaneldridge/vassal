@@ -68,7 +68,6 @@ public abstract class GameModule extends AbstractConfigurable implements Command
   protected JFileChooser fileChooser;
   protected FileDialog fileDialog;
 
-  protected JTextField status;
   protected JPanel controlPanel = new JPanel();
 
   private JToolBar toolBar = new JToolBar();
@@ -111,14 +110,9 @@ public abstract class GameModule extends AbstractConfigurable implements Command
     fileMenu.setMnemonic('F');
     frame.getJMenuBar().add(fileMenu);
 
-    status = new JTextField();
-    status.setEditable(false);
-    Box box = Box.createVerticalBox();
-    box.add(status);
     toolBar.setAlignmentX(0.0F);
     toolBar.setFloatable(false);
-    box.add(toolBar);
-    frame.getContentPane().add(box, BorderLayout.NORTH);
+    frame.getContentPane().add(toolBar, BorderLayout.NORTH);
     controlPanel.setLayout(new BorderLayout());
     addKeyStrokeSource
       (new KeyStrokeSource
@@ -334,7 +328,8 @@ public abstract class GameModule extends AbstractConfigurable implements Command
    * Display the given text in the control window's status line
    */
   public void warn(String s) {
-    status.setText(s);
+//    status.setText(s);
+    chat.show(" - "+s);
   }
 
   /**
