@@ -84,13 +84,15 @@ public class Concealable extends Obscurable implements EditablePiece {
   protected void drawObscuredToOthers(Graphics g, int x, int y, Component obs, double zoom) {
     loadImages(obs);
     piece.draw(g, x, y, obs, zoom);
-    g.setColor(getColor(nation));
+//    g.setColor(getColor(nation));
     int size = (int) (zoom * imageSize.width);
+/*
     g.fillRect(x - size / 2, y - size / 2, size / 2, size * 2 / 3);
     if (nation2 != null) {
       g.setColor(getColor(nation2));
       g.fillRect(x - size / 2 + size / 8, y - size / 2 + size / 8, size / 2 - size / 8, size * 2 / 3 - size / 8);
     }
+*/
     try {
       g.drawImage(concealedToOthers,
                   x - size / 2, y - size / 2, size, size, obs);
@@ -207,22 +209,25 @@ public class Concealable extends Obscurable implements EditablePiece {
    */
   public GamePiece createConcealment() {
     GamePiece p = new BasicPiece(BasicPiece.ID + "K;D;" + imageName + ";?");
-    boolean large = imageName.substring(0, 1).toUpperCase().
-        equals(imageName.substring(0, 1));
-    String size = large ? "60;60" : "48;48";
-    if (nation2 != null) {
-      p = new ColoredBox(ColoredBox.ID + "ru" + ";" + size, p);
-      p = new ColoredBox(ColoredBox.ID + "ge" + ";"
-                         + (large ? "48;48" : "36;36"), p);
+    boolean large = imageName.indexOf("58") > 0;
+    if (!imageName.startsWith(nation)) { // Backward compatibility with generic concealment markers
+      large = imageName.substring(0, 1).toUpperCase().
+          equals(imageName.substring(0, 1));
+      String size = large ? "60;60" : "48;48";
+      if (nation2 != null) {
+        p = new ColoredBox(ColoredBox.ID + "ru" + ";" + size, p);
+        p = new ColoredBox(ColoredBox.ID + "ge" + ";"
+                           + (large ? "48;48" : "36;36"), p);
+      }
+      else {
+        p = new ColoredBox(ColoredBox.ID + nation + ";" + size, p);
+      }
+      p = new Embellishment(Embellishment.ID + ";;;;;;0;0;"
+                            + imageName + ",?", p);
     }
-    else {
-      p = new ColoredBox(ColoredBox.ID + nation + ";" + size, p);
-    }
-    p = new Embellishment(Embellishment.ID + ";;;;;;0;0;"
-                          + imageName + ",?", p);
-    p = new Concealment(Concealment.ID, p);
+    p = new Concealment(Concealment.ID + GameModule.getUserId() + ";" + nation, p);
     p = new MarkMoved(MarkMoved.ID + (large ? "moved58" : "moved"), p);
-    p = new Hideable("hide;H;HIP", p);
+    p = new Hideable("hide;H;HIP;255,255,255", p);
     return p;
   }
 
@@ -238,7 +243,7 @@ public class Concealable extends Obscurable implements EditablePiece {
     if (concealedToOthers == null) {
       try {
         concealedToOthers =
-            GameModule.getGameModule().getDataArchive().getCachedImage("qmarkme.gif");
+            GameModule.getGameModule().getDataArchive().getCachedImage(nation + "/" + nation + "qmarkme.gif");
       }
       catch (java.io.IOException ex) {
         concealedToOthers = obs.createImage(20, 20);
