@@ -27,24 +27,23 @@
 package VASSAL.build.module.map;
 
 import VASSAL.build.AbstractConfigurable;
+import VASSAL.build.AutoConfigurable;
 import VASSAL.build.Buildable;
 import VASSAL.build.GameModule;
-import VASSAL.build.AutoConfigurable;
-import VASSAL.build.module.documentation.HelpFile;
 import VASSAL.build.module.Map;
-import VASSAL.configure.*;
-import VASSAL.counters.*;
+import VASSAL.build.module.documentation.HelpFile;
 import VASSAL.command.Command;
 import VASSAL.command.NullCommand;
+import VASSAL.configure.*;
+import VASSAL.counters.*;
 import VASSAL.tools.LaunchButton;
 
 import javax.swing.*;
-import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
-import java.util.Enumeration;
-import java.net.URL;
-import java.net.MalformedURLException;
+import java.awt.event.ActionListener;
 import java.io.File;
+import java.net.MalformedURLException;
+import java.util.Enumeration;
 
 /** Adds a button to a map window toolbar.  Hitting the button applies a particular key command to all pieces
  * on that map with a given name.
@@ -56,16 +55,20 @@ public class MassKeyCommand extends AbstractConfigurable {
   public static final String BUTTON_TEXT = "buttonText";
   public static final String HOTKEY = "buttonHotkey";
   public static final String KEY_COMMAND = "hotkey";
-  public static final String NAMES = "names";
+  public static final String AFFECTED_PIECE_NAMES = "names";
   public static final String CONDITION = "condition";
   private static final String IF_ACTIVE = "If layer is active";
   private static final String IF_INACTIVE = "If layer is inactive";
   private static final String ALWAYS = "Always";
+  public static final String CHECK_PROPERTY = "property";
+  public static final String CHECK_VALUE = "propValue";
 
   private LaunchButton launch;
   private KeyStroke stroke = KeyStroke.getKeyStroke(0, 0);
   private String[] names = new String[0];
   private String condition = ALWAYS;
+  protected String checkProperty;
+  protected String checkValue;
   private Map map;
 
   public MassKeyCommand() {
@@ -116,7 +119,7 @@ public class MassKeyCommand extends AbstractConfigurable {
    */
   protected boolean isValidTarget(GamePiece target) {
     boolean valid = false;
-    if (containsName(target)) {
+    if (isAffected(target)) {
       if (ALWAYS.equals(condition)) {
         valid = true;
       }
@@ -133,13 +136,20 @@ public class MassKeyCommand extends AbstractConfigurable {
   /**
    * Return true if the name of the argument GamePiece is in the list of target piece names
    */
-  protected boolean containsName(GamePiece target) {
-    for (int j = 0; j < names.length; ++j) {
-      if (Decorator.getInnermost(target).getName().equals(names[j])) {
-        return true;
+  protected boolean isAffected(GamePiece target) {
+    boolean affected = false;
+    if (names != null) {
+      for (int j = 0; j < names.length; ++j) {
+        if (Decorator.getInnermost(target).getName().equals(names[j])) {
+          affected = true;
+          break;
+        }
       }
     }
-    return false;
+    else if (checkValue != null) {
+      affected = checkValue.equals(target.getProperty(checkProperty));
+    }
+    return affected;
   }
 
   public Class[] getAllowableConfigureComponents() {
@@ -147,11 +157,11 @@ public class MassKeyCommand extends AbstractConfigurable {
   }
 
   public String[] getAttributeDescriptions() {
-    return new String[]{"Description", "Key Command", "Pieces affected", "Apply command", "Button text", "Button Icon", "Hotkey"};
+    return new String[]{"Description", "Key Command", "Apply to pieces whose property", "is equal to this value", "Apply command", "Button text", "Button Icon", "Hotkey"};
   }
 
   public String[] getAttributeNames() {
-    return new String[]{NAME, KEY_COMMAND, NAMES, CONDITION, BUTTON_TEXT, ICON, HOTKEY};
+    return new String[]{NAME, KEY_COMMAND, CHECK_PROPERTY, CHECK_VALUE, CONDITION, BUTTON_TEXT, ICON, HOTKEY, AFFECTED_PIECE_NAMES};
   }
 
   public static class Prompt extends StringEnum {
@@ -161,7 +171,7 @@ public class MassKeyCommand extends AbstractConfigurable {
   }
 
   public Class[] getAttributeTypes() {
-    return new Class[]{String.class, KeyStroke.class, String[].class, Prompt.class, String.class, IconConfig.class, KeyStroke.class, };
+    return new Class[]{String.class, KeyStroke.class, String.class, String.class, Prompt.class, String.class, IconConfig.class, KeyStroke.class, };
   }
 
   public static class IconConfig implements ConfigurerFactory {
@@ -177,8 +187,14 @@ public class MassKeyCommand extends AbstractConfigurable {
     else if (KEY_COMMAND.equals(key)) {
       return HotKeyConfigurer.encode(stroke);
     }
-    else if (NAMES.equals(key)) {
+    else if (AFFECTED_PIECE_NAMES.equals(key)) {
       return StringArrayConfigurer.arrayToString(names);
+    }
+    else if (CHECK_PROPERTY.equals(key)) {
+      return checkProperty;
+    }
+    else if (CHECK_VALUE.equals(key)) {
+      return checkValue;
     }
     else if (CONDITION.equals(key)) {
       return condition;
@@ -210,7 +226,7 @@ public class MassKeyCommand extends AbstractConfigurable {
   public void setAttribute(String key, Object value) {
     if (DEPRECATED_NAME.equals(key)) {
       setAttribute(NAME, value);
-      setAttribute(BUTTON_TEXT,value);
+      setAttribute(BUTTON_TEXT, value);
     }
     else if (NAME.equals(key)) {
       setConfigureName((String) value);
@@ -222,11 +238,26 @@ public class MassKeyCommand extends AbstractConfigurable {
       }
       stroke = (KeyStroke) value;
     }
-    else if (NAMES.equals(key)) {
+    else if (AFFECTED_PIECE_NAMES.equals(key)) {
       if (value instanceof String) {
         value = StringArrayConfigurer.stringToArray((String) value);
       }
       names = (String[]) value;
+      if (names.length == 0) {
+        names = null;
+      }
+      else {
+        checkProperty = null;
+        checkValue = null;
+      }
+    }
+    else if (CHECK_PROPERTY.equals(key)) {
+      checkProperty = (String) value;
+      names = null;
+    }
+    else if (CHECK_VALUE.equals(key)) {
+      checkValue = (String) value;
+      names = null;
     }
     else if (CONDITION.equals(key)) {
       condition = (String) value;
