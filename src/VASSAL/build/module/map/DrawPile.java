@@ -647,9 +647,7 @@ public class DrawPile extends AbstractConfigurable implements Drawable, GameComp
         GamePiece sub = (GamePiece) e.nextElement();
         c = c.append(addToContents(sub));
       }
-      Command c2 = new RemovePiece(p);
-      c2.execute();
-      comm = c.append(c2);
+      comm = c;
     }
     else if (ALWAYS.equals(faceDownOption)) {
       String oldState = p.getState();
