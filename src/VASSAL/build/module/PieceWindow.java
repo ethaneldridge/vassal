@@ -27,9 +27,11 @@ import VASSAL.build.widget.*;
 import VASSAL.counters.GamePiece;
 import VASSAL.preferences.PositionOption;
 import VASSAL.preferences.VisibilityOption;
+import VASSAL.tools.ComponentSplitter;
 import VASSAL.tools.LaunchButton;
 
 import javax.swing.*;
+import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
@@ -40,32 +42,48 @@ import java.net.MalformedURLException;
  * clicking and dragging from the PieceWindow.  The actual GamePieces
  * are contained in {@link PieceSlot} components.  PieceWindow extends
  * {@link Widget}, so it may be composed of various tabs, lists, etc.  */
-public class PieceWindow extends Widget {
-  private JFrame frame;
+public class PieceWindow extends Widget{
   private String id;
   private LaunchButton launch;
-  public final String WINDOW_NAME = "entryName";
+  public static final String WINDOW_NAME = "entryName";
   public static final String HOTKEY = "hotkey";
+  private JComponent root;
+  private ComponentSplitter.SplitPane mainWindowDock;
 
   public PieceWindow() {
-    frame = new JFrame();
-    frame.setDefaultCloseOperation(WindowConstants.HIDE_ON_CLOSE);
-    frame.setTitle(getConfigureName());
-    addPropertyChangeListener(new java.beans.PropertyChangeListener() {
-      public void propertyChange(java.beans.PropertyChangeEvent e) {
-        if (Configurable.NAME_PROPERTY
-          .equals(e.getPropertyName())) {
-          frame.setTitle((String) e.getNewValue());
-        }
-      }
-    });
+    root = new JPanel(new BorderLayout());
     ActionListener al = new ActionListener() {
-      public void actionPerformed(ActionEvent evt) {
-        frame.setVisible(!frame.isVisible());
+      public void actionPerformed(ActionEvent e) {
+        launchButtonPressed();
       }
     };
     launch = new LaunchButton("Pieces",WINDOW_NAME,HOTKEY,al);
     launch.setToolTipText("Show/Hide the Pieces window");
+  }
+
+  private Window initFrame() {
+    final JDialog d = new JDialog(GameModule.getGameModule().getFrame());
+    d.getContentPane().add(root);
+    d.setDefaultCloseOperation(WindowConstants.HIDE_ON_CLOSE);
+    d.setTitle(getConfigureName());
+    addPropertyChangeListener(new java.beans.PropertyChangeListener() {
+      public void propertyChange(java.beans.PropertyChangeEvent e) {
+        if (Configurable.NAME_PROPERTY
+          .equals(e.getPropertyName())) {
+          d.setTitle((String) e.getNewValue());
+        }
+      }
+    });
+    return d;
+  }
+
+  public void launchButtonPressed() {
+    if (mainWindowDock != null) {
+      mainWindowDock.toggleVisibility();
+    }
+    else {
+      root.getTopLevelAncestor().setVisible(!root.getTopLevelAncestor().isVisible());
+    }
   }
 
   public HelpFile getHelpFile() {
@@ -84,8 +102,12 @@ public class PieceWindow extends Widget {
     rebuild();
   }
 
+  public boolean shouldDockIntoMainWindow() {
+    return "PieceWindow0".equals(id);
+  }
+
   public java.awt.Component getComponent() {
-    return frame;
+    return root;
   }
 
   public static String getConfigureTypeName() {
@@ -102,14 +124,14 @@ public class PieceWindow extends Widget {
 
   public void add(Buildable b) {
     if (b instanceof Widget) {
-      frame.getContentPane().add(((Widget) b).getComponent());
+      root.add(((Widget) b).getComponent());
     }
     super.add(b);
   }
 
   public void remove(Buildable b) {
     if (b instanceof Widget) {
-      frame.getContentPane().remove(((Widget) b).getComponent());
+      root.remove(((Widget) b).getComponent());
     }
     super.remove(b);
   }
@@ -144,22 +166,30 @@ public class PieceWindow extends Widget {
     setId("PieceWindow" + count);
 
     String key = PositionOption.key + getId();
-    final PositionOption pos = new VisibilityOption(key, frame);
-    GameModule.getGameModule().getPrefs().addOption(pos);
+    if (count == 0 && GlobalOptions.getInstance().isUseSingleWindow()) {
+      mainWindowDock = new ComponentSplitter().splitLeft(GameModule.getGameModule().getControlPanel(),root, false);
+    }
+    else {
+      Window w =initFrame();
+      final PositionOption pos = new VisibilityOption(key, w);
+      GameModule.getGameModule().getPrefs().addOption(pos);
+    }
     GameModule.getGameModule().getToolBar().add(launch);
   }
 
   public void removeFrom(Buildable parent) {
-    frame.setVisible(false);
+    if (mainWindowDock == null) {
+      root.getTopLevelAncestor().setVisible(false);
+    }
     GameModule.getGameModule().getToolBar().remove(launch);
   }
 
   public String[] getAttributeDescriptions() {
-    return new String[]{"Name"};
+    return new String[]{"Name","Hotkey to show/hide"};
   }
 
   public Class[] getAttributeTypes() {
-    return new Class[]{String.class};
+    return new Class[]{String.class,KeyStroke.class};
   }
 
   public String[] getAttributeNames() {

@@ -31,7 +31,7 @@ import VASSAL.build.module.GlobalOptions;
 import VASSAL.build.module.Map;
 import VASSAL.build.module.documentation.HelpFile;
 import VASSAL.command.Command;
-import VASSAL.command.TrackPiece;
+import VASSAL.command.ChangeTracker;
 import VASSAL.configure.Configurer;
 import VASSAL.configure.ImageConfigurer;
 import VASSAL.configure.IntConfigurer;
@@ -78,8 +78,8 @@ public class MovementMarkable extends Decorator implements EditablePiece {
     SequenceEncoder.Decoder st = new SequenceEncoder.Decoder(type, ';');
     st.nextToken();
     markImage = st.nextToken();
-    xOffset = Integer.parseInt(st.nextToken());
-    yOffset = Integer.parseInt(st.nextToken());
+    xOffset = st.nextInt(0);
+    yOffset = st.nextInt(0);
   }
 
   public void mySetState(String newState) {
@@ -102,10 +102,9 @@ public class MovementMarkable extends Decorator implements EditablePiece {
 
   public Command myKeyEvent(javax.swing.KeyStroke stroke) {
     if (stroke.equals(markStroke)) {
-      TrackPiece c = new TrackPiece(this);
+      ChangeTracker c = new ChangeTracker(this);
       hasMoved = !hasMoved;
-      c.finalize();
-      return c;
+      return c.getChangeCommand();
     }
     else {
       return null;

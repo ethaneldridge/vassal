@@ -27,6 +27,7 @@
 package VASSAL.counters;
 
 import VASSAL.build.module.Map;
+import VASSAL.Info;
 
 import java.awt.*;
 import java.util.Enumeration;
@@ -51,6 +52,7 @@ public interface PieceFinder {
    * or a piece within that stack if expanded and overlapping the given point
    */
   public static final PieceFinder MOVABLE = new Movable();
+
 }
 
 class StackOnly implements PieceFinder {
@@ -82,6 +84,7 @@ class PieceInStack implements PieceFinder {
   private Rectangle[] bounds = new Rectangle[0];
 
   public GamePiece select(Map map, GamePiece piece, Point pt) {
+    GamePiece selected = null;
     if (piece instanceof Stack) {
       Stack s = (Stack) piece;
       if (bounds.length < s.getPieceCount()) {
@@ -92,49 +95,32 @@ class PieceInStack implements PieceFinder {
            e.hasMoreElements();) {
         GamePiece child = (GamePiece) e.nextElement();
         if (bounds[s.indexOf(child)].contains(pt)) {
-          return s.isExpanded() ? child : s.topPiece();
+          selected = s.isExpanded() ? child : s.topPiece();
+          break;
         }
       }
-      return null;
     }
-    else if (piece.selectionBounds().contains(pt)) {
-      return piece;
-    }
-    else {
-      return null;
-    }
-  }
-}
-
-/*
-class Movable implements PieceFinder {
-  public GamePiece select(Map map, GamePiece piece, Point pt) {
-    if (piece instanceof Stack) {
-      Stack s = (Stack) piece;
-      for (Enumeration e = s.getPiecesInVisibleOrder();
-           e.hasMoreElements();) {
-        GamePiece child = (GamePiece) e.nextElement();
-        if (map.selectionBoundsOf(child).contains(pt)) {
-          return s.isExpanded() ? child : s;
-        }
+    else if (Info.is2dEnabled()) {
+      Shape s = (Shape) piece.getProperty(Properties.SHAPE);
+      if (s == null) {
+        s = piece.selectionBounds();
       }
-      return null;
+      if (s.contains(pt)) {
+        selected = piece;
+      }
     }
     else if (piece.selectionBounds().contains(pt)) {
-      return piece;
+      selected = piece;
     }
-    else {
-      return null;
-    }
-
+    return selected;
   }
 }
-*/
 
 class Movable implements PieceFinder {
   private Rectangle[] bounds = new Rectangle[0];
 
   public GamePiece select(Map map, GamePiece piece, Point pt) {
+    GamePiece selected = null;
     if (piece instanceof Stack) {
       Stack s = (Stack) piece;
       if (bounds.length < s.getPieceCount()) {
@@ -145,18 +131,24 @@ class Movable implements PieceFinder {
            e.hasMoreElements();) {
         GamePiece child = (GamePiece) e.nextElement();
         if (bounds[s.indexOf(child)].contains(pt)) {
-          return s.isExpanded() ? child : s;
+          selected = s.isExpanded() ? child : s;
+          break;
         }
       }
-      return null;
+    }
+    else if (Info.is2dEnabled()) {
+      Shape s = (Shape) piece.getProperty(Properties.SHAPE);
+      if (s == null) {
+        s = piece.selectionBounds();
+      }
+      if (s.contains(pt)) {
+        selected = piece;
+      }
     }
     else if (piece.selectionBounds().contains(pt)) {
-      return piece;
+      selected = piece;
     }
-    else {
-      return null;
-    }
-
+    return selected;
   }
 
 }

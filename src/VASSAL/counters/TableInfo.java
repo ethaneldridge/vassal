@@ -68,10 +68,10 @@ public class TableInfo extends Decorator implements EditablePiece {
   public void mySetType(String s) {
     s = s.substring(ID.length());
     SequenceEncoder.Decoder st = new SequenceEncoder.Decoder(s, ';');
-    nRows = Integer.parseInt(st.nextToken());
-    nCols = Integer.parseInt(st.nextToken());
+    nRows = st.nextInt(2);
+    nCols = st.nextInt(2);
     command = st.nextToken();
-    launchKey = st.nextToken().charAt(0);
+    launchKey = st.nextChar('\0');
     frame = null;
     table = null;
   }

@@ -47,6 +47,7 @@ public class GlobalOptions extends AbstractConfigurable {
   public static final String ALWAYS = "Always";
   public static final String NEVER = "Never";
   public static final String PROMPT = "Use Preferences Setting";
+  public static final String SINGLE_WINDOW = "singleWindow";
 
   private String promptString = "Opponents can unmask my pieces";
   private String nonOwnerUnmaskable = NEVER;
@@ -54,12 +55,16 @@ public class GlobalOptions extends AbstractConfigurable {
   private String autoReport = NEVER;
   private String markMoved = NEVER;
   private static GlobalOptions instance;
+  private boolean useSingleWindow;
 
   public void addTo(Buildable parent) {
     if (GameModule.getGameModule().getComponents(GlobalOptions.class).hasMoreElements()) {
       throw new IllegalBuildException("Only one Global Options allowed");
     }
     instance = this;
+    BooleanConfigurer config = new BooleanConfigurer(SINGLE_WINDOW, "Use combined application window (requires restart)",Boolean.TRUE);
+    GameModule.getGameModule().getPrefs().addOption(config);
+    useSingleWindow = !Boolean.FALSE.equals(config.getValue());
   }
 
   public static GlobalOptions getInstance() {
@@ -67,6 +72,10 @@ public class GlobalOptions extends AbstractConfigurable {
       instance = new GlobalOptions();
     }
     return instance;
+  }
+
+  public boolean isUseSingleWindow() {
+    return useSingleWindow;
   }
 
   public static String getConfigureTypeName() {

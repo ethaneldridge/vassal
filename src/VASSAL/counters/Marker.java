@@ -18,14 +18,14 @@
  */
 package VASSAL.counters;
 
+import VASSAL.build.module.documentation.HelpFile;
 import VASSAL.command.Command;
 import VASSAL.tools.SequenceEncoder;
-import VASSAL.build.module.documentation.HelpFile;
 
 import javax.swing.*;
-import java.util.Vector;
 import java.io.File;
 import java.net.MalformedURLException;
+import java.util.Vector;
 
 /**
  * A generic Decorator that retains in its state the value of a

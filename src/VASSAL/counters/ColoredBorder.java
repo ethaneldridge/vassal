@@ -13,12 +13,15 @@
  * Library General Public License for more details.
  *
  * You should have received a copy of the GNU Library General Public
- * License along with this library; if not, copies are available 
+ * License along with this library; if not, copies are available
  * at http://www.opensource.org.
  */
 package VASSAL.counters;
 
+import VASSAL.Info;
+
 import java.awt.*;
+import java.awt.geom.AffineTransform;
 
 public class ColoredBorder implements Highlighter {
   private Color c;
@@ -34,6 +37,29 @@ public class ColoredBorder implements Highlighter {
   }
 
   public void draw(GamePiece p, Graphics g, int x, int y, Component obs, double zoom) {
+    if (Info.is2dEnabled()
+        && g instanceof Graphics2D) {
+      Graphics2D g2d = (Graphics2D) g;
+      Shape s = (Shape) p.getProperty(Properties.SHAPE);
+      if (s != null) {
+        Stroke str = g2d.getStroke();
+        g2d.setStroke(new BasicStroke(thickness));
+        g2d.setColor(c);
+        AffineTransform temp = AffineTransform.getTranslateInstance(x / zoom - p.getPosition().x, y / zoom - p.getPosition().y);
+        temp.scale(zoom, zoom);
+        g2d.draw(temp.createTransformedShape(s));
+        g2d.setStroke(str);
+      }
+      else {
+        highlightSelectionBounds(p, g, x, y, obs, zoom);
+      }
+    }
+    else {
+      highlightSelectionBounds(p, g, x, y, obs, zoom);
+    }
+  }
+
+  private void highlightSelectionBounds(GamePiece p, Graphics g, int x, int y, Component obs, double zoom) {
     Rectangle r = p.selectionBounds();
     r.translate(-p.getPosition().x, -p.getPosition().y);
     g.setColor(c);

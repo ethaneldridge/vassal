@@ -28,8 +28,8 @@ package VASSAL.counters;
 
 import VASSAL.build.GameModule;
 import VASSAL.build.module.documentation.HelpFile;
-import VASSAL.build.widget.PieceSlot;
 import VASSAL.build.widget.CardSlot;
+import VASSAL.build.widget.PieceSlot;
 import VASSAL.command.AddPiece;
 import VASSAL.command.Command;
 import VASSAL.configure.ConfigurerWindow;
@@ -43,8 +43,6 @@ import java.awt.event.ActionListener;
 import java.awt.event.InputEvent;
 import java.io.File;
 import java.net.MalformedURLException;
-
-import VASSAL.configure.ChooseComponentDialog;
 
 /**
  * This Decorator defines a key command to places another counter on top of this one.
@@ -133,7 +131,7 @@ public class PlaceMarker extends Decorator implements EditablePiece {
     SequenceEncoder.Decoder st = new SequenceEncoder.Decoder(type, ';');
     st.nextToken();
     String name = st.nextToken();
-    key = st.nextToken().charAt(0);
+    key = st.nextChar('\0');
     command = new KeyCommand(name, KeyStroke.getKeyStroke(key, InputEvent.CTRL_MASK), this);
     markerSpec = st.nextToken();
     if ("null".equals(markerSpec)) {

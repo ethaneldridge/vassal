@@ -32,11 +32,11 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.InputEvent;
 import java.awt.event.MouseEvent;
+import java.io.File;
+import java.net.MalformedURLException;
 import java.util.Enumeration;
 import java.util.Hashtable;
 import java.util.Vector;
-import java.io.File;
-import java.net.MalformedURLException;
 
 /**
  * Basic class for representing a physical component of the game
@@ -73,10 +73,8 @@ public class BasicPiece implements EditablePiece {
   public void mySetType(String type) {
     SequenceEncoder.Decoder st = new SequenceEncoder.Decoder(type, ';');
     st.nextToken();
-    String key = st.nextToken();
-    cloneKey = key.length() > 0 ? key.toUpperCase().charAt(0) : (char) 0;
-    key = st.nextToken();
-    deleteKey = key.length() > 0 ? key.toUpperCase().charAt(0) : (char) 0;
+    cloneKey = st.nextChar('\0');
+    deleteKey = st.nextChar('\0');
     imageName = st.nextToken();
     commonName = st.nextToken();
 
@@ -182,23 +180,6 @@ public class BasicPiece implements EditablePiece {
         v.addElement(new KeyCommand("Delete",
                                     KeyStroke.getKeyStroke(deleteKey, InputEvent.CTRL_MASK), target));
       }
-      /*
-      if (getMap() != null) {
-      if (getMap().getStackMetrics().getMoveUpKey() != null) {
-          v.addElement(new KeyCommand("Move up",getMap().getStackMetrics().getMoveUpKey(),target));
-      }
-      if (getMap().getStackMetrics().getMoveDownKey() != null) {
-          v.addElement(new KeyCommand("Move down",getMap().getStackMetrics().getMoveDownKey(),target));
-      }
-      if (getMap().getStackMetrics().getMoveTopKey() != null) {
-          v.addElement(new KeyCommand("Move to top",getMap().getStackMetrics().getMoveTopKey(),target));
-      }
-      if (getMap().getStackMetrics().getMoveBottomKey() != null) {
-          v.addElement(new KeyCommand("Move to bottom",getMap().getStackMetrics().getMoveBottomKey(),target));
-      }
-      }
-      */
-
       commands = new KeyCommand[v.size()];
       for (int i = 0; i < v.size(); ++i) {
         commands[i] = (KeyCommand) v.elementAt(i);
@@ -306,27 +287,7 @@ public class BasicPiece implements EditablePiece {
     }
     else if (KeyStroke.getKeyStroke(deleteKey, InputEvent.CTRL_MASK).equals(stroke)) {
       comm = new RemovePiece(outer);
-      Stack oldParent = parent;
-      if (oldParent != null) {
-        if (oldParent.getPieceCount() == 1) {
-          Command c2 = new RemovePiece(parent);
-          c2.execute();
-          comm.append(c2);
-          comm.execute();
-        }
-        else {
-          BoundsTracker tracker = new BoundsTracker();
-          tracker.addPiece(oldParent);
-          String s = oldParent.getState();
-          oldParent.remove(outer);
-          tracker.repaint();
-          comm.execute();
-          comm = new ChangePiece(oldParent.getId(), s, oldParent.getState()).append(comm);
-        }
-      }
-      else {
-        comm.execute();
-      }
+      comm.execute();
     }
     else if (getMap() != null &&
       stroke.equals(getMap().getStackMetrics().getMoveUpKey())) {
@@ -459,8 +420,7 @@ public class BasicPiece implements EditablePiece {
         return;
       }
     }
-    Point newPos = new Point(Integer.parseInt(st.nextToken()),
-                             Integer.parseInt(st.nextToken()));
+    Point newPos = new Point(st.nextInt(0),st.nextInt(0));
     setPosition(newPos);
     if (newMap != oldMap) {
       if (newMap != null) {

@@ -73,7 +73,7 @@ public class ReturnToDeck extends Decorator implements EditablePiece {
     s = s.substring(ID.length());
     SequenceEncoder.Decoder st = new SequenceEncoder.Decoder(s, ';');
     returnCommand = st.nextToken();
-    returnKey = st.nextToken().charAt(0);
+    returnKey = st.nextChar('\0');
     deckId = st.nextToken();
   }
 

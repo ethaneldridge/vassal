@@ -93,7 +93,11 @@ public class ModuleEditWindow extends JFrame implements WindowListener {
   }
 
   protected void refreshTitle() {
-    setTitle("Edit "+GameModule.getGameModule().getConfigureName());
+    String configureName = GameModule.getGameModule().getConfigureName();
+    if (configureName == null) {
+      configureName = "Module";
+    }
+    setTitle("Edit "+configureName);
   }
 
   public void windowActivated(WindowEvent e) {

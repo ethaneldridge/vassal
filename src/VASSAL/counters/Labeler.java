@@ -20,7 +20,7 @@ package VASSAL.counters;
 
 import VASSAL.build.module.documentation.HelpFile;
 import VASSAL.command.Command;
-import VASSAL.command.TrackPiece;
+import VASSAL.command.ChangeTracker;
 import VASSAL.configure.ColorConfigurer;
 import VASSAL.configure.IntConfigurer;
 import VASSAL.configure.StringConfigurer;
@@ -63,7 +63,7 @@ public class Labeler extends Decorator implements EditablePiece {
   private int horizontalOffset = 0;
 
   public Labeler() {
-    this(ID + " ", null);
+    this(ID, null);
   }
 
   public Labeler(String s, GamePiece d) {
@@ -76,8 +76,7 @@ public class Labeler extends Decorator implements EditablePiece {
     commands = null;
     SequenceEncoder.Decoder st = new SequenceEncoder.Decoder(type, ';');
     st.nextToken();
-    String lkey = st.nextToken().toUpperCase().trim();
-    labelKey = lkey.length() > 0 ? lkey.charAt(0) : (char) 0;
+    labelKey = st.nextChar('\0');
     if (st.hasMoreTokens()) {
       menuCommand = st.nextToken();
       font = new Font("Dialog", Font.PLAIN, Integer.parseInt(st.nextToken()));
@@ -89,12 +88,12 @@ public class Labeler extends Decorator implements EditablePiece {
       if (c != null) {
         textFg = c;
       }
-      verticalPos = st.nextToken().charAt(0);
-      verticalOffset = Integer.parseInt(st.nextToken());
-      horizontalPos = st.nextToken().charAt(0);
-      horizontalOffset = Integer.parseInt(st.nextToken());
-      verticalJust = st.nextToken().charAt(0);
-      horizontalJust = st.nextToken().charAt(0);
+      verticalPos = st.nextChar('t');
+      verticalOffset = st.nextInt(0);
+      horizontalPos = st.nextChar('c');
+      horizontalOffset = st.nextInt(0);
+      verticalJust = st.nextChar('b');
+      horizontalJust = st.nextChar('c');
     }
     lbl.setForeground(textFg);
     lbl.setFont(font);
@@ -301,7 +300,7 @@ public class Labeler extends Decorator implements EditablePiece {
     Command c = null;
     if (commands.length > 0
       && commands[0].matches(stroke)) {
-      c = new TrackPiece(this);
+      ChangeTracker tracker = new ChangeTracker(this);
       String s = (String) JOptionPane.showInputDialog
         (getMap() == null ? null : getMap().getView(),
          commands[0].getName(),
@@ -311,11 +310,11 @@ public class Labeler extends Decorator implements EditablePiece {
          null,
          label);
       if (s == null) {
-        c = null;
+        tracker = null;
       }
       else {
         setLabel(s);
-        ((TrackPiece) c).finalize();
+        c = tracker.getChangeCommand();
       }
     }
     return c;

@@ -26,6 +26,7 @@ import VASSAL.command.CommandEncoder;
 import VASSAL.configure.FontConfigurer;
 import VASSAL.configure.ColorConfigurer;
 import VASSAL.tools.KeyStrokeSource;
+import VASSAL.tools.ComponentSplitter;
 
 import javax.swing.*;
 import javax.swing.plaf.basic.BasicTextAreaUI;
@@ -154,6 +155,8 @@ public class Chatter extends JPanel implements CommandEncoder, Buildable {
         setFont((Font) evt.getNewValue());
       }
     });
+
+    mod.getControlPanel().add(this,BorderLayout.CENTER);
 
     chatFont.fireUpdate();
     mod.getPrefs().addOption("Chat Window",chatFont);

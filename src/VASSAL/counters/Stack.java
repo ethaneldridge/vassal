@@ -79,6 +79,8 @@ public class Stack implements GamePiece {
   }
 
   public Enumeration getPiecesInReverseOrder() {
+    final GamePiece[] clone = new GamePiece[pieceCount];
+    System.arraycopy(contents, 0, clone, 0, pieceCount);
     return new Enumeration() {
       private int index = pieceCount - 1;
 
@@ -87,7 +89,7 @@ public class Stack implements GamePiece {
       }
 
       public Object nextElement() {
-        return contents[index--];
+        return clone[index--];
       }
     };
   }
@@ -334,8 +336,7 @@ public class Stack implements GamePiece {
     tracker.addPiece(this);
     SequenceEncoder.Decoder st = new SequenceEncoder.Decoder(s, ';');
     String mapId = st.nextToken();
-    setPosition(new Point(Integer.parseInt(st.nextToken()),
-                          Integer.parseInt(st.nextToken())));
+    setPosition(new Point(st.nextInt(0),st.nextInt(0)));
     pieceCount = 0;
     while (st.hasMoreTokens()) {
       String id = st.nextToken();
@@ -343,14 +344,7 @@ public class Stack implements GamePiece {
     }
     Map m = null;
     if (!"null".equals(mapId)) {
-      for (Enumeration e = GameModule.getGameModule().getComponents(Map.class);
-           e.hasMoreElements();) {
-        Map next = (Map) e.nextElement();
-        if (mapId.equals(next.getId())) {
-          m = next;
-          break;
-        }
-      }
+      m = Map.getMapById(mapId);
       if (m == null) {
         throw new RuntimeException("Could not find map " + mapId);
       }
@@ -397,7 +391,7 @@ public class Stack implements GamePiece {
         String id = getPieceAt(i).getId();
         if (!newContents.contains(id)
           && !oldContents.contains(id)) {
-          int index = i == 0 ? -1 : newContents.indexOf(getPieceAt(-1).getId());
+          int index = i == 0 ? -1 : newContents.indexOf(getPieceAt(i-1).getId());
           newContents.insertElementAt(id, index + 1);
         }
       }
