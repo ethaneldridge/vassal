@@ -98,7 +98,7 @@ public class Embellishment extends Decorator implements EditablePiece {
   }
 
   public void mySetType(String s) {
-    if (s.startsWith(OLD_ID)) {
+    if (!s.startsWith(ID)) {
       originalSetType(s);
     }
     else {
