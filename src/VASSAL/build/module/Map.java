@@ -397,10 +397,7 @@ public class Map extends AbstractConfigurable implements GameComponent,
       root.add(toolBar, BorderLayout.NORTH);
       root.add(scroll, BorderLayout.CENTER);
       ComponentSplitter splitter = new ComponentSplitter();
-      mainWindowDock = splitter.splitBottom(splitter.getSplitAncestor(GameModule.getGameModule().getControlPanel(), -1), root, false);
-      mainWindowDock.setResizeWeight(0.0F);
-      ((BasicSplitPaneUI) mainWindowDock.getUI()).getDivider().setVisible(false);
-      mainWindowDock.getBottomComponent().setVisible(false);
+      mainWindowDock = splitter.splitBottom(splitter.getSplitAncestor(GameModule.getGameModule().getControlPanel(), -1), root,true);
     }
   }
 

@@ -233,10 +233,10 @@ public class ModuleExtension extends AbstractBuildable implements GameComponent 
     buildComponents.removeElement(el);
   }
 
-  public Action getEditAction(final Frame f) {
+  public Action getEditAction(final JDialog d) {
     AbstractAction a = new AbstractAction() {
       public void actionPerformed(ActionEvent e) {
-        final JDialog d = new JDialog(f,getName());
+        d.setName(getName());
         final StringConfigurer config = new StringConfigurer(VERSION,"Version",version);
         d.getContentPane().setLayout(new BoxLayout(d.getContentPane(),BoxLayout.Y_AXIS));
         d.getContentPane().add(config.getControls());

@@ -13,7 +13,7 @@
  * Library General Public License for more details.
  *
  * You should have received a copy of the GNU Library General Public
- * License along with this library; if not, copies are available 
+ * License along with this library; if not, copies are available
  * at http://www.opensource.org.
  */
 package VASSAL.build.module.map;
@@ -46,7 +46,7 @@ import java.util.Enumeration;
  * which draws a square indicating the current viewable area in the
  * map window */
 public class GlobalMap extends JPanel implements MouseListener,
-  AutoConfigurable, GameComponent, Drawable {
+    AutoConfigurable, GameComponent, Drawable {
   private Map map;
   private String boundsKey;
   private double scale = 0.19444444;      // Zoom factor
@@ -54,17 +54,14 @@ public class GlobalMap extends JPanel implements MouseListener,
   private JScrollPane scroll;
   private LaunchButton launch;
 
-  private JFrame f;
+  private JDialog f;
   private BooleanConfigurer visibility;
   private ComponentListener visListener;
   private CounterDetailViewer mouseOverViewer;
 
   public GlobalMap() {
     setSize(350, 125);
-    f = new JFrame();
     scroll = new JScrollPane(this);
-    f.getContentPane().add(scroll);
-    f.setDefaultCloseOperation(javax.swing.WindowConstants.HIDE_ON_CLOSE);
     visListener = new ComponentAdapter() {
       public void componentHidden(ComponentEvent e) {
         if (visibility != null) {
@@ -78,13 +75,13 @@ public class GlobalMap extends JPanel implements MouseListener,
         }
       }
     };
-    launch = new LaunchButton(null,null,HOTKEY,new ActionListener() {
+    launch = new LaunchButton(null, null, HOTKEY, new ActionListener() {
       public void actionPerformed(ActionEvent e) {
         f.setVisible(!f.isVisible());
       }
     });
     launch.setToolTipText("Show/Hide overview window");
-    launch.setAttribute(HOTKEY,KeyStroke.getKeyStroke(KeyEvent.VK_O,KeyEvent.CTRL_MASK+KeyEvent.SHIFT_MASK));
+    launch.setAttribute(HOTKEY, KeyStroke.getKeyStroke(KeyEvent.VK_O, KeyEvent.CTRL_MASK + KeyEvent.SHIFT_MASK));
     URL imageURL = getClass().getResource("/images/overview.gif");
     if (imageURL != null) {
       launch.setIcon(new ImageIcon(imageURL));
@@ -96,6 +93,17 @@ public class GlobalMap extends JPanel implements MouseListener,
     addMouseListener(this);
   }
 
+  private void initWindow() {
+    Component ancestor = map.getView().getTopLevelAncestor();
+    JFrame owner = ancestor instanceof JFrame ? (JFrame) ancestor : null;
+    f = new JDialog(owner);
+    f.getContentPane().add(scroll);
+    f.setDefaultCloseOperation(javax.swing.WindowConstants.HIDE_ON_CLOSE);
+    boundsKey = "BoundsOfGlobalMap" + map.getId();
+    GameModule.getGameModule().getPrefs().addOption
+        (new PositionOption(boundsKey, f));
+  }
+
   /**
    * Expects to be added to a {@link Map}.  Adds itself as a {@link
    * GameComponent} and a {@link Drawable} component */
@@ -104,13 +112,9 @@ public class GlobalMap extends JPanel implements MouseListener,
 
     mouseOverViewer = new CounterViewer();
 
-    boundsKey = "BoundsOfGlobalMap" + map.getId();
-    GameModule.getGameModule().getPrefs().addOption
-      (new PositionOption(boundsKey, f));
-
-    String visibilityKey = "GlobalMap" + map.getId()+"Visible";
-    visibility = new BooleanConfigurer(visibilityKey,null,Boolean.TRUE);
-    GameModule.getGameModule().getPrefs().addOption(null,visibility);
+    String visibilityKey = "GlobalMap" + map.getId() + "Visible";
+    visibility = new BooleanConfigurer(visibilityKey, null, Boolean.TRUE);
+    GameModule.getGameModule().getPrefs().addOption(null, visibility);
 
     GameModule.getGameModule().getGameState().addGameComponent(this);
 
@@ -132,7 +136,9 @@ public class GlobalMap extends JPanel implements MouseListener,
     map.removeDrawComponent(this);
     map.getToolBar().remove(launch);
     GameModule.getGameModule().getGameState().removeGameComponent(this);
-    f.dispose();
+    if (f != null) {
+      f.dispose();
+    }
   }
 
   public void build(Element e) {
@@ -144,7 +150,7 @@ public class GlobalMap extends JPanel implements MouseListener,
   private static final String HOTKEY = "hotkey";
 
   public String[] getAttributeNames() {
-    return new String[]{SCALE, COLOR,HOTKEY};
+    return new String[]{SCALE, COLOR, HOTKEY};
   }
 
   public VisibilityCondition getAttributeVisibility(String name) {
@@ -165,7 +171,7 @@ public class GlobalMap extends JPanel implements MouseListener,
       rectColor = (Color) value;
     }
     else {
-      launch.setAttribute(key,value);
+      launch.setAttribute(key, value);
     }
   }
 
@@ -197,8 +203,8 @@ public class GlobalMap extends JPanel implements MouseListener,
 
   public void paint(Graphics g) {
     g.clearRect(0, 0, getSize().width, getSize().height);
-    map.drawBoards(g, -Math.round((float)scale * map.getEdgeBuffer().width),
-             -Math.round((float)scale * map.getEdgeBuffer().height), scale, this);
+    map.drawBoards(g, -Math.round((float) scale * map.getEdgeBuffer().width),
+                   -Math.round((float) scale * map.getEdgeBuffer().height), scale, this);
     GamePiece stack[] = map.getPieces();
     for (int i = 0; i < stack.length; i++) {
       Point p = componentCoordinates(stack[i].getPosition());
@@ -207,9 +213,9 @@ public class GlobalMap extends JPanel implements MouseListener,
     for (Enumeration e = map.getComponents(DrawPile.class); e.hasMoreElements();) {
       DrawPile deck = (DrawPile) e.nextElement();
       Point p = componentCoordinates(deck.getPosition());
-      deck.draw(g,p.x,p.y,this,scale);
+      deck.draw(g, p.x, p.y, this, scale);
     }
-    mouseOverViewer.draw(g,map);
+    mouseOverViewer.draw(g, map);
 
     // Draw a rectangle indicating the present viewing area
     g.setColor(rectColor);
@@ -243,8 +249,8 @@ public class GlobalMap extends JPanel implements MouseListener,
    * @return
    */
   public Point componentCoordinates(Point p) {
-    p = new Point(p.x-map.getEdgeBuffer().width,
-                  p.y-map.getEdgeBuffer().height);
+    p = new Point(p.x - map.getEdgeBuffer().width,
+                  p.y - map.getEdgeBuffer().height);
     p.x *= scale;
     p.y *= scale;
     return p;
@@ -256,8 +262,8 @@ public class GlobalMap extends JPanel implements MouseListener,
    * @return
    */
   public Point mapCoordinates(Point p) {
-    p = new Point((int)Math.round(p.x/scale),
-                  (int)Math.round(p.y/scale));
+    p = new Point((int) Math.round(p.x / scale),
+                  (int) Math.round(p.y / scale));
     p.translate(map.getEdgeBuffer().width,
                 map.getEdgeBuffer().height);
     return p;
@@ -290,18 +296,21 @@ public class GlobalMap extends JPanel implements MouseListener,
 
   public void setup(boolean show) {
     boolean visible = show
-      && map.getAllBoards().hasMoreElements()
-      && visibility.booleanValue().booleanValue();
+        && map.getAllBoards().hasMoreElements()
+        && visibility.booleanValue().booleanValue();
     if (map instanceof PrivateMap
-      && !((PrivateMap) map).isAccessibleTo(PlayerRoster.getMySide())) {
+        && !((PrivateMap) map).isAccessibleTo(PlayerRoster.getMySide())) {
       visible = false;
+    }
+    if (f == null) {
+      initWindow();
     }
     if (visible) {
       f.setTitle(map.getMapName() + " overview");
       scroll.getViewport().setPreferredSize(getPreferredSize());
       f.pack();
       Rectangle r = (Rectangle) GameModule.getGameModule().getPrefs()
-        .getValue(boundsKey);
+          .getValue(boundsKey);
       if (r != null) {
         f.setLocation(r.x, r.y);
       }
@@ -319,10 +328,6 @@ public class GlobalMap extends JPanel implements MouseListener,
     if (show) {
       revalidate();
     }
-  }
-
-  public void setTitle(String s) {
-    f.setTitle(s);
   }
 
   public static String getConfigureTypeName() {
@@ -370,7 +375,7 @@ public class GlobalMap extends JPanel implements MouseListener,
 
     public void draw(Graphics g, Map map) {
       if (currentMousePosition != null) {
-        this.draw(g,currentMousePosition.getPoint(),GlobalMap.this);
+        this.draw(g, currentMousePosition.getPoint(), GlobalMap.this);
       }
     }
 
@@ -378,15 +383,15 @@ public class GlobalMap extends JPanel implements MouseListener,
       Point oldPoint = currentMousePosition.getPoint();
       Point mapPoint = GlobalMap.this.map.componentCoordinates(mapCoordinates(oldPoint));
 
-      currentMousePosition.translatePoint(mapPoint.x-oldPoint.x,mapPoint.y-oldPoint.y);
+      currentMousePosition.translatePoint(mapPoint.x - oldPoint.x, mapPoint.y - oldPoint.y);
       GamePiece p = super.findPieceAtMousePosition();
-      currentMousePosition.translatePoint(oldPoint.x-mapPoint.x,oldPoint.y-mapPoint.y);
+      currentMousePosition.translatePoint(oldPoint.x - mapPoint.x, oldPoint.y - mapPoint.y);
       return p;
     }
 
     protected boolean shouldBeVisible() {
       return currentPiece != null
-        && !Boolean.TRUE.equals(currentPiece.getProperty(Properties.IMMOBILE));
+          && !Boolean.TRUE.equals(currentPiece.getProperty(Properties.IMMOBILE));
     }
   }
 }
