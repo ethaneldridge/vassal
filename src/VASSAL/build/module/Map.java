@@ -37,10 +37,13 @@ import VASSAL.preferences.PositionOption;
 import VASSAL.tools.ComponentSplitter;
 import VASSAL.tools.KeyStrokeSource;
 import VASSAL.tools.LaunchButton;
+import VASSAL.Info;
 import org.w3c.dom.Element;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.datatransfer.StringSelection;
+import java.awt.dnd.*;
 import java.awt.event.*;
 import java.io.File;
 import java.net.MalformedURLException;
@@ -58,7 +61,7 @@ import java.util.Vector;
  * Components which are added directly to a Map are contained in the
  * <code>VASSAL.build.module.map</code> package */
 public class Map extends AbstractConfigurable implements GameComponent,
-    FocusListener, MouseListener, MouseMotionListener,
+    FocusListener, MouseListener, MouseMotionListener, DragGestureListener, DragSourceListener, DropTargetListener,
     Configurable {
   /*
    ** The map consists of the empty board and an array of stacks
@@ -69,7 +72,7 @@ public class Map extends AbstractConfigurable implements GameComponent,
   private String mapID = "";
   private String mapName = "";
 
-  private static final String FRAME_HEIGHT="mainWindowHeight";
+  private static final String MAIN_WINDOW_HEIGHT = "mainWindowHeight";
 
   protected JPanel theMap;
 
@@ -238,7 +241,7 @@ public class Map extends AbstractConfigurable implements GameComponent,
       public void actionPerformed(ActionEvent e) {
         if (mainWindowDock == null
             && launchButton.isEnabled()
-          && theMap.getTopLevelAncestor() != null) {
+            && theMap.getTopLevelAncestor() != null) {
           theMap.getTopLevelAncestor().setVisible(!theMap.getTopLevelAncestor().isVisible());
         }
       }
@@ -385,8 +388,14 @@ public class Map extends AbstractConfigurable implements GameComponent,
     }
     setID("Map" + mapCount);
 
-    DragBuffer.getBuffer().addDropTarget(theMap, this);
-    DragBuffer.getBuffer().addDragSource(theMap);
+    if (Info.isDndEnabled()) {
+      DragSource.getDefaultDragSource().createDefaultDragGestureRecognizer(theMap,DnDConstants.ACTION_MOVE,this);
+      theMap.setDropTarget(new DropTarget(theMap,DnDConstants.ACTION_MOVE,this));
+    }
+    else {
+      DragBuffer.getBuffer().addDropTarget(theMap, this);
+      DragBuffer.getBuffer().addDragSource(theMap);
+    }
 
     GameModule.getGameModule().getGameState().addGameComponent(this);
     GameModule.getGameModule().addKeyStrokeSource
@@ -394,8 +403,8 @@ public class Map extends AbstractConfigurable implements GameComponent,
     GameModule.getGameModule().getToolBar().add(launchButton);
 
     if (shouldDockIntoMainWindow()) {
-      IntConfigurer config = new IntConfigurer(FRAME_HEIGHT,null,new Integer(-1));
-      GameModule.getGameModule().getPrefs().addOption(config);
+      IntConfigurer config = new IntConfigurer(MAIN_WINDOW_HEIGHT, null, new Integer(-1));
+      GameModule.getGameModule().getGlobalPrefs().addOption(config);
       JPanel root = new JPanel(new BorderLayout());
 //      root.add(toolBar, BorderLayout.NORTH);
       root.add(scroll, BorderLayout.CENTER);
@@ -699,6 +708,46 @@ public class Map extends AbstractConfigurable implements GameComponent,
     theMap.repaint();
   }
 
+  public void dragGestureRecognized(DragGestureEvent dge) {
+    if (DragBuffer.getBuffer().getIterator().hasMoreElements()) {
+      dge.startDrag(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR),new StringSelection(""),this);
+    }
+  }
+
+  public void dragEnter(DragSourceDragEvent dsde) {
+  }
+
+  public void dragOver(DragSourceDragEvent dsde) {
+  }
+
+  public void dropActionChanged(DragSourceDragEvent dsde) {
+  }
+
+  public void dragExit(DragSourceEvent dse) {
+  }
+
+  public void dragDropEnd(DragSourceDropEvent dsde) {
+    repaint();
+  }
+
+  public void dragEnter(DropTargetDragEvent dtde) {
+  }
+
+  public void dragOver(DropTargetDragEvent dtde) {
+    scrollAtEdge(dtde.getLocation());
+  }
+
+  public void dropActionChanged(DropTargetDragEvent dtde) {
+  }
+
+  public void dragExit(DropTargetEvent dte) {
+  }
+
+  public void drop(DropTargetDropEvent dtde) {
+    MouseEvent evt = new MouseEvent(theMap,MouseEvent.MOUSE_RELEASED,System.currentTimeMillis(),0,dtde.getLocation().x,dtde.getLocation().y,1,false);
+    theMap.dispatchEvent(evt);
+  }
+
   /**
    * Mouse motion events are not forwarded to LocalMouseListeners or
    * to listeners on the stack */
@@ -712,28 +761,32 @@ public class Map extends AbstractConfigurable implements GameComponent,
    * The map scrolls when dragging the mouse near the edge */
   public void mouseDragged(MouseEvent e) {
     if (!e.isMetaDown()) {
-      Point p = new Point
-          (e.getX() - scroll.getViewport().getViewPosition().x,
-           e.getY() - scroll.getViewport().getViewPosition().y);
-      int xBuf = 15;
-      int yBuf = 15;
-      int dx = 0, dy = 0;
-      if (p.x < xBuf
-          && p.x >= 0)
-        dx = -1;
-      if (p.x >= scroll.getViewport().getSize().width - xBuf
-          && p.x < scroll.getViewport().getSize().width)
-        dx = 1;
-      if (p.y < yBuf
-          && p.y >= 0)
-        dy = -1;
-      if (p.y >= scroll.getViewport().getSize().height - yBuf
-          && p.y < scroll.getViewport().getSize().height)
-        dy = 1;
+      scrollAtEdge(e.getPoint());
+    }
+  }
 
-      if (dx != 0 || dy != 0) {
-        scroll(dx * 25, dy * 25);
-      }
+  private void scrollAtEdge(Point evtPt) {
+    Point p = new Point
+        (evtPt.x - scroll.getViewport().getViewPosition().x,
+         evtPt.y - scroll.getViewport().getViewPosition().y);
+    int xBuf = 15;
+    int yBuf = 15;
+    int dx = 0, dy = 0;
+    if (p.x < xBuf
+        && p.x >= 0)
+      dx = -1;
+    if (p.x >= scroll.getViewport().getSize().width - xBuf
+        && p.x < scroll.getViewport().getSize().width)
+      dx = 1;
+    if (p.y < yBuf
+        && p.y >= 0)
+      dy = -1;
+    if (p.y >= scroll.getViewport().getSize().height - yBuf
+        && p.y < scroll.getViewport().getSize().height)
+      dy = 1;
+
+    if (dx != 0 || dy != 0) {
+      scroll(dx * 25, dy * 25);
     }
   }
 
@@ -1000,7 +1053,7 @@ public class Map extends AbstractConfigurable implements GameComponent,
   public boolean shouldDockIntoMainWindow() {
     boolean shouldDock = false;
     if (GlobalOptions.getInstance().isUseSingleWindow()
-      && !launchButton.isVisible()) {
+        && !launchButton.isVisible()) {
       shouldDock = true;
       for (Enumeration e = GameModule.getGameModule().getComponents(Map.class); e.hasMoreElements();) {
         Map m = (Map) e.nextElement();
@@ -1025,10 +1078,10 @@ public class Map extends AbstractConfigurable implements GameComponent,
     if (show) {
       if (shouldDockIntoMainWindow()) {
         mainWindowDock.showComponent();
-        int height = ((Integer)GameModule.getGameModule().getPrefs().getValue(FRAME_HEIGHT)).intValue();
+        int height = ((Integer) GameModule.getGameModule().getGlobalPrefs().getValue(MAIN_WINDOW_HEIGHT)).intValue();
         if (height > 0) {
           Container top = mainWindowDock.getTopLevelAncestor();
-          top.setSize(top.getSize().width,height);
+          top.setSize(top.getSize().width, height);
         }
         if (toolBar.getParent() == null) {
           GameModule.getGameModule().getToolBar().addSeparator();
@@ -1051,8 +1104,8 @@ public class Map extends AbstractConfigurable implements GameComponent,
                   }
                 }
               });
-          ((RootPaneContainer)topWindow).getContentPane().add("North", getToolBar());
-          ((RootPaneContainer)topWindow).getContentPane().add("Center", scroll);
+          ((RootPaneContainer) topWindow).getContentPane().add("North", getToolBar());
+          ((RootPaneContainer) topWindow).getContentPane().add("Center", scroll);
           topWindow.setSize(600, 400);
           PositionOption option = new PositionOption(PositionOption.key + getId(), topWindow);
           GameModule.getGameModule().getPrefs().addOption(option);
@@ -1067,7 +1120,7 @@ public class Map extends AbstractConfigurable implements GameComponent,
       System.gc();
       if (mainWindowDock != null) {
         if (mainWindowDock.getHideableComponent().isVisible()) {
-          GameModule.getGameModule().getPrefs().getOption(FRAME_HEIGHT).setValue(new Integer(mainWindowDock.getTopLevelAncestor().getSize().height));
+          GameModule.getGameModule().getGlobalPrefs().getOption(MAIN_WINDOW_HEIGHT).setValue(new Integer(mainWindowDock.getTopLevelAncestor().getSize().height));
         }
         mainWindowDock.hideComponent();
         toolBar.setVisible(false);
@@ -1084,18 +1137,18 @@ public class Map extends AbstractConfigurable implements GameComponent,
       Component c = theMap.getTopLevelAncestor();
       if (s == null) {
         if (c instanceof JFrame) {
-          ((JFrame)c).setTitle(getDefaultWindowTitle());
+          ((JFrame) c).setTitle(getDefaultWindowTitle());
         }
         if (c instanceof JDialog) {
-          ((JDialog)c).setTitle(getDefaultWindowTitle());
+          ((JDialog) c).setTitle(getDefaultWindowTitle());
         }
       }
       else {
         if (c instanceof JFrame) {
-          ((JFrame)c).setTitle(((JFrame)c).getTitle() + s);
+          ((JFrame) c).setTitle(((JFrame) c).getTitle() + s);
         }
         if (c instanceof JDialog) {
-          ((JDialog)c).setTitle(((JDialog)c).getTitle() + s);
+          ((JDialog) c).setTitle(((JDialog) c).getTitle() + s);
         }
       }
     }
@@ -1427,7 +1480,7 @@ public class Map extends AbstractConfigurable implements GameComponent,
 
     public void paint(Graphics g) {
       Rectangle r = getVisibleRect();
-      g.clearRect(r.x,r.y,r.width,r.height);
+      g.clearRect(r.x, r.y, r.width, r.height);
       map.paintRegion(g, r);
 //      map.paint(g);
     }

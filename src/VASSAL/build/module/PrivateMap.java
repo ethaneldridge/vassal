@@ -35,6 +35,7 @@ import VASSAL.configure.StringArrayConfigurer;
 import javax.swing.*;
 import java.awt.event.*;
 import java.awt.*;
+import java.awt.dnd.DropTarget;
 import java.io.File;
 import java.net.MalformedURLException;
 import java.util.Enumeration;
@@ -169,10 +170,10 @@ public class PrivateMap extends Map {
   public void setup(boolean show) {
     super.setup(show);
     if (!show) {
-      ((View) theMap).clearListeners();
+      ((View) theMap).disableListeners();
     }
     else if (isAccessibleTo(PlayerRoster.getMySide())) {
-      ((View) theMap).useListeners();
+      ((View) theMap).enableListeners();
     }
   }
 
@@ -228,9 +229,16 @@ public class PrivateMap extends Map {
     private Vector keyListeners = new Vector();
     private Vector mouseListeners = new Vector();
     private Vector mouseMotionListeners = new Vector();
+    private DropTarget dropTarget;
 
     public View(PrivateMap m) {
       super(m);
+    }
+
+    public synchronized void setDropTarget(DropTarget dt) {
+      if (dt != null) {
+        dropTarget = dt;
+      }
     }
 
     public synchronized void addKeyListener(KeyListener l) {
@@ -245,7 +253,10 @@ public class PrivateMap extends Map {
       mouseMotionListeners.addElement(l);
     }
 
-    protected void clearListeners() {
+    /**
+     * Disable all keyboard and mouse listeners on this component
+     */
+    protected void disableListeners() {
       for (Enumeration e = keyListeners.elements(); e.hasMoreElements();) {
         removeKeyListener((KeyListener) e.nextElement());
       }
@@ -255,9 +266,13 @@ public class PrivateMap extends Map {
       for (Enumeration e = mouseMotionListeners.elements(); e.hasMoreElements();) {
         removeMouseMotionListener((MouseMotionListener) e.nextElement());
       }
+      super.setDropTarget(null);
     }
 
-    protected void useListeners() {
+    /**
+     * Enable all keyboard and mouse listeners on this component
+     */
+    protected void enableListeners() {
       for (Enumeration e = keyListeners.elements(); e.hasMoreElements();) {
         super.addKeyListener((KeyListener) e.nextElement());
       }
@@ -267,6 +282,7 @@ public class PrivateMap extends Map {
       for (Enumeration e = mouseMotionListeners.elements(); e.hasMoreElements();) {
         super.addMouseMotionListener((MouseMotionListener) e.nextElement());
       }
+      super.setDropTarget(dropTarget);
     }
   }
 }

@@ -32,6 +32,7 @@ import VASSAL.command.NullCommand;
 import VASSAL.configure.BooleanConfigurer;
 import VASSAL.counters.*;
 import VASSAL.tools.Sort;
+import VASSAL.Info;
 
 import javax.swing.*;
 import java.awt.*;
@@ -45,7 +46,8 @@ import java.util.Enumeration;
 /**
  * This is a MouseListener that moves pieces on a Map window
  */
-public class PieceMover extends AbstractBuildable implements MouseListener, GameComponent, PieceFinder, Sort.Comparator {
+public class PieceMover extends AbstractBuildable implements
+    MouseListener, GameComponent, PieceFinder, Sort.Comparator {
   /* Test cases for moving pieces:
   - Simple click on piece -> no move
   - Click and drag piece to within its own outline:  move if to new grid snap point or > 5 pixels away
@@ -159,7 +161,7 @@ public class PieceMover extends AbstractBuildable implements MouseListener, Game
     }
     Command c = new NullCommand();
     if (!hasMoved
-      || shouldMarkMoved()) {
+        || shouldMarkMoved()) {
       if (p instanceof Stack) {
         for (Enumeration e = ((Stack) p).getPieces(); e.hasMoreElements();) {
           c.append(markMoved((GamePiece) e.nextElement(), hasMoved));
@@ -223,7 +225,7 @@ public class PieceMover extends AbstractBuildable implements MouseListener, Game
       comm = comm.append(movedPiece(bottom, p));
       comm = comm.append(m.placeAt(bottom, p));
       if (!(bottom instanceof Stack)
-        && !Boolean.TRUE.equals(bottom.getProperty(Properties.NO_STACK))) {
+          && !Boolean.TRUE.equals(bottom.getProperty(Properties.NO_STACK))) {
         Stack parent = m.getStackMetrics().createStack(bottom);
         if (parent != null) {
           comm = comm.append(m.placeAt(parent, p));
@@ -247,7 +249,7 @@ public class PieceMover extends AbstractBuildable implements MouseListener, Game
       GameModule.setUserId(myId);
       String nextOrigin = m.locationName(next.getPosition());
       if (nextOrigin == null
-        || !nextOrigin.equals(origin)) {
+          || !nextOrigin.equals(origin)) {
         origin = null;
       }
       comm = comm.append(movedPiece(next, bottom.getPosition()));
@@ -256,10 +258,10 @@ public class PieceMover extends AbstractBuildable implements MouseListener, Game
     }
     String s = moved.toString();
     if (comm != null
-      && !comm.isNull()
-      && destination != null
-      && s.length() > 0
-      && GlobalOptions.getInstance().autoReportEnabled()) {
+        && !comm.isNull()
+        && destination != null
+        && s.length() > 0
+        && GlobalOptions.getInstance().autoReportEnabled()) {
       if (origin == null) {
         s = "* " + s + " moves " + destination + " * ";
       }
@@ -274,56 +276,65 @@ public class PieceMover extends AbstractBuildable implements MouseListener, Game
     return comm;
   }
 
+  /**
+   * This listener is used for faking drag-and-drop on Java 1.1 systems
+   * @param e
+   */
   public void mousePressed(MouseEvent e) {
     if (canHandleEvent(e)) {
-      GamePiece p = map.findPiece(e.getPoint(), PieceFinder.MOVABLE);
-      dragBegin = e.getPoint();
-      if (p == null) {
-        DragBuffer.getBuffer().clear();
-      }
-      else if (Boolean.TRUE.equals(p.getProperty(Properties.IMMOBILE))) {
-        DragBuffer.getBuffer().clear();
-        if (KeyBuffer.getBuffer().contains(p)) {
-          DragBuffer.getBuffer().add(p);
-        }
-        else {
-          p = null;
-        }
-      }
-      else if (Boolean.TRUE.equals(p.getProperty(Properties.NO_STACK))) {
-        DragBuffer.getBuffer().clear();
-        DragBuffer.getBuffer().add(p);
-      }
-      else {
-        DragBuffer.getBuffer().clear();
-        if (KeyBuffer.getBuffer().contains(p)) {
-          DragBuffer.getBuffer().add(p);
-          // If clicking on a selected piece, put all selected pieces into the drag buffer
-          for (Enumeration enum = KeyBuffer.getBuffer().getPieces(); enum.hasMoreElements();) {
-            GamePiece piece = (GamePiece) enum.nextElement();
-            if (piece != p
-              && piece.getParent() != p) {
-              DragBuffer.getBuffer().add(piece);
-            }
-          }
-        }
-        else {
-          // Otherwise, only put the clicked-on piece into the drag buffer
-          DragBuffer.getBuffer().add(p);
-        }
-      }
-      if (DragBuffer.getBuffer().getIterator().hasMoreElements()) {
+      selectMovablePieces(e.getPoint());
+      if (!Info.isDndEnabled() && DragBuffer.getBuffer().getIterator().hasMoreElements()) {
         map.getView().setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
       }
     }
   }
 
-  private boolean canHandleEvent(MouseEvent e) {
+  /** Place the clicked-on piece into the {@link DragBuffer} */
+  protected void selectMovablePieces(Point point) {
+    GamePiece p = map.findPiece(point, PieceFinder.MOVABLE);
+    dragBegin = point;
+    if (p == null) {
+      DragBuffer.getBuffer().clear();
+    }
+    else if (Boolean.TRUE.equals(p.getProperty(Properties.IMMOBILE))) {
+      DragBuffer.getBuffer().clear();
+      if (KeyBuffer.getBuffer().contains(p)) {
+        DragBuffer.getBuffer().add(p);
+      }
+      else {
+        p = null;
+      }
+    }
+    else if (Boolean.TRUE.equals(p.getProperty(Properties.NO_STACK))) {
+      DragBuffer.getBuffer().clear();
+      DragBuffer.getBuffer().add(p);
+    }
+    else {
+      DragBuffer.getBuffer().clear();
+      if (KeyBuffer.getBuffer().contains(p)) {
+        DragBuffer.getBuffer().add(p);
+        // If clicking on a selected piece, put all selected pieces into the drag buffer
+        for (Enumeration enum = KeyBuffer.getBuffer().getPieces(); enum.hasMoreElements();) {
+          GamePiece piece = (GamePiece) enum.nextElement();
+          if (piece != p
+              && piece.getParent() != p) {
+            DragBuffer.getBuffer().add(piece);
+          }
+        }
+      }
+      else {
+        // Otherwise, only put the clicked-on piece into the drag buffer
+        DragBuffer.getBuffer().add(p);
+      }
+    }
+  }
+
+  protected boolean canHandleEvent(MouseEvent e) {
     return !e.isShiftDown()
-      && !e.isControlDown()
-      && !e.isMetaDown()
-      && e.getClickCount() < 2
-      && !e.isConsumed();
+        && !e.isControlDown()
+        && !e.isMetaDown()
+        && e.getClickCount() < 2
+        && !e.isConsumed();
   }
 
   /**
@@ -342,7 +353,7 @@ public class PieceMover extends AbstractBuildable implements MouseListener, Game
       }
       else {
         if (Math.abs(pt.x - dragBegin.x) <= 5
-          && Math.abs(pt.y - dragBegin.y) <= 5) {
+            && Math.abs(pt.y - dragBegin.y) <= 5) {
           isClick = true;
         }
       }
@@ -353,15 +364,19 @@ public class PieceMover extends AbstractBuildable implements MouseListener, Game
   public void mouseReleased(MouseEvent e) {
     if (canHandleEvent(e)) {
       if (!isClick(e.getPoint())) {
-        Command move = movePieces(map, e.getPoint());
-        GameModule.getGameModule().sendAndLog(move);
-        if (move != null) {
-          DragBuffer.getBuffer().clear();
-        }
+        performDrop(e.getPoint());
       }
     }
     dragBegin = null;
     map.getView().setCursor(null);
+  }
+
+  protected void performDrop(Point p) {
+    Command move = movePieces(map, p);
+    GameModule.getGameModule().sendAndLog(move);
+    if (move != null) {
+      DragBuffer.getBuffer().clear();
+    }
   }
 
   public void mouseEntered(MouseEvent e) {
@@ -384,7 +399,7 @@ public class PieceMover extends AbstractBuildable implements MouseListener, Game
     GamePiece selected = null;
     Board b = map.findBoard(pt);
     if (b == null
-      || b.getGrid() == null) {
+        || b.getGrid() == null) {
       selected = PieceFinder.MOVABLE.select(map, piece, pt);
     }
     else {
@@ -404,21 +419,21 @@ public class PieceMover extends AbstractBuildable implements MouseListener, Game
           }
         }
         else if (s.getPosition().equals(snap)
-          && s.topPiece() != null) {
+            && s.topPiece() != null) {
           selected = s;
         }
       }
       else if (piece.getPosition().equals(snap)
-        && !Boolean.TRUE.equals(piece.getProperty(Properties.INVISIBLE_TO_ME))) {
+          && !Boolean.TRUE.equals(piece.getProperty(Properties.INVISIBLE_TO_ME))) {
         selected = piece;
       }
     }
     if (selected != null
-      && Boolean.TRUE.equals(selected.getProperty(Properties.NO_STACK))) {
+        && Boolean.TRUE.equals(selected.getProperty(Properties.NO_STACK))) {
       selected = null;
     }
     if (selected != null
-      && DragBuffer.getBuffer().contains(selected)) {
+        && DragBuffer.getBuffer().contains(selected)) {
       /* If clicking and dragging to within the outline of the same piece,
       ignore this piece if it's a stack or the only visible piece in a stack */
       if (selected.getParent() == null) {
@@ -427,8 +442,8 @@ public class PieceMover extends AbstractBuildable implements MouseListener, Game
       else {
         Enumeration e = selected.getParent().getPiecesInVisibleOrder();
         if (e.hasMoreElements()
-          && e.nextElement() == selected
-          && !e.hasMoreElements()) {
+            && e.nextElement() == selected
+            && !e.hasMoreElements()) {
           selected = null;
         }
       }
@@ -445,7 +460,7 @@ public class PieceMover extends AbstractBuildable implements MouseListener, Game
     GamePiece p2 = (GamePiece) o2;
     int result = 0;
     if (p1.getMap() == null
-      && p2.getMap() == null) {
+        && p2.getMap() == null) {
       return 0;
     }
     else if (p1.getMap() == null) {

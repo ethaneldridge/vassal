@@ -26,7 +26,7 @@ import java.util.StringTokenizer;
  * Class for storing release-related information
  */
 public final class Info {
-  private static final String VERSION = "1.3b2";
+  private static final String VERSION = "1.3b3";
   private static Boolean is2dEnabled;
   private static Boolean isDndEnabled;
   /** This class should not be instantiated */
@@ -68,13 +68,11 @@ public final class Info {
       GraphicsConfiguration config = c.getGraphicsConfiguration();
       Insets insets = (Insets) Toolkit.class.getMethod("getScreenInsets",new Class[]{GraphicsConfiguration.class})
         .invoke(Toolkit.getDefaultToolkit(),new Object[]{config});
-      System.err.println("Insets are "+insets);
       bounds.translate(insets.left,insets.top);
       bounds.setSize(bounds.width-insets.left-insets.right,bounds.height-insets.top-insets.bottom);
     }
     catch (Throwable t) {
     }
-    System.err.println("Screen bounds are "+bounds);
     return bounds;
   }
 

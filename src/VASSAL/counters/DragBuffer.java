@@ -128,21 +128,6 @@ public class DragBuffer {
       && Math.abs(p1.y - p2.y) < 3;
   }
 
-  /**
-   * Forward a MouseReleased event to a GameComponent other than
-   * the originating component.  This is a primitive Drag-and-Drag.
-   public void forwardMouseReleased(MouseEvent e) {
-   Component source = (Component)e.getSource();
-   e.translatePoint(source.getLocationOnScreen().x,
-   source.getLocationOnScreen().y);
-   if (dropTarget != null && dropTargetHandler != null) {
-   e.translatePoint(-dropTarget.getLocationOnScreen().x,
-   -dropTarget.getLocationOnScreen().y);
-   dropTargetHandler.mouseReleased(e);
-   }
-   }
-   */
-
   public void remove(GamePiece p) {
     pieces.removeElement(p);
   }

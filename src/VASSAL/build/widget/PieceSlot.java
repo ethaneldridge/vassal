@@ -13,7 +13,7 @@
  * Library General Public License for more details.
  *
  * You should have received a copy of the GNU Library General Public
- * License along with this library; if not, copies are available 
+ * License along with this library; if not, copies are available
  * at http://www.opensource.org.
  */
 package VASSAL.build.widget;
@@ -27,9 +27,12 @@ import VASSAL.command.AddPiece;
 import VASSAL.command.Command;
 import VASSAL.configure.Configurer;
 import VASSAL.counters.*;
+import VASSAL.Info;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.datatransfer.StringSelection;
+import java.awt.dnd.*;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.awt.event.MouseEvent;
@@ -88,13 +91,13 @@ public class PieceSlot extends Widget implements MouseListener, KeyListener {
     panel.revalidate();
     panel.repaint();
     pieceDefinition = c == null ? null
-      : GameModule.getGameModule().encode(new AddPiece(c));
+        : GameModule.getGameModule().encode(new AddPiece(c));
 
   }
 
   public GamePiece getPiece() {
     if (c == null
-      && pieceDefinition != null) {
+        && pieceDefinition != null) {
       AddPiece comm = (AddPiece) GameModule.getGameModule().decode(pieceDefinition);
       if (comm == null) {
         System.err.println("Couldn't build piece " + pieceDefinition);
@@ -122,7 +125,7 @@ public class PieceSlot extends Widget implements MouseListener, KeyListener {
       getPiece().draw(g, panel.getSize().width / 2, panel.getSize().height / 2, panel, 1.0);
       if (Boolean.TRUE.equals(getPiece().getProperty(Properties.SELECTED))) {
         BasicPiece.getHighlighter().draw
-          (getPiece(), g, panel.getSize().width / 2, panel.getSize().height / 2, panel, 1.0);
+            (getPiece(), g, panel.getSize().width / 2, panel.getSize().height / 2, panel, 1.0);
       }
     }
   }
@@ -138,39 +141,45 @@ public class PieceSlot extends Widget implements MouseListener, KeyListener {
   }
 
   public void mousePressed(MouseEvent e) {
+    KeyBuffer.getBuffer().clear();
+    if (getPiece() != null) {
+      KeyBuffer.getBuffer().add(getPiece());
+    }
+    if (!Info.isDndEnabled()) {
+      startDrag();
+      panel.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+    }
+  }
+
+  protected void startDrag() {
     if (getPiece() != null) {
       DragBuffer.getBuffer().clear();
-      KeyBuffer.getBuffer().clear();
-      KeyBuffer.getBuffer().add(getPiece());
-      if (getPiece() != null) {
-        GamePiece newPiece
+      GamePiece newPiece
           = ((AddPiece) GameModule.getGameModule().decode
           (GameModule.getGameModule().encode
            (new AddPiece(getPiece())))).getTarget();
-        newPiece.setState(getPiece().getState());
-        DragBuffer.getBuffer().add(newPiece);
-        panel.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-      }
+      newPiece.setState(getPiece().getState());
+      DragBuffer.getBuffer().add(newPiece);
     }
   }
 
   public void mouseReleased(MouseEvent e) {
     if (getPiece() != null
-      && e.isMetaDown()) {
+        && e.isMetaDown()) {
       JPopupMenu popup = MenuDisplayer.createPopup(getPiece());
       popup.addPopupMenuListener(new javax.swing.event.PopupMenuListener() {
         public void popupMenuCanceled
-          (javax.swing.event.PopupMenuEvent evt) {
+            (javax.swing.event.PopupMenuEvent evt) {
           panel.repaint();
         }
 
         public void popupMenuWillBecomeInvisible
-          (javax.swing.event.PopupMenuEvent evt) {
+            (javax.swing.event.PopupMenuEvent evt) {
           panel.repaint();
         }
 
         public void popupMenuWillBecomeVisible
-          (javax.swing.event.PopupMenuEvent evt) {
+            (javax.swing.event.PopupMenuEvent evt) {
         }
       });
       popup.show(panel, e.getX(), e.getY());
@@ -242,7 +251,33 @@ public class PieceSlot extends Widget implements MouseListener, KeyListener {
   }
 
   public void addTo(Buildable parent) {
-    DragBuffer.getBuffer().addDragSource(getComponent());
+    if (Info.isDndEnabled()) {
+      DragGestureListener l = new DragGestureListener() {
+        public void dragGestureRecognized(DragGestureEvent dge) {
+          startDrag();
+          dge.startDrag(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR), new StringSelection(""), new DragSourceListener() {
+            public void dragEnter(DragSourceDragEvent dsde) {
+            }
+
+            public void dragOver(DragSourceDragEvent dsde) {
+            }
+
+            public void dropActionChanged(DragSourceDragEvent dsde) {
+            }
+
+            public void dragExit(DragSourceEvent dse) {
+            }
+
+            public void dragDropEnd(DragSourceDropEvent dsde) {
+            }
+          });
+        }
+      };
+      DragSource.getDefaultDragSource().createDefaultDragGestureRecognizer(panel, DnDConstants.ACTION_MOVE, l);
+    }
+    else {
+      DragBuffer.getBuffer().addDragSource(getComponent());
+    }
   }
 
   public org.w3c.dom.Element getBuildElement(org.w3c.dom.Document doc) {
