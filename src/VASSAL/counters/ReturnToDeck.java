@@ -165,7 +165,7 @@ public class ReturnToDeck extends Decorator implements EditablePiece {
           d.setTitle("Select Deck");
           d.setVisible(true);
           if (d.getTarget() != null) {
-            deckId = ((DrawPile) d.getTarget()).getId();
+            deckId = d.getTarget().getConfigureName();
             updateDeckName();
           }
         }

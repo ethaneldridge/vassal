@@ -80,16 +80,19 @@ public class DrawPile extends SetupStack {
   }
 
   /**
-   *
-   * @param id
-   * @return the {@link DrawPile} with the given id
+   * Return the DrawPile instance with the matching id or name
+   * @param id the Id or ConfigureName of the target DrawPile
+   * @return the matching {@link DrawPile}, or null if none found
+   * @see DrawPile#getId
+   * @see VASSAL.build.AbstractConfigurable#getConfigureName
    */
   public static DrawPile findDrawPile(String id) {
     for (Enumeration e = GameModule.getGameModule().getComponents(Map.class); e.hasMoreElements();) {
       Map m = (Map) e.nextElement();
       for (Enumeration e2 = m.getComponents(DrawPile.class); e2.hasMoreElements();) {
         DrawPile p = (DrawPile) e2.nextElement();
-        if (p.getId().equals(id)) {
+        if (p.getId().equals(id)
+          || p.getConfigureName().equals(id)) {
           return p;
         }
       }
