@@ -535,7 +535,8 @@ public class Map extends AbstractConfigurable implements GameComponent,
     if (b != null) {
       name = b.locationName(new Point(p.x - b.bounds().x,
                                       p.y - b.bounds().y));
-      if (boards.size() > 1
+      if (name != null
+        && boards.size() > 1
         && b.getName() != null) {
         name = b.getName() + name;
       }

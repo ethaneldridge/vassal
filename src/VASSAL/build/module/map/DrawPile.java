@@ -22,19 +22,22 @@ import VASSAL.build.*;
 import VASSAL.build.module.GameComponent;
 import VASSAL.build.module.Map;
 import VASSAL.build.module.documentation.HelpFile;
+import VASSAL.build.module.map.boardPicker.Board;
 import VASSAL.build.widget.CardSlot;
 import VASSAL.build.widget.PieceSlot;
 import VASSAL.command.*;
-import VASSAL.configure.*;
+import VASSAL.configure.ColorConfigurer;
+import VASSAL.configure.StringEnum;
+import VASSAL.configure.VisibilityCondition;
 import VASSAL.counters.*;
 import VASSAL.tools.SequenceEncoder;
 
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
-import java.awt.event.ActionListener;
 import java.io.File;
 import java.net.MalformedURLException;
 import java.util.Enumeration;
@@ -48,6 +51,8 @@ public class DrawPile extends AbstractConfigurable implements Drawable, GameComp
   protected Dimension size = new Dimension(40, 40);
   protected int dragCount = 0;
   protected PieceMover mover;
+  protected String owningBoardName;
+  protected boolean isActive;
   protected boolean shuffle = true;
   protected boolean faceDown = false;
   private String faceDownOption = ALWAYS;
@@ -175,6 +180,7 @@ public class DrawPile extends AbstractConfigurable implements Drawable, GameComp
       throw new IllegalBuildException("Parent is not " + b);
     }
     map.removeDrawComponent(this);
+    map.removeLocalMouseListener(this);
     GameModule.getGameModule().removeCommandEncoder(this);
     GameModule.getGameModule().getGameState().removeGameComponent(this);
   }
@@ -187,6 +193,7 @@ public class DrawPile extends AbstractConfigurable implements Drawable, GameComp
     return id;
   }
 
+  public static final String OWNING_BOARD = "owningBoard";
   public final static String X_POSITION = "x";
   public final static String Y_POSITION = "y";
   public final static String WIDTH = "width";
@@ -204,11 +211,12 @@ public class DrawPile extends AbstractConfigurable implements Drawable, GameComp
   public static final String USE_MENU = "Via right-click Menu";
 
   public String[] getAttributeNames() {
-    return new String[]{X_POSITION, Y_POSITION, WIDTH, HEIGHT, ALLOW_MULTIPLE, ALLOW_SELECT, FACE_DOWN, SHUFFLE, REVERSIBLE, DRAW, COLOR};
+    return new String[]{OWNING_BOARD,X_POSITION, Y_POSITION, WIDTH, HEIGHT, ALLOW_MULTIPLE, ALLOW_SELECT, FACE_DOWN, SHUFFLE, REVERSIBLE, DRAW, COLOR};
   }
 
   public String[] getAttributeDescriptions() {
-    return new String[]{"X position",
+    return new String[]{"Belongs to board",
+                        "X position",
                         "Y position",
                         "Width",
                         "Height",
@@ -228,7 +236,11 @@ public class DrawPile extends AbstractConfigurable implements Drawable, GameComp
   }
 
   public Class[] getAttributeTypes() {
-    return new Class[]{Integer.class,
+    if (map != null) {
+      OwningBoardPrompt.picker = map.getBoardPicker();
+    }
+    return new Class[]{OwningBoardPrompt.class,
+                       Integer.class,
                        Integer.class,
                        Integer.class,
                        Integer.class,
@@ -242,7 +254,10 @@ public class DrawPile extends AbstractConfigurable implements Drawable, GameComp
   }
 
   public String getAttributeValueString(String key) {
-    if (X_POSITION.equals(key)) {
+    if (OWNING_BOARD.equals(key)) {
+      return owningBoardName;
+    }
+    else if (X_POSITION.equals(key)) {
       return "" + pos.x;
     }
     else if (Y_POSITION.equals(key)) {
@@ -285,7 +300,15 @@ public class DrawPile extends AbstractConfigurable implements Drawable, GameComp
     if (value == null) {
       return;
     }
-    if (X_POSITION.equals(key)) {
+    if (OWNING_BOARD.equals(key)) {
+      if (OwningBoardPrompt.ANY.equals(value)) {
+        owningBoardName = null;
+      }
+      else {
+        owningBoardName = (String) value;
+      }
+    }
+    else if (X_POSITION.equals(key)) {
       if (value instanceof String) {
         value = new Integer((String) value);
       }
@@ -429,7 +452,7 @@ public class DrawPile extends AbstractConfigurable implements Drawable, GameComp
     int count = 0;
     if (contents != null
       && (count = contents.getPieceCount()) > 0) {
-      Point p = map.componentCoordinates(pos);
+      Point p = map.componentCoordinates(getPosition());
       GamePiece top = contents.topPiece();
       Rectangle r = top.selectionBounds();
       r.translate(pos.x - top.getPosition().x, pos.y - top.getPosition().y);
@@ -467,6 +490,24 @@ public class DrawPile extends AbstractConfigurable implements Drawable, GameComp
     }
   }
 
+  private Point getPosition() {
+    Point p = new Point(pos);
+    if (owningBoardName != null) {
+      for (Enumeration e = map.getAllBoards(); e.hasMoreElements();) {
+        Board b = (Board) e.nextElement();
+        if (owningBoardName.equals(b.getName())) {
+          p.translate(b.bounds().x,b.bounds().y);
+          break;
+        }
+      }
+    }
+    return p;
+  }
+
+  /**
+   * The bounds of this deck in the {@link Map} window, adjusted for owning board, if any
+   * @return
+   */
   public Rectangle boundingBox() {
     Rectangle r = null;
     if (contents != null
@@ -474,13 +515,22 @@ public class DrawPile extends AbstractConfigurable implements Drawable, GameComp
       GamePiece p = contents.topPiece();
       r = new Rectangle(p.selectionBounds());
       r.translate(-p.getPosition().x + pos.x, -p.getPosition().y + pos.y);
-      for (int i = 0,j = contents.getPieceCount(); i < j && i < 10; ++i) {
+      for (int i = 0, n = Math.min(10,contents.getPieceCount()); i < n; ++i) {
         r.setSize(r.width + 2, r.height + 2);
         r.y -= 2;
       }
     }
     else {
       r = new Rectangle(pos.x - size.width / 2, pos.y - size.height / 2, size.width, size.height);
+    }
+    if (owningBoardName != null) {
+      for (Enumeration e = map.getAllBoards(); e.hasMoreElements();) {
+        Board b = (Board) e.nextElement();
+        if (owningBoardName.equals(b.getName())) {
+          r.translate(b.bounds().x,b.bounds().y);
+          break;
+        }
+      }
     }
     return r;
   }
@@ -537,7 +587,7 @@ public class DrawPile extends AbstractConfigurable implements Drawable, GameComp
   }
 
   public void mousePressed(MouseEvent evt) {
-    if (boundingBox().contains(evt.getPoint())
+    if (isActive && boundingBox().contains(evt.getPoint())
       && contents.getPieceCount() > 0) {
       if (!evt.isMetaDown()) {
         if (nextDraw != null) {
@@ -565,7 +615,7 @@ public class DrawPile extends AbstractConfigurable implements Drawable, GameComp
   }
 
   public void mouseReleased(MouseEvent evt) {
-    if (boundingBox().contains(evt.getPoint())) {
+    if (isActive && boundingBox().contains(evt.getPoint())) {
       if (evt.isMetaDown()) {
         JPopupMenu popup = buildPopup();
         if (popup != null) {
@@ -639,7 +689,27 @@ public class DrawPile extends AbstractConfigurable implements Drawable, GameComp
   }
 
   public void setup(boolean gameStarting) {
-    if (!gameStarting) {
+    isActive = false;
+    if (gameStarting) {
+      if (owningBoardName == null) {
+        isActive = true;
+      }
+      else {
+        for (Enumeration e = map.getAllBoards(); e.hasMoreElements();) {
+          if (owningBoardName.equals(((Board)e.nextElement()).getName())) {
+            isActive = true;
+            break;
+          }
+        }
+      }
+    }
+    if (isActive) {
+      map.addDrawComponent(this);
+    }
+    else {
+      map.removeDrawComponent(this);
+    }
+    if (!isActive) {
       contents = null;
     }
     else if (contents == null) {
@@ -725,5 +795,22 @@ public class DrawPile extends AbstractConfigurable implements Drawable, GameComp
 
   public static String getConfigureTypeName() {
     return "Deck";
+  }
+
+  public static class OwningBoardPrompt extends StringEnum {
+    private static BoardPicker picker;
+    public static final String ANY = "<any>";
+    private String[] values;
+
+    public OwningBoardPrompt() {
+      String[] s = picker == null ? new String[0] : picker.getAllowableBoardNames();
+      values = new String[s.length+1];
+      System.arraycopy(s,0,values,0,s.length);
+      values[s.length] = ANY;
+    }
+
+    public String[] getValidValues() {
+      return values;
+    }
   }
 }
