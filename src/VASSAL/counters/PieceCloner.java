@@ -1,12 +1,3 @@
-package VASSAL.counters;
-
-import VASSAL.build.GameModule;
-import VASSAL.build.module.PrototypesContainer;
-import VASSAL.build.module.PrototypeDefinition;
-import VASSAL.command.AddPiece;
-
-import java.util.Enumeration;
-
 /*
  * $Id$
  *
@@ -25,6 +16,13 @@ import java.util.Enumeration;
  * License along with this library; if not, copies are available
  * at http://www.opensource.org.
  */
+
+package VASSAL.counters;
+
+import VASSAL.build.GameModule;
+import VASSAL.build.module.PrototypeDefinition;
+import VASSAL.build.module.PrototypesContainer;
+import VASSAL.command.AddPiece;
 
 /**
  * Utility class for cloning {@link GamePiece}s
@@ -45,6 +43,8 @@ public class PieceCloner {
       PrototypeDefinition def = PrototypesContainer.getPrototype(prototypeName);
       if (def != null) {
         clone = clonePiece(def.getPiece());
+        // This obscure-looking line replaces the Basic Piece part of the prototype
+        // with the rest of the traits inside the UsePrototype instance
         ((Decorator) Decorator.getInnermost(clone).getProperty(Properties.OUTER)).setInner(clonePiece(((UsePrototype) piece).getInner()));
       }
       else {

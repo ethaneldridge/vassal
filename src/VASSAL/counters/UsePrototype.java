@@ -1,14 +1,13 @@
 package VASSAL.counters;
 
-import VASSAL.command.Command;
 import VASSAL.build.module.documentation.HelpFile;
+import VASSAL.build.module.PrototypesContainer;
 import VASSAL.build.module.PrototypeDefinition;
-import VASSAL.build.GameModule;
-import VASSAL.build.widget.PieceSlot;
+import VASSAL.command.Command;
+import VASSAL.configure.StringConfigurer;
 
 import javax.swing.*;
 import java.awt.*;
-import java.util.Enumeration;
 
 /*
  * $Id$
@@ -25,7 +24,7 @@ import java.util.Enumeration;
  * Library General Public License for more details.
  *
  * You should have received a copy of the GNU Library General Public
- * License along with this library; if not, copies are available 
+ * License along with this library; if not, copies are available
  * at http://www.opensource.org.
  */
 
@@ -44,6 +43,7 @@ import java.util.Enumeration;
 public class UsePrototype extends Decorator implements EditablePiece {
   public static final String ID = "prototype;";
   private String prototypeName;
+  private GamePiece delegate;
 
   public UsePrototype() {
     this(ID, null);
@@ -67,7 +67,37 @@ public class UsePrototype extends Decorator implements EditablePiece {
   }
 
   protected KeyCommand[] myGetKeyCommands() {
-    return new KeyCommand[0];
+    KeyCommand[] comm = new KeyCommand[0];
+    PrototypeDefinition prototype = PrototypesContainer.getPrototype(prototypeName);
+    if (prototype != null) {
+      KeyCommand[] original = (KeyCommand[]) prototype.getPiece().getProperty(Properties.KEY_COMMANDS);
+      comm = new KeyCommand[original.length];
+      System.arraycopy(original,0,comm,0,original.length);
+      for (int i=0;i<comm.length;++i) {
+        comm[i].setEnabled(false);
+      }
+    }
+    return comm;
+  }
+
+  protected void buildDelegate() {
+    PrototypeDefinition def = PrototypesContainer.getPrototype(prototypeName);
+    if (def != null) {
+      delegate = new PieceCloner().clonePiece(def.getPiece());
+    }
+    else {
+      delegate = null;
+    }
+  }
+
+  public GamePiece getInner() {
+    buildDelegate();
+    return super.getInner();
+  }
+
+  public void setInner(GamePiece p) {
+    piece = p;
+    super.setInner(p);
   }
 
   public String myGetState() {
@@ -105,4 +135,27 @@ public class UsePrototype extends Decorator implements EditablePiece {
     return prototypeName;
   }
 
+  public PieceEditor getEditor() {
+    return new Editor(this);
+  }
+
+  public static class Editor implements PieceEditor {
+    private StringConfigurer nameConfig;
+
+    public Editor(UsePrototype up) {
+      nameConfig = new StringConfigurer(null,"Prototype name:  ",up.prototypeName);
+    }
+
+    public Component getControls() {
+      return nameConfig.getControls();
+    }
+
+    public String getState() {
+      return "";
+    }
+
+    public String getType() {
+      return ID+nameConfig.getValueString();
+    }
+  }
 }

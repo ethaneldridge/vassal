@@ -7,6 +7,8 @@ import VASSAL.configure.Configurer;
 import VASSAL.configure.StringConfigurer;
 import VASSAL.counters.GamePiece;
 import VASSAL.counters.PieceDefiner;
+import VASSAL.counters.BasicPiece;
+import VASSAL.counters.PieceEditor;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
@@ -62,7 +64,7 @@ public class PrototypeDefinition implements Configurable {
   public void setConfigureName(String s) {
     String oldName = name;
     this.name = s;
-    propSupport.firePropertyChange(NAME_PROPERTY,oldName,name);
+    propSupport.firePropertyChange(NAME_PROPERTY, oldName, name);
   }
 
   public Configurer getConfigurer() {
@@ -145,7 +147,7 @@ public class PrototypeDefinition implements Configurable {
       box = Box.createVerticalBox();
       name = new StringConfigurer(null, "Name", def.name);
       box.add(name.getControls());
-      pieceDefiner = new PieceDefiner();
+      pieceDefiner = new Definer();
       pieceDefiner.setPiece(def.getPiece());
       box.add(pieceDefiner);
       this.def = def;
@@ -168,6 +170,29 @@ public class PrototypeDefinition implements Configurable {
     }
 
     public void setValue(String s) {
+    }
+
+    public static class Definer extends PieceDefiner {
+      public Definer() {
+        inUseModel.setElementAt(new Plain(), 0);
+      }
+      public void setPiece(GamePiece piece) {
+        super.setPiece(piece);
+        inUseModel.setElementAt(new Plain(), 0);
+      }
+      private static class Plain extends BasicPiece {
+        public Plain() {
+          super(ID + ";;;;");
+        }
+
+        public String getDescription() {
+          return "";
+        }
+
+        public PieceEditor getEditor() {
+          return null;
+        }
+      }
     }
   }
 }
