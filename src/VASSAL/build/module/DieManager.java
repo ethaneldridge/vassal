@@ -33,6 +33,7 @@ import VASSAL.configure.StringArrayConfigurer;
 import VASSAL.configure.StringConfigurer;
 import VASSAL.configure.StringEnumConfigurer;
 import VASSAL.preferences.Prefs;
+import VASSAL.tools.BackgroundTask;
 
 /**
  * @author Brent Easton
@@ -61,9 +62,9 @@ public class DieManager extends AbstractConfigurable {
   public static final String PRIMARY_EMAIL = "primaryemail";
   public static final String SECONDARY_EMAIL = "secondaryemail";
   public static final String MULTI_ROLL = "multiroll";
-  public static final String DIE_MANAGER = "Die Manager";
+  public static final String DIE_MANAGER = "Internet Die Roller";
 
-  public static final String ROLL_MARKER = "VASSAL Internet Dice Roll";
+  public static final String ROLL_MARKER = "VASSAL auto-generated dice roll";
 
   public static final String DESC = "description";
   public static final String DFLT_NSIDES = "dfltnsides";
@@ -77,9 +78,9 @@ public class DieManager extends AbstractConfigurable {
     /*
      * Create the Internet Dice Servers we know about
      */
-    d = new InbuiltDieServer();
-    servers.put(d.getName(), d);
-    server = d; // Set the default Internet Server
+//    d = new InbuiltDieServer();
+//    servers.put(d.getName(), d);
+//    server = d; // Set the default Internet Server
 
 //        d = new IronyDieServer();
 //        servers.put(d.getName(), d);
@@ -89,6 +90,7 @@ public class DieManager extends AbstractConfigurable {
 
     d = new ShadowDiceDieServer();
     servers.put(d.getName(), d);
+    server = d;
 
     /*
      * The Dice Manager needs some preferences
@@ -99,10 +101,10 @@ public class DieManager extends AbstractConfigurable {
     final BooleanConfigurer useemail = new BooleanConfigurer(USE_EMAIL, "Email results?");
     final StringConfigurer pemail = new StringConfigurer(PRIMARY_EMAIL, "Primary Email");
     final StringArrayConfigurer semail = new StringArrayConfigurer(SECONDARY_EMAIL, "Secondary Emails");
-    final BooleanConfigurer multiroll = new BooleanConfigurer(MULTI_ROLL, "Use Multi-Roll?");
+    final BooleanConfigurer multiroll = new BooleanConfigurer(MULTI_ROLL, "Put multiple rolls into single email");
 
-    GameModule.getGameModule().getPrefs().addOption(DIE_MANAGER, dieserver);
-    GameModule.getGameModule().getPrefs().addOption(DIE_MANAGER, serverpw);
+    GameModule.getGameModule().getPrefs().addOption(null, dieserver);
+    GameModule.getGameModule().getPrefs().addOption(null, serverpw);
     GameModule.getGameModule().getPrefs().addOption(DIE_MANAGER, useemail);
     GameModule.getGameModule().getPrefs().addOption(DIE_MANAGER, pemail);
     GameModule.getGameModule().getPrefs().addOption(DIE_MANAGER, semail);
@@ -182,7 +184,6 @@ public class DieManager extends AbstractConfigurable {
   }
 
   public MultiRoll getMultiRoll() {
-
     String serverName = getServer().getName();
     if (myMultiRoll == null || !serverName.equals(lastServerName)) {
       myMultiRoll = new MultiRoll(this, defaultNDice, defaultNSides);
@@ -192,33 +193,37 @@ public class DieManager extends AbstractConfigurable {
     return myMultiRoll;
   }
 
-  public void roll(int nDice, int nSides, int plus, boolean reportTotal, String buttonName) {
-
+  public void roll(int nDice, int nSides, int plus, boolean reportTotal, String description) {
     MultiRoll mroll = getMultiRoll();
-
     getPrefs();
+
+    RollSet rollSet;
 
     // Do we want full multi-roll capabilities? If required, pop-up the multi-roll
     // cofigurer to get the details
     if (useMultiRoll) {
-
-      mroll.setSingleRoll(false);
       mroll.setVisible(true);
-      mroll.refresh();
 
       if (mroll.wasCancelled()) {
         return;
       }
+      rollSet = mroll.getRollSet();
     }
 
     // Multi Roll preference not selected, so build a dummy MultiRoll object
     else {
-      mroll.setSingleRoll(server.getDescription() + ": " + buttonName, nDice, nSides, plus, reportTotal);
+      DieRoll[] rolls = new DieRoll[]{new DieRoll(description, nDice, nSides, plus, reportTotal)};
+      rollSet = new RollSet(description, rolls);
     }
 
-    // Let the Die Server do it's stuff.
-    server.roll(mroll);
+    String desc = GameModule.getGameModule().getChatter().getInputField().getText();
+    if (desc == null || desc.length() == 0) {
+      desc = "(Leave text in the chat input area to provide a subject line)";
+    }
+    GameModule.getGameModule().getChatter().getInputField().setText("");
+    rollSet.setDescription(desc);
 
+    server.roll(rollSet);
   }
 
   /*
@@ -306,7 +311,6 @@ public class DieManager extends AbstractConfigurable {
   }
 
   public void removeFrom(Buildable parent) {
-    //((GameModule) parent).setDieManager(null);
   }
 
   public HelpFile getHelpFile() {
@@ -318,20 +322,50 @@ public class DieManager extends AbstractConfigurable {
   }
 
   public void addTo(Buildable parent) {
-    //((GameModule) parent).setDieManager(this);
   }
 
   public static String getConfigureTypeName() {
     return "Die Manager";
   }
 
-  /*
+  /** Describes a set of {@link DieRoll}s */
+  public static class RollSet {
+    public String description;
+    public DieRoll[] dieRolls;
+
+    public RollSet(String description, DieRoll[] rolls) {
+      this.description = description;
+      this.dieRolls = rolls;
+    }
+
+    public String getDescription() {
+      return description;
+    }
+
+    public void setDescription(String description) {
+      this.description = description;
+    }
+
+    public DieRoll[] getDieRolls() {
+      return dieRolls;
+    }
+
+    public int getMaxDescLength() {
+      int len = 0;
+      for (int i = 0; i < dieRolls.length; i++) {
+        len = Math.max(len, dieRolls[i].getDescription().length());
+      }
+      return len;
+    }
+  }
+
+  /**
    * Base DieServer Class
    * Does most of the work. Individual Die Servers just need to implement
-   * buildInternetRollString and parseInternetRollString methods.
+   * {@link #buildInternetRollString} and {@link #parseInternetRollString} methods.
    */
 
-  public abstract class DieServer {
+  public static abstract class DieServer {
 
     protected java.util.Random ran;
     protected String name;
@@ -353,20 +387,20 @@ public class DieManager extends AbstractConfigurable {
      * die server. This will usually be a control string passed toa cgi script
      * on the site.
      */
-    public abstract String[] buildInternetRollString(MultiRoll mr);
+    public abstract String[] buildInternetRollString(RollSet mr);
 
     /*
      * Each implemented die server must provide this routine to interpret the
      * html output generated by the site in response to the buildInternetRollString
      * call.
      */
-    public abstract void parseInternetRollString(MultiRoll mr, Vector results);
+    public abstract void parseInternetRollString(RollSet rollSet, Vector results);
 
     /*
      * Internet Die Servers should always implement roll by calling back to
-     * doInternetRoll in the base DieServer class
+     * {@link #doInternetRoll}
      */
-    public abstract void roll(MultiRoll mr);
+    public abstract void roll(RollSet mr);
 
     public DieServer() {
       ran = GameModule.getGameModule().getRNG();
@@ -450,34 +484,27 @@ public class DieManager extends AbstractConfigurable {
      * Called by the Inbuilt server - Basically the same as the code
      * in the original DiceButton
      */
-    public void doInbuiltRoll(MultiRoll mroll) {
+    public void doInbuiltRoll(RollSet mroll) {
+      DieRoll[] rolls = mroll.getDieRolls();
+      for (int i = 0; i < rolls.length; i++) {
+        DieRoll roll = rolls[i];
+        String desc = roll.getDescription();
+        int nSides = roll.getNumSides();
+        int nDice = roll.getNumDice();
+        int plus = roll.getPlus();
+        boolean reportTotal = roll.isReportTotal();
 
-      if (useMultiRoll) {
-        String s = server.getDescription() + ": " + mroll.getDescription();
-        GameModule.getGameModule().getChatter().send(s);
-      }
-
-      for (int i = 0; i < mroll.rolls.length; i++) {
-        if (mroll.useDie[i]) {
-          DieRoll roll = mroll.rolls[i];
-          String desc = roll.description;
-          int nSides = roll.numSides;
-          int nDice = roll.numDice;
-          int plus = roll.plus;
-          boolean reportTotal = roll.reportTotal;
-
-          String val = getReportPrefix(desc);
-          int total = 0;
-          for (int j = 0; j < nDice; ++j) {
-            int result = (int) (ran.nextFloat() * nSides + 1) + plus;
-            if (reportTotal) {
-              total += result;
-            }
-            else {
-              val += result;
-              if (j < nDice - 1)
-                val += ",";
-            }
+        String val = getReportPrefix(desc);
+        int total = 0;
+        for (int j = 0; j < nDice; ++j) {
+          int result = (int) (ran.nextFloat() * nSides + 1) + plus;
+          if (reportTotal) {
+            total += result;
+          }
+          else {
+            val += result;
+            if (j < nDice - 1)
+              val += ",";
           }
 
           if (reportTotal)
@@ -492,53 +519,62 @@ public class DieManager extends AbstractConfigurable {
     /*
      * Internet Servers will call this routine to do their dirty work.
      */
-    public void doInternetRoll(MultiRoll mroll) {
+    public void doInternetRoll(final RollSet mroll) {
+      BackgroundTask task = new BackgroundTask() {
+        private IOException error;
 
-      if (!mroll.getSingleRoll()) {
-        String s = server.getDescription() + ": " + mroll.getDescription();
-        GameModule.getGameModule().getChatter().send(s);
-      }
+        public void doFirst() {
+          try {
+            doIRoll(mroll);
+          }
+          catch (IOException e) {
+            error = e;
+          }
+        }
 
-      try {
-        doIRoll(mroll);
-      }
-      catch (Exception e) {
-        String s = "Internet Dice Roll Attempt to " + description + " failed.";
-        GameModule.getGameModule().getChatter().send(s);
-      }
+        public void doLater() {
+          if (error == null) {
+            reportResult(mroll);
+          }
+          else {
+            String s = "- Internet dice roll attempt " + mroll.getDescription() + " failed.";
+            GameModule.getGameModule().getChatter().send(s);
+          }
+        }
+      };
+      task.start();
+    }
 
-      for (int i = 0; i < mroll.rolls.length; i++) {
-        if (mroll.useDie[i]) {
-          DieRoll roll = mroll.rolls[i];
-          int nDice = roll.numDice;
-          boolean reportTotal = roll.reportTotal;
+    public void reportResult(RollSet mroll) {
+      DieRoll[] rolls = mroll.getDieRolls();
+      for (int i = 0; i < rolls.length; i++) {
+        DieRoll roll = rolls[i];
+        int nDice = roll.getNumDice();
+        boolean reportTotal = roll.isReportTotal();
 
-          String val = getReportPrefix(roll.description);
-          int total = 0;
+        String val = getReportPrefix(roll.getDescription());
+        int total = 0;
 
-          for (int j = 0; j < nDice; j++) {
-            int result = roll.result[j];
-            if (reportTotal) {
-              total += result;
-            }
-            else {
-              val += result;
-              if (j < nDice - 1)
-                val += ",";
-            }
+        for (int j = 0; j < nDice; j++) {
+          int result = roll.getResult(j);
+          if (reportTotal) {
+            total += result;
+          }
+          else {
+            val += result;
+            if (j < nDice - 1)
+              val += ",";
           }
 
           if (reportTotal)
             val += total;
-
-          val += getReportSuffix();
-          GameModule.getGameModule().getChatter().send(val);
         }
+        val += getReportSuffix();
+        GameModule.getGameModule().getChatter().send(val);
       }
-
     }
 
-    public void doIRoll(MultiRoll toss) throws Exception {
+    public void doIRoll(RollSet toss) throws IOException {
 
       String[] rollString = buildInternetRollString(toss);
       Vector returnString = new Vector();
@@ -588,14 +624,14 @@ public class DieManager extends AbstractConfigurable {
       description = "Inbuilt Random Number Generator";
     }
 
-    public String[] buildInternetRollString(MultiRoll mr) {
+    public String[] buildInternetRollString(RollSet mr) {
       return null;
     }
 
-    public void parseInternetRollString(MultiRoll mr, Vector results) {
+    public void parseInternetRollString(RollSet rollSet, Vector results) {
     }
 
-    public void roll(MultiRoll mr) {
+    public void roll(RollSet mr) {
       super.doInbuiltRoll(mr);
     }
 
@@ -621,20 +657,14 @@ public class DieManager extends AbstractConfigurable {
       // password = "IG42506";
     }
 
-    public String[] buildInternetRollString(MultiRoll toss) {
+    public String[] buildInternetRollString(RollSet toss) {
       String s = "";
-      for (int i = 0; i < MultiRoll.MAX_ROLLS; i++) {
-
-        if (toss.useDie[i]) {
-          if (!s.equals("")) {
-            s += "&";
-          }
-          s += "number" + (i + 1) + "=" + toss.rolls[i].numDice;
-          s += "&type" + (i + 1) + "=" + toss.rolls[i].numSides;
+      for (int i = 0; i < toss.getDieRolls().length; i++) {
+        if (!s.equals("")) {
+          s += "&";
         }
-        else {
-          s += "&number" + (i + 1) + "=0&type" + (i + 1) + "=2";
-        }
+        s += "number" + (i + 1) + "=" + toss.dieRolls[i].getNumDice();
+        s += "&type" + (i + 1) + "=" + toss.dieRolls[i].getNumSides();
       }
       s += "&emails=";
       s += "&email=" + getPrimaryEmail();
@@ -644,7 +674,7 @@ public class DieManager extends AbstractConfigurable {
       return new String[]{s};
     }
 
-    public void parseInternetRollString(MultiRoll mr, Vector results) {
+    public void parseInternetRollString(RollSet rollSet, Vector results) {
 
       Enumeration e = results.elements();
 
@@ -654,26 +684,23 @@ public class DieManager extends AbstractConfigurable {
         line = (String) e.nextElement();
 
       // And process the results, 1 per roll in the multiroll
-      for (int i = 0; i < mr.rolls.length; i++) {
+      DieRoll[] rolls = rollSet.getDieRolls();
+      for (int i = 0; i < rolls.length; i++) {
 
-        if (mr.useDie[i]) {
+        //					Find next roll
+        int pos = line.indexOf("throws:&nbsp;");
+        line = line.substring(pos);
+        StringTokenizer st = new StringTokenizer(line, "&;");
 
-          //					Find next roll
-          int pos = line.indexOf("throws:&nbsp;");
-          line = line.substring(pos);
-          StringTokenizer st = new StringTokenizer(line, "&;");
-
-          for (int j = 0; j < mr.rolls[i].numDice; j++) {
-            st.nextToken();
-            st.nextToken();
-            st.nextToken();
-          }
-
+        for (int j = 0; j < rollSet.dieRolls[i].getNumDice(); j++) {
+          st.nextToken();
+          st.nextToken();
+          st.nextToken();
         }
       }
     }
 
-    public void roll(MultiRoll mr) {
+    public void roll(RollSet mr) {
       super.doInternetRoll(mr);
     }
 
@@ -704,20 +731,20 @@ public class DieManager extends AbstractConfigurable {
 
     }
 
-    public String[] buildInternetRollString(MultiRoll mr) {
+    public String[] buildInternetRollString(RollSet mr) {
       String s;
 
       //numdice=2&numsides=6&modroll=No&numroll=3&subject=test+Roll&roller=b.easton@uws.edu.au&gm=
 
-      s = "numdice=" + mr.getRollCount();
+      s = "numdice=" + mr.getDieRolls().length;
       //s += "&numsides=" + mr.getFirstNSides();
       return new String[]{s};
     }
 
-    public void parseInternetRollString(MultiRoll toss, Vector results) {
+    public void parseInternetRollString(RollSet toss, Vector results) {
     }
 
-    public void roll(MultiRoll mr) {
+    public void roll(RollSet mr) {
       super.doInternetRoll(mr);
     }
 
@@ -752,7 +779,7 @@ public class DieManager extends AbstractConfigurable {
       canDoSeperateDice = true;
     }
 
-    public String[] buildInternetRollString(MultiRoll toss) {
+    public String[] buildInternetRollString(RollSet toss) {
 
       final String CRLF = "%0D%0A"; // CRLF
       final String LSQUARE = "%5B"; // '['
@@ -777,21 +804,20 @@ public class DieManager extends AbstractConfigurable {
 
       int mLen = toss.getMaxDescLength();
 
-      for (int i = 0; i < toss.rolls.length; i++) {
-        if (toss.useDie[i]) {
-          s += hexify(toss.rolls[i].description);
-          for (int j = 0; j < mLen - toss.rolls[i].description.length(); j++) {
-            s += ' ';
-          }
-          s += ' ' + HASH;
-          int nd = toss.rolls[i].numDice;
-          int ns = toss.rolls[i].numSides;
-          int p = toss.rolls[i].plus;
-          for (int j = 0; j < nd; j++) {
-            s += LSQUARE + "1d" + ns + RSQUARE;
-          }
-          s += CRLF;
+      DieRoll[] rolls = toss.getDieRolls();
+      for (int i = 0; i < rolls.length; i++) {
+        s += hexify(rolls[i].getDescription());
+        for (int j = 0; j < mLen - rolls[i].getDescription().length(); j++) {
+          s += ' ';
         }
+        s += ' ' + HASH;
+        int nd = rolls[i].getNumDice();
+        int ns = rolls[i].getNumSides();
+        int p = rolls[i].getPlus();
+        for (int j = 0; j < nd; j++) {
+          s += LSQUARE + "1d" + ns + RSQUARE;
+        }
+        s += CRLF;
       }
 
       s += "&todo=Action%21&hid=1";
@@ -826,7 +852,7 @@ public class DieManager extends AbstractConfigurable {
       return b.toString();
     }
 
-    public void parseInternetRollString(MultiRoll mr, Vector results) {
+    public void parseInternetRollString(RollSet rollSet, Vector results) {
 
       Enumeration e = results.elements();
 
@@ -839,25 +865,24 @@ public class DieManager extends AbstractConfigurable {
       line = (String) e.nextElement();
 
       // And process the results, 1 per roll in the multiroll
-      for (int i = 0; i < mr.rolls.length; i++) {
+      DieRoll[] rolls = rollSet.getDieRolls();
+      for (int i = 0; i < rolls.length; i++) {
 
-        if (mr.useDie[i]) {
-          line = (String) e.nextElement();
+        line = (String) e.nextElement();
 
-          int firsthash = line.indexOf("#") - 1;
-          StringTokenizer st = new StringTokenizer(line.substring(firsthash), " ");
+        int firsthash = line.indexOf("#") - 1;
+        StringTokenizer st = new StringTokenizer(line.substring(firsthash), " ");
 
-          for (int j = 0; j < mr.rolls[i].numDice; j++) {
-            st.nextToken();
-            String result = st.nextToken();
-            int res = Integer.parseInt(result);
-            mr.rolls[i].setResult(j, res);
-          }
+        for (int j = 0; j < rollSet.dieRolls[i].getNumDice(); j++) {
+          st.nextToken();
+          String result = st.nextToken();
+          int res = Integer.parseInt(result);
+          rollSet.dieRolls[i].setResult(j, res);
         }
       }
     }
 
-    public void roll(MultiRoll mr) {
+    public void roll(RollSet mr) {
       super.doInternetRoll(mr);
     }
 

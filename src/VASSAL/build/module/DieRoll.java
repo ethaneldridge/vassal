@@ -27,19 +27,18 @@ package VASSAL.build.module;
  */
 public class DieRoll {
 
-  protected String description = "";
-  protected int numDice;
-  protected int numSides;
-  protected int plus;
-  protected boolean reportTotal;
-  protected int[] result;
+  private String description = "";
+  private int numSides;
+  private int plus;
+  private boolean reportTotal;
+  private int[] result;
 
   public DieRoll(String d, int dice, int sides, int add, boolean r) {
-    description = d;
-    numDice = dice;
-    numSides = sides;
-    plus = add;
-    reportTotal = r;
+    setDescription(d);
+    setNumDice(dice);
+    setNumSides(sides);
+    setPlus(add);
+    setReportTotal(r);
     result = new int[dice];
   }
 
@@ -52,10 +51,6 @@ public class DieRoll {
     this(d, dice, sides, 0);
   }
 
-  public int[] getResults() {
-    return result;
-  }
-
   public int getResult(int pos) {
     return result[pos];
   }
@@ -64,14 +59,43 @@ public class DieRoll {
     result[pos] = res;
   }
 
-  public void setNumDice(int nd) {
-    numDice = nd;
-    result = new int[nd];
+  public String getDescription() {
+    return description;
   }
 
-  public void refresh() {
-    if (numDice != result.length) {
-      result = new int[numDice];
-    }
+  public void setDescription(String description) {
+    this.description = description;
+  }
+
+  public int getNumDice() {
+    return result.length;
+  }
+
+  public void setNumDice(int numDice) {
+    result = new int[numDice];
+  }
+
+  public int getNumSides() {
+    return numSides;
+  }
+
+  public void setNumSides(int numSides) {
+    this.numSides = numSides;
+  }
+
+  public int getPlus() {
+    return plus;
+  }
+
+  public void setPlus(int plus) {
+    this.plus = plus;
+  }
+
+  public boolean isReportTotal() {
+    return reportTotal;
+  }
+
+  public void setReportTotal(boolean reportTotal) {
+    this.reportTotal = reportTotal;
   }
 }

@@ -89,6 +89,10 @@ public class Chatter extends JPanel implements CommandEncoder, Buildable {
     add(input);
   }
 
+  public JTextField getInputField() {
+    return input;
+  }
+
   /**
    * Display a message in the text area
    */
