@@ -27,6 +27,13 @@ import VASSAL.command.AddPiece;
  * Utility class for cloning {@link GamePiece}s
  */
 public class PieceCloner {
+  private static PieceCloner instance;
+  public static PieceCloner getInstance() {
+    if (instance == null) {
+      instance = new PieceCloner();
+    }
+    return instance;
+  }
   /**
    * Create a new instance that is a clone of the given piece
    * @return the new instance
