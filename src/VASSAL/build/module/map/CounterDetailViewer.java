@@ -99,27 +99,35 @@ public class CounterDetailViewer
         };
       }
       PieceIterator pi = PieceIterator.visible(pieces);
-      int width = 0;
-      int height = 0;
+      Rectangle bounds = new Rectangle(pt.x,pt.y,0,0);
       Vector v = new Vector();
       while (pi.hasMoreElements()) {
         GamePiece piece = pi.nextPiece();
         v.addElement(piece);
-        width += piece.selectionBounds().width;
-        height = Math.max(height,piece.selectionBounds().height);
+        bounds.width += piece.selectionBounds().width;
+        bounds.height = Math.max(bounds.height,piece.selectionBounds().height);
       }
-      Rectangle r = comp.getVisibleRect();
-      pt.x = Math.min(pt.x,r.x+r.width-width);
-      pt.y = Math.min(pt.y,r.y+r.height-height);
-      pi = new PieceIterator(v.elements());
-      while (pi.hasMoreElements()) {
-        // Draw the next piece
-        // pt is the location of the left edge of the piece
-        GamePiece piece = pi.nextPiece();
-        piece.draw(g, pt.x + piece.getPosition().x - piece.selectionBounds().x,
-                   pt.y + piece.getPosition().y - piece.selectionBounds().y, comp, 1.0);
+      if (bounds.width > 0) {
+        Rectangle r = comp.getVisibleRect();
+        bounds.x = Math.min(bounds.x,r.x+r.width-bounds.width);
+        bounds.y = Math.min(bounds.y,r.y+r.height-bounds.height);
+        Color outline = map.getHighlighter() instanceof ColoredBorder ? ((ColoredBorder)map.getHighlighter()).getColor() : Color.black;;
+        Color background = new Color(255-outline.getRed(),255-outline.getGreen(),255-outline.getBlue());
+        g.setColor(background);
+        g.fillRect(bounds.x-1,bounds.y-1,bounds.width+2,bounds.height+2);
+        g.setColor(outline);
+        g.drawRect(bounds.x-2,bounds.y-2,bounds.width+3,bounds.height+3);
+        g.drawRect(bounds.x-3,bounds.y-3,bounds.width+5,bounds.height+5);
+        pi = new PieceIterator(v.elements());
+        while (pi.hasMoreElements()) {
+          // Draw the next piece
+          // pt is the location of the left edge of the piece
+          GamePiece piece = pi.nextPiece();
+          piece.draw(g, bounds.x + piece.getPosition().x - piece.selectionBounds().x,
+                     bounds.y + piece.getPosition().y - piece.selectionBounds().y, comp, 1.0);
 
-        pt.translate(piece.selectionBounds().width, 0);
+          bounds.translate(piece.selectionBounds().width, 0);
+        }
       }
     }
   }
