@@ -96,7 +96,7 @@ public class Map extends AbstractConfigurable implements GameComponent,
   private String moveWithinFormat;
   private String moveToFormat;
   private String createFormat;
-  private String changeFormat="$"+MESSAGE+"$";
+  private String changeFormat = "$" + MESSAGE + "$";
 
   public Map() {
     getView();
@@ -419,9 +419,9 @@ public class Map extends AbstractConfigurable implements GameComponent,
     idMgr.add(this);
 
     validator = new CompoundValidityChecker
-        (new MandatoryComponent(this,BoardPicker.class),
-         new MandatoryComponent(this,StackMetrics.class))
-          .append(idMgr);
+        (new MandatoryComponent(this, BoardPicker.class),
+         new MandatoryComponent(this, StackMetrics.class))
+        .append(idMgr);
 
     if (Info.isDndEnabled()) {
       DragGestureListener dgl = new DragGestureListener() {
@@ -634,11 +634,16 @@ public class Map extends AbstractConfigurable implements GameComponent,
    * @see Board#locationName
    */
   public String locationName(Point p) {
-    String loc = "offboard";
-    Board b = findBoard(p);
-    if (b != null) {
-      loc = b.locationName(new Point(p.x - b.bounds().x,
-                                     p.y - b.bounds().y));
+    String loc = getDeckNameAt(p);
+    if (loc == null) {
+      Board b = findBoard(p);
+      if (b != null) {
+        loc = b.locationName(new Point(p.x - b.bounds().x,
+                                       p.y - b.bounds().y));
+      }
+    }
+    if (loc == null) {
+      loc = "offboard";
     }
     return loc;
   }
@@ -657,7 +662,7 @@ public class Map extends AbstractConfigurable implements GameComponent,
     }
 
     if (isVisibleToAll() && p != null) {
-      String pos = getDeckName(p);
+      String pos = getDeckNameContaining(p);
       if (pos == null) {
         if (locationName(p) != null) {
           loc = locationName(p) + loc;
@@ -683,16 +688,35 @@ public class Map extends AbstractConfigurable implements GameComponent,
   }
 
   /**
-   * Return the name of the deck at p
+   * Return the name of the deck whose bounding box contains p
    */
-  public String getDeckName(Point p) {
-
+  public String getDeckNameContaining(Point p) {
     String deck = null;
     if (p != null) {
       Enumeration e = getComponents(DrawPile.class);
       while (e.hasMoreElements()) {
         DrawPile d = (DrawPile) e.nextElement();
         if (d.boundingBox().contains(p)) {
+          deck = d.getConfigureName();
+          break;
+        }
+      }
+    }
+    return deck;
+  }
+
+  /**
+   * Return the name of the deck whose position is p
+   * @param p
+   * @return
+   */
+  public String getDeckNameAt(Point p) {
+    String deck = null;
+    if (p != null) {
+      Enumeration e = getComponents(DrawPile.class);
+      while (e.hasMoreElements()) {
+        DrawPile d = (DrawPile) e.nextElement();
+        if (d.getPosition().equals(p)) {
           deck = d.getConfigureName();
           break;
         }
@@ -1329,6 +1353,7 @@ public class Map extends AbstractConfigurable implements GameComponent,
     return c;
 
   }
+
   /**
    * Move a piece to the destination point.  If a piece is at the point
    * (i.e. has a location exactly equal to it), merge with the piece
@@ -1650,7 +1675,7 @@ public class Map extends AbstractConfigurable implements GameComponent,
   }
 
   public static Map getMapById(String id) {
-    return (Map)idMgr.findInstance(id);
+    return (Map) idMgr.findInstance(id);
   }
 
   /**

@@ -20,6 +20,7 @@ package VASSAL.counters;
 
 import VASSAL.command.Command;
 import VASSAL.command.NullCommand;
+import VASSAL.tools.Sort;
 
 import java.util.*;
 
@@ -56,7 +57,7 @@ public class KeyBuffer {
 
   public void clear() {
     while (pieces.size() > 0) {
-      remove((GamePiece) pieces.get(pieces.size()-1));
+      remove((GamePiece) pieces.get(pieces.size() - 1));
     }
   }
 
@@ -99,7 +100,7 @@ public class KeyBuffer {
     for (Iterator it = targets.iterator(); it.hasNext();) {
       GamePiece p = (GamePiece) it.next();
       bounds.addPiece(p);
-      p.setProperty(Properties.SNAPSHOT,PieceCloner.getInstance().clonePiece(p)); // save state prior to command
+      p.setProperty(Properties.SNAPSHOT, PieceCloner.getInstance().clonePiece(p)); // save state prior to command
       Command c2 = p.keyEvent(stroke);
       comm = comm.append(c2);
       bounds.addPiece(p);
@@ -110,5 +111,23 @@ public class KeyBuffer {
 
   public Enumeration getPieces() {
     return new Vector(pieces).elements();
+  }
+
+  public void sort(Comparator comp) {
+    Collections.sort(pieces, comp);
+  }
+
+  /**
+   *
+   * @param stack
+   * @return true if a child of the specified Stack is selected
+   */
+  public boolean containsChild(Stack stack) {
+    for (Enumeration e = stack.getPieces(); e.hasMoreElements();) {
+      if (contains((GamePiece) e.nextElement())) {
+        return true;
+      }
+    }
+    return false;
   }
 }

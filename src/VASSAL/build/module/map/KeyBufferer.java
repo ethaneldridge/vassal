@@ -24,8 +24,11 @@ import VASSAL.counters.*;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
-import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.awt.event.MouseMotionAdapter;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseMotionListener;
+import java.awt.*;
 
 /**
  * This component listens for mouse clicks on a map.
@@ -33,12 +36,18 @@ import java.awt.event.MouseEvent;
  *
  * @see Map#addLocalMouseListener
  */
-public class KeyBufferer extends MouseAdapter implements Buildable {
+public class KeyBufferer extends MouseAdapter implements Buildable, MouseMotionListener, Drawable {
   protected Map map;
+  protected Rectangle selection;
+  protected Point anchor;
+  protected Color color = Color.black;
+  protected int thickness = 3;
 
   public void addTo(Buildable b) {
     map = (Map) b;
     map.addLocalMouseListener(this);
+    map.getView().addMouseMotionListener(this);
+    map.addDrawComponent(this);
   }
 
   public void add(Buildable b) {
@@ -68,16 +77,81 @@ public class KeyBufferer extends MouseAdapter implements Buildable {
       KeyBuffer.getBuffer().clear();
     }
     if (p != null && !ignoreEvent) {
-        KeyBuffer.getBuffer().add(p);
-        if (p.getParent() != null) {
-          map.getPieceCollection().moveToFront(p.getParent());
-        }
-        else {
-          map.getPieceCollection().moveToFront(p);
-        }
+      KeyBuffer.getBuffer().add(p);
+      if (p.getParent() != null) {
+        map.getPieceCollection().moveToFront(p.getParent());
+      }
+      else {
+        map.getPieceCollection().moveToFront(p);
+      }
+    }
+    else {
+      anchor = map.componentCoordinates(e.getPoint());
+      selection = new Rectangle(anchor.x, anchor.y, 0, 0);
+      if (map.getHighlighter() instanceof ColoredBorder) {
+        ColoredBorder b = (ColoredBorder) map.getHighlighter();
+        color = b.getColor();
+        thickness = b.getThickness();
+      }
     }
   }
 
   public void mouseReleased(MouseEvent evt) {
+    if (selection != null) {
+      selection.setLocation(map.mapCoordinates(selection.getLocation()));
+      selection.width /= map.getZoom();
+      selection.height /= map.getZoom();
+      PieceVisitorDispatcher d = new PieceVisitorDispatcher(new DeckVisitor() {
+        public Object visitDeck(Deck d) {
+          return null;
+        }
+
+        public Object visitStack(Stack s) {
+          if (selection.contains(s.getPosition())) {
+            return s.topPiece();
+          }
+          return null;
+        }
+
+        public Object visitDefault(GamePiece p) {
+          if (!Boolean.TRUE.equals(p.getProperty(Properties.TERRAIN))
+              && selection.contains(p.getPosition())) {
+            return p;
+          }
+          return null;
+        }
+      });
+      GamePiece[] pieces = map.getPieces();
+      KeyBuffer.getBuffer().clear();
+      for (int i = 0; i < pieces.length; ++i) {
+        GamePiece p = (GamePiece) d.accept(pieces[i]);
+        if (p != null) {
+          KeyBuffer.getBuffer().add(p);
+        }
+      }
+    }
+    selection = null;
+  }
+
+  public void mouseDragged(MouseEvent e) {
+    if (selection != null) {
+      selection.x = Math.min(e.getX(),anchor.x);
+      selection.y = Math.min(e.getY(),anchor.y);
+      selection.width = Math.abs(e.getX()-anchor.x);
+      selection.height = Math.abs(e.getY()-anchor.y);
+      map.repaint();
+    }
+  }
+
+  public void mouseMoved(MouseEvent e) {
+  }
+
+  public void draw(Graphics g, Map map) {
+    if (selection != null) {
+      g.setColor(color);
+      for (int i = 0; i < thickness; ++i) {
+        g.drawRect(selection.x+i, selection.y+i, selection.width, selection.height);
+      }
+    }
   }
 }

@@ -96,11 +96,13 @@ public class UniqueIdManager implements ValidityChecker {
    * @return
    */
   public Identifyable findInstance(String id) {
-    for (Iterator it = instances.iterator(); it.hasNext();) {
-      Identifyable identifyable = (Identifyable) it.next();
-      if (id.equals(identifyable.getConfigureName())
-        || id.equals(identifyable.getId())) {
-        return identifyable;
+    if (id != null) {
+      for (Iterator it = instances.iterator(); it.hasNext();) {
+        Identifyable identifyable = (Identifyable) it.next();
+        if (id.equals(identifyable.getConfigureName())
+          || id.equals(identifyable.getId())) {
+          return identifyable;
+        }
       }
     }
     return null;
