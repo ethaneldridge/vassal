@@ -81,6 +81,7 @@ public class PieceDefiner extends javax.swing.JPanel implements HelpWindowExtens
   }
 
   public void setPiece(GamePiece piece) {
+    inUseModel.clear();
     while (piece instanceof Decorator) {
       inUseModel.insertElementAt(piece, 0);
       boolean contains = false;
@@ -347,7 +348,7 @@ public class PieceDefiner extends javax.swing.JPanel implements HelpWindowExtens
 
   }
 
-  protected void moveDecoratorDown(int index) {//GEN-FIRST:event_moveDecoratorDown
+  protected void moveDecoratorDown(int index) {
     GamePiece selm1 = (GamePiece) inUseModel.elementAt(index - 1);
     Decorator sel = (Decorator) inUseModel.elementAt(index);
     Decorator selp1 = (Decorator) inUseModel.elementAt(index + 1);
@@ -362,9 +363,9 @@ public class PieceDefiner extends javax.swing.JPanel implements HelpWindowExtens
     inUseList.setSelectedIndex(index + 1);
     ((GamePiece) inUseModel.lastElement()).setProperty(Properties.OUTER, null);
     refresh();
-  }//GEN-LAST:event_moveDecoratorDown
+  }
 
-  protected void moveDecoratorUp(int index) {//GEN-FIRST:event_moveDecoratorUp
+  protected void moveDecoratorUp(int index) {
     GamePiece selm2 = (GamePiece) inUseModel.elementAt(index - 2);
     Decorator sel = (Decorator) inUseModel.elementAt(index);
     Decorator selm1 = (Decorator) inUseModel.elementAt(index - 1);
@@ -379,7 +380,7 @@ public class PieceDefiner extends javax.swing.JPanel implements HelpWindowExtens
     inUseList.setSelectedIndex(index - 1);
     ((GamePiece) inUseModel.lastElement()).setProperty(Properties.OUTER, null);
     refresh();
-  }//GEN-LAST:event_moveDecoratorUp
+  }
 
   protected void importPiece(String className) {
     try {
@@ -497,15 +498,15 @@ public class PieceDefiner extends javax.swing.JPanel implements HelpWindowExtens
     }
   }
 
-  protected void removeTrait(int index) {//GEN-FIRST:event_removeDecorator
+  protected void removeTrait(int index) {
     inUseModel.removeElementAt(index);
     if (index < inUseModel.size()) {
       ((Decorator) inUseModel.elementAt(index)).setInner((GamePiece) inUseModel.elementAt(index - 1));
     }
     refresh();
-  }//GEN-LAST:event_removeDecorator
+  }
 
-  protected void addTrait(Decorator c) {//GEN-FIRST:event_addDecorator
+  protected void addTrait(Decorator c) {
     try {
       c = (Decorator) c.getClass().newInstance();
       c.setInner((GamePiece) inUseModel.lastElement());
@@ -515,10 +516,9 @@ public class PieceDefiner extends javax.swing.JPanel implements HelpWindowExtens
       ex.printStackTrace();
     }
     refresh();
-  }//GEN-LAST:event_addDecorator
+  }
 
 
-  // Variables declaration - do not modify//GEN-BEGIN:variables
   private javax.swing.JPanel availablePanel;
   private javax.swing.JScrollPane availableScroll;
   private javax.swing.JList availableList;
@@ -535,7 +535,6 @@ public class PieceDefiner extends javax.swing.JPanel implements HelpWindowExtens
   private javax.swing.JButton moveUpButton;
   private javax.swing.JButton moveDownButton;
 
-  // End of variables declaration//GEN-END:variables
   private static class Renderer extends DefaultListCellRenderer {
     public java.awt.Component getListCellRendererComponent
         (JList list, Object value, int index, boolean selected, boolean hasFocus) {

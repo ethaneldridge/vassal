@@ -73,24 +73,8 @@ public class UsePrototype extends Decorator implements EditablePiece {
 
   public void mySetType(String type) {
     prototypeName = type.substring(ID.length());
+    lastCachedPrototype = null;
   }
-
-/*
-  protected KeyCommand[] myGetKeyCommands() {
-    KeyCommand[] comm = new KeyCommand[0];
-    buildPrototype();
-    if (prototype != null) {
-      for (GamePiece p = prototype; p instanceof Decorator && p != piece; p = ((Decorator)p).getInner()) {
-        KeyCommand[] c = ((Decorator)p).myGetKeyCommands();
-        KeyCommand[] newValue = new KeyCommand[comm.length+c.length];
-        System.arraycopy(comm,0,newValue,0,comm.length);
-        System.arraycopy(c,0,newValue,comm.length,c.length);
-        comm = newValue;
-      }
-    }
-    return comm;
-  }
-*/
 
   protected KeyCommand[] myGetKeyCommands() {
     return new KeyCommand[0];
@@ -98,6 +82,11 @@ public class UsePrototype extends Decorator implements EditablePiece {
 
   protected KeyCommand[] getKeyCommands() {
     return (KeyCommand[]) getExpandedInner().getProperty(Properties.KEY_COMMANDS);
+  }
+
+  public void setInner(GamePiece p) {
+    super.setInner(p);
+    lastCachedPrototype = null;
   }
 
   protected void buildPrototype() {
