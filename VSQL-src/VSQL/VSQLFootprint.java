@@ -21,6 +21,7 @@ package VSQL;
 import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Component;
+import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Image;
@@ -46,6 +47,7 @@ import VASSAL.counters.Decorator;
 import VASSAL.counters.GamePiece;
 import VASSAL.counters.KeyCommand;
 import VASSAL.counters.KeySpecifier;
+import VASSAL.counters.Labeler;
 import VASSAL.counters.PieceEditor;
 import VASSAL.counters.Properties;
 import VASSAL.tools.SequenceEncoder;
@@ -53,7 +55,6 @@ import VASSAL.tools.SequenceEncoder;
 public class VSQLFootprint extends MarkMoved {
 
   public static final String ID = "footprint;";
-  public static final String VEHICLE_CA_PROPERTY = "VEHICLE_CA";
 
   protected static Image[] caImages = new Image[6];
 
@@ -63,6 +64,8 @@ public class VSQLFootprint extends MarkMoved {
   protected boolean visible = false;
   protected int currentCA = 1;
   protected int offboardCA = 1;
+  protected boolean leader = false;
+  protected int stackedCount = 0;
 
   protected int minX, minY, maxX, maxY;
   protected Rectangle myBoundingBox;
@@ -74,10 +77,6 @@ public class VSQLFootprint extends MarkMoved {
   protected static final Color LINE_COLOR = Color.BLACK;
   protected static final float LINE_WIDTH = 1.0f;
   protected static final int BASE_FONT_SIZE = 14;
-
-  // Marker type and value indicating a Vehicle Unit
-  protected static final String VSQL_TYPE_MARKER = "TYPE";
-  protected static final String VSQL_VEHICLE_TYPE = "Vehicle";
 
   // Buffer around map for all drawing
   protected static final int EDGE_CLIP_LIMIT = 30;
@@ -139,6 +138,16 @@ public class VSQLFootprint extends MarkMoved {
     }
     else
       visible = false;
+    
+    if (ss.hasMoreTokens()) {
+      leader = (ss.nextToken("false").equals("true"));
+    }
+    else
+      leader = false;
+    
+    if (ss.hasMoreTokens()) {
+      stackedCount = ss.nextInt(0);
+    }
   }
 
   public String myGetState() {
@@ -149,6 +158,8 @@ public class VSQLFootprint extends MarkMoved {
       s += ";" + p.x + "," + p.y + "," + p.ca;
     }
     s += ";" + visible;
+    s += ";" + leader;
+    s += ";" + stackedCount;
 
     return s;
   }
@@ -193,8 +204,17 @@ public class VSQLFootprint extends MarkMoved {
   }
 
   protected void addPoint(Point p) {
-    pointList.addElement(new CAPoint(p, currentCA));
-
+    
+    /**
+     * For a vehicle, record the CA
+     * For a leader, record the number of squads that moved with it
+     */
+    int value = 0;
+    if (isVehicle()) value = currentCA;
+    if (leader) value = stackedCount;
+    
+    pointList.addElement(new CAPoint(p, value));
+ 
     getMyBoundingBox();
 
     if (p.x + CIRCLE_RADIUS > maxX) maxX = p.x + CIRCLE_RADIUS;
@@ -212,9 +232,10 @@ public class VSQLFootprint extends MarkMoved {
 
   public boolean isVehicle() {
     if (counterType == null) {
-      counterType = (String) Decorator.getOutermost(this).getProperty(VSQL_TYPE_MARKER);
+      counterType = (String) Decorator.getOutermost(this).getProperty(VSQLProperties.UNIT_TYPE);
+      if (counterType == null) counterType = "Unknown";
     }
-    return (counterType.equals(VSQL_VEHICLE_TYPE));
+    return counterType.equals(VSQLProperties.VEHICLE);
   }
 
   public void redraw() {
@@ -230,9 +251,19 @@ public class VSQLFootprint extends MarkMoved {
       setMoved(Boolean.TRUE.equals(val));
       piece.setProperty(key, val); // Pass on to MarkMoved
     }
-    if (VEHICLE_CA_PROPERTY.equals(key)) {
+    if (VSQLProperties.VEHICLE_CA.equals(key)) {
       try {
         currentCA = Integer.parseInt((String) val);
+      }
+      catch (Exception e) {
+
+      }
+    }
+    else  if (VSQLProperties.STACKED_COUNT.equals(key)) {
+      try {
+        stackedCount = Integer.parseInt((String) val);
+        ((CAPoint) pointList.lastElement()).ca = stackedCount;
+        leader = true;
       }
       catch (Exception e) {
 
@@ -250,7 +281,7 @@ public class VSQLFootprint extends MarkMoved {
   public void draw(Graphics g, int x, int y, Component obs, double zoom) {
 
     int x1, y1, x2, y2;
-    int lastCA = 0;
+    int lastValue = 0;
 
     piece.draw(g, x, y, obs, zoom);
 
@@ -265,6 +296,7 @@ public class VSQLFootprint extends MarkMoved {
     }
 
     if (visible && (zoom == mapZoom)) {
+      Font f = new Font("Dialog", Font.PLAIN, (int) (BASE_FONT_SIZE * zoom));
       Graphics2D g2d = (Graphics2D) g;
 
       /**
@@ -323,7 +355,7 @@ public class VSQLFootprint extends MarkMoved {
         y2 = (int) (here.y * zoom);
         g.drawLine(x1, y1, x2, y2);
       }
-      // Font f = new Font("Dialog", Font.PLAIN, (int) (BASE_FONT_SIZE * zoom));
+
       int step = 0;
       e = getPointList();
       while (e.hasMoreElements()) {
@@ -343,11 +375,15 @@ public class VSQLFootprint extends MarkMoved {
           g.drawOval(x2, y2, radius, radius);
           //g.drawOval(p.x - CIRCLE_RADIUS + 1, p.y - CIRCLE_RADIUS + 1,
           // CIRCLE_RADIUS * 2 - 1, CIRCLE_RADIUS * 2 - 1);
-          if (isVehicle() && lastCA > 0) {
-            //Labeler.drawLabel(g, lastCA + "", x1, y1, f, Labeler.CENTER,
-            // Labeler.CENTER, CIRCLE_COLOR, null, null);
+          
+          /**
+           * For a vehicled, draw an arrow showing the CA of the vehicle
+           * as it entered the hex.
+           */
+          if (isVehicle() && lastValue > 0) {
+            
             try {
-              Image im = getCAImage(lastCA);
+              Image im = getCAImage(lastValue);
               if (zoom == 1.0) {
                 g.drawImage(im, x2, y2, obs);
               }
@@ -360,8 +396,19 @@ public class VSQLFootprint extends MarkMoved {
 
             }
           }
+          
+          /**
+           * For a leader counter, display the number of squads or crews
+           * that moved into the hex stacked with the leader.
+           */
+          else if (leader && lastValue > 0) {
+           
+            Labeler.drawLabel(g, lastValue + "", x1, y1, f, Labeler.CENTER,
+               Labeler.CENTER, CIRCLE_COLOR, null, null);
+            
+          }
         }
-        lastCA = cap.ca;
+        lastValue = cap.ca;
       }
       //g2d.setComposite(oldComposite);
       g.setClip(oldClip);

@@ -52,7 +52,7 @@ public class VSQLEmbellishment extends Embellishment {
     String name = commonName[Math.abs(value) - 1];
     if (value != oldValue && name.startsWith(CA_PREFIX)) {
       String ca = name.substring(CA_PREFIX.length());
-      setProperty(VSQLFootprint.VEHICLE_CA_PROPERTY, ca);
+      setProperty(VSQLProperties.VEHICLE_CA, ca);
     }
     return c;
   }
@@ -70,7 +70,7 @@ public class VSQLEmbellishment extends Embellishment {
       String name = commonName[Math.abs(value) - 1];
       if (name != null && name.startsWith(CA_PREFIX)) {
         String ca = name.substring(CA_PREFIX.length());
-        setProperty(VSQLFootprint.VEHICLE_CA_PROPERTY, ca);
+        setProperty(VSQLProperties.VEHICLE_CA, ca);
       }
     }
   }
