@@ -13,7 +13,7 @@
  * Library General Public License for more details.
  *
  * You should have received a copy of the GNU Library General Public
- * License along with this library; if not, copies are available 
+ * License along with this library; if not, copies are available
  * at http://www.opensource.org.
  */
 package VASSAL.configure;
@@ -47,15 +47,15 @@ public class ExtensionTree extends ConfigureTree {
 
   private boolean isEditable(DefaultMutableTreeNode node) {
     if (node != null) {
-    for (Enumeration e = extension.getComponents(ExtensionElement.class); e.hasMoreElements();) {
-      ExtensionElement el = (ExtensionElement) e.nextElement();
-      if (el.getExtension() == node.getUserObject()) {
-        return true;
+      for (Enumeration e = extension.getComponents(ExtensionElement.class); e.hasMoreElements();) {
+        ExtensionElement el = (ExtensionElement) e.nextElement();
+        if (el.getExtension() == node.getUserObject()) {
+          return true;
+        }
       }
-    }
-    if (node.getParent() instanceof DefaultMutableTreeNode) {
-      return isEditable((DefaultMutableTreeNode) node.getParent());
-    }
+      if (node.getParent() instanceof DefaultMutableTreeNode) {
+        return isEditable((DefaultMutableTreeNode) node.getParent());
+      }
     }
     return false;
   }
@@ -134,7 +134,7 @@ public class ExtensionTree extends ConfigureTree {
             Configurable cutTarget = (Configurable) cutData.getUserObject();
             if (remove(getParent(cutData), cutTarget)) {
               if (insert(target, cutTarget, targetNode.getChildCount())) {
-                extension.add(new ExtensionElement(cutTarget, getPath((DefaultMutableTreeNode) targetNode.getParent())));
+                extension.add(new ExtensionElement(cutTarget, getPath(targetNode)));
               }
             }
           }
@@ -144,33 +144,36 @@ public class ExtensionTree extends ConfigureTree {
               Configurable clone = (Configurable) copyTarget.getClass().newInstance();
               clone.build(copyTarget.getBuildElement(Builder.createNewDocument()));
               if (insert(target, clone, getTreeNode(target).getChildCount())) {
-                extension.add(new ExtensionElement(clone, getPath((DefaultMutableTreeNode) getTreeNode(target).getParent())));
+                extension.add(new ExtensionElement(clone, getPath(getTreeNode(target))));
               }
             }
             catch (InstantiationException e1) {
               e1.printStackTrace();
               JOptionPane.showMessageDialog
-                (getTopLevelAncestor(),
-                 "Cannot copy " + getConfigureName(target),
-                 "Copy failed",
-                 JOptionPane.ERROR_MESSAGE);
+                  (getTopLevelAncestor(),
+                   "Cannot copy " + getConfigureName(target),
+                   "Copy failed",
+                   JOptionPane.ERROR_MESSAGE);
 
             }
             catch (IllegalAccessException e1) {
               e1.printStackTrace();
               JOptionPane.showMessageDialog
-                (getTopLevelAncestor(),
-                 "Cannot copy " + getConfigureName(target),
-                 "Copy failed",
-                 JOptionPane.ERROR_MESSAGE);
+                  (getTopLevelAncestor(),
+                   "Cannot copy " + getConfigureName(target),
+                   "Copy failed",
+                   JOptionPane.ERROR_MESSAGE);
 
             }
           }
           cutData = null;
         }
       };
-      a.setEnabled((cutData != null && isValidParent(target, (Configurable) cutData.getUserObject()))
-                   || (copyData != null && isValidParent(target, (Configurable) copyData.getUserObject())));
+      a.setEnabled((cutData != null
+                    && super.isValidParent(target, (Configurable) cutData.getUserObject())
+                    && isEditable(getParent(cutData)))
+                   || (copyData != null
+                       && super.isValidParent(target, (Configurable) copyData.getUserObject())));
     }
     return a;
   }
@@ -183,7 +186,7 @@ public class ExtensionTree extends ConfigureTree {
     Action action = null;
     final DefaultMutableTreeNode targetNode = getTreeNode(target);
     if (targetNode.getParent() != null
-      && isEditable(targetNode)) {
+        && isEditable(targetNode)) {
       final Configurable parent = (Configurable) ((DefaultMutableTreeNode) targetNode.getParent()).getUserObject();
       action = new AbstractAction("Delete") {
         public void actionPerformed(ActionEvent evt) {
@@ -222,10 +225,10 @@ public class ExtensionTree extends ConfigureTree {
           catch (Exception err) {
             err.printStackTrace();
             JOptionPane.showMessageDialog
-              (getTopLevelAncestor(),
-               "Cannot clone " + getConfigureName(target),
-               "Clone failed",
-               JOptionPane.ERROR_MESSAGE);
+                (getTopLevelAncestor(),
+                 "Cannot clone " + getConfigureName(target),
+                 "Clone failed",
+                 JOptionPane.ERROR_MESSAGE);
           }
         }
       };
