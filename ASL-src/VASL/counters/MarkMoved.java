@@ -124,16 +124,15 @@ public class MarkMoved extends Decorator implements EditablePiece {
     piece.draw(g, x, y, obs, zoom);
     if (hasMoved) {
       Rectangle r = piece.getShape().getBounds();
-      Point p = piece.getPosition();
       try {
         Image im =
             GameModule.getGameModule().getDataArchive().getCachedImage(markImage + ".gif");
+        if (zoom != 1.0) {
+          im = GameModule.getGameModule().getDataArchive().getScaledImage(im,zoom);
+        }
         g.drawImage(im,
-                    x + (int) (zoom * (r.x - p.x + r.width)),
-                    y + (int) (zoom * (r.y - p.y)),
-                    (int) (zoom * im.getWidth(obs)),
-                    (int) (zoom * im.getHeight(obs)),
-                    obs);
+                    x + (int) (zoom * (r.x + r.width)),
+                    y + (int) (zoom * r.y),obs);
       }
       catch (java.io.IOException ex) {
         ex.printStackTrace();
