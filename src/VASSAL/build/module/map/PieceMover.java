@@ -36,10 +36,13 @@ import VASSAL.command.Command;
 import VASSAL.command.NullCommand;
 import VASSAL.configure.BooleanConfigurer;
 import VASSAL.counters.*;
+import VASSAL.counters.Properties;
+import VASSAL.counters.Stack;
 import VASSAL.tools.Sort;
 
+import java.util.*;
+import java.util.List;
 import javax.swing.*;
-import java.awt.*;
 import java.awt.datatransfer.StringSelection;
 import java.awt.dnd.*;
 import java.awt.event.ActionEvent;
@@ -48,11 +51,9 @@ import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.image.BufferedImage;
 import java.awt.image.WritableRaster;
+import java.awt.*;
 import java.io.IOException;
 import java.net.URL;
-import java.util.Enumeration;
-import java.util.HashMap;
-import java.util.Comparator;
 
 
 /**
@@ -398,14 +399,29 @@ public class PieceMover extends AbstractBuildable implements
     Point offset = null;
     Command comm = new NullCommand();
 
-    HashMap mergeTargets = new HashMap(); // Point->GamePiece Map of pieces to merge with at a given location
+    // Map of Point->List<GamePiece> of pieces to merge with at a given location
+    // There is potentially one piece for each Game Piece Layer
+    HashMap mergeTargets = new HashMap();
     while (it.hasMoreElements()) {
       dragging = it.nextPiece();
       if (offset != null) {
         p = new Point(dragging.getPosition().x + offset.x, dragging.getPosition().y + offset.y);
       }
+      List mergeCandidates = (List) mergeTargets.get(p);
       GamePiece mergeWith = null;
-      if (!mergeTargets.containsKey(p)) {
+      // Find an already-moved piece that we can merge with at the destination point
+      if (mergeCandidates != null) {
+        for (int i=0,n=mergeCandidates.size();i<n; ++i) {
+          GamePiece candidate = (GamePiece) mergeCandidates.get(i);
+          if (map.getPieceCollection().canMerge(candidate,dragging)) {
+            mergeWith = candidate;
+            mergeCandidates.set(i,dragging);
+            break;
+          }
+        }
+      }
+      // Now look for an already-existing piece at the destination point
+      if (mergeWith == null) {
         mergeWith = map.findPiece(p, dropTargetSelector);
         if (offset == null) {
           if (mergeWith == null
@@ -414,10 +430,12 @@ public class PieceMover extends AbstractBuildable implements
           }
           offset = new Point(p.x - dragging.getPosition().x, p.y - dragging.getPosition().y);
         }
-        mergeTargets.put(p, mergeWith);
-      }
-      else {
-        mergeWith = (GamePiece) mergeTargets.get(p);
+        if (mergeWith != null
+          && map.getStackMetrics().isStackingEnabled()) {
+          mergeCandidates = new ArrayList();
+          mergeCandidates.add(mergeWith);
+          mergeTargets.put(p,mergeCandidates);
+        }
       }
       if (mergeWith == null) {
         comm = comm.append(movedPiece(dragging, p));
@@ -432,9 +450,6 @@ public class PieceMover extends AbstractBuildable implements
       else {
         comm = comm.append(movedPiece(dragging, mergeWith.getPosition()));
         comm = comm.append(map.getStackMetrics().merge(mergeWith, dragging));
-      }
-      if (map.getStackMetrics().isStackingEnabled()) {
-        mergeTargets.put(p, dragging);
       }
     }
     Command report = new MovementReporter(comm).getReportCommand();
