@@ -13,7 +13,7 @@
  * Library General Public License for more details.
  *
  * You should have received a copy of the GNU Library General Public
- * License along with this library; if not, copies are available 
+ * License along with this library; if not, copies are available
  * at http://www.opensource.org.
  */
 /*
@@ -40,7 +40,7 @@ public class HexGridNumbering extends RegularGridNumbering {
   public void addTo(Buildable parent) {
     grid = (HexGrid) parent;
     grid.setGridNumbering(this);
- }
+  }
 
   public static final String STAGGER = "stagger";
 
@@ -98,31 +98,31 @@ public class HexGridNumbering extends RegularGridNumbering {
     Rectangle region = bounds.intersection(visibleRect);
 
     Shape oldClip = g.getClip();
-    g.setClip(region.x,region.y,region.width,region.height);
+    g.setClip(region.x, region.y, region.width, region.height);
 
     double deltaX = scale * grid.getHexWidth();
     double deltaY = scale * grid.getHexSize();
 
     if (grid.isSideways()) {
-      bounds = new Rectangle(bounds.y,bounds.x,bounds.height,bounds.width);
-      region = new Rectangle(region.y,region.x,region.height,region.width);
+      bounds = new Rectangle(bounds.y, bounds.x, bounds.height, bounds.width);
+      region = new Rectangle(region.y, region.x, region.height, region.width);
     }
 
-    int minCol = reversed ? 2*(int)Math.ceil((bounds.x-scale*grid.getOrigin().x+bounds.width-region.x)/(2*deltaX))
-      : 2*(int)Math.floor((region.x - bounds.x - scale * grid.getOrigin().x) / (2*deltaX));
-    double xmin = reversed ? bounds.x-scale*grid.getOrigin().x+bounds.width - deltaX*minCol
-      : bounds.x + scale * grid.getOrigin().x + deltaX * minCol;
-    double xmax = region.x+region.width+deltaX;
-    int minRow = reversed ? (int)Math.ceil((bounds.y-scale*grid.getOrigin().y+bounds.height-region.y)/deltaY)
-    : (int)Math.floor((region.y - bounds.y - scale * grid.getOrigin().y) / deltaY);
-    double ymin = reversed ? bounds.y-scale*grid.getOrigin().y+bounds.height - deltaY*minRow
-      : bounds.y + scale * grid.getOrigin().y + deltaY * minRow;
-    double ymax = region.y+region.height + deltaY;
+    int minCol = reversed ? 2 * (int) Math.ceil((bounds.x - scale * grid.getOrigin().x + bounds.width - region.x) / (2 * deltaX))
+        : 2 * (int) Math.floor((region.x - bounds.x - scale * grid.getOrigin().x) / (2 * deltaX));
+    double xmin = reversed ? bounds.x - scale * grid.getOrigin().x + bounds.width - deltaX * minCol
+        : bounds.x + scale * grid.getOrigin().x + deltaX * minCol;
+    double xmax = region.x + region.width + deltaX;
+    int minRow = reversed ? (int) Math.ceil((bounds.y - scale * grid.getOrigin().y + bounds.height - region.y) / deltaY)
+        : (int) Math.floor((region.y - bounds.y - scale * grid.getOrigin().y) / deltaY);
+    double ymin = reversed ? bounds.y - scale * grid.getOrigin().y + bounds.height - deltaY * minRow
+        : bounds.y + scale * grid.getOrigin().y + deltaY * minRow;
+    double ymax = region.y + region.height + deltaY;
 
     Font f = new Font("Dialog", Font.PLAIN, size);
     Point p = new Point();
     int alignment = Labeler.TOP;
-    int offset = -(int)deltaY/2;
+    int offset = -(int) deltaY / 2;
     if (grid.isSideways()) {
       alignment = Labeler.CENTER;
       offset = 0;
@@ -130,22 +130,39 @@ public class HexGridNumbering extends RegularGridNumbering {
     int column = minCol;
     int nextColumn = reversed ? -1 : 1;
     int nextRow = reversed ? -1 : 0;
-    for (double x = xmin; x < xmax; x += 2*deltaX, column += 2*nextColumn) {
+
+    double gridx = 0, gridy = 0;
+    Point gridp = new Point();
+
+    for (double x = xmin; x < xmax; x += 2 * deltaX, gridx += 2 * deltaX, column += 2 * nextColumn) {
       int row = minRow;
-      for (double y = ymin; y < ymax; y += deltaY, row += nextColumn) {
-        p.setLocation((int)x,(int)y+offset);
-		grid.rotateIfSideways(p);
-        Labeler.drawLabel(g, getName(getRow(p), getColumn(p)),        				 
-        				  //getName(row, column),
+      gridy = 0;
+      for (double y = ymin; y < ymax; y += deltaY, gridy += deltaY, row += nextColumn) {
+
+        p.setLocation((int) x, (int) y + offset);
+        gridp = new Point(p);
+        grid.rotateIfSideways(p);
+
+        // Convert from map co-ordinates to board co-ordinates
+        gridp.translate(-bounds.x, -bounds.y);
+        grid.rotateIfSideways(gridp);
+
+        Labeler.drawLabel(g, getName(getRow(gridp), getColumn(gridp)),
                           p.x,
                           p.y,
                           f,
                           Labeler.CENTER,
                           alignment, color, null, null);
-        p.setLocation((int)(x+deltaX),(int)(y+deltaY/2)+offset);
-		grid.rotateIfSideways(p);
-        Labeler.drawLabel(g, getName(getRow(p), getColumn(p)), 
-        				  //getName(row + nextRow, column + nextColumn),
+
+        p.setLocation((int) (x + deltaX), (int) (y + deltaY / 2) + offset);
+        gridp = new Point(p);
+        grid.rotateIfSideways(p);
+
+        // Convert from map co-ordinates to board co-ordinates
+        gridp.translate(-bounds.x, -bounds.y);
+        grid.rotateIfSideways(gridp);
+
+        Labeler.drawLabel(g, getName(getRow(gridp), getColumn(gridp)),
                           p.x,
                           p.y,
                           f,
@@ -156,20 +173,27 @@ public class HexGridNumbering extends RegularGridNumbering {
     g.setClip(oldClip);
   }
 
+
   public int getColumn(Point p) {
+
+    int x = getRawColumn(p);
+
+    if (vDescending && grid.isSideways()) {
+      x = (getMaxRows() - x);
+    }
+    if (hDescending && !grid.isSideways()) {
+      x = (getMaxColumns() - x);
+    }
+
+    return x;
+  }
+
+  public int getRawColumn(Point p) {
     p = new Point(p);
     grid.rotateIfSideways(p);
     int x = p.x - grid.getOrigin().x;
 
     x = (int) Math.floor(x / grid.getHexWidth() + 0.5);
-    
-	if (vDescending && grid.isSideways()) {
-		return (getMaxRows()-x);
-	}
-	if (hDescending && !grid.isSideways()) {
-		return (getMaxColumns()-x);
-	}
-	
     return x;
   }
 
@@ -184,7 +208,7 @@ public class HexGridNumbering extends RegularGridNumbering {
         }
 
         public Dimension getPreferredSize() {
-          return new Dimension(3 * (int) grid.getHexSize(), 3 * (int) grid.getHexWidth());
+          return new Dimension(4 * (int) grid.getHexSize(), 4 * (int) grid.getHexWidth());
         }
       };
     }
@@ -192,6 +216,43 @@ public class HexGridNumbering extends RegularGridNumbering {
   }
 
   public int getRow(Point p) {
+
+    int ny = getRawRow(p);
+
+    if (vDescending && !grid.isSideways()) {
+      ny = (getMaxRows() - ny);
+    }
+    if (hDescending && grid.isSideways()) {
+      ny = (getMaxColumns() - ny);
+    }
+
+    if (stagger) {
+      if (grid.isSideways()) {
+        if (getRawColumn(p) % 2 != 0) {
+          if (hDescending) {
+            ny--;
+          }
+          else {
+            ny++;
+          }
+        }
+      }
+      else {
+        int rawCol = getRawColumn(p);
+        if (getRawColumn(p) % 2 != 0) {
+          if (vDescending) {
+            ny--;
+          }
+          else {
+            ny++;
+          }
+        }
+      }
+    }
+    return ny;
+  }
+
+  protected int getRawRow(Point p) {
     p = new Point(p);
     grid.rotateIfSideways(p);
     Point origin = grid.getOrigin();
@@ -205,35 +266,19 @@ public class HexGridNumbering extends RegularGridNumbering {
     else {
       ny = (int) Math.floor((p.y - origin.y) / dy);
     }
-    
-	if (vDescending && !grid.isSideways()) {
-		return (getMaxRows()-ny);
-	}
-	if (hDescending && grid.isSideways()) {
-		return (getMaxColumns()-ny);
-	}
-	
     return ny;
-  }
-
-  public String getName(int row, int column) {
-    if (column % 2 != 0
-      && stagger) {
-      row++;
-    }
-    return super.getName(row, column);
   }
 
   public void removeFrom(Buildable parent) {
     grid.setGridNumbering(null);
   }
-  
+
   protected int getMaxRows() {
     return (int) Math.floor(grid.getBoard().bounds().height / grid.getHexWidth() + 0.5);
   }
-  
+
   protected int getMaxColumns() {
-    return (int) Math.floor(grid.getBoard().bounds().width  / grid.getHexSize() + 0.5);
+    return (int) Math.floor(grid.getBoard().bounds().width / grid.getHexSize() + 0.5);
   }
- 
+
 }
