@@ -311,16 +311,12 @@ public class PieceMover extends AbstractBuildable implements
 
     GamePiece p = map.findPiece(point, PieceFinder.MOVABLE);
     dragBegin = point;
-    boolean massDeselect = false;
 
-    // if nothing was clicked, deselect all
     if (p == null) {
       DragBuffer.getBuffer().clear();
-      massDeselect = true;
     }
     else if (Boolean.TRUE.equals(p.getProperty(Properties.IMMOBILE))) {
       DragBuffer.getBuffer().clear();
-      massDeselect = true;
 
       if (KeyBuffer.getBuffer().contains(p)) {
         DragBuffer.getBuffer().add(p);
@@ -332,7 +328,6 @@ public class PieceMover extends AbstractBuildable implements
     else if (Boolean.TRUE.equals(p.getProperty(Properties.NO_STACK))) {
       DragBuffer.getBuffer().clear();
       DragBuffer.getBuffer().add(p);
-      massDeselect = true;
     }
     else {
       DragBuffer.getBuffer().clear();
@@ -349,21 +344,11 @@ public class PieceMover extends AbstractBuildable implements
       else {
         // Otherwise, only put the clicked-on piece into the drag buffer
         DragBuffer.getBuffer().add(p);
-
       }
     }
 
-    // show selection box
-    if (massDeselect) {
-      map.repaint();
-    }
-    else if (p != null) {
-      final int EXTRA_BORDER = 2;
-      Rectangle invalidateRegion = p.getShape().getBounds();
-      invalidateRegion.translate(p.getPosition().x - EXTRA_BORDER, p.getPosition().y - EXTRA_BORDER);
-      invalidateRegion.grow(EXTRA_BORDER * 2, EXTRA_BORDER * 2);
-      map.repaint(invalidateRegion);
-    }
+    // show/hide selection boxes
+    map.repaint();
   }
 
   protected boolean canHandleEvent(MouseEvent e) {
@@ -655,7 +640,6 @@ public class PieceMover extends AbstractBuildable implements
      *    boundingBox
      */
     private void makeDragCursor(double zoom) {
-
       // create the cursor if necessary
       if (dragCursor == null) {
         dragCursor = new JLabel();
@@ -737,11 +721,18 @@ public class PieceMover extends AbstractBuildable implements
           GamePiece piece = DragBuffer.getBuffer().getIterator().nextPiece();
           Point mousePosition = map == null ? dge.getDragOrigin() : map.componentCoordinates(dge.getDragOrigin());
           Point piecePosition = map == null ? piece.getPosition() : map.componentCoordinates(piece.getPosition());
-
+          
           // If DragBuffer holds a piece with invalid coordinates (for example, a card drawn from a deck),
           // drag from center of piece
           if (piecePosition.x <= 0 || piecePosition.y <= 0) {
             piecePosition = mousePosition;
+          }
+
+          // Pieces in an expanded stack need to be offset
+          if ( piece.getParent() != null && piece.getParent().isExpanded() && map != null ) {
+            StackMetrics metrics = map == null ? piece.getParent().getDefaultMetrics() : map.getStackMetrics();
+            Point offset = piece.getMap().getStackMetrics().relativePosition( piece.getParent(), piece );
+            piecePosition.translate( offset.x, offset.y );
           }
 
           dragPieceOffCenterX = piecePosition.x - mousePosition.x; // dragging from UL results in positive offsets
