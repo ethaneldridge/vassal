@@ -52,6 +52,7 @@ public class CounterDetailViewer
     MouseMotionListener, Runnable, KeyListener {
 
   public static final String USE_KEYBOARD = "ShowCounterDetails";
+  public static final String ALWAYS_SHOW_LOC = "alwaysshowloc";
 
   protected Map map;
   protected Thread delayThread;
@@ -60,6 +61,7 @@ public class CounterDetailViewer
   protected boolean visible = false;
   protected MouseEvent currentMousePosition;
   protected GamePiece currentPiece;
+  protected boolean alwaysShowLoc = false;
 
   public void addTo(Buildable b) {
     map = (Map) b;
@@ -84,7 +86,12 @@ public class CounterDetailViewer
   }
 
   public void draw(Graphics g, Point pt, JComponent comp) {
-    if (visible && currentPiece != null) {
+  	
+  	String locationName = null;
+  	
+    if (currentPiece != null) {
+    	if (visible || alwaysShowLoc) {
+    	
       Enumeration pieces;
       if (currentPiece instanceof Stack) {
         pieces = ((Stack) currentPiece).getPieces();
@@ -112,13 +119,43 @@ public class CounterDetailViewer
         Rectangle pieceBounds = piece.getShape().getBounds();
         bounds.width += pieceBounds.width;
         bounds.height = Math.max(bounds.height, pieceBounds.height);
+        if (locationName == null) {
+        	locationName = map.locationName(piece.getPosition());
+        }
       }
+      
+	  Color outline = map.getHighlighter() instanceof ColoredBorder ? ((ColoredBorder) map.getHighlighter()).getColor() : Color.black;
+	  Color background = new Color(255 - outline.getRed(), 255 - outline.getGreen(), 255 - outline.getBlue());
+      
+	  /*
+	   * Label with the location
+	   * If the counter viewer is being displayed, then place the location name just above the 
+	   * left hand end of the counters.
+	   * If no counter viewer (i.e. single piece or expanded stack), then place the location
+	   * name above the centre of the first piece in the stack.
+	   */
+	  if (locationName != null) {
+	     if (visible) {
+	  	   	 Labeler.drawLabel(g, locationName, pt.x, pt.y-5, new Font("Dialog", Font.PLAIN, 9), Labeler.RIGHT,
+							Labeler.BOTTOM, outline, background, outline);
+	  	 }
+	  	 else {
+	  		Point p = currentPiece.getPosition();
+			Labeler.drawLabel(g, locationName, p.x, p.y, new Font("Dialog", Font.PLAIN, 9), Labeler.CENTER,
+						  Labeler.BOTTOM, outline, background, outline);
+	  	}
+	  }
+	  
+	  if (!visible) {
+	  	return;
+	  }
+	  
       if (bounds.width > 0) {
         Rectangle visibleRect = comp.getVisibleRect();
         bounds.x = Math.min(bounds.x, visibleRect.x + visibleRect.width - bounds.width);
         bounds.y = Math.min(bounds.y, visibleRect.y + visibleRect.height - bounds.height);
-        Color outline = map.getHighlighter() instanceof ColoredBorder ? ((ColoredBorder) map.getHighlighter()).getColor() : Color.black;
-        Color background = new Color(255 - outline.getRed(), 255 - outline.getGreen(), 255 - outline.getBlue());
+//        Color outline = map.getHighlighter() instanceof ColoredBorder ? ((ColoredBorder) map.getHighlighter()).getColor() : Color.black;
+//        Color background = new Color(255 - outline.getRed(), 255 - outline.getGreen(), 255 - outline.getBlue());
         g.setColor(background);
         g.fillRect(bounds.x - 1, bounds.y - 1, bounds.width + 2, bounds.height + 2);
         g.setColor(outline);
@@ -135,7 +172,9 @@ public class CounterDetailViewer
 
           bounds.translate(pieceBounds.width, 0);
         }
+
       }
+    	}
     }
   }
 
@@ -204,9 +243,9 @@ public class CounterDetailViewer
     mouseMoved(e);
   }
 
-  public Configurer getConfigurer() {
-    return null;
-  }
+//  public Configurer getConfigurer() {
+//    return null;
+//  }
 
   public void keyTyped(KeyEvent e) {
   }
@@ -227,15 +266,15 @@ public class CounterDetailViewer
   }
 
   public String[] getAttributeNames() {
-    return new String[0];
+    return new String[] { ALWAYS_SHOW_LOC };
   }
 
   public String[] getAttributeDescriptions() {
-    return new String[0];
+    return new String[] { "Always Show Location"};
   }
 
   public Class[] getAttributeTypes() {
-    return new Class[0];
+    return new Class[] { Boolean.class };
   }
 
   public Class[] getAllowableConfigureComponents() {
@@ -259,10 +298,22 @@ public class CounterDetailViewer
   }
 
   public void setAttribute(String name, Object value) {
+	if (ALWAYS_SHOW_LOC.equals(name)) {
+		if (value instanceof Boolean) {
+		   alwaysShowLoc = ((Boolean) value).booleanValue();
+		}
+		else if (value instanceof String) {
+		   alwaysShowLoc = "true".equals(value);
+		}
+	}
   }
 
   public String getAttributeValueString(String name) {
-    return null;
+  	if (ALWAYS_SHOW_LOC.equals(name)) {
+  		return "" + alwaysShowLoc;
+  	}
+  	else
+        return null;
   }
 
   public static String getConfigureTypeName() {
