@@ -161,7 +161,8 @@ public class ASLBoard extends Board {
   }
 
   public void fixImage(Component map) {
-    scaledCache.clear();
+    Cleanup.init();
+    Cleanup.getInstance().addBoard(this);
     try {
       if (boardFile.getName().equals(imageFile)) {
         baseImage = DataArchive.getImage(new FileInputStream(boardFile));
