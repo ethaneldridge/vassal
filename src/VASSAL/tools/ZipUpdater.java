@@ -75,7 +75,7 @@ public class ZipUpdater {
   }
 
   private long replaceEntry(ZipOutputStream output, ZipEntry newEntry) throws IOException {
-    return writeEntry(getClass().getResourceAsStream(ENTRIES_DIR + newEntry.getName()), output, newEntry);
+    return writeEntry(getClass().getResourceAsStream("/"+ENTRIES_DIR + newEntry.getName()), output, newEntry);
   }
 
   private long writeEntry(InputStream zis, ZipOutputStream output, ZipEntry newEntry) throws IOException {
@@ -99,7 +99,7 @@ public class ZipUpdater {
 
   public void write() throws IOException {
     checkSums = new Properties();
-    checkSums.load(ZipUpdater.class.getResourceAsStream(CHECKSUM_RESOURCE));
+    checkSums.load(ZipUpdater.class.getResourceAsStream("/"+CHECKSUM_RESOURCE));
 
     input = new ZipFile(inputArchiveName);
 
@@ -172,7 +172,7 @@ public class ZipUpdater {
     manifestEntry.setMethod(ZipEntry.DEFLATED);
     StringBuffer buffer = new StringBuffer();
     buffer.append("Manifest-Version: 1.0\n")
-      .append("Main-Class: ZipUpdater\n");
+      .append("Main-Class: VASSAL.tools.ZipUpdater\n");
     writeEntry(new ByteArrayInputStream(buffer.toString().getBytes()), out, manifestEntry);
 
     ZipEntry nameEntry = new ZipEntry(TARGET_ARCHIVE);
@@ -203,7 +203,7 @@ public class ZipUpdater {
         updater.createUpdater(goal);
       }
       else {
-        BufferedReader r = new BufferedReader(new InputStreamReader(ZipUpdater.class.getResourceAsStream(TARGET_ARCHIVE)));
+        BufferedReader r = new BufferedReader(new InputStreamReader(ZipUpdater.class.getResourceAsStream("/"+TARGET_ARCHIVE)));
         archiveName = r.readLine();
         ZipUpdater updater = new ZipUpdater(archiveName);
         updater.write();
