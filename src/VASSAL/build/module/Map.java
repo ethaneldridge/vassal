@@ -1243,13 +1243,13 @@ public class Map extends AbstractConfigurable implements GameComponent,
     if (indexOf(p) < 0) {
       if (p.getParent() != null) {
         p.getParent().remove(p);
+        p.setParent(null);
       }
       if (p.getMap() != null
           && p.getMap() != this) {
         p.getMap().removePiece(p);
       }
       pieces.add(p);
-      p.setParent(null);
       p.setMap(this);
       //	repaint(boundingBoxOf(p));
       theMap.repaint();

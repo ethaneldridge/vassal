@@ -96,7 +96,9 @@ public class SendToLocation extends Decorator implements EditablePiece {
         command = new KeyCommand[0];
       }
     }
-    command[0].setEnabled(getMap() != null);
+    if (command.length > 0) {
+      command[0].setEnabled(getMap() != null);
+    }
     return command;
   }
 

@@ -13,7 +13,7 @@
  * Library General Public License for more details.
  *
  * You should have received a copy of the GNU Library General Public
- * License along with this library; if not, copies are available 
+ * License along with this library; if not, copies are available
  * at http://www.opensource.org.
  */
 package VASSAL.build.module;
@@ -49,10 +49,11 @@ public class ModuleExtension extends AbstractBuildable implements GameComponent 
   public static final String VASSAL_VERSION_CREATED = "vassalVersion";
 
   private DataArchive archive;
-  private String version="0.0";
+  private String version = "0.0";
 
   private String lastSave;
   private String vassalVersionCreated;
+  private AbstractAction editAction;
 
   public ModuleExtension(DataArchive archive) {
     this.archive = archive;
@@ -123,10 +124,10 @@ public class ModuleExtension extends AbstractBuildable implements GameComponent 
   public boolean confirmExit() {
     boolean confirm = true;
     if (archive instanceof ArchiveWriter
-      && !buildString().equals(lastSave)) {
+        && !buildString().equals(lastSave)) {
       switch (JOptionPane.showConfirmDialog
-        (GameModule.getGameModule().getFrame(), "Save Extension?",
-         "", JOptionPane.YES_NO_CANCEL_OPTION)) {
+          (GameModule.getGameModule().getFrame(), "Save Extension?",
+           "", JOptionPane.YES_NO_CANCEL_OPTION)) {
         case JOptionPane.YES_OPTION:
           try {
             save();
@@ -181,12 +182,12 @@ public class ModuleExtension extends AbstractBuildable implements GameComponent 
       String runningVersion = Info.getVersion();
       if (Info.compareVersions(vassalVersionCreated, runningVersion) > 0) {
         javax.swing.JOptionPane.showMessageDialog
-          (GameModule.getGameModule().getFrame(),
-           "This extension was created using version " + value
-           + " of the VASSAL engine\nYou are using version "
-           + runningVersion + "\nIt's recommended you upgrade to the latest version of the VASSAL engine.",
-           "Older version in use",
-           javax.swing.JOptionPane.ERROR_MESSAGE);
+            (GameModule.getGameModule().getFrame(),
+             "This extension was created using version " + value
+             + " of the VASSAL engine\nYou are using version "
+             + runningVersion + "\nIt's recommended you upgrade to the latest version of the VASSAL engine.",
+             "Older version in use",
+             javax.swing.JOptionPane.ERROR_MESSAGE);
       }
     }
     else if (VERSION.equals(key)) {
@@ -224,8 +225,8 @@ public class ModuleExtension extends AbstractBuildable implements GameComponent 
     if (archive instanceof ArchiveWriter) {
       String save = buildString();
       ((ArchiveWriter) archive).addFile
-        ("buildFile",
-         new java.io.ByteArrayInputStream(save.getBytes()));
+          ("buildFile",
+           new java.io.ByteArrayInputStream(save.getBytes()));
       ((ArchiveWriter) archive).write();
       lastSave = save;
     }
@@ -239,8 +240,8 @@ public class ModuleExtension extends AbstractBuildable implements GameComponent 
     if (archive instanceof ArchiveWriter) {
       String save = buildString();
       ((ArchiveWriter) archive).addFile
-        ("buildFile",
-         new java.io.ByteArrayInputStream(save.getBytes()));
+          ("buildFile",
+           new java.io.ByteArrayInputStream(save.getBytes()));
       ((ArchiveWriter) archive).saveAs();
       lastSave = save;
     }
@@ -254,43 +255,45 @@ public class ModuleExtension extends AbstractBuildable implements GameComponent 
   }
 
   public Action getEditAction(final JDialog d) {
-    AbstractAction a = new AbstractAction() {
-      public void actionPerformed(ActionEvent e) {
-        d.setName(getName());
-        final StringConfigurer config = new StringConfigurer(VERSION,"Version",version);
-        d.getContentPane().setLayout(new BoxLayout(d.getContentPane(),BoxLayout.Y_AXIS));
-        d.getContentPane().add(config.getControls());
-        Box b = Box.createHorizontalBox();
-        JButton ok = new JButton("Save");
-        ok.addActionListener(new ActionListener() {
-          public void actionPerformed(ActionEvent e) {
-            setAttribute(VERSION,config.getValue());
-            d.dispose();
-          }
-        });
-        b.add(ok);
-        JButton cancel = new JButton("Cancel");
-        cancel.addActionListener(new ActionListener() {
-          public void actionPerformed(ActionEvent e) {
-            d.dispose();;
-          }
-        });
-        b.add(cancel);
-        d.getContentPane().add(b);
-        d.pack();
-        d.setLocationRelativeTo(d.getParent());
-        d.setVisible(true);
+    if (editAction == null) {
+      d.setName(getName());
+      final StringConfigurer config = new StringConfigurer(VERSION, "Version", version);
+      d.getContentPane().setLayout(new BoxLayout(d.getContentPane(), BoxLayout.Y_AXIS));
+      d.getContentPane().add(config.getControls());
+      Box b = Box.createHorizontalBox();
+      JButton ok = new JButton("Save");
+      ok.addActionListener(new ActionListener() {
+        public void actionPerformed(ActionEvent e) {
+          setAttribute(VERSION, config.getValue());
+          d.dispose();
+        }
+      });
+      b.add(ok);
+      JButton cancel = new JButton("Cancel");
+      cancel.addActionListener(new ActionListener() {
+        public void actionPerformed(ActionEvent e) {
+          d.dispose();
+        }
+      });
+      b.add(cancel);
+      d.getContentPane().add(b);
+      d.pack();
+      d.setLocationRelativeTo(d.getParent());
+      editAction = new AbstractAction() {
+        public void actionPerformed(ActionEvent e) {
+          d.setVisible(true);
+        }
+      };
+      URL iconURL = getClass().getResource("/images/Edit16.gif");
+      if (iconURL != null) {
+        editAction.putValue(Action.SMALL_ICON, new ImageIcon(iconURL));
       }
-    };
-    URL iconURL = getClass().getResource("/images/Edit16.gif");
-    if (iconURL != null) {
-      a.putValue(Action.SMALL_ICON, new ImageIcon(iconURL));
+      else {
+        editAction.putValue(Action.NAME, "Edit");
+      }
+      editAction.putValue(Action.SHORT_DESCRIPTION, "Extension Properties");
     }
-    else {
-      a.putValue(Action.NAME, "Edit");
-    }
-    a.putValue(Action.SHORT_DESCRIPTION,"Extension Properties");
-    return a;
+    return editAction;
   }
 
   /**
@@ -340,7 +343,7 @@ public class ModuleExtension extends AbstractBuildable implements GameComponent 
         Runnable runnable = new Runnable() {
           public void run() {
             JOptionPane.showMessageDialog(f, "This game was saved with extension \'" + name + "\' loaded.\nYou do not have this extension loaded.\n"
-                                             + "Place the file into the \'" + ExtensionsLoader.getExtensionDirectory()+ "\' folder to load it",
+                                             + "Place the file into the \'" + ExtensionsLoader.getExtensionDirectory() + "\' folder to load it",
                                           "Extension not found", JOptionPane.WARNING_MESSAGE);
           }
         };

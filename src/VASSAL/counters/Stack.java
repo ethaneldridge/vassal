@@ -185,9 +185,6 @@ public class Stack implements GamePiece {
       else if (p.getMap() != null) {
         p.getMap().removePiece(p);
       }
-/*
-      pieces.insertElementAt(p, pos);
-*/
       insertPieceAt(p, pos);
       p.setParent(this);
     }
