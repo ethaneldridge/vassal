@@ -95,11 +95,6 @@ public class FormattedStringConfigurer
       String news = work.substring(0, pos) + item + work.substring(pos);
       nameField.setText(news);
 
-      // Select newly inserted text
-      nameField.setSelectionStart(0);
-      nameField.setSelectionEnd(pos + item.length());
-      nameField.setSelectionStart(pos);
-
       // Update the text field and repaint it
       noUpdate = true;
       setValue(nameField.getText());
