@@ -18,28 +18,32 @@
  */
 package VASSAL.tools;
 
+import VASSAL.build.GameModule;
 import VASSAL.build.module.GlobalOptions;
 import VASSAL.build.module.documentation.HelpFile;
-import VASSAL.build.GameModule;
 import VASSAL.configure.BooleanConfigurer;
 
 import javax.swing.*;
 import java.awt.*;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 import java.io.*;
 import java.net.URL;
+import java.security.AllPermission;
+import java.security.CodeSource;
+import java.security.PermissionCollection;
+import java.security.SecureClassLoader;
 import java.util.Enumeration;
 import java.util.Hashtable;
 import java.util.Vector;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 import java.util.zip.ZipInputStream;
-import java.beans.PropertyChangeListener;
-import java.beans.PropertyChangeEvent;
 
 /**
  * Wrapper around a Zip archive with methods to cache images
  */
-public class DataArchive extends ClassLoader {
+public class DataArchive extends SecureClassLoader {
   protected ZipFile archive = null;
   protected Vector extensions = new Vector();
   private Hashtable imageCache = new Hashtable();
@@ -47,11 +51,14 @@ public class DataArchive extends ClassLoader {
   protected String[] imageNames;
   public static final String IMAGE_DIR = "images/";
   private BooleanConfigurer smoothPrefs;
+  private CodeSource cs;
 
   protected DataArchive() {
+    super(DataArchive.class.getClassLoader());
   }
 
   public DataArchive(String zipName) throws IOException {
+    this();
     archive = new ZipFile(zipName);
   }
 
@@ -326,12 +333,21 @@ public class DataArchive extends ClassLoader {
     return c;
   }
 
+  protected PermissionCollection getPermissions(CodeSource codesource) {
+    PermissionCollection p = super.getPermissions(codesource);
+    p.add(new AllPermission());
+    return p;
+  }
+
   protected Class findClass(String name) throws ClassNotFoundException {
+    if (cs == null) {
+      cs = new CodeSource(null,null);
+    }
     try {
       String slashname = name.replace('.', '/');
       InputStream in = getFileStream(slashname + ".class");
       byte[] data = getBytes(in);
-      return defineClass(slashname, data, 0, data.length);
+      return defineClass(slashname, data, 0, data.length,cs);
     }
     catch (IOException e) {
       throw new ClassNotFoundException("Unable to load " + name + "\n" + e.getMessage());
