@@ -145,7 +145,7 @@ public abstract class Builder {
       }
       else if (sub.item(i).getNodeType()
         == Node.ENTITY_REFERENCE_NODE) {
-        s = s.concat(((EntityReference) sub.item(i)).getFirstChild().toString());
+        s = s.concat(sub.item(i).getFirstChild().toString());
       }
     }
     return s.trim();
