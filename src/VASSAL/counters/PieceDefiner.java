@@ -20,8 +20,8 @@ package VASSAL.counters;
 
 import VASSAL.build.GameModule;
 import VASSAL.build.module.documentation.HelpFile;
-import VASSAL.build.module.documentation.HelpWindowExtension;
 import VASSAL.build.module.documentation.HelpWindow;
+import VASSAL.build.module.documentation.HelpWindowExtension;
 import VASSAL.build.widget.PieceSlot;
 
 import javax.swing.*;

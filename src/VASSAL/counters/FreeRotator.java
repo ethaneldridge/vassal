@@ -18,21 +18,21 @@
  */
 package VASSAL.counters;
 
+import VASSAL.build.module.documentation.HelpFile;
 import VASSAL.command.Command;
-import VASSAL.command.TrackPiece;
+import VASSAL.command.ChangeTracker;
 import VASSAL.configure.BooleanConfigurer;
 import VASSAL.configure.IntConfigurer;
 import VASSAL.tools.RotateFilter;
 import VASSAL.tools.SequenceEncoder;
-import VASSAL.build.module.documentation.HelpFile;
 
 import javax.swing.*;
 import java.awt.*;
 import java.awt.image.FilteredImageSource;
 import java.awt.image.ImageProducer;
-import java.util.Hashtable;
 import java.io.File;
 import java.net.MalformedURLException;
+import java.util.Hashtable;
 
 /**
  * A Decorator that rotates a GamePiece to an arbitrary angle
@@ -234,32 +234,30 @@ public class FreeRotator extends Decorator implements EditablePiece {
 
   public Command myKeyEvent(KeyStroke stroke) {
     myGetKeyCommands();
-    TrackPiece c = null;
+    Command c = null;
     if (setAngleCommand.matches(stroke)) {
-      c = new TrackPiece(this);
+      ChangeTracker tracker = new ChangeTracker(this);
       String s = JOptionPane.showInputDialog(null, setAngleText);
       if (s != null) {
         try {
           validAngles[0] = -Double.valueOf(s).doubleValue();
-          c.finalize();
+          c = tracker.getChangeCommand();
         }
         catch (NumberFormatException ex) {
-          c = null;
         }
       }
       else {
-        c = null;
       }
     }
     else if (rotateCWCommand.matches(stroke)) {
-      c = new TrackPiece(this);
+      ChangeTracker tracker = new ChangeTracker(this);
       angleIndex = (angleIndex + 1) % validAngles.length;
-      c.finalize();
+      c = tracker.getChangeCommand();
     }
     else if (rotateCCWCommand.matches(stroke)) {
-      c = new TrackPiece(this);
+      ChangeTracker tracker = new ChangeTracker(this);
       angleIndex = (angleIndex - 1 + validAngles.length) % validAngles.length;
-      c.finalize();
+      c = tracker.getChangeCommand();
     }
     return c;
   }

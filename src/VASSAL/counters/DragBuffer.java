@@ -19,12 +19,9 @@
 package VASSAL.counters;
 
 import VASSAL.tools.Sort;
-import VASSAL.tools.TransparentFilter;
-import VASSAL.build.module.Map;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.image.FilteredImageSource;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;

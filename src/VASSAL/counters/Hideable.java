@@ -21,7 +21,7 @@ package VASSAL.counters;
 import VASSAL.build.GameModule;
 import VASSAL.build.module.documentation.HelpFile;
 import VASSAL.command.Command;
-import VASSAL.command.TrackPiece;
+import VASSAL.command.ChangeTracker;
 import VASSAL.configure.ColorConfigurer;
 import VASSAL.tools.SequenceEncoder;
 
@@ -191,15 +191,14 @@ public class Hideable extends Decorator implements EditablePiece {
 
   public Command myKeyEvent(KeyStroke stroke) {
     if (KeyStroke.getKeyStroke(hideKey, InputEvent.CTRL_MASK) == stroke) {
-      TrackPiece c = new TrackPiece(this);
+      ChangeTracker tracker = new ChangeTracker(this);
       if (invisibleToOthers()) {
         hiddenBy = null;
       }
       else if (!invisibleToMe()) {
         hiddenBy = GameModule.getUserId();
       }
-      c.finalize();
-      return c;
+      return tracker.getChangeCommand();
     }
     return null;
   }

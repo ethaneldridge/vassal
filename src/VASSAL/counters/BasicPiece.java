@@ -32,11 +32,11 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.InputEvent;
 import java.awt.event.MouseEvent;
+import java.io.File;
+import java.net.MalformedURLException;
 import java.util.Enumeration;
 import java.util.Hashtable;
 import java.util.Vector;
-import java.io.File;
-import java.net.MalformedURLException;
 
 /**
  * Basic class for representing a physical component of the game
@@ -306,6 +306,7 @@ public class BasicPiece implements EditablePiece {
     }
     else if (KeyStroke.getKeyStroke(deleteKey, InputEvent.CTRL_MASK).equals(stroke)) {
       comm = new RemovePiece(outer);
+/*
       Stack oldParent = parent;
       if (oldParent != null) {
         if (oldParent.getPieceCount() == 1) {
@@ -327,6 +328,8 @@ public class BasicPiece implements EditablePiece {
       else {
         comm.execute();
       }
+*/
+      comm.execute();
     }
     else if (getMap() != null &&
       stroke.equals(getMap().getStackMetrics().getMoveUpKey())) {

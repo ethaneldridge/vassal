@@ -22,24 +22,24 @@ import VASSAL.build.AbstractBuildable;
 import VASSAL.build.Buildable;
 import VASSAL.build.GameModule;
 import VASSAL.build.module.Chatter;
+import VASSAL.build.module.GameComponent;
 import VASSAL.build.module.GlobalOptions;
 import VASSAL.build.module.Map;
-import VASSAL.build.module.GameComponent;
 import VASSAL.build.module.map.boardPicker.Board;
 import VASSAL.command.Command;
 import VASSAL.command.NullCommand;
-import VASSAL.command.TrackPiece;
+import VASSAL.command.ChangeTracker;
+import VASSAL.configure.BooleanConfigurer;
 import VASSAL.counters.*;
 import VASSAL.tools.Sort;
 import VASSAL.tools.TransparentFilter;
-import VASSAL.configure.BooleanConfigurer;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.image.FilteredImageSource;
 import java.awt.event.*;
-import java.util.Enumeration;
+import java.awt.image.FilteredImageSource;
 import java.net.URL;
+import java.util.Enumeration;
 
 /**
  * This is a MouseListener that moves pieces on a Map window
@@ -185,10 +185,9 @@ public class PieceMover extends AbstractBuildable implements MouseListener, Draw
       }
       else if (p.getProperty(Properties.MOVED) != null) {
         if (p.getId() != null) {
-          TrackPiece comm = new TrackPiece(p);
+          ChangeTracker comm = new ChangeTracker(p);
           p.setProperty(Properties.MOVED, hasMoved ? Boolean.TRUE : Boolean.FALSE);
-          comm.finalize();
-          c = comm;
+          c = comm.getChangeCommand();
         }
       }
     }

@@ -22,7 +22,7 @@ import VASSAL.build.GameModule;
 import VASSAL.build.module.ObscurableOptions;
 import VASSAL.build.module.documentation.HelpFile;
 import VASSAL.command.Command;
-import VASSAL.command.TrackPiece;
+import VASSAL.command.ChangeTracker;
 import VASSAL.configure.StringConfigurer;
 import VASSAL.configure.StringEnumConfigurer;
 import VASSAL.tools.SequenceEncoder;
@@ -311,7 +311,7 @@ public class Obscurable extends Decorator implements EditablePiece {
   public Command myKeyEvent(KeyStroke stroke) {
     myGetKeyCommands();
     if (commands[0].matches(stroke)) {
-      TrackPiece c = new TrackPiece(this);
+      ChangeTracker c = new ChangeTracker(this);
       if (obscuredToOthers()
         || obscuredToMe()) {
         obscuredBy = null;
@@ -319,8 +319,7 @@ public class Obscurable extends Decorator implements EditablePiece {
       else if (!obscuredToMe()) {
         obscuredBy = GameModule.getUserId();
       }
-      c.finalize();
-      return c;
+      return c.getChangeCommand();
     }
     else if (commands[1].matches(stroke)) {
       if (obscuredToOthers() && Boolean.TRUE.equals(getProperty(Properties.SELECTED))) {

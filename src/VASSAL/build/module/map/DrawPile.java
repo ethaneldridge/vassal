@@ -412,13 +412,12 @@ public class DrawPile extends AbstractConfigurable implements Drawable, GameComp
 
   /** Set the contents of this Deck to an Enumeration of GamePieces */
   protected Command setContents(Enumeration e) {
-    TrackPiece track = new TrackPiece(contents);
+    ChangeTracker track = new ChangeTracker(contents);
     contents.removeAll();
     while (e.hasMoreElements()) {
       contents.add((GamePiece) e.nextElement());
     }
-    track.finalize();
-    return track;
+    return track.getChangeCommand();
   }
 
   /** Reverse the order of the contents of the Deck */
@@ -436,10 +435,9 @@ public class DrawPile extends AbstractConfigurable implements Drawable, GameComp
     Command c = new NullCommand();
     for (Enumeration e = contents.getPieces(); e.hasMoreElements();) {
       GamePiece p = (GamePiece) e.nextElement();
-      TrackPiece comm = new TrackPiece(p);
+      ChangeTracker tracker = new ChangeTracker(p);
       p.setProperty(Obscurable.ID, faceDown ? HIDDEN_TO_ALL : null);
-      comm.finalize();
-      c.append(comm);
+      c.append(tracker.getChangeCommand());
     }
     return c.append(new SetContents(this, contents.getId(), faceDown));
   }

@@ -345,14 +345,7 @@ public class Stack implements GamePiece {
     }
     Map m = null;
     if (!"null".equals(mapId)) {
-      for (Enumeration e = GameModule.getGameModule().getComponents(Map.class);
-           e.hasMoreElements();) {
-        Map next = (Map) e.nextElement();
-        if (mapId.equals(next.getId())) {
-          m = next;
-          break;
-        }
-      }
+      m = Map.getMapById(mapId);
       if (m == null) {
         throw new RuntimeException("Could not find map " + mapId);
       }

@@ -28,8 +28,8 @@ package VASSAL.counters;
 
 import VASSAL.build.GameModule;
 import VASSAL.build.module.documentation.HelpFile;
-import VASSAL.build.widget.PieceSlot;
 import VASSAL.build.widget.CardSlot;
+import VASSAL.build.widget.PieceSlot;
 import VASSAL.command.AddPiece;
 import VASSAL.command.Command;
 import VASSAL.configure.ConfigurerWindow;
@@ -43,8 +43,6 @@ import java.awt.event.ActionListener;
 import java.awt.event.InputEvent;
 import java.io.File;
 import java.net.MalformedURLException;
-
-import VASSAL.configure.ChooseComponentDialog;
 
 /**
  * This Decorator defines a key command to places another counter on top of this one.

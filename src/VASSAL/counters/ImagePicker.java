@@ -22,10 +22,10 @@ import VASSAL.build.GameModule;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.ItemEvent;
+import java.awt.event.ItemListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
-import java.awt.event.ItemListener;
-import java.awt.event.ItemEvent;
 
 public class ImagePicker extends javax.swing.JPanel implements MouseListener, ItemListener {
   private String imageName = " ";
