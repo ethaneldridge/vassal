@@ -19,8 +19,12 @@
 package VASSAL.counters;
 
 import VASSAL.build.module.documentation.HelpFile;
+import VASSAL.build.module.map.Drawable;
+import VASSAL.build.module.Map;
+import VASSAL.build.GameModule;
 import VASSAL.command.Command;
 import VASSAL.command.ChangeTracker;
+import VASSAL.command.AddPiece;
 import VASSAL.configure.BooleanConfigurer;
 import VASSAL.configure.IntConfigurer;
 import VASSAL.tools.RotateFilter;
@@ -28,6 +32,9 @@ import VASSAL.tools.SequenceEncoder;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.MouseListener;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseMotionListener;
 import java.awt.image.FilteredImageSource;
 import java.awt.image.ImageProducer;
 import java.io.File;
@@ -37,7 +44,7 @@ import java.util.Hashtable;
 /**
  * A Decorator that rotates a GamePiece to an arbitrary angle
  */
-public class FreeRotator extends Decorator implements EditablePiece {
+public class FreeRotator extends Decorator implements EditablePiece, MouseListener, MouseMotionListener, Drawable {
   public static final String ID = "rotate;";
 
   private KeyCommand setAngleCommand;
@@ -50,7 +57,7 @@ public class FreeRotator extends Decorator implements EditablePiece {
   private String rotateCWText = "Rotate CW";
   private char rotateCCWKey = '[';
   private String rotateCCWText = "Rotate CCW";
-
+  private GamePiece ghost;
 
   private double[] validAngles = new double[]{0.0};
   private int angleIndex = 0;
@@ -59,6 +66,8 @@ public class FreeRotator extends Decorator implements EditablePiece {
   private Hashtable bounds = new Hashtable();
 
   private PieceImage unrotated;
+  private FreeRotator ghostRotator;
+  private Transparent trans;
 
   public FreeRotator() {
     this(ID + "6;];[", null);
@@ -154,6 +163,13 @@ public class FreeRotator extends Decorator implements EditablePiece {
     }
   }
 
+  public void draw(Graphics g, Map map) {
+    if (trans != null) {
+      Point p = map.componentCoordinates(getPosition());
+      trans.draw(g,p.x,p.y,map.getView(),map.getZoom());
+    }
+  }
+
   public String myGetType() {
     SequenceEncoder se = new SequenceEncoder(';');
     se.append("" + validAngles.length);
@@ -234,6 +250,7 @@ public class FreeRotator extends Decorator implements EditablePiece {
         setAngleCommand.setEnabled(false);
       }
     }
+    setAngleCommand.setEnabled(getMap() != null);
     return commands;
   }
 
@@ -241,6 +258,7 @@ public class FreeRotator extends Decorator implements EditablePiece {
     myGetKeyCommands();
     Command c = null;
     if (setAngleCommand.matches(stroke)) {
+/*
       ChangeTracker tracker = new ChangeTracker(this);
       String s = JOptionPane.showInputDialog(null, setAngleText);
       if (s != null) {
@@ -251,8 +269,11 @@ public class FreeRotator extends Decorator implements EditablePiece {
         catch (NumberFormatException ex) {
         }
       }
-      else {
-      }
+*/
+      getMap().pushMouseListener(this);
+      getMap().addDrawComponent(this);
+      getMap().getView().addMouseMotionListener(this);
+      getMap().getView().setCursor(Cursor.getPredefinedCursor(Cursor.CROSSHAIR_CURSOR));
     }
     else if (rotateCWCommand.matches(stroke)) {
       ChangeTracker tracker = new ChangeTracker(this);
@@ -265,6 +286,57 @@ public class FreeRotator extends Decorator implements EditablePiece {
       c = tracker.getChangeCommand();
     }
     return c;
+  }
+
+  public void mouseClicked(MouseEvent e) {
+  }
+
+  public void mouseEntered(MouseEvent e) {
+  }
+
+  public void mouseExited(MouseEvent e) {
+  }
+
+  public void mousePressed(MouseEvent e) {
+    ghost = ((AddPiece) GameModule.getGameModule().decode(GameModule.getGameModule().encode(new AddPiece(Decorator.getOutermost(this))))).getTarget();
+    ghostRotator = (FreeRotator) Decorator.getDecorator(ghost, FreeRotator.class);
+    trans = new Transparent(ghost);
+  }
+
+  public void mouseReleased(MouseEvent e) {
+    try {
+      ChangeTracker tracker = new ChangeTracker(this);
+      setAngle(ghostRotator.getAngle());
+      GameModule.getGameModule().sendAndLog(tracker.getChangeCommand());
+    }
+    finally {
+      getMap().getView().setCursor(null);
+      getMap().removeDrawComponent(this);
+      getMap().popMouseListener();
+      getMap().getView().removeMouseMotionListener(this);
+    }
+  }
+
+  public void mouseDragged(MouseEvent e) {
+    if (ghostRotator != null) {
+      Point p = getMap().mapCoordinates(e.getPoint());
+      Point p2 = getPosition();
+      double myAngle;
+      if (p.y == p2.y) {
+        myAngle = p.x < p2.x ? Math.PI / 2 : -Math.PI / 2;
+      }
+      else {
+        myAngle = Math.atan((p.x - p2.x) / (p2.y - p.y));
+        if (p2.y < p.y) {
+          myAngle += Math.PI;
+        }
+      }
+      ghostRotator.setAngle(-180. * myAngle / Math.PI);
+    }
+    getMap().repaint();
+  }
+
+  public void mouseMoved(MouseEvent e) {
   }
 
   public Image getRotatedImage(double angle, Component obs) {
