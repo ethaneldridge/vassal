@@ -57,6 +57,7 @@ public class Zoomer extends AbstractConfigurable implements GameComponent {
 
     zoomInButton = new LaunchButton("Z", null, ZOOM_IN, zoomIn);
     zoomInButton.setToolTipText("Zoom in");
+    zoomInButton.setEnabled(false);
     zoomOutButton = new LaunchButton("z", null, ZOOM_OUT, zoomOut);
     zoomOutButton.setToolTipText("Zoom out");
 

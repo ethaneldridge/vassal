@@ -166,12 +166,14 @@ public class FreeRotator extends Decorator implements EditablePiece, MouseListen
       AffineTransform oldT = g2d.getTransform();
       g2d.translate(x, y);
       g2d.transform(AffineTransform.getRotateInstance(getAngleInRadians()));
+/*
       g2d.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_NEAREST_NEIGHBOR);
       piece.draw(g, 0, 0, obs, zoom);
       g2d.setClip(piece.getShape());
+*/
       g2d.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR);
       piece.draw(g, 0, 0, obs, zoom);
-      g2d.setClip(null);
+//      g2d.setClip(null);
       g2d.setTransform(oldT);
     }
     else {
