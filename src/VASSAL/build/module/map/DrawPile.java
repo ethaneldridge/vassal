@@ -456,10 +456,17 @@ public class DrawPile extends SetupStack implements Drawable, MouseListener {
       }
       if (faceDown) {
         Obscurable.setAllHidden(true);
+        Object oldValue = top.getProperty(Obscurable.ID);
+        top.setProperty(Obscurable.ID, "dummy");
+        top.draw(g, x + (int) (zoom * 2 * (count - 1)),
+                 y - (int) (zoom * 2 * (count - 1)), obs, zoom);
+        top.setProperty(Obscurable.ID, oldValue);
+        Obscurable.setAllHidden(false);
       }
-      top.draw(g, x + (int) (zoom * 2 * (count - 1)),
-               y - (int) (zoom * 2 * (count - 1)), obs, zoom);
-      Obscurable.setAllHidden(false);
+      else {
+        top.draw(g, x + (int) (zoom * 2 * (count - 1)),
+                 y - (int) (zoom * 2 * (count - 1)), obs, zoom);
+      }
     }
     else {
       if (drawOutline) {
@@ -690,6 +697,9 @@ public class DrawPile extends SetupStack implements Drawable, MouseListener {
     public void executeCommand() {
       deck.contents = (Stack) GameModule.getGameModule().getGameState().getPieceForId(contentsId);
       deck.faceDown = faceDown;
+      if (deck.map != null) {
+        deck.map.repaint();
+      }
     }
 
     public Command myUndoCommand() {

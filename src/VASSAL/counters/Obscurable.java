@@ -102,7 +102,7 @@ public class Obscurable extends Decorator implements EditablePiece {
       }
     }
     if (st.hasMoreTokens()) {
-    	maskName = st.nextToken();
+      maskName = st.nextToken();
     }
     commands = null;
   }
@@ -153,21 +153,13 @@ public class Obscurable extends Decorator implements EditablePiece {
   }
 
   public boolean obscuredToMe() {
-    if (allHidden) {
-      return true;
-    }
-    else {
-      return obscuredBy != null
-        && !obscuredBy.equals(GameModule.getUserId());
-    }
+    return obscuredBy != null
+        && (allHidden || !obscuredBy.equals(GameModule.getUserId()));
   }
 
   public boolean obscuredToOthers() {
-    if (allHidden) {
-      return true;
-    }
     return obscuredBy != null
-        && obscuredBy.equals(GameModule.getUserId());
+        && (allHidden || obscuredBy.equals(GameModule.getUserId()));
   }
 
   public void setProperty(Object key, Object val) {
@@ -265,7 +257,7 @@ public class Obscurable extends Decorator implements EditablePiece {
   }
 
   public String getName() {
-  	String maskedName = maskName == null ? "?" : maskName;
+    String maskedName = maskName == null ? "?" : maskName;
     if (obscuredToMe()) {
       return maskedName;
     }
@@ -365,7 +357,7 @@ public class Obscurable extends Decorator implements EditablePiece {
   }
 
   /**
-   * If true, then all pieces are considered obscured to all players.
+   * If true, then all masked pieces are considered masked to all players.
    * Used to temporarily draw pieces as they appear to other players
    * @param allHidden
    */
@@ -402,10 +394,10 @@ public class Obscurable extends Decorator implements EditablePiece {
       box.add(picker);
       controls.add(box);
 
-	  box = Box.createHorizontalBox();
-	  maskNameInput = new StringConfigurer(null, "Name when masked", p.maskName);
-	  box.add(maskNameInput.getControls());
-	  controls.add(box);
+      box = Box.createHorizontalBox();
+      maskNameInput = new StringConfigurer(null, "Name when masked", p.maskName);
+      box.add(maskNameInput.getControls());
+      controls.add(box);
 
       box = Box.createHorizontalBox();
       displayOption = new StringEnumConfigurer(null, "Display style", optionNames);

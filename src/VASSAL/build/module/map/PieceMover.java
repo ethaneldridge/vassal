@@ -478,8 +478,8 @@ public class PieceMover extends AbstractBuildable implements
   }
 
   /**
-   * Implement Comparator to sort the contents of the darg bufeer before completing the drag.
-   * This sorts the contents to be in the same order as the piece were in their original parent stack.
+   * Implement Comparator to sort the contents of the drag buffer before completing the drag.
+   * This sorts the contents to be in the same order as the pieces were in their original parent stack.
    */
   public int compare(Object o1, Object o2) {
     GamePiece p1 = (GamePiece) o1;
@@ -500,9 +500,11 @@ public class PieceMover extends AbstractBuildable implements
     else {
       Stack s1 = p1 instanceof Stack ? (Stack) p1 : p1.getParent();
       Stack s2 = p2 instanceof Stack ? (Stack) p2 : p2.getParent();
-      result = p1.getMap().indexOf(s1) - p2.getMap().indexOf(s2);
-      if (result == 0) { // Pieces must be in the same stack
-        result = s1.indexOf(p1) - s2.indexOf(p2);
+      if (s1 != null && s2 != null) {
+        result = p1.getMap().indexOf(s1) - p2.getMap().indexOf(s2);
+        if (result == 0) { // Pieces must be in the same stack
+          result = s1.indexOf(p1) - s2.indexOf(p2);
+        }
       }
     }
     return result;

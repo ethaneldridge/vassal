@@ -110,19 +110,13 @@ public class Hideable extends Decorator implements EditablePiece {
   }
 
   public boolean invisibleToMe() {
-    if (allHidden) {
-      return true;
-    }
     return hiddenBy != null
-        && !hiddenBy.equals(GameModule.getUserId());
+        && (allHidden || !hiddenBy.equals(GameModule.getUserId()));
   }
 
   public boolean invisibleToOthers() {
-    if (allHidden) {
-      return true;
-    }
     return hiddenBy != null
-        && hiddenBy.equals(GameModule.getUserId());
+        && (allHidden || hiddenBy.equals(GameModule.getUserId()));
   }
 
   public Shape getShape() {
@@ -153,7 +147,7 @@ public class Hideable extends Decorator implements EditablePiece {
           Graphics2D g2d = (Graphics2D) g;
           g.setColor(bgColor);
           AffineTransform t = AffineTransform.getScaleInstance(zoom, zoom);
-          t.translate(x/zoom, y/zoom);
+          t.translate(x / zoom, y / zoom);
           g2d.fill(t.createTransformedShape(piece.getShape()));
         }
         else {
@@ -166,7 +160,7 @@ public class Hideable extends Decorator implements EditablePiece {
         }
       }
       if (g instanceof Graphics2D) {
-        Graphics2D g2d = (Graphics2D)g;
+        Graphics2D g2d = (Graphics2D) g;
         Composite oldComposite = g2d.getComposite();
         g2d.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.3F));
         piece.draw(g, x, y, obs, zoom);
@@ -234,7 +228,7 @@ public class Hideable extends Decorator implements EditablePiece {
   }
 
   /**
-   * If true, then all pieces are considered obscured to all players.
+   * If true, then all hidden pieces are considered invisible to all players.
    * Used to temporarily draw pieces as they appear to other players
    * @param allHidden
    */
