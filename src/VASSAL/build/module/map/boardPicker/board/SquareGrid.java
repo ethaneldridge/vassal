@@ -271,8 +271,11 @@ public class SquareGrid extends AbstractConfigurable implements MapGrid {
 // (1,0) is the east edge of the origin cell
 // (1,1) is the lower-right corner of the origin cell
 
-    int nx = (int) Math.round((p.x - origin.x) / (.5 * dx));
-    int ny = (int) Math.round((p.y - origin.y) / (.5 * dy));
+   int nx = (int) Math.round((p.x - origin.x) / (.5 * dx));
+   int ny = (int) Math.round((p.y - origin.y) / (.5 * dy));
+   int nx2 = (int) Math.round((p.x - origin.x - .25 * dx) / (.5 * dx));
+   int ny2 = (int) Math.round((p.y - origin.y - .25 * dy) / (.5 * dy));
+
 
     if (cornersLegal && edgesLegal) {
       ;
@@ -299,8 +302,10 @@ public class SquareGrid extends AbstractConfigurable implements MapGrid {
       }
     }
     else {
-      nx = 2 * (int) Math.round((float) nx * .5);
-      ny = 2 * (int) Math.round((float) ny * .5);
+//      nx = 2 * (int) Math.round((float) nx * .5);
+//      ny = 2 * (int) Math.round((float) ny * .5);
+	  nx = 2 * (int) Math.round((float) nx2 * .5);
+	  ny = 2 * (int) Math.round((float) ny2 * .5);
     }
     return new Point(origin.x + (int) (nx * dx / 2), origin.y + (int) (ny * dy / 2));
   }
