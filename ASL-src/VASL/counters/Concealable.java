@@ -24,9 +24,13 @@ import VASSAL.command.Command;
 import VASSAL.command.NullCommand;
 import VASSAL.counters.*;
 import VASSAL.tools.SequenceEncoder;
+import VASSAL.tools.TransparentFilter;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.image.FilteredImageSource;
+import java.awt.image.BufferedImage;
+import java.io.IOException;
 
 public class Concealable extends Obscurable implements EditablePiece {
   public static final String ID = "conceal;";
@@ -35,6 +39,7 @@ public class Concealable extends Obscurable implements EditablePiece {
   private String nation2;
   private Image concealedToMe;
   private Image concealedToOthers;
+  private Color concealedToOthersColor;
   private Dimension imageSize = new Dimension(-1, -1);
 
   public Concealable() {
@@ -84,15 +89,7 @@ public class Concealable extends Obscurable implements EditablePiece {
   protected void drawObscuredToOthers(Graphics g, int x, int y, Component obs, double zoom) {
     loadImages(obs);
     piece.draw(g, x, y, obs, zoom);
-//    g.setColor(getColor(nation));
     int size = (int) (zoom * imageSize.width);
-/*
-    g.fillRect(x - size / 2, y - size / 2, size / 2, size * 2 / 3);
-    if (nation2 != null) {
-      g.setColor(getColor(nation2));
-      g.fillRect(x - size / 2 + size / 8, y - size / 2 + size / 8, size / 2 - size / 8, size * 2 / 3 - size / 8);
-    }
-*/
     try {
       g.drawImage(concealedToOthers,
                   x - size / 2, y - size / 2, size, size, obs);
@@ -240,17 +237,6 @@ public class Concealable extends Obscurable implements EditablePiece {
   }
 
   private void loadImages(Component obs) {
-    if (concealedToOthers == null) {
-      try {
-        concealedToOthers =
-            GameModule.getGameModule().getDataArchive().getCachedImage(nation + "/" + nation + "qmarkme.gif");
-      }
-      catch (java.io.IOException ex) {
-        concealedToOthers = obs.createImage(20, 20);
-        java.awt.Graphics g = concealedToOthers.getGraphics();
-        g.drawString("?", 0, 0);
-      }
-    }
     if (concealedToMe == null) {
       try {
         concealedToMe = GameModule.getGameModule().getDataArchive()
@@ -267,6 +253,41 @@ public class Concealable extends Obscurable implements EditablePiece {
         concealedToMe = obs.createImage(20, 20);
         java.awt.Graphics g = concealedToMe.getGraphics();
         g.drawString("?", 0, 0);
+      }
+    }
+    if (concealedToOthers == null
+      || !getColor(nation).equals(concealedToOthersColor)) {
+      concealedToOthersColor = getColor(nation);
+      try {
+        concealedToOthers =
+            GameModule.getGameModule().getDataArchive().getCachedImage(nation + "/" + nation + "qmarkme.gif");
+      }
+      catch (java.io.IOException ex) {
+        // Using generic qmarkme.gif image and prefs-specified colors
+        int size = imageSize.width;
+        BufferedImage rev = new BufferedImage(size, size, BufferedImage.TYPE_4BYTE_ABGR);
+        Graphics2D g = rev.createGraphics();
+        try {
+          g.setColor(concealedToOthersColor);
+          g.fillRect(0, 0, 24, 32);
+          if (nation2 != null) {
+            g.setColor(getColor(nation2));
+            g.fillRect(6,6,18,26);
+          }
+          Image generic = GameModule.getGameModule().getDataArchive().getCachedImage("qmarkme.gif");
+          MediaTracker tracker = new MediaTracker(obs);
+          tracker.addImage(generic,0);
+          try {
+            tracker.waitForAll();
+          }
+          catch (InterruptedException e) {
+          }
+          g.drawImage(generic, 0, 0, obs);
+        }
+        catch (IOException e) {
+          g.drawString("?", 0, 0);
+        }
+       concealedToOthers = rev;
       }
     }
   }
