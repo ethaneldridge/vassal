@@ -400,7 +400,7 @@ public class PieceDefiner extends javax.swing.JPanel implements HelpWindowExtens
       JOptionPane.showMessageDialog(this, "Couldn't find class.\nClass file must exist in module zipfile with correct package structure.", "Class not found", JOptionPane.ERROR_MESSAGE);
     }
     catch (InstantiationException iex) {
-      JOptionPane.showMessageDialog(this, "Couldn't instantiate class.\nClass must have a no-argument constructor.", "Class not initialized", JOptionPane.ERROR_MESSAGE);
+      JOptionPane.showMessageDialog(this, "Couldn't instantiate class.\nClass must not be abstract.", "Class not initialized", JOptionPane.ERROR_MESSAGE);
     }
     catch (IllegalAccessException ilex) {
       JOptionPane.showMessageDialog(this, "Error accessing class", "Access error", JOptionPane.ERROR_MESSAGE);

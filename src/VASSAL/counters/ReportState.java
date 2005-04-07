@@ -35,6 +35,7 @@ import VASSAL.command.Command;
 import VASSAL.configure.PlayerIdFormattedStringConfigurer;
 import VASSAL.configure.StringArrayConfigurer;
 import VASSAL.configure.StringConfigurer;
+import VASSAL.configure.KeyStrokeArrayConfigurer;
 import VASSAL.tools.FormattedString;
 import VASSAL.tools.PlayerIdFormattedString;
 import VASSAL.tools.SequenceEncoder;
@@ -53,11 +54,11 @@ import java.net.MalformedURLException;
  */
 public class ReportState extends Decorator implements EditablePiece {
   public static final String ID = "report;";
-  private String keys = "";
+  private KeyStroke[] keys;
   private FormattedString format = new PlayerIdFormattedString();
   private String reportFormat;
   private String[] cycleReportFormat;
-  private String cycleDownKeys;
+  private KeyStroke[] cycleDownKeys;
   private int cycleIndex = -1;
 
   public ReportState() {
@@ -91,7 +92,7 @@ public class ReportState extends Decorator implements EditablePiece {
 
   public String myGetType() {
     SequenceEncoder se = new SequenceEncoder(';');
-    se.append(keys).append(reportFormat).append(cycleDownKeys).append(StringArrayConfigurer.arrayToString(cycleReportFormat));
+    se.append(KeyStrokeArrayConfigurer.encode(keys)).append(reportFormat).append(KeyStrokeArrayConfigurer.encode(cycleDownKeys)).append(StringArrayConfigurer.arrayToString(cycleReportFormat));
     return ID + se.getValue();
   }
 
@@ -136,9 +137,11 @@ public class ReportState extends Decorator implements EditablePiece {
     //     command was executed.
 
     if (isVisible || wasVisible) {
-      String allKeys = keys + cycleDownKeys;
-      for (int i = 0; i < allKeys.length(); ++i) {
-        if (stroke.equals(KeyStroke.getKeyStroke(allKeys.charAt(i), InputEvent.CTRL_MASK))) {
+      KeyStroke[] allKeys = new KeyStroke[keys.length+cycleDownKeys.length];
+      System.arraycopy(keys,0,allKeys,0,keys.length);
+      System.arraycopy(cycleDownKeys,0,allKeys,keys.length,cycleDownKeys.length);
+      for (int i = 0; i < allKeys.length; ++i) {
+        if (stroke.equals(allKeys[i])) {
 
           //
           // Find the Command Name
@@ -158,7 +161,7 @@ public class ReportState extends Decorator implements EditablePiece {
 
           String theFormat = reportFormat;
           if (cycleIndex >= 0) {
-            if (i < keys.length()) {
+            if (i < keys.length) {
               theFormat = cycleReportFormat[cycleIndex];
               cycleIndex = (cycleIndex + 1) % cycleReportFormat.length;
             }
@@ -235,12 +238,29 @@ public class ReportState extends Decorator implements EditablePiece {
   }
 
   public void mySetType(String type) {
-    // keys = type.length() <= ID.length() ? "" : type.substring(ID.length());
     SequenceEncoder.Decoder st = new SequenceEncoder.Decoder(type, ';');
     st.nextToken();
-    keys = st.nextToken("");
+    String encodedKeys = st.nextToken("");
+    if (encodedKeys.indexOf(',') > 0) {
+      keys = KeyStrokeArrayConfigurer.decode(encodedKeys);
+    }
+    else {
+      keys = new KeyStroke[encodedKeys.length()];
+      for (int i = 0; i < keys.length; i++) {
+        keys[i] = KeyStroke.getKeyStroke(encodedKeys.charAt(i),InputEvent.CTRL_MASK);
+      }
+    }
     reportFormat = st.nextToken("$" + LOCATION_NAME + "$: $" + NEW_UNIT_NAME + "$ *");
-    cycleDownKeys = st.nextToken("");
+    String encodedCycleDownKeys = st.nextToken("");
+    if (encodedCycleDownKeys.indexOf(',') > 0) {
+      cycleDownKeys = KeyStrokeArrayConfigurer.decode(encodedCycleDownKeys);
+    }
+    else {
+      cycleDownKeys = new KeyStroke[encodedCycleDownKeys.length()];
+      for (int i = 0; i < cycleDownKeys.length; i++) {
+        cycleDownKeys[i] = KeyStroke.getKeyStroke(encodedCycleDownKeys.charAt(i),InputEvent.CTRL_MASK);
+      }
+    }
     cycleReportFormat = StringArrayConfigurer.stringToArray(st.nextToken(""));
   }
 
@@ -258,18 +278,18 @@ public class ReportState extends Decorator implements EditablePiece {
 
   public static class Ed implements PieceEditor {
 
-    private StringConfigurer keys;
+    private KeyStrokeArrayConfigurer keys;
     private StringConfigurer format;
     private JCheckBox cycle;
     private StringArrayConfigurer cycleFormat;
-    private StringConfigurer cycleDownKeys;
+    private KeyStrokeArrayConfigurer cycleDownKeys;
     private JPanel box;
 
     public Ed(ReportState piece) {
 
       box = new JPanel();
       box.setLayout(new BoxLayout(box, BoxLayout.Y_AXIS));
-      keys = new StringConfigurer(null, "Report when player presses CTRL-", piece.keys);
+      keys = new KeyStrokeArrayConfigurer(null, "Report when player presses CTRL-", piece.keys);
       box.add(keys.getControls());
       cycle = new JCheckBox("Cycle through different messages");
       box.add(cycle);
@@ -284,7 +304,7 @@ public class ReportState extends Decorator implements EditablePiece {
       box.add(format.getControls());
       cycleFormat = new StringArrayConfigurer(null, "Message formats", piece.cycleReportFormat);
       box.add(cycleFormat.getControls());
-      cycleDownKeys = new StringConfigurer(null, "Report previous message when player presses CTRL-", piece.cycleDownKeys);
+      cycleDownKeys = new KeyStrokeArrayConfigurer(null, "Report previous message when player presses CTRL-", piece.cycleDownKeys);
       box.add(cycleDownKeys.getControls());
       ItemListener l = new ItemListener() {
         public void itemStateChanged(ItemEvent e) {

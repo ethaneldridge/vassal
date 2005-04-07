@@ -59,10 +59,6 @@ public class PlayerHand extends PrivateMap {
     }
   }
 
-  public void validate(Buildable target, ValidationReport report) {
-    report.addWarning("Player Hand is no longer supported.  Use Private Map instead");
-  }
-
   public static String getConfigureTypeName() {
     return "Player Hand";
   }
