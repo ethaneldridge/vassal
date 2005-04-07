@@ -187,10 +187,15 @@ public class VSQLCounterDetailViewer extends CounterDetailViewer {
     }
     
     public boolean accept(GamePiece piece) {
+       double zoom = map.getZoom();
        Rectangle r = piece.getShape().getBounds();
        Point pos = piece.getPosition();
-       r.translate((int) (pos.x*map.getZoom()), (int) (pos.y*map.getZoom()));
-       return r.contains(point);
+       Rectangle check = new Rectangle();
+       check.x = (int) ((pos.x + r.x)*zoom);
+       check.y = (int) ((pos.y + r.y)*zoom);
+       check.height = (int) (r.height * zoom);
+       check.width = (int) (r.width * zoom);
+       return check.contains(point);
     }
     
   }
