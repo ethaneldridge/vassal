@@ -189,6 +189,7 @@ public class Embellishment extends Decorator implements EditablePiece {
         commonName[i] = subSt.nextToken();
       }
     }
+    loopLevels = true;
   }
 
   public String getName() {
