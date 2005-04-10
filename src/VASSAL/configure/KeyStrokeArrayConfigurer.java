@@ -70,6 +70,7 @@ public class KeyStrokeArrayConfigurer extends Configurer {
 
   private void addKey(KeyStroke keyStroke) {
     HotKeyConfigurer config = new HotKeyConfigurer(null, null, keyStroke);
+    configs.add(config);
     controls.add(config.getControls());
     Window w = SwingUtilities.getWindowAncestor(controls);
     if (w != null) {

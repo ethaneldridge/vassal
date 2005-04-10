@@ -289,7 +289,7 @@ public class ReportState extends Decorator implements EditablePiece {
 
       box = new JPanel();
       box.setLayout(new BoxLayout(box, BoxLayout.Y_AXIS));
-      keys = new KeyStrokeArrayConfigurer(null, "Report when player presses CTRL-", piece.keys);
+      keys = new KeyStrokeArrayConfigurer(null, "Report on these keystrokes:", piece.keys);
       box.add(keys.getControls());
       cycle = new JCheckBox("Cycle through different messages");
       box.add(cycle);
@@ -304,7 +304,7 @@ public class ReportState extends Decorator implements EditablePiece {
       box.add(format.getControls());
       cycleFormat = new StringArrayConfigurer(null, "Message formats", piece.cycleReportFormat);
       box.add(cycleFormat.getControls());
-      cycleDownKeys = new KeyStrokeArrayConfigurer(null, "Report previous message when player presses CTRL-", piece.cycleDownKeys);
+      cycleDownKeys = new KeyStrokeArrayConfigurer(null, "Report previous message on these keystrokes:", piece.cycleDownKeys);
       box.add(cycleDownKeys.getControls());
       ItemListener l = new ItemListener() {
         public void itemStateChanged(ItemEvent e) {

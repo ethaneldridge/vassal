@@ -77,7 +77,7 @@ public class FreeRotator extends Decorator implements EditablePiece, MouseListen
   private boolean drawGhost;
 
   public FreeRotator() {
-    this(ID + "6;];[", null);
+    this(ID + "6;];[;Rotate CW;Rotate CCW", null);
   }
 
   public FreeRotator(String type, GamePiece inner) {
