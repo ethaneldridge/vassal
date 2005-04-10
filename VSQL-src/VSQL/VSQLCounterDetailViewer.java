@@ -21,12 +21,18 @@ package VSQL;
 import java.awt.Graphics;
 import java.awt.Point;
 import java.awt.Rectangle;
+import java.awt.event.MouseEvent;
 import java.util.Enumeration;
 
 import javax.swing.JComponent;
 
+import VASSAL.build.Buildable;
+import VASSAL.build.GameModule;
 import VASSAL.build.module.Map;
 import VASSAL.build.module.map.CounterDetailViewer;
+import VASSAL.configure.BooleanConfigurer;
+import VASSAL.configure.IntConfigurer;
+import VASSAL.configure.SingleChildInstance;
 import VASSAL.counters.GamePiece;
 import VASSAL.counters.PieceFilter;
 import VASSAL.counters.PieceIterator;
@@ -35,9 +41,41 @@ import VASSAL.counters.Stack;
 
 public class VSQLCounterDetailViewer extends CounterDetailViewer {
 
+  public static final String POPUP_DELAY = "popupDelay";
+  
   public VSQLCounterDetailViewer() {
   }
 
+  public void addTo(Buildable b) {
+    super.addTo(b);
+    GameModule.getGameModule().getPrefs().addOption(
+        "General",
+        new IntConfigurer(POPUP_DELAY, "Delay before popup display (ms)", new Integer(700)));
+  }
+  
+  public String[] getAttributeNames() {
+    return new String[]{SHOW_GRAPH, SHOW_GRAPH_SINGLE, SHOW_TEXT, SHOW_TEXT_SINGLE, SHOW_REF, ZOOM_LEVEL};
+  }
+
+  public String[] getAttributeDescriptions() {
+    return new String[]{
+      "Display Graphics?",
+      "Display Graphics for single counter?",
+      "Display Text?",
+      "Display Text for single counter?",
+      "Display Text for empty grid?",
+      "When zoom level less than"};
+  }
+
+  public Class[] getAttributeTypes() {
+    return new Class[]{Boolean.class, Boolean.class, Boolean.class, Boolean.class, Boolean.class, Double.class};
+  }
+  
+  public void mouseMoved(MouseEvent e) {
+    delay = ((Integer) GameModule.getGameModule().getPrefs().getValue(POPUP_DELAY)).intValue();
+    super.mouseMoved(e);
+  }
+      
   public void draw(Graphics g, Point pt, JComponent comp) {
 
     if (!graphicsVisible && !textVisible) {
@@ -199,5 +237,5 @@ public class VSQLCounterDetailViewer extends CounterDetailViewer {
     }
     
   }
-  
-}
+}  
+
