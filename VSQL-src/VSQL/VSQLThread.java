@@ -57,12 +57,12 @@ public class VSQLThread extends VASLThread {
   public VSQLThread() {
     super();
 
-    final BooleanConfigurer snapCenter = new BooleanConfigurer(SNAP_OPTION, "Snap Counters To Hex Grid Center Only?");
+    final BooleanConfigurer snapCenter = new BooleanConfigurer(SNAP_OPTION, "Position all counters in center of hex?");
     final JCheckBox snapBox = findBox(snapCenter.getControls());
     GameModule.getGameModule().getPrefs().addOption(VSQL, snapCenter);
 
-    final VSQLStringEnumConfigurer ruleLevel = new VSQLStringEnumConfigurer(RULE_LEVEL, "Rule Level", rule_levels);
-    GameModule.getGameModule().getPrefs().addOption(VSQL, ruleLevel);
+     final VSQLStringEnumConfigurer ruleLevel = new VSQLStringEnumConfigurer(RULE_LEVEL, "Rule Level", rule_levels);
+     GameModule.getGameModule().getPrefs().addOption(VSQL, ruleLevel);
 
     java.awt.event.ItemListener l = new java.awt.event.ItemListener() {
       public void itemStateChanged(java.awt.event.ItemEvent evt) {
