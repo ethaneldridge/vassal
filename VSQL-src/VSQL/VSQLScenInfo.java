@@ -59,6 +59,7 @@ public class VSQLScenInfo extends AbstractBuildable implements GameComponent, Co
 
   public VSQLScenInfo() {
     frame = new JFrame("Scenario Information");
+    frame.setPreferredSize(new Dimension(650, 650));
     frame.setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
 
     launch = new JButton("Info");
