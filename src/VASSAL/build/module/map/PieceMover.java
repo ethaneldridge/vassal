@@ -184,36 +184,35 @@ public class PieceMover extends AbstractBuildable implements
       }
 
       public Object visitStack(Stack s) {
-        processPiece(s);
-        return null;
-      }
-
-      public Object visitDefault(GamePiece p) {
-        processPiece(p);
-        return null;
-      }
-
-      private void processPiece(GamePiece selected) {
-        if (selected == null) {
-          DragBuffer.getBuffer().clear();
-        }
-        else {
-          DragBuffer.getBuffer().clear();
-          if (KeyBuffer.getBuffer().contains(selected)
-            || (selected instanceof Stack && KeyBuffer.getBuffer().containsChild((Stack)selected))) { // If clicking on a selected piece, put all selected pieces into the drag buffer
-            DragBuffer.getBuffer().add(selected);
-            KeyBuffer.getBuffer().sort(PieceMover.this);
-            for (Enumeration enum = KeyBuffer.getBuffer().getPieces(); enum.hasMoreElements();) {
-              GamePiece piece = (GamePiece) enum.nextElement();
-              if (piece != selected && piece.getParent() != selected) {
-                DragBuffer.getBuffer().add(piece.getParent() != null ? piece.getParent() : piece);
-              }
+        DragBuffer.getBuffer().clear();
+        DragBuffer.getBuffer().add(s);
+        if (KeyBuffer.getBuffer().containsChild(s)) {
+          // If clicking on a stack with a selected piece, put all selected pieces in other stacks into the drag buffer
+          KeyBuffer.getBuffer().sort(PieceMover.this);
+          for (Enumeration e = KeyBuffer.getBuffer().getPieces(); e.hasMoreElements();) {
+            GamePiece piece = (GamePiece) e.nextElement();
+            if (piece.getParent() != s) {
+              DragBuffer.getBuffer().add(piece);
             }
           }
-          else { // Otherwise, only put the clicked-on piece into the drag buffer
-            DragBuffer.getBuffer().add(selected);
+        }
+        return null;
+      }
+
+      public Object visitDefault(GamePiece selected) {
+        DragBuffer.getBuffer().clear();
+        if (KeyBuffer.getBuffer().contains(selected)) {
+          // If clicking on a selected piece, put all selected pieces into the drag buffer
+          KeyBuffer.getBuffer().sort(PieceMover.this);
+          for (Enumeration enum = KeyBuffer.getBuffer().getPieces(); enum.hasMoreElements();) {
+            GamePiece piece = (GamePiece) enum.nextElement();
+            DragBuffer.getBuffer().add(piece);
           }
         }
+        else { // Otherwise, only put the clicked-on piece into the drag buffer
+          DragBuffer.getBuffer().add(selected);
+        }
+        return null;
       }
     });
   }
@@ -411,11 +410,11 @@ public class PieceMover extends AbstractBuildable implements
       GamePiece mergeWith = null;
       // Find an already-moved piece that we can merge with at the destination point
       if (mergeCandidates != null) {
-        for (int i=0,n=mergeCandidates.size();i<n; ++i) {
+        for (int i = 0,n = mergeCandidates.size(); i < n; ++i) {
           GamePiece candidate = (GamePiece) mergeCandidates.get(i);
-          if (map.getPieceCollection().canMerge(candidate,dragging)) {
+          if (map.getPieceCollection().canMerge(candidate, dragging)) {
             mergeWith = candidate;
-            mergeCandidates.set(i,dragging);
+            mergeCandidates.set(i, dragging);
             break;
           }
         }
@@ -431,10 +430,10 @@ public class PieceMover extends AbstractBuildable implements
           offset = new Point(p.x - dragging.getPosition().x, p.y - dragging.getPosition().y);
         }
         if (mergeWith != null
-          && map.getStackMetrics().isStackingEnabled()) {
+            && map.getStackMetrics().isStackingEnabled()) {
           mergeCandidates = new ArrayList();
           mergeCandidates.add(mergeWith);
-          mergeTargets.put(p,mergeCandidates);
+          mergeTargets.put(p, mergeCandidates);
         }
       }
       if (mergeWith == null) {

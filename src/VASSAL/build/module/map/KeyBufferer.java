@@ -116,7 +116,9 @@ public class KeyBufferer extends MouseAdapter implements Buildable, MouseMotionL
             }
           }
           else if (selection.contains(s.getPosition())) {
-            return s.topPiece();
+            for (int i=0,n=s.getPieceCount();i<n;++i) {
+              KeyBuffer.getBuffer().add(s.getPieceAt(i));
+            }
           }
           return null;
         }
@@ -124,19 +126,13 @@ public class KeyBufferer extends MouseAdapter implements Buildable, MouseMotionL
         public Object visitDefault(GamePiece p) {
           if (!Boolean.TRUE.equals(p.getProperty(Properties.TERRAIN))
               && selection.contains(p.getPosition())) {
-            return p;
+            KeyBuffer.getBuffer().add(p);
           }
           return null;
         }
       });
-      GamePiece[] pieces = map.getPieces();
       KeyBuffer.getBuffer().clear();
-      for (int i = 0; i < pieces.length; ++i) {
-        GamePiece p = (GamePiece) d.accept(pieces[i]);
-        if (p != null) {
-          KeyBuffer.getBuffer().add(p);
-        }
-      }
+      map.apply(d);
     }
     selection = null;
   }
