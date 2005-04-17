@@ -40,6 +40,10 @@ public class VSQLEmbellishment extends Embellishment {
     super(type, d);
   }
 
+  public String[] getImageNames() {
+    return imageName;
+  }
+  
   /**
    * Record the CA each time we rotate a vehicle
    */

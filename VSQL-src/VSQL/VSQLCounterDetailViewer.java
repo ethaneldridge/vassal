@@ -47,10 +47,18 @@ public class VSQLCounterDetailViewer extends CounterDetailViewer {
   }
 
   public void addTo(Buildable b) {
-    super.addTo(b);
+    map = (Map) b;
+    validator = new SingleChildInstance(map,getClass());
+    map.addDrawComponent(this);
     GameModule.getGameModule().getPrefs().addOption(
         "General",
-        new IntConfigurer(POPUP_DELAY, "Delay before popup display (ms)", new Integer(700)));
+        new BooleanConfigurer(USE_KEYBOARD, "Change stack viewer from automatic to display only on CNTL-Space command", Boolean.FALSE));
+    GameModule.getGameModule().getPrefs().addOption(
+        "General",
+        new IntConfigurer(POPUP_DELAY, "Delay before automatic stack display (ms)", new Integer(700)));    
+    map.getView().addMouseMotionListener(this);
+    map.getView().addKeyListener(this);
+
   }
   
   public String[] getAttributeNames() {

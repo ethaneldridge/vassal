@@ -18,8 +18,11 @@
  */
 package VSQL;
 
+import java.awt.Color;
+
 import VASL.build.module.ASLCommandEncoder;
 import VASL.counters.Concealment;
+import VASL.counters.TextInfo;
 import VASSAL.build.Buildable;
 import VASSAL.counters.Decorator;
 import VASSAL.counters.Embellishment;
@@ -61,6 +64,12 @@ public class VSQLCommandEncoder extends ASLCommandEncoder {
     }
     else if (type.startsWith(Concealment.ID)) {
       return new VSQLConcealment(type, inner);
+    }
+    else if (type.startsWith(TextInfo.ID)) {
+      return new VSQLTextInfo(type, inner);
+    }
+    else if (type.startsWith(TrackRotator.ID)) {
+      return new TrackRotator(type, inner);
     }
     else {
       return super.createDecorator(type, inner);

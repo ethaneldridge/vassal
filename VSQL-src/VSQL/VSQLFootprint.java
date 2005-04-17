@@ -202,6 +202,7 @@ public class VSQLFootprint extends MarkMoved {
     else {
       pointList.clear();
       myBoundingBox = null;
+      visible = false;
     }
     redraw();
   }

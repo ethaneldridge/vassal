@@ -33,7 +33,7 @@ public class TextInfo extends Decorator implements EditablePiece {
 
   private String info;
   private KeyCommand[] commands;
-  private boolean showInfo = false;
+  protected boolean showInfo = false;
   private Dimension infoSize;
   private Image infoImage;
   private static Font font = new Font("Dialog", 0, 11);
