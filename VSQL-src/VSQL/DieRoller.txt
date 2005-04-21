@@ -1,0 +1,66 @@
+USING THE INTERNET DIE ROLLER
+
+VSQL has an Internet Die Roller built-in. This allows you to request multiple 
+rolls from an independent (Shadowdice Dice Roller) dice rolling server and 
+have the results of the die rolls emailed to both yourself and your opponent.
+
+The results of the rolls are automatically displayed in the Chat Window and 
+will be recorded into an open logfile. There is no need to wait for the email 
+to return before continuing with your turn. Your opponent can check the 
+emailed result file against the logfile at their leisure.
+
+Preference Configuration
+------------------------
+Before using the Internet Die Roller, you will need to setup your Die 
+Roller preferences. From the main VSQL menu bar, select 'Edit Preferences' 
+and click on the 'Internet Die Roller' tab.
+
+First, make sure the 'Email results?' and 'Put multiple rolls into single 
+email' boxes are both checked. 
+
+Next, type your email address into the 'Primary Email' field.
+
+Next step is to populate your address book. Add the email addresses of your 
+regular opponents one by one to the address book by typing the address into 
+the blank area under the 'Address Book' heading, and then pressing the 'Add' 
+key. You can use addresses like 'Bob <b.smith@there.net>', only the part 
+between the <> brackets will be used to send emails. You can also enter a 
+list of email addresses separated by comma's to have emails sent to a number 
+people at once.
+
+Finally, select your current opponents email address from the pull-down menu
+labelled 'Secondary email'. 
+
+
+Using the Roller
+----------------
+Click on the Internet Die Roller Icon, or press the F6 function key to bring 
+up the multiroll dialog box. You can see the currently selected opponents 
+email address at the top of the box. If this is incorrect, use the 'Change 
+Email Address' button at the bottom right of the dialog box and select the 
+correct email address from the drop-down list.
+
+Type in a description for the set of rolls you are requesting (e.g.
+'BE02-GT1-RallyPh'). This description will appear as the subject of the 
+emails sent.
+
+You can request up to 10 seperate die rolls in one email. To activate a Die 
+Roll line, click on one of the buttons numbered 1-10 in the 'Roll' column.
+You can then fill in the details of that roll:
+
+ Details - A description that will appear in the email and in the VSQL Chat Window.
+ nDice	 - Number of dice to roll (default 2)
+ nSides  - Number of sides on each die (default 6)
+ add     - A number to add to the rolled total (default 0)
+ Total   - Click to display the rolled total, not the individual die rolls.
+
+When you are ready, click the 'Roll' button to submit the roll request. The 
+results of you roll(s) will be emailed to yourself and your opponent and 
+will be echoed automatically into the Chat Window. This process usually 
+takes a few seconds only.
+
+Problems
+--------
+Very occasionally, the Shadowdice Dice Server will be down. In this case 
+you will receive a message 'Internet Dice Roll Attempt Failed' echoed to 
+the Chat Window.
