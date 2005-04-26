@@ -124,7 +124,9 @@ checking."  You still can check LOS, but you will not get feedback as to whether
 VASSAL thinks LOS is blocked or not.
 
 I'M GETTING "OUT OF MEMORY" ERRORS!
-If you are running the Stand-alone version of VSQL, make sure you are running the ‘vsql.bat’ file and not the ‘runVSQL.jar’ file. The Webstart version of VSQL should already be configured to use 256Mb of memory.
+If you are running the Stand-alone version of VSQL, make sure you are running the 
+‘vsql.bat’ file and not the ‘runVSQL.jar’ file. The Webstart version of VSQL should 
+already be configured to use 256Mb of memory.
 
 I SEE A PROBLEM!  A COUNTER IS MISSING/WRONG/MISLABELED/DOESN'T WORK RIGHT/ETC.!
 Although we strive for perfection, even perfectionists make mistakes.  Please 
