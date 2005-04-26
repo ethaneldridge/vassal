@@ -60,6 +60,7 @@ public class PieceImage {
         buf.append(((Obscurable)p).isPeeking());
       }
     }
+    buf.append(piece.getProperty(Properties.SELECTED));
     return buf.toString();
   }
 }
