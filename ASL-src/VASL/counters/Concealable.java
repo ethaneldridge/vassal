@@ -24,13 +24,10 @@ import VASSAL.command.Command;
 import VASSAL.command.NullCommand;
 import VASSAL.counters.*;
 import VASSAL.tools.SequenceEncoder;
-import VASSAL.tools.TransparentFilter;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.image.FilteredImageSource;
 import java.awt.image.BufferedImage;
-import java.io.IOException;
 
 public class Concealable extends Obscurable implements EditablePiece {
   public static final String ID = "conceal;";
@@ -39,7 +36,6 @@ public class Concealable extends Obscurable implements EditablePiece {
   private String nation2;
   private Image concealedToMe;
   private Image concealedToOthers;
-  private Color concealedToOthersColor;
   private Dimension imageSize = new Dimension(-1, -1);
 
   public Concealable() {
@@ -255,9 +251,7 @@ public class Concealable extends Obscurable implements EditablePiece {
         g.drawString("?", 0, 0);
       }
     }
-    if (concealedToOthers == null
-      || !getColor(nation).equals(concealedToOthersColor)) {
-      concealedToOthersColor = getColor(nation);
+    if (concealedToOthers == null) {
       try {
         concealedToOthers =
             GameModule.getGameModule().getDataArchive().getCachedImage(nation + "/" + nation + "qmarkme.gif");
@@ -267,27 +261,8 @@ public class Concealable extends Obscurable implements EditablePiece {
         int size = imageSize.width;
         BufferedImage rev = new BufferedImage(size, size, BufferedImage.TYPE_4BYTE_ABGR);
         Graphics2D g = rev.createGraphics();
-        try {
-          g.setColor(concealedToOthersColor);
-          g.fillRect(0, 0, 24, 32);
-          if (nation2 != null) {
-            g.setColor(getColor(nation2));
-            g.fillRect(6,6,18,26);
-          }
-          Image generic = GameModule.getGameModule().getDataArchive().getCachedImage("qmarkme.gif");
-          MediaTracker tracker = new MediaTracker(obs);
-          tracker.addImage(generic,0);
-          try {
-            tracker.waitForAll();
-          }
-          catch (InterruptedException e) {
-          }
-          g.drawImage(generic, 0, 0, obs);
-        }
-        catch (IOException e) {
-          g.drawString("?", 0, 0);
-        }
-       concealedToOthers = rev;
+        g.drawString("?", 0, 0);
+        concealedToOthers = rev;
       }
     }
   }

@@ -49,19 +49,8 @@ public class Concealment extends Decorator implements EditablePiece {
 
   public void mySetType(String type) {
     SequenceEncoder.Decoder st = new SequenceEncoder.Decoder(type.substring(ID.length()),';');
-    if (st.hasMoreTokens()) {
-      owner = st.nextToken();
-      if (st.hasMoreTokens()) {
-        nation = st.nextToken();
-      }
-      else {
-        nation = null;
-      }
-    }
-    else {
-      owner = null;
-      nation = null;
-    }
+    owner = st.nextToken(null);
+    nation = st.nextToken(null);
   }
 
   public void setId(String id) {
