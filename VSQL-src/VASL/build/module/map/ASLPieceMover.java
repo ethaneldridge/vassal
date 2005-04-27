@@ -176,20 +176,6 @@ public class ASLPieceMover extends PieceMover {
       if (formerParent != null) {
         c.append(Concealable.adjustConcealment(formerParent));
       }
-    } else 
-    {
-    	it = DragBuffer.getBuffer().getIterator();
-        if (it.hasMoreElements()) {
-        	GamePiece moving = it.nextPiece();
-            if (moving instanceof Stack) {
-            	c.append(Concealable.adjustConcealment((Stack) moving));
-            } else {
-            	Concealable con = (Concealable) Decorator.getDecorator(moving, Concealable.class);
-            	if (con != null) {
-            		c.append(con.adjustConcealment());
-            	}
-            }
-        }
     }
     return c;
   }
@@ -205,16 +191,12 @@ public class ASLPieceMover extends PieceMover {
       GamePiece p = it.nextPiece();
       if (p instanceof Stack) {
         Vector toMove = new Vector();
-        int pos = 0;
         for (PieceIterator pi = new PieceIterator(((Stack) p).getPieces());
              pi.hasMoreElements();) {
           GamePiece p1 = pi.nextPiece();
-          //boolean a = p1.getProperty(ASLProperties.LOCATION) == null;
-          //boolean b = !isBelowNonMoveable((Stack) p, pos++);
-          if (p1.getProperty(ASLProperties.LOCATION) == null && !isBelowNonMoveable((Stack) p, pos++)) {
+          if (p1.getProperty(ASLProperties.LOCATION) == null) {
             toMove.addElement(p1);
           }
-		
         }
         if (toMove.size() == ((Stack) p).getPieceCount()
             || toMove.size() == 0) {
@@ -235,21 +217,5 @@ public class ASLPieceMover extends PieceMover {
          e.hasMoreElements();) {
       DragBuffer.getBuffer().add((GamePiece) e.nextElement());
     }
-  }
-  
-  protected boolean isBelowNonMoveable(Stack s, int pos) {
-  	
-  	if (pos >= s.getPieceCount()) {
-  		return false;
-  	}
-  	
-  	for (int i = pos+1; i < s.getPieceCount(); i++) {
-  		GamePiece p = s.getPieceAt(i);
-  		if (p.getProperty(ASLProperties.LOCATION) != null) {
-  			return true;
-  		}
-  	}
-  	
-  	return false;
   }
 }
