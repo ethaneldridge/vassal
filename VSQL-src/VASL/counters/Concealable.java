@@ -35,7 +35,7 @@ import java.io.IOException;
 public class Concealable extends Obscurable implements EditablePiece {
   public static final String ID = "conceal;";
 
-  private String nation;
+  protected String nation;
   private String nation2;
   private Image concealedToMe;
   private Image concealedToOthers;

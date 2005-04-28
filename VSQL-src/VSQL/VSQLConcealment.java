@@ -43,8 +43,9 @@ public class VSQLConcealment extends Concealment {
       return false;
     }
     else {
-      return getNationality().equals(c.getProperty(ASLProperties.NATIONALITY)) ||
-             ((String) Decorator.getOutermost(this).getProperty(VSQLProperties.UNIT_SUB_TYPE)).equals(VSQLProperties.BUNKER);
+      String subType = (String) Decorator.getOutermost(this).getProperty(VSQLProperties.UNIT_SUB_TYPE);
+      boolean isBunker = (subType == null) ? false : subType.equals(VSQLProperties.BUNKER);
+      return getNationality().equals(c.getProperty(ASLProperties.NATIONALITY)) || isBunker;
     }
   }
   

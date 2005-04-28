@@ -64,6 +64,7 @@ public class ASLCommandEncoder extends VASSAL.build.module.BasicCommandEncoder i
     initColor("it", "Italian", new Color(166, 173, 178));
     initColor("ax", "Axis Minor", new Color(29, 226, 86));
     initColor("al", "Allied Minor", new Color(130, 237, 189));
+    initColor("pl", "PLC", new Color(239, 239, 156));
   }
 
   public void build(Element e) {
