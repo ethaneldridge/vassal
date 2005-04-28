@@ -36,7 +36,7 @@ public class Concealable extends Obscurable implements EditablePiece {
   public static final String ID = "conceal;";
 
   protected String nation;
-  private String nation2;
+  protected String nation2;
   private Image concealedToMe;
   private Image concealedToOthers;
   private Color concealedToOthersColor;

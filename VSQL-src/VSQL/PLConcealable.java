@@ -18,71 +18,160 @@
  */
 package VSQL;
 
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.event.InputEvent;
 
+import javax.swing.JMenuItem;
+import javax.swing.JPopupMenu;
 import javax.swing.KeyStroke;
 
 import VASL.counters.Concealable;
+import VASSAL.build.GameModule;
+import VASSAL.command.ChangeTracker;
 import VASSAL.command.Command;
-import VASSAL.command.NullCommand;
 import VASSAL.counters.Decorator;
 import VASSAL.counters.GamePiece;
 import VASSAL.counters.KeyCommand;
 
-public class PLConcealable extends Concealable {
+public class PLConcealable extends Concealable implements ActionListener {
 
-	public static final String ID = "plconceal;";
+  protected JPopupMenu popup;
 
-	public static final String NATIONALITY_COMMAND = "Nationality";
+  public static final String ID = "plconceal;";
 
-	public static final KeyStroke NATIONALITY_KEY = KeyStroke.getKeyStroke('N',InputEvent.CTRL_MASK);
+  public static final String[] NATIONS = new String[] { "PLC", 
+      													"German", 
+      													"Russian", 
+      													"American",
+      													"British",
+      													"French",
+      													"Axis Minor",
+      													"Allied Minor"};
 
-	public PLConcealable() {
-		super();
-	}
+  public static final String[] PREFIXES = new String[] { "pl", 
+      													 "ge", 
+      													 "ru", 
+      													 "am",
+      													 "br",
+      													 "fr",
+      													 "ax",
+      													 "al"};
 
-	public PLConcealable(String type, GamePiece inner) {
-		super(type, inner);
-	}
+  public static final String NATIONALITY_COMMAND = "Nationality";
 
-	/**
-	 * Add the Nationality command if counter is not already concealed
-	 *  
-	 */
-	public KeyCommand[] myGetKeyCommands() {
+  public static final KeyStroke NATIONALITY_KEY = KeyStroke.getKeyStroke('N', InputEvent.CTRL_MASK);
 
-		KeyCommand[] oldCommands = super.myGetKeyCommands();
-		KeyCommand[] newCommands;
+  public PLConcealable() {
+    super();
+  }
 
-		if (obscuredToMe() || obscuredToOthers()) {
-			newCommands = oldCommands;
-		} else {
-			newCommands = new KeyCommand[oldCommands.length + 1];
-			System
-					.arraycopy(oldCommands, 0, newCommands, 0,
-							oldCommands.length);
-			newCommands[oldCommands.length] = new KeyCommand(
-					NATIONALITY_COMMAND, NATIONALITY_KEY, Decorator.getOutermost(this));
-		}
+  public PLConcealable(String type, GamePiece inner) {
+    super(type, inner);
+  }
 
-		return newCommands;
-	}
+  public String getDescription() {
+    return "PLC can be concealed";
+  }
+  
+  public String myGetType() {
+    String s = ID +
+        obscureKey + ";" +
+        imageName + ";" +
+        nation;
+    if (nation2 != null) {
+      s += ";" + nation2;
+    }
+    return s;
+  }
+  
+  /**
+   * Add the Nationality command if counter is not already concealed
+   *  
+   */
+  public KeyCommand[] myGetKeyCommands() {
 
-	public Command myKeyEvent(KeyStroke stroke) {
+    KeyCommand[] oldCommands = super.myGetKeyCommands();
+    KeyCommand[] newCommands;
 
-		if (stroke.equals(NATIONALITY_KEY)) {
-			return doPopup();
-		} else {
-			return super.myKeyEvent(stroke);
-		}
+    if (obscuredToMe() || obscuredToOthers()) {
+      newCommands = oldCommands;
+    }
+    else {
+      newCommands = new KeyCommand[oldCommands.length + 1];
+      System.arraycopy(oldCommands, 0, newCommands, 0, oldCommands.length);
+      newCommands[oldCommands.length] = new KeyCommand(NATIONALITY_COMMAND, NATIONALITY_KEY, Decorator
+          .getOutermost(this));
+    }
 
-	}
+    return newCommands;
+  }
 
-	public Command doPopup() {
+  public Command myKeyEvent(KeyStroke stroke) {
 
-		Command c = new NullCommand();
+    if (stroke.equals(NATIONALITY_KEY)) {
+      return doPopup();
+    }
+    else {
+      return super.myKeyEvent(stroke);
+    }
 
-		return c;
+  }
 
-	}
+  protected Command doPopup() {
+
+    if (popup == null) {
+      buildPopup();
+    }
+
+    popup.show(getMap().getView(), getPosition().x, getPosition().y);
+    return null;
+
+  }
+
+  protected void buildPopup() {
+    popup = new JPopupMenu();
+
+    popup.addPopupMenuListener(new javax.swing.event.PopupMenuListener() {
+      public void popupMenuCanceled(javax.swing.event.PopupMenuEvent evt) {
+        getMap().getView().repaint();
+      }
+
+      public void popupMenuWillBecomeInvisible(javax.swing.event.PopupMenuEvent evt) {
+        getMap().getView().repaint();
+      }
+
+      public void popupMenuWillBecomeVisible(javax.swing.event.PopupMenuEvent evt) {
+      }
+    });
+
+    for (int i = 0; i < NATIONS.length; i++) {
+      addItem(NATIONS[i]);
+    }
+  }
+
+  protected void addItem(String item) {
+    JMenuItem catItem = new JMenuItem(item);
+    catItem.addActionListener(this);
+    popup.add(catItem);
+  }
+
+  public void actionPerformed(ActionEvent e) {
+
+    String nationality = e.getActionCommand();
+    for (int i = 0; i < NATIONS.length; i++) {
+      if (NATIONS[i].equals(nationality)) {
+        ChangeTracker tracker = new ChangeTracker(this);
+        setNationality(PREFIXES[i]);
+        Command c = tracker.getChangeCommand();
+        GameModule.getGameModule().sendAndLog(c);
+      }
+    }
+
+  }
+
+  protected void setNationality(String nationality) {
+    nation = nationality;
+    imageName = nationality + "-conceal";
+  }
 }
