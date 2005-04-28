@@ -4,19 +4,32 @@ VERSION HISTORY
    increased size on opening.
 -- Added Movement Trail to Infantry and Vehicles
 -- Ran images through an image optimizer to remove comments.
--- Changed bunkers to act like concealment counters
--- Changed Track counter to 'Does not Stack' to solve problems with adding them to map while replaying a logfile. Causes Track counter to drop to bottom of stack, so counter will rotate 45 degrees when dropped onto board to ensure visiblity.
+-- Changed bunkers to act like concealment counters. Modified concealment processing so any
+   unit moved out from under a Concealment counter or Bunker by the owner will become unconcealed.
+-- Changed Track counter to 'Does not Stack' to solve problems with adding them to map while 
+   replaying a logfile. Causes Track counter to drop to bottom of stack, so counter will 
+   rotate 45 degrees when dropped onto board to ensure visiblity.
+-- Changed Roadblock, Wire, Ford, "V" and Smoke counters to be 'Does Not Stack'   
 -- Invisible counters are 'Non-moveable' and will not stack with visible counters
--- Add Smoke options to Remove All menu
--- Included 'lasso' facility to select multiple counters (from vassal 2.0)
--- Delay setting for Mouseover viewer moved to General Preferences
--- Added F6 as Hotkey for Internet Dice Roller
+-- Add Smoke options to Remove All menu.
+-- Included 'lasso' facility to select multiple counters (from vassal 2.0).
+-- Delay setting for Mouseover viewer moved to General Preferences.
+-- Added F6 as Hotkey for Internet Dice Roller.
 -- Added 'DOES NOT MOVE' as ctrl-I Info comment to all Non-moveable markers
 -- Ctrl-I info display automatically turns off when counter unselected.
--- Marking units not moved also turns off movement trail display
+-- Marking units not moved also turns off movement trail display.
 -- Removed 'Nationality Colors' tab from preferences.
 -- PLC counters moved from main module to extension vsql_plc.mdx
--- Online help updated.
+-- Added Nationality menu option to PLC counters to set the nationality for Concealment 
+   handling.
+-- Fixed German AA 88 counters rotation/repair/limber commands
+-- Added American 6+1 leader.
+-- Default Smoke counter changed to generic instead of German.
+-- Changed 'Flip' on 2nd Level counter to 'Increase/Decrease'
+-- Units underneath a 'Non-moveable' counter (e.g. 2nd Level, Bunker) will not stack and move
+   with counters that are moved on top of the 'Non-moveable' counter.
+-- Changed menu references to 'COI+' to 'COI'
+-- Online help files updated. Added a seperate Preferences page and an Internet Die Roller page.
 
 
 2.5.8 02/14/05 (Brent Easton)
