@@ -204,13 +204,16 @@ public class PieceMover extends AbstractBuildable implements
         if (KeyBuffer.getBuffer().contains(selected)) {
           // If clicking on a selected piece, put all selected pieces into the drag buffer
           KeyBuffer.getBuffer().sort(PieceMover.this);
+          DragBuffer.getBuffer().add(selected);
           for (Enumeration enum = KeyBuffer.getBuffer().getPieces(); enum.hasMoreElements();) {
             GamePiece piece = (GamePiece) enum.nextElement();
-            DragBuffer.getBuffer().add(piece);
+            if (piece != selected) {
+              DragBuffer.getBuffer().add(piece);
+            }
           }
         }
-        else { // Otherwise, only put the clicked-on piece into the drag buffer
-          DragBuffer.getBuffer().add(selected);
+        else {
+          DragBuffer.getBuffer().clear();
         }
         return null;
       }
@@ -463,7 +466,7 @@ public class PieceMover extends AbstractBuildable implements
    */
   public void mousePressed(MouseEvent e) {
     if (canHandleEvent(e)) {
-      selectMovablePieces(e.getPoint());
+      selectMovablePieces(e);
       if (!Info.isDndEnabled()
           && DragBuffer.getBuffer().getIterator().hasMoreElements()) {
         map.getView().setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
@@ -472,6 +475,24 @@ public class PieceMover extends AbstractBuildable implements
   }
 
   /** Place the clicked-on piece into the {@link DragBuffer} */
+  protected void selectMovablePieces(MouseEvent e) {
+
+    GamePiece p = map.findPiece(e.getPoint(), dragTargetSelector);
+    dragBegin = e.getPoint();
+
+    if (p != null) {
+      EventFilter filter = (EventFilter) p.getProperty(Properties.EVENT_FILTER);
+      if (filter != null
+        || !filter.rejectEvent(e)) {
+        selectionProcessor.accept(p);
+      }
+    }
+
+// show/hide selection boxes
+    map.repaint();
+  }
+
+  /** @deprecated use #selectMovablePieces(MouseEvent) */
   protected void selectMovablePieces(Point point) {
 
     GamePiece p = map.findPiece(point, dragTargetSelector);

@@ -132,7 +132,9 @@ public class Translate extends Decorator implements EditablePiece {
         p2d = AffineTransform.getRotateInstance(myRotation.getAngleInRadians(), myPosition.getX(), myPosition.getY()).transform(p2d, null);
         p = new Point((int) p2d.getX(), (int) p2d.getY());
       }
-      p = getMap().snapTo(p);
+      if (!Boolean.TRUE.equals(outer.getProperty(Properties.IGNORE_GRID))) {
+        p = getMap().snapTo(p);
+      }
       getMap().placeOrMerge(target, p);
       c = c.append(t.getMoveCommand());
     }

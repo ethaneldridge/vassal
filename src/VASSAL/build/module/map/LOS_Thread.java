@@ -266,13 +266,13 @@ public class LOS_Thread extends AbstractConfigurable implements
     g.drawLine(mapAnchor.x, mapAnchor.y, mapArrow.x, mapArrow.y);
     Board b;
     if (drawRange) {
-      if ((b = map.findBoard(anchor)) != null
-          && b.getGrid() != null) {
-        drawRange(g, b.getGrid().range(anchor, arrow));
-      }
-      else if (rangeScale > 0) {
+      if (rangeScale > 0) {
         int dist = (int)(rangeRounding + anchor.getLocation().distance(arrow.getLocation())/rangeScale);
         drawRange(g, dist);
+      }
+      else if ((b = map.findBoard(anchor)) != null
+        && b.getGrid() != null) {
+        drawRange(g, b.getGrid().range(anchor, arrow));
       }
     }
   }
@@ -363,6 +363,9 @@ public class LOS_Thread extends AbstractConfigurable implements
     int dummy = range;
     while (dummy >= 1) {
       dummy = dummy / 10;
+      buffer.append("8");
+    }
+    if (buffer.length() == 0) {
       buffer.append("8");
     }
     int wid = fm.stringWidth(" Range  "+buffer.toString());

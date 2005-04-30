@@ -665,6 +665,10 @@ public class BoardPicker extends JDialog
 
     protected void executeCommand() {
       target.currentBoards = bds;
+      if (GameModule.getGameModule().getGameState().isGameStarted()) {
+        target.map.setBoards(target.getCurrentBoards());
+        target.map.getView().revalidate();
+      }
     }
 
     protected Command myUndoCommand() {
