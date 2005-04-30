@@ -215,7 +215,7 @@ public class Concealable extends Obscurable implements EditablePiece {
       else {
         p = new ColoredBox(ColoredBox.ID + nation + ";" + size, p);
       }
-      p = new Embellishment(Embellishment.ID + ";;;;;;0;0;"
+      p = new Embellishment(Embellishment.OLD_ID + ";;;;;;0;0;"
                             + imageName + ",?", p);
     }
     p = new Concealment(Concealment.ID + GameModule.getUserId() + ";" + nation, p);
