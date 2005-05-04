@@ -204,16 +204,14 @@ public class PieceMover extends AbstractBuildable implements
         if (KeyBuffer.getBuffer().contains(selected)) {
           // If clicking on a selected piece, put all selected pieces into the drag buffer
           KeyBuffer.getBuffer().sort(PieceMover.this);
-          DragBuffer.getBuffer().add(selected);
           for (Enumeration enum = KeyBuffer.getBuffer().getPieces(); enum.hasMoreElements();) {
             GamePiece piece = (GamePiece) enum.nextElement();
-            if (piece != selected) {
-              DragBuffer.getBuffer().add(piece);
-            }
+            DragBuffer.getBuffer().add(piece);
           }
         }
         else {
           DragBuffer.getBuffer().clear();
+          DragBuffer.getBuffer().add(selected);
         }
         return null;
       }
@@ -482,8 +480,8 @@ public class PieceMover extends AbstractBuildable implements
 
     if (p != null) {
       EventFilter filter = (EventFilter) p.getProperty(Properties.EVENT_FILTER);
-      if (filter != null
-        || !filter.rejectEvent(e)) {
+      if (filter == null
+          || !filter.rejectEvent(e)) {
         selectionProcessor.accept(p);
       }
     }
@@ -625,13 +623,13 @@ public class PieceMover extends AbstractBuildable implements
     private JLabel dragCursor;    // An image label. Lives on current DropTarget's LayeredPane.
     private Point drawOffset = new Point(); // translates event coords to local drawing coords
 
-    Rectangle boundingBox;  // image bounds
-    private int dragPieceOffCenterX; // How far drag STARTED from gamepiece's center
-    private int dragPieceOffCenterY; // "
+    private Rectangle boundingBox;  // image bounds
+    private int originalPieceOffsetX; // How far drag STARTED from gamepiece's center
+    private int originalPieceOffsetY; // I.e. on original map
     private double dragPieceOffCenterZoom = 1.0;  // zoom at start of drag
-    private int cursorOffCenterX;    // How far cursor is CURRENTLY off-center, a function of dragPieceOffCenter{X,Y,Zoom}
-    private int cursorOffCenterY;    // "
-    double dragCursorZoom = 1.0; // Current cursor scale (zoom)
+    private int currentPieceOffsetX;    // How far cursor is CURRENTLY off-center, a function of dragPieceOffCenter{X,Y,Zoom}
+    private int currentPieceOffsetY;    // I.e. on current map (which may have different zoom
+    private double dragCursorZoom = 1.0; // Current cursor scale (zoom)
 
     Component dragWin; // the component that initiated the drag operation
     Component dropWin; // the drop target the mouse is currently over
@@ -701,10 +699,12 @@ public class PieceMover extends AbstractBuildable implements
     /** calculates the offset between cursor dragCursor positions */
     private void calcDrawOffset() {
       if (drawWin != null) {
-        // drawOffset accounts for difference betwen event point (screen coords)
+        // drawOffset is the offset between the mouse location during a drag
+        // and the upper-left corner of the cursor
+        // accounts for difference betwen event point (screen coords)
         // and Layered Pane position, boundingBox and off-center drag
-        drawOffset.x = -boundingBox.x - cursorOffCenterX + EXTRA_BORDER;
-        drawOffset.y = -boundingBox.y - cursorOffCenterY + EXTRA_BORDER;
+        drawOffset.x = -boundingBox.x - currentPieceOffsetX + EXTRA_BORDER;
+        drawOffset.y = -boundingBox.y - currentPieceOffsetY + EXTRA_BORDER;
         SwingUtilities.convertPointToScreen(drawOffset, drawWin);
       }
     }
@@ -753,24 +753,47 @@ public class PieceMover extends AbstractBuildable implements
       }
 
       dragCursorZoom = zoom;
-      cursorOffCenterX = (int) (dragPieceOffCenterX / dragPieceOffCenterZoom * zoom + 0.5);
-      cursorOffCenterY = (int) (dragPieceOffCenterY / dragPieceOffCenterZoom * zoom + 0.5);
+      currentPieceOffsetX = (int) (originalPieceOffsetX / dragPieceOffCenterZoom * zoom + 0.5);
+      currentPieceOffsetY = (int) (originalPieceOffsetY / dragPieceOffCenterZoom * zoom + 0.5);
 
       // get the piece(s) our cursor will be based on
-      GamePiece piece = DragBuffer.getBuffer().getIterator().nextPiece();
+      PieceIterator dragContents = DragBuffer.getBuffer().getIterator();
+      List relativePositions = new ArrayList();
+      GamePiece firstPiece = dragContents.nextPiece();
       // Record sizing info and resize our cursor
-      boundingBox = Decorator.getOutermost(piece).getShape().getBounds();
+      boundingBox = firstPiece.getShape().getBounds();
       boundingBox.width *= zoom;
       boundingBox.height *= zoom;
       boundingBox.x *= zoom;
       boundingBox.y *= zoom;
       calcDrawOffset();
+      relativePositions.add(new Point(0,0));
+
+      while (dragContents.hasMoreElements()) {
+        GamePiece nextPiece = dragContents.nextPiece();
+        Rectangle r = nextPiece.getShape().getBounds();
+        r.width *= zoom;
+        r.height *= zoom;
+        r.x *= zoom;
+        r.y *= zoom;
+        Point p = new Point((int) Math.round(zoom * (nextPiece.getPosition().x - firstPiece.getPosition().x)),
+                            (int) Math.round(zoom * (nextPiece.getPosition().y - firstPiece.getPosition().y)));
+        r.translate(p.x,p.y);
+        boundingBox.add(r);
+        relativePositions.add(p);
+      }
 
       int width = boundingBox.width + EXTRA_BORDER * 2;
       int height = boundingBox.height + EXTRA_BORDER * 2;
 
       BufferedImage cursorImage = new BufferedImage(width, height, BufferedImage.TYPE_4BYTE_ABGR);
-      piece.draw(cursorImage.createGraphics(), EXTRA_BORDER - boundingBox.x, EXTRA_BORDER - boundingBox.y, dragCursor, zoom);
+      Graphics2D graphics = cursorImage.createGraphics();
+      int index = 0;
+      for (dragContents = DragBuffer.getBuffer().getIterator(); dragContents.hasMoreElements();) {
+        GamePiece piece = dragContents.nextPiece();
+        Point pos = (Point) relativePositions.get(index++);
+        piece.draw(graphics, EXTRA_BORDER - boundingBox.x + pos.x, EXTRA_BORDER - boundingBox.y + pos.y, dragCursor, zoom);
+      }
       dragCursor.setSize(width, height);
 
       // Make bitmap 50% transparent
@@ -840,8 +863,8 @@ public class PieceMover extends AbstractBuildable implements
             piecePosition.translate(offset.x, offset.y);
           }
 
-          dragPieceOffCenterX = piecePosition.x - mousePosition.x; // dragging from UL results in positive offsets
-          dragPieceOffCenterY = piecePosition.y - mousePosition.y;
+          originalPieceOffsetX = piecePosition.x - mousePosition.x; // dragging from UL results in positive offsets
+          originalPieceOffsetY = piecePosition.y - mousePosition.y;
           dragPieceOffCenterZoom = map == null ? 1.0 : map.getZoom();
 
           dragWin = dge.getComponent();
@@ -940,7 +963,7 @@ public class PieceMover extends AbstractBuildable implements
       removeDragCursor();
 
       // EVENT uses UNSCALED, DROP-TARGET coordinate system
-      event.getLocation().translate(cursorOffCenterX, cursorOffCenterY);
+      event.getLocation().translate(currentPieceOffsetX, currentPieceOffsetY);
 
       DropTargetListener forward = getListener(event);
       if (forward != null)
