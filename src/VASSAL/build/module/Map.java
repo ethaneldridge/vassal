@@ -78,6 +78,7 @@ public class Map extends AbstractConfigurable implements GameComponent,
   protected LaunchButton launchButton;
   protected boolean useLaunchButton = false;
   protected String markMovedOption = GlobalOptions.ALWAYS;
+  protected String markUnmovedIcon;
 
   protected MouseListener multicaster = null;
   protected Vector mouseListenerStack = new Vector();
@@ -108,6 +109,7 @@ public class Map extends AbstractConfigurable implements GameComponent,
 
   public static final String NAME = "mapName";
   public static final String MARK_MOVED = "markMoved";
+  public static final String MARK_UNMOVED_ICON = "markUnmovedIcon";
   public static final String EDGE_WIDTH = "edgeWidth";
   public static final String EDGE_HEIGHT = "edgeHeight";
   public static final String HIGHLIGHT_COLOR = "color";
@@ -129,6 +131,9 @@ public class Map extends AbstractConfigurable implements GameComponent,
     }
     else if (MARK_MOVED.equals(key)) {
       markMovedOption = (String) value;
+    }
+    else if (MARK_UNMOVED_ICON.equals(key)) {
+      markUnmovedIcon = (String) value;
     }
     else if ("edge".equals(key)) { // Backward-compatible
       String s = (String) value;
@@ -221,6 +226,9 @@ public class Map extends AbstractConfigurable implements GameComponent,
     }
     else if (MARK_MOVED.equals(key)) {
       return markMovedOption;
+    }
+    else if (MARK_UNMOVED_ICON.equals(key)) {
+      return markUnmovedIcon;
     }
     else if (EDGE_WIDTH.equals(key)) {
       return "" + edgeBuffer.width;
@@ -1519,9 +1527,18 @@ public class Map extends AbstractConfigurable implements GameComponent,
   }
 
   public String[] getAttributeDescriptions() {
-    return new String[]{"Map Name", "Mark pieces that move (if they possess the proper trait)", "Horizontal Padding", "Vertical Padding", "Can contain multiple boards",
-                        "Border color for selected counters", "Border thickness for selected counters",
-                        "Include toolbar button to show/hide", "Toolbar button name", "Toolbar button icon", "Hotkey",
+    return new String[]{"Map Name",
+                        "Mark pieces that move (if they possess the proper trait)",
+                        "\"Mark unmoved\" button icon",
+                        "Horizontal Padding",
+                        "Vertical Padding",
+                        "Can contain multiple boards",
+                        "Border color for selected counters",
+                        "Border thickness for selected counters",
+                        "Include toolbar button to show/hide",
+                        "Toolbar button name",
+                        "Toolbar button icon",
+                        "Hotkey",
                         "Auto-report format for movement within this map",
                         "Auto-report format for movement to this map",
                         "Auto-report format for units created in this map",
@@ -1529,11 +1546,42 @@ public class Map extends AbstractConfigurable implements GameComponent,
   }
 
   public String[] getAttributeNames() {
-    return new String[]{NAME, MARK_MOVED, EDGE_WIDTH, EDGE_HEIGHT, ALLOW_MULTIPLE, HIGHLIGHT_COLOR, HIGHLIGHT_THICKNESS, USE_LAUNCH_BUTTON, BUTTON_NAME, ICON, HOTKEY, MOVE_WITHIN_FORMAT, MOVE_TO_FORMAT, CREATE_FORMAT, CHANGE_FORMAT, SUPPRESS_AUTO};
+    return new String[]{NAME,
+                        MARK_MOVED,
+                        MARK_UNMOVED_ICON,
+                        EDGE_WIDTH,
+                        EDGE_HEIGHT,
+                        ALLOW_MULTIPLE,
+                        HIGHLIGHT_COLOR,
+                        HIGHLIGHT_THICKNESS,
+                        USE_LAUNCH_BUTTON,
+                        BUTTON_NAME,
+                        ICON,
+                        HOTKEY,
+                        MOVE_WITHIN_FORMAT,
+                        MOVE_TO_FORMAT,
+                        CREATE_FORMAT,
+                        CHANGE_FORMAT,
+                        SUPPRESS_AUTO};
   }
 
   public Class[] getAttributeTypes() {
-    return new Class[]{String.class, GlobalOptions.Prompt.class, Integer.class, Integer.class, Boolean.class, Color.class, Integer.class, Boolean.class, String.class, IconConfig.class, KeyStroke.class, MoveWithinFormatConfig.class, MoveToFormatConfig.class, CreateFormatConfig.class, ChangeFormatConfig.class};
+    return new Class[]{String.class,
+                       GlobalOptions.Prompt.class,
+                       UnmovedIconConfig.class,
+                       Integer.class,
+                       Integer.class,
+                       Boolean.class,
+                       Color.class,
+                       Integer.class,
+                       Boolean.class,
+                       String.class,
+                       IconConfig.class,
+                       KeyStroke.class,
+                       MoveWithinFormatConfig.class,
+                       MoveToFormatConfig.class,
+                       CreateFormatConfig.class,
+                       ChangeFormatConfig.class};
   }
 
   public static final String LOCATION = "location";
@@ -1546,6 +1594,12 @@ public class Map extends AbstractConfigurable implements GameComponent,
   public static class IconConfig implements ConfigurerFactory {
     public Configurer getConfigurer(AutoConfigurable c, String key, String name) {
       return new IconConfigurer(key, name, "/images/map.gif");
+    }
+  }
+
+  public static class UnmovedIconConfig implements ConfigurerFactory {
+    public Configurer getConfigurer(AutoConfigurable c, String key, String name) {
+      return new IconConfigurer(key, name, "/images/unmoved.gif");
     }
   }
 

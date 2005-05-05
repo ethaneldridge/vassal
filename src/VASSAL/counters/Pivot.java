@@ -127,8 +127,10 @@ public class Pivot extends Decorator implements EditablePiece {
         if (getMap() != null) {
           Point pos = getPosition();
           pivotPoint(pos, -Math.PI * oldAngle / 180.0, -Math.PI * newAngle / 180.0);
-          pos = getMap().snapTo(pos);
           GamePiece outer = Decorator.getOutermost(this);
+          if (!Boolean.TRUE.equals(outer.getProperty(Properties.IGNORE_GRID))) {
+            pos = getMap().snapTo(pos);
+          }
           outer.setProperty(Properties.MOVED, Boolean.TRUE);
           c = t.getChangeCommand();
           MoveTracker moveTracker = new MoveTracker(outer);

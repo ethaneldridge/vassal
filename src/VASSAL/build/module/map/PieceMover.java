@@ -40,9 +40,8 @@ import VASSAL.counters.Properties;
 import VASSAL.counters.Stack;
 import VASSAL.tools.Sort;
 
-import java.util.*;
-import java.util.List;
 import javax.swing.*;
+import java.awt.*;
 import java.awt.datatransfer.StringSelection;
 import java.awt.dnd.*;
 import java.awt.event.ActionEvent;
@@ -51,9 +50,10 @@ import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.image.BufferedImage;
 import java.awt.image.WritableRaster;
-import java.awt.*;
 import java.io.IOException;
 import java.net.URL;
+import java.util.*;
+import java.util.List;
 
 
 /**
@@ -268,9 +268,18 @@ public class PieceMover extends AbstractBuildable implements
           }
         }
         if (markUnmovedButton.getIcon() == null) {
-          URL icon = getClass().getResource("/images/unmoved.gif");
+          Icon icon = null;
+          try {
+            icon = new ImageIcon(GameModule.getGameModule().getDataArchive().getCachedImage(map.getAttributeValueString(Map.MARK_UNMOVED_ICON)));
+          }
+          catch (IOException e) {
+            URL defaultImage = getClass().getResource("/images/unmoved.gif");
+            if (defaultImage != null) {
+              icon = new ImageIcon(defaultImage);
+            }
+          }
           if (icon != null) {
-            markUnmovedButton.setIcon(new ImageIcon(icon));
+            markUnmovedButton.setIcon(icon);
           }
           else {
             markUnmovedButton.setText("Mark Unmoved");
@@ -484,6 +493,12 @@ public class PieceMover extends AbstractBuildable implements
           || !filter.rejectEvent(e)) {
         selectionProcessor.accept(p);
       }
+      else {
+        DragBuffer.getBuffer().clear();
+      }
+    }
+    else {
+      DragBuffer.getBuffer().clear();
     }
 
 // show/hide selection boxes
