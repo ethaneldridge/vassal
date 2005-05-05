@@ -249,15 +249,6 @@ public class TREmbellishment extends Decorator implements EditablePiece {
     return tracker.getChangeCommand();
   }
 
-  //  private char getMatchingActivationChar(KeyStroke stroke) {
-  //    for (int i = 0; i < activateKey.length(); ++i) {
-  //      if (stroke.equals(KeyStroke.getKeyStroke(activateKey.charAt(i),
-  // activateModifiers))) {
-  //        return activateKey.charAt(i);
-  //      }
-  //    }
-  //    return (char) 0;
-  //  }
   protected Image getCurrentImage() throws java.io.IOException {
     if (value > 0) {
       return GameModule.getGameModule() == null ? null : GameModule.getGameModule().getDataArchive().getCachedImage(
@@ -339,29 +330,6 @@ public class TREmbellishment extends Decorator implements EditablePiece {
 
   public PieceEditor getEditor() {
     return new Ed(this);
-  }
-
-  /**
-   * If the argument GamePiece contains a Layer whose "activate" command matches
-   * the given keystroke, and whose active status matches the boolean argument,
-   * return that Layer
-   */
-  public static TREmbellishment getLayerWithMatchingActivateCommand(GamePiece piece, KeyStroke stroke, boolean active) {
-    for (TREmbellishment layer = (TREmbellishment) Decorator.getDecorator(piece, TREmbellishment.class); layer != null; layer = (TREmbellishment) Decorator
-        .getDecorator(layer.piece, TREmbellishment.class)) {
-      for (int i = 0; i < layer.activateKey.length(); ++i) {
-        if (stroke.equals(KeyStroke.getKeyStroke(layer.activateKey.charAt(i), layer.activateModifiers))) {
-          if (active && layer.isActive()) {
-            return layer;
-          }
-          else if (!active && !layer.isActive()) {
-            return layer;
-          }
-          break;
-        }
-      }
-    }
-    return null;
   }
 
   private static class Ed implements PieceEditor {

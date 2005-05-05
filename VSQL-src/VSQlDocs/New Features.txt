@@ -1,4 +1,4 @@
-Quick Start & New Features -- Jay Yanek -- 7/18/03
+Quick Start & New Features
 For "technical" help:  vsql@wargameacademy.org
 
 
@@ -9,6 +9,8 @@ the VSQL "Help" menu.  We've tried to document many of the new items in the
 module here, but we strongly encourage you to "explore".
 
 -- Stand-alone VSQL
+VSQL is now available in a stand-alone non-networked version packaged with matching 
+VASSAL version 1.9.9.
 
 -- Improved Scenario Info window.
 The remaining ASL specific fields have been removed and the window re-organised
@@ -63,4 +65,4 @@ in the stand-alone version of VSQL. Webstart users will need to download and ins
 separately.
 
 -- Online help updated.
-Your reading it!
+You're reading it!
