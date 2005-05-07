@@ -29,10 +29,11 @@ import javax.swing.JComboBox;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 
+import VASSAL.build.module.map.boardPicker.Board;
+
 import CASL.Map.GameMap;
 import CASL.VASL.VASLThread;
 import VASSAL.build.GameModule;
-import VASSAL.build.module.map.boardPicker.Board;
 import VASSAL.build.module.map.boardPicker.board.HexGrid;
 import VASSAL.configure.BooleanConfigurer;
 import VASSAL.configure.Configurer;

@@ -18,8 +18,8 @@
  */
 package VASL.build.module.map;
 
-import VASSAL.build.module.map.LOS_Thread;
 import VASSAL.build.module.map.boardPicker.Board;
+import VASSAL.build.module.map.LOS_Thread;
 import VASSAL.build.module.map.boardPicker.board.HexGrid;
 
 public class ASLThread extends LOS_Thread {

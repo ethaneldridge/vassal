@@ -19,11 +19,12 @@
 package VASL.build.module.map.boardPicker;
 
 import VASL.build.module.map.ASLBoardPicker;
+import VASSAL.build.module.map.boardPicker.board.MapGrid;
 import VASSAL.build.module.map.boardPicker.Board;
 import VASSAL.build.module.map.boardPicker.BoardSlot;
-import VASSAL.build.module.map.boardPicker.board.MapGrid;
 
 import javax.swing.*;
+
 import java.awt.*;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;

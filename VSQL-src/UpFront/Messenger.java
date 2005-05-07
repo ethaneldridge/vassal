@@ -71,6 +71,7 @@ public class Messenger extends AbstractConfigurable implements ActionListener {
     setAttribute(NAME, "Messenger");
     setAttribute(BUTTON_TEXT, "Messages");
     launch.setToolTipText("Generate Counter Inventory");
+    setConfigureName("Chat Messenger");
   }
 
   public void addTo(Buildable b) {
@@ -104,12 +105,12 @@ public class Messenger extends AbstractConfigurable implements ActionListener {
     return null;
   }
 
-  /**
-   * The name of this Configurable Object
-   */
-  public String getConfigureName() {
-    return "Chat Messenger";
-  }
+//  /**
+//   * The name of this Configurable Object
+//   */
+//  public String getConfigureName() {
+//    return "Chat Messenger";
+//  }
 
   public Class[] getAllowableConfigureComponents() {
     return new Class[0];

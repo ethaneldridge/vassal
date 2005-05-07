@@ -20,7 +20,6 @@ package VASL.build.module.map.boardPicker;
 
 import VASL.build.module.map.boardPicker.board.ASLHexGrid;
 import VASSAL.build.GameModule;
-import VASSAL.build.module.map.boardPicker.Board;
 import VASSAL.build.module.map.boardPicker.board.HexGrid;
 import VASSAL.build.module.map.boardPicker.board.MapGrid;
 import VASSAL.tools.DataArchive;
@@ -31,6 +30,8 @@ import java.io.*;
 import java.util.Enumeration;
 import java.util.StringTokenizer;
 import java.util.Vector;
+
+import VASSAL.build.module.map.boardPicker.Board;
 
 /** A Board is a geomorphic or HASL board.*/
 public class ASLBoard extends Board {
