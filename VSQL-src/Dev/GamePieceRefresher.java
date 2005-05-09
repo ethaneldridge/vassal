@@ -17,7 +17,7 @@
  * http://www.opensource.org.
  */
 
-package VSQL;
+package Dev;
 
 import java.awt.Point;
 import java.awt.event.ActionEvent;
@@ -41,8 +41,9 @@ import VASSAL.counters.GamePiece;
 import VASSAL.counters.Labeler;
 import VASSAL.counters.Stack;
 import VASSAL.tools.LaunchButton;
+import VSQL.VSQLEmbellishment;
 
-public class VSQLGamePieceRefresher extends AbstractConfigurable {
+public class GamePieceRefresher extends AbstractConfigurable {
 
   protected LaunchButton launch;
   protected Map map;
@@ -50,7 +51,7 @@ public class VSQLGamePieceRefresher extends AbstractConfigurable {
   public static final String BUTTON_TEXT = "text";
   public static final String NAME = "name";
 
-  public VSQLGamePieceRefresher() {
+  public GamePieceRefresher() {
     ActionListener refreshAction = new ActionListener() {
       public void actionPerformed(ActionEvent e) {
         refresh();
