@@ -47,9 +47,13 @@ public class GamePieceRefresher extends AbstractConfigurable {
 
   protected LaunchButton launch;
   protected Map map;
+  protected boolean matchLayer = true;
+  protected boolean keepLabels = true;
 
   public static final String BUTTON_TEXT = "text";
   public static final String NAME = "name";
+  public static final String MATCH_LAYER = "matchLayer";
+  public static final String KEEP_LABELS = "keepLabels";
 
   public GamePieceRefresher() {
     ActionListener refreshAction = new ActionListener() {
@@ -65,16 +69,16 @@ public class GamePieceRefresher extends AbstractConfigurable {
   }
 
   public String[] getAttributeNames() {
-    String s[] = { NAME, BUTTON_TEXT };
+    String s[] = { NAME, BUTTON_TEXT, MATCH_LAYER, KEEP_LABELS };
     return s;
   }
 
   public String[] getAttributeDescriptions() {
-    return new String[] { "Name", "Button text" };
+    return new String[] { "Name", "Button text", "Match on first layer image name also?", "Keep Text Labels?" };
   }
 
   public Class[] getAttributeTypes() {
-    return new Class[] { String.class, String.class };
+    return new Class[] { String.class, String.class, Boolean.class, Boolean.class };
   }
 
   public void addTo(Buildable parent) {
@@ -93,6 +97,18 @@ public class GamePieceRefresher extends AbstractConfigurable {
       setConfigureName((String) o);
       launch.setToolTipText((String) o);
     }
+    else if (MATCH_LAYER.equals(key)) {
+      if (o instanceof String) {
+        o = new Boolean((String) o);
+      }
+      matchLayer = ((Boolean) o).booleanValue();
+    }
+    else if (KEEP_LABELS.equals(key)) {
+      if (o instanceof String) {
+        o = new Boolean((String) o);
+      }
+      keepLabels = ((Boolean) o).booleanValue();
+    }
     else {
       launch.setAttribute(key, o);
     }
@@ -101,6 +117,12 @@ public class GamePieceRefresher extends AbstractConfigurable {
   public String getAttributeValueString(String key) {
     if (NAME.equals(key)) {
       return getConfigureName();
+    }
+    else if (MATCH_LAYER.equals(key)) {
+      return matchLayer + "";
+    }
+    else if (KEEP_LABELS.equals(key)) {
+      return keepLabels + "";
     }
     else {
       return launch.getAttributeValueString(key);
