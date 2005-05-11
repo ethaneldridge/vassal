@@ -135,7 +135,11 @@ public class Marker extends Decorator implements EditablePiece {
   }
 
   public String getDescription() {
-    return "Marker";
+    if (keys != null && keys.length > 0 && values.length > 0) {
+      return "Marker - "+keys[0]+" = "+values[0];
+    }
+    else
+      return "Marker";
   }
 
   public VASSAL.build.module.documentation.HelpFile getHelpFile() {

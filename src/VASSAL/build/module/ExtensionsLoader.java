@@ -38,7 +38,7 @@ public class ExtensionsLoader implements CommandEncoder {
   public void addTo(GameModule mod) {
     if ("true".equals(GlobalOptions.getInstance().getAttributeValueString(SPECIFY_DIR_IN_PREFS))) {
       DirectoryConfigurer config = new DirectoryConfigurer(EXTENSION_DIR, "Extensions Directory");
-      config.setValue((Object)null);
+      config.setValue((Object) null);
       GameModule.getGameModule().getPrefs().addOption("Extensions", config);
     }
     mod.addCommandEncoder(this);
@@ -46,7 +46,9 @@ public class ExtensionsLoader implements CommandEncoder {
     if (extensions != null) {
       for (int i = 0; i < extensions.length; ++i) {
         try {
-          new ModuleExtension(new DataArchive(extensions[i])).build();
+          ModuleExtension ext = new ModuleExtension(new DataArchive(extensions[i]));
+          ext.build();
+          GameModule.getGameModule().warn("Extension " + ext.getName() + " v" + ext.getVersion() + " loaded");
         }
         catch (IOException e) {
           reportBuildError(e, extensions[i]);
