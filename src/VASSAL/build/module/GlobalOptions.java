@@ -27,13 +27,17 @@
 package VASSAL.build.module;
 
 import VASSAL.Info;
-import VASSAL.tools.FormattedString;
-import VASSAL.build.*;
+import VASSAL.build.AbstractConfigurable;
+import VASSAL.build.AutoConfigurable;
+import VASSAL.build.Buildable;
+import VASSAL.build.GameModule;
 import VASSAL.build.module.documentation.HelpFile;
 import VASSAL.configure.*;
+import VASSAL.tools.FormattedString;
 
 import java.io.File;
 import java.net.MalformedURLException;
+import java.util.HashMap;
 
 public class GlobalOptions extends AbstractConfigurable {
   public static final String NON_OWNER_UNMASKABLE = "nonOwnerUnmaskable";
@@ -57,6 +61,8 @@ public class GlobalOptions extends AbstractConfigurable {
   private String centerOnMoves = ALWAYS;
   private String autoReport = NEVER;
   private String markMoved = NEVER;
+
+  private java.util.Map properties = new HashMap();
 
   private FormattedString playerIdFormat = new FormattedString("$"+PLAYER_NAME+"$");
 
@@ -149,7 +155,8 @@ public class GlobalOptions extends AbstractConfigurable {
       return playerIdFormat.getFormat();
     }
     else {
-      return null;
+      Object val = properties.get(key);
+      return val != null ? val.toString() : null;
     }
   }
 
@@ -209,6 +216,9 @@ public class GlobalOptions extends AbstractConfigurable {
     }
     else if (PLAYER_ID_FORMAT.equals(key)) {
       playerIdFormat.setFormat((String) value);
+    }
+    else {
+      properties.put(key,value);
     }
   }
 

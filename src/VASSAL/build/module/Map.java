@@ -78,7 +78,7 @@ public class Map extends AbstractConfigurable implements GameComponent,
   protected LaunchButton launchButton;
   protected boolean useLaunchButton = false;
   protected String markMovedOption = GlobalOptions.ALWAYS;
-  protected String markUnmovedIcon;
+  protected String markUnmovedIcon = "/images/unmoved.gif";
 
   protected MouseListener multicaster = null;
   protected Vector mouseListenerStack = new Vector();

@@ -332,6 +332,15 @@ public class Obscurable extends Decorator implements EditablePiece {
         || ObscurableOptions.getInstance().isUnmaskable(obscuredBy);
   }
 
+  public Command keyEvent(KeyStroke stroke) {
+    if (!obscuredToMe()) {
+      return super.keyEvent(stroke);
+    }
+    else {
+      return myKeyEvent(stroke);
+    }
+  }
+
   public Command myKeyEvent(KeyStroke stroke) {
     Command retVal = null;
     myGetKeyCommands();
