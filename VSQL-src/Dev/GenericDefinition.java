@@ -19,82 +19,127 @@
 
 package Dev;
 
+import java.awt.Color;
+
 import VASSAL.build.AbstractConfigurable;
 import VASSAL.build.Buildable;
 import VASSAL.build.module.documentation.HelpFile;
 
 public class GenericDefinition extends AbstractConfigurable {
 
-  /* (non-Javadoc)
-   * @see VASSAL.build.AbstractConfigurable#getAttributeDescriptions()
-   */
+  protected static final String NAME = "name";
+  protected static final String WIDTH = "width";
+  protected static final String HEIGHT = "height";
+  protected static final String BGCOLOR = "bgColor";
+
+  protected int width = 54;
+  private int height = 54;
+  protected String bgColorName;
+  
+  public GenericDefinition() {
+    super();
+    name = "";
+  }
+  
   public String[] getAttributeDescriptions() {
-    // TODO Auto-generated method stub
-    return null;
+    return new String[] {
+        "Name",
+        "Counter Width",
+        "Counter Height",
+        "Background Color"
+    };
   }
 
-  /* (non-Javadoc)
-   * @see VASSAL.build.AbstractConfigurable#getAttributeTypes()
-   */
   public Class[] getAttributeTypes() {
-    // TODO Auto-generated method stub
-    return null;
+    return new Class[] {
+        String.class,
+        Integer.class,
+        Integer.class,
+        String.class
+    };
   }
 
-  /* (non-Javadoc)
-   * @see VASSAL.build.AbstractBuildable#getAttributeNames()
-   */
   public String[] getAttributeNames() {
-    // TODO Auto-generated method stub
-    return null;
+    return new String[] {
+        NAME,
+        WIDTH,
+        HEIGHT,
+        BGCOLOR
+    };
   }
 
-  /* (non-Javadoc)
-   * @see VASSAL.build.AbstractBuildable#setAttribute(java.lang.String, java.lang.Object)
-   */
   public void setAttribute(String key, Object value) {
-    // TODO Auto-generated method stub
-    
+   if (NAME.equals(key)) {
+     setConfigureName((String) value);
+   }
+   else if (WIDTH.equals(key)) {
+     if (value instanceof String) {
+       value = new Integer((String) value);
+     }
+     setWidth(((Integer) value).intValue());
+   }
+   else if (HEIGHT.equals(key)) {
+     if (value instanceof String) {
+       value = new Integer((String) value);
+     }
+     setHeight(((Integer) value).intValue());
+   }
+   else if (BGCOLOR.equals(key)) {
+     bgColorName = (String) value;
+   }
   }
 
-  /* (non-Javadoc)
-   * @see VASSAL.build.AbstractBuildable#getAttributeValueString(java.lang.String)
-   */
   public String getAttributeValueString(String key) {
-    // TODO Auto-generated method stub
-    return null;
+    if (NAME.equals(key)) {
+      return getConfigureName();
+    }
+    else if (WIDTH.equals(key)) {
+      return getWidth() + "";
+    }
+    else if (HEIGHT.equals(key)) {
+      return getHeight() + "";
+    }
+    else if (BGCOLOR.equals(key)) {
+      return bgColorName;
+    }
+    else
+      return null;
   }
 
-  /* (non-Javadoc)
-   * @see VASSAL.build.Configurable#removeFrom(VASSAL.build.Buildable)
-   */
   public void removeFrom(Buildable parent) {
-    // TODO Auto-generated method stub
-    
+ 
   }
 
-  /* (non-Javadoc)
-   * @see VASSAL.build.Configurable#getHelpFile()
-   */
   public HelpFile getHelpFile() {
-    // TODO Auto-generated method stub
     return null;
   }
 
-  /* (non-Javadoc)
-   * @see VASSAL.build.Configurable#getAllowableConfigureComponents()
-   */
   public Class[] getAllowableConfigureComponents() {
-    // TODO Auto-generated method stub
-    return null;
+    return new Class[0];
   }
 
-  /* (non-Javadoc)
-   * @see VASSAL.build.Buildable#addTo(VASSAL.build.Buildable)
-   */
   public void addTo(Buildable parent) {
-    // TODO Auto-generated method stub
-    
+
+  }
+
+  protected void setWidth(int width) {
+    this.width = width;
+  }
+
+  protected int getWidth() {
+    return width;
+  }
+
+  protected void setHeight(int height) {
+    this.height = height;
+  }
+
+  protected int getHeight() {
+    return height;
+  }
+
+  protected Color getBgColor() {
+    return GenericsContainer.getColorByName(bgColorName);
   }
   
 }

@@ -18,6 +18,7 @@
  */
 package Dev;
 
+import java.awt.Color;
 import java.awt.Component;
 import java.awt.Graphics;
 import java.awt.Rectangle;
@@ -49,7 +50,7 @@ public class Generic extends Decorator  implements EditablePiece {
   protected static final String DEFN_NAME = "defnName";
   
   protected String definitionName;
-  protected GenericDefinition def;
+  protected GenericDefinition defn = new GenericDefinition();
   
   
   public Generic() {
@@ -83,18 +84,47 @@ public class Generic extends Decorator  implements EditablePiece {
   }
 
   public void draw(Graphics g, int x, int y, Component obs, double zoom) {
-    // TODO Auto-generated method stub
+    getDefinition();
+    
+    int w = defn.getHeight();
+    int h = defn.getWidth();
+    Color bgColor = defn.getBgColor();
+    
+    int x1 = x - w/2;
+    int y1 = y - h/2;
+    
+    g.setColor(bgColor);
+    g.fillRect(x1, y1, w, h);
+    g.setColor(Color.BLACK);
+    g.drawRect(x1, y1, w, h);
     
   }
 
+  protected void getDefinition() {
+    if (defn == null || defn.getConfigureName().equals("")) {
+      defn = GenericsContainer.getDefinition(definitionName);
+    }
+  }
+  
   public Rectangle boundingBox() {
-    return piece.boundingBox();
+    //Rectangle box = piece.boundingBox();
+    //if (box == null) {
+    int w = defn.getHeight();
+    int h = defn.getWidth();
+      Rectangle box = new Rectangle(-w/2, -h/2, defn.getWidth(), defn.getHeight());
+    //}
+    return box;
   }
 
   public Shape getShape() {
-    return piece.getShape();
+    return boundingBox();
   }
 
+
+  public PieceEditor getEditor() {
+    return new Ed(this);
+  }
+  
   public String getName() {
     return piece.getName();
   }
