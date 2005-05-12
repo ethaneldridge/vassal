@@ -22,8 +22,11 @@ package Dev;
 import java.awt.Color;
 
 import VASSAL.build.AbstractConfigurable;
+import VASSAL.build.AutoConfigurable;
 import VASSAL.build.Buildable;
 import VASSAL.build.module.documentation.HelpFile;
+import VASSAL.configure.Configurer;
+import VASSAL.configure.ConfigurerFactory;
 
 public class GenericDefinition extends AbstractConfigurable {
 
@@ -34,7 +37,7 @@ public class GenericDefinition extends AbstractConfigurable {
 
   protected int width = 54;
   private int height = 54;
-  protected String bgColorName;
+  protected ColorSwatch bgColor = new ColorSwatch();
   
   public GenericDefinition() {
     super();
@@ -55,10 +58,16 @@ public class GenericDefinition extends AbstractConfigurable {
         String.class,
         Integer.class,
         Integer.class,
-        String.class
+        BgColorSwatchConfig.class
     };
   }
 
+  public static class BgColorSwatchConfig implements ConfigurerFactory {
+    public Configurer getConfigurer(AutoConfigurable c, String key, String name) {     
+      return new ColorSwatchConfigurer(key, name, ((GenericDefinition) c).bgColor);
+    }
+  }
+  
   public String[] getAttributeNames() {
     return new String[] {
         NAME,
@@ -85,7 +94,10 @@ public class GenericDefinition extends AbstractConfigurable {
      setHeight(((Integer) value).intValue());
    }
    else if (BGCOLOR.equals(key)) {
-     bgColorName = (String) value;
+     if (value instanceof String) {
+       value = GenericsContainer.getColorSwatch((String) value);
+     }
+     bgColor = (ColorSwatch) value;
    }
   }
 
@@ -100,7 +112,7 @@ public class GenericDefinition extends AbstractConfigurable {
       return getHeight() + "";
     }
     else if (BGCOLOR.equals(key)) {
-      return bgColorName;
+      return bgColor.getConfigureName();
     }
     else
       return null;
@@ -139,7 +151,7 @@ public class GenericDefinition extends AbstractConfigurable {
   }
 
   protected Color getBgColor() {
-    return GenericsContainer.getColorByName(bgColorName);
+    return bgColor.getColor();
   }
   
 }

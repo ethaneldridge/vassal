@@ -24,35 +24,59 @@ import java.awt.Font;
 
 public class StyledFont extends Font {
   
-  protected Color fgColor;
-  protected Color bgColor;
+  protected ColorSwatch fgColor;
+  protected ColorSwatch bgColor;
   
   public StyledFont(String name, int style, int size) {
     super(name, style, size);
-    fgColor = Color.BLACK;
-    bgColor = Color.WHITE;
+    fgColor = GenericsContainer.getColorSwatch(ColorSwatch.BLACK);
+    bgColor = GenericsContainer.getColorSwatch(ColorSwatch.CLEAR);
   }
   
-  public StyledFont(String name, int style, int size, Color fgColor, Color bgColor) {
+  public StyledFont(String name, int style, int size, ColorSwatch fgColor, ColorSwatch bgColor) {
     this(name, style, size);
-    this.setFgColor(fgColor);
-    this.setBgColor(bgColor);
-  }
-
-  protected void setFgColor(Color fgColor) {
     this.fgColor = fgColor;
-  }
-
-  protected Color getFgColor() {
-    return fgColor;
-  }
-
-  protected void setBgColor(Color bgColor) {
     this.bgColor = bgColor;
   }
+  
+  public StyledFont(String name, int style, int size, String fgColor, String bgColor) {
+    this(name, style, size);
+    this.fgColor = GenericsContainer.getColorSwatch(fgColor);
+    this.bgColor = GenericsContainer.getColorSwatch(bgColor);
+  }
+  
+  public StyledFont(Font font, ColorSwatch fgColor, ColorSwatch bgColor) {
+    this(font.getFamily(), font.getStyle(), font.getSize(), fgColor, bgColor);
+  }
+  
+  public StyledFont(Font font, String fgColorName, String bgColorName) {
+    this(font.getFamily(), font.getStyle(), font.getSize(), 
+        GenericsContainer.getColorSwatch(fgColorName), 
+        GenericsContainer.getColorSwatch(bgColorName));
+  }
+
+//  protected void setFgColor(Color fgColor) {
+//    this.fgColor = fgColor;
+//  }
+
+  protected Color getFgColor() {
+    return fgColor.getColor();
+  }
+
+  protected String getFgColorName() {
+    return fgColor.getConfigureName();
+  }
+  
+//  protected void setBgColor(Color bgColor) {
+//    this.bgColor = bgColor;
+//  }
 
   protected Color getBgColor() {
-    return bgColor;
+    return bgColor.getColor();
+  }
+  
+  protected String getBgColorName() {
+    return bgColor.getConfigureName();
   }
 
   protected boolean isBgTransparent() {

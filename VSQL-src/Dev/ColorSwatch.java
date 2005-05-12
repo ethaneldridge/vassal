@@ -34,11 +34,22 @@ public class ColorSwatch extends AbstractConfigurable {
 
   protected static final String NAME = "name";
   protected static final String COLOR = "color";
+  
+  public static final String BLACK = "Black";
+  public static final String WHITE = "White";
+  public static final String CLEAR = "Clear";
+  
   protected Color color;
 
   public ColorSwatch() {
     super();
     name = "";
+    color = Color.WHITE;
+  }
+  
+  public ColorSwatch(String n, Color c) {
+    name = n;
+    color = c;
   }
   
   public Color getColor() {

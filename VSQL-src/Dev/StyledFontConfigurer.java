@@ -18,7 +18,7 @@
  */
 package Dev;
 
-import java.awt.Color;
+import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.GraphicsEnvironment;
 import java.awt.event.ItemEvent;
@@ -31,35 +31,36 @@ import javax.swing.BoxLayout;
 import javax.swing.JComboBox;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.JTextField;
 
 import VASSAL.configure.BooleanConfigurer;
-import VASSAL.configure.ColorConfigurer;
 import VASSAL.configure.Configurer;
 import VASSAL.configure.IntConfigurer;
 import VASSAL.tools.SequenceEncoder;
 
 /**
- * A Configurer for {@link Font} values
+ * A Configurer for {@link Font}values
  */
 public class StyledFontConfigurer extends Configurer {
-  
+
   protected JPanel p;
   protected IntConfigurer size;
   protected BooleanConfigurer bold;
   protected BooleanConfigurer italic;
-  protected ColorConfigurer fgColor;
-  protected ColorConfigurer bgColor;
+  protected ColorSwatchConfigurer fgColor;
+  protected ColorSwatchConfigurer bgColor;
   protected JComboBox family;
+  protected JTextField demo;
 
-  public StyledFontConfigurer (String key, String name) {
+  public StyledFontConfigurer(String key, String name) {
     super(key, name);
   }
 
-  public StyledFontConfigurer (String key, String name, StyledFont f) {
+  public StyledFontConfigurer(String key, String name, StyledFont f) {
     super(key, name);
     setValue(f);
   }
-  
+
   public String getValueString() {
     return encode((StyledFont) value);
   }
@@ -71,11 +72,12 @@ public class StyledFontConfigurer extends Configurer {
   public java.awt.Component getControls() {
     if (p == null) {
       p = new JPanel();
-      
+
       p.setLayout(new BoxLayout(p, BoxLayout.Y_AXIS));
-      p.add(new JLabel(name));
       
       Box box = Box.createHorizontalBox();
+      box.add(new JLabel("Font Family:  "));
+
       family = new JComboBox();
       String[] s = GraphicsEnvironment.getLocalGraphicsEnvironment().getAvailableFontFamilyNames();
       for (int i = 0; i < s.length; ++i) {
@@ -83,10 +85,10 @@ public class StyledFontConfigurer extends Configurer {
       }
       family.setSelectedItem(value == null ? "SansSerif" : (getFontValue().getFamily()));
       box.add(family);
-
-      size = new IntConfigurer(null, "Size", new Integer(getFontValue().getSize()));
-      box.add(size.getControls());
       p.add(box);
+
+      size = new IntConfigurer(null, "Size:  ", new Integer(getFontValue().getSize()));
+      p.add(size.getControls());
 
       box = Box.createHorizontalBox();
       bold = new BooleanConfigurer(null, "Bold", new Boolean(isBold()));
@@ -94,25 +96,33 @@ public class StyledFontConfigurer extends Configurer {
       italic = new BooleanConfigurer(null, "Italic", new Boolean(isItalic()));
       box.add(italic.getControls());
       p.add(box);
-      
+
+      fgColor = new ColorSwatchConfigurer(null, "Font Color:  ", getFontValue().getFgColorName());
+      p.add(fgColor.getControls());
+      bgColor = new ColorSwatchConfigurer(null, "Background Color:  ", getFontValue().getBgColorName());
+      p.add(bgColor.getControls());
+
       box = Box.createHorizontalBox();
-      fgColor = new ColorConfigurer(null, "Font Color", getFontValue().getFgColor());
-      box.add(fgColor.getControls());
-      bgColor = new ColorConfigurer(null, "Background Color", getFontValue().getBgColor());
-      box.add(bgColor.getControls());
+      box.add(new JLabel("Sample:  "));
+      demo = new JTextField("The quick brown fox", 20);
+      demo.setPreferredSize(new Dimension(100, 25));
+      demo.setEditable(false);
+      box.add(demo);
       p.add(box);
       
+      updateValue();
+
       ItemListener l = new ItemListener() {
         public void itemStateChanged(ItemEvent evt) {
           updateValue();
         }
       };
       family.addItemListener(l);
-      
+
       PropertyChangeListener pc = new PropertyChangeListener() {
         public void propertyChange(PropertyChangeEvent evt) {
           updateValue();
-        }   
+        }
       };
       size.addPropertyChangeListener(pc);
       bold.addPropertyChangeListener(pc);
@@ -122,38 +132,43 @@ public class StyledFontConfigurer extends Configurer {
     }
     return p;
   }
-  
+
   protected void updateValue() {
 
-    setValue(new StyledFont(
-        (String) family.getSelectedItem(),
-        Font.PLAIN,
-        Integer.parseInt(size.getValueString()),
-        (Color) fgColor.getValue(),
-        (Color) bgColor.getValue()));
+    int style = Font.PLAIN + 
+       (bold.booleanValue().booleanValue() ? Font.BOLD : 0) + 
+       (italic.booleanValue().booleanValue() ? Font.ITALIC : 0); 
+   
+    Font font = new Font((String) family.getSelectedItem(), style, Integer.parseInt(size.getValueString()));
+
+    setValue(new StyledFont(font, fgColor.getValueColorSwatch(), bgColor.getValueColorSwatch()));
+
+    demo.setFont(font);
+    demo.setBackground(bgColor.getValueColor());
+    demo.setForeground(fgColor.getValueColor());
+    
   }
-  
+
   protected StyledFont getFontValue() {
     return (StyledFont) getValue();
   }
 
   public static StyledFont decode(String s) {
-    SequenceEncoder.Decoder sd = new SequenceEncoder.Decoder(s, '|');
+    SequenceEncoder.Decoder sd = new SequenceEncoder.Decoder(s, ';');
     return new StyledFont(
-        sd.nextToken("Dialog"),
-        sd.nextInt(10),
-        sd.nextInt(Font.PLAIN),
-        sd.nextColor(Color.BLACK),
-        sd.nextColor(null)
-        );
+        sd.nextToken("Dialog"), 
+        sd.nextInt(Font.PLAIN), 
+        sd.nextInt(10), 
+        sd.nextToken(ColorSwatch.BLACK), 
+        sd.nextToken(ColorSwatch.CLEAR));
   }
 
   public static String encode(StyledFont f) {
-    SequenceEncoder se = new SequenceEncoder(f.getName(), '|');
-    se.append(f.getSize());
+    SequenceEncoder se = new SequenceEncoder(f.getName(), ';');
     se.append(f.getStyle());
-    se.append(ColorConfigurer.colorToString(f.getFgColor()));
-    se.append(ColorConfigurer.colorToString(f.getBgColor())+"");
+    se.append(f.getSize());
+    se.append(f.getFgColorName());
+    se.append(f.getBgColorName());
     return se.getValue();
   }
 
@@ -161,15 +176,14 @@ public class StyledFontConfigurer extends Configurer {
     int style = ((StyledFont) getFontValue()).getStyle();
     return style == Font.BOLD || style == (Font.BOLD + Font.ITALIC);
   }
-  
+
   public boolean isItalic() {
     int style = ((StyledFont) getFontValue()).getStyle();
     return style == Font.ITALIC || style == (Font.BOLD + Font.ITALIC);
   }
-  
+
   public boolean isBgTransparent() {
     return ((StyledFont) getFontValue()).getBgColor() == null;
   }
-  
-}
 
+}

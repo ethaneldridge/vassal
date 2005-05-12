@@ -23,28 +23,19 @@
 
 package Dev;
 
-import java.awt.Color;
 import java.awt.Font;
 
 import VASSAL.build.AbstractConfigurable;
 import VASSAL.build.AutoConfigurable;
 import VASSAL.build.Buildable;
 import VASSAL.build.module.documentation.HelpFile;
-import VASSAL.configure.ColorConfigurer;
 import VASSAL.configure.Configurer;
 import VASSAL.configure.ConfigurerFactory;
-import VASSAL.configure.FormattedStringConfigurer;
 
 public class FontStyle extends AbstractConfigurable {
 
   protected static final String NAME = "name";
-  protected static final String FONT = "fontName";
-  protected static final String SIZE = "size";
-  protected static final String BOLD = "bold";
-  protected static final String ITALIC = "italic";
-  protected static final String FG_COLOR = "fgColor";
-  protected static final String BG_TRANSPARENT = "bgTransparent";
-  protected static final String BG_COLOR = "bgColor";
+  protected static final String STYLE = "style";
   
   protected String fontName;
   protected StyledFont font;
@@ -52,12 +43,12 @@ public class FontStyle extends AbstractConfigurable {
   public FontStyle() {
     super();
     name = "";
-    font = new StyledFont("Dialog", Font.PLAIN, 10, Color.BLACK, null);
+    font = new StyledFont("Dialog", Font.PLAIN, 10, ColorSwatch.BLACK, ColorSwatch.CLEAR);
   }
   
   public String[] getAttributeDescriptions() {
     return new String[] { 
-        "Style Name", 
+        "Style Name:  ", 
         "Font Style"};
     
   }
@@ -75,14 +66,14 @@ public class FontStyle extends AbstractConfigurable {
   }
   
   public String[] getAttributeNames() {
-    return new String[] { NAME, FONT };
+    return new String[] { NAME, STYLE };
   }
 
   public void setAttribute(String key, Object o) {
     if (NAME.equals(key)) {
       setConfigureName((String) o);
     }
-    else if (FONT.equals(key)) {
+    else if (STYLE.equals(key)) {
       if (o instanceof String) {
         o = StyledFontConfigurer.decode((String) o);
       }
@@ -95,7 +86,7 @@ public class FontStyle extends AbstractConfigurable {
     if (NAME.equals(key)) {
       return getConfigureName();
     }
-    else if (FONT.equals(key)) {
+    else if (STYLE.equals(key)) {
       return StyledFontConfigurer.encode(font);
     }
     else

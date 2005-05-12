@@ -2,6 +2,8 @@ package Dev;
 
 import java.awt.Color;
 
+import org.w3c.dom.Element;
+
 import VASSAL.build.AbstractConfigurable;
 import VASSAL.build.Buildable;
 import VASSAL.build.GameModule;
@@ -43,12 +45,23 @@ public class GenericsContainer extends AbstractConfigurable {
   
   public GenericsContainer() {
     instance = this;
-    add(new ColorSwatchsContainer());
-    colors.addTo(this);
-    add(new FontStylesContainer());
-    fonts.addTo(this);
-    add(new GenericDefinitionsContainer());
-    definitions.addTo(this);
+  }
+  
+  public void build(Element e) {
+    super.build(e);
+
+    if (colors == null) { 
+      addChild(new ColorSwatchsContainer());
+      colors.build(null);
+    }
+    if (fonts == null) addChild(new FontStylesContainer());
+    if (definitions == null) addChild(new GenericDefinitionsContainer());
+
+  }
+  
+  private void addChild(Buildable b) {
+    add(b);
+    b.addTo(this);
   }
   
   public String[] getAttributeDescriptions() {
@@ -153,7 +166,7 @@ public class GenericsContainer extends AbstractConfigurable {
     return def;
   }
   
-  public static Color getColorByName (String colorName) {
+  public static Color getColor (String colorName) {
     if (instance.colors != null) {
       Color color = (Color) instance.colors.getColorByName(colorName);
       if (color != null) {
@@ -161,5 +174,16 @@ public class GenericsContainer extends AbstractConfigurable {
       }
     }
     return DEFAULT_COLOR;
+  }
+  
+  public static ColorSwatch getColorSwatch(String swatchName) {
+    if (instance.colors != null) {
+      return instance.colors.getColorSwatch(swatchName);
+    }
+    else
+      return null;
+  }
+  public static String[] getColorNames() {
+    return instance.colors.getColorNames();
   }
 }
