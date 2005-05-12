@@ -102,7 +102,7 @@ public class Generic extends Decorator  implements EditablePiece {
 
   protected void getDefinition() {
     if (defn == null || defn.getConfigureName().equals("")) {
-      defn = GenericsContainer.getDefinition(definitionName);
+      defn = GenericsContainer.getDefinitionByName(definitionName);
     }
   }
   

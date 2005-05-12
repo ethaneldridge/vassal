@@ -1,14 +1,9 @@
 package Dev;
 
 import java.awt.Color;
-import java.beans.PropertyChangeEvent;
-import java.beans.PropertyChangeListener;
-import java.util.Enumeration;
-import java.util.HashMap;
 
 import VASSAL.build.AbstractConfigurable;
 import VASSAL.build.Buildable;
-import VASSAL.build.Configurable;
 import VASSAL.build.GameModule;
 import VASSAL.build.module.documentation.HelpFile;
 import VASSAL.configure.Configurer;
@@ -40,10 +35,21 @@ import VASSAL.configure.SingleChildInstance;
 public class GenericsContainer extends AbstractConfigurable {
   
   protected static GenericsContainer instance;
-  protected HashMap definitions = new HashMap();
-  protected HashMap colors = new HashMap();
-
+  protected GenericDefinitionsContainer definitions;
+  protected ColorSwatchsContainer colors;
+  protected FontStylesContainer fonts;
+  
   protected static final Color DEFAULT_COLOR  = Color.WHITE;
+  
+  public GenericsContainer() {
+    instance = this;
+    add(new ColorSwatchsContainer());
+    colors.addTo(this);
+    add(new FontStylesContainer());
+    fonts.addTo(this);
+    add(new GenericDefinitionsContainer());
+    definitions.addTo(this);
+  }
   
   public String[] getAttributeDescriptions() {
     return new String[0];
@@ -73,7 +79,10 @@ public class GenericsContainer extends AbstractConfigurable {
   }
 
   public Class[] getAllowableConfigureComponents() {
-    return new Class[]{GenericDefinition.class, GenericColor.class};
+    return new Class[] {
+        GenericDefinitionsContainer.class, 
+        ColorSwatchsContainer.class,
+        FontStylesContainer.class};
   }
 
   public static String getConfigureTypeName() {
@@ -82,40 +91,28 @@ public class GenericsContainer extends AbstractConfigurable {
 
   public void add(Buildable b) {
     super.add(b);
-    if (b instanceof GenericDefinition) {
-      GenericDefinition def = (GenericDefinition) b;
-      definitions.put(def.getConfigureName(), def);
-      def.addPropertyChangeListener(new PropertyChangeListener() {
-        public void propertyChange(PropertyChangeEvent evt) {
-          if (Configurable.NAME_PROPERTY.equals(evt.getPropertyName())) {
-            definitions.remove(evt.getOldValue());
-            definitions.put(evt.getNewValue(), evt.getSource());
-          }
-        }
-      });
+    if (b instanceof GenericDefinitionsContainer) {
+      definitions = (GenericDefinitionsContainer) b;
     }
-    else if (b instanceof GenericColor) {
-      GenericColor def = (GenericColor) b;
-        colors.put(def.getConfigureName(), def);
-        def.addPropertyChangeListener(new PropertyChangeListener() {
-          public void propertyChange(PropertyChangeEvent evt) {
-            if (Configurable.NAME_PROPERTY.equals(evt.getPropertyName())) {
-              colors.remove(evt.getOldValue());
-              colors.put(evt.getNewValue(), evt.getSource());
-            }
-          }
-        });
+    else if (b instanceof ColorSwatchsContainer) {
+      colors = (ColorSwatchsContainer) b;
     }
+    else if (b instanceof FontStylesContainer) {
+      fonts = (FontStylesContainer) b;
+    }    
   }
 
   public void remove(Buildable b) {
     super.remove(b);
-    if (b instanceof GenericDefinition) {
-      definitions.remove(((GenericDefinition) b).getConfigureName()); 
+    if (b instanceof GenericDefinitionsContainer) {
+      definitions = null;
     }
-    else if (b instanceof GenericColor) {
-      colors.remove(((GenericColor) b).getConfigureName());
+    else if (b instanceof ColorSwatchsContainer) {
+      colors = null;
     }
+    else if (b instanceof FontStylesContainer) {
+      fonts = null;
+    }  
   }
   
   public HelpFile getHelpFile() {
@@ -125,13 +122,12 @@ public class GenericsContainer extends AbstractConfigurable {
   public void removeFrom(Buildable parent) {
   }
 
-  public static GenericDefinition getDefinition(String name) {
+  public static GenericDefinition getDefinitionByName(String name) {
     
     GenericDefinition def = null;
     
-    setInstance();
-    if (instance != null) {
-        def = (GenericDefinition) instance.definitions.get(name);
+    if (instance.definitions != null) {
+        def = (GenericDefinition) instance.definitions.getDefinition(name);
     }
     
     if (def == null) {
@@ -140,30 +136,28 @@ public class GenericsContainer extends AbstractConfigurable {
     
     return def;
   }
-  
-  public static void setInstance() {
-    if (instance == null) {
-      Enumeration e = GameModule.getGameModule().getComponents(GenericsContainer.class);
-      if (e.hasMoreElements()) {
-        instance = (GenericsContainer) e.nextElement();
-      }
+
+
+  public static FontStyle getFontStyleByName(String name) {
+    
+    FontStyle def = null;
+    
+    if (instance.fonts != null) {
+        def = (FontStyle) instance.fonts.getFontStyle(name);
     }
+    
+    if (def == null) {
+      def = new FontStyle();
+    }
+    
+    return def;
   }
   
-  
-  /**
-   * Find a named color swatch
-   */
-  
   public static Color getColorByName (String colorName) {
-    setInstance();
-    if (instance != null) {
-      GenericColor gcolor = (GenericColor) instance.colors.get(colorName);
-      if (gcolor != null) {
-        Color color = gcolor.getColor();
-        if (color != null) {
+    if (instance.colors != null) {
+      Color color = (Color) instance.colors.getColorByName(colorName);
+      if (color != null) {
           return color;
-        }
       }
     }
     return DEFAULT_COLOR;
