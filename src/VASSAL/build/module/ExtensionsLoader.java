@@ -91,7 +91,7 @@ public class ExtensionsLoader implements CommandEncoder {
 
   private String[] getExtensionNames() {
     String dirName = getExtensionDirectory();
-    File dir = new File(new File(GameModule.getGameModule().getDataArchive().getName()).getParent(), dirName);
+    File dir = new File(dirName);
     String[] s = dir.list();
     if (s == null) {
       s = new String[0];
@@ -108,7 +108,7 @@ public class ExtensionsLoader implements CommandEncoder {
       dirName = GameModule.getGameModule().getPrefs().getOption(EXTENSION_DIR).getValueString();
     }
     else {
-      dirName = new File(GameModule.getGameModule().getDataArchive().getName()).getName();
+      dirName = new File(GameModule.getGameModule().getDataArchive().getName()).getPath();
       int index = dirName.lastIndexOf('.');
       if (index > 0) {
         dirName = dirName.substring(0, index);
