@@ -461,7 +461,7 @@ public class PieceMover extends AbstractBuildable implements
         comm = comm.append(map.getStackMetrics().merge(mergeWith, dragging));
       }
     }
-    Command report = new MovementReporter(comm).getReportCommand();
+    Command report = createMovementReporter(comm).getReportCommand();
     report.execute();
     comm = comm.append(report);
     return comm;

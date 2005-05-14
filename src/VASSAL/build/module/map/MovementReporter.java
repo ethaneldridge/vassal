@@ -25,10 +25,7 @@ import VASSAL.command.AddPiece;
 import VASSAL.command.Command;
 import VASSAL.command.MovePiece;
 import VASSAL.command.NullCommand;
-import VASSAL.counters.GamePiece;
-import VASSAL.counters.Obscurable;
-import VASSAL.counters.Hideable;
-import VASSAL.counters.Stack;
+import VASSAL.counters.*;
 import VASSAL.tools.FormattedString;
 import VASSAL.tools.PlayerIdFormattedString;
 
@@ -51,19 +48,25 @@ public class MovementReporter {
 
   private void extractMoveCommands(Command c) {
     MoveSummary summary = null;
-    if (c instanceof AddPiece
-      && !(((AddPiece)c).getTarget() instanceof Stack)) {
-      summary = new MoveSummary((AddPiece)c);
+    if (c instanceof AddPiece) {
+      AddPiece addPiece = ((AddPiece) c);
+      if (shouldReport(addPiece)) {
+        summary = new MoveSummary(addPiece);
+      }
     }
     else if (c instanceof MovePiece) {
-      summary = new MoveSummary((MovePiece)c);
+      MovePiece movePiece = (MovePiece) c;
+      if (shouldReport(movePiece)) {
+        summary = new MoveSummary(movePiece);
+      }
     }
     if (summary != null) {
       int index = moves.indexOf(summary);
       if (index >= 0
-          && c instanceof MovePiece) {
+          && c instanceof MovePiece
+          && shouldReport((MovePiece) c)) {
         MoveSummary existing = (MoveSummary) moves.get(index);
-        existing.append((MovePiece)c);
+        existing.append((MovePiece) c);
       }
       else {
         moves.add(summary);
@@ -72,6 +75,34 @@ public class MovementReporter {
     Command[] sub = c.getSubCommands();
     for (int i = 0; i < sub.length; i++) {
       extractMoveCommands(sub[i]);
+    }
+  }
+
+  protected boolean shouldReport(AddPiece addPiece) {
+    GamePiece target = addPiece.getTarget();
+    if (target != null
+        && !(target instanceof Stack)
+        && !Boolean.TRUE.equals(target.getProperty(Properties.INVISIBLE_TO_ME))
+        && !Boolean.TRUE.equals(target.getProperty(Properties.INVISIBLE_TO_OTHERS))) {
+      return true;
+    }
+    else {
+      return false;
+    }
+  }
+
+  protected boolean shouldReport(MovePiece movePiece) {
+    GamePiece target = GameModule.getGameModule().getGameState().getPieceForId(movePiece.getId());
+    if (target == null) {
+      return false;
+    }
+    if (target instanceof Stack) {
+      GamePiece top = ((Stack)target).topPiece(null);
+      return top != null;
+    }
+    else {
+      return !Boolean.TRUE.equals(target.getProperty(Properties.INVISIBLE_TO_ME))
+      && !Boolean.TRUE.equals(target.getProperty(Properties.INVISIBLE_TO_OTHERS));
     }
   }
 
@@ -122,9 +153,10 @@ public class MovementReporter {
     private List pieces = new ArrayList();
 
     public MoveSummary(AddPiece c) {
-      newMapId = c.getTarget().getMap().getConfigureName();
-      newPosition = c.getTarget().getPosition();
-      pieces.add(c.getTarget());
+      GamePiece target = c.getTarget();
+      newMapId = target.getMap().getConfigureName();
+      newPosition = target.getPosition();
+      pieces.add(target);
     }
 
     public MoveSummary(MovePiece c) {
