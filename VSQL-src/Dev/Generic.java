@@ -50,7 +50,7 @@ public class Generic extends Decorator  implements EditablePiece {
   protected static final String DEFN_NAME = "defnName";
   
   protected String definitionName;
-  protected GenericDefinition defn = new GenericDefinition();
+  protected CounterLayout defn = new CounterLayout();
   
   
   public Generic() {

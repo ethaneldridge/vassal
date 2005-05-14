@@ -33,6 +33,7 @@ import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.JPanel;
 import javax.swing.ListCellRenderer;
+import javax.swing.SwingConstants;
 
 import VASSAL.configure.ColorConfigurer;
 import VASSAL.configure.Configurer;
@@ -112,7 +113,7 @@ public class ColorSwatchConfigurer extends Configurer {
 
     swatches.addItemListener(l);
 
-    ComboBoxRenderer renderer = new ComboBoxRenderer();
+    SwatchRenderer renderer = new SwatchRenderer();
     swatches.setRenderer(renderer);
 
   }
@@ -137,11 +138,11 @@ public class ColorSwatchConfigurer extends Configurer {
     return se.getValue();
   }
 
-  class ComboBoxRenderer extends JLabel implements ListCellRenderer {
+  class SwatchRenderer extends JLabel implements ListCellRenderer {
 
-    public ComboBoxRenderer() {
+    public SwatchRenderer() {
       setOpaque(true);
-      setHorizontalAlignment(CENTER);
+      setHorizontalAlignment(LEFT);
       setVerticalAlignment(CENTER);
     }
 
@@ -165,10 +166,12 @@ public class ColorSwatchConfigurer extends Configurer {
 
       //Set the icon and text. If icon was null, say so.
       //String name = (String) list.get
-      BufferedImage bi = new BufferedImage(20, 10, BufferedImage.TYPE_INT_RGB);
+      BufferedImage bi = new BufferedImage(25, 12, BufferedImage.TYPE_INT_RGB);
       Graphics g = bi.getGraphics();
       g.setColor(swatch.getColor());
-      g.fillRect(0, 0, 20, 10);
+      g.fillRect(0, 0, 25, 12);
+      g.setColor(Color.black);
+      g.drawRect(0, 0, 24, 11);
       ImageIcon icon = new ImageIcon(bi);
       
       setIcon(icon);

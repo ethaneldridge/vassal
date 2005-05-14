@@ -33,14 +33,14 @@ import VASSAL.configure.SingleChildInstance;
 
 /**
  * Container for definitions of Generic Counter Definitions.
- * Actual definition is in inner class {@link VASSAL.build.module.GenericDefinition}
+ * Actual definition is in inner class {@link VASSAL.build.module.CounterLayout}
  */
-public class GenericDefinitionsContainer extends AbstractConfigurable {
+public class CounterLayoutsContainer extends AbstractConfigurable {
   
   protected HashMap definitions = new HashMap();
   
-  protected GenericDefinition getDefinition(String name) {
-    return (GenericDefinition) definitions.get(name);
+  protected CounterLayout getDefinition(String name) {
+    return (CounterLayout) definitions.get(name);
   }
   
   public String[] getAttributeDescriptions() {
@@ -71,17 +71,17 @@ public class GenericDefinitionsContainer extends AbstractConfigurable {
   }
 
   public Class[] getAllowableConfigureComponents() {
-    return new Class[]{GenericDefinition.class};
+    return new Class[]{CounterLayout.class};
   }
 
   public static String getConfigureTypeName() {
-    return "Generic Counter Definitions";
+    return "Layouts";
   }
 
   public void add(Buildable b) {
     super.add(b);
-    if (b instanceof GenericDefinition) {
-      GenericDefinition def = (GenericDefinition) b;
+    if (b instanceof CounterLayout) {
+      CounterLayout def = (CounterLayout) b;
       definitions.put(def.getConfigureName(), def);
       def.addPropertyChangeListener(new PropertyChangeListener() {
         public void propertyChange(PropertyChangeEvent evt) {
@@ -96,8 +96,8 @@ public class GenericDefinitionsContainer extends AbstractConfigurable {
 
   public void remove(Buildable b) {
     super.remove(b);
-    if (b instanceof GenericDefinition) {
-      definitions.remove(((GenericDefinition) b).getConfigureName()); 
+    if (b instanceof CounterLayout) {
+      definitions.remove(((CounterLayout) b).getConfigureName()); 
     }
   }
   

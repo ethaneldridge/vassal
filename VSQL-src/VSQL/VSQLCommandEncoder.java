@@ -69,9 +69,6 @@ public class VSQLCommandEncoder extends ASLCommandEncoder {
     else if (type.startsWith(TrackRotator.ID)) {
       return new TrackRotator(type, inner);
     }
-    else if (type.startsWith(PLConcealable.ID)) {
-      return new PLConcealable(type, inner);
-    }
     else {
       return super.createDecorator(type, inner);
     }

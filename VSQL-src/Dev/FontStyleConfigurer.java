@@ -18,9 +18,9 @@
  */
 package Dev;
 
-import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.GraphicsEnvironment;
+import java.awt.Window;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.beans.PropertyChangeEvent;
@@ -32,6 +32,7 @@ import javax.swing.JComboBox;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
+import javax.swing.SwingUtilities;
 
 import VASSAL.configure.BooleanConfigurer;
 import VASSAL.configure.Configurer;
@@ -41,28 +42,26 @@ import VASSAL.tools.SequenceEncoder;
 /**
  * A Configurer for {@link Font}values
  */
-public class StyledFontConfigurer extends Configurer {
+public class FontStyleConfigurer extends Configurer {
 
   protected JPanel p;
   protected IntConfigurer size;
   protected BooleanConfigurer bold;
   protected BooleanConfigurer italic;
-  protected ColorSwatchConfigurer fgColor;
-  protected ColorSwatchConfigurer bgColor;
   protected JComboBox family;
   protected JTextField demo;
 
-  public StyledFontConfigurer(String key, String name) {
+  public FontStyleConfigurer(String key, String name) {
     super(key, name);
   }
 
-  public StyledFontConfigurer(String key, String name, StyledFont f) {
+  public FontStyleConfigurer(String key, String name, Font f) {
     super(key, name);
     setValue(f);
   }
 
   public String getValueString() {
-    return encode((StyledFont) value);
+    return encode((Font) value);
   }
 
   public void setValue(String s) {
@@ -97,15 +96,9 @@ public class StyledFontConfigurer extends Configurer {
       box.add(italic.getControls());
       p.add(box);
 
-      fgColor = new ColorSwatchConfigurer(null, "Font Color:  ", getFontValue().getFgColorName());
-      p.add(fgColor.getControls());
-      bgColor = new ColorSwatchConfigurer(null, "Background Color:  ", getFontValue().getBgColorName());
-      p.add(bgColor.getControls());
-
       box = Box.createHorizontalBox();
       box.add(new JLabel("Sample:  "));
       demo = new JTextField("The quick brown fox", 20);
-      demo.setPreferredSize(new Dimension(100, 25));
       demo.setEditable(false);
       box.add(demo);
       p.add(box);
@@ -127,8 +120,6 @@ public class StyledFontConfigurer extends Configurer {
       size.addPropertyChangeListener(pc);
       bold.addPropertyChangeListener(pc);
       italic.addPropertyChangeListener(pc);
-      fgColor.addPropertyChangeListener(pc);
-      bgColor.addPropertyChangeListener(pc);
     }
     return p;
   }
@@ -141,49 +132,44 @@ public class StyledFontConfigurer extends Configurer {
    
     Font font = new Font((String) family.getSelectedItem(), style, Integer.parseInt(size.getValueString()));
 
-    setValue(new StyledFont(font, fgColor.getValueColorSwatch(), bgColor.getValueColorSwatch()));
+    setValue(font);
 
     demo.setFont(font);
-    demo.setBackground(bgColor.getValueColor());
-    demo.setForeground(fgColor.getValueColor());
+    
+    Window w = SwingUtilities.getWindowAncestor(getControls());
+    if (w != null) {
+      w.pack();
+    }
     
   }
 
-  protected StyledFont getFontValue() {
-    return (StyledFont) getValue();
+  protected Font getFontValue() {
+    return (Font) getValue();
   }
 
-  public static StyledFont decode(String s) {
+  public static Font decode(String s) {
     SequenceEncoder.Decoder sd = new SequenceEncoder.Decoder(s, ';');
-    return new StyledFont(
+    return new Font(
         sd.nextToken("Dialog"), 
         sd.nextInt(Font.PLAIN), 
-        sd.nextInt(10), 
-        sd.nextToken(ColorSwatch.BLACK), 
-        sd.nextToken(ColorSwatch.CLEAR));
+        sd.nextInt(10));
   }
 
-  public static String encode(StyledFont f) {
+  public static String encode(Font f) {
     SequenceEncoder se = new SequenceEncoder(f.getName(), ';');
     se.append(f.getStyle());
     se.append(f.getSize());
-    se.append(f.getFgColorName());
-    se.append(f.getBgColorName());
     return se.getValue();
   }
 
   public boolean isBold() {
-    int style = ((StyledFont) getFontValue()).getStyle();
+    int style = (getFontValue()).getStyle();
     return style == Font.BOLD || style == (Font.BOLD + Font.ITALIC);
   }
 
   public boolean isItalic() {
-    int style = ((StyledFont) getFontValue()).getStyle();
+    int style = (getFontValue()).getStyle();
     return style == Font.ITALIC || style == (Font.BOLD + Font.ITALIC);
-  }
-
-  public boolean isBgTransparent() {
-    return ((StyledFont) getFontValue()).getBgColor() == null;
   }
 
 }

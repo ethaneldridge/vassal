@@ -77,7 +77,7 @@ public class FontStylesContainer extends AbstractConfigurable {
   }
 
   public static String getConfigureTypeName() {
-    return "Font Style Definitions";
+    return "Font Styles";
   }
 
   public void add(Buildable b) {
