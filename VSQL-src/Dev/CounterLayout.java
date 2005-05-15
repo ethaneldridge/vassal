@@ -127,7 +127,7 @@ public class CounterLayout extends AbstractConfigurable {
   }
 
   public Class[] getAllowableConfigureComponents() {
-    return new Class[0];
+    return new Class[] { TextItem.class };
   }
 
   public void addTo(Buildable parent) {
@@ -172,7 +172,6 @@ public class CounterLayout extends AbstractConfigurable {
   }
 
   public void build(Element e) {
-    
     super.build(e);
   }
 
@@ -244,7 +243,7 @@ public class CounterLayout extends AbstractConfigurable {
         itemDispPanel = new JPanel();
         itemDispPanel.setBorder(BorderFactory.createLineBorder(Color.black));
         
-        itemDispPanel.add(((Item) defn.items.get(0)).getConfigurer().getControls());
+        //itemDispPanel.add(((Item) defn.items.get(0)).getConfigurer().getControls());
         panel.add(itemDispPanel);
         
         visualiserPanel = new JPanel();

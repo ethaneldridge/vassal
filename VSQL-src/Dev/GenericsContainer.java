@@ -183,7 +183,20 @@ public class GenericsContainer extends AbstractConfigurable {
     else
       return null;
   }
+  
   public static String[] getColorNames() {
     return instance.colors.getColorNames();
+  }
+  
+  public static FontStyle getStyledFont(String fontName) {
+    if (instance.fonts != null) {
+      return instance.fonts.getFontStyle(fontName);
+    }
+    else
+      return null;
+  }
+  
+  public static String[] getFontNames() {
+    return instance.fonts.getFontNames();
   }
 }

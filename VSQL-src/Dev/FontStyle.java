@@ -37,13 +37,18 @@ public class FontStyle extends AbstractConfigurable {
   protected static final String NAME = "name";
   protected static final String STYLE = "style";
   
-  protected String fontName;
   protected Font font;
-
+  
   public FontStyle() {
     super();
-    name = "";
+    setConfigureName("");
     font = new Font("Dialog", Font.PLAIN, 10);
+  }
+  
+  public FontStyle(String name, Font f) {
+    super();
+    setConfigureName(name);
+    font = f;
   }
   
   public Font getFont() {
@@ -53,7 +58,7 @@ public class FontStyle extends AbstractConfigurable {
   public String[] getAttributeDescriptions() {
     return new String[] { 
         "Style Name:  ", 
-        "Font Style"};
+        "Font Style:  "};
     
   }
 
@@ -65,7 +70,7 @@ public class FontStyle extends AbstractConfigurable {
 
   public static class FontStyleConfig implements ConfigurerFactory {
     public Configurer getConfigurer(AutoConfigurable c, String key, String name) {     
-      return new FontStyleConfigurer(key, name, ((FontStyle) c).font);
+      return new FontConfigurer(key, name, ((FontStyle) c).font);
     }
   }
   
@@ -79,7 +84,7 @@ public class FontStyle extends AbstractConfigurable {
     }
     else if (STYLE.equals(key)) {
       if (o instanceof String) {
-        o = FontStyleConfigurer.decode((String) o);
+        o = FontConfigurer.decode((String) o);
       }
       font = (Font) o;
     }
@@ -91,7 +96,7 @@ public class FontStyle extends AbstractConfigurable {
       return getConfigureName();
     }
     else if (STYLE.equals(key)) {
-      return FontStyleConfigurer.encode(font);
+      return FontConfigurer.encode(font);
     }
     else
       return null;

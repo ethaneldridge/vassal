@@ -4,6 +4,7 @@ import java.awt.Font;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.util.HashMap;
+import java.util.Iterator;
 
 import VASSAL.build.AbstractConfigurable;
 import VASSAL.build.Buildable;
@@ -122,4 +123,15 @@ public class FontStylesContainer extends AbstractConfigurable {
 //      }
 //    return DEFAULT_FONT;
 //  }
+  
+  public String[] getFontNames() {
+    String[] names = new String[fontStyles.size()];
+    Iterator i = fontStyles.values().iterator();
+    int j = 0;
+    while (i.hasNext()) {
+      names[j++] = ((FontStyle) i.next()).getConfigureName();
+    }
+    return names;
+  }
+  
 }

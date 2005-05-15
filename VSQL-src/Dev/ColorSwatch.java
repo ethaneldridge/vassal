@@ -48,6 +48,7 @@ public class ColorSwatch extends AbstractConfigurable {
   }
   
   public ColorSwatch(String n, Color c) {
+    this();
     name = n;
     color = c;
   }
@@ -57,13 +58,13 @@ public class ColorSwatch extends AbstractConfigurable {
   }
   
   public String[] getAttributeDescriptions() {
-    return new String[] { "Color Name", "Color"};
+    return new String[] { "Color Name:  ", "Color:  "};
   }
 
   public Class[] getAttributeTypes() {
-    return new Class[] { String.class, Color.class };
+    return new Class[] { String.class, Color.class};
   }
-
+  
   public String[] getAttributeNames() {
     return new String[] { NAME, COLOR };
   }
@@ -106,6 +107,18 @@ public class ColorSwatch extends AbstractConfigurable {
 
   public void addTo(Buildable parent) {
 
+  }
+  
+  public static ColorSwatch getBlack() {
+    return new ColorSwatch(BLACK, Color.BLACK);
+  }
+  
+  public static ColorSwatch getWhite() {
+    return new ColorSwatch(WHITE, Color.WHITE);
+  }
+  
+  public static ColorSwatch getClear() {
+    return new ColorSwatch(CLEAR, null);
   }
   
 }
