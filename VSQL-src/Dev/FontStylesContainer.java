@@ -6,6 +6,8 @@ import java.beans.PropertyChangeListener;
 import java.util.HashMap;
 import java.util.Iterator;
 
+import org.w3c.dom.Element;
+
 import VASSAL.build.AbstractConfigurable;
 import VASSAL.build.Buildable;
 import VASSAL.build.Configurable;
@@ -37,15 +39,29 @@ import VASSAL.configure.SingleChildInstance;
  * Container for definitions of Generic Color Definitions
  */
 public class FontStylesContainer extends AbstractConfigurable {
-  
+
   protected HashMap fontStyles = new HashMap();
 
+  protected static final String DEFAULT = "Default";
   protected static final Font DEFAULT_FONT = new Font("Dialog", Font.PLAIN, 12);
-  
+
+  public void build(Element e) {
+    super.build(e);
+
+    if (fontStyles.get(DEFAULT) == null) {
+      addChild(new FontStyle(DEFAULT, DEFAULT_FONT));
+    }
+  }
+
+  private void addChild(Buildable b) {
+    add(b);
+    b.addTo(this);
+  }
+
   protected FontStyle getFontStyle(String name) {
     return (FontStyle) fontStyles.get(name);
   }
-  
+
   public String[] getAttributeDescriptions() {
     return new String[0];
   }
@@ -70,11 +86,11 @@ public class FontStylesContainer extends AbstractConfigurable {
   }
 
   public void addTo(Buildable parent) {
-    validator = new SingleChildInstance(GameModule.getGameModule(),getClass());
+    validator = new SingleChildInstance(GameModule.getGameModule(), getClass());
   }
 
   public Class[] getAllowableConfigureComponents() {
-    return new Class[]{FontStyle.class};
+    return new Class[] { FontStyle.class };
   }
 
   public static String getConfigureTypeName() {
@@ -83,17 +99,17 @@ public class FontStylesContainer extends AbstractConfigurable {
 
   public void add(Buildable b) {
     super.add(b);
-   if (b instanceof FontStyle) {
-     FontStyle def = (FontStyle) b;
-        fontStyles.put(def.getConfigureName(), def);
-        def.addPropertyChangeListener(new PropertyChangeListener() {
-          public void propertyChange(PropertyChangeEvent evt) {
-            if (Configurable.NAME_PROPERTY.equals(evt.getPropertyName())) {
-              fontStyles.remove(evt.getOldValue());
-              fontStyles.put(evt.getNewValue(), evt.getSource());
-            }
+    if (b instanceof FontStyle) {
+      FontStyle def = (FontStyle) b;
+      fontStyles.put(def.getConfigureName(), def);
+      def.addPropertyChangeListener(new PropertyChangeListener() {
+        public void propertyChange(PropertyChangeEvent evt) {
+          if (Configurable.NAME_PROPERTY.equals(evt.getPropertyName())) {
+            fontStyles.remove(evt.getOldValue());
+            fontStyles.put(evt.getNewValue(), evt.getSource());
           }
-        });
+        }
+      });
     }
   }
 
@@ -103,7 +119,7 @@ public class FontStylesContainer extends AbstractConfigurable {
       fontStyles.remove(((ColorSwatch) b).getConfigureName());
     }
   }
-  
+
   public HelpFile getHelpFile() {
     return null;
   }
@@ -111,19 +127,18 @@ public class FontStylesContainer extends AbstractConfigurable {
   public void removeFrom(Buildable parent) {
   }
 
-  
-//  public Font getFontByName (String colorName) {
-//
-//      GenericFontStyle gfont = (GenericFontStyle) fontStyles.get(colorName);
-//      if (gfont != null) {
-//        Font font = gfont.getFont();
-//        if (font != null) {
-//          return font;
-//        }
-//      }
-//    return DEFAULT_FONT;
-//  }
-  
+  //  public Font getFontByName (String colorName) {
+  //
+  //      GenericFontStyle gfont = (GenericFontStyle) fontStyles.get(colorName);
+  //      if (gfont != null) {
+  //        Font font = gfont.getFont();
+  //        if (font != null) {
+  //          return font;
+  //        }
+  //      }
+  //    return DEFAULT_FONT;
+  //  }
+
   public String[] getFontNames() {
     String[] names = new String[fontStyles.size()];
     Iterator i = fontStyles.values().iterator();
@@ -133,5 +148,5 @@ public class FontStylesContainer extends AbstractConfigurable {
     }
     return names;
   }
-  
+
 }

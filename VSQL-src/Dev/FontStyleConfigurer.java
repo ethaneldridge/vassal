@@ -18,7 +18,6 @@
  */
 package Dev;
 
-import java.awt.Component;
 import java.awt.Font;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
@@ -27,9 +26,7 @@ import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.JComboBox;
 import javax.swing.JLabel;
-import javax.swing.JList;
 import javax.swing.JPanel;
-import javax.swing.ListCellRenderer;
 
 import VASSAL.configure.Configurer;
 import VASSAL.tools.SequenceEncoder;
@@ -49,9 +46,9 @@ public class FontStyleConfigurer extends Configurer {
     setValue(fontStyle);
   }
 
-//  public FontStyleConfigurer(String key, String name, String fontName) {
-//    this(key, name, GenericsContainer.getStyledFont(fontName));
-//  }
+  public FontStyleConfigurer(String key, String name, String styleName) {
+    this(key, name, GenericsContainer.getFontStyleByName(styleName));
+  }
 
   public String getValueString() {
     return (String) value;
@@ -61,7 +58,7 @@ public class FontStyleConfigurer extends Configurer {
     return ((FontStyle) value).getFont();
   }
 
-  public FontStyle getValueStyledFont() {
+  public FontStyle getValueFontStyle() {
     return (FontStyle) value;
   }
 
@@ -74,12 +71,12 @@ public class FontStyleConfigurer extends Configurer {
 
       Box box = Box.createHorizontalBox();
       box.add(new JLabel(name));
-      buildFonts();
 
       box.add(fontPanel);
       p.add(box);
 
     }
+    buildFonts();
     return p;
   }
 
@@ -94,10 +91,10 @@ public class FontStyleConfigurer extends Configurer {
 
     fonts = new JComboBox();
     String[] s = GenericsContainer.getFontNames();
-    for (int i = 0; i < s.length; ++i) {
+    for (int i = 0; i < s.length; i++) {
       fonts.addItem(s[i]);
     }
-    fonts.setSelectedItem(value == null ? "White" : ((FontStyle) value).getConfigureName());
+    fonts.setSelectedItem(value == null ? "Default" : ((FontStyle) value).getConfigureName());
     fontPanel.add(fonts);
 
     ItemListener l = new ItemListener() {
@@ -108,9 +105,6 @@ public class FontStyleConfigurer extends Configurer {
 
     fonts.addItemListener(l);
 
-    FontRenderer renderer = new FontRenderer();
-    fonts.setRenderer(renderer);
-
   }
 
   protected void updateValue() {
@@ -118,13 +112,13 @@ public class FontStyleConfigurer extends Configurer {
   }
 
   public void setValue(String s) {
-    setValue(decode(s));
+    setValue(GenericsContainer.getFontStyleByName(s));
     buildFonts();
   }
 
   public static FontStyle decode(String s) {
     SequenceEncoder.Decoder sd = new SequenceEncoder.Decoder(s, '|');
-    return new FontStyle(sd.nextToken(""), FontConfigurer.decode(sd.nextToken("")));
+    return new FontStyle(sd.nextToken("Default"), FontConfigurer.decode(sd.nextToken("")));
   }
 
   public static String encode(FontStyle f) {
@@ -132,52 +126,4 @@ public class FontStyleConfigurer extends Configurer {
     se.append(FontConfigurer.encode(f.getFont()));
     return se.getValue();
   }
-
-  class FontRenderer extends JLabel implements ListCellRenderer {
-
-    public FontRenderer() {
-      setOpaque(true);
-      setHorizontalAlignment(LEFT);
-      setVerticalAlignment(CENTER);
-    }
-
-    /*
-     * This method finds the image and text corresponding to the selected value
-     * and returns the label, set up to display the text and image.
-     */
-    public Component getListCellRendererComponent(JList list, Object value, int index, boolean isSelected,
-        boolean cellHasFocus) {
-
-      FontStyle fontStyle = GenericsContainer.getFontStyleByName((String) value);
-      
-      //ColorSwatch swatch = GenericsContainer.getColorSwatch((String) value);
-
-      if (isSelected) {
-        setBackground(list.getSelectionBackground());
-        setForeground(list.getSelectionForeground());
-      }
-      else {
-        setBackground(list.getBackground());
-        setForeground(list.getForeground());
-      }
-
-      //Set the icon and text. If icon was null, say so.
-      //String name = (String) list.get
-//      BufferedImage bi = new BufferedImage(25, 12, BufferedImage.TYPE_INT_RGB);
-//      Graphics g = bi.getGraphics();
-//      g.setColor(swatch.getColor());
-//      g.fillRect(0, 0, 25, 12);
-//      g.setColor(Color.black);
-//      g.drawRect(0, 0, 24, 11);
-//      ImageIcon icon = new ImageIcon(bi);
-      
-      //setIcon(icon);
-      setText((String) value);
-      setFont(fontStyle.getFont());
-
-      return this;
-    }
-
-  }
-
 }

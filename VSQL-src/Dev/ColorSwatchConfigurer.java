@@ -122,7 +122,7 @@ public class ColorSwatchConfigurer extends Configurer {
   }
 
   public void setValue(String s) {
-    setValue(decode(s));
+    setValue(GenericsContainer.getColorSwatch(s));
     buildSwatches();
   }
 

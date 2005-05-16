@@ -19,10 +19,17 @@
 
 package Dev;
 
+import java.awt.Color;
+import java.awt.Font;
+import java.awt.Graphics;
+import java.awt.Point;
+import java.util.Properties;
+
 import VASSAL.build.AutoConfigurable;
 import VASSAL.configure.Configurer;
 import VASSAL.configure.ConfigurerFactory;
 import VASSAL.configure.StringEnum;
+import VASSAL.counters.Labeler;
 
 public class TextItem extends Item {
 
@@ -42,9 +49,9 @@ public class TextItem extends Item {
     String a[] = new String[] { "Font style:  ", "Rotation (Degrees):  ", "Alignment:  " };
     String b[] = super.getAttributeDescriptions();
     String c[] = new String[a.length + b.length];
-    c[0] = b[0];
-    System.arraycopy(a, 0, c, 1, a.length);
-    System.arraycopy(b, 1, c, a.length+1, b.length-1);
+    System.arraycopy(b, 0, c, 0, 3);
+    System.arraycopy(a, 0, c, 3, a.length);
+    System.arraycopy(b, 3, c, a.length+3, b.length-3);
     return c;
   }
 
@@ -52,9 +59,9 @@ public class TextItem extends Item {
     Class a[] = new Class[] { FontStyleConfig.class, Integer.class, AlignConfig.class };
     Class b[] = super.getAttributeTypes();
     Class c[] = new Class[a.length + b.length];
-    c[0] = b[0];
-    System.arraycopy(a, 0, c, 1, a.length);
-    System.arraycopy(b, 1, c, a.length+1, b.length-1);
+    System.arraycopy(b, 0, c, 0, 3);
+    System.arraycopy(a, 0, c, 3, a.length);
+    System.arraycopy(b, 3, c, a.length+3, b.length-3);
     return c;
   }
 
@@ -62,9 +69,9 @@ public class TextItem extends Item {
     String a[] = new String[] { FONT, ROTATION, ALIGN };
     String b[] = super.getAttributeNames();
     String c[] = new String[a.length + b.length];
-    c[0] = b[0];
-    System.arraycopy(a, 0, c, 1, a.length);
-    System.arraycopy(b, 1, c, a.length+1, b.length-1);
+    System.arraycopy(b, 0, c, 0, 3);
+    System.arraycopy(a, 0, c, 3, a.length);
+    System.arraycopy(b, 3, c, a.length+3, b.length-3);
     return c;
   }
   public static class FontStyleConfig implements ConfigurerFactory {
@@ -88,7 +95,7 @@ public class TextItem extends Item {
     }
     else if (ROTATION.equals(key)) {
       if (o instanceof String) {
-        o = Integer.getInteger((String) o);
+        o = new Integer((String) o);
       }
       rotation = ((Integer) o).intValue();
     }
@@ -116,4 +123,22 @@ public class TextItem extends Item {
     }
   }
 
+  public void draw(Graphics g, Properties p) {
+    Font f = fontStyle.getFont();
+    Color fg = fgColor.getColor();
+    Color bg = bgColor.getColor();
+    int align = Labeler.CENTER;
+    if (alignment == LEFT) {
+      align = Labeler.LEFT;
+    }
+    else if (alignment == RIGHT) {
+      align = Labeler.RIGHT;
+    }
+    Point pos = CounterLayout.getPosition(location, layout);
+    int x = pos.x + xoffset;
+    int y = pos.y + yoffset;
+    String s = p.getProperty(this.getConfigureName());
+    Labeler.drawLabel(g, s, x, y, f, align, Labeler.CENTER, fg, bg, null, rotation);
+  }
+  
 }

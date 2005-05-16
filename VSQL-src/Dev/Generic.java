@@ -86,8 +86,8 @@ public class Generic extends Decorator  implements EditablePiece {
   public void draw(Graphics g, int x, int y, Component obs, double zoom) {
     getDefinition();
     
-    int w = defn.getHeight();
-    int h = defn.getWidth();
+    int w = defn.getLayoutHeight();
+    int h = defn.getLayoutWidth();
     Color bgColor = defn.getBgColor();
     
     int x1 = x - w/2;
@@ -109,9 +109,9 @@ public class Generic extends Decorator  implements EditablePiece {
   public Rectangle boundingBox() {
     //Rectangle box = piece.boundingBox();
     //if (box == null) {
-    int w = defn.getHeight();
-    int h = defn.getWidth();
-      Rectangle box = new Rectangle(-w/2, -h/2, defn.getWidth(), defn.getHeight());
+    int w = defn.getLayoutHeight();
+    int h = defn.getLayoutWidth();
+      Rectangle box = new Rectangle(-w/2, -h/2, defn.getLayoutWidth(), defn.getLayoutHeight());
     //}
     return box;
   }

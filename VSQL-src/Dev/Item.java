@@ -1,10 +1,25 @@
 /*
- * Created on 14/05/2005
+ * $Id$
  * 
- * TODO To change the template for this generated file go to Window -
- * Preferences - Java - Code Style - Code Templates
+ * Copyright (c) 2005 by Rodney Kinney, Brent Easton
+ * 
+ * This library is free software; you can redistribute it and/or modify it under
+ * the terms of the GNU Library General Public License (LGPL) as published by
+ * the Free Software Foundation.
+ * 
+ * This library is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU Library General Public License for more
+ * details.
+ * 
+ * You should have received a copy of the GNU Library General Public License
+ * along with this library; if not, copies are available at
+ * http://www.opensource.org.
  */
 package Dev;
+
+import java.awt.Graphics;
+import java.util.Properties;
 
 import VASSAL.build.AbstractConfigurable;
 import VASSAL.build.AutoConfigurable;
@@ -15,6 +30,11 @@ import VASSAL.configure.ConfigurerFactory;
 import VASSAL.configure.IconConfigurer;
 import VASSAL.configure.StringEnum;
 import VASSAL.configure.VisibilityCondition;
+
+/**
+ * 
+ * The base portion of a Counter Layout component.
+ */
 
 public abstract class Item extends AbstractConfigurable {
 
@@ -28,23 +48,16 @@ public abstract class Item extends AbstractConfigurable {
   protected static final String BORDER_COLOR = "borderColor";
   protected static final String BORDER_WIDTH = "borderWidth";
 
-  protected static final String N = "Top";
-  protected static final String S = "Bottom";
-  protected static final String E = "Right";
-  protected static final String W = "Left";
-  protected static final String NE = "Top Right";
-  protected static final String NW = "Top Left";
-  protected static final String SE = "Bottom Right";
-  protected static final String SW = "Bottom Left";
-  protected static final String CENTER = "Center";
-
-  protected String type, location;
+  protected String type;
+  String location = CounterLayout.CENTER;
   protected int xoffset, yoffset;
   double borderWidth = 0.0f;
   protected ColorSwatch bgColor = ColorSwatch.getClear();
   protected ColorSwatch fgColor = ColorSwatch.getBlack();
   protected ColorSwatch borderColor = ColorSwatch.getBlack();
   protected boolean advanced = false;
+  
+  protected CounterLayout layout;
 
   public Item() {
     super();
@@ -57,24 +70,15 @@ public abstract class Item extends AbstractConfigurable {
   }
 
   public String[] getAttributeDescriptions() {
-    return new String[] { "Name:  ", 
-        "Location:  ", 
-        "Background Color:  ", "Foreground Color:  ",
-        "Advanced Options",
-        "X Offset:  ", "Y Offset:  ", 
-        "Border Width:  ", "Border Color:  " };
+    return new String[] { "Name:  ", "Location:  ", "Color:  ", "Advanced Options", "Background Color:  ",
+        "X Offset:  ", "Y Offset:  ", "Border Width:  ", "Border Color:  " };
 
   }
 
   public Class[] getAttributeTypes() {
-    return new Class[] { String.class, 
-        LocationConfig.class, 
-        BgColorConfig.class, FgColorConfig.class, 
-        Boolean.class,
-        Integer.class, Integer.class,
-        Double.class, BorderColorConfig.class };
+    return new Class[] { String.class, LocationConfig.class, FgColorConfig.class, Boolean.class, BgColorConfig.class,
+        Integer.class, Integer.class, Double.class, BorderColorConfig.class };
   }
-
 
   public static class IconConfig implements ConfigurerFactory {
     public Configurer getConfigurer(AutoConfigurable c, String key, String name) {
@@ -84,7 +88,7 @@ public abstract class Item extends AbstractConfigurable {
 
   public static class LocationConfig extends StringEnum {
     public String[] getValidValues(AutoConfigurable target) {
-      return new String[] { CENTER, N, S, E, W, NE, NW, SE, SW };
+      return CounterLayout.LOCATIONS;
     }
   }
 
@@ -107,12 +111,7 @@ public abstract class Item extends AbstractConfigurable {
   }
 
   public String[] getAttributeNames() {
-    return new String[] { NAME,  
-        LOCATION, 
-        BG_COLOR, FG_COLOR, 
-        ADVANCED,
-        X_OFFSET, Y_OFFSET,
-        BORDER_WIDTH, BORDER_COLOR };
+    return new String[] { NAME, LOCATION, FG_COLOR, ADVANCED, BG_COLOR, X_OFFSET, Y_OFFSET, BORDER_WIDTH, BORDER_COLOR };
   }
 
   public void setAttribute(String key, Object o) {
@@ -124,13 +123,13 @@ public abstract class Item extends AbstractConfigurable {
     }
     else if (X_OFFSET.equals(key)) {
       if (o instanceof String) {
-        o = Integer.getInteger((String) o);
+        o = new Integer((String) o);
       }
       xoffset = ((Integer) o).intValue();
     }
     else if (Y_OFFSET.equals(key)) {
       if (o instanceof String) {
-        o = Integer.getInteger((String) o);
+        o = new Integer((String) o);
       }
       yoffset = ((Integer) o).intValue();
     }
@@ -212,7 +211,7 @@ public abstract class Item extends AbstractConfigurable {
   }
 
   public void addTo(Buildable parent) {
-
+    layout = (CounterLayout) parent;
   }
 
   private VisibilityCondition borderCond = new VisibilityCondition() {
@@ -220,21 +219,27 @@ public abstract class Item extends AbstractConfigurable {
       return advanced && (borderWidth > 0.0f);
     }
   };
-  
+
   private VisibilityCondition advancedCond = new VisibilityCondition() {
     public boolean shouldBeVisible() {
       return advanced;
     }
   };
 
-public VisibilityCondition getAttributeVisibility(String name) {
+  public VisibilityCondition getAttributeVisibility(String name) {
     if (BORDER_COLOR.equals(name)) {
       return borderCond;
     }
-    else if (BORDER_WIDTH.equals(name) || X_OFFSET.equals(name) || Y_OFFSET.equals(name)) {
+    else if (BORDER_WIDTH.equals(name) || BG_COLOR.equals(name) || X_OFFSET.equals(name) || Y_OFFSET.equals(name)) {
       return advancedCond;
     }
     else {
       return null;
     }
-  }}
+  }
+  
+  /**
+   * Implement by subclass to draw itself.
+   */
+  public abstract void draw(Graphics g, Properties p);
+}
