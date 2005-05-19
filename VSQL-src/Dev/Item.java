@@ -18,7 +18,9 @@
  */
 package Dev;
 
+import java.awt.Color;
 import java.awt.Graphics;
+import java.awt.Point;
 import java.util.Properties;
 
 import VASSAL.build.AbstractConfigurable;
@@ -43,6 +45,7 @@ public abstract class Item extends AbstractConfigurable {
   protected static final String BG_COLOR = "bgColor";
   protected static final String FG_COLOR = "fgColor";
   protected static final String ADVANCED = "advanced";
+  protected static final String ROTATION = "rotation";
   protected static final String X_OFFSET = "xoffset";
   protected static final String Y_OFFSET = "yoffset";
   protected static final String BORDER_COLOR = "borderColor";
@@ -56,7 +59,8 @@ public abstract class Item extends AbstractConfigurable {
   protected ColorSwatch fgColor = ColorSwatch.getBlack();
   protected ColorSwatch borderColor = ColorSwatch.getBlack();
   protected boolean advanced = false;
-  
+  protected int rotation = 0;
+
   protected CounterLayout layout;
 
   public Item() {
@@ -71,13 +75,13 @@ public abstract class Item extends AbstractConfigurable {
 
   public String[] getAttributeDescriptions() {
     return new String[] { "Name:  ", "Location:  ", "Color:  ", "Advanced Options", "Background Color:  ",
-        "X Offset:  ", "Y Offset:  ", "Border Width:  ", "Border Color:  " };
+        "X Offset:  ", "Y Offset:  ", "Rotation (Degrees):  ", "Border Width:  ", "Border Color:  " };
 
   }
 
   public Class[] getAttributeTypes() {
     return new Class[] { String.class, LocationConfig.class, FgColorConfig.class, Boolean.class, BgColorConfig.class,
-        Integer.class, Integer.class, Double.class, BorderColorConfig.class };
+        Integer.class, Integer.class, Integer.class, Double.class, BorderColorConfig.class };
   }
 
   public static class IconConfig implements ConfigurerFactory {
@@ -111,7 +115,8 @@ public abstract class Item extends AbstractConfigurable {
   }
 
   public String[] getAttributeNames() {
-    return new String[] { NAME, LOCATION, FG_COLOR, ADVANCED, BG_COLOR, X_OFFSET, Y_OFFSET, BORDER_WIDTH, BORDER_COLOR };
+    return new String[] { NAME, LOCATION, FG_COLOR, ADVANCED, BG_COLOR, X_OFFSET, Y_OFFSET, ROTATION, BORDER_WIDTH,
+        BORDER_COLOR };
   }
 
   public void setAttribute(String key, Object o) {
@@ -151,6 +156,12 @@ public abstract class Item extends AbstractConfigurable {
       }
       advanced = ((Boolean) o).booleanValue();
     }
+    else if (ROTATION.equals(key)) {
+      if (o instanceof String) {
+        o = new Integer((String) o);
+      }
+      rotation = ((Integer) o).intValue();
+    }
     else if (BORDER_WIDTH.equals(key)) {
       if (o instanceof String) {
         o = new Double(Double.parseDouble((String) o));
@@ -187,6 +198,9 @@ public abstract class Item extends AbstractConfigurable {
     }
     else if (ADVANCED.equals(key)) {
       return advanced + "";
+    }
+    else if (ROTATION.equals(key)) {
+      return rotation + "";
     }
     else if (BORDER_WIDTH.equals(key)) {
       return borderWidth + "";
@@ -230,16 +244,67 @@ public abstract class Item extends AbstractConfigurable {
     if (BORDER_COLOR.equals(name)) {
       return borderCond;
     }
-    else if (BORDER_WIDTH.equals(name) || BG_COLOR.equals(name) || X_OFFSET.equals(name) || Y_OFFSET.equals(name)) {
+    else if (BORDER_WIDTH.equals(name) || BG_COLOR.equals(name) || ROTATION.equals(name) || X_OFFSET.equals(name)
+        || Y_OFFSET.equals(name)) {
       return advancedCond;
     }
     else {
       return null;
     }
   }
-  
+
   /**
    * Implement by subclass to draw itself.
    */
   public abstract void draw(Graphics g, Properties p);
+
+  public String getLocation() {
+    return location;
+  }
+
+  public int getXoffset() {
+    return xoffset;
+  }
+
+  public int getYoffset() {
+    return yoffset;
+  }
+
+  public String getBgColorName() {
+    return bgColor.getConfigureName();
+  }
+
+  public Color getBgColor() {
+    return bgColor.getColor();
+  }
+  
+  public String getFgColorName() {
+    return fgColor.getConfigureName();
+  }
+  
+  public Color getFgColor() {
+    return fgColor.getColor();
+  }
+
+  public int getRotation() {
+    return rotation;
+  }
+
+  public double getborderWidth() {
+    return borderWidth;
+  }
+
+  public String getBorderColorName() {
+    return borderColor.getConfigureName();
+  }
+  
+  protected Point getOrigin() {
+    Point p = CounterLayout.getPosition(getLocation(), layout);
+    p.translate(getXoffset(), getYoffset());
+    return p;
+  }
+  
+  protected CounterLayout getLayout() {
+    return layout;
+  }
 }

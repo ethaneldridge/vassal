@@ -25,7 +25,6 @@ import VASL.counters.Concealment;
 import VASSAL.build.Buildable;
 import VASSAL.build.GameModule;
 import VASSAL.build.module.Map;
-import VASSAL.build.module.map.PieceMover;
 import VASSAL.command.Command;
 import VASSAL.command.NullCommand;
 import VASSAL.counters.*;

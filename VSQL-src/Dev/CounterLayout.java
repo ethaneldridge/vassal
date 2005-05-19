@@ -177,7 +177,7 @@ public class CounterLayout extends AbstractConfigurable {
   }
 
   public Class[] getAllowableConfigureComponents() {
-    return new Class[] { TextItem.class };
+    return new Class[] { TextItem.class, SymbolItem.class };
   }
 
   public void addTo(Buildable parent) {

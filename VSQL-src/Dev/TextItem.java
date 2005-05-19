@@ -22,7 +22,9 @@ package Dev;
 import java.awt.Color;
 import java.awt.Font;
 import java.awt.Graphics;
+import java.awt.Graphics2D;
 import java.awt.Point;
+import java.awt.RenderingHints;
 import java.util.Properties;
 
 import VASSAL.build.AutoConfigurable;
@@ -34,7 +36,6 @@ import VASSAL.counters.Labeler;
 public class TextItem extends Item {
 
   protected static final String FONT = "font";
-  protected static final String ROTATION = "rotation";
   protected static final String ALIGN = "align";
 
   protected static final String LEFT = "left";
@@ -42,11 +43,10 @@ public class TextItem extends Item {
   protected static final String RIGHT = "right";
 
   protected FontStyle fontStyle = new FontStyle();
-  protected int rotation;
   protected String alignment = CENTER;
 
   public String[] getAttributeDescriptions() {
-    String a[] = new String[] { "Font style:  ", "Rotation (Degrees):  ", "Alignment:  " };
+    String a[] = new String[] { "Font style:  ", "Alignment:  " };
     String b[] = super.getAttributeDescriptions();
     String c[] = new String[a.length + b.length];
     System.arraycopy(b, 0, c, 0, 3);
@@ -56,7 +56,7 @@ public class TextItem extends Item {
   }
 
   public Class[] getAttributeTypes() {
-    Class a[] = new Class[] { FontStyleConfig.class, Integer.class, AlignConfig.class };
+    Class a[] = new Class[] { FontStyleConfig.class, AlignConfig.class };
     Class b[] = super.getAttributeTypes();
     Class c[] = new Class[a.length + b.length];
     System.arraycopy(b, 0, c, 0, 3);
@@ -66,7 +66,7 @@ public class TextItem extends Item {
   }
 
   public String[] getAttributeNames() {
-    String a[] = new String[] { FONT, ROTATION, ALIGN };
+    String a[] = new String[] { FONT, ALIGN };
     String b[] = super.getAttributeNames();
     String c[] = new String[a.length + b.length];
     System.arraycopy(b, 0, c, 0, 3);
@@ -93,12 +93,6 @@ public class TextItem extends Item {
       }
       fontStyle = (FontStyle) o;
     }
-    else if (ROTATION.equals(key)) {
-      if (o instanceof String) {
-        o = new Integer((String) o);
-      }
-      rotation = ((Integer) o).intValue();
-    }
     else if (ALIGN.equals(key)) {
       alignment = (String) o;
     }
@@ -112,9 +106,6 @@ public class TextItem extends Item {
     if (FONT.equals(key)) {
       return fontStyle.getConfigureName();
     }
-    else if (ROTATION.equals(key)) {
-      return rotation + "";
-    }
     else if (ALIGN.equals(key)) {
       return alignment;
     }
@@ -125,8 +116,9 @@ public class TextItem extends Item {
 
   public void draw(Graphics g, Properties p) {
     Font f = fontStyle.getFont();
-    Color fg = fgColor.getColor();
-    Color bg = bgColor.getColor();
+    Color fg = getFgColor();
+    Color bg = getBgColor();
+    
     int align = Labeler.CENTER;
     if (alignment == LEFT) {
       align = Labeler.LEFT;
@@ -134,11 +126,12 @@ public class TextItem extends Item {
     else if (alignment == RIGHT) {
       align = Labeler.RIGHT;
     }
-    Point pos = CounterLayout.getPosition(location, layout);
-    int x = pos.x + xoffset;
-    int y = pos.y + yoffset;
+    
+    Point origin = getOrigin();
     String s = p.getProperty(this.getConfigureName());
-    Labeler.drawLabel(g, s, x, y, f, align, Labeler.CENTER, fg, bg, null, rotation);
+    
+    ((Graphics2D) g).setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING,RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
+    Labeler.drawLabel(g, s, origin.x, origin.y, f, align, Labeler.CENTER, fg, bg, null, getRotation());
   }
   
 }

@@ -44,7 +44,7 @@ public class ColorSwatch extends AbstractConfigurable {
   public ColorSwatch() {
     super();
     name = "";
-    color = Color.WHITE;
+    color = null;
   }
   
   public ColorSwatch(String n, Color c) {

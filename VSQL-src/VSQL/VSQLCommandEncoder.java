@@ -19,6 +19,7 @@
 package VSQL;
 
 import VASL.build.module.ASLCommandEncoder;
+import VASL.counters.Concealable;
 import VASL.counters.Concealment;
 import VASL.counters.TextInfo;
 import VASSAL.build.Buildable;
@@ -62,6 +63,9 @@ public class VSQLCommandEncoder extends ASLCommandEncoder {
     }
     else if (type.startsWith(Concealment.ID)) {
       return new VSQLConcealment(type, inner);
+    }
+    else if (type.startsWith(Concealable.ID)) {
+      return new VSQLConcealable(type, inner);
     }
     else if (type.startsWith(TextInfo.ID)) {
       return new VSQLTextInfo(type, inner);
