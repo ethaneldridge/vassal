@@ -19,8 +19,16 @@
  
  package VSQL;
 
+import javax.swing.KeyStroke;
+
+import VASSAL.build.GameModule;
+import VASSAL.command.ChangeTracker;
+import VASSAL.command.Command;
+import VASSAL.counters.Decorator;
 import VASSAL.counters.GamePiece;
 import VASSAL.counters.Hideable;
+import VASSAL.counters.KeyCommand;
+import VASSAL.counters.Properties;
  
  public class VSQLHideable extends Hideable {
    
@@ -32,6 +40,9 @@ import VASSAL.counters.Hideable;
      super(type, p);
    }
    
+   /*
+    * Don't return a position name if hidden 
+    */
    public Object getProperty(Object key) {
      if ("Location".equals(key)) {
        if (invisibleToMe() || invisibleToOthers()) {
@@ -45,5 +56,38 @@ import VASSAL.counters.Hideable;
        return super.getProperty(key);
      }
    }
+   
+   /*
+    * If this unit is concealed, then do not display or enact the HIP command
+    * For compatibility vsql 2.5.8 to 3.0
+    */
+   public KeyCommand[] myGetKeyCommands() {
+
+     if (obscuredToMe()) {
+       return new KeyCommand[0];
+     }
+     else {
+       return super.myGetKeyCommands();
+     }
+   }
+   
+   public Command myKeyEvent(KeyStroke stroke) {
+     if (obscuredToMe()) {
+       return null;
+     }
+     else {
+       return super.myKeyEvent(stroke);
+     }
+   }
+   
+   protected boolean obscuredToMe() {
+     return ((Boolean) Decorator.getOutermost(this).getProperty(Properties.OBSCURED_TO_ME)).booleanValue();
+   }
+   
+//   public Command keyEvent(KeyStroke stroke) {
+//     Command c = myKeyEvent(stroke);
+//     return c == null ? piece.keyEvent(stroke)
+//       : c.append(piece.keyEvent(stroke));
+//   }
    
  }

@@ -1,20 +1,20 @@
 /*
  * $Id$
- *
+ * 
  * Copyright (c) 2000-2003 by Rodney Kinney
- *
- * This library is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Library General Public
- * License (LGPL) as published by the Free Software Foundation.
- *
- * This library is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * Library General Public License for more details.
- *
- * You should have received a copy of the GNU Library General Public
- * License along with this library; if not, copies are available
- * at http://www.opensource.org.
+ * 
+ * This library is free software; you can redistribute it and/or modify it under
+ * the terms of the GNU Library General Public License (LGPL) as published by
+ * the Free Software Foundation.
+ * 
+ * This library is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU Library General Public License for more
+ * details.
+ * 
+ * You should have received a copy of the GNU Library General Public License
+ * along with this library; if not, copies are available at
+ * http://www.opensource.org.
  */
 package VASL.counters;
 
@@ -64,10 +64,7 @@ public class Concealable extends Obscurable implements EditablePiece {
   }
 
   public String myGetType() {
-    String s = ID +
-        obscureKey + ";" +
-        imageName + ";" +
-        nation;
+    String s = ID + obscureKey + ";" + imageName + ";" + nation;
     if (nation2 != null) {
       s += ";" + nation2;
     }
@@ -91,8 +88,7 @@ public class Concealable extends Obscurable implements EditablePiece {
     piece.draw(g, x, y, obs, zoom);
     int size = (int) (zoom * imageSize.width);
     try {
-      g.drawImage(concealedToOthers,
-                  x - size / 2, y - size / 2, size, size, obs);
+      g.drawImage(concealedToOthers, x - size / 2, y - size / 2, size, size, obs);
     }
     catch (Exception e) {
     }
@@ -101,18 +97,14 @@ public class Concealable extends Obscurable implements EditablePiece {
   public Command myKeyEvent(KeyStroke stroke) {
     myGetKeyCommands();
     Command c = null;
-    if (commands[0].matches(stroke)
-        && getMap() != null
-        && !obscuredToOthers()
-        && !obscuredToMe()) {
+    if (commands[0].matches(stroke) && getMap() != null && !obscuredToOthers() && !obscuredToMe()) {
       c = super.myKeyEvent(stroke);
       boolean concealmentExists = false;
       GamePiece outer = Decorator.getOutermost(this);
       if (getParent() != null) {
-        for (int i = getParent().indexOf(outer),j = getParent().getPieceCount(); i < j; ++i) {
+        for (int i = getParent().indexOf(outer), j = getParent().getPieceCount(); i < j; ++i) {
           Concealment conceal = (Concealment) Decorator.getDecorator(getParent().getPieceAt(i), Concealment.class);
-          if (conceal != null
-              && conceal.canConceal(outer)) {
+          if (conceal != null && conceal.canConceal(outer)) {
             concealmentExists = true;
             break;
           }
@@ -121,42 +113,47 @@ public class Concealable extends Obscurable implements EditablePiece {
       if (!concealmentExists) {
         GamePiece concealOuter = createConcealment();
         Concealment conceal = (Concealment) Decorator.getDecorator(concealOuter, Concealment.class);
-        c.append
-            (getMap().getStackMetrics().merge
-             (outer, concealOuter));
-        for (int i = 0,j = getParent().indexOf(outer);
-             i < j; ++i) {
+        c.append(getMap().getStackMetrics().merge(outer, concealOuter));
+        for (int i = 0, j = getParent().indexOf(outer); i < j; ++i) {
           c.append(conceal.setConcealed(getParent().getPieceAt(i), true));
         }
       }
     }
     else {
-      c = super.myKeyEvent(stroke);
+      if (!obscuredToMe()) {
+        c = super.myKeyEvent(stroke);
+      }
     }
     return c;
   }
 
   public Command keyEvent(javax.swing.KeyStroke stroke) {
-    Stack parent = getParent();
-    if (parent != null) {
-      int lastIndex = getParent().indexOf(Decorator.getOutermost(this));
-      Command c = super.keyEvent(stroke);
-      if (getParent() != null) {
-        int newIndex = getParent().indexOf(Decorator.getOutermost(this));
-        if (newIndex != lastIndex) {
-          c.append(adjustConcealment());
+    if (!obscuredToMe()) {
+      Stack parent = getParent();
+      if (parent != null) {
+        int lastIndex = getParent().indexOf(Decorator.getOutermost(this));
+        Command c = super.keyEvent(stroke);
+        if (getParent() != null) {
+          int newIndex = getParent().indexOf(Decorator.getOutermost(this));
+          if (newIndex != lastIndex) {
+            c.append(adjustConcealment());
+          }
         }
+        return c;
       }
-      return c;
+      else {
+        return super.keyEvent(stroke);
+      }
     }
     else {
-      return super.keyEvent(stroke);
+      return myKeyEvent(stroke);
     }
+
   }
 
   /**
-   * Conceal/unconceal this unit according to whether a concealment
-   * counter is on top of it in a stack
+   * Conceal/unconceal this unit according to whether a concealment counter is
+   * on top of it in a stack
    */
   public Command adjustConcealment() {
     if (isMaskableBy(GameModule.getUserId())) {
@@ -164,7 +161,7 @@ public class Concealable extends Obscurable implements EditablePiece {
       String state = outer.getState();
       setProperty(Properties.OBSCURED_BY, null);
       if (getParent() != null) {
-        for (int i = getParent().indexOf(outer),j = getParent().getPieceCount(); i < j; ++i) {
+        for (int i = getParent().indexOf(outer), j = getParent().getPieceCount(); i < j; ++i) {
           Concealment p = (Concealment) Decorator.getDecorator(getParent().getPieceAt(i), Concealment.class);
           if (p != null && p.canConceal(this)) {
             setProperty(Properties.OBSCURED_BY, GameModule.getUserId());
@@ -173,8 +170,7 @@ public class Concealable extends Obscurable implements EditablePiece {
         }
         getMap().repaint(getMap().boundingBoxOf(getParent()));
       }
-      return outer.getState().equals(state) ? null
-          : new ChangePiece(outer.getId(), state, outer.getState());
+      return outer.getState().equals(state) ? null : new ChangePiece(outer.getId(), state, outer.getState());
     }
     else {
       return null;
@@ -182,15 +178,15 @@ public class Concealable extends Obscurable implements EditablePiece {
   }
 
   /**
-   * Conceal/unconceal units in this stack according to positions
-   * of concealment counters in the stack
+   * Conceal/unconceal units in this stack according to positions of concealment
+   * counters in the stack
    */
   public static Command adjustConcealment(Stack s) {
     if (s == null || s.getMap() == null) {
       return null;
     }
     Command c = new NullCommand();
-    for (int i = 0,j = s.getPieceCount(); i < j; ++i) {
+    for (int i = 0, j = s.getPieceCount(); i < j; ++i) {
       Concealable p = (Concealable) Decorator.getDecorator(s.getPieceAt(i), Concealable.class);
       if (p != null) {
         c = c.append(p.adjustConcealment());
@@ -201,26 +197,24 @@ public class Concealable extends Obscurable implements EditablePiece {
   }
 
   /**
-   * @return a new GamePiece that is a concealment counter
-   * appropriate for this unit
+   * @return a new GamePiece that is a concealment counter appropriate for this
+   *         unit
    */
   public GamePiece createConcealment() {
     GamePiece p = new BasicPiece(BasicPiece.ID + "K;D;" + imageName + ";?");
     boolean large = imageName.indexOf("58") > 0;
-    if (!imageName.startsWith(nation)) { // Backward compatibility with generic concealment markers
-      large = imageName.substring(0, 1).toUpperCase().
-          equals(imageName.substring(0, 1));
+    if (!imageName.startsWith(nation)) { // Backward compatibility with generic
+                                         // concealment markers
+      large = imageName.substring(0, 1).toUpperCase().equals(imageName.substring(0, 1));
       String size = large ? "60;60" : "48;48";
       if (nation2 != null) {
         p = new ColoredBox(ColoredBox.ID + "ru" + ";" + size, p);
-        p = new ColoredBox(ColoredBox.ID + "ge" + ";"
-                           + (large ? "48;48" : "36;36"), p);
+        p = new ColoredBox(ColoredBox.ID + "ge" + ";" + (large ? "48;48" : "36;36"), p);
       }
       else {
         p = new ColoredBox(ColoredBox.ID + nation + ";" + size, p);
       }
-      p = new Embellishment(Embellishment.ID + ";;;;;;0;0;"
-                            + imageName + ",?", p);
+      p = new Embellishment(Embellishment.ID + ";;;;;;0;0;" + imageName + ",?", p);
     }
     p = new Concealment(Concealment.ID + GameModule.getUserId() + ";" + nation, p);
     p = new MarkMoved(MarkMoved.ID + (large ? "moved58" : "moved"), p);
@@ -236,11 +230,10 @@ public class Concealable extends Obscurable implements EditablePiece {
     return piece.getShape();
   }
 
-  private void loadImages(Component obs) {
+  protected void loadImages(Component obs) {
     if (concealedToMe == null) {
       try {
-        concealedToMe = GameModule.getGameModule().getDataArchive()
-            .getCachedImage(imageName + ".gif");
+        concealedToMe = GameModule.getGameModule().getDataArchive().getCachedImage(imageName + ".gif");
         if (concealedToMe != null) {
           JLabel l = new JLabel(new ImageIcon(concealedToMe));
           imageSize = l.getPreferredSize();
@@ -255,12 +248,11 @@ public class Concealable extends Obscurable implements EditablePiece {
         g.drawString("?", 0, 0);
       }
     }
-    if (concealedToOthers == null
-      || !getColor(nation).equals(concealedToOthersColor)) {
+    if (concealedToOthers == null || !getColor(nation).equals(concealedToOthersColor)) {
       concealedToOthersColor = getColor(nation);
       try {
-        concealedToOthers =
-            GameModule.getGameModule().getDataArchive().getCachedImage(nation + "/" + nation + "qmarkme.gif");
+        concealedToOthers = GameModule.getGameModule().getDataArchive().getCachedImage(
+            nation + "/" + nation + "qmarkme.gif");
       }
       catch (java.io.IOException ex) {
         // Using generic qmarkme.gif image and prefs-specified colors
@@ -272,11 +264,11 @@ public class Concealable extends Obscurable implements EditablePiece {
           g.fillRect(0, 0, 24, 32);
           if (nation2 != null) {
             g.setColor(getColor(nation2));
-            g.fillRect(6,6,18,26);
+            g.fillRect(6, 6, 18, 26);
           }
           Image generic = GameModule.getGameModule().getDataArchive().getCachedImage("qmarkme.gif");
           MediaTracker tracker = new MediaTracker(obs);
-          tracker.addImage(generic,0);
+          tracker.addImage(generic, 0);
           try {
             tracker.waitForAll();
           }
@@ -287,7 +279,7 @@ public class Concealable extends Obscurable implements EditablePiece {
         catch (IOException e) {
           g.drawString("?", 0, 0);
         }
-       concealedToOthers = rev;
+        concealedToOthers = rev;
       }
     }
   }
@@ -305,8 +297,7 @@ public class Concealable extends Obscurable implements EditablePiece {
   }
 
   public Object getProperty(Object key) {
-    if (ASLProperties.HINDRANCE.equals(key)
-        && obscuredToMe()) {
+    if (ASLProperties.HINDRANCE.equals(key) && obscuredToMe()) {
       return null;
     }
     else if (ASLProperties.NATIONALITY.equals(key)) {
