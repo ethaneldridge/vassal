@@ -62,7 +62,7 @@ public class Documentation extends AbstractConfigurable {
 
       HelpFile intro = new HelpFile();
       intro.setAttribute(HelpFile.TITLE, "Quick Start");
-      intro.setAttribute(HelpFile.FILE, "/help/Intro.txt");
+      intro.setAttribute(HelpFile.FILE, "/help/Intro.html");
       intro.setAttribute(HelpFile.TYPE, HelpFile.RESOURCE);
       intro.addTo(this);
       add(intro);
