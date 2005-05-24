@@ -21,9 +21,8 @@
 
 import javax.swing.KeyStroke;
 
-import VASSAL.build.GameModule;
-import VASSAL.command.ChangeTracker;
 import VASSAL.command.Command;
+import VASSAL.command.NullCommand;
 import VASSAL.counters.Decorator;
 import VASSAL.counters.GamePiece;
 import VASSAL.counters.Hideable;
@@ -60,6 +59,8 @@ import VASSAL.counters.Properties;
    /*
     * If this unit is concealed, then do not display or enact the HIP command
     * For compatibility vsql 2.5.8 to 3.0
+    * Old counters have HIP outside of Conceal so will show up differently when
+    * concealed
     */
    public KeyCommand[] myGetKeyCommands() {
 
@@ -70,10 +71,10 @@ import VASSAL.counters.Properties;
        return super.myGetKeyCommands();
      }
    }
-   
+      
    public Command myKeyEvent(KeyStroke stroke) {
      if (obscuredToMe()) {
-       return null;
+       return new NullCommand(); 
      }
      else {
        return super.myKeyEvent(stroke);
@@ -81,13 +82,13 @@ import VASSAL.counters.Properties;
    }
    
    protected boolean obscuredToMe() {
-     return ((Boolean) Decorator.getOutermost(this).getProperty(Properties.OBSCURED_TO_ME)).booleanValue();
+     Boolean otm = (Boolean) Decorator.getOutermost(this).getProperty(Properties.OBSCURED_TO_ME);
+     if (otm == null || !otm.booleanValue()) {
+       return false;
+     }
+     else {
+       return true;
+     }
    }
-   
-//   public Command keyEvent(KeyStroke stroke) {
-//     Command c = myKeyEvent(stroke);
-//     return c == null ? piece.keyEvent(stroke)
-//       : c.append(piece.keyEvent(stroke));
-//   }
-   
+      
  }

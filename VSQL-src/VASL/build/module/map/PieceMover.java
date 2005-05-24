@@ -523,17 +523,29 @@ public class PieceMover extends AbstractBuildable implements
       else {
         format.setFormat(map.getMoveWithinFormat());
       }
-      format.setProperty(Map.PIECE_NAME, movedPieceNames.toString());
-      format.setProperty(Map.LOCATION, destination);
-      if (fromMap != null) {
-        format.setProperty(Map.OLD_MAP, fromMap.getConfigureName());
+      
+      boolean allInvisible = movedPieceNames.length() == 0;
+      
+      if (allInvisible) {
+        format.setProperty(Map.PIECE_NAME, "?");
+        format.setProperty(Map.LOCATION, "?");
+        format.setProperty(Map.OLD_MAP, "");        
+        format.setProperty(Map.OLD_LOCATION, "?");
+        format.setProperty(Map.MAP_NAME, "");
       }
-      format.setProperty(Map.OLD_LOCATION, origin);
-      format.setProperty(Map.MAP_NAME, map.getConfigureName());
+      else {
+        format.setProperty(Map.PIECE_NAME, movedPieceNames.toString());
+        format.setProperty(Map.LOCATION, destination);
+        if (fromMap != null) {
+          format.setProperty(Map.OLD_MAP, fromMap.getConfigureName());
+        }
+        format.setProperty(Map.OLD_LOCATION, origin);
+        format.setProperty(Map.MAP_NAME, map.getConfigureName());
+      }
 
       String moveText = format.getText();
 
-      if (moveText.length() > 0 && movedPieceNames.length() > 0) {
+      if (moveText.length() > 0) {
         Command report = new Chatter.DisplayText(GameModule.getGameModule().getChatter(), "* " + moveText);
         report.execute();
         comm = comm.append(report);
