@@ -38,7 +38,7 @@ public class GenericsContainer extends AbstractConfigurable {
   
   protected static GenericsContainer instance;
   protected CounterLayoutsContainer definitions;
-  protected ColorSwatchsContainer colors;
+  protected ColorManager colors;
   protected FontStylesContainer fonts;
   
   protected static final Color DEFAULT_COLOR  = Color.WHITE;
@@ -51,7 +51,7 @@ public class GenericsContainer extends AbstractConfigurable {
     super.build(e);
 
     if (colors == null) { 
-      addChild(new ColorSwatchsContainer());
+      addChild(new ColorManager());
       colors.build(null);
     }
     if (fonts == null) addChild(new FontStylesContainer());
@@ -94,7 +94,7 @@ public class GenericsContainer extends AbstractConfigurable {
   public Class[] getAllowableConfigureComponents() {
     return new Class[] {
         CounterLayoutsContainer.class, 
-        ColorSwatchsContainer.class,
+        ColorManager.class,
         FontStylesContainer.class};
   }
 
@@ -107,8 +107,8 @@ public class GenericsContainer extends AbstractConfigurable {
     if (b instanceof CounterLayoutsContainer) {
       definitions = (CounterLayoutsContainer) b;
     }
-    else if (b instanceof ColorSwatchsContainer) {
-      colors = (ColorSwatchsContainer) b;
+    else if (b instanceof ColorManager) {
+      colors = (ColorManager) b;
     }
     else if (b instanceof FontStylesContainer) {
       fonts = (FontStylesContainer) b;
@@ -120,7 +120,7 @@ public class GenericsContainer extends AbstractConfigurable {
     if (b instanceof CounterLayoutsContainer) {
       definitions = null;
     }
-    else if (b instanceof ColorSwatchsContainer) {
+    else if (b instanceof ColorManager) {
       colors = null;
     }
     else if (b instanceof FontStylesContainer) {

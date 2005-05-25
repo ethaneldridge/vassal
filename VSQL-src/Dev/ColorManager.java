@@ -38,18 +38,88 @@ import VASSAL.configure.SingleChildInstance;
 /**
  * Container for definitions of Generic Color Definitions
  */
-public class ColorSwatchsContainer extends AbstractConfigurable {
+public class ColorManager extends AbstractConfigurable {
 
-  protected HashMap colors = new HashMap();
+  /**
+   * Statics - Standard Colors
+   */
+  protected static ColorManager instance;
 
+  public static ColorManager getColorManager() {
+    return instance;
+  }
+  
+  protected static final Color DEFAULT_COLOR = Color.WHITE;
+  
+  protected static Color[] standardColors = new Color[] {
+      Color.WHITE,
+      Color.GRAY,
+      Color.BLACK,
+      null,
+      Color.RED,
+      Color.GREEN,
+      Color.BLUE,
+      Color.ORANGE,
+      Color.PINK,
+      Color.CYAN,
+      Color.MAGENTA,
+      Color.YELLOW,      
+      Color.LIGHT_GRAY,
+      Color.DARK_GRAY,
+  };
+  
+  protected static String[] standardColorNames = new String[] {
+      "WHITE",
+      "GRAY",
+      "BLACK",
+      "CLEAR",
+      "RED",
+      "GREEN",
+      "BLUE",
+      "ORANGE",
+      "PINK",
+      "CYAN",
+      "MAGENTA",
+      "YELLOW",
+      "LIGHT GRAY",
+      "DARK GRAY"
+  };
+  
+  protected static String getStandardColorName(Color c) {
+    for (int i = 0; i < standardColors.length; i++) {
+      if (standardColors[i].equals(c)) {
+        return standardColorNames[i];
+      }
+    }
+    return null;
+  }
+  
+  protected static Color getStandardColor(String name) {
+    for (int i = 0; i < standardColors.length; i++) {
+      if (standardColorNames[i].equals(name)) {
+        return standardColors[i];
+      }
+    }
+    return null;
+  }
+  
+  /**
+   * User defined Colors
+   */
+  protected HashMap userColors = new HashMap();
+  
+  public ColorManager() {
+    instance = this;
+  }
+  
   public void build(Element e) {
     super.build(e);
-
-    if (colors.get(ColorSwatch.BLACK) == null) addChild(new ColorSwatch(ColorSwatch.BLACK, Color.BLACK));
-
-    if (colors.get(ColorSwatch.WHITE) == null) addChild(new ColorSwatch(ColorSwatch.WHITE, Color.WHITE));
-    
-    if (colors.get(ColorSwatch.CLEAR) == null) addChild(new ColorSwatch(ColorSwatch.CLEAR, null));
+//
+//    if (userColors.get(ColorSwatch.BLACK) == null) addChild(new ColorSwatch(ColorSwatch.BLACK, Color.BLACK));
+//
+//    if (userColors.get(ColorSwatch.WHITE) == null) addChild(new ColorSwatch(ColorSwatch.WHITE, Color.WHITE));
+//    
+//    if (userColors.get(ColorSwatch.CLEAR) == null) addChild(new ColorSwatch(ColorSwatch.CLEAR, null));
   }
 
   private void addChild(Buildable b) {
@@ -58,7 +128,11 @@ public class ColorSwatchsContainer extends AbstractConfigurable {
   }
 
   public ColorSwatch getColorSwatch(String name) {
-    return (ColorSwatch) colors.get(name);
+    ColorSwatch c = (ColorSwatch) userColors.get(name);
+    if (c == null) {
+      c = new ColorSwatch(name, getStandardColor(name));
+    }
+    return c;
   }
 
   public String[] getAttributeDescriptions() {
@@ -100,12 +174,12 @@ public class ColorSwatchsContainer extends AbstractConfigurable {
     super.add(b);
     if (b instanceof ColorSwatch) {
       ColorSwatch def = (ColorSwatch) b;
-      colors.put(def.getConfigureName(), def);
+      userColors.put(def.getConfigureName(), def);
       def.addPropertyChangeListener(new PropertyChangeListener() {
         public void propertyChange(PropertyChangeEvent evt) {
           if (Configurable.NAME_PROPERTY.equals(evt.getPropertyName())) {
-            colors.remove(evt.getOldValue());
-            colors.put(evt.getNewValue(), evt.getSource());
+            userColors.remove(evt.getOldValue());
+            userColors.put(evt.getNewValue(), evt.getSource());
           }
         }
       });
@@ -115,7 +189,7 @@ public class ColorSwatchsContainer extends AbstractConfigurable {
   public void remove(Buildable b) {
     super.remove(b);
     if (b instanceof ColorSwatch) {
-      colors.remove(((ColorSwatch) b).getConfigureName());
+      userColors.remove(((ColorSwatch) b).getConfigureName());
     }
   }
 
@@ -128,22 +202,25 @@ public class ColorSwatchsContainer extends AbstractConfigurable {
 
   public Color getColorByName(String colorName) {
 
-    ColorSwatch gcolor = (ColorSwatch) colors.get(colorName);
+    ColorSwatch gcolor = getColorSwatch(colorName);
     if (gcolor != null) {
       Color color = gcolor.getColor();
       if (color != null) {
         return color;
       }
     }
-    return GenericsContainer.DEFAULT_COLOR;
+    return DEFAULT_COLOR;
   }
   
   public String[] getColorNames() {
-    String[] names = new String[colors.size()];
-    Iterator i = colors.values().iterator();
+    String[] names = new String[userColors.size() + standardColors.length];
+    Iterator i = userColors.values().iterator();
     int j = 0;
     while (i.hasNext()) {
       names[j++] = ((ColorSwatch) i.next()).getConfigureName();
+    }
+    for (int k = 0; k < standardColorNames.length; k++) {
+      names[j++] = standardColorNames[k];
     }
     return names;
   }

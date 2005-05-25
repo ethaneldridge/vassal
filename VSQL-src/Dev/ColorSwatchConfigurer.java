@@ -54,7 +54,7 @@ public class ColorSwatchConfigurer extends Configurer {
   }
 
   public ColorSwatchConfigurer(String key, String name, String swatchName) {
-    this(key, name, GenericsContainer.getColorSwatch(swatchName));
+    this(key, name, ColorManager.getColorManager().getColorSwatch(swatchName));
   }
 
   public String getValueString() {
@@ -101,7 +101,7 @@ public class ColorSwatchConfigurer extends Configurer {
     for (int i = 0; i < s.length; ++i) {
       swatches.addItem(s[i]);
     }
-    swatches.setSelectedItem(value == null ? "White" : ((ColorSwatch) value).getConfigureName());
+    swatches.setSelectedItem(value == null ? "WHITE" : ((ColorSwatch) value).getConfigureName());
     swatchPanel.add(swatches);
 
     ItemListener l = new ItemListener() {
@@ -118,11 +118,16 @@ public class ColorSwatchConfigurer extends Configurer {
   }
 
   protected void updateValue() {
-    setValue(GenericsContainer.getColorSwatch((String) swatches.getSelectedItem()));
+    setValue(ColorManager.getColorManager().getColorSwatch((String) swatches.getSelectedItem()));
   }
 
   public void setValue(String s) {
-    setValue(GenericsContainer.getColorSwatch(s));
+    setValue(ColorManager.getColorManager().getColorSwatch(s));
+    buildSwatches();
+  }
+  
+  public void setValue(Color c) {
+    setValue(new ColorSwatch("", c));
     buildSwatches();
   }
 

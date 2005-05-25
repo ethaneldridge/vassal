@@ -26,9 +26,12 @@ package Dev;
 import java.awt.Color;
 
 import VASSAL.build.AbstractConfigurable;
+import VASSAL.build.AutoConfigurable;
 import VASSAL.build.Buildable;
 import VASSAL.build.module.documentation.HelpFile;
 import VASSAL.configure.ColorConfigurer;
+import VASSAL.configure.Configurer;
+import VASSAL.configure.ConfigurerFactory;
 
 public class ColorSwatch extends AbstractConfigurable {
 
@@ -62,7 +65,13 @@ public class ColorSwatch extends AbstractConfigurable {
   }
 
   public Class[] getAttributeTypes() {
-    return new Class[] { String.class, Color.class};
+    return new Class[] { String.class, ColorConfig.class};
+  }
+  
+  public static class ColorConfig implements ConfigurerFactory {
+    public Configurer getConfigurer(AutoConfigurable c, String key, String name) {
+      return new NewColorConfigurer(key, name, ((ColorSwatch) c).getColor());
+    }
   }
   
   public String[] getAttributeNames() {
