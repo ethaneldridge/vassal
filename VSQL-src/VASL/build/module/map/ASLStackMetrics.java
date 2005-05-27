@@ -18,20 +18,33 @@
  */
 package VASL.build.module.map;
 
+import java.awt.Component;
+import java.awt.Graphics;
+
 import VASL.counters.ASLProperties;
 import VASSAL.build.module.map.StackMetrics;
 import VASSAL.counters.GamePiece;
-
-import java.awt.*;
+import VASSAL.counters.Properties;
 
 public class ASLStackMetrics extends StackMetrics {
   protected void drawUnexpanded(GamePiece p, Graphics g,
                                 int x, int y, Component obs, double zoom) {
-    if (p.getProperty(ASLProperties.LOCATION) != null) {
+    
+    /*
+     * vsql 3.0 - Modified so that HIP units (which are now non-meoveable) are not offset
+     */
+    if (p.getProperty(ASLProperties.LOCATION) != null && !isInvisibleToOthers(p)) {
       p.draw(g, x - (int) (zoom * 15), y, obs, zoom);
     }
     else {
       super.drawUnexpanded(p, g, x, y, obs, zoom);
     }
   }
+  
+  protected boolean isInvisibleToOthers(GamePiece p) {
+    Boolean oto = (Boolean) p.getProperty(Properties.INVISIBLE_TO_OTHERS);
+    return (oto != null && oto.booleanValue());
+  }
+
+
 }

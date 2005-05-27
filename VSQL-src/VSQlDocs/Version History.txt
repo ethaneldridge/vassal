@@ -1,14 +1,27 @@
 VERSION HISTORY
-3.0 04/14/05 (Brent Easton)
--- Cleaned up Scenario Info window - Removed SAN stuff, changed note windows to tabs, changed text to monospaced,
-   increased size on opening.
--- Added Movement Trail to Infantry and Vehicles. Marking units not moved also turns off movement trail display.
+3.0 05/23/05 (Brent Easton)
+-- Fixed reporting of movement of HIP unit. Now reported as '* ? Moves ? -> ?'
+-- Changed color of German COI colors to match SL colors.
+-- Reworked Concealment in general to prevent HIP, Delete and Clone by opponent on Concealed units and to make 
+   certain extra ? counters are indistinguishable from ordinary counters.
+-- Fixed Concealable to prevent Concealed traits being activated by Control keys, even though there is no menu 
+   item.
 -- Changed bunkers to act like concealment counters. Modified concealment processing so any
    unit moved out from under a Concealment counter or Bunker by the owner will become unconcealed.
+-- Moved all 'Has Info' traits above 'Concealable' so opponent cannot see it on a concealed counter.
+-- American blank counters fixed to conceal as American color, not German.
+-- Large American and Russian blank counters now conceal with correct large size concealment counters.
+-- Changed existing PLC counters to conceal with 'PLC' colored concealment counters.
+-- Created new German, American and Russian Generic PLC's that conceal as correct nationality.
+-- Fixed Angle of Ford counters so they cross from hexside to hexside
+-- Cleaned up Scenario Info window - Removed SAN stuff, changed note windows to tabs, changed text to 
+   monospaced, increased size on opening.
+-- Added Movement Trail to Infantry and Vehicles
+-- Ran images through an image optimizer to remove comments.
 -- Changed Track counter to 'Does not Stack' to solve problems with adding them to map while 
    replaying a logfile. Causes Track counter to drop to bottom of stack, so counter will 
    rotate 45 degrees when dropped onto board to ensure visiblity.
--- Changed Roadblock, Wire, Ford, "V", Mines and Smoke counters to be 'Does Not Stack'   
+-- Changed Roadblock, Wire, Ford, "V" and Smoke counters to be 'Does Not Stack'   
 -- Invisible counters are 'Non-moveable' and will not stack with visible counters
 -- Add Smoke options to Remove All menu.
 -- Included 'lasso' facility to select multiple counters (from vassal 2.0).
@@ -16,10 +29,9 @@ VERSION HISTORY
 -- Added F6 as Hotkey for Internet Dice Roller.
 -- Added 'DOES NOT MOVE' as ctrl-I Info comment to all Non-moveable markers
 -- Ctrl-I info display automatically turns off when counter unselected.
+-- Marking units not moved also turns off movement trail display.
 -- Removed 'Nationality Colors' tab from preferences.
 -- PLC counters moved from main module to extension vsql_plc.mdx
--- Added Nationality menu option to PLC counters to set the nationality for Concealment 
-   handling.
 -- Fixed German AA 88 counters rotation/repair/limber commands
 -- Added American 6+1 leader.
 -- Default Smoke counter changed to generic instead of German.
@@ -28,6 +40,7 @@ VERSION HISTORY
    with counters that are moved on top of the 'Non-moveable' counter.
 -- Changed menu references to 'COI+' to 'COI'
 -- Online help files updated. Added a seperate Preferences page and an Internet Die Roller page.
+
 
 2.5.8 02/14/05 (Brent Easton)
 -- Fixed bug in LOS checker for LOS from hill to base of same hill.

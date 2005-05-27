@@ -19,6 +19,7 @@
 
 package VSQL;
 
+import java.awt.Color;
 import java.awt.Component;
 import java.awt.Graphics;
 
@@ -26,6 +27,7 @@ import VASL.counters.Concealable;
 import VASL.counters.Concealment;
 import VASL.counters.MarkMoved;
 import VASSAL.build.GameModule;
+import VASSAL.configure.ColorConfigurer;
 import VASSAL.counters.BasicPiece;
 import VASSAL.counters.Clone;
 import VASSAL.counters.Decorator;
@@ -65,7 +67,7 @@ public class VSQLConcealable extends Concealable {
     p = new Clone(Clone.ID + "Clone;K", p);
     p = new Concealment(Concealment.ID + GameModule.getUserId() + ";" + nation, p);
     p = new Labeler(Labeler.ID + "L;Change Label;10;0,0,0;255,255,255;t;0;c;0;b;c;$pieceName$ ($label$)", p);
-    p = new Hideable("hide;H;HIP;255,255,255", p);
+    p = new Hideable("hide;H;HIP;"+getHiddenColor(), p);
     p = new VSQLConcealable(Concealable.ID + "C;" + imageName + ";" + nation, p);
     p = new MarkMoved(MarkMoved.ID + (large ? "moved58" : "moved"), p);
     p.setProperty(Properties.OBSCURED_TO_OTHERS, new Boolean(true));
@@ -74,6 +76,30 @@ public class VSQLConcealable extends Concealable {
     return p;
   }
   
+  
+  protected String getHiddenColor() {
+    Color c = Color.WHITE;
+    if (nation.equals("ge")) {
+      c = ColorConfigurer.stringToColor("194,246,255");
+    }
+    else if (nation.equals("ru")) {
+      c = ColorConfigurer.stringToColor("206,156,74");
+    }
+    else if (nation.equals("am")) {
+      c = ColorConfigurer.stringToColor("181,222,90");
+    }
+    else if (nation.equals("ax")) {
+      c = ColorConfigurer.stringToColor("156,206,156");
+    }
+    else if (nation.equals("pl")) {
+      c = ColorConfigurer.stringToColor("239,239,170");
+    }
+    else {
+      c = (Color) GameModule.getGameModule().getPrefs().getValue(nation);
+    }
+
+    return ColorConfigurer.colorToString(c);
+  }
   
   /*
    * If this unit is obscured to Me,then make sure I can't see any Control commands from
@@ -107,5 +133,21 @@ public class VSQLConcealable extends Concealable {
     }
     
   }
+  
+  /*
+   * Ensure Hidden counters have no name
+   */
+  public String getName() {
+    if (isInvisibleToOthers()) {
+      return "";
+    }
+    else {
+      return super.getName();
+    }
+  }
 
+  protected boolean isInvisibleToOthers() {
+    Boolean oto = (Boolean) Decorator.getOutermost(this).getProperty(Properties.INVISIBLE_TO_OTHERS);
+    return (oto != null && oto.booleanValue());
+  }
 }

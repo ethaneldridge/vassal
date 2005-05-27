@@ -115,6 +115,8 @@ you can uncheck.
 
 
  INTERNET DIE ROLLER
+ -------------------
+ 
 - Email results?  If this is checked, results of each dice roll (using the
 roller) will be emailed to you and your opponent.
 

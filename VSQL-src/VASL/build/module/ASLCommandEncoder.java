@@ -18,20 +18,32 @@
  */
 package VASL.build.module;
 
-import VASL.counters.*;
-import VASSAL.build.Buildable;
-import VASSAL.build.GameModule;
-import VASSAL.build.module.Map;
-import VASSAL.command.AddPiece;
-import VASSAL.command.Command;
-import VASSAL.configure.ColorConfigurer;
-import VASSAL.counters.*;
-import VASSAL.tools.SequenceEncoder;
+import java.awt.Color;
+import java.awt.Component;
+
+import javax.swing.JButton;
+import javax.swing.JPanel;
+
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
-import javax.swing.*;
-import java.awt.*;
+import VASL.counters.ASLHighlighter;
+import VASL.counters.ColorTable;
+import VASL.counters.ColoredBox;
+import VASL.counters.Concealable;
+import VASL.counters.Concealment;
+import VASL.counters.MarkMoved;
+import VASL.counters.PlaceDM;
+import VASL.counters.TextInfo;
+import VASL.counters.Turreted;
+import VASSAL.build.Buildable;
+import VASSAL.build.GameModule;
+import VASSAL.build.module.Map;
+import VASSAL.command.Command;
+import VASSAL.configure.ColorConfigurer;
+import VASSAL.counters.BasicPiece;
+import VASSAL.counters.Decorator;
+import VASSAL.counters.GamePiece;
 
 public class ASLCommandEncoder extends VASSAL.build.module.BasicCommandEncoder implements ColorTable {
   //public static VASL.counters.CounterNames names = new VASL.counters.CounterNames();
@@ -353,7 +365,7 @@ public class ASLCommandEncoder extends VASSAL.build.module.BasicCommandEncoder i
       c.setValue(defaultColor);
     }
   }
-
+  
   public Color getColor(String s) {
     return (Color) GameModule.getGameModule().getPrefs().getValue(s);
 /*

@@ -18,19 +18,39 @@
  */
 package VASL.counters;
 
+import java.awt.Color;
+import java.awt.Component;
+import java.awt.Dimension;
+import java.awt.Graphics;
+import java.awt.Graphics2D;
+import java.awt.Image;
+import java.awt.MediaTracker;
+import java.awt.Rectangle;
+import java.awt.Shape;
+import java.awt.image.BufferedImage;
+import java.io.IOException;
+
+import javax.swing.ImageIcon;
+import javax.swing.JLabel;
+import javax.swing.KeyStroke;
+
 import VASSAL.build.GameModule;
 import VASSAL.command.ChangePiece;
 import VASSAL.command.Command;
 import VASSAL.command.NullCommand;
-import VASSAL.counters.*;
+import VASSAL.configure.ColorConfigurer;
+import VASSAL.counters.BasicPiece;
+import VASSAL.counters.Decorator;
+import VASSAL.counters.EditablePiece;
+import VASSAL.counters.Embellishment;
+import VASSAL.counters.GamePiece;
+import VASSAL.counters.Hideable;
+import VASSAL.counters.Obscurable;
+import VASSAL.counters.PieceEditor;
+import VASSAL.counters.Properties;
+import VASSAL.counters.SimplePieceEditor;
+import VASSAL.counters.Stack;
 import VASSAL.tools.SequenceEncoder;
-import VASSAL.tools.TransparentFilter;
-
-import javax.swing.*;
-import java.awt.*;
-import java.awt.image.FilteredImageSource;
-import java.awt.image.BufferedImage;
-import java.io.IOException;
 
 public class Concealable extends Obscurable implements EditablePiece {
   public static final String ID = "conceal;";
@@ -218,7 +238,9 @@ public class Concealable extends Obscurable implements EditablePiece {
     }
     p = new Concealment(Concealment.ID + GameModule.getUserId() + ";" + nation, p);
     p = new MarkMoved(MarkMoved.ID + (large ? "moved58" : "moved"), p);
-    p = new Hideable("hide;H;HIP;255,255,255", p);
+    Color c = (Color) GameModule.getGameModule().getPrefs().getValue(nation);
+    if (c == null) c = Color.WHITE;
+    p = new Hideable("hide;H;HIP;"+ColorConfigurer.colorToString(c), p);
     return p;
   }
 

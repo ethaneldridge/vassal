@@ -10,7 +10,12 @@ module here, but we strongly encourage you to "explore".
 
 -- Stand-alone VSQL
 VSQL is now available in a stand-alone non-networked version packaged with matching 
-VASSAL version 1.9.9.
+VASSAL version 1.9.9. VSQL can be run either using the Webstart facility (which will 
+remain fixed at running vassal 1.9.9), or via the stand-alone package. VSQL save
+files are not compatible between version 1.9.9 and version 2.0 of VASSAL.
+
+-- Re-worked Concealment.
+Concealed counters can no longer be identified or modified by your opponent.
 
 -- Improved Scenario Info window.
 The remaining ASL specific fields have been removed and the window re-organised
@@ -27,7 +32,10 @@ For Leader counters, it displays the number of units in the stack including the 
 that moved into the hex. Movement Trails are cleared and turned off when units are
 marked as 'Not Moved'
 
--- Changed bunkers to act like concealment counters
+-- Changed bunkers to act like concealment counters.
+Counters moved under a bunker countre will not automatically become concealed. 
+NOTE - This is to prevent your opponent from inspecting the bunker contents, as
+per the rules. Normal fire rules apply as per SL Rule 56.
 
 -- Changed Track counter to 'Does not Stack'.
 There was a proble with adding Track counters to games while replaying a logfile. The 
@@ -39,6 +47,10 @@ hen dropped onto board to ensure visiblity.
 -- Invisible counters are now 'Non-moveable'.
 This means that Invisible counteres will not stack with visible counters and be carried 
 along by stacks moving over them.
+
+-- Units stacked under 'Non-moveable' counters are also 'Non-moveable'.
+For example, moving units over the top of units stacked under a bunker or 2nd Level 
+counter will no longer merge and move with the units underneath.
 
 -- Add Smoke options to Remove All menu.
 New options on the 'Remove All' menu to remove different varieties of smoke.
@@ -62,7 +74,8 @@ Each player can now set their own Mouseover popup viewer delay.
 -- PLC counters moved from main module to extension vsql_plc.mdx
 To allow future expansion. The vsql_plc.mdx extension file will be distributed pre-installed
 in the stand-alone version of VSQL. Webstart users will need to download and install the file
-separately.
+separately. New Generic American, Russian and German PLC counters now available that will 
+conceal as their correct Nationality color.
 
 -- Online help updated.
 You're reading it!

@@ -1,4 +1,4 @@
---Credits -- April, 2005
+--Credits -- May, 2005
 
 VSQL is a project based on the Virtual ADVANCED SQUAD LEADER 
 (VASL) module and the VASSAL engine Java applications authored by 
