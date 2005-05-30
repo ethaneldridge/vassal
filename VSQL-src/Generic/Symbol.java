@@ -17,7 +17,7 @@
  * at http://www.opensource.org.
  */
  
-package Dev;
+package Generic;
 
 import java.awt.BasicStroke;
 import java.awt.Color;

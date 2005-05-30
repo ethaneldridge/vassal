@@ -18,79 +18,85 @@
  */
 
 /** 
- * Class tht implements a named Color Swatch
+ * Class tht implements a names Font Swatch
  */
 
-package Dev;
+package Generic;
 
-import java.awt.Color;
+import java.awt.Font;
 
 import VASSAL.build.AbstractConfigurable;
 import VASSAL.build.AutoConfigurable;
 import VASSAL.build.Buildable;
 import VASSAL.build.module.documentation.HelpFile;
-import VASSAL.configure.ColorConfigurer;
 import VASSAL.configure.Configurer;
 import VASSAL.configure.ConfigurerFactory;
 
-public class ColorSwatch extends AbstractConfigurable {
+public class FontStyle extends AbstractConfigurable {
 
   protected static final String NAME = "name";
-  protected static final String COLOR = "color";
+  protected static final String STYLE = "style";
   
-  public static final String BLACK = "BLACK";
-  public static final String WHITE = "WHITE";
-  public static final String CLEAR = "CLEAR";
+  protected Font font;
   
-  protected Color color;
-
-  public ColorSwatch() {
+  public FontStyle() {
     super();
-    name = "";
-    color = null;
+    setConfigureName("Default");
+    font = new Font("Dialog", Font.PLAIN, 10);
   }
   
-  public ColorSwatch(String n, Color c) {
-    this();
-    name = n;
-    color = c;
+  public FontStyle(String name, Font f) {
+    super();
+    setConfigureName(name);
+    font = f;
   }
   
-  public Color getColor() {
-    return color;
+  public Font getFont() {
+    return font;
   }
   
   public String[] getAttributeDescriptions() {
-    return new String[] { "Color Name:  ", "Color:  "};
+    return new String[] { 
+        "Style Name:  ", 
+        "Font Style:  "};
+    
   }
 
   public Class[] getAttributeTypes() {
-    return new Class[] { String.class, Color.class};
+    return new Class[] { 
+        String.class, 
+        FontStyleConfig.class};
+  }
+
+  public static class FontStyleConfig implements ConfigurerFactory {
+    public Configurer getConfigurer(AutoConfigurable c, String key, String name) {     
+      return new FontConfigurer(key, name, ((FontStyle) c).font);
+    }
   }
   
   public String[] getAttributeNames() {
-    return new String[] { NAME, COLOR };
+    return new String[] { NAME, STYLE };
   }
 
   public void setAttribute(String key, Object o) {
     if (NAME.equals(key)) {
       setConfigureName((String) o);
     }
-    else if (COLOR.equals(key)) {
+    else if (STYLE.equals(key)) {
       if (o instanceof String) {
-        o = ColorConfigurer.stringToColor((String) o);
+        o = FontConfigurer.decode((String) o);
       }
-      color = (Color) o;
+      font = (Font) o;
     }
+   
   }
-
-
+  
   public String getAttributeValueString(String key) {
     if (NAME.equals(key)) {
       return getConfigureName();
     }
-    else if (COLOR.equals(key)) {
-      return ColorConfigurer.colorToString(color);
+    else if (STYLE.equals(key)) {
+      return FontConfigurer.encode(font);
     }
     else
       return null;
@@ -110,18 +116,6 @@ public class ColorSwatch extends AbstractConfigurable {
 
   public void addTo(Buildable parent) {
 
-  }
-  
-  public static ColorSwatch getBlack() {
-    return new ColorSwatch(BLACK, Color.BLACK);
-  }
-  
-  public static ColorSwatch getWhite() {
-    return new ColorSwatch(WHITE, Color.WHITE);
-  }
-  
-  public static ColorSwatch getClear() {
-    return new ColorSwatch(CLEAR, null);
   }
   
 }

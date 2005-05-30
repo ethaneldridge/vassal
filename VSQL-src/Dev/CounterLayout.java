@@ -145,7 +145,7 @@ public class CounterLayout extends AbstractConfigurable {
     }
     else if (BGCOLOR.equals(key)) {
       if (value instanceof String) {
-        value = GenericsContainer.getColorSwatch((String) value);
+        value = ColorManager.getColorManager().getColorSwatch((String) value);
       }
       bgColor = (ColorSwatch) value;
     }

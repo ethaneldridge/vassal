@@ -14,6 +14,13 @@ VASSAL version 1.9.9. VSQL can be run either using the Webstart facility (which 
 remain fixed at running vassal 1.9.9), or via the stand-alone package. VSQL save
 files are not compatible between version 1.9.9 and version 2.0 of VASSAL.
 
+There are three run files in the VSQL directory that can be used to run stand-alone
+VSQL:
+
+ runVSQL.jar - Run VASSAL/VSQL with default memory allocation (usually 96Mb).
+ vsql.bat    - Run VASSAL/VSQL on Windows with 256Mb Memory allocation.
+ vsql.sh     - Run VASSAL/VSQL on Unix/Linux with 256Mb Memory allocation.
+
 -- Re-worked Concealment.
 Concealed counters can no longer be identified or modified by your opponent.
 
