@@ -217,7 +217,7 @@ public abstract class Item extends AbstractConfigurable {
     return layout;
   }
   
-  public static Item decode(CounterLayout l, String s) {
+  public static Item decode(CounterLayout layout, String s) {
     SequenceEncoder.Decoder sd1= new SequenceEncoder.Decoder(s, '|');
     String t1 = sd1.nextToken();
     String t2 = sd1.nextToken();
@@ -225,10 +225,13 @@ public abstract class Item extends AbstractConfigurable {
     Item item;
     
     if (t1.startsWith(SymbolItem.TYPE)) {
-      item = SymbolItem.decode(l, t1);
+      item = SymbolItem.decode(layout, t1);
     }
     else if (t1.startsWith(TextItem.TYPE)) {
-      item = TextItem.decode(l, t1);
+      item = TextItem.decode(layout, t1);
+    }
+    else if (t1.startsWith(ImageItem.TYPE)) {
+      item = ImageItem.decode(layout, t1);
     }
     else
       return null;

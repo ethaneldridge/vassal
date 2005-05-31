@@ -153,7 +153,7 @@ public class ColorScheme extends AbstractConfigurable implements Visualizable {
   }
 
   public Class[] getAllowableConfigureComponents() {
-    return new Class[0];
+    return new Class[] { ImageDefn.class };
   }
 
   public void addTo(Buildable parent) {

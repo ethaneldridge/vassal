@@ -280,17 +280,6 @@ public class CounterLayout extends AbstractConfigurable implements Visualizable 
     }
 
   }
-//
-//  protected Properties getTestProps() {
-//    Properties p = new Properties();
-//    Iterator i = items.iterator();
-//    //    while (i.hasNext()) {
-//    //      Item item = (Item) i.next();
-//    //      String name = item.getConfigureName();
-//    //      p.setProperty(name, name);
-//    //    }
-//    return p;
-//  }
 
   protected void decodeItemList(String string) {
     items.clear();

@@ -47,6 +47,7 @@ import VASSAL.configure.StringConfigurer;
 public class LayoutConfigurer extends Configurer {
 
   protected static final String ADD_SYMBOL = "Add Symbol";
+  protected static final String ADD_IMAGE = "Add Image";
   protected static final String ADD_TEXT = "Add Text";
   protected static final String REMOVE = "Remove";
   protected static final int NO_CURRENT_ITEM = -1;
@@ -141,7 +142,7 @@ public class LayoutConfigurer extends Configurer {
     protected JTable table;
     protected AbstractTableModel model;
     protected JScrollPane scrollPane;
-    protected JButton addSymbolBtn, addTextBtn, remBtn;
+    protected JButton addSymbolBtn, addTextBtn, addImageBtn, remBtn;
     protected JPanel mainPanel;
 
     public ItemPanel() {
@@ -188,6 +189,9 @@ public class LayoutConfigurer extends Configurer {
       addTextBtn = new JButton(ADD_TEXT);
       addTextBtn.addActionListener(this);
       box.add(addTextBtn);
+      addImageBtn = new JButton(ADD_IMAGE);
+      addImageBtn.addActionListener(this);
+      box.add(addImageBtn);
       remBtn = new JButton(REMOVE);
       remBtn.addActionListener(this);
       box.add(remBtn);
@@ -210,18 +214,13 @@ public class LayoutConfigurer extends Configurer {
       String action = e.getActionCommand();
 
       if (action.equals(ADD_SYMBOL)) {
-        SymbolItem item = new SymbolItem();
-        layout.addItem(item);
-        int pos = layout.getItemCount() - 1;
-        model.fireTableRowsInserted(pos, pos);
-        table.getSelectionModel().setSelectionInterval(pos, pos);
+        addItem(new SymbolItem(layout));
       }
       else if (action.equals(ADD_TEXT)) {
-        TextItem item = new TextItem();
-        layout.addItem(item);
-        int pos = layout.getItemCount() - 1;
-        model.fireTableRowsInserted(pos, pos);
-        table.getSelectionModel().setSelectionInterval(pos, pos);
+        addItem(new TextItem(layout));
+      }
+      else if (action.equals(ADD_IMAGE)) {
+        addItem(new ImageItem(layout));
       }
       else if (action.equals(REMOVE)) {
         int i = table.getSelectedRow();
@@ -240,6 +239,13 @@ public class LayoutConfigurer extends Configurer {
       }
       
       rebuildViz();
+    }
+    
+    protected void addItem(Item item) {
+      layout.addItem(item);
+      int pos = layout.getItemCount() - 1;
+      model.fireTableRowsInserted(pos, pos);
+      table.getSelectionModel().setSelectionInterval(pos, pos);
     }
     
     protected void rebuildViz() {

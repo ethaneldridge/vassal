@@ -20,48 +20,40 @@
 package Generic;
 
 import java.awt.Color;
-import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
+import java.awt.Image;
 import java.awt.Point;
+import java.awt.Rectangle;
 import java.awt.RenderingHints;
+import java.io.File;
+import java.io.IOException;
 
-import VASSAL.build.AutoConfigurable;
-import VASSAL.configure.Configurer;
-import VASSAL.configure.ConfigurerFactory;
-import VASSAL.configure.StringEnum;
+import VASSAL.build.GameModule;
 import VASSAL.configure.VisibilityCondition;
-import VASSAL.counters.Labeler;
+import VASSAL.tools.DataArchive;
 import VASSAL.tools.SequenceEncoder;
 
-public class TextItem extends Item {
+public class ImageItem extends Item {
 
-  public static final String TYPE = "Text";
+  public static final String TYPE = "Image";
   
-  protected static final String FONT = "font";
-  protected static final String ALIGN = "align";
-  protected static final String FIXED = "fixed";
-  protected static final String TEXT = "text";
+  protected static final String IMAGE = "image";
 
-  protected static final String LEFT = "left";
-  protected static final String CENTER = "center";
-  protected static final String RIGHT = "right";
+  protected String imageName = "";
+  protected Image image = null;
+  protected Rectangle imageBounds = new Rectangle();
 
-  protected FontStyle fontStyle = new FontStyle();
-  protected String alignment = CENTER;
-  protected boolean fixed;
-  protected String text = "";
-
-  public TextItem() {
+  public ImageItem() {
     super();
   }
 
-  public TextItem(CounterLayout l) {
+  public ImageItem(CounterLayout l) {
     super(l);
   }
   
   public String[] getAttributeDescriptions() {
-    String a[] = new String[] { "Font style:  ", "Alignment:  ", "Fixed Text?  ", "Text:  "  };
+    String a[] = new String[] { "Image:  " };
     String b[] = super.getAttributeDescriptions();
     String c[] = new String[a.length + b.length];
     System.arraycopy(b, 0, c, 0, 2);
@@ -71,7 +63,7 @@ public class TextItem extends Item {
   }
 
   public Class[] getAttributeTypes() {
-    Class a[] = new Class[] { FontStyleConfig.class, AlignConfig.class, Boolean.class, String.class };
+    Class a[] = new Class[] { Image.class };
     Class b[] = super.getAttributeTypes();
     Class c[] = new Class[a.length + b.length];
     System.arraycopy(b, 0, c, 0, 2);
@@ -81,7 +73,7 @@ public class TextItem extends Item {
   }
 
   public String[] getAttributeNames() {
-    String a[] = new String[] { FONT, ALIGN, FIXED, TEXT };
+    String a[] = new String[] { IMAGE };
     String b[] = super.getAttributeNames();
     String c[] = new String[a.length + b.length];
     System.arraycopy(b, 0, c, 0, 2);
@@ -89,36 +81,15 @@ public class TextItem extends Item {
     System.arraycopy(b, 2, c, a.length+2, b.length-2);
     return c;
   }
-  public static class FontStyleConfig implements ConfigurerFactory {
-    public Configurer getConfigurer(AutoConfigurable c, String key, String name) {
-      return new FontStyleConfigurer(key, name, ((TextItem) c).fontStyle);
-    }
-  }
-
-  public static class AlignConfig extends StringEnum {
-    public String[] getValidValues(AutoConfigurable target) {
-      return new String[] { LEFT, CENTER, RIGHT };
-    }
-  }
   
   public void setAttribute(String key, Object o) {
-    if (FONT.equals(key)) {
+    if (IMAGE.equals(key)) {
       if (o instanceof String) {
-        o = FontManager.getFontManager().getFontStyle((String) o);
+        imageName = (String) o;
       }
-      fontStyle = (FontStyle) o;
-    }
-    else if (ALIGN.equals(key)) {
-      alignment = (String) o;
-    }
-    else if (FIXED.equals(key)) {
-      if (o instanceof String) {
-        o = new Boolean((String) o);
+      else {
+        imageName = ((File) o).getName();
       }
-      fixed = ((Boolean) o).booleanValue();
-    }
-    else if (TEXT.equals(key)) {
-      text = (String) o;
     }
     else {
       super.setAttribute(key, o);
@@ -132,72 +103,72 @@ public class TextItem extends Item {
   
   public String getAttributeValueString(String key) {
     
-    if (FONT.equals(key)) {
-      return fontStyle.getConfigureName();
-    }
-    else if (ALIGN.equals(key)) {
-      return alignment;
-    }
-    else if (FIXED.equals(key)) {
-      return fixed + "";
-    }
-    else if (TEXT.equals(key)) {
-      return text;
-    }    
+    if (IMAGE.equals(key)) {
+      return imageName;
+    }  
     else {
       return super.getAttributeValueString(key);
     }
   }
   
   public VisibilityCondition getAttributeVisibility(String name) {
-    if (TEXT.equals(name)) {
-       return fixedCond;
+    if (ROTATION.equals(name)) {
+       return falseCond;
      }
      else {
        return super.getAttributeVisibility(name);
      }
    }
 
-  private VisibilityCondition fixedCond = new VisibilityCondition() {
+  private VisibilityCondition falseCond = new VisibilityCondition() {
     public boolean shouldBeVisible() {
-      return fixed;
+      return false;
     }
   };
   
   public void draw(Graphics g, SchemeElement se) {
-    Font f = fontStyle.getFont();
+
     Color fg = se.getFgColor().getColor();
     Color bg = se.getBgColor().getColor();
     
-    int align = Labeler.CENTER;
-    if (alignment == LEFT) {
-      align = Labeler.LEFT;
-    }
-    else if (alignment == RIGHT) {
-      align = Labeler.RIGHT;
-    }
-    
     Point origin = getOrigin();
-    String s;
-    s = text.length() > 0 ? text : "Xx";
     
     ((Graphics2D) g).setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING,RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
-    Labeler.drawLabel(g, s, origin.x, origin.y, f, align, Labeler.CENTER, fg, bg, null, getRotation());
+    //Labeler.drawLabel(g, s, origin.x, origin.y, f, align, Labeler.CENTER, fg, bg, null, getRotation());
+    loadImage();
+    g.drawImage(image, origin.x + imageBounds.x, origin.y + imageBounds.y, null);
   }
   
   public String getType() {
     return TYPE;
   }
   
+  protected void loadImage() {
+    
+    if (imageName.trim().length() > 0) {
+      try {
+        image = GameModule.getGameModule().getDataArchive().getCachedImage(imageName);
+        imageBounds = DataArchive.getImageBounds(image);
+      }
+      catch (IOException e) {
+        image = null;
+        imageBounds = new Rectangle();
+      }
+    }
+    else {
+      image = null;
+      imageBounds = new Rectangle();
+    }
+  }
+  
   public static Item decode(CounterLayout l, String s) {
     
     SequenceEncoder.Decoder sd = new SequenceEncoder.Decoder(s, ';');
     
-    TextItem item = new TextItem(l);
+    ImageItem item = new ImageItem(l);
     
     sd.nextToken();
-    item.fontStyle = FontManager.getFontManager().getFontStyle(sd.nextToken());
-    item.alignment = sd.nextToken();
+    item.imageName = sd.nextToken();
     
     return item;
   }
@@ -206,8 +177,7 @@ public class TextItem extends Item {
    
     SequenceEncoder se1 = new SequenceEncoder(TYPE, ';');
     
-    se1.append(fontStyle.getConfigureName());
-    se1.append(alignment);
+    se1.append(imageName);
    
     SequenceEncoder se2 = new SequenceEncoder(se1.getValue(), '|');
     se2.append(super.encode());
