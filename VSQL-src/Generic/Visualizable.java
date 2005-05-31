@@ -22,8 +22,10 @@ package Generic;
 import java.awt.Image;
 
 public interface Visualizable {
-
   public int getVisualizerHeight();
   public int getVisualizerWidth();
   public Image getVisualizerImage();
+  public Image getVisualizerImage(ColorScheme scheme);
+  public void rebuildVisualizerImage();
+  public void rebuildVisualizerImage(ColorScheme scheme);
 }

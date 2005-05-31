@@ -19,11 +19,9 @@
 
 package Generic;
 
-import java.awt.Color;
 import java.awt.Graphics;
 import java.awt.Point;
 import java.awt.Rectangle;
-import java.util.Properties;
 
 import VASSAL.tools.SequenceEncoder;
 
@@ -138,7 +136,7 @@ public class SymbolItem extends Item {
     return height;
   }
   
-  public void draw(Graphics g, Properties p) {
+  public void draw(Graphics g, SchemeElement se) {
 
     Symbol symbol = new Symbol(Symbol.NATO_UNIT_SET, "Infantry");
 
@@ -146,7 +144,7 @@ public class SymbolItem extends Item {
     origin.translate(-getWidth() / 2, -getHeight() / 2);    
     Rectangle r = new Rectangle(origin.x, origin.y, getWidth(), getHeight());
     
-    symbol.draw(g, r, Color.BLACK, Color.WHITE, (float) lineWidth);
+    symbol.draw(g, r, se.getFgColor().getColor(), se.getBgColor().getColor(), (float) lineWidth);
     
   }
   

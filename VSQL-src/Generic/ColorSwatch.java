@@ -39,6 +39,7 @@ public class ColorSwatch extends AbstractConfigurable {
   public static final String BLACK = "BLACK";
   public static final String WHITE = "WHITE";
   public static final String CLEAR = "CLEAR";
+  public static final String RED = "RED";
   
   protected Color color;
 
@@ -125,6 +126,10 @@ public class ColorSwatch extends AbstractConfigurable {
   
   public static ColorSwatch getWhite() {
     return new ColorSwatch(WHITE, Color.WHITE);
+  }
+
+  public static ColorSwatch getRed() {
+    return new ColorSwatch(RED, Color.RED);
   }
   
   public static ColorSwatch getClear() {

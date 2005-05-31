@@ -25,7 +25,6 @@ import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Point;
 import java.awt.RenderingHints;
-import java.util.Properties;
 
 import VASSAL.build.AutoConfigurable;
 import VASSAL.configure.Configurer;
@@ -130,10 +129,10 @@ public class TextItem extends Item {
     }
   }
 
-  public void draw(Graphics g, Properties p) {
+  public void draw(Graphics g, SchemeElement se) {
     Font f = fontStyle.getFont();
-    Color fg = Color.BLACK;
-    Color bg = null;
+    Color fg = se.getFgColor().getColor();
+    Color bg = se.getBgColor().getColor();
     
     int align = Labeler.CENTER;
     if (alignment == LEFT) {
@@ -145,12 +144,7 @@ public class TextItem extends Item {
     
     Point origin = getOrigin();
     String s;
-    if (p == null) {
-      s = "XXX";
-    }
-    else {
-      s = p.getProperty(this.getConfigureName());
-    }
+    s = "Xx";
     
     ((Graphics2D) g).setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING,RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
     Labeler.drawLabel(g, s, origin.x, origin.y, f, align, Labeler.CENTER, fg, bg, null, getRotation());

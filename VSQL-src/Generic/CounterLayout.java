@@ -26,9 +26,6 @@ import java.awt.Point;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 import java.util.Iterator;
-import java.util.Properties;
-
-import org.w3c.dom.Element;
 
 import VASSAL.build.AbstractConfigurable;
 import VASSAL.build.AutoConfigurable;
@@ -83,7 +80,7 @@ public class CounterLayout extends AbstractConfigurable implements Visualizable 
   protected int width = 54;
   protected int height = 54;
   protected BufferedImage image;
-  protected Properties props;
+  protected ColorScheme colorScheme;
   protected ArrayList items = new ArrayList();
 
   public CounterLayout() {
@@ -204,6 +201,17 @@ public class CounterLayout extends AbstractConfigurable implements Visualizable 
     return (Item) items.get(n);
   }
 
+  protected Item getItem(String name) {
+    Iterator i = items.iterator();
+    while (i.hasNext()) {
+      Item item = (Item) i.next();
+      if (item.getConfigureName().equals(name)) {
+        return item;
+      }
+    }
+    return null;
+  }
+  
   protected void removeItem(int n) {
     items.remove(n);
   }
@@ -214,33 +222,22 @@ public class CounterLayout extends AbstractConfigurable implements Visualizable 
 
   public void add(Buildable b) {
     super.add(b);
-
-    //    if (b instanceof Item) {
-    //      items.add(b);
-    //    }
-
   }
 
   public void remove(Buildable b) {
     super.remove(b);
-
-    //    if (b instanceof Item) {
-    //      items.remove(b);
-    //    }
   }
 
-  public void build(Element e) {
-    super.build(e);
+  public Image getVisualizerImage() {
+
+    return getVisualizerImage(colorScheme);
+
   }
-
-  //  public Configurer getConfigurer() {
-  //    return new LayoutConfigurer(this);
-  //  }
-
-  public Image getImage(Properties p) {
+  
+  public Image getVisualizerImage(ColorScheme scheme) {
 
     if (image == null) {
-      buildImage(p);
+      buildImage(scheme);
     }
 
     return image;
@@ -248,41 +245,52 @@ public class CounterLayout extends AbstractConfigurable implements Visualizable 
   }
 
   public void refresh() {
-    buildImage(props);
+    buildImage(colorScheme);
     LayoutConfig.refresh();
   }
 
-  protected void buildImage(Properties p) {
+  protected void buildImage(ColorScheme c) {
 
-    props = p;
+    colorScheme = c;
 
     // Create our base image
     image = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
     Graphics g = image.getGraphics();
 
     // Fill in the sample Background color
-    g.setColor(Color.white);
+    Color bgColor = colorScheme == null ? Color.WHITE : colorScheme.getBgColor();
+    g.setColor(bgColor);
     g.fillRect(0, 0, width, height);
 
     // layer each item over the top
     Iterator i = items.iterator();
     while (i.hasNext()) {
       Item item = (Item) i.next();
-      item.draw(g, p);
+      SchemeElement se = null;
+      
+      if (colorScheme != null) {
+         se = colorScheme.getElement(item.getConfigureName());
+      }
+      
+      if (se == null) {
+        se = new SchemeElement(item.getConfigureName(), ColorSwatch.getBlack(), ColorSwatch.getClear());
+      }
+      
+      item.draw(g, se);
     }
 
   }
-
-  protected Properties getTestProps() {
-    Properties p = new Properties();
-    Iterator i = items.iterator();
-    //    while (i.hasNext()) {
-    //      Item item = (Item) i.next();
-    //      String name = item.getConfigureName();
-    //      p.setProperty(name, name);
-    //    }
-    return p;
-  }
+//
+//  protected Properties getTestProps() {
+//    Properties p = new Properties();
+//    Iterator i = items.iterator();
+//    //    while (i.hasNext()) {
+//    //      Item item = (Item) i.next();
+//    //      String name = item.getConfigureName();
+//    //      p.setProperty(name, name);
+//    //    }
+//    return p;
+//  }
 
   protected void decodeItemList(String string) {
     items.clear();
@@ -315,8 +323,11 @@ public class CounterLayout extends AbstractConfigurable implements Visualizable 
     return getLayoutWidth();
   }
 
-  public Image getVisualizerImage() {
-    return getImage(null);
+  public void rebuildVisualizerImage(ColorScheme c) {
+    buildImage(c);
   }
-
+  
+  public void rebuildVisualizerImage() {
+    buildImage(colorScheme);
+  }
 }

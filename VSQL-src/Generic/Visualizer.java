@@ -35,6 +35,7 @@ public class Visualizer extends JPanel {
   protected static final int OFFSET = 20;
   protected Visualizable observer;
   protected JPanel visPanel;
+  protected ColorScheme colorScheme;
 
   public Visualizer(Visualizable obs) {
 
@@ -49,10 +50,20 @@ public class Visualizer extends JPanel {
       }
     };
     
-    refresh();
+    //refresh();
     add(visPanel, BorderLayout.CENTER);
   }
 
+  public void rebuild(ColorScheme c) {
+     observer.rebuildVisualizerImage(c);  
+     refresh();
+  }
+
+  public void rebuild() {
+    observer.rebuildVisualizerImage();
+    refresh();
+ }
+  
   public void refresh() {
     int width = observer.getVisualizerWidth();
     int height = observer.getVisualizerHeight();

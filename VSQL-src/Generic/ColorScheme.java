@@ -41,8 +41,8 @@ public class ColorScheme extends AbstractConfigurable implements Visualizable {
   protected static final String BG_COLOR = "bgColor";
   protected static final String SCHEME = "scheme";
 
-  protected ColorSwatchConfigurer csConfig = new ColorSwatchConfigurer("", "", "WHITE");
-  protected SchemeConfigurer schemeConfig = new SchemeConfigurer("", "", this);
+  protected ColorSwatch bgColor = ColorSwatch.getWhite();
+  protected SchemeConfigurer schemeConfig = null;
   protected ArrayList elements = new ArrayList();
   protected CounterLayout layout;
 
@@ -51,19 +51,22 @@ public class ColorScheme extends AbstractConfigurable implements Visualizable {
     setConfigureName("");
   }
 
+  public ColorScheme(SchemeElement se) {
+    this();
+    elements.add(se);
+  }
+  
   public String[] getAttributeDescriptions() {
     return new String[] { "Name", "Background Color", "" };
   }
 
   public Class[] getAttributeTypes() {
-    return new Class[] { String.class,  BgColorSwatchConfig.class, SchemeConfig.class };
+    return new Class[] { String.class, BgColorSwatchConfig.class, SchemeConfig.class };
   }
 
   public static class BgColorSwatchConfig implements ConfigurerFactory {
     public Configurer getConfigurer(AutoConfigurable c, String key, String name) {
-      ColorScheme cs = (ColorScheme) c;
-      cs.csConfig = new ColorSwatchConfigurer(key, name); 
-      return cs.csConfig;
+     return new ColorSwatchConfigurer(key, name, ((ColorScheme) c).getBgColor());
     }
   }
 
@@ -73,16 +76,10 @@ public class ColorScheme extends AbstractConfigurable implements Visualizable {
       cs.schemeConfig = new SchemeConfigurer(key, name, cs);
       return cs.schemeConfig;
     }
-//
-//    public static void refresh() {
-//      if (cs.schemeConfig != null) {
-//        cs.schemeConfig.refresh();
-//      }
-//    }
   }
 
   public String[] getAttributeNames() {
-    return new String[] { NAME, BG_COLOR, SCHEME};
+    return new String[] { NAME, BG_COLOR, SCHEME };
   }
 
   public void setAttribute(String key, Object value) {
@@ -93,7 +90,10 @@ public class ColorScheme extends AbstractConfigurable implements Visualizable {
       if (value instanceof String) {
         value = new ColorSwatch((String) value);
       }
-      csConfig.setValue((ColorSwatch) value);
+      bgColor = (ColorSwatch) value;
+      if (schemeConfig != null) {
+        schemeConfig.visualizer.rebuild(this);
+      }
     }
     else if (SCHEME.equals(key)) {
       decodeScheme((String) value);
@@ -105,10 +105,12 @@ public class ColorScheme extends AbstractConfigurable implements Visualizable {
    */
   private void decodeScheme(String string) {
     elements.clear();
-    SequenceEncoder.Decoder sd = new SequenceEncoder.Decoder(string, ',');
-    while (sd.hasMoreTokens()) {
-     SchemeElement element = new SchemeElement(sd.nextToken()); 
-     elements.add(element);
+    if (string.length() > 0) {
+      SequenceEncoder.Decoder sd = new SequenceEncoder.Decoder(string, ',');
+      while (sd.hasMoreTokens()) {
+        SchemeElement element = new SchemeElement(sd.nextToken());
+        elements.add(element);
+      }
     }
   }
 
@@ -117,7 +119,7 @@ public class ColorScheme extends AbstractConfigurable implements Visualizable {
       return getConfigureName();
     }
     else if (BG_COLOR.equals(key)) {
-      return csConfig.getValueColorSwatch().encode();
+      return bgColor.encode();
     }
     else if (SCHEME.equals(key)) {
       return encodeScheme();
@@ -130,11 +132,11 @@ public class ColorScheme extends AbstractConfigurable implements Visualizable {
 
     String[] items = new String[elements.size()];
     Iterator it = elements.iterator();
-    int i = 0; 
+    int i = 0;
     while (it.hasNext()) {
       items[i++] = ((SchemeElement) it.next()).encode();
     }
-    
+
     return (new SequenceEncoder('#')).append(items).getValue();
   }
 
@@ -145,6 +147,10 @@ public class ColorScheme extends AbstractConfigurable implements Visualizable {
   public HelpFile getHelpFile() {
     return null;
   }
+  
+  public void build(org.w3c.dom.Element e) {
+    super.build(e);
+  }
 
   public Class[] getAllowableConfigureComponents() {
     return new Class[0];
@@ -152,76 +158,99 @@ public class ColorScheme extends AbstractConfigurable implements Visualizable {
 
   public void addTo(Buildable parent) {
     layout = (CounterLayout) parent;
+    rebuildElements();
   }
 
-  public Configurer getConfigurer() {
-    return super.getConfigurer();
+//  public Configurer getConfigurer() {
+//    rebuildElements();
+//    return super.getConfigurer();
+//  }
+
+  public Color getBgColor() {
+    return bgColor.getColor();
   }
   
   public int getVisualizerHeight() {
-    return layout == null ? 1 : layout.getVisualizerHeight();
+    return layout.getVisualizerHeight();
   }
 
   public int getVisualizerWidth() {
-    return layout == null ? 1 : layout.getVisualizerWidth();
+    return layout.getVisualizerWidth();
   }
 
   public Image getVisualizerImage() {
-    return layout == null ? null : layout.getVisualizerImage();
+    return layout.getVisualizerImage(this);
   }
 
-  protected class SchemeElement {
-
-    private String name;
-    private Color fgColor;
-    private Color bgColor;
-
-    public SchemeElement(String s) {
-      decode(s);
-    }
-    
-    public String encode() {
-      SequenceEncoder se = new SequenceEncoder(';');
-      se.append(name);
-      se.append(fgColor);
-      se.append(bgColor);
-      return se.getValue();
-    }
-
-    public void decode(String s) {
-      SequenceEncoder.Decoder sd = new SequenceEncoder.Decoder(s, ';');
-      name = sd.nextToken("");
-      fgColor = sd.nextColor(Color.BLACK);
-      bgColor = sd.nextColor(null);
-    }
-    
-    protected void setName(String name) {
-      this.name = name;
-    }
-
-    protected String getName() {
-      return name;
-    }
-
-    protected void setFgColor(Color fgColor) {
-      this.fgColor = fgColor;
-    }
-
-    protected Color getFgColor() {
-      return fgColor;
-    }
-
-    protected void setBgColor(Color bgColor) {
-      this.bgColor = bgColor;
-    }
-
-    protected Color getBgColor() {
-      return bgColor;
-    }
-
+  public Image getVisualizerImage(ColorScheme c) {
+    return layout.getVisualizerImage(this);
+  }
+  
+  public void rebuildVisualizerImage(ColorScheme c) {
+    layout.rebuildVisualizerImage(this);
+  }
+  
+  public void rebuildVisualizerImage() {
+    layout.rebuildVisualizerImage(this);
   }
 
-  public int getItemCount() {
+  public int getElementCount() {
     return elements.size();
+  }
+
+  public SchemeElement getElement(String name) {
+    Iterator i = elements.iterator();
+    while (i.hasNext()) {
+      SchemeElement element = (SchemeElement) i.next();
+      if (element.getName().equals(name)) {
+        return element;
+      }
+    }
+    return null;
+  }
+
+  public SchemeElement getElement(int row) {
+    return (SchemeElement) elements.get(row);
+  }
+
+  public void setElementFg(int row, ColorSwatch color) {
+    getElement(row).setFgColor(color);
+  }
+
+  public void setElementBg(int row, ColorSwatch color) {
+    getElement(row).setBgColor(color);
+  }
+  
+  public CounterLayout getLayout() {
+    return layout;
+  }
+  
+  /*
+   * Reconcile our current elements with the elements in the owning layout. 
+   */
+  protected void rebuildElements() {
+    
+    ArrayList newElements = new ArrayList();
+    
+    Iterator i = elements.iterator();
+    while (i.hasNext()) {
+      SchemeElement se = (SchemeElement) i.next();
+      Item item = layout.getItem(se.getName());
+      if (item != null) {
+        newElements.add(se);
+      }
+    }
+    
+    i = layout.getItems().iterator();
+    while (i.hasNext()) {
+      Item item = (Item) i.next();
+      SchemeElement se = this.getElement(item.getConfigureName());
+      if (se == null) {
+        se = new SchemeElement(item.getConfigureName(), ColorSwatch.getBlack(), ColorSwatch.getClear());
+        newElements.add(se);
+      }
+    }
+    
+    elements = newElements;
   }
 }

@@ -20,7 +20,6 @@ package Generic;
 
 import java.awt.Graphics;
 import java.awt.Point;
-import java.util.Properties;
 
 import VASSAL.build.AbstractConfigurable;
 import VASSAL.build.AutoConfigurable;
@@ -189,7 +188,7 @@ public abstract class Item extends AbstractConfigurable {
   /**
    * Implemented by subclass to draw itself.
    */
-  public abstract void draw(Graphics g, Properties p);
+  public abstract void draw(Graphics g, SchemeElement se);
   public abstract String getType();
 
   public String getLocation() {

@@ -50,7 +50,7 @@ public class LayoutConfigurer extends Configurer {
   protected static final String ADD_TEXT = "Add Text";
   protected static final String REMOVE = "Remove";
   protected static final int NO_CURRENT_ITEM = -1;
-  
+
   protected JPanel panel;
   protected JPanel itemPanel;
   protected JPanel itemConfigPanel;
@@ -72,11 +72,6 @@ public class LayoutConfigurer extends Configurer {
     super(key, name);
     layout = def;
   }
-  
-//  protected LayoutConfigurer(CounterLayout def) {
-//    this();
-//    defn = def;
-//  }
 
   public Object getValue() {
     if (layout != null) {
@@ -97,66 +92,23 @@ public class LayoutConfigurer extends Configurer {
       panel = new JPanel();
       panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
 
-//      defName = new StringConfigurer(null, "Layout Name:  ", layout.getConfigureName());
-//      panel.add(defName.getControls());
-//
-//      
-//      Box box = Box.createHorizontalBox();
-//      width = new NewIntConfigurer(null, "Width:  ", new Integer(layout.width));
-//      width.addPropertyChangeListener(new PropertyChangeListener() {
-//        public void propertyChange(PropertyChangeEvent evt) {
-//          setAttribute(WIDTH, width.getValue());
-//          refresh();
-//          visualizer.setSize(new Dimension(width.getIntValue(), height.getIntValue()));
-//          visualizer.setPreferredSize(new Dimension(width.getIntValue(), height.getIntValue()));
-//          SwingUtilities.getWindowAncestor(panel).pack();
-//          visualizer.repaint();
-//        }
-//      });
-//
-//      height = new NewIntConfigurer(null, "  Height:  ", new Integer(layout.height));
-//      height.addPropertyChangeListener(new PropertyChangeListener() {
-//        public void propertyChange(PropertyChangeEvent evt) {
-//          setAttribute(HEIGHT, height.getValue());
-//          refresh();
-//          visualizer.setSize(new Dimension(width.getIntValue(), height.getIntValue()));
-//          visualizer.setPreferredSize(new Dimension(width.getIntValue(), height.getIntValue()));
-//          SwingUtilities.getWindowAncestor(panel).pack();
-//          visualizer.repaint();
-//        }
-//      });
-//
-//      box.add(width.getControls());
-//      box.add(height.getControls());
-//      width.setColumns(3);
-//      height.setColumns(3);
-//      panel.add(box);
-//
-//      panel.add(filler);
-
-//      visPanel = new JPanel();
-//      visPanel.setSize(new Dimension(layout.getLayoutWidth(), layout.getLayoutHeight()));
-//      visPanel.setPreferredSize(new Dimension(layout.getLayoutWidth() + 20, layout.getLayoutHeight() + 20));
-//      visPanel.add(getVisualizer());
-//      panel.add(visPanel);
-
       filler = Box.createHorizontalBox();
       filler.setPreferredSize(new Dimension(50, 10));
       panel.add(filler);
-      
+
       Box box = Box.createHorizontalBox();
       box.setAlignmentX(Box.CENTER_ALIGNMENT);
       visualizer = new Visualizer(layout);
       box.add(visualizer);
       panel.add(box);
-      
+
       filler = Box.createHorizontalBox();
       filler.setPreferredSize(new Dimension(50, 10));
       panel.add(filler);
 
-      itemPanel = new ItemPanel();      
+      itemPanel = new ItemPanel();
       panel.add(itemPanel);
-      
+
       filler = Box.createHorizontalBox();
       filler.setPreferredSize(new Dimension(50, 10));
       panel.add(filler);
@@ -175,33 +127,15 @@ public class LayoutConfigurer extends Configurer {
     return null;
   }
 
-
-//  protected JComponent getVisualizer() {
-//    if (visualizer == null) {
-//      visualizer = new JPanel() {
-//        public void paint(Graphics g) {
-//          visualizer.setSize(new Dimension(layout.getLayoutWidth(), layout.getLayoutHeight()));
-//          visualizer.setPreferredSize(new Dimension(layout.getLayoutWidth(), layout.getLayoutHeight()));
-//          g.clearRect(0, 0, layout.getLayoutWidth(), layout.getLayoutHeight());
-//          BufferedImage bi = (BufferedImage) layout.getImage(layout.getTestProps());
-//          g.drawImage(layout.getImage(null), 0, 0, this);
-//        }
-//      };
-//    }
-//    return visualizer;
-//  }
-//  
-//  
-  
   protected void repack() {
-    
+
     Window w = SwingUtilities.getWindowAncestor(panel);
     if (w != null) {
       w.pack();
     }
-    visualizer.refresh();
+    visualizer.rebuild();
   }
-  
+
   protected class ItemPanel extends JPanel implements ActionListener {
 
     protected JTable table;
@@ -212,7 +146,7 @@ public class LayoutConfigurer extends Configurer {
 
     public ItemPanel() {
       setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
-      
+
       mainPanel = new JPanel();
       mainPanel.setBorder(BorderFactory.createLineBorder(Color.black));
       mainPanel.setLayout(new BoxLayout(mainPanel, BoxLayout.Y_AXIS));
@@ -259,15 +193,15 @@ public class LayoutConfigurer extends Configurer {
       box.add(remBtn);
       mainPanel.add(box);
       add(mainPanel);
-      
+
       box = Box.createHorizontalBox();
       box.setPreferredSize(new Dimension(50, 10));
       add(box);
-   
+
       itemConfigPanel = new JPanel();
       itemConfigPanel.setBorder(BorderFactory.createLineBorder(Color.black));
       add(itemConfigPanel);
-      
+
       showItem(0);
 
     }
@@ -278,14 +212,14 @@ public class LayoutConfigurer extends Configurer {
       if (action.equals(ADD_SYMBOL)) {
         SymbolItem item = new SymbolItem();
         layout.addItem(item);
-        int pos = layout.getItemCount()-1;
+        int pos = layout.getItemCount() - 1;
         model.fireTableRowsInserted(pos, pos);
         table.getSelectionModel().setSelectionInterval(pos, pos);
       }
       else if (action.equals(ADD_TEXT)) {
         TextItem item = new TextItem();
         layout.addItem(item);
-        int pos = layout.getItemCount()-1;
+        int pos = layout.getItemCount() - 1;
         model.fireTableRowsInserted(pos, pos);
         table.getSelectionModel().setSelectionInterval(pos, pos);
       }
@@ -297,24 +231,42 @@ public class LayoutConfigurer extends Configurer {
         }
         if (layout.getItemCount() > 1) {
           if (i >= layout.getItemCount()) {
-            table.getSelectionModel().setSelectionInterval(layout.getItemCount()-1, layout.getItemCount()-1);
-          } 
+            table.getSelectionModel().setSelectionInterval(layout.getItemCount() - 1, layout.getItemCount() - 1);
+          }
           else {
             table.getSelectionModel().setSelectionInterval(i, i);
           }
         }
       }
-
+      
+      rebuildViz();
+    }
+    
+    protected void rebuildViz() {
+      
+      SchemeElement se;
+      ColorScheme cs;
+      
+      int row = table.getSelectedRow();
+      if (row >= 0) {       
+        Item item = layout.getItem(row);
+        se = new SchemeElement(item.getConfigureName(), ColorSwatch.getRed(), ColorSwatch.getClear()); 
+        cs = new ColorScheme(se);
+      }
+      else {
+        cs = new ColorScheme();
+      }
+      visualizer.rebuild(cs);
     }
 
     protected void showItem(int itemNo) {
-      
+
       if (currentItemControls != null) {
         itemConfigPanel.remove(currentItemControls);
         currentItemControls = null;
         currentItem = NO_CURRENT_ITEM;
       }
-      
+
       if (itemNo != NO_CURRENT_ITEM && layout.getItemCount() > 0 && itemNo < layout.getItemCount()) {
         Item item = layout.getItem(itemNo);
         Configurer c = item.getConfigurer();
@@ -322,11 +274,16 @@ public class LayoutConfigurer extends Configurer {
         itemConfigPanel.add(currentItemControls);
         currentItem = itemNo;
       }
-      
+
+      reshow();
+    }
+
+    protected void reshow() {
+
       repack();
-      visualizer.refresh();
+      rebuildViz();
       itemConfigPanel.repaint();
-      
+
     }
 
     class MyTableModel extends AbstractTableModel {
@@ -363,7 +320,7 @@ public class LayoutConfigurer extends Configurer {
       }
     }
   }
-  
+
   protected class NewIntConfigurer extends IntConfigurer {
 
     NewIntConfigurer(String name, String key, Integer i) {
