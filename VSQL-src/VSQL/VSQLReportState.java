@@ -68,6 +68,19 @@ public class VSQLReportState extends ReportState  {
     }
   }
   
+  /*
+   * Don't display reports for Units in toolbox
+   */
+  public Command myKeyEvent(KeyStroke stroke) {
+  
+    if (getMap() == null) {
+      return null;
+    }
+    else {
+      return super.myKeyEvent(stroke);
+    }
+  }
+  
   protected boolean obscuredToMe() {
     Boolean otm = (Boolean) Decorator.getOutermost(this).getProperty(Properties.OBSCURED_TO_ME);
     if (otm == null || !otm.booleanValue()) {

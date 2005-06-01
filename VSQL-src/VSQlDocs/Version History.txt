@@ -3,7 +3,10 @@ VERSION HISTORY
 -- Fixed reporting of movement of HIP unit. Now reported as '* ? Moves ? -> ?'
 -- Changed color of German COI colors to match SL colors.
 -- Reworked Concealment in general to prevent HIP, Delete and Clone by opponent on Concealed units and to make 
-   certain extra ? counters are indistinguishable from ordinary counters.
+   certain extra ? counters are indistinguishable from ordinary counters. Re-organised
+   order of traits in all counters. Removed Clone and Delete from BasicPiece to separate
+   traits. Major traits added via prototypes.
+-- Removed all Colored Background traits and set Invisible background color correctly.   
 -- Fixed Concealable to prevent Concealed traits being activated by Control keys, even though there is no menu 
    item.
 -- Changed bunkers to act like concealment counters. Modified concealment processing so any
@@ -13,9 +16,10 @@ VERSION HISTORY
 -- Large American and Russian blank counters now conceal with correct large size concealment counters.
 -- Changed existing PLC counters to conceal with 'PLC' colored concealment counters.
 -- Created new German, American and Russian Generic PLC's that conceal as correct nationality.
--- Fixed Angle of Ford counters so they cross from hexside to hexside
+-- Fixed angle of Ford counters so they cross from hexside to hexside
 -- Cleaned up Scenario Info window - Removed SAN stuff, changed note windows to tabs, changed text to 
-   monospaced, increased size on opening.
+   monospaced, increased size on opening, added 'prev turn' button, report turn counter
+   change.
 -- Added Movement Trail to Infantry and Vehicles
 -- Ran images through an image optimizer to remove comments.
 -- Changed Track counter to 'Does not Stack' to solve problems with adding them to map while 
@@ -39,6 +43,9 @@ VERSION HISTORY
 -- Units underneath a 'Non-moveable' counter (e.g. 2nd Level, Bunker) will not stack and move
    with counters that are moved on top of the 'Non-moveable' counter.
 -- Changed menu references to 'COI+' to 'COI'
+-- Report CX command for Infantry Units.
+-- Report Hex when concealing units.
+-- Suppress Reporting when units still in toolbox.
 -- Online help files updated. Added a seperate Preferences page and an Internet Die Roller page.
 
 

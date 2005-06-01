@@ -65,9 +65,9 @@ public class VSQLConcealable extends Concealable {
     GamePiece p = new BasicPiece(BasicPiece.ID + ";;" + imageName + ";?");
     p = new Delete(Delete.ID + "Delete;D", p);
     p = new Clone(Clone.ID + "Clone;K", p);
-    p = new Concealment(Concealment.ID + GameModule.getUserId() + ";" + nation, p);
+    p = new VSQLConcealment(Concealment.ID + GameModule.getUserId() + ";" + nation, p);
     p = new Labeler(Labeler.ID + "L;Change Label;10;0,0,0;255,255,255;t;0;c;0;b;c;$pieceName$ ($label$)", p);
-    p = new Hideable("hide;H;HIP;"+getHiddenColor(), p);
+    p = new VSQLHideable("hide;H;HIP;"+getHiddenColor(), p);
     p = new VSQLConcealable(Concealable.ID + "C;" + imageName + ";" + nation, p);
     p = new MarkMoved(MarkMoved.ID + (large ? "moved58" : "moved"), p);
     p.setProperty(Properties.OBSCURED_TO_OTHERS, new Boolean(true));

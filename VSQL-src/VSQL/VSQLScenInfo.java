@@ -21,9 +21,11 @@ package VSQL;
 import VASSAL.build.AbstractBuildable;
 import VASSAL.build.Buildable;
 import VASSAL.build.GameModule;
+import VASSAL.build.module.Chatter;
 import VASSAL.build.module.GameComponent;
 import VASSAL.command.Command;
 import VASSAL.command.CommandEncoder;
+import VASSAL.command.NullCommand;
 import VASSAL.configure.Configurer;
 import VASSAL.configure.TextConfigurer;
 import VASSAL.tools.KeyStrokeListener;
@@ -47,6 +49,7 @@ public class VSQLScenInfo extends AbstractBuildable implements GameComponent, Co
   private JComboBox movesFirst;
   private JButton launch;
   private JButton nextTurn;
+  private JButton prevTurn;
   private JFrame frame;
 
   private TurnMarker turn;
@@ -66,6 +69,7 @@ public class VSQLScenInfo extends AbstractBuildable implements GameComponent, Co
     launch.setToolTipText("Scenario Info Window [F7]");
     launchAction = new AbstractAction() {
       public void actionPerformed(ActionEvent e) {
+        turn.backup();
         frame.setVisible(!frame.isShowing());
       }
     };
@@ -106,13 +110,23 @@ public class VSQLScenInfo extends AbstractBuildable implements GameComponent, Co
     b.add(movesFirst);
     b.add(turn);
 
+    Box v = Box.createVerticalBox();
     nextTurn = new JButton("Next Turn");
     nextTurn.addActionListener(new ActionListener() {
       public void actionPerformed(ActionEvent e) {
         turn.advance();
       }
     });
-    b.add(nextTurn);
+    v.add(nextTurn);
+
+    prevTurn = new JButton("Prev Turn");
+    prevTurn.addActionListener(new ActionListener() {
+      public void actionPerformed(ActionEvent e) {
+        turn.retreat();
+      }
+    });
+    v.add(prevTurn);
+    b.add(v);
     
     Dimension base = new Dimension(300, 50);
     b.setMaximumSize(base);
@@ -168,7 +182,10 @@ public class VSQLScenInfo extends AbstractBuildable implements GameComponent, Co
 
   private void save() {
     privateNotes.put(GameModule.getUserId(), myPrivate.getValue());
-    GameModule.getGameModule().sendAndLog(new SetInfo(getState(), this));
+    Command c = turn.getChangeCommand();
+    c.execute();
+    c.append(new SetInfo(getState(), this));
+    GameModule.getGameModule().sendAndLog(c);
   }
 
   public void addTo(Buildable b) {
@@ -444,11 +461,23 @@ public class VSQLScenInfo extends AbstractBuildable implements GameComponent, Co
 class TurnMarker extends Canvas {
   int current;
   String player, movesFirst;
+  
+  int oldCurrent;
+  String oldPlayer;
 
   TurnMarker(String f, String p, int c) {
     movesFirst = f;
     player = p;
     current = c;
+  }
+
+  public Command getChangeCommand() {
+    Command c = new NullCommand();
+    if (current != oldCurrent || !player.equals(oldPlayer)) {
+      String mess = "* Turn Updated from " + oldCurrent + " - " + oldPlayer + " to " + current + " - " + player;
+      c.append(new Chatter.DisplayText(GameModule.getGameModule().getChatter(), mess));
+    }
+    return c;
   }
 
   public void paint(Graphics g) {
@@ -471,6 +500,19 @@ class TurnMarker extends Canvas {
     current += (movesFirst.equals(player) ? 0 : 1);
     player = (player.equals("Axis") ? "Allied" : "Axis");
     repaint();
+  }
+  
+  public void retreat() {
+    if (current > 1 || !movesFirst.equals(player)) {
+      current -= (!movesFirst.equals(player) ? 0 : 1);
+      player = (player.equals("Axis") ? "Allied" : "Axis");
+      repaint();
+    }
+  }
+  
+  public void backup() {
+    oldCurrent = current;
+    oldPlayer = player;
   }
 
   public Dimension getPreferredSize() {
