@@ -26,6 +26,8 @@
  */
 package VSQL;
 
+import java.awt.event.InputEvent;
+
 import javax.swing.KeyStroke;
 
 import VASSAL.command.Command;
@@ -73,7 +75,7 @@ public class VSQLReportState extends ReportState  {
    */
   public Command myKeyEvent(KeyStroke stroke) {
   
-    if (getMap() == null) {
+    if (getMap() == null && stroke != KeyStroke.getKeyStroke('D', InputEvent.CTRL_MASK)) {
       return null;
     }
     else {

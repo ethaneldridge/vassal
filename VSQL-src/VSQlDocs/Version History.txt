@@ -1,5 +1,8 @@
 VERSION HISTORY
-3.0 05/23/05 (Brent Easton)
+3.0.1 06/02/05 (Brent Easton)
+-- Fixed bug where Deleting units was not being reported.
+
+3.0 06/01/05 (Brent Easton)
 -- Fixed reporting of movement of HIP unit. Now reported as '* ? Moves ? -> ?'
 -- Changed color of German COI colors to match SL colors.
 -- Reworked Concealment in general to prevent HIP, Delete and Clone by opponent on Concealed units and to make 
