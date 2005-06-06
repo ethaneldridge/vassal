@@ -55,7 +55,7 @@ public class ColorScheme extends AbstractConfigurable implements Visualizable {
     this();
     elements.add(se);
   }
-  
+
   public String[] getAttributeDescriptions() {
     return new String[] { "Name", "Background Color", "" };
   }
@@ -66,7 +66,7 @@ public class ColorScheme extends AbstractConfigurable implements Visualizable {
 
   public static class BgColorSwatchConfig implements ConfigurerFactory {
     public Configurer getConfigurer(AutoConfigurable c, String key, String name) {
-     return new ColorSwatchConfigurer(key, name, ((ColorScheme) c).getBgColor());
+      return new ColorSwatchConfigurer(key, name, ((ColorScheme) c).getBgColor());
     }
   }
 
@@ -92,6 +92,7 @@ public class ColorScheme extends AbstractConfigurable implements Visualizable {
       }
       bgColor = (ColorSwatch) value;
       if (schemeConfig != null) {
+        rebuildElements();
         schemeConfig.visualizer.rebuild(this);
       }
     }
@@ -147,10 +148,6 @@ public class ColorScheme extends AbstractConfigurable implements Visualizable {
   public HelpFile getHelpFile() {
     return null;
   }
-  
-  public void build(org.w3c.dom.Element e) {
-    super.build(e);
-  }
 
   public Class[] getAllowableConfigureComponents() {
     return new Class[] { ImageDefn.class };
@@ -161,15 +158,15 @@ public class ColorScheme extends AbstractConfigurable implements Visualizable {
     rebuildElements();
   }
 
-//  public Configurer getConfigurer() {
-//    rebuildElements();
-//    return super.getConfigurer();
-//  }
+  //  public Configurer getConfigurer() {
+  //    rebuildElements();
+  //    return super.getConfigurer();
+  //  }
 
   public Color getBgColor() {
     return bgColor.getColor();
   }
-  
+
   public int getVisualizerHeight() {
     return layout.getVisualizerHeight();
   }
@@ -185,11 +182,11 @@ public class ColorScheme extends AbstractConfigurable implements Visualizable {
   public Image getVisualizerImage(ColorScheme c) {
     return layout.getVisualizerImage(this);
   }
-  
+
   public void rebuildVisualizerImage(ColorScheme c) {
     layout.rebuildVisualizerImage(this);
   }
-  
+
   public void rebuildVisualizerImage() {
     layout.rebuildVisualizerImage(this);
   }
@@ -209,6 +206,10 @@ public class ColorScheme extends AbstractConfigurable implements Visualizable {
     return null;
   }
 
+  public Iterator getElements() {
+    return elements.iterator();
+  }
+
   public SchemeElement getElement(int row) {
     return (SchemeElement) elements.get(row);
   }
@@ -220,18 +221,18 @@ public class ColorScheme extends AbstractConfigurable implements Visualizable {
   public void setElementBg(int row, ColorSwatch color) {
     getElement(row).setBgColor(color);
   }
-  
+
   public CounterLayout getLayout() {
     return layout;
   }
-  
+
   /*
-   * Reconcile our current elements with the elements in the owning layout. 
+   * Reconcile our current elements with the elements in the owning layout.
    */
   protected void rebuildElements() {
-    
+
     ArrayList newElements = new ArrayList();
-    
+
     Iterator i = elements.iterator();
     while (i.hasNext()) {
       SchemeElement se = (SchemeElement) i.next();
@@ -240,17 +241,18 @@ public class ColorScheme extends AbstractConfigurable implements Visualizable {
         newElements.add(se);
       }
     }
-    
+
     i = layout.getItems().iterator();
     while (i.hasNext()) {
       Item item = (Item) i.next();
       SchemeElement se = this.getElement(item.getConfigureName());
       if (se == null) {
-        se = new SchemeElement(item.getConfigureName(), ColorSwatch.getBlack(), ColorSwatch.getClear());
+        se = new SchemeElement(item.getConfigureName(), ColorSwatch.getBlack(), ColorSwatch.getClear(), item.getType(),
+            item.getLocation());
         newElements.add(se);
       }
     }
-    
+
     elements = newElements;
   }
 }

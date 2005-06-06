@@ -20,6 +20,7 @@
 package Generic;
 
 import java.awt.Image;
+import java.util.Iterator;
 
 import VASSAL.build.AbstractConfigurable;
 import VASSAL.build.AutoConfigurable;
@@ -34,18 +35,31 @@ import VASSAL.configure.ConfigurerFactory;
 public class ImageDefn extends AbstractConfigurable implements Visualizable {
 
   protected static final String NAME = "name";
-  protected static final String DEFN = "defn";
+  protected static final String PROPS = "props";
 
-  protected CounterLayout layout;
+  public static final String PART_SIZE = "Size";
+  public static final String PART_SYMBOL1 = "Symbol1";
+  public static final String PART_SYMBOL2 = "Symbol2";
+
   protected ColorScheme scheme;
+  protected InstanceList instances = new InstanceList();
+  protected InstanceConfigurer defnConfig = null;
 
   public ImageDefn() {
     super();
     setConfigureName("");
   }
+
+  public ImageDefn(String s) {
+    instances = InstanceConfigurer.StringToProperties(s);
+  }
+
+  public InstanceList getInstances() {
+    return instances;
+  }
   
   public String[] getAttributeDescriptions() {
-    return new String[] { "Name",  "" };
+    return new String[] { "Name", "" };
   }
 
   public Class[] getAttributeTypes() {
@@ -54,40 +68,41 @@ public class ImageDefn extends AbstractConfigurable implements Visualizable {
 
   public static class DefnConfig implements ConfigurerFactory {
     public Configurer getConfigurer(AutoConfigurable c, String key, String name) {
-      return new DefnConfigurer(key, name, ((ImageDefn) c));
+      ImageDefn id = (ImageDefn) c;
+      id.defnConfig = new InstanceConfigurer(key, name, id);
+      return id.defnConfig;
     }
   }
 
   public String[] getAttributeNames() {
-    return new String[] { NAME, DEFN };
+    return new String[] { NAME, PROPS };
   }
 
   public void setAttribute(String key, Object value) {
     if (NAME.equals(key)) {
       setConfigureName((String) value);
     }
-    else if (DEFN.equals(key)) {
-      decodeDefn((String) value);
+    else if (PROPS.equals(key)) {
+      if (value instanceof String) {
+        value = InstanceConfigurer.StringToProperties((String) value);
+      }
+      instances = (InstanceList) value;
+      if (defnConfig != null) {
+        rebuildElements();
+        defnConfig.visualizer.rebuild(scheme, instances);
+      }
     }
-  }
-
-  private void decodeDefn(String string) {
-
   }
 
   public String getAttributeValueString(String key) {
     if (NAME.equals(key)) {
       return getConfigureName();
     }
-    else if (DEFN.equals(key)) {
-      return encodeDefn();
+    else if (PROPS.equals(key)) {
+      return InstanceConfigurer.PropertiesToString(instances);
     }
     else
       return null;
-  }
-
-  private String encodeDefn() {
-   return "";
   }
 
   public void removeFrom(Buildable parent) {
@@ -97,42 +112,56 @@ public class ImageDefn extends AbstractConfigurable implements Visualizable {
   public HelpFile getHelpFile() {
     return null;
   }
-  
+
   public Class[] getAllowableConfigureComponents() {
     return new Class[0];
   }
 
+  //  public Configurer getConfigurer() {
+  //    if (scheme != null) {
+  //      rebuildElements();
+  //    }
+  //    Configurer c = super.getConfigurer();
+  //    return c;
+  //  }
   public void addTo(Buildable parent) {
     scheme = (ColorScheme) parent;
-    layout = scheme.getLayout();
+    rebuildElements();
   }
-  
+
   public ColorScheme getColorScheme() {
     return scheme;
   }
 
+  public CounterLayout getLayout() {
+    return scheme.getLayout();
+
+  }
+
   public int getVisualizerHeight() {
-    return layout.getVisualizerHeight();
+    return getLayout().getVisualizerHeight();
   }
 
   public int getVisualizerWidth() {
-    return layout.getVisualizerWidth();
+    return getLayout().getVisualizerWidth();
   }
 
   public Image getVisualizerImage() {
-    return layout.getVisualizerImage(scheme);
+    getLayout().rebuildVisualizerImage(scheme);
+    return getLayout().getVisualizerImage(scheme);
   }
 
   public Image getVisualizerImage(ImageDefn c) {
-    return layout.getVisualizerImage(scheme);
+    getLayout().rebuildVisualizerImage(scheme);
+    return getLayout().getVisualizerImage(scheme);
   }
-  
+
   public void rebuildVisualizerImage(ImageDefn c) {
-    layout.rebuildVisualizerImage(scheme);
+    getLayout().rebuildVisualizerImage(scheme);
   }
-  
+
   public void rebuildVisualizerImage() {
-    layout.rebuildVisualizerImage(scheme);
+    getLayout().rebuildVisualizerImage(scheme);
   }
 
   public Image getVisualizerImage(ColorScheme scheme) {
@@ -141,8 +170,51 @@ public class ImageDefn extends AbstractConfigurable implements Visualizable {
 
   public void rebuildVisualizerImage(ColorScheme scheme) {
     scheme.rebuildVisualizerImage();
-    
+
   }
 
- 
+  /*
+   * Reconcile our current elements with the elements in the owning scheme.
+   */
+  protected void rebuildElements() {
+
+    InstanceList newInstances = new InstanceList();
+
+    Iterator e = instances.iterator();
+    while (e.hasNext()) {
+      Instance prop = (Instance) e.next();
+
+      SchemeElement element = scheme.getElement(prop.getName());
+      if (element != null && element.getType().equals(prop.getType())) {
+        prop.setLocation(element.getLocation());
+        newInstances.add(prop);
+      }
+    }
+
+    Iterator i = scheme.getElements();
+    while (i.hasNext()) {
+      SchemeElement element = (SchemeElement) i.next();
+      String name = element.getName();
+      String type = element.getType();
+      String location = element.getLocation();
+
+      if (type.equals(SymbolItem.TYPE) || type.equals(TextItem.TYPE)) {
+        boolean found = false;
+        e = instances.iterator();
+        while (e.hasNext() && !found) {
+          Instance prop = (Instance) e.next();
+          found = name.equals(prop.getName());
+        }
+
+        if (!found) {
+          newInstances.add(Instance.newDefaultInstance(name, type, location));
+        }
+      }
+    }
+
+    instances = newInstances;
+    if (defnConfig != null) {
+      defnConfig.setValue(instances);
+    }
+  }
 }

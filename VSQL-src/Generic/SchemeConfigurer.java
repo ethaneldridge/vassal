@@ -44,7 +44,8 @@ import VASSAL.configure.Configurer;
 public class SchemeConfigurer extends Configurer {
 
   protected ColorScheme scheme;
-  protected Visualizer visualizer;
+  protected Box visBox;
+  protected Visualizer visualizer = new Visualizer();
   protected JPanel panel;
   protected ItemPanel itemPanel;
 
@@ -82,11 +83,11 @@ public class SchemeConfigurer extends Configurer {
       filler.setPreferredSize(new Dimension(50, 10));
       panel.add(filler);
 
-      Box box = Box.createHorizontalBox();
-      box.setAlignmentX(Box.CENTER_ALIGNMENT);
+      visBox = Box.createHorizontalBox();
+      visBox.setAlignmentX(Box.CENTER_ALIGNMENT);
       visualizer = new Visualizer(scheme);
-      box.add(visualizer);
-      panel.add(box);
+      visBox.add(visualizer);
+      panel.add(visBox);
 
       filler = Box.createHorizontalBox();
       filler.setPreferredSize(new Dimension(50, 10));
@@ -96,7 +97,6 @@ public class SchemeConfigurer extends Configurer {
       panel.add(itemPanel);
 
     }
-
     return panel;
   }
 

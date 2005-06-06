@@ -33,9 +33,8 @@ import java.awt.RenderingHints;
 
 public class Symbol {
 
-  protected static final String NATO_SIZE_SET = "NATO Size Symbols";
-  protected static final String NATO_UNIT_SET = "NATO Unit Symbols";
-  protected static final String[] SYMBOL_SETS = new String[] { NATO_SIZE_SET, NATO_UNIT_SET };
+  protected static final String NATO = "NATO Unit Symbols";
+  protected static final String[] SYMBOL_SETS = new String[] { NATO };
   
 //  public static void draw(Graphics g, Rectangle r, Color fg, Color bg, String symbolSet, String symbolName) {
 //    
@@ -63,13 +62,19 @@ public class Symbol {
       g.fillRect(bounds.x, bounds.y, bounds.width, bounds.height);
     }
     
-    if (symbolSetName.equals(NATO_UNIT_SET)) {
+    if (symbolSetName.equals(NATO)) {
       NatoUnitSymbolSet.draw(symbolName, g, bounds, fg, lineWidth);
     }
   }
   
 
   public static class NatoUnitSymbolSet {
+
+    protected static final String SZ_NONE = "None";
+    protected static final String SZ_PLATOON = "Platoon";
+    protected static final String SZ_COMPANY = "Company";
+    
+    protected static final String NONE = "None";
     protected static final String INFANTRY = "Infantry";
     protected static final String CAVALRY = "Cavalry/Recon";
     protected static final String ARTILLERY = "Artillery";
@@ -77,10 +82,19 @@ public class Symbol {
     
     protected static String[] getSymbolNames() {
       return new String[] {
+          NONE,
           INFANTRY,
           CAVALRY,
           ARTILLERY,
           ENGINEERS
+      };
+    }
+    
+    protected static String[] getSymbolSizes() {
+      return new String[] {
+          SZ_NONE,
+          SZ_PLATOON,
+          SZ_COMPANY
       };
     }
     

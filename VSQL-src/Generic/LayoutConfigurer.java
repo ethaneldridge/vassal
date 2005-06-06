@@ -53,11 +53,12 @@ public class LayoutConfigurer extends Configurer {
   protected static final int NO_CURRENT_ITEM = -1;
 
   protected JPanel panel;
-  protected JPanel itemPanel;
+  protected ItemPanel itemPanel;
   protected JPanel itemConfigPanel;
   protected Component currentItemControls;
   protected int currentItem = NO_CURRENT_ITEM;
-  protected Visualizer visualizer;
+  protected Box visBox;
+  protected Visualizer visualizer = new Visualizer();
   protected JLabel visLabel;
   protected Box filler;
   protected CounterLayout layout;
@@ -85,6 +86,9 @@ public class LayoutConfigurer extends Configurer {
   }
 
   public void setValue(String s) {
+    if (itemPanel != null) {
+      itemPanel.reshow();
+    }
   }
 
   public Component getControls() {
@@ -97,11 +101,11 @@ public class LayoutConfigurer extends Configurer {
       filler.setPreferredSize(new Dimension(50, 10));
       panel.add(filler);
 
-      Box box = Box.createHorizontalBox();
-      box.setAlignmentX(Box.CENTER_ALIGNMENT);
+      visBox = Box.createHorizontalBox();
+      visBox.setAlignmentX(Box.CENTER_ALIGNMENT);
       visualizer = new Visualizer(layout);
-      box.add(visualizer);
-      panel.add(box);
+      visBox.add(visualizer);
+      panel.add(visBox);
 
       filler = Box.createHorizontalBox();
       filler.setPreferredSize(new Dimension(50, 10));
@@ -134,7 +138,9 @@ public class LayoutConfigurer extends Configurer {
     if (w != null) {
       w.pack();
     }
-    visualizer.rebuild();
+    if (visualizer != null) {
+      visualizer.rebuild();
+    }
   }
 
   protected class ItemPanel extends JPanel implements ActionListener {
@@ -169,7 +175,7 @@ public class LayoutConfigurer extends Configurer {
 
           ListSelectionModel lsm = (ListSelectionModel) e.getSource();
           if (lsm.isSelectionEmpty()) {
-            showItem(-1);
+            showItem(NO_CURRENT_ITEM);
           }
           else {
             int selectedRow = lsm.getMinSelectionIndex();
@@ -284,7 +290,7 @@ public class LayoutConfigurer extends Configurer {
       reshow();
     }
 
-    protected void reshow() {
+    public void reshow() {
 
       repack();
       rebuildViz();

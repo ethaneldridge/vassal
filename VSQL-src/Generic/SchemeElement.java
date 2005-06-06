@@ -27,13 +27,26 @@ class SchemeElement {
   private String name;
   private ColorSwatch fgColor;
   private ColorSwatch bgColor;
+  private String type;
+  private String location;
 
-  public SchemeElement(String s, ColorSwatch fg, ColorSwatch bg) {
-    name = s;
+  public SchemeElement(String nam, ColorSwatch fg, ColorSwatch bg) {
+    name = nam;
     fgColor = fg;
     bgColor = bg;
   }
+  
+//  public SchemeElement(String nam, ColorSwatch fg, ColorSwatch bg, String typ) {
+//    this(nam, fg, bg);
+//    setType(typ);
+//  }
 
+  public SchemeElement(String nam, ColorSwatch fg, ColorSwatch bg, String typ, String loc) {
+    this(nam, fg, bg);
+    setType(typ);
+    setLocation(loc);
+    
+  }
   public SchemeElement(String s) {
     decode(s);
   }
@@ -43,6 +56,8 @@ class SchemeElement {
     se.append(name);
     se.append(fgColor.encode());
     se.append(bgColor.encode());
+    se.append(getType());
+    se.append(getLocation());
     return se.getValue();
   }
 
@@ -51,6 +66,8 @@ class SchemeElement {
     name = sd.nextToken("");
     fgColor = new ColorSwatch(sd.nextToken(ColorSwatch.getBlack().encode()));
     bgColor = new ColorSwatch(sd.nextToken(ColorSwatch.getClear().encode()));
+    setType(sd.nextToken(""));
+    setLocation(sd.nextToken(""));
   }
 
   protected void setName(String name) {
@@ -75,6 +92,22 @@ class SchemeElement {
 
   protected ColorSwatch getBgColor() {
     return bgColor;
+  }
+
+  protected void setType(String type) {
+    this.type = type;
+  }
+
+  protected String getType() {
+    return type;
+  }
+
+  public void setLocation(String location) {
+    this.location = location;
+  }
+
+  public String getLocation() {
+    return location;
   }
 
 }

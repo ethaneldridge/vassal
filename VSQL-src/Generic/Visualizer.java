@@ -25,7 +25,7 @@ import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.Window;
 import java.awt.image.BufferedImage;
-
+import java.util.ArrayList;
 import javax.swing.BorderFactory;
 import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
@@ -37,11 +37,15 @@ public class Visualizer extends JPanel {
   protected JPanel visPanel;
   protected ColorScheme colorScheme;
 
+  public Visualizer() {
+
+  }
+
   public Visualizer(Visualizable obs) {
 
     observer = obs;
     setBorder(BorderFactory.createLineBorder(Color.black));
-  
+
     visPanel = new JPanel() {
       public void paint(Graphics g) {
         g.clearRect(0, 0, observer.getVisualizerWidth(), observer.getVisualizerHeight());
@@ -49,36 +53,54 @@ public class Visualizer extends JPanel {
         g.drawImage(observer.getVisualizerImage(), 0, 0, this);
       }
     };
-    
-    //refresh();
+
     add(visPanel, BorderLayout.CENTER);
   }
 
+  public void setObserver(Visualizable obs) {
+    observer = obs;
+    rebuild();
+    refresh();
+  }
+  
   public void rebuild(ColorScheme c) {
-     observer.rebuildVisualizerImage(c);  
-     refresh();
+    if (observer != null) {
+      observer.rebuildVisualizerImage(c);
+      refresh();
+    }
   }
 
-  public void rebuild() {
-    observer.rebuildVisualizerImage();
-    refresh();
- }
-  
-  public void refresh() {
-    int width = observer.getVisualizerWidth();
-    int height = observer.getVisualizerHeight();
-    
-    visPanel.setSize(width, height);
-    visPanel.setPreferredSize(new Dimension(width, height));
-    
-    setSize(width+OFFSET, height+OFFSET);
-    setPreferredSize(new Dimension(width+OFFSET, height+OFFSET));
-    
-    Window w = SwingUtilities.getWindowAncestor(this);
-    if (w != null) {
-      w.pack();
+  public void rebuild(ColorScheme c, ArrayList p) {
+    if (observer != null) {
+      observer.rebuildVisualizerImage(c);
+      refresh();
     }
-    
-    repaint();
+  }
+  
+  public void rebuild() {
+    if (observer != null) {
+      observer.rebuildVisualizerImage();
+      refresh();
+    }
+  }
+
+  public void refresh() {
+    if (observer != null) {
+      int width = observer.getVisualizerWidth();
+      int height = observer.getVisualizerHeight();
+
+      visPanel.setSize(width, height);
+      visPanel.setPreferredSize(new Dimension(width, height));
+
+      setSize(width + OFFSET, height + OFFSET);
+      setPreferredSize(new Dimension(width + OFFSET, height + OFFSET));
+
+      Window w = SwingUtilities.getWindowAncestor(this);
+      if (w != null) {
+        w.pack();
+      }
+
+      repaint();
+    }
   }
 }

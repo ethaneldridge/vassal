@@ -23,16 +23,20 @@ import java.awt.Graphics;
 import java.awt.Point;
 import java.awt.Rectangle;
 
+import VASSAL.build.AutoConfigurable;
+import VASSAL.configure.StringEnum;
 import VASSAL.tools.SequenceEncoder;
 
 public class SymbolItem extends Item {  
 
   public static final String TYPE = "Symbol";
   
+  protected static final String SET = "set";
   protected static final String WIDTH = "width";
   protected static final String HEIGHT = "height";
   protected static final String LINE_WIDTH = "linewidth";
 
+  protected String symbolSet = "";
   protected int height = 30;
   protected int width = 40;
   protected double lineWidth = 2.0f;
@@ -48,7 +52,7 @@ public class SymbolItem extends Item {
   }
   
   public String[] getAttributeDescriptions() {
-    String a[] = new String[] { "Width:  ", "Height:  ", "Line Width:  " };
+    String a[] = new String[] { "Symbol Set:  ", "Width:  ", "Height:  ", "Line Width:  " };
     String b[] = super.getAttributeDescriptions();
     String c[] = new String[a.length + b.length];
     System.arraycopy(b, 0, c, 0, 2);
@@ -58,7 +62,7 @@ public class SymbolItem extends Item {
   }
 
   public Class[] getAttributeTypes() {
-    Class a[] = new Class[] { Integer.class, Integer.class, Double.class };
+    Class a[] = new Class[] { SetConfig.class, Integer.class, Integer.class, Double.class };
     Class b[] = super.getAttributeTypes();
     Class c[] = new Class[a.length + b.length];
     System.arraycopy(b, 0, c, 0, 2);
@@ -68,7 +72,7 @@ public class SymbolItem extends Item {
   }
 
   public String[] getAttributeNames() {
-    String a[] = new String[] { WIDTH, HEIGHT, LINE_WIDTH };
+    String a[] = new String[] { SET, WIDTH, HEIGHT, LINE_WIDTH };
     String b[] = super.getAttributeNames();
     String c[] = new String[a.length + b.length];
     System.arraycopy(b, 0, c, 0, 2);
@@ -77,10 +81,17 @@ public class SymbolItem extends Item {
     return c;
   }
   
-
+  public static class SetConfig extends StringEnum {
+    public String[] getValidValues(AutoConfigurable target) {
+      return Symbol.SYMBOL_SETS;
+    }
+  }
   public void setAttribute(String key, Object o) {
     
-    if (WIDTH.equals(key)) {
+    if (SET.equals(key)) {
+      
+    }
+    else if (WIDTH.equals(key)) {
       if (o instanceof String) {
         o = new Integer((String) o);
       }
@@ -109,7 +120,10 @@ public class SymbolItem extends Item {
   
   public String getAttributeValueString(String key) {
     
-    if (WIDTH.equals(key)) {
+    if (SET.equals(key)) {
+      return symbolSet;
+    }
+    else if (WIDTH.equals(key)) {
       return width + "";
     }
     else if (HEIGHT.equals(key)) {
@@ -138,7 +152,7 @@ public class SymbolItem extends Item {
   
   public void draw(Graphics g, SchemeElement se) {
 
-    Symbol symbol = new Symbol(Symbol.NATO_UNIT_SET, "Infantry");
+    Symbol symbol = new Symbol(Symbol.NATO, "Infantry");
 
     Point origin = getOrigin();
     origin.translate(-getWidth() / 2, -getHeight() / 2);    
