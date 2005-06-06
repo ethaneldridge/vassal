@@ -37,7 +37,7 @@ import VASSAL.tools.SequenceEncoder;
 public class TextItem extends Item {
 
   public static final String TYPE = "Text";
-  
+
   protected static final String FONT = "font";
   protected static final String ALIGN = "align";
   protected static final String FIXED = "fixed";
@@ -59,14 +59,14 @@ public class TextItem extends Item {
   public TextItem(CounterLayout l) {
     super(l);
   }
-  
+
   public String[] getAttributeDescriptions() {
-    String a[] = new String[] { "Font style:  ", "Alignment:  ", "Fixed Text?  ", "Text:  "  };
+    String a[] = new String[] { "Font style:  ", "Alignment:  ", "Fixed Text?  ", "Text:  " };
     String b[] = super.getAttributeDescriptions();
     String c[] = new String[a.length + b.length];
     System.arraycopy(b, 0, c, 0, 2);
     System.arraycopy(a, 0, c, 2, a.length);
-    System.arraycopy(b, 2, c, a.length+2, b.length-2);
+    System.arraycopy(b, 2, c, a.length + 2, b.length - 2);
     return c;
   }
 
@@ -76,7 +76,7 @@ public class TextItem extends Item {
     Class c[] = new Class[a.length + b.length];
     System.arraycopy(b, 0, c, 0, 2);
     System.arraycopy(a, 0, c, 2, a.length);
-    System.arraycopy(b, 2, c, a.length+2, b.length-2);
+    System.arraycopy(b, 2, c, a.length + 2, b.length - 2);
     return c;
   }
 
@@ -86,9 +86,10 @@ public class TextItem extends Item {
     String c[] = new String[a.length + b.length];
     System.arraycopy(b, 0, c, 0, 2);
     System.arraycopy(a, 0, c, 2, a.length);
-    System.arraycopy(b, 2, c, a.length+2, b.length-2);
+    System.arraycopy(b, 2, c, a.length + 2, b.length - 2);
     return c;
   }
+
   public static class FontStyleConfig implements ConfigurerFactory {
     public Configurer getConfigurer(AutoConfigurable c, String key, String name) {
       return new FontStyleConfigurer(key, name, ((TextItem) c).fontStyle);
@@ -100,7 +101,7 @@ public class TextItem extends Item {
       return new String[] { LEFT, CENTER, RIGHT };
     }
   }
-  
+
   public void setAttribute(String key, Object o) {
     if (FONT.equals(key)) {
       if (o instanceof String) {
@@ -123,15 +124,15 @@ public class TextItem extends Item {
     else {
       super.setAttribute(key, o);
     }
-    
+
     if (layout != null) {
       layout.refresh();
     }
-    
+
   }
-  
+
   public String getAttributeValueString(String key) {
-    
+
     if (FONT.equals(key)) {
       return fontStyle.getConfigureName();
     }
@@ -143,32 +144,33 @@ public class TextItem extends Item {
     }
     else if (TEXT.equals(key)) {
       return text;
-    }    
+    }
     else {
       return super.getAttributeValueString(key);
     }
   }
-  
+
   public VisibilityCondition getAttributeVisibility(String name) {
     if (TEXT.equals(name)) {
-       return fixedCond;
-     }
-     else {
-       return super.getAttributeVisibility(name);
-     }
-   }
+      return fixedCond;
+    }
+    else {
+      return super.getAttributeVisibility(name);
+    }
+  }
 
   private VisibilityCondition fixedCond = new VisibilityCondition() {
     public boolean shouldBeVisible() {
       return fixed;
     }
   };
-  
-  public void draw(Graphics g, SchemeElement se) {
+
+  public void draw(Graphics g, SchemeElement se, ImageDefn defn) {
+
     Font f = fontStyle.getFont();
     Color fg = se.getFgColor().getColor();
     Color bg = se.getBgColor().getColor();
-    
+
     int align = Labeler.CENTER;
     if (alignment == LEFT) {
       align = Labeler.LEFT;
@@ -176,44 +178,56 @@ public class TextItem extends Item {
     else if (alignment == RIGHT) {
       align = Labeler.RIGHT;
     }
-    
+
     Point origin = getOrigin();
-    String s;
-    s = text.length() > 0 ? text : "Xx";
-    
-    ((Graphics2D) g).setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING,RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
+    String s = null;
+    if (fixed) {
+      s = text;
+    }
+    else {
+      if (defn != null) {
+        TextInstance ti = defn.getTextInstance(getConfigureName());
+        if (ti != null) {
+          s = ti.getValue();
+        }
+      }
+    }
+    if (s == null) {
+      s = "Xx";
+    }
+
+    ((Graphics2D) g).setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
     Labeler.drawLabel(g, s, origin.x, origin.y, f, align, Labeler.CENTER, fg, bg, null, getRotation());
   }
-  
+
   public String getType() {
     return TYPE;
   }
-  
+
   public static Item decode(CounterLayout l, String s) {
-    
+
     SequenceEncoder.Decoder sd = new SequenceEncoder.Decoder(s, ';');
-    
+
     TextItem item = new TextItem(l);
-    
+
     sd.nextToken();
     item.fontStyle = FontManager.getFontManager().getFontStyle(sd.nextToken());
     item.alignment = sd.nextToken();
-    
+
     return item;
   }
-  
+
   public String encode() {
-   
+
     SequenceEncoder se1 = new SequenceEncoder(TYPE, ';');
-    
+
     se1.append(fontStyle.getConfigureName());
     se1.append(alignment);
-   
+
     SequenceEncoder se2 = new SequenceEncoder(se1.getValue(), '|');
     se2.append(super.encode());
-    
+
     return se2.getValue();
   }
-  
-  
+
 }

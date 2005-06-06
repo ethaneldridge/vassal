@@ -126,7 +126,7 @@ public class ImageItem extends Item {
     }
   };
   
-  public void draw(Graphics g, SchemeElement se) {
+  public void draw(Graphics g, SchemeElement se, ImageDefn defn) {
 
     Color fg = se.getFgColor().getColor();
     Color bg = se.getBgColor().getColor();

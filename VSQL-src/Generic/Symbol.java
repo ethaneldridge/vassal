@@ -49,10 +49,12 @@ public class Symbol {
   
   protected String symbolSetName;
   protected String symbolName;
+  protected String symbolSize;
   
-  public Symbol(String setName, String name) {
+  public Symbol(String setName, String name, String size) {
     symbolSetName = setName;
     symbolName = name;
+    symbolSize = size;
   }
   
   public void draw(Graphics g, Rectangle bounds, Color fg, Color bg, float lineWidth) {
@@ -63,7 +65,7 @@ public class Symbol {
     }
     
     if (symbolSetName.equals(NATO)) {
-      NatoUnitSymbolSet.draw(symbolName, g, bounds, fg, lineWidth);
+      NatoUnitSymbolSet.draw(symbolName, g, bounds, fg, lineWidth, symbolSize);
     }
   }
   
@@ -98,7 +100,7 @@ public class Symbol {
       };
     }
     
-    protected static void draw(String name, Graphics g, Rectangle bounds, Color fg, float lineWidth) {
+    protected static void draw(String name, Graphics g, Rectangle bounds, Color fg, float lineWidth, String size) {
       
       g.setColor(fg);
       BasicStroke stroke = new BasicStroke(lineWidth, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND);
@@ -106,8 +108,10 @@ public class Symbol {
       g2.setStroke(stroke);
       g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING,RenderingHints.VALUE_ANTIALIAS_ON);
 
-      
-      if (name.equals(INFANTRY)) {
+      if (name.equals(NONE)) {
+        
+      }
+      else if (name.equals(INFANTRY)) {
         g.drawRect(bounds.x, bounds.y, bounds.width, bounds.height);
         g.drawLine(bounds.x, bounds.y, bounds.x+bounds.width, bounds.y+bounds.height);
         g.drawLine(bounds.x, bounds.y+bounds.height, bounds.x+bounds.width, bounds.y);

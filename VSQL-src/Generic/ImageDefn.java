@@ -88,8 +88,8 @@ public class ImageDefn extends AbstractConfigurable implements Visualizable {
       }
       instances = (InstanceList) value;
       if (defnConfig != null) {
-        rebuildElements();
-        defnConfig.visualizer.rebuild(scheme, instances);
+        rebuildInstances();
+        defnConfig.visualizer.rebuild();
       }
     }
   }
@@ -126,7 +126,7 @@ public class ImageDefn extends AbstractConfigurable implements Visualizable {
   //  }
   public void addTo(Buildable parent) {
     scheme = (ColorScheme) parent;
-    rebuildElements();
+    rebuildInstances();
   }
 
   public ColorScheme getColorScheme() {
@@ -147,36 +147,62 @@ public class ImageDefn extends AbstractConfigurable implements Visualizable {
   }
 
   public Image getVisualizerImage() {
-    getLayout().rebuildVisualizerImage(scheme);
-    return getLayout().getVisualizerImage(scheme);
+    rebuildVisualizerImage();
+    return getLayout().getVisualizerImage(scheme, this);
   }
 
-  public Image getVisualizerImage(ImageDefn c) {
-    getLayout().rebuildVisualizerImage(scheme);
-    return getLayout().getVisualizerImage(scheme);
-  }
-
-  public void rebuildVisualizerImage(ImageDefn c) {
-    getLayout().rebuildVisualizerImage(scheme);
-  }
+//  public Image getVisualizerImage(ImageDefn c) {
+//    getLayout().rebuildVisualizerImage(scheme);
+//    return getLayout().getVisualizerImage(scheme);
+//  }
+//
+//  public void rebuildVisualizerImage(ImageDefn c) {
+//    getLayout().rebuildVisualizerImage(scheme);
+//  }
 
   public void rebuildVisualizerImage() {
-    getLayout().rebuildVisualizerImage(scheme);
+    getLayout().rebuildVisualizerImage(scheme, this);
   }
 
-  public Image getVisualizerImage(ColorScheme scheme) {
-    return scheme.getVisualizerImage();
+//  public Image getVisualizerImage(ColorScheme scheme) {
+//    return scheme.getVisualizerImage();
+//  }
+//
+//  public void rebuildVisualizerImage(ColorScheme scheme) {
+//    scheme.rebuildVisualizerImage();
+//
+//  }
+  
+  public TextInstance getTextInstance(String name) {
+    Iterator i = instances.iterator();
+    while (i.hasNext()) {
+      Instance instance = (Instance) i.next();
+      if (instance instanceof TextInstance) {
+        if (name.equals(instance.getName())) {
+          return (TextInstance) instance;
+        }
+      }
+    }
+    return null;
   }
 
-  public void rebuildVisualizerImage(ColorScheme scheme) {
-    scheme.rebuildVisualizerImage();
-
+  public SymbolInstance getSymbolInstance(String name) {
+    Iterator i = instances.iterator();
+    while (i.hasNext()) {
+      Instance instance = (Instance) i.next();
+      if (instance instanceof TextInstance) {
+        if (name.equals(instance.getName())) {
+          return (SymbolInstance) instance;
+        }
+      }
+    }
+    return null;
   }
-
+  
   /*
    * Reconcile our current elements with the elements in the owning scheme.
    */
-  protected void rebuildElements() {
+  protected void rebuildInstances() {
 
     InstanceList newInstances = new InstanceList();
 

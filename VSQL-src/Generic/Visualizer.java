@@ -25,7 +25,7 @@ import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.Window;
 import java.awt.image.BufferedImage;
-import java.util.ArrayList;
+
 import javax.swing.BorderFactory;
 import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
@@ -63,19 +63,19 @@ public class Visualizer extends JPanel {
     refresh();
   }
   
-  public void rebuild(ColorScheme c) {
-    if (observer != null) {
-      observer.rebuildVisualizerImage(c);
-      refresh();
-    }
-  }
-
-  public void rebuild(ColorScheme c, ArrayList p) {
-    if (observer != null) {
-      observer.rebuildVisualizerImage(c);
-      refresh();
-    }
-  }
+//  public void rebuild(ColorScheme c) {
+//    if (observer != null) {
+//      observer.rebuildVisualizerImage(c);
+//      refresh();
+//    }
+//  }
+//
+//  public void rebuild(ColorScheme c, ArrayList p) {
+//    if (observer != null) {
+//      observer.rebuildVisualizerImage(c);
+//      refresh();
+//    }
+//  }
   
   public void rebuild() {
     if (observer != null) {

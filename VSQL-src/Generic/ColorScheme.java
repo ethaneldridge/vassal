@@ -93,7 +93,7 @@ public class ColorScheme extends AbstractConfigurable implements Visualizable {
       bgColor = (ColorSwatch) value;
       if (schemeConfig != null) {
         rebuildElements();
-        schemeConfig.visualizer.rebuild(this);
+        schemeConfig.visualizer.rebuild();
       }
     }
     else if (SCHEME.equals(key)) {
@@ -179,13 +179,13 @@ public class ColorScheme extends AbstractConfigurable implements Visualizable {
     return layout.getVisualizerImage(this);
   }
 
-  public Image getVisualizerImage(ColorScheme c) {
-    return layout.getVisualizerImage(this);
-  }
-
-  public void rebuildVisualizerImage(ColorScheme c) {
-    layout.rebuildVisualizerImage(this);
-  }
+//  public Image getVisualizerImage(ColorScheme c) {
+//    return layout.getVisualizerImage(this);
+//  }
+//
+//  public void rebuildVisualizerImage(ColorScheme c) {
+//    layout.rebuildVisualizerImage(this);
+//  }
 
   public void rebuildVisualizerImage() {
     layout.rebuildVisualizerImage(this);

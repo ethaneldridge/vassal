@@ -150,15 +150,31 @@ public class SymbolItem extends Item {
     return height;
   }
   
-  public void draw(Graphics g, SchemeElement se) {
+  public void draw(Graphics g, SchemeElement se, ImageDefn defn) {
 
-    Symbol symbol = new Symbol(Symbol.NATO, "Infantry");
+    SymbolInstance si = null;
+    if (defn != null) {
+      si = defn.getSymbolInstance(getConfigureName());
+    }
+    Symbol symbol1 = null;
+    Symbol symbol2 = null;
+    if (si == null) {
+      symbol1 = new Symbol(Symbol.NATO, "Infantry", "");
+      symbol2 = null;
+    }
+    else {
+      symbol1 = new Symbol(Symbol.NATO, si.getSymbol1(), si.getSize());
+      symbol2 = new Symbol(Symbol.NATO, si.getSymbol2(), "");
+    }
 
     Point origin = getOrigin();
     origin.translate(-getWidth() / 2, -getHeight() / 2);    
     Rectangle r = new Rectangle(origin.x, origin.y, getWidth(), getHeight());
     
-    symbol.draw(g, r, se.getFgColor().getColor(), se.getBgColor().getColor(), (float) lineWidth);
+    symbol1.draw(g, r, se.getFgColor().getColor(), se.getBgColor().getColor(), (float) lineWidth);
+    if (symbol2 != null) {
+      symbol2.draw(g, r, se.getFgColor().getColor(), se.getBgColor().getColor(), (float) lineWidth);
+    }
     
   }
   

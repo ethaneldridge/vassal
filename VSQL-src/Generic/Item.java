@@ -188,7 +188,7 @@ public abstract class Item extends AbstractConfigurable {
   /**
    * Implemented by subclass to draw itself.
    */
-  public abstract void draw(Graphics g, SchemeElement se);
+  public abstract void draw(Graphics g, SchemeElement se, ImageDefn defn);
   public abstract String getType();
 
   public String getLocation() {

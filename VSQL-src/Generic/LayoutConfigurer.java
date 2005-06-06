@@ -268,7 +268,7 @@ public class LayoutConfigurer extends Configurer {
       else {
         cs = new ColorScheme();
       }
-      visualizer.rebuild(cs);
+      visualizer.rebuild();
     }
 
     protected void showItem(int itemNo) {

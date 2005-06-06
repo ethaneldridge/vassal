@@ -81,6 +81,7 @@ public class CounterLayout extends AbstractConfigurable implements Visualizable 
   protected int height = 54;
   protected BufferedImage image;
   protected ColorScheme colorScheme;
+  protected ImageDefn imageDefn;
   protected ArrayList items = new ArrayList();
 
   public CounterLayout() {
@@ -132,7 +133,7 @@ public class CounterLayout extends AbstractConfigurable implements Visualizable 
     else if (ITEMS.equals(key)) {
       decodeItemList((String) value);
     }
-    buildImage(null);
+    buildImage();
     LayoutConfig.refresh();
   }
 
@@ -230,28 +231,41 @@ public class CounterLayout extends AbstractConfigurable implements Visualizable 
 
   public Image getVisualizerImage() {
 
-    return getVisualizerImage(colorScheme);
+    return getVisualizerImage(colorScheme, imageDefn);
 
   }
   
   public Image getVisualizerImage(ColorScheme scheme) {
 
+    return getVisualizerImage(scheme, imageDefn);
+
+  }
+
+  public Image getVisualizerImage(ColorScheme scheme, ImageDefn defn) {
     if (image == null) {
-      buildImage(scheme);
+      buildImage(scheme, defn);
     }
 
     return image;
-
   }
-
+  
   public void refresh() {
-    buildImage(colorScheme);
+    buildImage();
     LayoutConfig.refresh();
   }
 
+  protected void buildImage() {
+    buildImage(colorScheme);
+  }
+  
   protected void buildImage(ColorScheme c) {
+    buildImage(c, imageDefn);
+  }
+  
+  protected void buildImage(ColorScheme c, ImageDefn defn) {
 
     colorScheme = c;
+    imageDefn = defn;
 
     // Create our base image
     image = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
@@ -276,7 +290,7 @@ public class CounterLayout extends AbstractConfigurable implements Visualizable 
         se = new SchemeElement(item.getConfigureName(), ColorSwatch.getBlack(), ColorSwatch.getClear());
       }
       
-      item.draw(g, se);
+      item.draw(g, se, defn);
     }
 
   }
@@ -312,11 +326,15 @@ public class CounterLayout extends AbstractConfigurable implements Visualizable 
     return getLayoutWidth();
   }
 
+  public void rebuildVisualizerImage(ColorScheme c, ImageDefn defn) {
+    buildImage(c, defn);
+  }
+  
   public void rebuildVisualizerImage(ColorScheme c) {
-    buildImage(c);
+    buildImage(c, imageDefn);
   }
   
   public void rebuildVisualizerImage() {
-    buildImage(colorScheme);
+    buildImage(colorScheme, imageDefn);
   }
 }

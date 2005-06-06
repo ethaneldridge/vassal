@@ -220,7 +220,7 @@ public class SchemeConfigurer extends Configurer {
           scheme.setElementBg(row, ColorManager.getColorManager().getColorSwatch((String) value));
         }
         fireTableCellUpdated(row, col);
-        visualizer.rebuild(scheme);
+        visualizer.rebuild();
       }
 
     }
