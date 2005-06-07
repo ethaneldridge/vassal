@@ -51,7 +51,7 @@ public class ImageDefn extends AbstractConfigurable implements Visualizable {
   }
 
   public ImageDefn(String s) {
-    instances = InstanceConfigurer.StringToProperties(s);
+    instances = InstanceConfigurer.StringToProperties(s, this);
   }
 
   public InstanceList getInstances() {
@@ -67,10 +67,16 @@ public class ImageDefn extends AbstractConfigurable implements Visualizable {
   }
 
   public static class DefnConfig implements ConfigurerFactory {
+    static ImageDefn id;
     public Configurer getConfigurer(AutoConfigurable c, String key, String name) {
-      ImageDefn id = (ImageDefn) c;
+      id = (ImageDefn) c;
       id.defnConfig = new InstanceConfigurer(key, name, id);
       return id.defnConfig;
+    }
+    public static void refresh() {
+      if (id.defnConfig != null) {
+        id.defnConfig.repack();
+      }
     }
   }
 
@@ -84,12 +90,13 @@ public class ImageDefn extends AbstractConfigurable implements Visualizable {
     }
     else if (PROPS.equals(key)) {
       if (value instanceof String) {
-        value = InstanceConfigurer.StringToProperties((String) value);
+        value = InstanceConfigurer.StringToProperties((String) value, this);
       }
       instances = (InstanceList) value;
       if (defnConfig != null) {
-        rebuildInstances();
-        defnConfig.visualizer.rebuild();
+       // rebuildInstances();
+        //defnConfig.visualizer.rebuild();
+        defnConfig.repack();
       }
     }
   }
@@ -117,25 +124,24 @@ public class ImageDefn extends AbstractConfigurable implements Visualizable {
     return new Class[0];
   }
 
-  //  public Configurer getConfigurer() {
-  //    if (scheme != null) {
-  //      rebuildElements();
-  //    }
-  //    Configurer c = super.getConfigurer();
-  //    return c;
-  //  }
   public void addTo(Buildable parent) {
     scheme = (ColorScheme) parent;
     rebuildInstances();
   }
 
+  public void refreshConfig() {
+//    if (defnConfig != null) {
+//      defnConfig.refresh();
+//    }
+    rebuildVisualizerImage();
+  }
+  
   public ColorScheme getColorScheme() {
     return scheme;
   }
 
   public CounterLayout getLayout() {
     return scheme.getLayout();
-
   }
 
   public int getVisualizerHeight() {
@@ -151,27 +157,9 @@ public class ImageDefn extends AbstractConfigurable implements Visualizable {
     return getLayout().getVisualizerImage(scheme, this);
   }
 
-//  public Image getVisualizerImage(ImageDefn c) {
-//    getLayout().rebuildVisualizerImage(scheme);
-//    return getLayout().getVisualizerImage(scheme);
-//  }
-//
-//  public void rebuildVisualizerImage(ImageDefn c) {
-//    getLayout().rebuildVisualizerImage(scheme);
-//  }
-
   public void rebuildVisualizerImage() {
     getLayout().rebuildVisualizerImage(scheme, this);
   }
-
-//  public Image getVisualizerImage(ColorScheme scheme) {
-//    return scheme.getVisualizerImage();
-//  }
-//
-//  public void rebuildVisualizerImage(ColorScheme scheme) {
-//    scheme.rebuildVisualizerImage();
-//
-//  }
   
   public TextInstance getTextInstance(String name) {
     Iterator i = instances.iterator();
@@ -190,7 +178,7 @@ public class ImageDefn extends AbstractConfigurable implements Visualizable {
     Iterator i = instances.iterator();
     while (i.hasNext()) {
       Instance instance = (Instance) i.next();
-      if (instance instanceof TextInstance) {
+      if (instance instanceof SymbolInstance) {
         if (name.equals(instance.getName())) {
           return (SymbolInstance) instance;
         }
@@ -233,7 +221,9 @@ public class ImageDefn extends AbstractConfigurable implements Visualizable {
         }
 
         if (!found) {
-          newInstances.add(Instance.newDefaultInstance(name, type, location));
+          Instance instance = Instance.newDefaultInstance(name, type, location);
+          instance.addTo(this);
+          newInstances.add(instance);
         }
       }
     }

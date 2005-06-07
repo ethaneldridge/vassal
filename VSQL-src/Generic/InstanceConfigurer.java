@@ -54,15 +54,18 @@ public class InstanceConfigurer extends Configurer {
   protected JPanel panel;
   protected TextPanel itemPanel;
   protected SymbolPanel symbolPanel;
+  protected InstanceConfigurer me;
 
   protected InstanceConfigurer() {
     super(null, null);
+    me = this;
   }
 
   protected InstanceConfigurer(String key, String name, ImageDefn defn) {
     super(key, name);
     this.defn = defn;
     setValue(defn.getInstances());
+    me = this;
   }
 
   public String getValueString() {
@@ -74,7 +77,10 @@ public class InstanceConfigurer extends Configurer {
   }
 
   public void setValue(String s) {
-    setValue(StringToProperties(s));
+    setValue(StringToProperties(s, defn));
+    if (symbolPanel != null) {
+      symbolPanel.reset();
+    }
   }
   
   public Component getControls() {
@@ -122,22 +128,25 @@ public class InstanceConfigurer extends Configurer {
     return StringArrayConfigurer.arrayToString(p);
   }
   
-  public static InstanceList StringToProperties(String s) {
+  public static InstanceList StringToProperties(String s, ImageDefn defn) {
     InstanceList props = new InstanceList();
     String[] p = StringArrayConfigurer.stringToArray(s);
     for (int i = 0; i < p.length; i++) {
       if (p[i].startsWith(SymbolItem.TYPE)) {
-        props.add(new SymbolInstance(p[i]));
+        props.add(new SymbolInstance(p[i], defn));
       }
       else if (p[i].startsWith(TextItem.TYPE)) {
-        props.add(new TextInstance(p[i]));
+        props.add(new TextInstance(p[i], defn));
       }
     }
     return props;
   }
   
   public void refresh() {
-
+    if (symbolPanel != null) {
+      symbolPanel.refresh();
+    }
+    visualizer.rebuild();
   }
   
   protected class SymbolPanel extends JPanel {
@@ -155,9 +164,6 @@ public class InstanceConfigurer extends Configurer {
     final int NAME_COL = 0;
     final int TYPE_COL = 1;
     final int LOC_COL = 2;
-//    final int SIZE_COL = 3;
-//    final int SYMBOL1_COL = 4;
-//    final int SYMBOL2_COL = 5;
     final int MAX_COL = 2;
     
     public SymbolPanel() {
@@ -228,6 +234,7 @@ public class InstanceConfigurer extends Configurer {
       
       if (itemNo != NO_CURRENT_ITEM && symbolCount > 0 && itemNo < symbolCount) {
         SymbolInstance instance = getValueInstanceList().getSymbol(itemNo);
+        instance.setConfig(me);
         Configurer c = instance.getConfigurer();
         detailControls = c.getControls();
         detailPanel.add(detailControls);
@@ -237,6 +244,10 @@ public class InstanceConfigurer extends Configurer {
       reshow();
     }
 
+    public void reset() {
+      showItem(currentDetail);
+    }
+    
     public void reshow() {
 
       repack();
@@ -244,6 +255,11 @@ public class InstanceConfigurer extends Configurer {
 
     }
 
+    public void refresh() {
+      showItem(currentDetail);
+      reshow();
+    }
+    
     protected void repack() {
 
       Window w = SwingUtilities.getWindowAncestor(panel);
@@ -416,10 +432,30 @@ public class InstanceConfigurer extends Configurer {
           ((TextInstance) getValueInstanceList().getText(row)).setValue((String) value);
         }
         fireTableCellUpdated(row, col);
-        visualizer.rebuild();
+        rebuildViz();
       }
 
     }
+  }
+
+
+  public void rebuildViz() {
+    if (visualizer != null) {
+      visualizer.rebuild();
+    }
+  }
+  
+  /**
+   * 
+   */
+  public void repack() {
+    if (panel != null) { 
+      Window w = SwingUtilities.getWindowAncestor(panel);
+      if (w != null) {
+        w.pack();
+      }
+    }
+    rebuildViz();    
   }
 
 }

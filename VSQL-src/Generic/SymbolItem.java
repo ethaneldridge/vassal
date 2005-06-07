@@ -20,8 +20,10 @@
 package Generic;
 
 import java.awt.Graphics;
+import java.awt.Graphics2D;
 import java.awt.Point;
 import java.awt.Rectangle;
+import java.awt.geom.AffineTransform;
 
 import VASSAL.build.AutoConfigurable;
 import VASSAL.configure.StringEnum;
@@ -156,26 +158,27 @@ public class SymbolItem extends Item {
     if (defn != null) {
       si = defn.getSymbolInstance(getConfigureName());
     }
-    Symbol symbol1 = null;
-    Symbol symbol2 = null;
+    Symbol symbol = null;
     if (si == null) {
-      symbol1 = new Symbol(Symbol.NATO, "Infantry", "");
-      symbol2 = null;
+      symbol = new Symbol(Symbol.NATO, Symbol.NatoUnitSymbolSet.INFANTRY, Symbol.NatoUnitSymbolSet.NONE, "");
     }
     else {
-      symbol1 = new Symbol(Symbol.NATO, si.getSymbol1(), si.getSize());
-      symbol2 = new Symbol(Symbol.NATO, si.getSymbol2(), "");
+      symbol = new Symbol(Symbol.NATO, si.getSymbol1(), si.getSymbol2(), si.getSize());
     }
 
     Point origin = getOrigin();
     origin.translate(-getWidth() / 2, -getHeight() / 2);    
     Rectangle r = new Rectangle(origin.x, origin.y, getWidth(), getHeight());
     
-    symbol1.draw(g, r, se.getFgColor().getColor(), se.getBgColor().getColor(), (float) lineWidth);
-    if (symbol2 != null) {
-      symbol2.draw(g, r, se.getFgColor().getColor(), se.getBgColor().getColor(), (float) lineWidth);
+    if (getRotation() != 0) {
+      Graphics2D g2d = (Graphics2D) g;
+        AffineTransform newXForm =
+          AffineTransform.getRotateInstance(Math.toRadians(getRotation()), getOrigin().x, getOrigin().y);
+        g2d.transform(newXForm);
     }
     
+    symbol.draw(g, r, se.getFgColor().getColor(), se.getBgColor().getColor(), (float) lineWidth);
+ 
   }
   
   public String getType() {

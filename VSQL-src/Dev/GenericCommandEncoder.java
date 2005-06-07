@@ -18,6 +18,7 @@
  */
 package Dev;
 
+import Generic.Generic;
 import VASSAL.build.module.BasicCommandEncoder;
 import VASSAL.counters.Decorator;
 import VASSAL.counters.GamePiece;

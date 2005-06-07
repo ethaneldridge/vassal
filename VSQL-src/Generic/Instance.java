@@ -25,9 +25,10 @@ import VASSAL.build.module.documentation.HelpFile;
 
 public abstract class Instance extends AbstractConfigurable {
   
-  private String name;
-  private String type;
-  private String location;
+  protected String name;
+  protected String type;
+  protected String location;
+  protected ImageDefn defn;
   
   public Instance(String nam, String typ, String loc) {
     setName(nam);
@@ -39,6 +40,11 @@ public abstract class Instance extends AbstractConfigurable {
     this("", "", ""); 
   }
  
+  public Instance(ImageDefn defn) {
+    this();
+    this.defn = defn;
+  }
+  
   public abstract String encode();
 
   public static Instance newDefaultInstance(String name, String type, String location) {
@@ -108,6 +114,8 @@ public abstract class Instance extends AbstractConfigurable {
   }
 
   public void addTo(Buildable parent) {
-    
+    if (parent instanceof ImageDefn) {
+      defn = (ImageDefn) parent;
+    }
   }
 }

@@ -122,29 +122,8 @@ public class ColorSwatchConfigurer extends Configurer {
       }
     };
 
-    swatches = new SwatchCombo(l, ((ColorSwatch) value).getConfigureName());
+    swatches = new SwatchComboBox(l, ((ColorSwatch) value).getConfigureName());
     swatchPanel.add(swatches);
-
-    //    swatches = new JComboBox();
-    //    String[] s = ColorManager.getColorManager().getColorNames();
-    //    for (int i = 0; i < s.length; ++i) {
-    //      swatches.addItem(s[i]);
-    //    }
-    //    swatches.addItem(ColorManager.SELECT_COLOR);
-    //    swatches.setSelectedItem(value == null ? "WHITE" : ((ColorSwatch)
-    // value).getConfigureName());
-    //    swatchPanel.add(swatches);
-    //
-    //    ItemListener l = new ItemListener() {
-    //      public void itemStateChanged(ItemEvent evt) {
-    //        updateValue();
-    //      }
-    //    };
-    //
-    //    swatches.addItemListener(l);
-    //
-    //    SwatchRenderer renderer = new SwatchRenderer();
-    //    swatches.setRenderer(renderer);
 
   }
 
@@ -171,21 +150,6 @@ public class ColorSwatchConfigurer extends Configurer {
     super.setValue(new ColorSwatch(s));
     buildSwatches();
   }
-
-//  public void setValue(Color c) {
-//    super.setValue(new ColorSwatch("", c));
-//    buildSwatches();
-//  }
-
-//  public void setValue(ColorSwatch c) {
-//    super.setValue(c);
-//    buildSwatches();
-//  }
-  
-//  public void setValue(Object o) {
-//    super.setValue(o);
-//    buildSwatches();
-//  }
   
   public static ColorSwatch decode(String s) {
     SequenceEncoder.Decoder sd = new SequenceEncoder.Decoder(s, '|');

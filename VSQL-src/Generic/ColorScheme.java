@@ -22,6 +22,7 @@ package Generic;
 import java.awt.Color;
 import java.awt.Image;
 import java.util.ArrayList;
+import java.util.Enumeration;
 import java.util.Iterator;
 
 import VASSAL.build.AbstractConfigurable;
@@ -42,7 +43,7 @@ public class ColorScheme extends AbstractConfigurable implements Visualizable {
   protected static final String SCHEME = "scheme";
 
   protected ColorSwatch bgColor = ColorSwatch.getWhite();
-  protected SchemeConfigurer schemeConfig = null;
+  protected ColorSchemeConfigurer schemeConfig = null;
   protected ArrayList elements = new ArrayList();
   protected CounterLayout layout;
 
@@ -73,7 +74,7 @@ public class ColorScheme extends AbstractConfigurable implements Visualizable {
   public static class SchemeConfig implements ConfigurerFactory {
     public Configurer getConfigurer(AutoConfigurable c, String key, String name) {
       ColorScheme cs = (ColorScheme) c;
-      cs.schemeConfig = new SchemeConfigurer(key, name, cs);
+      cs.schemeConfig = new ColorSchemeConfigurer(key, name, cs);
       return cs.schemeConfig;
     }
   }
@@ -157,12 +158,7 @@ public class ColorScheme extends AbstractConfigurable implements Visualizable {
     layout = (CounterLayout) parent;
     rebuildElements();
   }
-
-  //  public Configurer getConfigurer() {
-  //    rebuildElements();
-  //    return super.getConfigurer();
-  //  }
-
+  
   public Color getBgColor() {
     return bgColor.getColor();
   }
@@ -176,19 +172,11 @@ public class ColorScheme extends AbstractConfigurable implements Visualizable {
   }
 
   public Image getVisualizerImage() {
-    return layout.getVisualizerImage(this);
+    return layout.getVisualizerImage(this, null);
   }
 
-//  public Image getVisualizerImage(ColorScheme c) {
-//    return layout.getVisualizerImage(this);
-//  }
-//
-//  public void rebuildVisualizerImage(ColorScheme c) {
-//    layout.rebuildVisualizerImage(this);
-//  }
-
   public void rebuildVisualizerImage() {
-    layout.rebuildVisualizerImage(this);
+    layout.rebuildVisualizerImage(this, null);
   }
 
   public int getElementCount() {
@@ -254,5 +242,19 @@ public class ColorScheme extends AbstractConfigurable implements Visualizable {
     }
 
     elements = newElements;
+  }
+
+  public ImageDefn getGenericDefn(String defnName) {
+    ImageDefn defn = null;
+    Enumeration e = getBuildComponents();
+    while (e.hasMoreElements() && defn == null) {
+      Object o = e.nextElement();
+      if (o instanceof ImageDefn) {
+        if (((ImageDefn) o).getConfigureName().equals(defnName)) {
+          return (ImageDefn) o;
+        }
+      }
+    }
+    return defn;
   }
 }

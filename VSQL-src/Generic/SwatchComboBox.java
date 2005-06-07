@@ -33,9 +33,9 @@ import javax.swing.JTable;
 import javax.swing.ListCellRenderer;
 import javax.swing.table.TableCellRenderer;
 
-public class SwatchCombo extends JComboBox {
+public class SwatchComboBox extends JComboBox {
 
-  public SwatchCombo() {
+  public SwatchComboBox() {
     String[] s = ColorManager.getColorManager().getColorNames();
     for (int i = 0; i < s.length; ++i) {
       addItem(s[i]);
@@ -44,12 +44,12 @@ public class SwatchCombo extends JComboBox {
     setRenderer(renderer);
   }
 
-  public SwatchCombo(ItemListener l) {
+  public SwatchComboBox(ItemListener l) {
     this();
     addItemListener(l);
   }
 
-  public SwatchCombo(ItemListener l, String colorName) {
+  public SwatchComboBox(ItemListener l, String colorName) {
     this();
     setSelectedItem(colorName);
     addItemListener(l);

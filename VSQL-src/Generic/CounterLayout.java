@@ -25,6 +25,7 @@ import java.awt.Image;
 import java.awt.Point;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
+import java.util.Enumeration;
 import java.util.Iterator;
 
 import VASSAL.build.AbstractConfigurable;
@@ -230,22 +231,17 @@ public class CounterLayout extends AbstractConfigurable implements Visualizable 
   }
 
   public Image getVisualizerImage() {
-
     return getVisualizerImage(colorScheme, imageDefn);
-
   }
   
   public Image getVisualizerImage(ColorScheme scheme) {
-
     return getVisualizerImage(scheme, imageDefn);
-
   }
 
   public Image getVisualizerImage(ColorScheme scheme, ImageDefn defn) {
     if (image == null) {
       buildImage(scheme, defn);
     }
-
     return image;
   }
   
@@ -336,5 +332,25 @@ public class CounterLayout extends AbstractConfigurable implements Visualizable 
   
   public void rebuildVisualizerImage() {
     buildImage(colorScheme, imageDefn);
+  }
+  
+  public void setColorScheme(ColorScheme s) {
+    colorScheme = s;
+  }
+  
+  public void setImageDefn(ImageDefn d) {
+    imageDefn = d;
+  }
+
+  public ImageDefn getGenericDefn(String defnName) {
+    ImageDefn defn = null;
+    Enumeration e = getBuildComponents();
+    while (e.hasMoreElements() && defn == null) {
+      Object o = e.nextElement();
+      if (o instanceof ColorScheme) {
+        defn = ((ColorScheme) o).getGenericDefn(defnName);
+      }
+    }
+    return defn;
   }
 }

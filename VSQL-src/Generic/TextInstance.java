@@ -30,8 +30,8 @@ public class TextInstance extends Instance {
     setValue(val);
    }
   
-  public TextInstance(String code) {
-    super();
+  public TextInstance(String code, ImageDefn defn) {
+    super(defn);
     decode(code);
   }
   

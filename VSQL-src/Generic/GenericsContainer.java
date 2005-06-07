@@ -47,6 +47,10 @@ public class GenericsContainer extends AbstractConfigurable {
     instance = this;
   }
   
+  public static GenericsContainer getInstance() {
+    return instance;
+  }
+  
   public void build(Element e) {
     super.build(e);
 
@@ -135,20 +139,26 @@ public class GenericsContainer extends AbstractConfigurable {
   public void removeFrom(Buildable parent) {
   }
 
-  public static CounterLayout getDefinitionByName(String name) {
+  public ImageDefn getGenericDefn(String defnName) {
     
-    CounterLayout def = null;
+    return definitions.getGenericDefn(defnName);
     
-    if (instance.definitions != null) {
-        def = (CounterLayout) instance.definitions.getDefinition(name);
-    }
-    
-    if (def == null) {
-      def = new CounterLayout();
-    }
-    
-    return def;
   }
+  
+//  public static CounterLayout getDefinitionByName(String name) {
+//    
+//    CounterLayout def = null;
+//    
+//    if (instance.definitions != null) {
+//        def = (CounterLayout) instance.definitions.getDefinition(name);
+//    }
+//    
+//    if (def == null) {
+//      def = new CounterLayout();
+//    }
+//    
+//    return def;
+//  }
 
 
 //  public static FontStyle getFontStyleByName(String name) {

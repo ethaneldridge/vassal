@@ -20,7 +20,8 @@
 package Generic;
 
 import VASSAL.build.AutoConfigurable;
-import VASSAL.configure.StringEnum;
+import VASSAL.configure.Configurer;
+import VASSAL.configure.ConfigurerFactory;
 import VASSAL.tools.SequenceEncoder;
 
 public class SymbolInstance extends Instance {
@@ -29,9 +30,11 @@ public class SymbolInstance extends Instance {
   public static final String SYMBOL1 = "symbol1";
   public static final String SYMBOL2 = "symbol2";
   
-  private String size;
-  private String symbol1;
-  private String symbol2;
+  protected String size;
+  protected String symbol1;
+  protected String symbol2;
+  
+  protected InstanceConfigurer myConfig = null;
   
   public SymbolInstance(String nam, String typ, String loc, String sz, String s1, String s2) {
     super(nam, typ, loc);
@@ -40,8 +43,8 @@ public class SymbolInstance extends Instance {
     setSymbol2(s2);
    }
 
-  public SymbolInstance(String code) {
-    super();
+  public SymbolInstance(String code, ImageDefn defn) {
+    super(defn);
     decode(code);
   }
   
@@ -64,6 +67,10 @@ public class SymbolInstance extends Instance {
     setSize(sd.nextToken(""));
     setSymbol1(sd.nextToken(""));
     setSymbol2(sd.nextToken(""));
+  }
+  
+  public void setConfig(InstanceConfigurer i) {
+    myConfig = i;
   }
   
   public void setSize(String size) {
@@ -91,7 +98,7 @@ public class SymbolInstance extends Instance {
   }
 
   public String[] getAttributeDescriptions() {
-    return new String[] { "Size", "1st Symbol", "2nd Symbol" };
+    return new String[] { "Unit Size:  ", "1st Symbol:  ", "2nd Symbol:  " };
   }
 
   public Class[] getAttributeTypes() {
@@ -112,6 +119,11 @@ public class SymbolInstance extends Instance {
     else if (SYMBOL2.equals(key)) {
       symbol2 = (String) value;
     }
+    
+    if (myConfig != null) {
+      myConfig.rebuildViz();
+    }
+
   }
 
   public String getAttributeValueString(String key) {
@@ -128,21 +140,21 @@ public class SymbolInstance extends Instance {
       return null;
   }
   
-  public static class SizeConfig extends StringEnum {
-    public String[] getValidValues(AutoConfigurable target) {
-      return Symbol.NatoUnitSymbolSet.getSymbolSizes();
+  public static class SizeConfig implements ConfigurerFactory {
+    public Configurer getConfigurer(AutoConfigurable c, String key, String name) {
+      return new SizeConfigurer(key, name);
     }
   }
   
-  public static class Symbol1Config extends StringEnum {
-    public String[] getValidValues(AutoConfigurable target) {
-      return Symbol.NatoUnitSymbolSet.getSymbolNames();
+  public static class Symbol1Config implements ConfigurerFactory {
+    public Configurer getConfigurer(AutoConfigurable c, String key, String name) {
+      return new SymbolConfigurer(key, name);
     }
   }
 
-  public static class Symbol2Config extends StringEnum {
-    public String[] getValidValues(AutoConfigurable target) {
-      return Symbol.NatoUnitSymbolSet.getSymbolNames();
+  public static class Symbol2Config implements ConfigurerFactory {
+    public Configurer getConfigurer(AutoConfigurable c, String key, String name) {
+      return new SymbolConfigurer(key, name);
     }
   }
 }

@@ -1,0 +1,113 @@
+/*
+ * $Id$
+ * 
+ * Copyright (c) 2005 by Rodney Kinney, Brent Easton
+ * 
+ * This library is free software; you can redistribute it and/or modify it under
+ * the terms of the GNU Library General Public License (LGPL) as published by
+ * the Free Software Foundation.
+ * 
+ * This library is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU Library General Public License for more
+ * details.
+ * 
+ * You should have received a copy of the GNU Library General Public License
+ * along with this library; if not, copies are available at
+ * http://www.opensource.org.
+ */
+
+package Generic;
+
+import java.awt.Component;
+import java.awt.Graphics;
+import java.awt.event.ItemListener;
+import java.awt.image.BufferedImage;
+
+import javax.swing.ImageIcon;
+import javax.swing.JComboBox;
+import javax.swing.JLabel;
+import javax.swing.JList;
+import javax.swing.ListCellRenderer;
+import javax.swing.SwingConstants;
+
+public class SizeConfigurer extends StringEnumConfigurer {
+
+  public SizeConfigurer(String key, String name) {
+    super(key, name, Symbol.NatoUnitSymbolSet.getSymbolSizes());
+  }
+
+  public JComboBox getComboBox() {
+    return (JComboBox) new SizeComboBox();
+  }
+
+  public class SizeComboBox extends JComboBox {
+
+    static final int sample_w = 40;
+    static final int sample_h = 13;
+
+    public SizeComboBox() {
+      String[] s = Symbol.NatoUnitSymbolSet.getSymbolSizes();
+      for (int i = 0; i < s.length; ++i) {
+        addItem(s[i]);
+      }
+      SizeRenderer renderer = new SizeRenderer();
+      setRenderer(renderer);
+    }
+
+    public SizeComboBox(ItemListener l) {
+      this();
+      addItemListener(l);
+    }
+
+    public SizeComboBox(ItemListener l, String sizeName) {
+      this();
+      setSelectedItem(sizeName);
+      addItemListener(l);
+    }
+
+    public class SizeRenderer extends JLabel implements ListCellRenderer {
+
+      public SizeRenderer() {
+        setOpaque(true);
+        setHorizontalAlignment(LEFT);
+        setVerticalAlignment(CENTER);
+      }
+
+      /*
+       * This method finds the image and text corresponding to the selected
+       * value and returns the label, set up to display the text and image.
+       */
+      public Component getListCellRendererComponent(JList list, Object value, int index, boolean isSelected,
+          boolean cellHasFocus) {
+
+        if (isSelected) {
+          setBackground(list.getSelectionBackground());
+          setForeground(list.getSelectionForeground());
+        }
+        else {
+          setBackground(list.getBackground());
+          setForeground(list.getForeground());
+        }
+
+        BufferedImage bi = new BufferedImage(sample_w, sample_h, BufferedImage.TYPE_INT_RGB);
+        Graphics g = bi.getGraphics();
+
+//        String symbol1 = (String) value;
+//        String symbol2 = Symbol.NatoUnitSymbolSet.NONE;
+//        Rectangle bounds = new Rectangle(0, 0, sample_w-1, sample_h-1);   
+//        Symbol.NatoUnitSymbolSet.draw(symbol1, symbol2, g, bounds, Color.BLACK, Color.WHITE, 1.0f, "");
+        
+        ImageIcon icon = new ImageIcon(bi);
+
+        setIcon(icon);
+        setText((String) value);
+        this.setHorizontalTextPosition(SwingConstants.LEFT);
+        this.setHorizontalAlignment(SwingConstants.RIGHT);
+        setFont(list.getFont());
+
+        return this;
+      }
+    }
+  }
+}

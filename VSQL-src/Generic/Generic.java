@@ -16,13 +16,12 @@
  * License along with this library; if not, copies are available
  * at http://www.opensource.org.
  */
-package Dev;
-
-import java.awt.Color;
+package Generic;
 import java.awt.Component;
 import java.awt.Graphics;
 import java.awt.Rectangle;
 import java.awt.Shape;
+import java.awt.image.BufferedImage;
 
 import javax.swing.BoxLayout;
 import javax.swing.JPanel;
@@ -50,7 +49,13 @@ public class Generic extends Decorator  implements EditablePiece {
   protected static final String DEFN_NAME = "defnName";
   
   protected String definitionName;
-  protected CounterLayout defn = new CounterLayout();
+  
+  protected CounterLayout layout = new CounterLayout();
+  protected ColorScheme scheme = new ColorScheme();
+  protected ImageDefn defn = new ImageDefn();
+  
+  protected BufferedImage image = null;
+  protected Rectangle box = new Rectangle();
   
   
   public Generic() {
@@ -76,7 +81,7 @@ public class Generic extends Decorator  implements EditablePiece {
   }
 
   protected KeyCommand[] myGetKeyCommands() {
-    return null;
+    return new KeyCommand[0];
   }
 
   public Command myKeyEvent(KeyStroke stroke) {
@@ -84,35 +89,51 @@ public class Generic extends Decorator  implements EditablePiece {
   }
 
   public void draw(Graphics g, int x, int y, Component obs, double zoom) {
-    getDefinition();
     
-    int w = defn.getLayoutHeight();
-    int h = defn.getLayoutWidth();
-    Color bgColor = defn.getBgColor();
+    if (image == null) {
+      getImage();
+    }
+
+    if (image != null) {
+      int x1 = x - image.getWidth()/2;
+      int y1 = y - image.getHeight()/2;
+      g.drawImage(image, x1, y1, null);
+    }
     
-    int x1 = x - w/2;
-    int y1 = y - h/2;
-    
-    g.setColor(bgColor);
-    g.fillRect(x1, y1, w, h);
-    g.setColor(Color.BLACK);
-    g.drawRect(x1, y1, w, h);
+//    int w = layout.getLayoutHeight();
+//    int h = layout.getLayoutWidth();
+//    Color bgColor = layout.;
+//    
+//    int x1 = x - w/2;
+//    int y1 = y - h/2;
+//    
+//    g.setColor(bgColor);
+//    g.fillRect(x1, y1, w, h);
+//    g.setColor(Color.BLACK);
+//    g.drawRect(x1, y1, w, h);
     
   }
 
-  protected void getDefinition() {
-    if (defn == null || defn.getConfigureName().equals("")) {
-      defn = GenericsContainer.getDefinitionByName(definitionName);
+  protected void getImage() {
+  
+    defn = GenericsContainer.getInstance().getGenericDefn(definitionName);
+    if (defn != null) {
+      image = (BufferedImage) defn.getVisualizerImage();
+      if (image != null) {
+        int h = image.getHeight();
+        int w = image.getWidth();
+        box = new Rectangle(0, 0, w, h);
+      }
     }
   }
   
   public Rectangle boundingBox() {
     //Rectangle box = piece.boundingBox();
     //if (box == null) {
-    int w = defn.getLayoutHeight();
-    int h = defn.getLayoutWidth();
-      Rectangle box = new Rectangle(-w/2, -h/2, defn.getLayoutWidth(), defn.getLayoutHeight());
-    //}
+//    int w = layout.getLayoutHeight();
+//    int h = layout.getLayoutWidth();
+//      Rectangle box = new Rectangle(-w/2, -h/2, layout.getLayoutWidth(), layout.getLayoutHeight());
+//    //}
     return box;
   }
 

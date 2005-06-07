@@ -268,6 +268,8 @@ public class LayoutConfigurer extends Configurer {
       else {
         cs = new ColorScheme();
       }
+      layout.setColorScheme(cs);
+      layout.setImageDefn(null);
       visualizer.rebuild();
     }
 

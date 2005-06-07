@@ -41,7 +41,7 @@ import VASSAL.configure.Configurer;
 /**
  *  
  */
-public class SchemeConfigurer extends Configurer {
+public class ColorSchemeConfigurer extends Configurer {
 
   protected ColorScheme scheme;
   protected Box visBox;
@@ -56,11 +56,11 @@ public class SchemeConfigurer extends Configurer {
   protected static final int BG_COL = 4;
   protected static final int MAX_COL = 4;
 
-  protected SchemeConfigurer() {
+  protected ColorSchemeConfigurer() {
     super(null, null);
   }
 
-  protected SchemeConfigurer(String key, String name, ColorScheme def) {
+  protected ColorSchemeConfigurer(String key, String name, ColorScheme def) {
     super(key, name);
     scheme = def;
   }
@@ -141,12 +141,12 @@ public class SchemeConfigurer extends Configurer {
       }
 
       TableColumn tc = table.getColumnModel().getColumn(FG_COL);
-      SwatchCombo comboBox = new SwatchCombo();
+      SwatchComboBox comboBox = new SwatchComboBox();
       tc.setCellEditor(new DefaultCellEditor(comboBox));
       tc.setCellRenderer(comboBox.new SwatchTableRenderer());
 
       TableColumn tc2 = table.getColumnModel().getColumn(BG_COL);
-      SwatchCombo comboBox2 = new SwatchCombo();
+      SwatchComboBox comboBox2 = new SwatchComboBox();
       tc2.setCellEditor(new DefaultCellEditor(comboBox2));
       tc2.setCellRenderer(comboBox2.new SwatchTableRenderer());
 
