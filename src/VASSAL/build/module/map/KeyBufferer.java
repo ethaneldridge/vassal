@@ -90,7 +90,7 @@ public class KeyBufferer extends MouseAdapter implements Buildable, MouseMotionL
       if (map.getHighlighter() instanceof ColoredBorder) {
         ColoredBorder b = (ColoredBorder) map.getHighlighter();
         color = b.getColor();
-        thickness = Math.max(1,(int)Math.round(map.getZoom()*b.getThickness()));
+        thickness = Math.max(1, (int) Math.round(map.getZoom() * b.getThickness()));
       }
     }
   }
@@ -105,18 +105,18 @@ public class KeyBufferer extends MouseAdapter implements Buildable, MouseMotionL
           return null;
         }
 
-      public Object visitStack(Stack s) {
+        public Object visitStack(Stack s) {
           if (s.isExpanded()) {
             Point[] pos = new Point[s.getPieceCount()];
             map.getStackMetrics().getContents(s, pos, null, null, s.getPosition().x, s.getPosition().y);
-            for (int i=0;i<pos.length;++i) {
+            for (int i = 0; i < pos.length; ++i) {
               if (selection.contains(pos[i])) {
                 KeyBuffer.getBuffer().add(s.getPieceAt(i));
               }
             }
           }
           else if (selection.contains(s.getPosition())) {
-            for (int i=0,n=s.getPieceCount();i<n;++i) {
+            for (int i = 0,n = s.getPieceCount(); i < n; ++i) {
               KeyBuffer.getBuffer().add(s.getPieceAt(i));
             }
           }
@@ -139,10 +139,10 @@ public class KeyBufferer extends MouseAdapter implements Buildable, MouseMotionL
 
   public void mouseDragged(MouseEvent e) {
     if (selection != null) {
-      selection.x = Math.min(e.getX(),anchor.x);
-      selection.y = Math.min(e.getY(),anchor.y);
-      selection.width = Math.abs(e.getX()-anchor.x);
-      selection.height = Math.abs(e.getY()-anchor.y);
+      selection.x = Math.min(e.getX(), anchor.x);
+      selection.y = Math.min(e.getY(), anchor.y);
+      selection.width = Math.abs(e.getX() - anchor.x);
+      selection.height = Math.abs(e.getY() - anchor.y);
       map.repaint();
     }
   }
@@ -154,7 +154,7 @@ public class KeyBufferer extends MouseAdapter implements Buildable, MouseMotionL
     if (selection != null) {
       g.setColor(color);
       for (int i = 0; i < thickness; ++i) {
-        g.drawRect(selection.x+i, selection.y+i, selection.width, selection.height);
+        g.drawRect(selection.x + i, selection.y + i, selection.width, selection.height);
       }
     }
   }

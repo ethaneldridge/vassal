@@ -35,9 +35,9 @@ public class Immobilized extends Decorator implements EditablePiece {
   private boolean neverSelect = false;
   private EventFilter filter;
 
-  private static EventFilter USE_SHIFT = new EventFilter() {
+  private class UseShiftFilter implements EventFilter {
     public boolean rejectEvent(InputEvent evt) {
-      return !evt.isShiftDown();
+      return !evt.isShiftDown() && !Boolean.TRUE.equals(getProperty(Properties.SELECTED));
     }
   };
 
@@ -68,7 +68,7 @@ public class Immobilized extends Decorator implements EditablePiece {
       filter = NEVER_SELECT;
     }
     else if (useShift) {
-      filter = USE_SHIFT;
+      filter = new UseShiftFilter();
     }
   }
 
