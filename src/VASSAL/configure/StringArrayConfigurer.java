@@ -13,7 +13,7 @@
  * Library General Public License for more details.
  *
  * You should have received a copy of the GNU Library General Public
- * License along with this library; if not, copies are available 
+ * License along with this library; if not, copies are available
  * at http://www.opensource.org.
  */
 /*
@@ -26,19 +26,20 @@
  */
 package VASSAL.configure;
 
-import VASSAL.tools.SequenceEncoder;
-import VASSAL.counters.PieceEditor;
-
-import javax.swing.*;
-import javax.swing.border.TitledBorder;
-import java.awt.*;
+import java.awt.Component;
+import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.lang.reflect.Array;
-import java.util.Vector;
 import java.util.ArrayList;
+
+import javax.swing.*;
+import javax.swing.border.TitledBorder;
+
+import VASSAL.configure.Configurer;
+import VASSAL.tools.SequenceEncoder;
 
 /**
  * A Configurer that returns an array of Strings
@@ -103,18 +104,43 @@ public class StringArrayConfigurer extends Configurer {
       list.setPrototypeCellValue("MMMMMMMM");
       list.setVisibleRowCount(2);
       final JTextField tf = new JTextField(8);
-      ActionListener al = new ActionListener() {
+      tf.setMaximumSize(new Dimension(Integer.MAX_VALUE, tf.getPreferredSize().height));
+
+      ActionListener addAction = new ActionListener() {
         public void actionPerformed(ActionEvent e) {
           String s = tf.getText();
           addValue(s);
           tf.setText("");
         }
       };
+      ActionListener insertAction = new ActionListener() {
+        public void actionPerformed(ActionEvent e) {
+          if (value == null) {
+            addValue(tf.getText());
+          }
+          else {
+            int pos = list.getSelectedIndex();
+            if (pos < 0) pos = list.getModel().getSize();
+            String[] newValue = new String[Array.getLength(value) + 1];
+            if (pos > 0) {
+              System.arraycopy(value, 0, newValue, 0, pos);
+            }
+            newValue[pos] = tf.getText();
+            if (pos < newValue.length) {
+              System.arraycopy(value, pos, newValue, pos + 1, newValue.length - pos - 1);
+            }
+            setValue(newValue);
+            tf.setText("");
+            list.setSelectedIndex(pos+1);
+          }
+        }
+      };
       JButton addButton = new JButton("Add");
-      addButton.addActionListener(al);
-      tf.addActionListener(al);
-      buttonBox.add(tf);
+      addButton.addActionListener(addAction);
+      tf.addActionListener(insertAction);
+      leftBox.add(tf);
       buttonBox.add(addButton);
+
       JButton removeButton = new JButton("Remove");
       removeButton.addActionListener(new ActionListener() {
         public void actionPerformed(ActionEvent e) {
@@ -125,9 +151,16 @@ public class StringArrayConfigurer extends Configurer {
         }
       });
       buttonBox.add(removeButton);
+
+      JButton insertButton = new JButton("Insert");
+      insertButton.addActionListener(insertAction);
+      buttonBox.add(insertButton);
+
       leftBox.add(buttonBox);
-      panel.add(leftBox);
-      panel.add(new JScrollPane(list));
+      JSplitPane pane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT);
+      pane.setLeftComponent(leftBox);
+      pane.setRightComponent(new JScrollPane(list));
+      panel.add(pane);
       panel.setBorder(new TitledBorder(name));
     }
     return panel;
@@ -172,7 +205,7 @@ public class StringArrayConfigurer extends Configurer {
 
   public static String[] stringToArray(String s) {
     if (s == null
-      || s.length() == 0) {
+        || s.length() == 0) {
       return EMPTY;
     }
     SequenceEncoder.Decoder st = new SequenceEncoder.Decoder(s, ',');
