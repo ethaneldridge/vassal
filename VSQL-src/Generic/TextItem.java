@@ -193,7 +193,7 @@ public class TextItem extends Item {
       }
     }
     if (s == null) {
-      s = "Xx";
+      s = se.getName().substring(0, 2);
     }
 
     ((Graphics2D) g).setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);

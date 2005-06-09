@@ -25,6 +25,8 @@ import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Rectangle;
 import java.awt.RenderingHints;
+import java.awt.geom.Arc2D;
+import java.awt.image.BufferedImage;
 
 public class Symbol {
 
@@ -65,6 +67,7 @@ public class Symbol {
   public static class NatoUnitSymbolSet {
 
     protected static final String SZ_NONE = "None";
+    protected static final String SZ_INSTALLATION = "Installation";
     protected static final String SZ_TEAM = "Team";
     protected static final String SZ_SQUAD = "Squad";
     protected static final String SZ_SECTION = "Section";
@@ -127,41 +130,68 @@ public class Symbol {
     //    protected static final String UNMANNED_AIR = "";
     //    protected static final String VET = "";
 
-    protected static String[] getSymbolNames() {
+    protected static final String INSTALLATION_SYMBOL = "m";
+    protected static final String TEAM_SYMBOL = "o";
+    protected static final String SQUAD_SYMBOL = "s";
+    protected static final String COMPANY_SYMBOL = "i";
+    protected static final String BRIGADE_SYMBOL = "x";
+    
+    protected static final String[] getSymbolNames() {
       return new String[] { 
           NONE, 
           INFANTRY, 
           RECON,
-          ARMORED, 
+          //ARMORED, 
           ARTILLERY, 
           ENGINEERS, 
           AIRBORNE, 
           AIR_DEFENCE, 
           ANTI_TANK, 
-          MARINES,
-          MOUNTAIN 
+          //MARINES,
+          //MOUNTAIN 
           };
     }
 
+    protected static String[] sizeNames;
+    
     protected static String[] getSymbolSizes() {
-      return new String[] { 
-          SZ_NONE, 
-          SZ_TEAM,
-          SZ_SQUAD, 
-          SZ_SECTION, 
-          SZ_PLATOON, 
-          SZ_ECHELON,
-          SZ_COMPANY, 
-          SZ_BATTALION, 
-          SZ_REGIMENT,
-          SZ_BRIGADE, 
-          SZ_DIVISION, 
-          SZ_CORPS, 
-          SZ_ARMY, 
-          SZ_ARMY_GROUP, 
-          SZ_REGION };
+      if (sizeNames == null) {
+        sizeNames = new String[SIZES.length];
+        for (int i = 0; i < SIZES.length; i++) {
+          sizeNames[i] = SIZES[i].getName();
+        }
+      }
+      return sizeNames;
+    }
+    
+    protected static SizeOption findSize(String name) {
+      for (int i = 0; i < SIZES.length; i++) {
+        if (name.equals(SIZES[i].getName())) {
+          return SIZES[i];
+        }
+      }
+      return SIZES[0];
     }
 
+    protected static final SizeOption[] SIZES = new SizeOption[] {
+        new SizeOption(SZ_NONE, 0, ""),
+        new SizeOption(SZ_INSTALLATION, 1, INSTALLATION_SYMBOL),
+        new SizeOption(SZ_TEAM, 1, TEAM_SYMBOL),
+        new SizeOption(SZ_SQUAD, 1, SQUAD_SYMBOL),
+        new SizeOption(SZ_SECTION, 2, SQUAD_SYMBOL),
+        new SizeOption(SZ_PLATOON, 3, SQUAD_SYMBOL),
+        new SizeOption(SZ_ECHELON, 4, SQUAD_SYMBOL),
+        new SizeOption(SZ_COMPANY, 1, COMPANY_SYMBOL),
+        new SizeOption(SZ_BATTALION, 2, COMPANY_SYMBOL),
+        new SizeOption(SZ_REGIMENT, 3, COMPANY_SYMBOL),
+        new SizeOption(SZ_BRIGADE, 1, BRIGADE_SYMBOL),
+        new SizeOption(SZ_DIVISION, 2, BRIGADE_SYMBOL),
+        new SizeOption(SZ_CORPS, 3, BRIGADE_SYMBOL),
+        new SizeOption(SZ_ARMY, 4, BRIGADE_SYMBOL),
+        new SizeOption(SZ_ARMY_GROUP, 5, BRIGADE_SYMBOL),
+        new SizeOption(SZ_REGION, 6, BRIGADE_SYMBOL)
+    };
+    
     protected static void draw(String name1, String name2, Graphics g, Rectangle bounds, Color fg, Color bg,
         float lineWidth, String size) {
 
@@ -200,16 +230,19 @@ public class Symbol {
       }
 
       else if (name.equals(AIRBORNE)) {
-        //        g2.draw(new Arc2D.Double(x_left, y_top,
-        //            //bounds.width,
-        //            //bounds.height * 1.8,
-        //            10,
-        //            10,
-        //            0, 90,
-        //            Arc2D.OPEN));
+        int x1 = x_center - bounds.width / 4;
+        int x2 = x_center + bounds.width / 4;
+        int y1 = y_top + bounds.height * 4 / 5;
+        g2.draw(new Arc2D.Double(x1, y1, bounds.width/4, bounds.height/4, 0, 
+            180, Arc2D.OPEN));
+        g2.draw(new Arc2D.Double(x_center, y1, bounds.width/4, bounds.height/4, 0, 
+            180, Arc2D.OPEN));
+
       }
 
       else if (name.equals(AIR_DEFENCE)) {
+        g2.draw(new Arc2D.Double(x_left, y_top+ bounds.height / 4, bounds.width, bounds.height*1.5, 0, 
+            180, Arc2D.OPEN));
 
       }
 
@@ -228,13 +261,21 @@ public class Symbol {
       }
 
       else if (name.equals(ENGINEERS)) {
-
+        int y1 = y_top + (int) (bounds.height * 0.7);
+        int x1 = x_center - bounds.width / 4;
+        int x2 = x_center + bounds.width / 4;
+        
+        g.drawLine(x1, y1, x1, y_bottom);
+        g.drawLine(x_center, y1, x_center, y_bottom);
+        g.drawLine(x2, y1, x2, y_bottom);
+        g.drawLine(x1, y1, x2, y1);
       }
 
       else if (name.equals(INFANTRY)) {
-
+        
         g.drawLine(x_left, y_top, x_right, y_bottom);
         g.drawLine(x_left, y_bottom, x_right, y_top);
+ 
       }
 
       else if (name.equals(MARINES)) {
@@ -259,9 +300,118 @@ public class Symbol {
      */
     protected static void drawSize(Graphics g, String size, Rectangle bounds) {
       
+      if (size.equals(SZ_NONE) || size.equals("")) {
+        return;
+      }
+      
+      SizeOption option = findSize(size);
+      String type = option.getType();
+      int count = option.getCount();
+
+      int sym_w = bounds.width / 8;
+      int sym_h = bounds.height / 3;
+      int gap = bounds.width / 15;
+      
+      BufferedImage bi = buildSizeImage(g, count, type, sym_w, sym_h, gap);
+      
+      int xpos = bounds.x + (bounds.width/2) + (gap/2) - (bi.getWidth()/2);
+      int ypos = bounds.y - sym_h - 1;
+      g.drawImage(bi, xpos, ypos , null);
+      
+    }
+    
+    public static BufferedImage buildSizeImage(String size, int sym_w, int sym_h, int gap) {
+      
+      SizeOption option = findSize(size);
+      String type = option.getType();
+      int count = option.getCount();
+      
+      BufferedImage bi = createImage(count, sym_w, sym_h, gap);
+      Graphics g = bi.getGraphics();
+      Graphics2D g2 = (Graphics2D) g;
+      g2.setBackground(null);
+      g.setColor(Color.BLACK);
+      return buildSizeImage(g, count, type, sym_w, sym_h, gap);
+    }
+
+    protected static BufferedImage createImage(int count, int sym_w, int sym_h, int gap) {
+      int w = sym_w * count + gap * (count-1)+1;
+      if (w < 1) w = sym_w;
+      BufferedImage bi = new BufferedImage(w, sym_h+1, BufferedImage.TYPE_INT_ARGB);
+      return bi;
+    }
+      
+    public static BufferedImage buildSizeImage(Graphics g, int count, String type, int sym_w, int sym_h, int gap) {
+
+      Graphics2D g2 = (Graphics2D) g;
+      BufferedImage bi;
+      
+      if (type.equals(INSTALLATION_SYMBOL)) {
+        bi = createImage(count, sym_w*3, sym_h, gap);
+      }
+      else {
+        bi = createImage(count, sym_w, sym_h, gap);
+      }
+      Graphics big = bi.getGraphics();
+      Graphics2D big2 = (Graphics2D) big;
+      big.setColor(g.getColor());
+      big2.setBackground(null);
+   
+      big2.setStroke(g2.getStroke());
+      big2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+
+      int x_pos = 0;
+      for (int i = 0; i < count; i++) {
+        if (type.equals(TEAM_SYMBOL)) {
+          int radius = sym_w / 2;
+          big.drawOval(x_pos, sym_h/3, radius * 2, radius * 2);  
+          big.drawLine(x_pos, sym_h, x_pos+sym_w, 0);
+        }
+        else if (type.equals(SQUAD_SYMBOL)) {
+          int radius = sym_w / 2;
+          big.fillOval(x_pos, sym_h/3, radius * 2, radius * 2);   
+        }
+        else if (type.equals(COMPANY_SYMBOL)) {
+          big.drawLine(x_pos+sym_w/2, 0, x_pos+sym_w/2, sym_h);
+        }
+        else if (type.equals(BRIGADE_SYMBOL)) {
+          big.drawLine(x_pos, 0, x_pos+sym_w, sym_h);
+          big.drawLine(x_pos, sym_h, x_pos+sym_w, 0);
+        }
+        else if (type.equals(INSTALLATION_SYMBOL)) {
+          big.fillRect(x_pos, sym_h/2, x_pos+3*sym_w, sym_h);
+        }
+        x_pos += sym_w + gap;
+      }
+      
+      return bi;
+      
     }
 
   }
-
-  
 }
+  class SizeOption {
+    String name;
+    String type;
+    int count;
+    
+    public SizeOption (String n, int c, String t) {
+      name = n;
+      type = t;
+      count = c;
+    }
+    
+    public String getName() {
+      return name;
+    }
+    
+    public String getType() {
+      return type;
+    }
+    
+    public int getCount() {
+      return count;
+    }
+  }
+  
+

@@ -19,6 +19,7 @@
 
 package Generic;
 
+import java.awt.Color;
 import java.awt.Component;
 import java.awt.Graphics;
 import java.awt.event.ItemListener;
@@ -42,9 +43,6 @@ public class SizeConfigurer extends StringEnumConfigurer {
   }
 
   public class SizeComboBox extends JComboBox {
-
-    static final int sample_w = 40;
-    static final int sample_h = 13;
 
     public SizeComboBox() {
       String[] s = Symbol.NatoUnitSymbolSet.getSymbolSizes();
@@ -90,15 +88,26 @@ public class SizeConfigurer extends StringEnumConfigurer {
           setForeground(list.getForeground());
         }
 
-        BufferedImage bi = new BufferedImage(sample_w, sample_h, BufferedImage.TYPE_INT_RGB);
-        Graphics g = bi.getGraphics();
 
-//        String symbol1 = (String) value;
-//        String symbol2 = Symbol.NatoUnitSymbolSet.NONE;
-//        Rectangle bounds = new Rectangle(0, 0, sample_w-1, sample_h-1);   
-//        Symbol.NatoUnitSymbolSet.draw(symbol1, symbol2, g, bounds, Color.BLACK, Color.WHITE, 1.0f, "");
+        final int sample_w = 6;
+        final int sample_h = 12;
+        final int sample_g = 1;
         
-        ImageIcon icon = new ImageIcon(bi);
+        final int w = sample_w*6 + sample_g*5 + 1;
+        final int h = sample_h+1;
+        
+        BufferedImage image = new BufferedImage(w, h, BufferedImage.TYPE_INT_RGB);
+        Graphics g = image.getGraphics();
+        g.setColor(Color.white);
+        g.fillRect(0, 0, w, h);
+        g.setColor(Color.black);
+        g.drawRect(0, 0, w-1, h-1);
+        
+        BufferedImage bi = Symbol.NatoUnitSymbolSet.buildSizeImage((String) value, sample_w, sample_h, sample_g);
+        int x = (w/2) - (bi.getWidth()/2);
+        g.drawImage(bi, x, 0, null);       
+        
+        ImageIcon icon = new ImageIcon(image);
 
         setIcon(icon);
         setText((String) value);
