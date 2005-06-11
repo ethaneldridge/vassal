@@ -26,6 +26,7 @@ import java.awt.Graphics2D;
 import java.awt.Rectangle;
 import java.awt.RenderingHints;
 import java.awt.geom.Arc2D;
+import java.awt.geom.GeneralPath;
 import java.awt.image.BufferedImage;
 
 public class Symbol {
@@ -141,14 +142,14 @@ public class Symbol {
           NONE, 
           INFANTRY, 
           RECON,
-          //ARMORED, 
+          ARMORED, 
           ARTILLERY, 
           ENGINEERS, 
           AIRBORNE, 
           AIR_DEFENCE, 
           ANTI_TANK, 
           //MARINES,
-          //MOUNTAIN 
+          MOUNTAIN 
           };
     }
 
@@ -209,11 +210,11 @@ public class Symbol {
       g.drawRect(bounds.x, bounds.y, bounds.width, bounds.height);
 
       drawSize(g, size, bounds);
-      draw(g, name1, bounds);
-      draw(g, name2, bounds);
+      draw(g, name1, bounds, false);
+      draw(g, name2, bounds, true);
     }
 
-    protected static void draw(Graphics g, String name, Rectangle bounds) {
+    protected static void draw(Graphics g, String name, Rectangle bounds, boolean drawLow) {
 
       Graphics2D g2 = (Graphics2D) g;
 
@@ -252,23 +253,39 @@ public class Symbol {
       }
 
       else if (name.equals(ARMORED)) {
-
+        int yoff = (int) (bounds.height * .25);
+        int xoff1 = (int) (bounds.width * .15);
+        int xoff2 = (int) (bounds.width * .20);
+        g.drawLine(x_left+xoff1+xoff2, y_top+yoff, x_right-xoff1-xoff2, y_top+yoff);
+        g.drawLine(x_left+xoff1+xoff2, y_bottom-yoff, x_right-xoff1-xoff2, y_bottom-yoff);
+        g2.draw(new Arc2D.Double(x_left+xoff1, y_top+yoff, xoff2*2, bounds.height-(yoff*2), 90, 180, Arc2D.OPEN));
+        g2.draw(new Arc2D.Double(x_right-xoff1-(2*xoff2), y_top+yoff, xoff2*2, bounds.height-(yoff*2), 270, 180, Arc2D.OPEN));
       }
 
       else if (name.equals(ARTILLERY)) {
         int radius = bounds.height / 5;
-        g.fillOval(x_center - radius, y_center - radius, radius * 2, radius * 2);
+        int yoff = (drawLow ? (int) (bounds.height * .2) : 0);
+        g.fillOval(x_center - radius, y_center - radius + yoff, radius * 2, radius * 2);
       }
 
       else if (name.equals(ENGINEERS)) {
-        int y1 = y_top + (int) (bounds.height * 0.7);
-        int x1 = x_center - bounds.width / 4;
-        int x2 = x_center + bounds.width / 4;
+        BasicStroke oldStroke = (BasicStroke) g2.getStroke();
+        BasicStroke stroke = new BasicStroke(oldStroke.getLineWidth() * 1.2f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND);
+        g2.setStroke(stroke);
+        int yh = (int) (bounds.height * 0.2);
+        int y1 = drawLow ? y_bottom - yh - 1 : y_top + (bounds.height - yh) / 2;
+        int y2 = y1 + yh;
+        int x1 = x_center - bounds.width / 5;
+        int x2 = x_center + bounds.width / 5;
         
-        g.drawLine(x1, y1, x1, y_bottom);
-        g.drawLine(x_center, y1, x_center, y_bottom);
-        g.drawLine(x2, y1, x2, y_bottom);
-        g.drawLine(x1, y1, x2, y1);
+        GeneralPath p = new GeneralPath();
+        p.moveTo(x1, y2);
+        p.lineTo(x1, y1);
+        p.lineTo(x2, y1);
+        p.lineTo(x2, y2);
+        p.moveTo(x_center, y2);
+        p.lineTo(x_center, y1);
+        g2.draw(p);
       }
 
       else if (name.equals(INFANTRY)) {
@@ -283,7 +300,13 @@ public class Symbol {
       }
 
       else if (name.equals(MOUNTAIN)) {
-
+        int x_off = (int) (bounds.width / 6);
+        GeneralPath p = new GeneralPath();
+        p.moveTo(x_center, y_center);
+        p.lineTo(x_center+x_off, y_bottom);
+        p.lineTo(x_center-x_off, y_bottom);
+        p.closePath();
+        g2.fill(p);
       }
 
       else if (name.equals(RECON)) {

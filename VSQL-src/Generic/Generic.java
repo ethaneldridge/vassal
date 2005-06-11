@@ -19,6 +19,7 @@
 package Generic;
 import java.awt.Component;
 import java.awt.Graphics;
+import java.awt.Image;
 import java.awt.Rectangle;
 import java.awt.Shape;
 import java.awt.image.BufferedImage;
@@ -27,6 +28,7 @@ import javax.swing.BoxLayout;
 import javax.swing.JPanel;
 import javax.swing.KeyStroke;
 
+import VASSAL.build.GameModule;
 import VASSAL.build.module.documentation.HelpFile;
 import VASSAL.command.Command;
 import VASSAL.configure.StringConfigurer;
@@ -55,7 +57,7 @@ public class Generic extends Decorator  implements EditablePiece {
   protected ImageDefn defn = new ImageDefn();
   
   protected BufferedImage image = null;
-  protected Rectangle box = new Rectangle();
+  protected Rectangle imageBounds = new Rectangle();
   
   
   public Generic() {
@@ -90,14 +92,29 @@ public class Generic extends Decorator  implements EditablePiece {
 
   public void draw(Graphics g, int x, int y, Component obs, double zoom) {
     
+    piece.draw(g, x, y, obs, zoom);
+    
     if (image == null) {
       getImage();
     }
 
+//    if (image != null) {
+//      int x1 = x - image.getWidth()/2;
+//      int y1 = y - image.getHeight()/2;
+//      g.drawImage(image, x1, y1, null);
+//    }
+    
     if (image != null) {
-      int x1 = x - image.getWidth()/2;
-      int y1 = y - image.getHeight()/2;
-      g.drawImage(image, x1, y1, null);
+      if (zoom == 1.0) {
+        g.drawImage(image, x + imageBounds.x, y + imageBounds.y, obs);
+      }
+      else {
+        Image scaledImage = GameModule.getGameModule().getDataArchive().getScaledImage(image, zoom);
+        g.drawImage(scaledImage,
+                    x + (int) (zoom * imageBounds.x),
+                    y + (int) (zoom * imageBounds.y),
+                    obs);
+      }
     }
     
 //    int w = layout.getLayoutHeight();
@@ -122,7 +139,7 @@ public class Generic extends Decorator  implements EditablePiece {
       if (image != null) {
         int h = image.getHeight();
         int w = image.getWidth();
-        box = new Rectangle(0, 0, w, h);
+        imageBounds = new Rectangle(-w/2, -h/2, w, h);
       }
     }
   }
@@ -134,7 +151,7 @@ public class Generic extends Decorator  implements EditablePiece {
 //    int h = layout.getLayoutWidth();
 //      Rectangle box = new Rectangle(-w/2, -h/2, layout.getLayoutWidth(), layout.getLayoutHeight());
 //    //}
-    return box;
+      return new Rectangle(imageBounds.x, imageBounds.y, imageBounds.width, imageBounds.height);
   }
 
   public Shape getShape() {
