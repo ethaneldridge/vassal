@@ -1,4 +1,4 @@
-package Dev;
+package Generic2;
 
 import java.awt.Font;
 import java.beans.PropertyChangeEvent;
@@ -38,13 +38,23 @@ import VASSAL.configure.SingleChildInstance;
 /**
  * Container for definitions of Generic Color Definitions
  */
-public class FontStylesContainer extends AbstractConfigurable {
+public class FontManager extends AbstractConfigurable {
 
+  protected static FontManager instance;
+
+  public static FontManager getFontManager() {
+    return instance;
+  }
+    
   protected HashMap fontStyles = new HashMap();
 
   protected static final String DEFAULT = "Default";
   protected static final Font DEFAULT_FONT = new Font("Dialog", Font.PLAIN, 12);
 
+  public FontManager() {
+    instance = this;
+  }
+  
   public void build(Element e) {
     super.build(e);
 

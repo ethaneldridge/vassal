@@ -16,12 +16,10 @@
  * along with this library; if not, copies are available at
  * http://www.opensource.org.
  */
-package Dev;
+package Generic2;
 
-import java.awt.Color;
 import java.awt.Graphics;
 import java.awt.Point;
-import java.util.Properties;
 
 import VASSAL.build.AbstractConfigurable;
 import VASSAL.build.AutoConfigurable;
@@ -32,6 +30,9 @@ import VASSAL.configure.ConfigurerFactory;
 import VASSAL.configure.IconConfigurer;
 import VASSAL.configure.StringEnum;
 import VASSAL.configure.VisibilityCondition;
+import VASSAL.counters.GamePiece;
+import VASSAL.counters.KeyCommand;
+import VASSAL.tools.SequenceEncoder;
 
 /**
  * 
@@ -40,24 +41,17 @@ import VASSAL.configure.VisibilityCondition;
 
 public abstract class Item extends AbstractConfigurable {
 
+  public static final String TYPE = "";
+  
   protected static final String NAME = "name";
   protected static final String LOCATION = "location";
-  protected static final String BG_COLOR = "bgColor";
-  protected static final String FG_COLOR = "fgColor";
   protected static final String ADVANCED = "advanced";
   protected static final String ROTATION = "rotation";
   protected static final String X_OFFSET = "xoffset";
   protected static final String Y_OFFSET = "yoffset";
-  protected static final String BORDER_COLOR = "borderColor";
-  protected static final String BORDER_WIDTH = "borderWidth";
 
-  protected String type;
   String location = CounterLayout.CENTER;
   protected int xoffset, yoffset;
-  double borderWidth = 0.0f;
-  protected ColorSwatch bgColor = ColorSwatch.getClear();
-  protected ColorSwatch fgColor = ColorSwatch.getBlack();
-  protected ColorSwatch borderColor = ColorSwatch.getBlack();
   protected boolean advanced = false;
   protected int rotation = 0;
 
@@ -67,6 +61,11 @@ public abstract class Item extends AbstractConfigurable {
     super();
     setConfigureName("");
   }
+  
+  public Item(CounterLayout l) {
+    this();
+    layout = l;
+  }
 
   public Item(String name) {
     this();
@@ -74,14 +73,14 @@ public abstract class Item extends AbstractConfigurable {
   }
 
   public String[] getAttributeDescriptions() {
-    return new String[] { "Name:  ", "Location:  ", "Color:  ", "Advanced Options", "Background Color:  ",
-        "X Offset:  ", "Y Offset:  ", "Rotation (Degrees):  ", "Border Width:  ", "Border Color:  " };
+    return new String[] { "Name:  ", "Location:  ", "Advanced Options", 
+        "X Offset:  ", "Y Offset:  ", "Rotation (Degrees):  "};
 
   }
 
   public Class[] getAttributeTypes() {
-    return new Class[] { String.class, LocationConfig.class, FgColorConfig.class, Boolean.class, BgColorConfig.class,
-        Integer.class, Integer.class, Integer.class, Double.class, BorderColorConfig.class };
+    return new Class[] { String.class, LocationConfig.class,  Boolean.class,
+        Integer.class, Integer.class, Integer.class };
   }
 
   public static class IconConfig implements ConfigurerFactory {
@@ -96,27 +95,8 @@ public abstract class Item extends AbstractConfigurable {
     }
   }
 
-  public static class BgColorConfig implements ConfigurerFactory {
-    public Configurer getConfigurer(AutoConfigurable c, String key, String name) {
-      return new ColorSwatchConfigurer(key, name, ((Item) c).bgColor);
-    }
-  }
-
-  public static class FgColorConfig implements ConfigurerFactory {
-    public Configurer getConfigurer(AutoConfigurable c, String key, String name) {
-      return new ColorSwatchConfigurer(key, name, ((Item) c).fgColor);
-    }
-  }
-
-  public static class BorderColorConfig implements ConfigurerFactory {
-    public Configurer getConfigurer(AutoConfigurable c, String key, String name) {
-      return new ColorSwatchConfigurer(key, name, ((Item) c).borderColor);
-    }
-  }
-
   public String[] getAttributeNames() {
-    return new String[] { NAME, LOCATION, FG_COLOR, ADVANCED, BG_COLOR, X_OFFSET, Y_OFFSET, ROTATION, BORDER_WIDTH,
-        BORDER_COLOR };
+    return new String[] { NAME, LOCATION, ADVANCED, X_OFFSET, Y_OFFSET, ROTATION };
   }
 
   public void setAttribute(String key, Object o) {
@@ -138,18 +118,6 @@ public abstract class Item extends AbstractConfigurable {
       }
       yoffset = ((Integer) o).intValue();
     }
-    else if (BG_COLOR.equals(key)) {
-      if (o instanceof String) {
-        o = GenericsContainer.getColorSwatch((String) o);
-      }
-      bgColor = (ColorSwatch) o;
-    }
-    else if (FG_COLOR.equals(key)) {
-      if (o instanceof String) {
-        o = GenericsContainer.getColorSwatch((String) o);
-      }
-      fgColor = (ColorSwatch) o;
-    }
     else if (ADVANCED.equals(key)) {
       if (o instanceof String) {
         o = new Boolean(Boolean.getBoolean((String) o));
@@ -161,18 +129,6 @@ public abstract class Item extends AbstractConfigurable {
         o = new Integer((String) o);
       }
       rotation = ((Integer) o).intValue();
-    }
-    else if (BORDER_WIDTH.equals(key)) {
-      if (o instanceof String) {
-        o = new Double(Double.parseDouble((String) o));
-      }
-      borderWidth = ((Double) o).doubleValue();
-    }
-    else if (BORDER_COLOR.equals(key)) {
-      if (o instanceof String) {
-        o = GenericsContainer.getColorSwatch((String) o);
-      }
-      borderColor = (ColorSwatch) o;
     }
 
   }
@@ -190,28 +146,25 @@ public abstract class Item extends AbstractConfigurable {
     else if (Y_OFFSET.equals(key)) {
       return yoffset + "";
     }
-    else if (BG_COLOR.equals(key)) {
-      return bgColor.getConfigureName();
-    }
-    else if (FG_COLOR.equals(key)) {
-      return fgColor.getConfigureName();
-    }
     else if (ADVANCED.equals(key)) {
       return advanced + "";
     }
     else if (ROTATION.equals(key)) {
       return rotation + "";
     }
-    else if (BORDER_WIDTH.equals(key)) {
-      return borderWidth + "";
-    }
-    else if (BORDER_COLOR.equals(key)) {
-      return borderColor.getConfigureName();
-    }
     else
       return null;
   }
 
+  public VisibilityCondition getAttributeVisibility(String name) {
+   if (ROTATION.equals(name) || X_OFFSET.equals(name) || Y_OFFSET.equals(name)) {
+      return advancedCond;
+    }
+    else {
+      return null;
+    }
+  }
+  
   public void removeFrom(Buildable parent) {
 
   }
@@ -225,38 +178,29 @@ public abstract class Item extends AbstractConfigurable {
   }
 
   public void addTo(Buildable parent) {
-    layout = (CounterLayout) parent;
+
   }
 
-  private VisibilityCondition borderCond = new VisibilityCondition() {
-    public boolean shouldBeVisible() {
-      return advanced && (borderWidth > 0.0f);
-    }
-  };
-
+  public int getKeyCommandCount() {
+    return 0;
+    
+  }
+  public KeyCommand[] getKeyCommands(GamePiece target) {
+    return new KeyCommand[getKeyCommandCount()];
+  }
+  
   private VisibilityCondition advancedCond = new VisibilityCondition() {
     public boolean shouldBeVisible() {
       return advanced;
     }
   };
 
-  public VisibilityCondition getAttributeVisibility(String name) {
-    if (BORDER_COLOR.equals(name)) {
-      return borderCond;
-    }
-    else if (BORDER_WIDTH.equals(name) || BG_COLOR.equals(name) || ROTATION.equals(name) || X_OFFSET.equals(name)
-        || Y_OFFSET.equals(name)) {
-      return advancedCond;
-    }
-    else {
-      return null;
-    }
-  }
 
   /**
-   * Implement by subclass to draw itself.
+   * Implemented by subclass to draw itself.
    */
-  public abstract void draw(Graphics g, Properties p);
+  public abstract void draw(Graphics g, ImageDefn defn);
+  public abstract String getType();
 
   public String getLocation() {
     return location;
@@ -270,32 +214,8 @@ public abstract class Item extends AbstractConfigurable {
     return yoffset;
   }
 
-  public String getBgColorName() {
-    return bgColor.getConfigureName();
-  }
-
-  public Color getBgColor() {
-    return bgColor.getColor();
-  }
-  
-  public String getFgColorName() {
-    return fgColor.getConfigureName();
-  }
-  
-  public Color getFgColor() {
-    return fgColor.getColor();
-  }
-
   public int getRotation() {
     return rotation;
-  }
-
-  public double getborderWidth() {
-    return borderWidth;
-  }
-
-  public String getBorderColorName() {
-    return borderColor.getConfigureName();
   }
   
   protected Point getOrigin() {
@@ -307,4 +227,44 @@ public abstract class Item extends AbstractConfigurable {
   protected CounterLayout getLayout() {
     return layout;
   }
+  
+  public static Item decode(CounterLayout layout, String s) {
+    SequenceEncoder.Decoder sd1= new SequenceEncoder.Decoder(s, '|');
+    String t1 = sd1.nextToken();
+    String t2 = sd1.nextToken();
+    
+    Item item;
+    
+    if (t1.startsWith(SymbolItem.TYPE)) {
+      item = SymbolItem.decode(layout, t1);
+    }
+    else if (t1.startsWith(TextItem.TYPE)) {
+      item = TextItem.decode(layout, t1);
+    }
+    else if (t1.startsWith(ImageItem.TYPE)) {
+      item = ImageItem.decode(layout, t1);
+    }
+    else
+      return null;
+    
+    SequenceEncoder.Decoder sd2 = new SequenceEncoder.Decoder(t2, ';');
+    item.setConfigureName(sd2.nextToken());
+    item.location = sd2.nextToken();
+    item.xoffset = sd2.nextInt(0);
+    item.yoffset = sd2.nextInt(0);
+    item.rotation = sd2.nextInt(0);
+    
+    return item;
+  }
+  
+  public String encode() {
+    SequenceEncoder se = new SequenceEncoder(';');
+    se.append(getConfigureName());
+    se.append(location);
+    se.append(xoffset);
+    se.append(yoffset);
+    se.append(rotation);
+    return se.getValue();
+  }
+  
 }

@@ -21,17 +21,15 @@
  * Class tht implements a named Color Swatch
  */
 
-package Dev;
+package Generic2;
 
 import java.awt.Color;
 
 import VASSAL.build.AbstractConfigurable;
-import VASSAL.build.AutoConfigurable;
 import VASSAL.build.Buildable;
 import VASSAL.build.module.documentation.HelpFile;
 import VASSAL.configure.ColorConfigurer;
-import VASSAL.configure.Configurer;
-import VASSAL.configure.ConfigurerFactory;
+import VASSAL.tools.SequenceEncoder;
 
 public class ColorSwatch extends AbstractConfigurable {
 
@@ -41,6 +39,7 @@ public class ColorSwatch extends AbstractConfigurable {
   public static final String BLACK = "BLACK";
   public static final String WHITE = "WHITE";
   public static final String CLEAR = "CLEAR";
+  public static final String RED = "RED";
   
   protected Color color;
 
@@ -56,8 +55,17 @@ public class ColorSwatch extends AbstractConfigurable {
     color = c;
   }
   
+  public ColorSwatch(String code) {
+    this();
+    decode(code);
+  }
+  
   public Color getColor() {
     return color;
+  }
+  
+  public void setColor(Color c) {
+    color = c;
   }
   
   public String[] getAttributeDescriptions() {
@@ -119,9 +127,30 @@ public class ColorSwatch extends AbstractConfigurable {
   public static ColorSwatch getWhite() {
     return new ColorSwatch(WHITE, Color.WHITE);
   }
+
+  public static ColorSwatch getRed() {
+    return new ColorSwatch(RED, Color.RED);
+  }
   
   public static ColorSwatch getClear() {
     return new ColorSwatch(CLEAR, null);
   }
   
+  public String encode() {
+    
+    SequenceEncoder se = new SequenceEncoder(';');
+    se.append(getConfigureName());
+    se.append(getColor());
+    return se.getValue();
+  }
+  
+  public void decode(String s) {
+    SequenceEncoder.Decoder sd = new SequenceEncoder.Decoder(s, ';');
+    setConfigureName(sd.nextToken());
+    setColor(sd.nextColor(Color.BLACK));
+  }
+  
+  public static ColorSwatch getDefaultSwatch() {
+    return ColorManager.getColorManager().getColorSwatch(ColorManager.DEFAULT_COLOR);
+  }
 }

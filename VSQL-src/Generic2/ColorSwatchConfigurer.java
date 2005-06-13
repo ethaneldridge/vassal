@@ -16,23 +16,21 @@
  * along with this library; if not, copies are available at
  * http://www.opensource.org.
  */
-package Dev;
+package Generic2;
 
 import java.awt.Color;
-import java.awt.Component;
-import java.awt.Graphics;
+import java.awt.Window;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
-import java.awt.image.BufferedImage;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 
 import javax.swing.Box;
 import javax.swing.BoxLayout;
-import javax.swing.ImageIcon;
 import javax.swing.JComboBox;
 import javax.swing.JLabel;
-import javax.swing.JList;
 import javax.swing.JPanel;
-import javax.swing.ListCellRenderer;
+import javax.swing.SwingUtilities;
 
 import VASSAL.configure.ColorConfigurer;
 import VASSAL.configure.Configurer;
@@ -43,18 +41,24 @@ public class ColorSwatchConfigurer extends Configurer {
   protected JPanel p;
   protected JPanel swatchPanel;
   protected JComboBox swatches;
+  protected Box colorBox;
+  protected ColorConfigurer config;
 
   public ColorSwatchConfigurer(String key, String name) {
-    super(key, name);
+    this(key, name, ColorSwatch.getDefaultSwatch());
   }
 
   public ColorSwatchConfigurer(String key, String name, ColorSwatch swatch) {
-    this(key, name);
+    super(key, name);
     setValue(swatch);
   }
 
   public ColorSwatchConfigurer(String key, String name, String swatchName) {
     this(key, name, ColorManager.getColorManager().getColorSwatch(swatchName));
+  }
+
+  public ColorSwatchConfigurer(String key, String name, Color color) {
+    this(key, name, ColorManager.getColorManager().getColorSwatch(color));
   }
 
   public String getValueString() {
@@ -83,6 +87,22 @@ public class ColorSwatchConfigurer extends Configurer {
       box.add(swatchPanel);
       p.add(box);
 
+      colorBox = Box.createHorizontalBox();
+      config = new ColorConfigurer("", "Select Color  ");
+      config.addPropertyChangeListener(new PropertyChangeListener() {
+        public void propertyChange(PropertyChangeEvent e) {
+          Color c = (Color) config.getValue();
+          ColorSwatch cs = ColorManager.getColorManager().getColorSwatch(c);
+          setValue(cs);
+          buildSwatches();
+          updateValue();
+        }
+      });
+      colorBox.add(config.getControls());
+      p.add(colorBox);
+
+      repack();
+
     }
     return p;
   }
@@ -91,18 +111,10 @@ public class ColorSwatchConfigurer extends Configurer {
     if (swatchPanel == null) {
       return;
     }
-    
+
     if (swatches != null) {
       swatchPanel.remove(swatches);
     }
-
-    swatches = new JComboBox();
-    String[] s = GenericsContainer.getColorNames();
-    for (int i = 0; i < s.length; ++i) {
-      swatches.addItem(s[i]);
-    }
-    swatches.setSelectedItem(value == null ? "WHITE" : ((ColorSwatch) value).getConfigureName());
-    swatchPanel.add(swatches);
 
     ItemListener l = new ItemListener() {
       public void itemStateChanged(ItemEvent evt) {
@@ -110,27 +122,35 @@ public class ColorSwatchConfigurer extends Configurer {
       }
     };
 
-    swatches.addItemListener(l);
-
-    SwatchRenderer renderer = new SwatchRenderer();
-    swatches.setRenderer(renderer);
+    swatches = new SwatchComboBox(l, ((ColorSwatch) value).getConfigureName());
+    swatchPanel.add(swatches);
 
   }
 
   protected void updateValue() {
-    setValue(ColorManager.getColorManager().getColorSwatch((String) swatches.getSelectedItem()));
+    String s = (String) swatches.getSelectedItem();
+    if (s.equals(ColorManager.SELECT_COLOR)) {
+      setValue(ColorManager.getColorManager().getColorSwatch((Color) config.getValue()));
+    }
+    else {
+      setValue(ColorManager.getColorManager().getColorSwatch(s));
+    }
+    repack();
+  }
+
+  protected void repack() {
+    colorBox.setVisible(((ColorSwatch) getValue()).getConfigureName().equals(ColorManager.SELECT_COLOR));
+    Window w = SwingUtilities.getWindowAncestor(colorBox);
+    if (w != null) {
+      w.pack();
+    }
   }
 
   public void setValue(String s) {
-    setValue(ColorManager.getColorManager().getColorSwatch(s));
+    super.setValue(new ColorSwatch(s));
     buildSwatches();
   }
   
-  public void setValue(Color c) {
-    setValue(new ColorSwatch("", c));
-    buildSwatches();
-  }
-
   public static ColorSwatch decode(String s) {
     SequenceEncoder.Decoder sd = new SequenceEncoder.Decoder(s, '|');
     return new ColorSwatch(sd.nextToken(), sd.nextColor(Color.WHITE));
@@ -141,50 +161,4 @@ public class ColorSwatchConfigurer extends Configurer {
     se.append(ColorConfigurer.colorToString(f.getColor()));
     return se.getValue();
   }
-
-  class SwatchRenderer extends JLabel implements ListCellRenderer {
-
-    public SwatchRenderer() {
-      setOpaque(true);
-      setHorizontalAlignment(LEFT);
-      setVerticalAlignment(CENTER);
-    }
-
-    /*
-     * This method finds the image and text corresponding to the selected value
-     * and returns the label, set up to display the text and image.
-     */
-    public Component getListCellRendererComponent(JList list, Object value, int index, boolean isSelected,
-        boolean cellHasFocus) {
-
-      ColorSwatch swatch = GenericsContainer.getColorSwatch((String) value);
-
-      if (isSelected) {
-        setBackground(list.getSelectionBackground());
-        setForeground(list.getSelectionForeground());
-      }
-      else {
-        setBackground(list.getBackground());
-        setForeground(list.getForeground());
-      }
-
-      //Set the icon and text. If icon was null, say so.
-      //String name = (String) list.get
-      BufferedImage bi = new BufferedImage(25, 12, BufferedImage.TYPE_INT_RGB);
-      Graphics g = bi.getGraphics();
-      g.setColor(swatch.getColor());
-      g.fillRect(0, 0, 25, 12);
-      g.setColor(Color.black);
-      g.drawRect(0, 0, 24, 11);
-      ImageIcon icon = new ImageIcon(bi);
-      
-      setIcon(icon);
-      setText((String) value);
-      setFont(list.getFont());
-
-      return this;
-    }
-
-  }
-
 }

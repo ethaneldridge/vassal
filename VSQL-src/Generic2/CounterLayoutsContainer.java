@@ -1,8 +1,9 @@
-package Dev;
+package Generic2;
 
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.util.HashMap;
+import java.util.Iterator;
 
 import VASSAL.build.AbstractConfigurable;
 import VASSAL.build.Buildable;
@@ -106,6 +107,18 @@ public class CounterLayoutsContainer extends AbstractConfigurable {
   }
 
   public void removeFrom(Buildable parent) {
+  }
+
+  public ImageDefn getGenericDefn(String defnName) {
+
+    ImageDefn defn = null;
+    
+    Iterator i = definitions.values().iterator();
+    while (i.hasNext() && defn == null) {
+      defn = ((CounterLayout) i.next()).getGenericDefn(defnName);
+    }
+    
+    return defn;
   }
 }
 

@@ -16,7 +16,8 @@
  * along with this library; if not, copies are available at
  * http://www.opensource.org.
  */
-package Dev;
+// TODO
+package Generic2;
 
 import java.awt.Font;
 import java.awt.event.ItemEvent;
@@ -47,7 +48,7 @@ public class FontStyleConfigurer extends Configurer {
   }
 
   public FontStyleConfigurer(String key, String name, String styleName) {
-    this(key, name, GenericsContainer.getFontStyleByName(styleName));
+    this(key, name, FontManager.getFontManager().getFontStyle(styleName));
   }
 
   public String getValueString() {
@@ -90,7 +91,7 @@ public class FontStyleConfigurer extends Configurer {
     }
 
     fonts = new JComboBox();
-    String[] s = GenericsContainer.getFontNames();
+    String[] s = FontManager.getFontManager().getFontNames();
     for (int i = 0; i < s.length; i++) {
       fonts.addItem(s[i]);
     }
@@ -108,11 +109,11 @@ public class FontStyleConfigurer extends Configurer {
   }
 
   protected void updateValue() {
-    setValue(GenericsContainer.getStyledFont((String) fonts.getSelectedItem()));
+    setValue(FontManager.getFontManager().getFontStyle((String) fonts.getSelectedItem()));
   }
 
   public void setValue(String s) {
-    setValue(GenericsContainer.getFontStyleByName(s));
+    setValue(FontManager.getFontManager().getFontStyle(s));
     buildFonts();
   }
 

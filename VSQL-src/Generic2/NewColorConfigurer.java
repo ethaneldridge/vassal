@@ -16,7 +16,7 @@
  * License along with this library; if not, copies are available
  * at http://www.opensource.org.
  */
-package Dev;
+package Generic2;
 
 import java.awt.Color;
 import java.beans.PropertyChangeEvent;

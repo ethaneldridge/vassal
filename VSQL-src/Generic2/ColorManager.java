@@ -1,4 +1,4 @@
-package Dev;
+package Generic2;
 
 import java.awt.Color;
 import java.beans.PropertyChangeEvent;
@@ -49,7 +49,8 @@ public class ColorManager extends AbstractConfigurable {
     return instance;
   }
   
-  protected static final Color DEFAULT_COLOR = Color.WHITE;
+  public static final Color DEFAULT_COLOR = Color.WHITE;
+  public static final String SELECT_COLOR = "Select...";
   
   protected static Color[] standardColors = new Color[] {
       Color.WHITE,
@@ -135,6 +136,36 @@ public class ColorManager extends AbstractConfigurable {
     return c;
   }
 
+  public ColorSwatch getColorSwatch(Color color) {
+    ColorSwatch swatch = null;
+    
+    if (color == null) {
+      return new ColorSwatch("CLEAR", null);
+    }
+    
+    Iterator i = userColors.values().iterator();
+    while (i.hasNext() && swatch == null) {
+      ColorSwatch cs = (ColorSwatch) i.next();
+      if (cs.getColor().equals(color)) {
+        swatch = cs;
+      }
+    }
+    
+    if (swatch == null) {
+      for (int j = 0; j < standardColors.length && swatch == null; j++) {
+        if (standardColors[j] != null && standardColors[j].equals(color)) {
+          swatch = new ColorSwatch(standardColorNames[j], standardColors[j]);
+        }
+      }
+    }
+    
+    if (swatch == null) {
+      swatch = new ColorSwatch(SELECT_COLOR, color);
+    }
+    
+    return swatch;
+  }
+  
   public String[] getAttributeDescriptions() {
     return new String[0];
   }

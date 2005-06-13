@@ -21,7 +21,7 @@
  * Class tht implements a names Font Swatch
  */
 
-package Dev;
+package Generic2;
 
 import java.awt.Font;
 

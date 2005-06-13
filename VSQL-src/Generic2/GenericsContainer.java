@@ -1,4 +1,4 @@
-package Dev;
+package Generic2;
 
 import java.awt.Color;
 
@@ -39,12 +39,16 @@ public class GenericsContainer extends AbstractConfigurable {
   protected static GenericsContainer instance;
   protected CounterLayoutsContainer definitions;
   protected ColorManager colors;
-  protected FontStylesContainer fonts;
+  protected FontManager fonts;
   
   protected static final Color DEFAULT_COLOR  = Color.WHITE;
   
   public GenericsContainer() {
     instance = this;
+  }
+  
+  public static GenericsContainer getInstance() {
+    return instance;
   }
   
   public void build(Element e) {
@@ -54,7 +58,7 @@ public class GenericsContainer extends AbstractConfigurable {
       addChild(new ColorManager());
       colors.build(null);
     }
-    if (fonts == null) addChild(new FontStylesContainer());
+    if (fonts == null) addChild(new FontManager());
     if (definitions == null) addChild(new CounterLayoutsContainer());
 
   }
@@ -95,7 +99,7 @@ public class GenericsContainer extends AbstractConfigurable {
     return new Class[] {
         CounterLayoutsContainer.class, 
         ColorManager.class,
-        FontStylesContainer.class};
+        FontManager.class};
   }
 
   public static String getConfigureTypeName() {
@@ -110,8 +114,8 @@ public class GenericsContainer extends AbstractConfigurable {
     else if (b instanceof ColorManager) {
       colors = (ColorManager) b;
     }
-    else if (b instanceof FontStylesContainer) {
-      fonts = (FontStylesContainer) b;
+    else if (b instanceof FontManager) {
+      fonts = (FontManager) b;
     }    
   }
 
@@ -123,7 +127,7 @@ public class GenericsContainer extends AbstractConfigurable {
     else if (b instanceof ColorManager) {
       colors = null;
     }
-    else if (b instanceof FontStylesContainer) {
+    else if (b instanceof FontManager) {
       fonts = null;
     }  
   }
@@ -135,68 +139,53 @@ public class GenericsContainer extends AbstractConfigurable {
   public void removeFrom(Buildable parent) {
   }
 
-  public static CounterLayout getDefinitionByName(String name) {
+  public ImageDefn getGenericDefn(String defnName) {
     
-    CounterLayout def = null;
+    return definitions.getGenericDefn(defnName);
     
-    if (instance.definitions != null) {
-        def = (CounterLayout) instance.definitions.getDefinition(name);
-    }
-    
-    if (def == null) {
-      def = new CounterLayout();
-    }
-    
-    return def;
   }
+  
+//  public static CounterLayout getDefinitionByName(String name) {
+//    
+//    CounterLayout def = null;
+//    
+//    if (instance.definitions != null) {
+//        def = (CounterLayout) instance.definitions.getDefinition(name);
+//    }
+//    
+//    if (def == null) {
+//      def = new CounterLayout();
+//    }
+//    
+//    return def;
+//  }
 
 
-  public static FontStyle getFontStyleByName(String name) {
-    
-    FontStyle def = null;
-    
-    if (instance.fonts != null) {
-        def = (FontStyle) instance.fonts.getFontStyle(name);
-    }
-    
-    if (def == null) {
-      def = new FontStyle();
-    }
-    
-    return def;
-  }
+//  public static FontStyle getFontStyleByName(String name) {
+//    
+//    FontStyle def = null;
+//    
+//    if (instance.fonts != null) {
+//        def = (FontStyle) instance.fonts.getFontStyle(name);
+//    }
+//    
+//    if (def == null) {
+//      def = new FontStyle();
+//    }
+//    
+//    return def;
+//  }
+//  
   
-  public static Color getColor (String colorName) {
-    if (instance.colors != null) {
-      Color color = (Color) instance.colors.getColorByName(colorName);
-      if (color != null) {
-          return color;
-      }
-    }
-    return DEFAULT_COLOR;
-  }
-  
-  public static ColorSwatch getColorSwatch(String swatchName) {
-    if (instance.colors != null) {
-      return instance.colors.getColorSwatch(swatchName);
-    }
-    else
-      return null;
-  }
-  
-  public static String[] getColorNames() {
-    return instance.colors.getColorNames();
-  }
-  
-  public static FontStyle getStyledFont(String fontName) {
-    if (instance.fonts != null) {
-      return instance.fonts.getFontStyle(fontName);
-    }
-    else
-      return null;
-  }
-  
-  public static String[] getFontNames() {
-    return instance.fonts.getFontNames();
-  }
+//  public static FontStyle getStyledFont(String fontName) {
+//    if (instance.fonts != null) {
+//      return instance.fonts.getFontStyle(fontName);
+//    }
+//    else
+//      return null;
+//  }
+//  
+//  public static String[] getFontNames() {
+//    return instance.fonts.getFontNames();
+//  }
 }
