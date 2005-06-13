@@ -17,7 +17,7 @@
  * http://www.opensource.org.
  */
 
-package Generic2;
+package AutoImage;
 
 import VASSAL.build.AbstractConfigurable;
 import VASSAL.build.Buildable;

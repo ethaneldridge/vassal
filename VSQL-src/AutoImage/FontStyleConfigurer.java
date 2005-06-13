@@ -17,7 +17,7 @@
  * http://www.opensource.org.
  */
 // TODO
-package Generic2;
+package AutoImage;
 
 import java.awt.Font;
 import java.awt.event.ItemEvent;

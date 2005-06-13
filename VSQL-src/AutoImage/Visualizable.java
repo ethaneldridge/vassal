@@ -17,7 +17,7 @@
  * at http://www.opensource.org.
  */
  
-package Generic2;
+package AutoImage;
 
 import java.awt.Image;
 

@@ -24,7 +24,7 @@
  * To change template for new class use
  * Code Style | Class Templates options (Tools | IDE Options).
  */
-package Generic2;
+package AutoImage;
 
 import javax.swing.*;
 

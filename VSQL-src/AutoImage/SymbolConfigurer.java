@@ -17,11 +17,12 @@
  * http://www.opensource.org.
  */
 
-package Generic2;
+package AutoImage;
 
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Graphics;
+import java.awt.Rectangle;
 import java.awt.event.ItemListener;
 import java.awt.image.BufferedImage;
 
@@ -32,41 +33,44 @@ import javax.swing.JList;
 import javax.swing.ListCellRenderer;
 import javax.swing.SwingConstants;
 
-public class SizeConfigurer extends StringEnumConfigurer {
+public class SymbolConfigurer extends StringEnumConfigurer {
 
-  public SizeConfigurer(String key, String name) {
-    super(key, name, Symbol.NatoUnitSymbolSet.getSymbolSizes());
+  public SymbolConfigurer(String key, String name) {
+    super(key, name, Symbol.NatoUnitSymbolSet.getSymbolNames());
   }
 
   public JComboBox getComboBox() {
-    return (JComboBox) new SizeComboBox();
+    return (JComboBox) new SymbolComboBox();
   }
 
-  public class SizeComboBox extends JComboBox {
+  public class SymbolComboBox extends JComboBox {
 
-    public SizeComboBox() {
-      String[] s = Symbol.NatoUnitSymbolSet.getSymbolSizes();
+    static final int sample_w = 20;
+    static final int sample_h = 13;
+
+    public SymbolComboBox() {
+      String[] s = Symbol.NatoUnitSymbolSet.getSymbolNames();
       for (int i = 0; i < s.length; ++i) {
         addItem(s[i]);
       }
-      SizeRenderer renderer = new SizeRenderer();
+      SymbolRenderer renderer = new SymbolRenderer();
       setRenderer(renderer);
     }
 
-    public SizeComboBox(ItemListener l) {
+    public SymbolComboBox(ItemListener l) {
       this();
       addItemListener(l);
     }
 
-    public SizeComboBox(ItemListener l, String sizeName) {
+    public SymbolComboBox(ItemListener l, String symbolName) {
       this();
-      setSelectedItem(sizeName);
+      setSelectedItem(symbolName);
       addItemListener(l);
     }
 
-    public class SizeRenderer extends JLabel implements ListCellRenderer {
+    public class SymbolRenderer extends JLabel implements ListCellRenderer {
 
-      public SizeRenderer() {
+      public SymbolRenderer() {
         setOpaque(true);
         setHorizontalAlignment(LEFT);
         setVerticalAlignment(CENTER);
@@ -88,26 +92,15 @@ public class SizeConfigurer extends StringEnumConfigurer {
           setForeground(list.getForeground());
         }
 
+        BufferedImage bi = new BufferedImage(sample_w, sample_h, BufferedImage.TYPE_INT_RGB);
+        Graphics g = bi.getGraphics();
 
-        final int sample_w = 6;
-        final int sample_h = 12;
-        final int sample_g = 1;
+        String symbol1 = (String) value;
+        String symbol2 = Symbol.NatoUnitSymbolSet.NONE;
+        Rectangle bounds = new Rectangle(0, 0, sample_w-1, sample_h-1);   
+        Symbol.NatoUnitSymbolSet.draw(symbol1, symbol2, g, bounds, Color.BLACK, Color.WHITE, 1.0f, "");
         
-        final int w = sample_w*6 + sample_g*5 + 1;
-        final int h = sample_h+1;
-        
-        BufferedImage image = new BufferedImage(w, h, BufferedImage.TYPE_INT_RGB);
-        Graphics g = image.getGraphics();
-        g.setColor(Color.white);
-        g.fillRect(0, 0, w, h);
-        g.setColor(Color.black);
-        g.drawRect(0, 0, w-1, h-1);
-        
-        BufferedImage bi = Symbol.NatoUnitSymbolSet.buildSizeImage((String) value, sample_w, sample_h, sample_g);
-        int x = (w/2) - (bi.getWidth()/2);
-        g.drawImage(bi, x, 0, null);       
-        
-        ImageIcon icon = new ImageIcon(image);
+        ImageIcon icon = new ImageIcon(bi);
 
         setIcon(icon);
         setText((String) value);

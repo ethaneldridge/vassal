@@ -18,7 +18,7 @@
  */
 
  //TODO 
-package Generic2;
+package AutoImage;
 
 import java.awt.BasicStroke;
 import java.awt.Color;

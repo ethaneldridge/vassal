@@ -21,7 +21,7 @@
  * Class tht implements a named Color Swatch
  */
 
-package Generic2;
+package AutoImage;
 
 import java.awt.Color;
 

@@ -1,4 +1,4 @@
-package Generic2;
+package AutoImage;
 
 import java.awt.Font;
 import java.beans.PropertyChangeEvent;

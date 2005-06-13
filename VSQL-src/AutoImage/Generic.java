@@ -16,7 +16,7 @@
  * License along with this library; if not, copies are available
  * at http://www.opensource.org.
  */
-package Generic2;
+package AutoImage;
 import java.awt.Component;
 import java.awt.Graphics;
 import java.awt.Image;

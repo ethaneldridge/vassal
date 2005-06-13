@@ -17,7 +17,7 @@
  * http://www.opensource.org.
  */
 
-package Generic2;
+package AutoImage;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
@@ -29,6 +29,7 @@ import java.awt.image.BufferedImage;
 import javax.swing.BorderFactory;
 import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
+
 
 public class Visualizer extends JPanel {
 

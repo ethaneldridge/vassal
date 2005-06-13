@@ -1,4 +1,4 @@
-package Generic2;
+package AutoImage;
 
 import java.awt.Color;
 
