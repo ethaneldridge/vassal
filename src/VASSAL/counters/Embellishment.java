@@ -442,7 +442,8 @@ public class Embellishment extends Decorator implements EditablePiece {
   }
 
   public Shape getShape() {
-    if (value > 0) {
+    if (value > 0
+      && !drawUnderneathWhenSelected) {
       if (Info.is2dEnabled()) {
         Area a = new Area(piece.getShape());
         a.add(new Area(getCurrentImageBounds()));
