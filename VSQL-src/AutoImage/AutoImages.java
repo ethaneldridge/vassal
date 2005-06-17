@@ -34,20 +34,20 @@ import VASSAL.configure.SingleChildInstance;
  * Container for definitions of Generic Counter Definitions.
  * Actual definition is in inner class {@link VASSAL.build.module.CounterLayout}
  */
-public class GenericsContainer extends AbstractConfigurable {
+public class AutoImages extends AbstractConfigurable {
   
-  protected static GenericsContainer instance;
-  protected CounterLayoutsContainer definitions;
+  protected static AutoImages instance;
+  protected LayoutsContainer definitions;
   protected ColorManager colors;
   protected FontManager fonts;
   
   protected static final Color DEFAULT_COLOR  = Color.WHITE;
   
-  public GenericsContainer() {
+  public AutoImages() {
     instance = this;
   }
   
-  public static GenericsContainer getInstance() {
+  public static AutoImages getInstance() {
     return instance;
   }
   
@@ -58,8 +58,11 @@ public class GenericsContainer extends AbstractConfigurable {
       addChild(new ColorManager());
       colors.build(null);
     }
-    if (fonts == null) addChild(new FontManager());
-    if (definitions == null) addChild(new CounterLayoutsContainer());
+    if (fonts == null) { 
+      addChild(new FontManager());
+      fonts.build(null);
+    }
+    if (definitions == null) addChild(new LayoutsContainer());
 
   }
   
@@ -97,7 +100,7 @@ public class GenericsContainer extends AbstractConfigurable {
 
   public Class[] getAllowableConfigureComponents() {
     return new Class[] {
-        CounterLayoutsContainer.class, 
+        LayoutsContainer.class, 
         ColorManager.class,
         FontManager.class};
   }
@@ -108,8 +111,8 @@ public class GenericsContainer extends AbstractConfigurable {
 
   public void add(Buildable b) {
     super.add(b);
-    if (b instanceof CounterLayoutsContainer) {
-      definitions = (CounterLayoutsContainer) b;
+    if (b instanceof LayoutsContainer) {
+      definitions = (LayoutsContainer) b;
     }
     else if (b instanceof ColorManager) {
       colors = (ColorManager) b;
@@ -121,7 +124,7 @@ public class GenericsContainer extends AbstractConfigurable {
 
   public void remove(Buildable b) {
     super.remove(b);
-    if (b instanceof CounterLayoutsContainer) {
+    if (b instanceof LayoutsContainer) {
       definitions = null;
     }
     else if (b instanceof ColorManager) {

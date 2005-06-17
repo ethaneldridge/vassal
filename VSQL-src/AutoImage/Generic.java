@@ -30,6 +30,7 @@ import javax.swing.KeyStroke;
 
 import VASSAL.build.GameModule;
 import VASSAL.build.module.documentation.HelpFile;
+import VASSAL.command.ChangeTracker;
 import VASSAL.command.Command;
 import VASSAL.configure.StringConfigurer;
 import VASSAL.counters.Decorator;
@@ -58,8 +59,6 @@ public class Generic extends Decorator  implements EditablePiece {
   protected BufferedImage image = null;
   protected Rectangle imageBounds = new Rectangle();
   
-  protected String state = "";
-  
   public Generic() {
     this(ID, null);
   }
@@ -70,11 +69,18 @@ public class Generic extends Decorator  implements EditablePiece {
   }
   
   public void mySetState(String newState) {
-    state = newState;
+    if (defn != null) {
+      defn.setState(newState);
+    }
   }
 
   public String myGetState() {
-    return state;
+    if (defn == null) {
+      return "";
+    }
+    else {
+      return defn.getState();
+    }
   }
 
   public String myGetType() {
@@ -84,11 +90,14 @@ public class Generic extends Decorator  implements EditablePiece {
   }
 
   protected KeyCommand[] myGetKeyCommands() {
-    return layout.getKeyCommands(this);
+    return defn.getKeyCommands(this);
   }
 
   public Command myKeyEvent(KeyStroke stroke) {
-    return null;
+    ChangeTracker change = new ChangeTracker(this);
+    defn.keyEvent(stroke);
+    getImage();
+    return change.getChangeCommand();
   }
 
   public void draw(Graphics g, int x, int y, Component obs, double zoom) {
@@ -115,7 +124,7 @@ public class Generic extends Decorator  implements EditablePiece {
 
   protected void getImage() {
   
-    defn = GenericsContainer.getInstance().getGenericDefn(definitionName);
+    defn = AutoImages.getInstance().getGenericDefn(definitionName);
     if (defn != null) {
       layout = defn.getLayout();
       image = (BufferedImage) defn.getVisualizerImage();

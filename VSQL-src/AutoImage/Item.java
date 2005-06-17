@@ -30,8 +30,6 @@ import VASSAL.configure.ConfigurerFactory;
 import VASSAL.configure.IconConfigurer;
 import VASSAL.configure.StringEnum;
 import VASSAL.configure.VisibilityCondition;
-import VASSAL.counters.GamePiece;
-import VASSAL.counters.KeyCommand;
 import VASSAL.tools.SequenceEncoder;
 
 /**
@@ -179,14 +177,6 @@ public abstract class Item extends AbstractConfigurable {
 
   public void addTo(Buildable parent) {
 
-  }
-
-  public int getKeyCommandCount() {
-    return 0;
-    
-  }
-  public KeyCommand[] getKeyCommands(GamePiece target) {
-    return new KeyCommand[getKeyCommandCount()];
   }
   
   private VisibilityCondition advancedCond = new VisibilityCondition() {

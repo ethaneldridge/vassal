@@ -36,7 +36,7 @@ import VASSAL.configure.SingleChildInstance;
  * Container for definitions of Generic Counter Definitions.
  * Actual definition is in inner class {@link VASSAL.build.module.CounterLayout}
  */
-public class CounterLayoutsContainer extends AbstractConfigurable {
+public class LayoutsContainer extends AbstractConfigurable {
   
   protected HashMap definitions = new HashMap();
   

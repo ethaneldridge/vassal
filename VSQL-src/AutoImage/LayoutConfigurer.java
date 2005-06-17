@@ -223,7 +223,8 @@ public class LayoutConfigurer extends Configurer {
         addItem(new SymbolItem(layout));
       }
       else if (action.equals(ADD_TEXT)) {
-        addItem(new TextItem(layout));
+        TextItem item = new TextItem(layout);
+        addItem(item);
       }
       else if (action.equals(ADD_IMAGE)) {
         addItem(new ImageItem(layout));

@@ -19,9 +19,13 @@
 
 package AutoImage;
 
+import javax.swing.KeyStroke;
+
 import VASSAL.build.AbstractConfigurable;
 import VASSAL.build.Buildable;
 import VASSAL.build.module.documentation.HelpFile;
+import VASSAL.counters.GamePiece;
+import VASSAL.counters.KeyCommand;
 
 public abstract class ItemInstance extends AbstractConfigurable {
 
@@ -174,4 +178,19 @@ public abstract class ItemInstance extends AbstractConfigurable {
       defn = (ImageDefn) parent;
     }
   }
+  
+
+  public int getKeyCommandCount() {
+    return 0;
+    
+  }
+  
+  public KeyCommand[] getKeyCommands(GamePiece target) {
+    return new KeyCommand[getKeyCommandCount()];
+  }
+  
+  public void keyEvent(KeyStroke stroke) {
+    return;
+  }
+  
 }

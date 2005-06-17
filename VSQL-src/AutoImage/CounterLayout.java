@@ -17,7 +17,6 @@
  * http://www.opensource.org.
  */
 
- //TODO 
 package AutoImage;
 
 import java.awt.BasicStroke;
@@ -37,8 +36,7 @@ import VASSAL.build.Buildable;
 import VASSAL.build.module.documentation.HelpFile;
 import VASSAL.configure.Configurer;
 import VASSAL.configure.ConfigurerFactory;
-import VASSAL.counters.GamePiece;
-import VASSAL.counters.KeyCommand;
+import VASSAL.configure.StringEnum;
 import VASSAL.tools.SequenceEncoder;
 
 public class CounterLayout extends AbstractConfigurable implements Visualizable {
@@ -65,6 +63,11 @@ public class CounterLayout extends AbstractConfigurable implements Visualizable 
   protected static final int POS_B = 85;
   protected static final int POS_C = 50;
 
+  protected static final String BORDER_PLAIN = "Plain";
+  protected static final String BORDER_FANCY = "Fancy";
+  protected static final String BORDER_NONE = "None";
+  
+  
   public static final String[] LOCATIONS = new String[] { CENTER, N, S, E, W, NE, NW, SE, SW };
   public static final int[] X_POS = new int[] { POS_C, POS_C, POS_C, POS_R, POS_L, POS_R, POS_L, POS_R, POS_L };
   public static final int[] Y_POS = new int[] { POS_C, POS_T, POS_B, POS_C, POS_C, POS_T, POS_T, POS_B, POS_B };
@@ -86,7 +89,7 @@ public class CounterLayout extends AbstractConfigurable implements Visualizable 
 
   protected int width = 54;
   protected int height = 54;
-  protected boolean border = true;
+  protected String border = BORDER_PLAIN;
   protected BufferedImage image;
   protected ImageDefn imageDefn = new ImageDefn();
   protected ArrayList items = new ArrayList();
@@ -97,11 +100,11 @@ public class CounterLayout extends AbstractConfigurable implements Visualizable 
   }
 
   public String[] getAttributeDescriptions() {
-    return new String[] { "Name", "Counter Width", "Counter Height", "Border?", ""};
+    return new String[] { "Name", "Counter Width", "Counter Height", "Border Style", ""};
   }
 
   public Class[] getAttributeTypes() {
-    return new Class[] { String.class, Integer.class, Integer.class, Boolean.class, LayoutConfig.class };
+    return new Class[] { String.class, Integer.class, Integer.class, BorderConfig.class, LayoutConfig.class };
   }
 
   public static class LayoutConfig implements ConfigurerFactory {
@@ -117,6 +120,11 @@ public class CounterLayout extends AbstractConfigurable implements Visualizable 
     }
   }
 
+  public static class BorderConfig extends StringEnum {
+    public String[] getValidValues(AutoConfigurable target) {
+      return new String[] { BORDER_PLAIN, BORDER_FANCY, BORDER_NONE };
+    }
+  }
   public String[] getAttributeNames() {
     return new String[] { NAME, WIDTH, HEIGHT, BORDER, ITEMS };
   }
@@ -138,10 +146,7 @@ public class CounterLayout extends AbstractConfigurable implements Visualizable 
       setHeight(((Integer) value).intValue());
     }
     else if (BORDER.equals(key)) {
-      if (value instanceof String) {
-        value = new Boolean((String) value);
-      }
-      border = ((Boolean) value).booleanValue();
+      border = (String) value;
     }
     else if (ITEMS.equals(key)) {
       decodeItemList((String) value);
@@ -206,7 +211,7 @@ public class CounterLayout extends AbstractConfigurable implements Visualizable 
     return height;
   }
 
-  public boolean isBorder() {
+  public String getBorder() {
     return border;
   }
   
@@ -289,10 +294,22 @@ public class CounterLayout extends AbstractConfigurable implements Visualizable 
     g.fillRect(0, 0, width, height);
 
     // Add Border
-    if (isBorder()) {
+    if (getBorder().equals(BORDER_PLAIN) || getBorder().equals(BORDER_FANCY)) {
       g.setColor(imageDefn.getBorderColor().getColor());
       ((Graphics2D) g).setStroke(new BasicStroke(1.0f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
-      g.drawRect(0, 0, width-1, height-1);      
+      g.drawRect(0, 0, width-1, height-1);    
+      if (getBorder().equals(BORDER_FANCY)) {
+        Color lt = new Color(bgColor.getRed()/2, bgColor.getGreen()/2, bgColor.getBlue()/2);
+        Color dk = new Color(bgColor.getRed() + (255-bgColor.getRed())/2,
+            bgColor.getGreen() + (255-bgColor.getGreen())/2,
+            bgColor.getBlue() + (255-bgColor.getBlue())/2);
+        g.setColor(dk);
+        g.drawLine(1, 1, width-3, 1);
+        g.drawLine(1, 2, 1, height-3);
+        g.setColor(lt);
+        g.drawLine(width-2, 2, width-2, height-2);
+        g.drawLine(2, height-2, width-3, height-2);
+      }
     }
     
     // layer each item over the top
@@ -377,25 +394,5 @@ public class CounterLayout extends AbstractConfigurable implements Visualizable 
       }
     }
     return defn;
-  }
-  
-  public KeyCommand[] getKeyCommands(GamePiece target) {
-    int count = 0;
-    Iterator i = items.iterator();
-    while (i.hasNext()) {
-      count += ((Item) i.next()).getKeyCommandCount();
-    }
-    
-    KeyCommand commands[] = new KeyCommand[count];
-    count = 0;
-    
-    i = items.iterator();
-    while (i.hasNext()) {
-      KeyCommand[] c = ((Item) i.next()).getKeyCommands(target);
-      System.arraycopy(c, 0, commands, count, c.length);
-      count += c.length;
-    }
-    
-    return commands;
   }
 }

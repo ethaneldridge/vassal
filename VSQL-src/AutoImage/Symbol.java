@@ -233,7 +233,7 @@ public class Symbol {
       else if (name.equals(AIRBORNE)) {
         int x1 = x_center - bounds.width / 4;
         int x2 = x_center + bounds.width / 4;
-        int y1 = y_top + bounds.height * 4 / 5;
+        int y1 = y_top + bounds.height * 4 / 5 + 1;
         g2.draw(new Arc2D.Double(x1, y1, bounds.width/4, bounds.height/4, 0, 
             180, Arc2D.OPEN));
         g2.draw(new Arc2D.Double(x_center, y1, bounds.width/4, bounds.height/4, 0, 
@@ -343,7 +343,7 @@ public class Symbol {
       
       BufferedImage bi = buildSizeImage(g, count, type, sym_w, sym_h, gap);
       
-      int xpos = bounds.x + (bounds.width/2) - (bi.getWidth()/2) + gap*2; // + (gap/2) - (bi.getWidth()/2);
+      int xpos = bounds.x + (bounds.width/2) - (bi.getWidth()/2) + gap; // + (gap/2) - (bi.getWidth()/2);
       int ypos = bounds.y - sym_h - 1;
       g.drawImage(bi, xpos, ypos , null);
       

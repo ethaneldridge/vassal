@@ -34,8 +34,6 @@ import VASSAL.configure.ConfigurerFactory;
 import VASSAL.configure.HotKeyConfigurer;
 import VASSAL.configure.StringEnum;
 import VASSAL.configure.VisibilityCondition;
-import VASSAL.counters.GamePiece;
-import VASSAL.counters.KeyCommand;
 import VASSAL.counters.Labeler;
 import VASSAL.tools.SequenceEncoder;
 
@@ -237,6 +235,10 @@ public class TextItem extends Item {
 
     TextItemInstance ti = null;
 
+    if (fontStyle == null) {
+      return;
+    }
+    
     Font f = fontStyle.getFont();
 
     if (defn != null) {
@@ -339,32 +341,9 @@ public class TextItem extends Item {
 
   public static class TextSource extends StringEnum {
     public String[] getValidValues(AutoConfigurable target) {
-      return new String[] { "Fixed", "Variable", "Command" };
+      return new String[] { "Variable", "Fixed", "Command" };
     }
   }
   
-  public int getKeyCommandCount() {
-    int count = 0;
-    if (changeKey != null && changeCmd.length() > 0) {
-      count++;
-    }
-    if (lockKey != null && lockCmd.length() > 0) {
-      count++;     
-    }
-    return count;
-  }
-  
-  public KeyCommand[] getKeyCommands(GamePiece target) {
 
-    KeyCommand[] commands = new KeyCommand[getKeyCommandCount()];
-    int count = 0;
-    if (changeKey != null && changeCmd.length() > 0) {
-      commands[count++] = new KeyCommand(changeCmd, changeKey, target);
-    }
-    if (lockKey != null && lockCmd.length() > 0) {
-      commands[count++] = new KeyCommand(lockCmd, lockKey, target);
-    }    
-    
-    return commands;
-  }
 }
