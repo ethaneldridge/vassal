@@ -39,7 +39,7 @@ import VASSAL.tools.SequenceEncoder;
 /**
  *  
  */
-public class ImageDefn extends AbstractConfigurable implements Visualizable {
+public class ImageDefn extends AbstractConfigurable implements Visualizable, Cloneable {
 
   protected static final String NAME = "name";
   protected static final String PROPS = "props";
@@ -51,9 +51,9 @@ public class ImageDefn extends AbstractConfigurable implements Visualizable {
   public static final String BG_COLOR = "bgColor";
   public static final String BORDER_COLOR = "borderColor";
   
-  protected ArrayList instances = new ArrayList();
+  protected ArrayList instances = new ArrayList(5);
   protected InstanceConfigurer defnConfig = null;
-  protected CounterLayout layout;
+  protected Layout layout;
   protected ColorSwatch bgColor = ColorSwatch.getWhite();
   protected ColorSwatch borderColor = ColorSwatch.getBlack();
 
@@ -66,10 +66,29 @@ public class ImageDefn extends AbstractConfigurable implements Visualizable {
     instances = InstanceConfigurer.StringToProperties(s, this);
   }
 
-  public ImageDefn(CounterLayout l) {
+  public ImageDefn(Layout l) {
     this();
     layout = l;
     rebuildInstances();
+  }
+  
+  public ImageDefn(ImageDefn defn) {
+    this();
+    this.setConfigureName(defn.getConfigureName());
+    this.layout = defn.getLayout();
+    this.bgColor = defn.getBgColor();
+    this.borderColor = defn.getBorderColor();
+    Iterator i = defn.getInstances().iterator();
+    while (i.hasNext()) {
+      ItemInstance instance = (ItemInstance) i.next();
+      this.instances.add(instance.statefulCopy());
+    }
+  }
+  /*
+   * The Generic trait needs a deep copy of the Imgae Definition
+   */
+  public Object clone() {
+    return new ImageDefn(this);
   }
   
   public ArrayList getInstances() {
@@ -190,10 +209,14 @@ public class ImageDefn extends AbstractConfigurable implements Visualizable {
   }
 
   public void addTo(Buildable parent) {
-    layout = (CounterLayout) parent;
+    layout = (Layout) parent;
     rebuildInstances();
   }
 
+  public static String getConfigureTypeName() {
+    return "Image Definition";
+  }
+  
   public void refreshConfig() {
 //    if (defnConfig != null) {
 //      defnConfig.refresh();
@@ -205,7 +228,7 @@ public class ImageDefn extends AbstractConfigurable implements Visualizable {
 //    return scheme;
 //  }
 
-  public CounterLayout getLayout() {
+  public Layout getLayout() {
     return layout;
   }
 
@@ -335,11 +358,11 @@ public class ImageDefn extends AbstractConfigurable implements Visualizable {
   public void setState(String newState) {
     String[] s = StringArrayConfigurer.stringToArray(newState);
     for (int i = 0; i < s.length; i++) {
-      SequenceEncoder.Decoder sd = new SequenceEncoder.Decoder(s[i], ',');
+      SequenceEncoder.Decoder sd = new SequenceEncoder.Decoder(s[i], ';');
       String name = sd.nextToken();
       ItemInstance instance = getInstance(name);
       if (instance != null) {
-        instance.setState(newState);
+        instance.setState(s[i]);
       }
     }
   }
@@ -371,5 +394,20 @@ public class ImageDefn extends AbstractConfigurable implements Visualizable {
       instance.keyEvent(stroke);
     }
     return;
+  }
+
+  /*
+   * Append any required labels to the name
+   */
+  public String getName(String n) {
+    
+    String name = n + "";
+    Iterator i = instances.iterator();
+    
+    while (i.hasNext()) {
+      ItemInstance instance = (ItemInstance) i.next();
+      name = instance.formatName(name);
+    }
+    return name;
   }
 }

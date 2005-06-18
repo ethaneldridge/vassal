@@ -48,19 +48,19 @@ public abstract class Item extends AbstractConfigurable {
   protected static final String X_OFFSET = "xoffset";
   protected static final String Y_OFFSET = "yoffset";
 
-  String location = CounterLayout.CENTER;
+  String location = Layout.CENTER;
   protected int xoffset, yoffset;
   protected boolean advanced = false;
   protected int rotation = 0;
 
-  protected CounterLayout layout;
+  protected Layout layout;
 
   public Item() {
     super();
     setConfigureName("");
   }
   
-  public Item(CounterLayout l) {
+  public Item(Layout l) {
     this();
     layout = l;
   }
@@ -89,7 +89,7 @@ public abstract class Item extends AbstractConfigurable {
 
   public static class LocationConfig extends StringEnum {
     public String[] getValidValues(AutoConfigurable target) {
-      return CounterLayout.LOCATIONS;
+      return Layout.LOCATIONS;
     }
   }
 
@@ -209,16 +209,16 @@ public abstract class Item extends AbstractConfigurable {
   }
   
   protected Point getOrigin() {
-    Point p = CounterLayout.getPosition(getLocation(), layout);
+    Point p = Layout.getPosition(getLocation(), layout);
     p.translate(getXoffset(), getYoffset());
     return p;
   }
   
-  protected CounterLayout getLayout() {
+  protected Layout getLayout() {
     return layout;
   }
   
-  public static Item decode(CounterLayout layout, String s) {
+  public static Item decode(Layout layout, String s) {
     SequenceEncoder.Decoder sd1= new SequenceEncoder.Decoder(s, '|');
     String t1 = sd1.nextToken();
     String t2 = sd1.nextToken();

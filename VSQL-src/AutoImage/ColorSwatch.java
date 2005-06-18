@@ -115,6 +115,10 @@ public class ColorSwatch extends AbstractConfigurable {
   public Class[] getAllowableConfigureComponents() {
     return new Class[0];
   }
+  
+  public static String getConfigureTypeName() {
+    return "Named Color";
+  }
 
   public void addTo(Buildable parent) {
 

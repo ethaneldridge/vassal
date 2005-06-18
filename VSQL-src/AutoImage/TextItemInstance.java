@@ -30,6 +30,7 @@ import VASSAL.configure.ConfigurerFactory;
 import VASSAL.configure.VisibilityCondition;
 import VASSAL.counters.GamePiece;
 import VASSAL.counters.KeyCommand;
+import VASSAL.tools.FormattedString;
 import VASSAL.tools.SequenceEncoder;
 
 public class TextItemInstance extends ItemInstance {
@@ -52,7 +53,21 @@ public class TextItemInstance extends ItemInstance {
     super(defn);
     decode(code);
   }
-
+  
+  public ItemInstance statefulCopy() {
+    Item item = (TextItem) defn.getLayout().getItem(name);
+    if (item != null && item instanceof TextItem) {
+      boolean stateful = ((TextItem) item).textSource.equals(TextItem.SRC_COMMAND); 
+      if (stateful) {
+        TextItemInstance newInstance = new TextItemInstance(this.encode(), defn);
+        ((TextItemInstance) newInstance).setValue(((TextItemInstance) this).val);
+        ((TextItemInstance) newInstance).setLocked(((TextItemInstance) this).isLocked());
+        return (ItemInstance) newInstance;
+      }
+    }
+    return this;
+  }
+  
   public void setValue(String value) {
     this.val = value;
   }
@@ -155,6 +170,13 @@ public class TextItemInstance extends ItemInstance {
       return null;
   }
 
+  public String formatName(String name) {
+    FormattedString s = ((TextItem) getItem()).getNameFormat();
+    s.setProperty(TextItem.PIECE_NAME, name);
+    s.setProperty(TextItem.LABEL, val);
+    return s.getText();
+  }
+  
   public VisibilityCondition getAttributeVisibility(String name) {
     if (VALUE.equals(name)) {
       return valueCond;
@@ -165,13 +187,13 @@ public class TextItemInstance extends ItemInstance {
   }
 
   public int getKeyCommandCount() {
-    TextItem item = (TextItem) getItem(getConfigureName());
+    TextItem item = (TextItem) getItem();
     int count = 0;
 
-    if (item.changeKey != null && item.changeCmd.length() > 0 && !isLocked()) {
+    if (item.isChangeable() && !isLocked()) {
       count++;
     }
-    if (item.lockKey != null && item.lockCmd.length() > 0 && !isLocked()) {
+    if (item.isLockable() && !isLocked()) {
       count++;
     }
     return count;
@@ -179,14 +201,14 @@ public class TextItemInstance extends ItemInstance {
 
   public KeyCommand[] getKeyCommands(GamePiece target) {
 
-    TextItem item = (TextItem) getItem(getConfigureName());
+    TextItem item = (TextItem) getItem();
 
     KeyCommand[] commands = new KeyCommand[getKeyCommandCount()];
     int count = 0;
-    if (item.changeKey != null && item.changeCmd.length() > 0 && !isLocked()) {
+    if (item.isChangeable() && !isLocked()) {
       commands[count++] = new KeyCommand(item.changeCmd, item.changeKey, target);
     }
-    if (item.lockKey != null && item.lockCmd.length() > 0 && !isLocked()) {
+    if (item.isLockable() && !isLocked()) {
       commands[count++] = new KeyCommand(item.lockCmd, item.lockKey, target);
     }
 
@@ -198,7 +220,7 @@ public class TextItemInstance extends ItemInstance {
       return;
     }
 
-    TextItem item = (TextItem) getItem(getConfigureName());
+    TextItem item = (TextItem) getItem();
     Command command = new NullCommand();
 
     if (item.lockKey != null && stroke.equals(item.lockKey)) {
@@ -217,7 +239,7 @@ public class TextItemInstance extends ItemInstance {
 
   private VisibilityCondition valueCond = new VisibilityCondition() {
     public boolean shouldBeVisible() {
-      return !((TextItem) getMyItem()).isFixed();
+      return !((TextItem) getItem()).isFixed();
     }
   };
 

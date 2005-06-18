@@ -114,6 +114,10 @@ public class FontStyle extends AbstractConfigurable {
     return new Class[0];
   }
 
+  public static String getConfigureTypeName() {
+    return "Font Style";
+  }
+  
   public void addTo(Buildable parent) {
 
   }

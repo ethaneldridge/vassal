@@ -37,6 +37,7 @@ public abstract class ItemInstance extends AbstractConfigurable {
   protected ColorSwatch bgColor = ColorSwatch.getClear();
   protected ColorSwatch fgColor = ColorSwatch.getBlack();
   protected ImageDefn defn;
+  protected Item item;
   private String state = "";
   
   protected InstanceConfigurer myConfig = null;
@@ -56,12 +57,28 @@ public abstract class ItemInstance extends AbstractConfigurable {
     this.defn = defn;
   }
 
-  public Item getMyItem() {
-    return getItem(getName());
+  /*
+   * Generate a copy of the instance for use by the Generic trait.
+   */
+  
+  public ItemInstance statefulCopy() {
+    return this;
   }
   
-  public Item getItem(String name) {
-    return defn.getLayout().getItem(name);
+  protected void setItem() {
+    if (defn != null) {
+      Layout layout = defn.getLayout();
+      if (layout != null) {
+        item = layout.getItem(name);
+      }
+    }
+  }
+  
+  public Item getItem() {
+    if (item == null) {
+      setItem();
+    }
+    return item;
   }
   
   public void setConfig(InstanceConfigurer i) {
@@ -77,17 +94,6 @@ public abstract class ItemInstance extends AbstractConfigurable {
           Symbol.NatoUnitSymbolSet.INFANTRY, Symbol.NatoUnitSymbolSet.NONE);
     }
     else if (type.equals(TextItem.TYPE)) {
-//      String id;
-//      if (name == null || name.length() == 0) {
-//        id = "Xx";
-//      }
-//      else if (name.length() == 1) {
-//        id = name;
-//      }
-//      else {
-//        id = name.substring(0, 2);
-//      }
-//      return new TextInstance(name, type, location, id);
       return new TextItemInstance(name, type, location, "");
     }
     return null;
@@ -178,7 +184,6 @@ public abstract class ItemInstance extends AbstractConfigurable {
       defn = (ImageDefn) parent;
     }
   }
-  
 
   public int getKeyCommandCount() {
     return 0;
@@ -191,6 +196,14 @@ public abstract class ItemInstance extends AbstractConfigurable {
   
   public void keyEvent(KeyStroke stroke) {
     return;
+  }
+
+  public String getSuffix() {
+    return "";
+  }
+
+  public String formatName(String name) {
+    return name;
   }
   
 }

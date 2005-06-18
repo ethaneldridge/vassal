@@ -32,7 +32,7 @@ import VASSAL.configure.SingleChildInstance;
 
 /**
  * Container for definitions of Generic Counter Definitions.
- * Actual definition is in inner class {@link VASSAL.build.module.CounterLayout}
+ * Actual definition is in inner class {@link VASSAL.build.module.Layout}
  */
 public class AutoImages extends AbstractConfigurable {
   

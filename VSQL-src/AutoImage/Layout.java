@@ -39,7 +39,7 @@ import VASSAL.configure.ConfigurerFactory;
 import VASSAL.configure.StringEnum;
 import VASSAL.tools.SequenceEncoder;
 
-public class CounterLayout extends AbstractConfigurable implements Visualizable {
+public class Layout extends AbstractConfigurable implements Visualizable {
 
   protected static final String NAME = "name";
   protected static final String WIDTH = "width";
@@ -72,7 +72,7 @@ public class CounterLayout extends AbstractConfigurable implements Visualizable 
   public static final int[] X_POS = new int[] { POS_C, POS_C, POS_C, POS_R, POS_L, POS_R, POS_L, POS_R, POS_L };
   public static final int[] Y_POS = new int[] { POS_C, POS_T, POS_B, POS_C, POS_C, POS_T, POS_T, POS_B, POS_B };
 
-  public static Point getPosition(String s, CounterLayout layout) {
+  public static Point getPosition(String s, Layout layout) {
     int x = X_POS[0];
     int y = Y_POS[0];
 
@@ -94,7 +94,7 @@ public class CounterLayout extends AbstractConfigurable implements Visualizable 
   protected ImageDefn imageDefn = new ImageDefn();
   protected ArrayList items = new ArrayList();
 
-  public CounterLayout() {
+  public Layout() {
     super();
     name = "";
   }
@@ -110,7 +110,7 @@ public class CounterLayout extends AbstractConfigurable implements Visualizable 
   public static class LayoutConfig implements ConfigurerFactory {
     protected static LayoutConfigurer configurer;
     public Configurer getConfigurer(AutoConfigurable c, String key, String name) {
-      configurer = new LayoutConfigurer(key, name, (CounterLayout) c);
+      configurer = new LayoutConfigurer(key, name, (Layout) c);
       return configurer;
     }
     public static void refresh() {
@@ -193,6 +193,10 @@ public class CounterLayout extends AbstractConfigurable implements Visualizable 
 
   public Configurer getConfigurer() {
     return super.getConfigurer();
+  }
+  
+  public static String getConfigureTypeName() {
+    return "Layout";
   }
 
   public void setWidth(int width) {

@@ -47,7 +47,7 @@ public class ImageItem extends Item {
     super();
   }
 
-  public ImageItem(CounterLayout l) {
+  public ImageItem(Layout l) {
     super(l);
   }
   
@@ -160,7 +160,7 @@ public class ImageItem extends Item {
     }
   }
   
-  public static Item decode(CounterLayout l, String s) {
+  public static Item decode(Layout l, String s) {
     
     SequenceEncoder.Decoder sd = new SequenceEncoder.Decoder(s, ';');
     

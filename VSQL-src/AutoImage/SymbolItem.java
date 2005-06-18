@@ -47,7 +47,7 @@ public class SymbolItem extends Item {
     super();
   }
   
-  public SymbolItem(CounterLayout l) {
+  public SymbolItem(Layout l) {
     super(l);
     width = getLayout().getLayoutWidth() / 2;
     height = (int) (width * 0.75);
@@ -186,7 +186,7 @@ public class SymbolItem extends Item {
     return TYPE;
   }
   
-  public static Item decode(CounterLayout l, String s) {
+  public static Item decode(Layout l, String s) {
     
     SequenceEncoder.Decoder sd = new SequenceEncoder.Decoder(s, ';');
     

@@ -34,14 +34,14 @@ import VASSAL.configure.SingleChildInstance;
 
 /**
  * Container for definitions of Generic Counter Definitions.
- * Actual definition is in inner class {@link VASSAL.build.module.CounterLayout}
+ * Actual definition is in inner class {@link VASSAL.build.module.Layout}
  */
 public class LayoutsContainer extends AbstractConfigurable {
   
   protected HashMap definitions = new HashMap();
   
-  protected CounterLayout getDefinition(String name) {
-    return (CounterLayout) definitions.get(name);
+  protected Layout getDefinition(String name) {
+    return (Layout) definitions.get(name);
   }
   
   public String[] getAttributeDescriptions() {
@@ -72,17 +72,17 @@ public class LayoutsContainer extends AbstractConfigurable {
   }
 
   public Class[] getAllowableConfigureComponents() {
-    return new Class[]{CounterLayout.class};
+    return new Class[]{Layout.class};
   }
 
   public static String getConfigureTypeName() {
-    return "Layouts";
+    return "Image Layouts";
   }
 
   public void add(Buildable b) {
     super.add(b);
-    if (b instanceof CounterLayout) {
-      CounterLayout def = (CounterLayout) b;
+    if (b instanceof Layout) {
+      Layout def = (Layout) b;
       definitions.put(def.getConfigureName(), def);
       def.addPropertyChangeListener(new PropertyChangeListener() {
         public void propertyChange(PropertyChangeEvent evt) {
@@ -97,8 +97,8 @@ public class LayoutsContainer extends AbstractConfigurable {
 
   public void remove(Buildable b) {
     super.remove(b);
-    if (b instanceof CounterLayout) {
-      definitions.remove(((CounterLayout) b).getConfigureName()); 
+    if (b instanceof Layout) {
+      definitions.remove(((Layout) b).getConfigureName()); 
     }
   }
   
@@ -115,7 +115,7 @@ public class LayoutsContainer extends AbstractConfigurable {
     
     Iterator i = definitions.values().iterator();
     while (i.hasNext() && defn == null) {
-      defn = ((CounterLayout) i.next()).getGenericDefn(defnName);
+      defn = ((Layout) i.next()).getGenericDefn(defnName);
     }
     
     return defn;

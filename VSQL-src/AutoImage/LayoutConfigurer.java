@@ -61,7 +61,7 @@ public class LayoutConfigurer extends Configurer {
   protected Visualizer visualizer = new Visualizer();
   protected JLabel visLabel;
   protected Box filler;
-  protected CounterLayout layout;
+  protected Layout layout;
 
   protected StringConfigurer defName;
   protected NewIntConfigurer height, width;
@@ -70,7 +70,7 @@ public class LayoutConfigurer extends Configurer {
     super(null, null);
   }
 
-  protected LayoutConfigurer(String key, String name, CounterLayout def) {
+  protected LayoutConfigurer(String key, String name, Layout def) {
     super(key, name);
     layout = def;
   }

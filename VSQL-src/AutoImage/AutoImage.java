@@ -44,26 +44,26 @@ import VASSAL.tools.SequenceEncoder;
  * in a GenericDefinition
  */
 
-public class Generic extends Decorator  implements EditablePiece {
+public class AutoImage extends Decorator  implements EditablePiece {
 
-  public static final String ID = "generic;";
+  public static final String ID = "autoImage;";
   
   protected static final String NAME = "name";
   protected static final String DEFN_NAME = "defnName";
   
   protected String definitionName;
   
-  protected CounterLayout layout = new CounterLayout();
-  protected ImageDefn defn = new ImageDefn();
+  protected Layout layout = null;
+  protected ImageDefn defn = null;
   
   protected BufferedImage image = null;
   protected Rectangle imageBounds = new Rectangle();
   
-  public Generic() {
+  public AutoImage() {
     this(ID, null);
   }
 
-  public Generic(String type, GamePiece inner) {
+  public AutoImage(String type, GamePiece inner) {
     mySetType(type);
     setInner(inner);
   }
@@ -71,6 +71,7 @@ public class Generic extends Decorator  implements EditablePiece {
   public void mySetState(String newState) {
     if (defn != null) {
       defn.setState(newState);
+      getImage();
     }
   }
 
@@ -121,10 +122,21 @@ public class Generic extends Decorator  implements EditablePiece {
       }
     }
   }
+  
 
   protected void getImage() {
-  
-    defn = AutoImages.getInstance().getGenericDefn(definitionName);
+
+    /*
+     * Take a deep copy of the Image Definition to get our own copy of the
+     * Item instances to provide a counter context.
+     */
+    if (defn == null) {
+      defn = (ImageDefn) (AutoImages.getInstance().getGenericDefn(definitionName));
+      if (defn == null) {
+        return;
+      }
+      defn = (ImageDefn) defn.clone();
+    }
     if (defn != null) {
       layout = defn.getLayout();
       image = (BufferedImage) defn.getVisualizerImage();
@@ -150,11 +162,12 @@ public class Generic extends Decorator  implements EditablePiece {
   }
   
   public String getName() {
-    return piece.getName();
+    String name = defn.getName(piece.getName());
+    return name;
   }
 
   public String getDescription() {
-    return "Generic";
+    return "Auto Image";
   }
 
   public void mySetType(String type) {
@@ -172,12 +185,12 @@ public class Generic extends Decorator  implements EditablePiece {
     protected StringConfigurer definition;
     protected  JPanel controls;
     
-    protected Ed(Generic g) {
+    protected Ed(AutoImage g) {
       
       controls = new JPanel();
       controls.setLayout(new BoxLayout(controls, BoxLayout.Y_AXIS));
 
-      definition = new StringConfigurer(null, "Generic Definition Name:  ", g.definitionName);
+      definition = new StringConfigurer(null, "Image Definition Name:  ", g.definitionName);
       controls.add(definition.getControls());
      
     }

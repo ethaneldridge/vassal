@@ -316,109 +316,6 @@ public class InstanceConfigurer extends Configurer {
   }
 
 
-//  protected class TextPanel extends JPanel {
-//
-//    protected JTable table;
-//    protected AbstractTableModel model;
-//    protected JScrollPane scrollPane;
-//    protected JButton addSymbolBtn, addTextBtn, remBtn;
-//    protected JPanel mainPanel;
-//
-//    final int NAME_COL = 0;
-//    final int TYPE_COL = 1;
-//    final int LOC_COL = 2;
-//    final int VALUE_COL = 3;
-//    final int MAX_COL = 3;
-//    
-//    public TextPanel() {
-//      setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
-//
-//      mainPanel = new JPanel();
-//      mainPanel.setBorder(BorderFactory.createLineBorder(Color.black));
-//      mainPanel.setLayout(new BoxLayout(mainPanel, BoxLayout.Y_AXIS));
-//
-//      Box box = Box.createHorizontalBox();
-//      box.add(new JLabel("Text Items"));
-//      mainPanel.add(box);
-//
-//      model = new TextTableModel();
-//      table = new JTable(model);
-//      table.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-//      if (getValueArrayList() != null && getValueArrayList().size() > 0) {
-//        table.getSelectionModel().setSelectionInterval(0, 0);
-//      }
-//
-//      for (int i = 0; i < MAX_COL; i++) {
-//        TableColumn column = table.getColumnModel().getColumn(i);
-//        if (i == VALUE_COL) {
-//          column.setPreferredWidth(100);
-//        }
-//        else {
-//          column.setPreferredWidth(50);
-//        }
-//      }
-//
-//      scrollPane = new JScrollPane(table);
-//      table.setPreferredScrollableViewportSize(new Dimension(500, 100));
-//      mainPanel.add(scrollPane);
-//
-//      add(mainPanel);
-//
-//    }
-//
-//    class TextTableModel extends AbstractTableModel {
-//
-//      private String[] columnNames = new String[] { "Name", "Type", "Position", "Value" };
-//
-//      public int getColumnCount() {
-//        return columnNames.length;
-//      }
-//
-//      public int getRowCount() {
-//        return getValueArrayList() == null ? 0 : getValueArrayList().size();
-//      }
-//
-//      public String getColumnName(int col) {
-//        return columnNames[col];
-//      }
-//
-//      public Object getValueAt(int row, int col) {
-//        if (col == NAME_COL) {
-//          return ((TextInstance) getValueArrayList().get(row)).getName();
-//        }
-//        else if (col == TYPE_COL) {
-//          return ((TextInstance) getValueArrayList().get(row)).getType();
-//        }
-//        else if (col == LOC_COL) {
-//          return ((TextInstance) getValueArrayList().get(row)).getLocation();
-//        }
-//        else if (col == VALUE_COL) {
-//          return ((TextInstance) getValueArrayList().get(row)).getValue();
-//        }
-//        else
-//          return null;
-//      }
-//
-//      public Class getColumnClass(int col) {
-//        return String.class;
-//      }
-//
-//      public boolean isCellEditable(int row, int col) {
-//        return (col == VALUE_COL);
-//      }
-//
-//      public void setValueAt(Object value, int row, int col) {
-//
-//        if (col == VALUE_COL) {
-//          ((TextInstance) getValueArrayList().get(row)).setValue((String) value);
-//        }
-//        fireTableCellUpdated(row, col);
-//        rebuildViz();
-//      }
-//
-//    }
-//  }
-
 
   public void rebuildViz() {
     if (visualizer != null) {
@@ -426,9 +323,6 @@ public class InstanceConfigurer extends Configurer {
     }
   }
   
-  /**
-   * 
-   */
   public void repack() {
     if (panel != null) { 
       Window w = SwingUtilities.getWindowAncestor(panel);
