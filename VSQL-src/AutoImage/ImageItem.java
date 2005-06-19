@@ -50,6 +50,11 @@ public class ImageItem extends Item {
   public ImageItem(Layout l) {
     super(l);
   }
+
+  public ImageItem(Layout l, String n) {
+    this(l);
+    setConfigureName(n);
+  }
   
   public String[] getAttributeDescriptions() {
     String a[] = new String[] { "Image:  " };

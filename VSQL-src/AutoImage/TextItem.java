@@ -86,6 +86,11 @@ public class TextItem extends Item {
   public TextItem(Layout l) {
     super(l);
   }
+  
+  public TextItem(Layout l, String nam) {
+    this(l);
+    setConfigureName(nam);
+  }
 
   public String[] getAttributeDescriptions() {
     String a[] = new String[] { "Font style:  ", "Alignment:  ", "Label Source:  ", "Label:  ",
@@ -226,7 +231,7 @@ public class TextItem extends Item {
     if (TEXT.equals(name)) {
       return fixedCond;
     }
-    else if (CHANGE_CMD.equals(name) || CHANGE_KEY.equals(name)) {
+    else if (CHANGE_CMD.equals(name) || CHANGE_KEY.equals(name) || LOCKABLE.equals(name)) {
       return commandCond;
     }
     else if (LOCK_CMD.equals(name) || LOCK_KEY.equals(name)) {
@@ -296,20 +301,20 @@ public class TextItem extends Item {
         }
       }
     }
-    if (s == null || s.length() == 0) {
-      String name = ti.getName() + "";
-      switch (name.length()) {
-        case 0:
-          s = "Xx";
-          break;
-        case 1:
-          s = name;
-          break;
-        default:
-          s = name.substring(0, 2);
-          break;
-      }
-    }
+//    if (s == null || s.length() == 0) {
+//      String name = ti.getName() + "";
+//      switch (name.length()) {
+//        case 0:
+//          s = "Xx";
+//          break;
+//        case 1:
+//          s = name;
+//          break;
+//        default:
+//          s = name.substring(0, 2);
+//          break;
+//      }
+//    }
 
     ((Graphics2D) g).setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
     Labeler.drawLabel(g, s, origin.x, origin.y, f, align, Labeler.CENTER, fg, bg, null, getRotation());

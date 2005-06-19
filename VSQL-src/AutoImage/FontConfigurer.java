@@ -19,7 +19,6 @@
 package AutoImage;
 
 import java.awt.Font;
-import java.awt.GraphicsEnvironment;
 import java.awt.Window;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
@@ -83,11 +82,11 @@ public class FontConfigurer extends Configurer {
       box.add(new JLabel("Font Family:  "));
 
       family = new JComboBox();
-      String[] s = GraphicsEnvironment.getLocalGraphicsEnvironment().getAvailableFontFamilyNames();
-      for (int i = 0; i < s.length; ++i) {
-        family.addItem(s[i]);
+      //String[] s = GraphicsEnvironment.getLocalGraphicsEnvironment().getAvailableFontFamilyNames();
+      for (int i = 0; i < FontManager.ALLOWABLE_FONTS.length; ++i) {
+        family.addItem(FontManager.ALLOWABLE_FONTS[i]);
       }
-      family.setSelectedItem(value == null ? "SansSerif" : (getFontValue().getFamily()));
+      family.setSelectedItem(value == null ? FontManager.SANS_SERIF : (getFontValue().getFamily()));
       box.add(family);
       p.add(box);
 
@@ -155,7 +154,7 @@ public class FontConfigurer extends Configurer {
   public static Font decode(String s) {
     SequenceEncoder.Decoder sd = new SequenceEncoder.Decoder(s, ',');
     return new Font(
-        sd.nextToken("Dialog"), 
+        sd.nextToken(FontManager.DIALOG), 
         sd.nextInt(Font.PLAIN), 
         sd.nextInt(10));
   }

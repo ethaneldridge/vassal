@@ -62,7 +62,7 @@ public abstract class Item extends AbstractConfigurable {
   
   public Item(Layout l) {
     this();
-    layout = l;
+    layout = l;    
   }
 
   public Item(String name) {

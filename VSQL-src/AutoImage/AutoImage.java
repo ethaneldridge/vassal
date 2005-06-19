@@ -68,10 +68,16 @@ public class AutoImage extends Decorator  implements EditablePiece {
     setInner(inner);
   }
   
+  public AutoImage(String defnName) {
+    this();
+    definitionName = defnName;
+    buildImage();
+  }
+  
   public void mySetState(String newState) {
     if (defn != null) {
       defn.setState(newState);
-      getImage();
+      buildImage();
     }
   }
 
@@ -97,7 +103,7 @@ public class AutoImage extends Decorator  implements EditablePiece {
   public Command myKeyEvent(KeyStroke stroke) {
     ChangeTracker change = new ChangeTracker(this);
     defn.keyEvent(stroke);
-    getImage();
+    buildImage();
     return change.getChangeCommand();
   }
 
@@ -106,7 +112,7 @@ public class AutoImage extends Decorator  implements EditablePiece {
     piece.draw(g, x, y, obs, zoom);
     
     if (image == null) {
-      getImage();
+      buildImage();
     }
 
     if (image != null) {
@@ -124,7 +130,11 @@ public class AutoImage extends Decorator  implements EditablePiece {
   }
   
 
-  protected void getImage() {
+  public BufferedImage getImage() {
+    return image;
+  }
+  
+  protected void buildImage() {
 
     /*
      * Take a deep copy of the Image Definition to get our own copy of the
@@ -174,7 +184,7 @@ public class AutoImage extends Decorator  implements EditablePiece {
     type = type.substring(ID.length());
     SequenceEncoder.Decoder st = new SequenceEncoder.Decoder(type, ';');
     definitionName = st.nextToken("");
-    getImage();
+    buildImage();
   }
 
   public HelpFile getHelpFile() {

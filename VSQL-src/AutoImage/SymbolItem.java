@@ -46,11 +46,16 @@ public class SymbolItem extends Item {
   public SymbolItem() {
     super();
   }
-  
+
   public SymbolItem(Layout l) {
     super(l);
     width = getLayout().getLayoutWidth() / 2;
     height = (int) (width * 0.75);
+  }
+  
+  public SymbolItem(Layout l, String nam) {
+    this(l);
+    setConfigureName(nam);
   }
   
   public String[] getAttributeDescriptions() {

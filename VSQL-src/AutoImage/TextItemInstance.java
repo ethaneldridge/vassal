@@ -42,22 +42,38 @@ public class TextItemInstance extends ItemInstance {
 
   public TextItemInstance() {
     super();
+    val = "Xx";
   }
 
   public TextItemInstance(String nam, String typ, String loc, String val) {
     super(nam, typ, loc);
-    setValue(val);
+    if (val == null) {
+      switch (nam.length()) {
+        case 0:
+          setValue("Xx");
+          break;
+        case 1:
+          setValue(nam);
+          break;
+        default:
+          setValue(nam.substring(0, 2));
+          break;
+      }
+    }
+    else {
+      setValue(val);
+    }
   }
 
   public TextItemInstance(String code, ImageDefn defn) {
     super(defn);
     decode(code);
   }
-  
+
   public ItemInstance statefulCopy() {
     Item item = (TextItem) defn.getLayout().getItem(name);
     if (item != null && item instanceof TextItem) {
-      boolean stateful = ((TextItem) item).textSource.equals(TextItem.SRC_COMMAND); 
+      boolean stateful = ((TextItem) item).textSource.equals(TextItem.SRC_COMMAND);
       if (stateful) {
         TextItemInstance newInstance = new TextItemInstance(this.encode(), defn);
         ((TextItemInstance) newInstance).setValue(((TextItemInstance) this).val);
@@ -67,7 +83,7 @@ public class TextItemInstance extends ItemInstance {
     }
     return this;
   }
-  
+
   public void setValue(String value) {
     this.val = value;
   }
@@ -176,7 +192,7 @@ public class TextItemInstance extends ItemInstance {
     s.setProperty(TextItem.LABEL, val);
     return s.getText();
   }
-  
+
   public VisibilityCondition getAttributeVisibility(String name) {
     if (VALUE.equals(name)) {
       return valueCond;

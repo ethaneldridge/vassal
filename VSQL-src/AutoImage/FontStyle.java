@@ -41,8 +41,8 @@ public class FontStyle extends AbstractConfigurable {
   
   public FontStyle() {
     super();
-    setConfigureName("Default");
-    font = new Font("Dialog", Font.PLAIN, 10);
+    setConfigureName(FontManager.DEFAULT);
+    font = new Font(FontManager.DIALOG, Font.PLAIN, 10);
   }
   
   public FontStyle(String name, Font f) {

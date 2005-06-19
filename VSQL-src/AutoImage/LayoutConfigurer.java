@@ -218,16 +218,17 @@ public class LayoutConfigurer extends Configurer {
 
     public void actionPerformed(ActionEvent e) {
       String action = e.getActionCommand();
+      int pos = layout.getItemCount();
 
       if (action.equals(ADD_SYMBOL)) {
-        addItem(new SymbolItem(layout));
+        addItem(new SymbolItem(layout, "Symbol"+pos));
       }
       else if (action.equals(ADD_TEXT)) {
-        TextItem item = new TextItem(layout);
+        TextItem item = new TextItem(layout, "Text"+pos);
         addItem(item);
       }
       else if (action.equals(ADD_IMAGE)) {
-        addItem(new ImageItem(layout));
+        addItem(new ImageItem(layout, "Image"+pos));
       }
       else if (action.equals(REMOVE)) {
         int i = table.getSelectedRow();

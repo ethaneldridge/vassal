@@ -94,7 +94,7 @@ public abstract class ItemInstance extends AbstractConfigurable {
           Symbol.NatoUnitSymbolSet.INFANTRY, Symbol.NatoUnitSymbolSet.NONE);
     }
     else if (type.equals(TextItem.TYPE)) {
-      return new TextItemInstance(name, type, location, "");
+      return new TextItemInstance(name, type, location, null);
     }
     return null;
   }

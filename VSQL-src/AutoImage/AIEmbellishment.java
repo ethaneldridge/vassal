@@ -19,22 +19,27 @@
  
 package AutoImage;
 
-import VASSAL.build.module.BasicCommandEncoder;
-import VASSAL.counters.Decorator;
+import java.awt.Image;
+import java.io.IOException;
+
 import VASSAL.counters.Embellishment;
 import VASSAL.counters.GamePiece;
 
-public class CommandEncoder extends BasicCommandEncoder {
+public class AIEmbellishment extends Embellishment {
 
-  protected Decorator createDecorator(String type, GamePiece inner) {
-    if (type.startsWith(AutoImage.ID)) {
-      return new AutoImage(type, inner);
-    }
-    else if (type.startsWith(Embellishment.ID)) {
-      return new AIEmbellishment(type, inner);
-    }
-     else {
-      return super.createDecorator(type, inner);
-    }
+  public AIEmbellishment() {
+    super();
   }
+  
+  public AIEmbellishment(String type, GamePiece d) {
+    super(type, d);
+  }
+  
+  protected Image getCurrentImage() throws IOException {
+    return new AutoImage("ge-inf-574").getImage();
+    //return super.getCurrentImage();
+    
+  }
+
+  
 }
