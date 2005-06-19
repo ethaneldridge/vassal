@@ -134,6 +134,10 @@ public class AutoImage extends Decorator  implements EditablePiece {
     return image;
   }
   
+  public Rectangle getImageBounds() {
+    return new Rectangle(-image.getWidth()/2, -image.getHeight()/2, image.getWidth(), image.getHeight());
+  }
+  
   protected void buildImage() {
 
     /*
