@@ -53,14 +53,14 @@ public class ASLCommandEncoder extends VASSAL.build.module.BasicCommandEncoder i
 	   initColor("ax","Axis Minor",new Color(217,255,217));
 	   initColor("al","Allied Minor",new Color(102,255,54));
 	*/
-// VASL 3.0 colors
-    initColor("ge", "German", new Color(106, 184, 255));
+// VASL 5.0 colors
+    initColor("ge", "German", new Color(145,205,245));
     initColor("fi", "Finnish", new Color(206, 211, 211));
-    initColor("ru", "Russian", new Color(145, 145, 0));
-    initColor("am", "American", new Color(102, 204, 0));
+    initColor("ru", "Russian", new Color(214,141,26));
+    initColor("am", "American", new Color(205,240,0));
     initColor("br", "British", new Color(229, 206, 160));
     initColor("ja", "Japanese", new Color(255, 219, 0));
-    initColor("fr", "French", new Color(0, 140, 255));
+    initColor("fr", "French", new Color(65,165,255));
     initColor("it", "Italian", new Color(166, 173, 178));
     initColor("ax", "Axis Minor", new Color(29, 226, 86));
     initColor("al", "Allied Minor", new Color(130, 237, 189));

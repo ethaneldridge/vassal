@@ -61,8 +61,8 @@ public class Turreted extends Embellishment implements EditablePiece {
       st.nextToken();
       front = st.nextToken();
       back = st.nextToken();
-      embType = Embellishment.OLD_ID + ";_;" + st.nextToken() + ";Rotate TCA Right;"
-          + st.nextToken() + ";Rotate TCA Left;0;0";
+      embType = Embellishment.OLD_ID + ";_;" + st.nextToken() + ";TCA cw;"
+          + st.nextToken() + ";TCA ccw;0;0";
       if (st.hasMoreTokens()) {
         rotateWithCounter = true;
         embType += ";;;;;;";
@@ -169,7 +169,7 @@ public class Turreted extends Embellishment implements EditablePiece {
       System.arraycopy(c, 0, commands, 0, c.length);
       commands[c.length]
           = new KeyCommand
-              ("Button up",
+              ("BU",
                KeyStroke.getKeyStroke('B', java.awt.event.InputEvent.CTRL_MASK),
                Decorator.getOutermost(this));
     }

@@ -91,7 +91,7 @@ public class MarkMoved extends Decorator implements EditablePiece {
   }
 
   protected KeyCommand[] myGetKeyCommands() {
-    return new KeyCommand[]{new KeyCommand("Mark Moved", markStroke, Decorator.getOutermost(this))};
+    return new KeyCommand[]{new KeyCommand("Moved", markStroke, Decorator.getOutermost(this))};
   }
 
   public Command myKeyEvent(javax.swing.KeyStroke stroke) {
