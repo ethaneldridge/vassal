@@ -27,12 +27,14 @@ import VASSAL.tools.SequenceEncoder;
 public class SymbolItemInstance extends ItemInstance {
 
   public static final String SIZE = "size";
+  public static final String SIZE_COLOR = "sizeColor";
   public static final String SYMBOL1 = "symbol1";
   public static final String SYMBOL2 = "symbol2";
   
   protected String size;
   protected String symbol1;
   protected String symbol2;
+  private ColorSwatch sizeColor = ColorSwatch.getBlack();
   
   public SymbolItemInstance() {
     super();
@@ -60,6 +62,7 @@ public class SymbolItemInstance extends ItemInstance {
     se.append(getSize());
     se.append(getSymbol1());
     se.append(getSymbol2());
+    se.append(getSizeColor().encode());
     return se.getValue();
   }
   
@@ -73,6 +76,7 @@ public class SymbolItemInstance extends ItemInstance {
     setSize(sd.nextToken(""));
     setSymbol1(sd.nextToken(""));
     setSymbol2(sd.nextToken(""));
+    setSizeColor(new ColorSwatch(sd.nextToken("")));
   }
   
   public void setSize(String size) {
@@ -81,6 +85,14 @@ public class SymbolItemInstance extends ItemInstance {
 
   public String getSize() {
     return size;
+  }
+
+  protected void setSizeColor(ColorSwatch sizeColor) {
+    this.sizeColor = sizeColor;
+  }
+
+  protected ColorSwatch getSizeColor() {
+    return sizeColor;
   }
 
   public void setSymbol1(String symbol1) {
@@ -100,15 +112,15 @@ public class SymbolItemInstance extends ItemInstance {
   }
 
   public String[] getAttributeDescriptions() {
-    return new String[] { "Unit Size:  ", "1st Symbol:  ", "2nd Symbol:  ", "Symbol Color:  ", "Background Color:  " };
+    return new String[] { "Unit Size:  ", "1st Symbol:  ", "2nd Symbol:  ", "Symbol Color:  ", "Background Color:  ", "Size Color:  " };
   }
 
   public Class[] getAttributeTypes() {
-    return new Class[] { SizeConfig.class, Symbol1Config.class, Symbol2Config.class, FgColorSwatchConfig.class, BgColorSwatchConfig.class, };
+    return new Class[] { SizeConfig.class, Symbol1Config.class, Symbol2Config.class, FgColorSwatchConfig.class, BgColorSwatchConfig.class, SizeColorSwatchConfig.class};
   }
   
   public String[] getAttributeNames() {
-    return new String[] { SIZE, SYMBOL1, SYMBOL2, FG_COLOR, BG_COLOR };
+    return new String[] { SIZE, SYMBOL1, SYMBOL2, FG_COLOR, BG_COLOR, SIZE_COLOR };
   }
 
   public void setAttribute(String key, Object value) {
@@ -133,6 +145,12 @@ public class SymbolItemInstance extends ItemInstance {
         }
         bgColor = (ColorSwatch) value;
     }
+    else if (SIZE_COLOR.equals(key)) {
+      if (value instanceof String) {
+        value = new ColorSwatch((String) value);
+      }
+      sizeColor = (ColorSwatch) value;
+  }
     if (myConfig != null) {
       myConfig.rebuildViz();
     }
@@ -154,6 +172,9 @@ public class SymbolItemInstance extends ItemInstance {
     }
     else if (BG_COLOR.equals(key)) {
       return bgColor.encode();
+    }
+    else if (SIZE_COLOR.equals(key)) {
+      return sizeColor.encode();
     }
     else
       return null;
@@ -189,4 +210,9 @@ public class SymbolItemInstance extends ItemInstance {
     }
   }
   
+  public static class SizeColorSwatchConfig implements ConfigurerFactory {
+    public Configurer getConfigurer(AutoConfigurable c, String key, String name) {
+      return new ColorSwatchConfigurer(key, name, ((SymbolItemInstance) c).getFgColor());
+    }
+  }
 }

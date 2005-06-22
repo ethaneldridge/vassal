@@ -96,6 +96,9 @@ public abstract class ItemInstance extends AbstractConfigurable {
     else if (type.equals(TextItem.TYPE)) {
       return new TextItemInstance(name, type, location, null);
     }
+    else if (type.equals(ShapeItem.TYPE)) {
+      return new ShapeItemInstance(name, type, location);
+    }
     return null;
   }
 
@@ -140,11 +143,11 @@ public abstract class ItemInstance extends AbstractConfigurable {
   }
 
   public void setState(String state) {
-    this.state = state;
+    return;
   }
 
   public String getState() {
-    return state;
+    return "";
   }
 
   public String[] getAttributeDescriptions() {

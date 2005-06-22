@@ -25,6 +25,7 @@ import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Point;
 import java.awt.RenderingHints;
+import java.awt.geom.AffineTransform;
 
 import javax.swing.KeyStroke;
 
@@ -317,7 +318,7 @@ public class TextItem extends Item {
 //    }
 
     ((Graphics2D) g).setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
-    Labeler.drawLabel(g, s, origin.x, origin.y, f, align, Labeler.CENTER, fg, bg, null, getRotation());
+    drawLabel(g, s, origin.x, origin.y, f, align, Labeler.CENTER, fg, bg, null, getRotation());
   }
 
   public String getType() {
@@ -394,4 +395,52 @@ public class TextItem extends Item {
     }
   }
 
+  public void drawLabel(Graphics g, String text, int x, int y, Font f, int hAlign, int vAlign, Color fgColor, Color bgColor, Color borderColor, int rotateDegrees) {
+    g.setFont(f);
+    int width = g.getFontMetrics().stringWidth(text + "  ");
+    int height = g.getFontMetrics().getHeight();
+    int x0 = x;
+    int y0 = y;
+    switch (hAlign) {
+      case Labeler.CENTER:
+        x0 = x - width / 2;
+        break;
+      case Labeler.LEFT:
+        x0 = x - width;
+        break;
+    }
+    switch (vAlign) {
+      case Labeler.CENTER:
+        y0 = y - height / 2;
+        break;
+      case Labeler.BOTTOM:
+        y0 = y - height;
+        break;
+    }
+    
+    AffineTransform saveXForm = null;
+    Graphics2D g2d = (Graphics2D) g;
+    
+    if (rotateDegrees != 0) {
+      saveXForm = g2d.getTransform(); 
+      AffineTransform newXForm =
+        AffineTransform.getRotateInstance(Math.toRadians(rotateDegrees), x, y);
+      g2d.transform(newXForm);
+    }
+    
+    if (bgColor != null) {
+      g.setColor(bgColor);
+      g.fillRect(x0, y0, width, height);
+    }
+    if (borderColor != null) {
+      g.setColor(borderColor);
+      g.drawRect(x0, y0, width, height);
+    }
+    g.setColor(fgColor);
+    g.drawString(" " + text + " ", x0, y0 + g.getFontMetrics().getHeight() - g.getFontMetrics().getDescent());
+    
+    if (rotateDegrees != 0) {
+      g2d.setTransform(saveXForm); 
+    }
+  }
 }

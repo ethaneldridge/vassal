@@ -106,12 +106,6 @@ public class InstanceConfigurer extends Configurer {
       symbolPanel = new SymbolPanel();
       panel.add(symbolPanel);
 
-//      filler = Box.createHorizontalBox();
-//      filler.setPreferredSize(new Dimension(50, 10));
-//      panel.add(filler);
-//
-//      itemPanel = new TextPanel();
-//      panel.add(itemPanel);
     }
     
     return panel;
@@ -137,6 +131,9 @@ public class InstanceConfigurer extends Configurer {
       }
       else if (p[i].startsWith(TextItem.TYPE)) {
         props.add(new TextItemInstance(p[i], defn));
+      }
+      else if (p[i].startsWith(ShapeItem.TYPE)) {
+        props.add(new ShapeItemInstance(p[i], defn));
       }
     }
     return props;

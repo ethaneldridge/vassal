@@ -144,13 +144,13 @@ public class AutoImage extends Decorator  implements EditablePiece {
      * Take a deep copy of the Image Definition to get our own copy of the
      * Item instances to provide a counter context.
      */
-    if (defn == null) {
+    //if (defn == null) {
       defn = (ImageDefn) (AutoImages.getInstance().getGenericDefn(definitionName));
       if (defn == null) {
         return;
       }
       defn = (ImageDefn) defn.clone();
-    }
+    //}
     if (defn != null) {
       layout = defn.getLayout();
       image = (BufferedImage) defn.getVisualizerImage();

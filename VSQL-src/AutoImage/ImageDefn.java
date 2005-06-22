@@ -32,6 +32,7 @@ import VASSAL.build.module.documentation.HelpFile;
 import VASSAL.configure.Configurer;
 import VASSAL.configure.ConfigurerFactory;
 import VASSAL.configure.StringArrayConfigurer;
+import VASSAL.configure.VisibilityCondition;
 import VASSAL.counters.GamePiece;
 import VASSAL.counters.KeyCommand;
 import VASSAL.tools.SequenceEncoder;
@@ -195,6 +196,22 @@ public class ImageDefn extends AbstractConfigurable implements Visualizable, Clo
     else
       return null;
   }
+  
+
+  public VisibilityCondition getAttributeVisibility(String name) {
+    if (BORDER_COLOR.equals(name)) {
+      return borderCond;
+    }
+    else {
+      return super.getAttributeVisibility(name);
+    }
+  }
+  
+  private VisibilityCondition borderCond = new VisibilityCondition() {
+    public boolean shouldBeVisible() {
+      return getLayout().isColoredBorder();
+    }
+  };
 
   public void removeFrom(Buildable parent) {
 
@@ -286,6 +303,19 @@ public class ImageDefn extends AbstractConfigurable implements Visualizable, Clo
     return null;
   }
   
+  public ShapeItemInstance getShapeInstance(String name) {
+    Iterator i = instances.iterator();
+    while (i.hasNext()) {
+      ItemInstance instance = (ItemInstance) i.next();
+      if (instance instanceof ShapeItemInstance) {
+        if (name.equals(instance.getName())) {
+          return (ShapeItemInstance) instance;
+        }
+      }
+    }
+    return null;
+  }
+  
   /*
    * Reconcile our current elements with the elements in the owning scheme.
    */
@@ -310,7 +340,7 @@ public class ImageDefn extends AbstractConfigurable implements Visualizable, Clo
         String type = item.getType();
         String location = item.getLocation();
 
-        if (type.equals(SymbolItem.TYPE) || type.equals(TextItem.TYPE)) {
+        if (type.equals(SymbolItem.TYPE) || type.equals(TextItem.TYPE) || type.equals(ShapeItem.TYPE)) {
           boolean found = false;
           e = instances.iterator();
           while (e.hasNext() && !found) {
@@ -372,7 +402,7 @@ public class ImageDefn extends AbstractConfigurable implements Visualizable, Clo
    */
   public String getState() {
     String state = "";
-    SequenceEncoder se = new SequenceEncoder(',');
+    SequenceEncoder se = new SequenceEncoder(state, ',');
     Iterator i = instances.iterator();
     while (i.hasNext()) {
       ItemInstance instance = (ItemInstance) i.next();

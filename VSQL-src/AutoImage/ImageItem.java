@@ -138,9 +138,10 @@ public class ImageItem extends Item {
     Point origin = getOrigin();
     
     ((Graphics2D) g).setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING,RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
-    //Labeler.drawLabel(g, s, origin.x, origin.y, f, align, Labeler.CENTER, fg, bg, null, getRotation());
     loadImage();
-    g.drawImage(image, origin.x + imageBounds.x, origin.y + imageBounds.y, null);
+    if (image != null) {
+      g.drawImage(image, origin.x + imageBounds.x, origin.y + imageBounds.y, null);
+    }
   }
   
   public String getType() {

@@ -19,47 +19,52 @@
 
 package AutoImage;
 
+import java.awt.Color;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Point;
 import java.awt.Rectangle;
-import java.awt.geom.AffineTransform;
+import java.awt.RenderingHints;
 
 import VASSAL.build.AutoConfigurable;
 import VASSAL.configure.StringEnum;
+import VASSAL.configure.VisibilityCondition;
 import VASSAL.tools.SequenceEncoder;
 
-public class SymbolItem extends Item {  
+public class ShapeItem extends Item {
 
-  public static final String TYPE = "Symbol";
+  public static final String TYPE = "Box";
   
-  protected static final String SET = "set";
   protected static final String WIDTH = "width";
   protected static final String HEIGHT = "height";
-  protected static final String LINE_WIDTH = "linewidth";
+  protected static final String SHAPE = "shape";
+  protected static final String BEVEL = "bevel";
 
-  protected String symbolSet = "";
+  protected static final String RECT = "Rectangle";
+  protected static final String RRECT = "Rounded Rectangle";
+  protected static final String OVAL = "Oval";
+  
   protected int height = 30;
   protected int width = 40;
-  protected double lineWidth = 1.0f;
+  protected int bevel = 5;
+  protected String shape = RECT;
   
-  public SymbolItem() {
+
+  public ShapeItem() {
     super();
   }
 
-  public SymbolItem(Layout l) {
+  public ShapeItem(Layout l) {
     super(l);
-    width = getLayout().getLayoutWidth() / 2;
-    height = (int) (width * 0.75);
   }
-  
-  public SymbolItem(Layout l, String nam) {
+
+  public ShapeItem(Layout l, String n) {
     this(l);
-    setConfigureName(nam);
+    setConfigureName(n);
   }
   
   public String[] getAttributeDescriptions() {
-    String a[] = new String[] { "Symbol Set:  ", "Width:  ", "Height:  ", "Line Width:  " };
+    String a[] = new String[] { "Width:  ", "Height:  ", "Shape:  ", "Bevel:  " };
     String b[] = super.getAttributeDescriptions();
     String c[] = new String[a.length + b.length];
     System.arraycopy(b, 0, c, 0, 2);
@@ -69,7 +74,7 @@ public class SymbolItem extends Item {
   }
 
   public Class[] getAttributeTypes() {
-    Class a[] = new Class[] { SetConfig.class, Integer.class, Integer.class, Double.class };
+    Class a[] = new Class[] { Integer.class, Integer.class, ShapeConfig.class, Integer.class };
     Class b[] = super.getAttributeTypes();
     Class c[] = new Class[a.length + b.length];
     System.arraycopy(b, 0, c, 0, 2);
@@ -79,7 +84,7 @@ public class SymbolItem extends Item {
   }
 
   public String[] getAttributeNames() {
-    String a[] = new String[] { SET, WIDTH, HEIGHT, LINE_WIDTH };
+    String a[] = new String[] { WIDTH, HEIGHT, SHAPE, BEVEL };
     String b[] = super.getAttributeNames();
     String c[] = new String[a.length + b.length];
     System.arraycopy(b, 0, c, 0, 2);
@@ -88,17 +93,13 @@ public class SymbolItem extends Item {
     return c;
   }
   
-  public static class SetConfig extends StringEnum {
+  public static class ShapeConfig extends StringEnum {
     public String[] getValidValues(AutoConfigurable target) {
-      return Symbol.SYMBOL_SETS;
+      return new String[] { RECT, RRECT, OVAL };
     }
   }
   public void setAttribute(String key, Object o) {
-    
-    if (SET.equals(key)) {
-      
-    }
-    else if (WIDTH.equals(key)) {
+    if (WIDTH.equals(key)) {
       if (o instanceof String) {
         o = new Integer((String) o);
       }
@@ -109,45 +110,68 @@ public class SymbolItem extends Item {
         o = new Integer((String) o);
       }
       height = ((Integer) o).intValue();
-    }    
-    else if (LINE_WIDTH.equals(key)) {
-      if (o instanceof String) {
-        o = new Double(Double.parseDouble((String) o));
-      }
-      lineWidth = ((Double) o).doubleValue();
+    }  
+    else if (SHAPE.equals(key)) {
+      shape = (String) o;
     }
-    else
+    else if (BEVEL.equals(key)) {
+      if (o instanceof String) {
+        o = new Integer((String) o);
+      }
+      bevel = ((Integer) o).intValue();
+    }  
+    else {
       super.setAttribute(key, o);
+    }
     
     if (layout != null) {
       layout.refresh();
     }
-
+    
   }
   
   public String getAttributeValueString(String key) {
     
-    if (SET.equals(key)) {
-      return symbolSet;
-    }
-    else if (WIDTH.equals(key)) {
+    if (WIDTH.equals(key)) {
       return width + "";
     }
     else if (HEIGHT.equals(key)) {
       return height + "";
+    } 
+    else if (SHAPE.equals(key)) {
+      return shape;
     }
-    else if (LINE_WIDTH.equals(key)) {
-      return lineWidth + "";
+    else if (BEVEL.equals(key)) {
+      return bevel + "";
     }
-    else
+    else {
       return super.getAttributeValueString(key);
-
+    }
   }
   
-//  public void addTo(Buildable parent) {
-//    super.addTo(parent);
-//
-//  }
+  public VisibilityCondition getAttributeVisibility(String name) {
+    if (ROTATION.equals(name)) {
+       return falseCond;
+    }
+    else if (BEVEL.equals(name)) {
+      return bevelCond;
+    }
+    else {
+      return super.getAttributeVisibility(name);
+    }
+   }
+
+  private VisibilityCondition falseCond = new VisibilityCondition() {
+    public boolean shouldBeVisible() {
+      return false;
+    }
+  };
+  
+  private VisibilityCondition bevelCond = new VisibilityCondition() {
+    public boolean shouldBeVisible() {
+      return shape.equals(RRECT);
+    }
+  };
   
   public int getWidth() {
     return width;
@@ -159,48 +183,64 @@ public class SymbolItem extends Item {
   
   public void draw(Graphics g, ImageDefn defn) {
 
-    SymbolItemInstance si = null;
+    ShapeItemInstance si = null;
     if (defn != null) {
-      si = defn.getSymbolInstance(getConfigureName());
+      si = defn.getShapeInstance(getConfigureName());
     }
-    Symbol symbol = null;
     if (si == null) {
-      symbol = new Symbol(Symbol.NATO, Symbol.NatoUnitSymbolSet.INFANTRY, Symbol.NatoUnitSymbolSet.NONE, Symbol.NatoUnitSymbolSet.SZ_DIVISION);
-      si = new SymbolItemInstance();
+      si = new ShapeItemInstance();
     }
-    else {
-      symbol = new Symbol(Symbol.NATO, si.getSymbol1(), si.getSymbol2(), si.getSize());
-    }
-
+    
+    Color fg = si.getFgColor().getColor();
+    Color bg = si.getBorderColor().getColor();
+    
     Point origin = getOrigin();
     origin.translate(-getWidth() / 2, -getHeight() / 2);    
     Rectangle r = new Rectangle(origin.x, origin.y, getWidth(), getHeight());
+
+    ((Graphics2D) g).setRenderingHint(RenderingHints.KEY_ANTIALIASING,RenderingHints.VALUE_ANTIALIAS_ON);
     
-    if (getRotation() != 0) {
-      Graphics2D g2d = (Graphics2D) g;
-        AffineTransform newXForm =
-          AffineTransform.getRotateInstance(Math.toRadians(getRotation()), getOrigin().x, getOrigin().y);
-        g2d.transform(newXForm);
+    g.setColor(fg);
+    if (shape.equals(RECT)) {
+      g.fillRect(r.x, r.y, r.width, r.height);
+    }
+    else if (shape.equals(RRECT)) {
+      g.fillRoundRect(r.x, r.y, r.width, r.height, bevel*2, bevel*2);
+    }
+    else if (shape.equals(OVAL)) {
+      g.fillOval(r.x, r.y, r.width, r.height);
     }
     
-    symbol.draw(g, r, si.getFgColor().getColor(), si.getBgColor().getColor(), si.getSizeColor().getColor(), (float) lineWidth);
- 
+    if (bg != null) {
+      g.setColor(bg);
+      if (shape.equals(RECT)) {
+        g.drawRect(r.x, r.y, r.width, r.height);
+      }
+      else if (shape.equals(RRECT)) {
+        g.drawRoundRect(r.x, r.y, r.width, r.height, bevel*2, bevel*2);
+      }
+      else if (shape.equals(OVAL)) {
+        g.drawOval(r.x, r.y, r.width, r.height);
+      }
+    }
   }
   
   public String getType() {
     return TYPE;
   }
+ 
   
   public static Item decode(Layout l, String s) {
     
     SequenceEncoder.Decoder sd = new SequenceEncoder.Decoder(s, ';');
     
-    SymbolItem item = new SymbolItem(l);
+    ShapeItem item = new ShapeItem(l);
     
     sd.nextToken();
-    item.width = sd.nextInt(54);
-    item.height = sd.nextInt(54);
-    item.lineWidth = sd.nextDouble(1.0f);
+    item.width = sd.nextInt(30);
+    item.height = sd.nextInt(40);
+    item.shape = sd.nextToken(RECT);
+    item.bevel = sd.nextInt(5);
     
     return item;
   }
@@ -211,12 +251,14 @@ public class SymbolItem extends Item {
     
     se1.append(width);
     se1.append(height);
-    se1.append(lineWidth);
+    se1.append(shape);
+    se1.append(bevel);
    
     SequenceEncoder se2 = new SequenceEncoder(se1.getValue(), '|');
     se2.append(super.encode());
     
     return se2.getValue();
   }
+  
   
 }

@@ -220,8 +220,8 @@ public abstract class Item extends AbstractConfigurable {
   
   public static Item decode(Layout layout, String s) {
     SequenceEncoder.Decoder sd1= new SequenceEncoder.Decoder(s, '|');
-    String t1 = sd1.nextToken();
-    String t2 = sd1.nextToken();
+    String t1 = sd1.nextToken("");
+    String t2 = sd1.nextToken("");
     
     Item item;
     
@@ -233,6 +233,9 @@ public abstract class Item extends AbstractConfigurable {
     }
     else if (t1.startsWith(ImageItem.TYPE)) {
       item = ImageItem.decode(layout, t1);
+    }
+    else if (t1.startsWith(ShapeItem.TYPE)) {
+      item = ShapeItem.decode(layout, t1);
     }
     else
       return null;

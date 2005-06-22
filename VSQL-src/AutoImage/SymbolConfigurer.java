@@ -98,7 +98,7 @@ public class SymbolConfigurer extends StringEnumConfigurer {
         String symbol1 = (String) value;
         String symbol2 = Symbol.NatoUnitSymbolSet.NONE;
         Rectangle bounds = new Rectangle(0, 0, sample_w-1, sample_h-1);   
-        Symbol.NatoUnitSymbolSet.draw(symbol1, symbol2, g, bounds, Color.BLACK, Color.WHITE, 1.0f, "");
+        Symbol.NatoUnitSymbolSet.draw(symbol1, symbol2, g, bounds, Color.BLACK, Color.WHITE, Color.BLACK, 1.0f, "");
         
         ImageIcon icon = new ImageIcon(bi);
 

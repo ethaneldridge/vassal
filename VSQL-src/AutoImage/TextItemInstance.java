@@ -101,19 +101,29 @@ public class TextItemInstance extends ItemInstance {
   }
 
   public void setState(String newState) {
-    SequenceEncoder.Decoder sd = new SequenceEncoder.Decoder(newState, ';');
-    sd.nextToken();
-    locked = sd.nextBoolean(false);
-    val = sd.nextToken("");
+    getItem();
+    if (item != null && ((TextItem) item).isChangeable()) {
+      SequenceEncoder.Decoder sd = new SequenceEncoder.Decoder(newState, ';');
+      sd.nextToken();
+      locked = sd.nextBoolean(false);
+      val = sd.nextToken("");
+    }
   }
 
   public String getState() {
 
-    SequenceEncoder se = new SequenceEncoder(';');
-    se.append(getName());
-    se.append(locked);
-    se.append(val);
-    return (se.getValue());
+    getItem();
+    if (item != null && ((TextItem) item).isChangeable()) {
+      SequenceEncoder se = new SequenceEncoder(';');
+      se.append(getName());
+      se.append(locked);
+      se.append(val);
+      return (se.getValue());
+    }
+    else {
+      return "";
+    }
+      
   }
 
   public String encode() {

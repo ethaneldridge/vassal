@@ -58,10 +58,10 @@ public class Symbol {
     symbolSize = size;
   }
 
-  public void draw(Graphics g, Rectangle bounds, Color fg, Color bg, float lineWidth) {
+  public void draw(Graphics g, Rectangle bounds, Color fg, Color bg, Color sz, float lineWidth) {
 
     if (symbolSetName.equals(NATO)) {
-      NatoUnitSymbolSet.draw(symbolName1, symbolName2, g, bounds, fg, bg, lineWidth, symbolSize);
+      NatoUnitSymbolSet.draw(symbolName1, symbolName2, g, bounds, fg, bg, sz, lineWidth, symbolSize);
     }
   }
 
@@ -87,12 +87,12 @@ public class Symbol {
     protected static final String NONE = "None";
     protected static final String AIRBORNE = "Airborne";
     protected static final String AIR_DEFENCE = "Air Defence";
-    //    protected static final String AIR_FORCE = "Air Force";
+    protected static final String AIR_FORCE = "Air Force";
     //    protected static final String AIR_MOBILE = "Air Mobile";
     //    protected static final String AMPHIBIOUS = "Amphibious";
     protected static final String ANTI_TANK = "Anti Tank";
     protected static final String ARMORED = "Armored";
-    //    protected static final String ARMY_AVIATION = "Army Aviation";
+    protected static final String ARMY_AVIATION = "Army Aviation";
     protected static final String ARTILLERY = "Artillery";
     //    protected static final String BRIDGING = "Bridging";
     //    protected static final String COMBAT_SERVICE_SUPPORT = "";
@@ -109,7 +109,7 @@ public class Symbol {
     //    protected static final String MP = "";
     //    protected static final String MISSILE = "";
     protected static final String MOUNTAIN = "Mountain";
-    //    protected static final String NAVY = "";
+    protected static final String NAVY = "";
     //    protected static final String NBC = "";
     //    protected static final String ORDNANCE = "";
     //    protected static final String PARACHUTE = "";
@@ -146,10 +146,13 @@ public class Symbol {
           ARTILLERY, 
           ENGINEERS, 
           AIRBORNE, 
-          AIR_DEFENCE, 
-          ANTI_TANK, 
+          AIR_DEFENCE,
+          AIR_FORCE,
+          ANTI_TANK,
+          ARMY_AVIATION,
           //MARINES,
-          MOUNTAIN 
+          MOUNTAIN,
+          NAVY
           };
     }
 
@@ -194,7 +197,7 @@ public class Symbol {
     };
     
     protected static void draw(String name1, String name2, Graphics g, Rectangle bounds, Color fg, Color bg,
-        float lineWidth, String size) {
+        Color sz, float lineWidth, String size) {
 
       if (bg != null) {
         g.setColor(bg);
@@ -209,7 +212,10 @@ public class Symbol {
 
       g.drawRect(bounds.x, bounds.y, bounds.width, bounds.height);
 
+      g.setColor(sz);
       drawSize(g, size, bounds);
+      
+      g.setColor(fg);
       draw(g, name1, bounds, false);
       draw(g, name2, bounds, true);
     }
@@ -246,6 +252,15 @@ public class Symbol {
             180, Arc2D.OPEN));
 
       }
+      else if (name.equals(AIR_FORCE)) {
+        int xoff1 = (int) (bounds.width * 0.15);
+        int xoff2 = (int) (bounds.width * 0.2);
+        int yoff = (int) (bounds.height * 0.35);
+        g.drawLine(x_center-xoff2, y_top+yoff, x_center+xoff2, y_bottom-yoff);
+        g.drawLine(x_center+xoff2, y_top+yoff, x_center-xoff2, y_bottom-yoff);
+        g2.draw(new Arc2D.Double(x_center-xoff2-xoff1, y_top+yoff, xoff1*2, bounds.height-(2*yoff), 90, 180, Arc2D.OPEN));
+        g2.draw(new Arc2D.Double(x_center+xoff2-xoff1, y_top+yoff, xoff1*2, bounds.height-(2*yoff), 270, 180, Arc2D.OPEN));
+      }
 
       else if (name.equals(ANTI_TANK)) {
         g.drawLine(x_left, y_bottom, x_center, y_top);
@@ -262,6 +277,17 @@ public class Symbol {
         g2.draw(new Arc2D.Double(x_right-xoff1-(2*xoff2), y_top+yoff, xoff2*2, bounds.height-(yoff*2), 270, 180, Arc2D.OPEN));
       }
 
+      else if (name.equals(ARMY_AVIATION)) {
+        int xoff = (int) (bounds.height * 0.25);
+        int yoff = (int) (bounds.height * 0.33);
+        GeneralPath p = new GeneralPath();
+        p.moveTo(x_left+xoff, y_top+yoff);
+        p.lineTo(x_right-yoff, y_bottom-yoff);
+        p.lineTo(x_right-yoff, y_top+yoff);
+        p.lineTo(x_left+xoff, y_bottom-yoff);
+        p.closePath();
+        g2.draw(p);
+      }
       else if (name.equals(ARTILLERY)) {
         int radius = bounds.height / 5;
         int yoff = (drawLow ? (int) (bounds.height * .2) : 0);
@@ -309,6 +335,16 @@ public class Symbol {
         g2.fill(p);
       }
 
+      else if (name.equals(NAVY)) {
+        int yoff1 = (int) (bounds.height * 0.20);
+        int yoff2 = (int) (bounds.height * 0.15);
+        int xoff1 = (int) (bounds.width * 0.15);
+        int xoff2 = (int) (bounds.width * 0.30);
+        g.drawLine(x_center, y_top+yoff1, x_center, y_bottom-yoff1);
+        g.drawLine(x_center-xoff1, y_top+yoff1+yoff2, x_center+xoff1, y_top+yoff1+yoff2);
+        g2.draw(new Arc2D.Double(x_center-xoff2, y_top+yoff1, xoff2*2, bounds.height-(2*yoff1), 225, 90, Arc2D.OPEN));
+      }
+      
       else if (name.equals(RECON)) {
         g.drawLine(bounds.x, bounds.y + bounds.height, bounds.x + bounds.width, bounds.y);
       }

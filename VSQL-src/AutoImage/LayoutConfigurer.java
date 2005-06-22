@@ -49,6 +49,7 @@ public class LayoutConfigurer extends Configurer {
   protected static final String ADD_SYMBOL = "Add Symbol";
   protected static final String ADD_IMAGE = "Add Image";
   protected static final String ADD_TEXT = "Add Text";
+  protected static final String ADD_SHAPE = "Add Shape";
   protected static final String REMOVE = "Remove";
   protected static final int NO_CURRENT_ITEM = -1;
 
@@ -148,7 +149,7 @@ public class LayoutConfigurer extends Configurer {
     protected JTable table;
     protected AbstractTableModel model;
     protected JScrollPane scrollPane;
-    protected JButton addSymbolBtn, addTextBtn, addImageBtn, remBtn;
+    protected JButton addSymbolBtn, addTextBtn, addImageBtn, addShapeBtn, remBtn;
     protected JPanel mainPanel;
 
     public ItemPanel() {
@@ -198,6 +199,9 @@ public class LayoutConfigurer extends Configurer {
       addImageBtn = new JButton(ADD_IMAGE);
       addImageBtn.addActionListener(this);
       box.add(addImageBtn);
+      addShapeBtn = new JButton(ADD_SHAPE);
+      addShapeBtn.addActionListener(this);
+      box.add(addShapeBtn);
       remBtn = new JButton(REMOVE);
       remBtn.addActionListener(this);
       box.add(remBtn);
@@ -229,6 +233,9 @@ public class LayoutConfigurer extends Configurer {
       }
       else if (action.equals(ADD_IMAGE)) {
         addItem(new ImageItem(layout, "Image"+pos));
+      }
+      else if (action.equals(ADD_SHAPE)) {
+        addItem(new ShapeItem(layout, "Shape"+pos));
       }
       else if (action.equals(REMOVE)) {
         int i = table.getSelectedRow();

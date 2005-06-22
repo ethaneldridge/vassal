@@ -65,9 +65,9 @@ public class Layout extends AbstractConfigurable implements Visualizable {
 
   protected static final String BORDER_PLAIN = "Plain";
   protected static final String BORDER_FANCY = "Fancy";
+  protected static final String BORDER_3D = "3D";
   protected static final String BORDER_NONE = "None";
-  
-  
+
   public static final String[] LOCATIONS = new String[] { CENTER, N, S, E, W, NE, NW, SE, SW };
   public static final int[] X_POS = new int[] { POS_C, POS_C, POS_C, POS_R, POS_L, POS_R, POS_L, POS_R, POS_L };
   public static final int[] Y_POS = new int[] { POS_C, POS_T, POS_B, POS_C, POS_C, POS_T, POS_T, POS_B, POS_B };
@@ -89,7 +89,7 @@ public class Layout extends AbstractConfigurable implements Visualizable {
 
   protected int width = 54;
   protected int height = 54;
-  protected String border = BORDER_PLAIN;
+  protected String border = BORDER_3D;
   protected BufferedImage image;
   protected ImageDefn imageDefn = new ImageDefn();
   protected ArrayList items = new ArrayList();
@@ -100,7 +100,7 @@ public class Layout extends AbstractConfigurable implements Visualizable {
   }
 
   public String[] getAttributeDescriptions() {
-    return new String[] { "Name", "Counter Width", "Counter Height", "Border Style", ""};
+    return new String[] { "Name", "Counter Width", "Counter Height", "Border Style", "" };
   }
 
   public Class[] getAttributeTypes() {
@@ -109,10 +109,12 @@ public class Layout extends AbstractConfigurable implements Visualizable {
 
   public static class LayoutConfig implements ConfigurerFactory {
     protected static LayoutConfigurer configurer;
+
     public Configurer getConfigurer(AutoConfigurable c, String key, String name) {
       configurer = new LayoutConfigurer(key, name, (Layout) c);
       return configurer;
     }
+
     public static void refresh() {
       if (configurer != null) {
         configurer.repack();
@@ -122,9 +124,14 @@ public class Layout extends AbstractConfigurable implements Visualizable {
 
   public static class BorderConfig extends StringEnum {
     public String[] getValidValues(AutoConfigurable target) {
-      return new String[] { BORDER_PLAIN, BORDER_FANCY, BORDER_NONE };
+      return new String[] { BORDER_PLAIN, BORDER_FANCY, BORDER_3D, BORDER_NONE };
     }
   }
+
+  public boolean isColoredBorder() {
+    return border.equals(BORDER_PLAIN) || border.equals(BORDER_FANCY);
+  }
+  
   public String[] getAttributeNames() {
     return new String[] { NAME, WIDTH, HEIGHT, BORDER, ITEMS };
   }
@@ -184,7 +191,7 @@ public class Layout extends AbstractConfigurable implements Visualizable {
   }
 
   public Class[] getAllowableConfigureComponents() {
-    return new Class[] {ImageDefn.class };
+    return new Class[] { ImageDefn.class };
   }
 
   public void addTo(Buildable parent) {
@@ -194,7 +201,7 @@ public class Layout extends AbstractConfigurable implements Visualizable {
   public Configurer getConfigurer() {
     return super.getConfigurer();
   }
-  
+
   public static String getConfigureTypeName() {
     return "Layout";
   }
@@ -218,7 +225,7 @@ public class Layout extends AbstractConfigurable implements Visualizable {
   public String getBorder() {
     return border;
   }
-  
+
   public ArrayList getItems() {
     return items;
   }
@@ -241,7 +248,7 @@ public class Layout extends AbstractConfigurable implements Visualizable {
     }
     return null;
   }
-  
+
   protected void removeItem(int n) {
     items.remove(n);
   }
@@ -271,19 +278,19 @@ public class Layout extends AbstractConfigurable implements Visualizable {
     }
     return image;
   }
-  
+
   public void refresh() {
     buildImage();
     LayoutConfig.refresh();
   }
-  
+
   protected void buildImage() {
     if (imageDefn == null) {
       imageDefn = new ImageDefn(this);
     }
     buildImage(imageDefn);
   }
-  
+
   protected void buildImage(ImageDefn defn) {
 
     imageDefn = defn;
@@ -294,52 +301,53 @@ public class Layout extends AbstractConfigurable implements Visualizable {
 
     // Fill in the sample Background color
     Color bgColor = imageDefn.getBgColor().getColor();
-    g.setColor(imageDefn.getBgColor().getColor());
-    g.fillRect(0, 0, width, height);
+    g.setColor(bgColor);
 
-    // Add Border
-    if (getBorder().equals(BORDER_PLAIN) || getBorder().equals(BORDER_FANCY)) {
-      g.setColor(imageDefn.getBorderColor().getColor());
-      ((Graphics2D) g).setStroke(new BasicStroke(1.0f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
-      g.drawRect(0, 0, width-1, height-1);    
-      if (getBorder().equals(BORDER_FANCY)) {
-        Color lt = new Color(bgColor.getRed()/2, bgColor.getGreen()/2, bgColor.getBlue()/2);
-        Color dk = new Color(bgColor.getRed() + (255-bgColor.getRed())/2,
-            bgColor.getGreen() + (255-bgColor.getGreen())/2,
-            bgColor.getBlue() + (255-bgColor.getBlue())/2);
-        g.setColor(dk);
-        g.drawLine(1, 1, width-3, 1);
-        g.drawLine(1, 2, 1, height-3);
-        g.setColor(lt);
-        g.drawLine(width-2, 2, width-2, height-2);
-        g.drawLine(2, height-2, width-3, height-2);
+    if (getBorder().equals(BORDER_3D)) {
+      g.fill3DRect(0, 0, width, height, true);
+    }
+    else {
+
+      g.fillRect(0, 0, width, height);
+
+      // Add Border
+      if (getBorder().equals(BORDER_PLAIN) || getBorder().equals(BORDER_FANCY)) {
+        g.setColor(imageDefn.getBorderColor().getColor());
+        ((Graphics2D) g).setStroke(new BasicStroke(1.0f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
+        g.drawRect(0, 0, width - 1, height - 1);
+        if (getBorder().equals(BORDER_FANCY)) {
+          Color lt = new Color(bgColor.getRed() / 2, bgColor.getGreen() / 2, bgColor.getBlue() / 2);
+          Color dk = new Color(bgColor.getRed() + (255 - bgColor.getRed()) / 2, bgColor.getGreen()
+              + (255 - bgColor.getGreen()) / 2, bgColor.getBlue() + (255 - bgColor.getBlue()) / 2);
+          g.setColor(dk);
+          g.drawLine(1, 1, width - 3, 1);
+          g.drawLine(1, 2, 1, height - 3);
+          g.setColor(lt);
+          g.drawLine(width - 2, 2, width - 2, height - 2);
+          g.drawLine(2, height - 2, width - 3, height - 2);
+        }
       }
     }
-    
+
     // layer each item over the top
     Iterator i = items.iterator();
     while (i.hasNext()) {
       Item item = (Item) i.next();
-      
-//      if (colorScheme != null) {
-//         se = colorScheme.getElement(item.getConfigureName());
-//      }
-//      
-//      if (se == null) {
-//        se = new SchemeElement(item.getConfigureName(), ColorSwatch.getBlack(), ColorSwatch.getClear());
-//      }
-      
-      item.draw(g, defn);
+      if (item != null) {
+        item.draw(g, defn);
+      }
     }
 
   }
 
   protected void decodeItemList(String string) {
     items.clear();
-    SequenceEncoder.Decoder sd = new SequenceEncoder.Decoder(string, ',');
-    while (sd.hasMoreTokens()) {
-      Item item = Item.decode(this, sd.nextToken());
-      addItem(item);
+    if (string.length() > 0) {
+      SequenceEncoder.Decoder sd = new SequenceEncoder.Decoder(string, ',');
+      while (sd.hasMoreTokens()) {
+        Item item = Item.decode(this, sd.nextToken());
+        addItem(item);
+      }
     }
 
   }
@@ -368,23 +376,23 @@ public class Layout extends AbstractConfigurable implements Visualizable {
   public void rebuildVisualizerImage(ImageDefn defn) {
     buildImage(defn);
   }
-  
+
   public void rebuildVisualizerImage() {
     if (imageDefn == null) {
       imageDefn = new ImageDefn();
     }
     buildImage(imageDefn);
   }
-  
+
   public void setImageDefn(ImageDefn d) {
     imageDefn = d;
   }
-  
-//  public void highlightItem(int itemNo) {
-//    if (itemNo >= 0 && itemNo < items.size()) {
-//      ((Item) items.get(itemNo)).s
-//    }
-//  }
+
+  //  public void highlightItem(int itemNo) {
+  //    if (itemNo >= 0 && itemNo < items.size()) {
+  //      ((Item) items.get(itemNo)).s
+  //    }
+  //  }
 
   public ImageDefn getGenericDefn(String defnName) {
     ImageDefn defn = null;
