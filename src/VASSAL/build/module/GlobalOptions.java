@@ -37,7 +37,7 @@ import VASSAL.tools.FormattedString;
 
 import java.io.File;
 import java.net.MalformedURLException;
-import java.util.HashMap;
+import java.util.*;
 
 public class GlobalOptions extends AbstractConfigurable {
   public static final String NON_OWNER_UNMASKABLE = "nonOwnerUnmaskable";
@@ -128,7 +128,11 @@ public class GlobalOptions extends AbstractConfigurable {
   }
 
   public String[] getAttributeNames() {
-    return new String[]{NON_OWNER_UNMASKABLE, PROMPT_STRING, CENTER_ON_MOVE, AUTO_REPORT, PLAYER_ID_FORMAT};
+    List attributes = new ArrayList(Arrays.asList(new String[]{NON_OWNER_UNMASKABLE, PROMPT_STRING, CENTER_ON_MOVE, AUTO_REPORT, PLAYER_ID_FORMAT}));
+    for (Iterator it = properties.keySet().iterator(); it.hasNext();) {
+      attributes.add(it.next());
+    }
+    return (String[]) attributes.toArray(new String[attributes.size()]);
   }
 
   public Class[] getAttributeTypes() {

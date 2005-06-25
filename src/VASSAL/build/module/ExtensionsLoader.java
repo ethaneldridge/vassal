@@ -28,6 +28,10 @@ import VASSAL.tools.SequenceEncoder;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.HashSet;
+import java.util.Set;
+import java.beans.PropertyChangeListener;
+import java.beans.PropertyChangeEvent;
 
 public class ExtensionsLoader implements CommandEncoder {
   // Preferences key for the list of extensions to load
@@ -35,28 +39,42 @@ public class ExtensionsLoader implements CommandEncoder {
   private static final String EXTENSION_DIR = "extensionDIR";
   public static final String COMMAND_PREFIX = "EXT\t";
 
+  private Set loadedExtensions = new HashSet();
+
   public void addTo(GameModule mod) {
     if ("true".equals(GlobalOptions.getInstance().getAttributeValueString(SPECIFY_DIR_IN_PREFS))) {
       DirectoryConfigurer config = new DirectoryConfigurer(EXTENSION_DIR, "Extensions Directory");
       config.setValue((Object) null);
       GameModule.getGameModule().getPrefs().addOption("Extensions", config);
+      config.addPropertyChangeListener(new PropertyChangeListener() {
+        public void propertyChange(PropertyChangeEvent evt) {
+          addExtensions();
+        }
+      });
     }
     mod.addCommandEncoder(this);
+    addExtensions();
+  }
+
+  private void addExtensions() {
     String[] extensions = getExtensionNames();
     if (extensions != null) {
       for (int i = 0; i < extensions.length; ++i) {
-        try {
-          ModuleExtension ext = new ModuleExtension(new DataArchive(extensions[i]));
-          ext.build();
-          String msg = "Extension " + ext.getName() + " v" + ext.getVersion() + " loaded";
-          GameModule.getGameModule().warn(msg);
-          System.err.println(msg);
-        }
-        catch (IOException e) {
-          reportBuildError(e, extensions[i]);
-        }
-        catch (IllegalBuildException e) {
-          reportBuildError(e, extensions[i]);
+        if (!loadedExtensions.contains(extensions[i])) {
+          try {
+            ModuleExtension ext = new ModuleExtension(new DataArchive(extensions[i]));
+            ext.build();
+            String msg = "Extension " + ext.getName() + " v" + ext.getVersion() + " loaded";
+            loadedExtensions.add(ext.getName());
+            GameModule.getGameModule().warn(msg);
+            System.err.println(msg);
+          }
+          catch (IOException e) {
+            reportBuildError(e, extensions[i]);
+          }
+          catch (IllegalBuildException e) {
+            reportBuildError(e, extensions[i]);
+          }
         }
       }
     }
