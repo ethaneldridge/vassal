@@ -1,6 +1,9 @@
 package AutoImage;
 
 import java.awt.Color;
+import java.io.File;
+import java.net.MalformedURLException;
+import java.net.URL;
 
 import org.w3c.dom.Element;
 
@@ -106,7 +109,7 @@ public class AutoImages extends AbstractConfigurable {
   }
 
   public static String getConfigureTypeName() {
-    return "Generic Images";
+    return "Auto Images";
   }
 
   public void add(Buildable b) {
@@ -138,6 +141,15 @@ public class AutoImages extends AbstractConfigurable {
   public HelpFile getHelpFile() {
     return null;
   }
+    
+//    File dir = VASSAL.build.module.Documentation.getDocumentationBaseDir();
+//    dir = new File(dir, "ReferenceManual");
+//    try {
+//      return new HelpFile(null, new File(dir, "Map.htm"));
+//    }
+//    catch (MalformedURLException ex) {
+//      return null;
+//    }
 
   public void removeFrom(Buildable parent) {
   }
@@ -148,47 +160,4 @@ public class AutoImages extends AbstractConfigurable {
     
   }
   
-//  public static CounterLayout getDefinitionByName(String name) {
-//    
-//    CounterLayout def = null;
-//    
-//    if (instance.definitions != null) {
-//        def = (CounterLayout) instance.definitions.getDefinition(name);
-//    }
-//    
-//    if (def == null) {
-//      def = new CounterLayout();
-//    }
-//    
-//    return def;
-//  }
-
-
-//  public static FontStyle getFontStyleByName(String name) {
-//    
-//    FontStyle def = null;
-//    
-//    if (instance.fonts != null) {
-//        def = (FontStyle) instance.fonts.getFontStyle(name);
-//    }
-//    
-//    if (def == null) {
-//      def = new FontStyle();
-//    }
-//    
-//    return def;
-//  }
-//  
-  
-//  public static FontStyle getStyledFont(String fontName) {
-//    if (instance.fonts != null) {
-//      return instance.fonts.getFontStyle(fontName);
-//    }
-//    else
-//      return null;
-//  }
-//  
-//  public static String[] getFontNames() {
-//    return instance.fonts.getFontNames();
-//  }
 }
