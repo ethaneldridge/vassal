@@ -100,7 +100,7 @@ public class Layout extends AbstractConfigurable implements Visualizable {
   }
 
   public String[] getAttributeDescriptions() {
-    return new String[] { "Name", "Counter Width", "Counter Height", "Border Style", "" };
+    return new String[] { "Name:  ", "Counter Width:  ", "Counter Height:  ", "Border Style:  ", "" };
   }
 
   public Class[] getAttributeTypes() {
@@ -253,10 +253,16 @@ public class Layout extends AbstractConfigurable implements Visualizable {
     items.remove(n);
   }
 
-  protected void addItem(Item i) {
+  public void addItem(Item i) {
     items.add(i);
   }
 
+  public void moveItem(int from, int to) {
+    Item temp = (Item) items.get(to);
+    items.set(to, items.get(from));
+    items.set(from, temp);
+  }
+  
   public void add(Buildable b) {
     super.add(b);
   }

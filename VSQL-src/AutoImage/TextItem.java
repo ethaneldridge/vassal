@@ -96,7 +96,7 @@ public class TextItem extends Item {
   public String[] getAttributeDescriptions() {
     String a[] = new String[] { "Font style:  ", "Alignment:  ", "Label Source:  ", "Label:  ",
         "Change Label Command Name:  ", "Change Label Keyboard Command:  ", "Lockable?", "Lock Label Command Name:  ",
-        "Lock Label Keyboard Command:  ", "Counter Name Format?" };
+        "Lock Label Keyboard Command:  ", "Counter Name Format:  " };
     String b[] = super.getAttributeDescriptions();
     String c[] = new String[a.length + b.length];
     System.arraycopy(b, 0, c, 0, 2);

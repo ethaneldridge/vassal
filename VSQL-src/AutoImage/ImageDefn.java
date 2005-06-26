@@ -97,7 +97,7 @@ public class ImageDefn extends AbstractConfigurable implements Visualizable, Clo
   }
   
   public String[] getAttributeDescriptions() {
-    return new String[] { "Name", "Background Color", "Border Color", "" };
+    return new String[] { "Name:  ", "Background Color:  ", "Border Color:  ", "" };
   }
 
   public Class[] getAttributeTypes() {

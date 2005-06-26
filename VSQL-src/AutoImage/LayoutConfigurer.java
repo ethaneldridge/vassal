@@ -46,11 +46,13 @@ import VASSAL.configure.StringConfigurer;
 
 public class LayoutConfigurer extends Configurer {
 
-  protected static final String ADD_SYMBOL = "Add Symbol";
-  protected static final String ADD_IMAGE = "Add Image";
-  protected static final String ADD_TEXT = "Add Text";
-  protected static final String ADD_SHAPE = "Add Shape";
+  protected static final String ADD_SYMBOL = "Symbol";
+  protected static final String ADD_IMAGE = "Image";
+  protected static final String ADD_TEXT = "Text";
+  protected static final String ADD_SHAPE = "Shape";
   protected static final String REMOVE = "Remove";
+  protected static final String UP = "Up";
+  protected static final String DOWN = "Dn";
   protected static final int NO_CURRENT_ITEM = -1;
 
   protected JPanel panel;
@@ -149,7 +151,7 @@ public class LayoutConfigurer extends Configurer {
     protected JTable table;
     protected AbstractTableModel model;
     protected JScrollPane scrollPane;
-    protected JButton addSymbolBtn, addTextBtn, addImageBtn, addShapeBtn, remBtn;
+    protected JButton addSymbolBtn, addTextBtn, addImageBtn, addShapeBtn, remBtn, upBtn, dnBtn;
     protected JPanel mainPanel;
 
     public ItemPanel() {
@@ -205,6 +207,12 @@ public class LayoutConfigurer extends Configurer {
       remBtn = new JButton(REMOVE);
       remBtn.addActionListener(this);
       box.add(remBtn);
+      upBtn = new JButton(UP);
+      upBtn.addActionListener(this);
+      box.add(upBtn);
+      dnBtn = new JButton(DOWN);
+      dnBtn.addActionListener(this);
+      box.add(dnBtn);
       mainPanel.add(box);
       add(mainPanel);
 
@@ -223,6 +231,7 @@ public class LayoutConfigurer extends Configurer {
     public void actionPerformed(ActionEvent e) {
       String action = e.getActionCommand();
       int pos = layout.getItemCount();
+      int sel = table.getSelectedRow();
 
       if (action.equals(ADD_SYMBOL)) {
         addItem(new SymbolItem(layout, "Symbol"+pos));
@@ -238,19 +247,29 @@ public class LayoutConfigurer extends Configurer {
         addItem(new ShapeItem(layout, "Shape"+pos));
       }
       else if (action.equals(REMOVE)) {
-        int i = table.getSelectedRow();
-        if (i >= 0) {
-          layout.removeItem(i);
-          model.fireTableRowsDeleted(i, i);
+        if (sel >= 0) {
+          layout.removeItem(sel);
+          model.fireTableRowsDeleted(sel, sel);
         }
         if (layout.getItemCount() > 1) {
-          if (i >= layout.getItemCount()) {
+          if (sel >= layout.getItemCount()) {
             table.getSelectionModel().setSelectionInterval(layout.getItemCount() - 1, layout.getItemCount() - 1);
           }
           else {
-            table.getSelectionModel().setSelectionInterval(i, i);
+            table.getSelectionModel().setSelectionInterval(sel, sel);
           }
         }
+      }
+      else if (action.equals(UP)) {
+        if (sel > 0) {
+          moveItem(sel, sel-1);
+        }
+      }
+      else if (action.equals(DOWN)) {
+        if (sel < pos-1) {
+          moveItem(sel, sel+1);
+        }
+        
       }
       
       rebuildViz();
@@ -261,6 +280,13 @@ public class LayoutConfigurer extends Configurer {
       int pos = layout.getItemCount() - 1;
       model.fireTableRowsInserted(pos, pos);
       table.getSelectionModel().setSelectionInterval(pos, pos);
+    }
+    
+    protected void moveItem(int from, int to) {
+      layout.moveItem(from, to);
+      model.fireTableRowsUpdated(from, to);
+      table.getSelectionModel().setSelectionInterval(to, to);
+      rebuildViz();
     }
     
     protected void rebuildViz() {

@@ -92,7 +92,12 @@ public class ImageItem extends Item {
         imageName = (String) o;
       }
       else {
-        imageName = ((File) o).getName();
+        if (o == null) {
+          imageName = null;
+        }
+        else {
+          imageName = ((File) o).getName();
+        }
       }
     }
     else {
