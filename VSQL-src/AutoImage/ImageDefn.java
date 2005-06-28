@@ -209,7 +209,12 @@ public class ImageDefn extends AbstractConfigurable implements Visualizable, Clo
   
   private VisibilityCondition borderCond = new VisibilityCondition() {
     public boolean shouldBeVisible() {
-      return getLayout().isColoredBorder();
+      if (getLayout() == null) {
+        return false;
+      }
+      else {
+        return getLayout().isColoredBorder();
+      }
     }
   };
 

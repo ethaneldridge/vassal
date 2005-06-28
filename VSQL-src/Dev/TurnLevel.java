@@ -38,8 +38,6 @@ public class TurnLevel extends AbstractConfigurable {
   protected static final String TYPE = "type";
   protected static final String START = "start";
   protected static final String INCR = "incr";
-  protected static final String LOOP = "loop";
-  protected static final String LOOP_LIMIT = "loopLimit";
   protected static final String LIST = "list";
 
   protected static final String TYPE_COUNTER = "Counter";
@@ -47,26 +45,41 @@ public class TurnLevel extends AbstractConfigurable {
 
   // Module Configuration variable 
   protected String type = TYPE_COUNTER;
-  protected int start = 1;
+  protected int start = 0;
   protected int incr = 1;
-  protected boolean loop = false;
-  protected int loopLimit = 10;
   protected String[] list = new String[0];
   
   protected boolean rolledOver = false;
   
   // In play state variables
-  protected int value = 1;
-  protected int first = 1;
+  protected int current = 0;
+  protected int first = 0;
   protected boolean[] active = new boolean[0]; 
 
   public TurnLevel() {
     super();
   }
 
+  protected boolean isCounter() {
+    return type.equals(TYPE_COUNTER);
+  }
+  
+  public void reset() {
+    if (isCounter()) {
+      current = start;
+    }
+    else {
+      current = 0;
+      first = 0;
+      for (int i = 0; i < active.length; i++) {
+        active[i] = true;
+      }
+    }
+  }
+  
   protected String getState() {
     SequenceEncoder se = new SequenceEncoder(';');
-    se.append(value);
+    se.append(current);
     se.append(first);
     String s[] = new String[active.length];
     for (int i=0; i < s.length; i++) {
@@ -78,8 +91,8 @@ public class TurnLevel extends AbstractConfigurable {
   
   protected void setState(String code) {
     SequenceEncoder.Decoder sd = new SequenceEncoder.Decoder(code, ';');
-    value = sd.nextInt(1);
-    first = sd.nextInt(1);
+    current = sd.nextInt(start);
+    first = sd.nextInt(0);
     
     String[] s = sd.nextStringArray(0);
     active = new boolean[s.length];
@@ -89,22 +102,38 @@ public class TurnLevel extends AbstractConfigurable {
   }
   
   public JPanel getControls() {
-  
+    JTextField text;
     JPanel p = new JPanel();
     p.add(new JLabel(getConfigureName() + ": "));
-    JTextField text = new JTextField(" " + getValueName()+" ");
+    if (isCounter()) {
+      text = new JTextField(" " + getValueName()+" ");
+    }
+    else {
+      text = new JTextField(getLongestName()+2);
+      text.setText(" " + getValueName());
+    }
     p.add(text);
     
     return p;
   }
   
+  protected int getLongestName() {
+    int m = 1;
+    for (int i = 0; i < list.length; i++) {
+      if (list[i] != null & list[i].length() > m) {
+        m = list[i].length();
+      }
+    }
+    return m;
+  }
+  
   public String getValueName() {
-    if (type.equals(TYPE_COUNTER)) {
-      return value + "";
+    if (isCounter()) {
+      return current + "";
     }
     else {
-      if (value >= 0 && value <= (list.length-1)) {
-        return list[value];
+      if (current >= 0 && current <= (list.length-1)) {
+        return list[current];
       }
     }
     return "";
@@ -112,15 +141,11 @@ public class TurnLevel extends AbstractConfigurable {
   
   public void advance() {
     rolledOver = false;
-    if (type.equals(TYPE_COUNTER)) {
-      value++;
-      if (loop && value > loopLimit) {
-        rolledOver = true;
-        value = start;
-      }
+    if (isCounter()) {
+      current++;
     }
     else {
-      int idx = value;
+      int idx = current;
       boolean done = false;
       for (int i = 0; i < list.length && !done; i++) {
         idx++;
@@ -132,7 +157,29 @@ public class TurnLevel extends AbstractConfigurable {
         }
         done = active[idx];
       }
-      value = idx;
+      current = idx;
+    }
+  }
+  
+  public void retreat() {
+    rolledOver = false;
+    if (isCounter()) {
+      current--;
+    }
+    else {
+      int idx = current;
+      boolean done = false;
+      for (int i = 0; i < list.length && !done; i++) {
+        if (idx == first) {
+          rolledOver = true;
+        }
+        idx--;
+        if (idx < 0) {
+          idx = list.length-1;
+        }
+        done = active[idx];
+      }
+      current = idx;
     }
   }
   
@@ -141,17 +188,15 @@ public class TurnLevel extends AbstractConfigurable {
   }
   
   public String[] getAttributeDescriptions() {
-    return new String[] { "Name:  ", "Type:  ", "Start Value:  ", "Increment By:  ", "Loop?", "Loop at Value:  ",
-        "List:  " };
+    return new String[] { "Name:  ", "Type:  ", "Start Value:  ", "Increment By:  ", "List:  " };
   }
 
   public Class[] getAttributeTypes() {
-    return new Class[] { String.class, TypeConfig.class, Integer.class, Integer.class, Boolean.class, Integer.class,
-        String[].class };
+    return new Class[] { String.class, TypeConfig.class, Integer.class, Integer.class, String[].class };
   }
 
   public String[] getAttributeNames() {
-    return new String[] { NAME, TYPE, START, INCR, LOOP, LOOP_LIMIT, LIST };
+    return new String[] { NAME, TYPE, START, INCR, LIST };
   }
 
   public void setAttribute(String key, Object value) {
@@ -166,24 +211,13 @@ public class TurnLevel extends AbstractConfigurable {
         value = new Integer((String) value);
       }
       start = ((Integer) value).intValue();
+      current = start;
     }
     else if (INCR.equals(key)) {
       if (value instanceof String) {
         value = new Integer((String) value);
       }
       incr = ((Integer) value).intValue();
-    }
-    else if (LOOP.equals(key)) {
-      if (value instanceof String) {
-        value = new Boolean((String) value);
-      }
-      loop = ((Boolean) value).booleanValue();
-    }
-    else if (LOOP_LIMIT.equals(key)) {
-      if (value instanceof String) {
-        value = new Integer((String) value);
-      }
-      loopLimit = ((Integer) value).intValue();
     }
     else if (LIST.equals(key)) {
       if (value instanceof String) {
@@ -209,12 +243,6 @@ public class TurnLevel extends AbstractConfigurable {
     }
     else if (INCR.equals(key)) {
       return incr + "";
-    }
-    else if (LOOP.equals(key)) {
-      return loop + "";
-    }
-    else if (LOOP_LIMIT.equals(key)) {
-      return loopLimit + "";
     }
     else if (LIST.equals(key)) {
       return StringArrayConfigurer.arrayToString(list);
@@ -244,11 +272,8 @@ public class TurnLevel extends AbstractConfigurable {
   }
 
   public VisibilityCondition getAttributeVisibility(String name) {
-    if (START.equals(name) || INCR.equals(name) || LOOP.equals(name)) {
+    if (START.equals(name) || INCR.equals(name)) {
       return counterCond;
-    }
-    else if (LOOP_LIMIT.equals(name)) {
-      return limitCond;
     }
     else if (LIST.equals(name)) {
       return listCond;
@@ -260,19 +285,13 @@ public class TurnLevel extends AbstractConfigurable {
 
   private VisibilityCondition counterCond = new VisibilityCondition() {
     public boolean shouldBeVisible() {
-      return type.equals(TYPE_COUNTER);
-    }
-  };
-
-  private VisibilityCondition limitCond = new VisibilityCondition() {
-    public boolean shouldBeVisible() {
-      return type.equals(TYPE_COUNTER) && loop;
+      return isCounter();
     }
   };
   
   private VisibilityCondition listCond = new VisibilityCondition() {
     public boolean shouldBeVisible() {
-      return type.equals(TYPE_LIST);
+      return !isCounter();
     }
   };
 
@@ -281,5 +300,6 @@ public class TurnLevel extends AbstractConfigurable {
       return new String[] { TYPE_COUNTER, TYPE_LIST };
     }
   }
+
   
 }

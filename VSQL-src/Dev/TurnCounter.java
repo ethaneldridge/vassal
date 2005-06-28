@@ -37,6 +37,7 @@ import VASSAL.build.AutoConfigurable;
 import VASSAL.build.Buildable;
 import VASSAL.build.GameModule;
 import VASSAL.build.module.Chatter;
+import VASSAL.build.module.GameComponent;
 import VASSAL.build.module.GlobalOptions;
 import VASSAL.build.module.documentation.HelpFile;
 import VASSAL.command.Command;
@@ -53,7 +54,7 @@ import VASSAL.tools.SequenceEncoder;
 /**
  * Generic Turn Counter
  */
-public class TurnCounter extends AbstractConfigurable implements CommandEncoder {
+public class TurnCounter extends AbstractConfigurable implements CommandEncoder, GameComponent {
 
   protected static final String COMMAND_PREFIX = "TURN\t";
 
@@ -73,7 +74,6 @@ public class TurnCounter extends AbstractConfigurable implements CommandEncoder 
   protected TurnDialog turnDialog;
   protected LaunchButton launch;
   protected String savedState = "";
-  protected String state = "";
 
   public TurnCounter() {
     turnDialog = new TurnDialog();
@@ -87,14 +87,11 @@ public class TurnCounter extends AbstractConfigurable implements CommandEncoder 
     };
     launch = new LaunchButton("Turn", BUTTON_TEXT, HOT_KEY, ICON, al);
     launch.setToolTipText("Turn Counter");
+    launch.setEnabled(false);
     turnDialog.pack();
   }
-
-  public String getState() {
-    return state;
-  }
   
-  public String getNewState() {
+  public String getState() {
     SequenceEncoder se = new SequenceEncoder('|');
     Iterator it = levels.iterator();
     while (it.hasNext()) {
@@ -105,7 +102,10 @@ public class TurnCounter extends AbstractConfigurable implements CommandEncoder 
   }
 
   public void setState(String newState) {
-    state = newState;
+    SequenceEncoder.Decoder sd = new SequenceEncoder.Decoder(newState, '|');
+    for (int i = 0; i < levels.size(); i++) {
+      ((TurnLevel) levels.get(i)).setState(sd.nextToken(""));
+    }
   }
 
   /*
@@ -171,11 +171,13 @@ public class TurnCounter extends AbstractConfigurable implements CommandEncoder 
     GameModule.getGameModule().getToolBar().add(launch);
     launch.setAlignmentY(0.0F);
     GameModule.getGameModule().addCommandEncoder(this);
+    GameModule.getGameModule().getGameState().addGameComponent(this);
   }
 
   public void removeFrom(Buildable b) {
     GameModule.getGameModule().getToolBar().remove(launch);
     GameModule.getGameModule().removeCommandEncoder(this);
+    GameModule.getGameModule().getGameState().removeGameComponent(this);
   }
 
   public HelpFile getHelpFile() {
@@ -196,7 +198,7 @@ public class TurnCounter extends AbstractConfigurable implements CommandEncoder 
 
   protected void save() {
 
-    if (!savedState.equals(getNewState())) {
+    if (!savedState.equals(getState())) {
       for (int i = 0; i < levels.size(); i++) {
         TurnLevel level = (TurnLevel) levels.get(i);
         reportFormat.setProperty(LEVEL_NAME + (i + 1), level.getConfigureName());
@@ -205,8 +207,8 @@ public class TurnCounter extends AbstractConfigurable implements CommandEncoder 
 
       String s = reportFormat.getText();
       Command c = new Chatter.DisplayText(GameModule.getGameModule().getChatter(), s);
-      c.append(new SetTurn(getNewState(), this));
       c.execute();
+      c.append(new SetTurn(this, savedState));
 
       GameModule.getGameModule().sendAndLog(c);
     }
@@ -239,6 +241,23 @@ public class TurnCounter extends AbstractConfigurable implements CommandEncoder 
 
   protected void prev() {
 
+    if (levels.size() == 0) {
+      return;
+    }
+
+    int i = levels.size();
+    TurnLevel level = ((TurnLevel) levels.get(--i));
+    level.retreat();
+    boolean rollOver = level.hasRolledOver();
+
+    for (i--; i >= 0; i--) {
+      if (rollOver) {
+        level = (TurnLevel) levels.get(i);
+        level.retreat();
+        rollOver = level.hasRolledOver();
+      }
+    }
+    updateDisplay();
   }
 
   protected void set() {
@@ -265,6 +284,26 @@ public class TurnCounter extends AbstractConfigurable implements CommandEncoder 
     }
     return s;
   }
+  
+  public void setup(boolean gameStarting) {
+    launch.setEnabled(gameStarting);
+    if (gameStarting) {
+      reset();
+    }
+    else {
+      turnDialog.setVisible(false);
+    }
+  }
+
+  protected void reset() {
+    for (int i = 0; i < levels.size(); i++) {
+      ((TurnLevel) levels.get(i)).reset();
+    }
+  }
+  
+  public Command getRestoreCommand() {
+    return new SetTurn(getState(), this);
+  }
 
   protected void addLevel(TurnLevel level) {
     levels.add(level);
@@ -282,7 +321,8 @@ public class TurnCounter extends AbstractConfigurable implements CommandEncoder 
     private TurnDialog() {
       super(GameModule.getGameModule().getFrame());
       initComponents();
-      setLocationRelativeTo(getOwner());
+      setLocation(100, 100);
+      //setLocationRelativeTo(getOwner());
     }
 
     private void initComponents() {
@@ -368,25 +408,24 @@ public class TurnCounter extends AbstractConfigurable implements CommandEncoder 
     private String newState;
     private TurnCounter turn;
 
-    public SetTurn(String n, TurnCounter t) {
-      newState = n;
+    public SetTurn(String newState, TurnCounter t) {
+      this.newState = newState;
       oldState = t.getState();
+      turn = t;
+    }
+    
+    public SetTurn(TurnCounter t, String oldState) {
+      newState = t.getState();
+      this.oldState = oldState;
       turn = t;
     }
 
     protected void executeCommand() {
       turn.setState(newState);
-      SequenceEncoder.Decoder sd = new SequenceEncoder.Decoder(newState, '|');
-      Iterator it = turn.levels.iterator();
-      while (it.hasNext()) {
-        TurnLevel level = (TurnLevel) it.next();
-        level.setState(sd.nextToken(""));
-      }
     }
 
     protected Command myUndoCommand() {
       return new SetTurn(oldState, turn);
     }
   }
-
 }
