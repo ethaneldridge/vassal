@@ -19,6 +19,7 @@
 
 package Dev;
 
+import java.awt.Component;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.WindowAdapter;
@@ -28,6 +29,7 @@ import java.util.Iterator;
 
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
+import javax.swing.JComponent;
 import javax.swing.JDialog;
 import javax.swing.JPanel;
 import javax.swing.KeyStroke;
@@ -44,6 +46,7 @@ import VASSAL.command.Command;
 import VASSAL.command.CommandEncoder;
 import VASSAL.configure.Configurer;
 import VASSAL.configure.ConfigurerFactory;
+import VASSAL.configure.FormattedStringConfigurer;
 import VASSAL.configure.IconConfigurer;
 import VASSAL.configure.PlayerIdFormattedStringConfigurer;
 import VASSAL.tools.FormattedString;
@@ -61,19 +64,26 @@ public class TurnCounter extends AbstractConfigurable implements CommandEncoder,
   public static final String HOT_KEY = "hotkey";
   public static final String ICON = "icon";
   public static final String BUTTON_TEXT = "buttonText";
+  public static final String TURN_FORMAT = "turnFormat";
   public static final String REPORT_FORMAT = "reportFormat";
 
   /** Variable name for reporting format */
   public static final String LEVEL_NAME = "name";
   public static final String LEVEL_TURN = "turn";
+  public static final String OLD_TURN = "oldTurn";
+  public static final String NEW_TURN = "newTurn";
 
+  protected FormattedString turnFormat = new FormattedString("$"+LEVEL_NAME+"1$: $"+LEVEL_TURN+"1$");
   protected FormattedString reportFormat = new PlayerIdFormattedString("* <$" + GlobalOptions.PLAYER_ID
-      + "$> Turn Updated to $name1$: $turn1$");
+      + "$> Turn Updated from $"+OLD_TURN+"$ to $"+NEW_TURN+"$");
 
   protected ArrayList levels = new ArrayList(5);
   protected TurnDialog turnDialog;
+  protected SetDialog setDialog;
   protected LaunchButton launch;
   protected String savedState = "";
+  protected String savedSetState = "";
+  protected String savedTurn = "";
 
   public TurnCounter() {
     turnDialog = new TurnDialog();
@@ -88,7 +98,8 @@ public class TurnCounter extends AbstractConfigurable implements CommandEncoder,
     launch = new LaunchButton("Turn", BUTTON_TEXT, HOT_KEY, ICON, al);
     launch.setToolTipText("Turn Counter");
     launch.setEnabled(false);
-    turnDialog.pack();
+    turnDialog.pack();    
+    
   }
   
   public String getState() {
@@ -106,18 +117,25 @@ public class TurnCounter extends AbstractConfigurable implements CommandEncoder,
     for (int i = 0; i < levels.size(); i++) {
       ((TurnLevel) levels.get(i)).setState(sd.nextToken(""));
     }
+    setLaunchToolTip();
   }
-
+  
+  protected void setLaunchToolTip() {
+    launch.setToolTipText(getTurn());
+  }
   /*
    * Module level Configuration stuff
    */
   public String[] getAttributeNames() {
-    return new String[] { BUTTON_TEXT, ICON, HOT_KEY, REPORT_FORMAT };
+    return new String[] { BUTTON_TEXT, ICON, HOT_KEY, TURN_FORMAT, REPORT_FORMAT };
   }
 
   public void setAttribute(String name, Object value) {
     if (REPORT_FORMAT.equals(name)) {
       reportFormat.setFormat((String) value);
+    }
+    else if (TURN_FORMAT.equals(name)) {
+      turnFormat.setFormat((String) value);
     }
     else {
       launch.setAttribute(name, value);
@@ -128,17 +146,20 @@ public class TurnCounter extends AbstractConfigurable implements CommandEncoder,
     if (REPORT_FORMAT.equals(name)) {
       return reportFormat.getFormat();
     }
+    else if (TURN_FORMAT.equals(name)) {
+      return turnFormat.getFormat();
+    }
     else {
       return launch.getAttributeValueString(name);
     }
   }
 
   public String[] getAttributeDescriptions() {
-    return new String[] { "Button text:  ", "Button Icon:  ", "Hotkey:  ", "Report Format:  " };
+    return new String[] { "Button text:  ", "Button Icon:  ", "Hotkey:  ", "Turn Format", "Report Format:  " };
   }
 
   public Class[] getAttributeTypes() {
-    return new Class[] { String.class, IconConfig.class, KeyStroke.class, ReportFormatConfig.class };
+    return new Class[] { String.class, IconConfig.class, KeyStroke.class, TurnFormatConfig.class, ReportFormatConfig.class };
   }
 
   public static class IconConfig implements ConfigurerFactory {
@@ -149,16 +170,22 @@ public class TurnCounter extends AbstractConfigurable implements CommandEncoder,
 
   public static class ReportFormatConfig implements ConfigurerFactory {
     public Configurer getConfigurer(AutoConfigurable c, String key, String name) {
+      return new PlayerIdFormattedStringConfigurer(key, name, new String[] {OLD_TURN, NEW_TURN } );
+    }
+  }
+
+  public static class TurnFormatConfig implements ConfigurerFactory {
+    public Configurer getConfigurer(AutoConfigurable c, String key, String name) {
       TurnCounter tc = (TurnCounter) c;
       String s[] = new String[2 * tc.levels.size()];
       for (int i = 0; i < tc.levels.size(); i++) {
         s[i * 2] = LEVEL_NAME + ((i + 1) + "");
         s[i * 2 + 1] = LEVEL_TURN + ((i + 1) + "");
       }
-      return new PlayerIdFormattedStringConfigurer(key, name, s);
+      return new FormattedStringConfigurer(key, name, s);
     }
   }
-
+  
   public Class[] getAllowableConfigureComponents() {
     return new Class[] { TurnLevel.class };
   }
@@ -186,6 +213,7 @@ public class TurnCounter extends AbstractConfigurable implements CommandEncoder,
 
   protected void captureState() {
     savedState = getState();
+    savedTurn = getTurn();
   }
 
   public void cancel() {
@@ -199,22 +227,30 @@ public class TurnCounter extends AbstractConfigurable implements CommandEncoder,
   protected void save() {
 
     if (!savedState.equals(getState())) {
-      for (int i = 0; i < levels.size(); i++) {
-        TurnLevel level = (TurnLevel) levels.get(i);
-        reportFormat.setProperty(LEVEL_NAME + (i + 1), level.getConfigureName());
-        reportFormat.setProperty(LEVEL_TURN + (i + 1), level.getValueName());
-      }
+      
+      reportFormat.setProperty(OLD_TURN, savedTurn);
+      reportFormat.setProperty(NEW_TURN, getTurn());
 
-      String s = reportFormat.getText();
-      Command c = new Chatter.DisplayText(GameModule.getGameModule().getChatter(), s);
+      Command c = new Chatter.DisplayText(GameModule.getGameModule().getChatter(), reportFormat.getText());
       c.execute();
       c.append(new SetTurn(this, savedState));
 
       GameModule.getGameModule().sendAndLog(c);
+      
+      setLaunchToolTip();
     }
 
   }
 
+  protected String getTurn() {
+   
+    for (int i = 0; i < levels.size(); i++) {
+      TurnLevel level = (TurnLevel) levels.get(i);
+      turnFormat.setProperty(LEVEL_NAME + (i + 1), level.getConfigureName());
+      turnFormat.setProperty(LEVEL_TURN + (i + 1), level.getValueName());
+    }
+    return turnFormat.getText();
+  }
   /*
    * Advance the lowest level counter, plus propagate any rollovers
    */
@@ -236,7 +272,7 @@ public class TurnCounter extends AbstractConfigurable implements CommandEncoder,
         rollOver = level.hasRolledOver();
       }
     }
-    updateDisplay();
+    updateTurnDisplay();
   }
 
   protected void prev() {
@@ -257,14 +293,22 @@ public class TurnCounter extends AbstractConfigurable implements CommandEncoder,
         rollOver = level.hasRolledOver();
       }
     }
-    updateDisplay();
+    updateTurnDisplay();
   }
 
   protected void set() {
-
+    savedSetState = getState();
+    if (setDialog == null) {
+      setDialog = new SetDialog();
+      setDialog.setTitle("Set Turn");
+    }
+    setDialog.setControls();
+    setSetVisibility(false);
+    turnDialog.setVisible(false);
+    setDialog.setVisible(true);
   }
 
-  protected void updateDisplay() {
+  protected void updateTurnDisplay() {
     turnDialog.setControls();
     turnDialog.repaint();
   }
@@ -299,6 +343,7 @@ public class TurnCounter extends AbstractConfigurable implements CommandEncoder,
     for (int i = 0; i < levels.size(); i++) {
       ((TurnLevel) levels.get(i)).reset();
     }
+    setLaunchToolTip();
   }
   
   public Command getRestoreCommand() {
@@ -318,14 +363,14 @@ public class TurnCounter extends AbstractConfigurable implements CommandEncoder,
     protected JPanel controlPanel;
     protected JPanel controls = null;
 
-    private TurnDialog() {
+    protected TurnDialog() {
       super(GameModule.getGameModule().getFrame());
       initComponents();
       setLocation(100, 100);
       //setLocationRelativeTo(getOwner());
     }
 
-    private void initComponents() {
+    protected void initComponents() {
       getContentPane().setLayout(new BoxLayout(getContentPane(), BoxLayout.Y_AXIS));
       setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
       addWindowListener(new WindowAdapter() {
@@ -395,7 +440,7 @@ public class TurnCounter extends AbstractConfigurable implements CommandEncoder,
       Iterator it = levels.iterator();
       while (it.hasNext()) {
         TurnLevel level = (TurnLevel) it.next();
-        controls.add(level.getControls());
+        controls.add(level.getDisplayControls());
       }
 
       controlPanel.add(controls);
@@ -403,6 +448,108 @@ public class TurnCounter extends AbstractConfigurable implements CommandEncoder,
     }
   }
 
+
+  protected class SetDialog extends JDialog {
+
+    protected JPanel panel;
+    protected JPanel controls = null;
+
+    protected SetDialog() {
+      super(GameModule.getGameModule().getFrame());
+      initComponents();
+      setLocation(100, 100);
+    }
+    
+    protected void initComponents() {
+      getContentPane().setLayout(new BoxLayout(getContentPane(), BoxLayout.Y_AXIS));
+      setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
+      addWindowListener(new WindowAdapter() {
+        public void windowClosing(WindowEvent e) {
+          cancelSet();
+          setVisible(false);
+        }
+      });
+
+      panel = new JPanel();
+      panel.setLayout(new BoxLayout(panel, BoxLayout.X_AXIS));
+      getContentPane().add(panel);
+
+      JPanel p = new JPanel();
+
+      JButton saveButton = new JButton("Save");
+      p.add(saveButton);
+      saveButton.addActionListener(new ActionListener() {
+        public void actionPerformed(ActionEvent e) {
+          saveSet();
+          setVisible(false);
+        }
+      });
+
+      JButton cancelButton = new JButton("Cancel");
+      cancelButton.addActionListener(new ActionListener() {
+        public void actionPerformed(ActionEvent e) {
+          cancelSet();
+          setVisible(false);
+        }
+      });
+      p.add(cancelButton);
+
+      JButton configButton = new JButton("Configure");
+      configButton.addActionListener(new ActionListener() {
+        public void actionPerformed(ActionEvent e) {
+          toggleSetVisibility();
+        }
+      });
+      p.add(configButton);
+      
+      getContentPane().add(p);
+    }
+
+    public void setControls() {
+      if (controls != null) {
+        panel.remove(controls);
+      }
+
+      controls = new JPanel();
+      controls.setLayout(new BoxLayout(controls, BoxLayout.X_AXIS));
+
+      Iterator it = levels.iterator();
+      while (it.hasNext()) {
+        TurnLevel level = (TurnLevel) it.next();
+        JComponent c = level.getSetControls();
+        c.setAlignmentX(Component.TOP_ALIGNMENT);
+        controls.add(c);
+      }
+
+      panel.add(controls);
+      pack();
+    }
+  }
+  
+  protected void cancelSet() {
+    setState(savedSetState);
+    turnDialog.setVisible(true);
+  }
+  
+  protected void saveSet() {
+    updateTurnDisplay();
+    turnDialog.setVisible(true);
+  }
+  
+  protected void toggleSetVisibility() {
+    for (int i = 0; i < levels.size(); i++) {
+      ((TurnLevel) levels.get(i)).toggleConfigVisibility();
+    }
+    setDialog.pack();
+  }
+  
+  protected void setSetVisibility(boolean b) {
+    for (int i = 0; i < levels.size(); i++) {
+      ((TurnLevel) levels.get(i)).setConfigVisibility(b);
+    }
+    setDialog.pack();
+  }
+  
   public static class SetTurn extends Command {
     private String oldState;
     private String newState;

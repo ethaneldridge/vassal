@@ -19,6 +19,14 @@ package Dev;
  * http://www.opensource.org.
  */
 
+import java.awt.Color;
+import java.awt.Component;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
+
+import javax.swing.BorderFactory;
+import javax.swing.Box;
+import javax.swing.BoxLayout;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
@@ -27,8 +35,11 @@ import VASSAL.build.AbstractConfigurable;
 import VASSAL.build.AutoConfigurable;
 import VASSAL.build.Buildable;
 import VASSAL.build.module.documentation.HelpFile;
+import VASSAL.configure.BooleanConfigurer;
+import VASSAL.configure.IntConfigurer;
 import VASSAL.configure.StringArrayConfigurer;
 import VASSAL.configure.StringEnum;
+import VASSAL.configure.StringEnumConfigurer;
 import VASSAL.configure.VisibilityCondition;
 import VASSAL.tools.SequenceEncoder;
 
@@ -56,6 +67,16 @@ public class TurnLevel extends AbstractConfigurable {
   protected int first = 0;
   protected boolean[] active = new boolean[0]; 
 
+  // Other Variables
+  protected IntConfigurer counterVal;
+  protected StringEnumConfigurer listVal;
+  protected StringEnumConfigurer firstVal;
+  protected BooleanConfigurer activeVal[];
+  
+  protected boolean configMode = false;
+  protected JPanel firstPanel;
+  protected JPanel activePanel;
+  
   public TurnLevel() {
     super();
   }
@@ -101,7 +122,7 @@ public class TurnLevel extends AbstractConfigurable {
     }
   }
   
-  public JPanel getControls() {
+  public JPanel getDisplayControls() {
     JTextField text;
     JPanel p = new JPanel();
     p.add(new JLabel(getConfigureName() + ": "));
@@ -109,12 +130,146 @@ public class TurnLevel extends AbstractConfigurable {
       text = new JTextField(" " + getValueName()+" ");
     }
     else {
-      text = new JTextField(getLongestName()+2);
+      text = new JTextField(getLongestName()/2+2);
       text.setText(" " + getValueName());
     }
     p.add(text);
     
     return p;
+  }
+  
+  public JPanel getSetControls() {
+    
+    JPanel panel = new JPanel();
+    panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
+    
+    JPanel p = new JPanel();
+    Box box = Box.createVerticalBox();
+    box.setAlignmentX(Component.RIGHT_ALIGNMENT);
+    
+    if (isCounter()) {
+
+      p.add(new JLabel(getConfigureName() + ":  "));
+      counterVal = new IntConfigurer(null, null, new Integer(current));
+      counterVal.addPropertyChangeListener(new PropertyChangeListener() {
+        public void propertyChange(PropertyChangeEvent e) {
+          current = ((Integer) counterVal.getValue()).intValue();      
+        }});
+      p.add(counterVal.getControls());
+      box.add(p);
+      panel.add(box);
+    }
+    
+    else {
+
+      p.add(new JLabel(getConfigureName() + ":  "));
+      listVal = new StringEnumConfigurer(null, null, list);
+      listVal.setValue(list[current]);
+      listVal.addPropertyChangeListener(new PropertyChangeListener() {
+        public void propertyChange(PropertyChangeEvent e) {
+          current = findListIndex(listVal.getValueString());
+        }});
+      p.add(listVal.getControls());
+      box.add(p); 
+      panel.add(box);
+        
+      box = Box.createVerticalBox();
+      box.setAlignmentX(Component.RIGHT_ALIGNMENT);
+      
+      activePanel = new JPanel();
+      JPanel left = new JPanel();
+      left.setAlignmentY(Component.TOP_ALIGNMENT);
+      left.setAlignmentX(Component.RIGHT_ALIGNMENT);
+      left.add(new JLabel("Active:  "));
+      activePanel.add(left);
+      
+      JPanel activeBox = new JPanel();
+      activeBox.setLayout(new BoxLayout(activeBox, BoxLayout.Y_AXIS));
+      //activeBox.setBorder(BorderFactory.createLineBorder(Color.black));
+      activeBox.setAlignmentX(Component.RIGHT_ALIGNMENT);
+      activeVal = new BooleanConfigurer[list.length];
+
+      for (int i = 0; i < list.length; i++) {
+        activeVal[i] = new ActiveConfigurer(i);
+        activeVal[i].addPropertyChangeListener(new PropertyChangeListener() {
+          public void propertyChange(PropertyChangeEvent e) {
+           int index = ((ActiveConfigurer) e.getSource()).getIndex();
+           active[index] = activeVal[index].booleanValue().booleanValue();
+          }});
+        activeBox.add(activeVal[i].getControls());
+      }
+      
+      activePanel.add(activeBox);
+      box.add(activePanel);
+      panel.add(box);
+      
+      box = Box.createVerticalBox();
+      box.setAlignmentX(Component.RIGHT_ALIGNMENT);
+      firstPanel = new JPanel();
+      firstPanel.add(new JLabel("First:  "));
+      firstVal = new StringEnumConfigurer(null, null, list);
+      firstVal.setValue(list[first]);
+      firstVal.addPropertyChangeListener(new PropertyChangeListener() {
+        public void propertyChange(PropertyChangeEvent e) {
+          first = findListIndex(firstVal.getValueString());
+        }});
+      firstPanel.add(firstVal.getControls());
+      firstPanel.setAlignmentX(Component.LEFT_ALIGNMENT);
+
+      box.add(firstPanel);
+      panel.add(box);
+         
+    }
+    
+
+    return panel;
+  }
+  
+  
+  public void toggleConfigVisibility() {
+    configMode = !configMode;
+    updateVisibility();
+  }
+  
+  public void setConfigVisibility(boolean b) {
+    configMode = b;
+    updateVisibility();
+  }
+  
+  public void updateVisibility() {
+    if (!isCounter()) {
+      firstPanel.setVisible(configMode);
+      activePanel.setVisible(configMode);
+    }
+  }
+  
+  public class ActiveConfigurer extends BooleanConfigurer {
+  
+    int index;
+    
+    public ActiveConfigurer(int index) {
+      super(null, list[index], new Boolean(active[index]));
+      this.index = index;
+    }
+    
+    public int getIndex() {
+      return index;
+    }
+  }
+  
+  protected int findListIndex(String s) {
+    int index = -1;
+    int i = 0;
+    while (i < list.length && index < 0) {
+      if (list[i].equals(s)) {
+        index = i;
+      }
+      i++;
+    }
+    if (index < 0) {
+      index = 0;
+    }
+    return index;
   }
   
   protected int getLongestName() {
@@ -182,7 +337,7 @@ public class TurnLevel extends AbstractConfigurable {
       current = idx;
     }
   }
-  
+
   public boolean hasRolledOver() {
     return rolledOver;
   }
