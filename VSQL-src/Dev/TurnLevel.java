@@ -19,12 +19,10 @@ package Dev;
  * http://www.opensource.org.
  */
 
-import java.awt.Color;
 import java.awt.Component;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 
-import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.JLabel;
@@ -130,7 +128,7 @@ public class TurnLevel extends AbstractConfigurable {
       text = new JTextField(" " + getValueName()+" ");
     }
     else {
-      text = new JTextField(getLongestName()/2+2);
+      text = new JTextField(getLongestNameLength()/2+2);
       text.setText(" " + getValueName());
     }
     p.add(text);
@@ -220,8 +218,6 @@ public class TurnLevel extends AbstractConfigurable {
       panel.add(box);
          
     }
-    
-
     return panel;
   }
   
@@ -272,7 +268,7 @@ public class TurnLevel extends AbstractConfigurable {
     return index;
   }
   
-  protected int getLongestName() {
+  protected int getLongestNameLength() {
     int m = 1;
     for (int i = 0; i < list.length; i++) {
       if (list[i] != null & list[i].length() > m) {
@@ -292,6 +288,22 @@ public class TurnLevel extends AbstractConfigurable {
       }
     }
     return "";
+  }
+  
+  public String getLongestValueName() {
+    if (isCounter()) {
+      return current + "9";
+    }
+    else {
+      String s = "X";
+      for (int i = 0; i < list.length; i++) {
+        if (list[i].length() > s.length()) {
+          s = list[i];
+        }
+      }
+      return s;
+    }
+      
   }
   
   public void advance() {

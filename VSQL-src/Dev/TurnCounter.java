@@ -19,20 +19,39 @@
 
 package Dev;
 
+import java.awt.BasicStroke;
 import java.awt.Component;
+import java.awt.Dimension;
+import java.awt.Font;
+import java.awt.Graphics;
+import java.awt.Graphics2D;
+import java.awt.Point;
+import java.awt.Rectangle;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
+import java.awt.event.MouseMotionListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
+import java.awt.font.FontRenderContext;
+import java.awt.font.TextLayout;
+import java.awt.geom.AffineTransform;
 import java.util.ArrayList;
 import java.util.Iterator;
 
+import javax.swing.BorderFactory;
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JDialog;
+import javax.swing.JLabel;
+import javax.swing.JMenuItem;
 import javax.swing.JPanel;
+import javax.swing.JPopupMenu;
+import javax.swing.JWindow;
 import javax.swing.KeyStroke;
+import javax.swing.plaf.basic.BasicArrowButton;
 
 import VASSAL.build.AbstractConfigurable;
 import VASSAL.build.AutoConfigurable;
@@ -49,6 +68,7 @@ import VASSAL.configure.ConfigurerFactory;
 import VASSAL.configure.FormattedStringConfigurer;
 import VASSAL.configure.IconConfigurer;
 import VASSAL.configure.PlayerIdFormattedStringConfigurer;
+import VASSAL.configure.StringEnum;
 import VASSAL.tools.FormattedString;
 import VASSAL.tools.LaunchButton;
 import VASSAL.tools.PlayerIdFormattedString;
@@ -57,13 +77,18 @@ import VASSAL.tools.SequenceEncoder;
 /**
  * Generic Turn Counter
  */
-public class TurnCounter extends AbstractConfigurable implements CommandEncoder, GameComponent {
+public class TurnCounter extends AbstractConfigurable implements CommandEncoder, GameComponent, ActionListener {
 
   protected static final String COMMAND_PREFIX = "TURN\t";
+  public static final String VERSION = "1.2";
 
   public static final String HOT_KEY = "hotkey";
   public static final String ICON = "icon";
   public static final String BUTTON_TEXT = "buttonText";
+  public static final String FONT_FAMILY = "fontFamily";
+  public static final String FONT_SIZE = "fontSize";
+  public static final String FONT_BOLD = "bold";
+  public static final String FONT_ITALIC = "italic";
   public static final String TURN_FORMAT = "turnFormat";
   public static final String REPORT_FORMAT = "reportFormat";
 
@@ -72,33 +97,43 @@ public class TurnCounter extends AbstractConfigurable implements CommandEncoder,
   public static final String LEVEL_TURN = "turn";
   public static final String OLD_TURN = "oldTurn";
   public static final String NEW_TURN = "newTurn";
+  
+  public static final String SET_COMMAND = "Set";
 
   protected FormattedString turnFormat = new FormattedString("$"+LEVEL_NAME+"1$: $"+LEVEL_TURN+"1$");
   protected FormattedString reportFormat = new PlayerIdFormattedString("* <$" + GlobalOptions.PLAYER_ID
       + "$> Turn Updated from $"+OLD_TURN+"$ to $"+NEW_TURN+"$");
 
   protected ArrayList levels = new ArrayList(5);
-  protected TurnDialog turnDialog;
+  protected TurnWindow turnWindow;
   protected SetDialog setDialog;
   protected LaunchButton launch;
+  protected String fontFamily = "Dialog";
+  protected int fontSize = 18;
+  protected boolean fontBold = false;
+  protected boolean fontItalic = false;
+  protected JLabel turnLabel = new JLabel();
+  
   protected String savedState = "";
   protected String savedSetState = "";
   protected String savedTurn = "";
+  protected JPopupMenu popup;
 
   public TurnCounter() {
-    turnDialog = new TurnDialog();
-    turnDialog.setTitle("Turn Counter");
+    turnWindow = new TurnWindow();    
+    //turnLabel.setToolTipText("Use Right-click to Set or Configure Turn Counter");
+    
     ActionListener al = new ActionListener() {
       public void actionPerformed(java.awt.event.ActionEvent e) {
         captureState();
-        turnDialog.setControls();
-        turnDialog.setVisible(!turnDialog.isShowing());
+        turnWindow.setControls();
+        turnWindow.setVisible(!turnWindow.isShowing());
       }
     };
     launch = new LaunchButton("Turn", BUTTON_TEXT, HOT_KEY, ICON, al);
     launch.setToolTipText("Turn Counter");
     launch.setEnabled(false);
-    turnDialog.pack();    
+    turnWindow.pack();    
     
   }
   
@@ -118,6 +153,7 @@ public class TurnCounter extends AbstractConfigurable implements CommandEncoder,
       ((TurnLevel) levels.get(i)).setState(sd.nextToken(""));
     }
     setLaunchToolTip();
+    updateTurnDisplay();
   }
   
   protected void setLaunchToolTip() {
@@ -127,7 +163,7 @@ public class TurnCounter extends AbstractConfigurable implements CommandEncoder,
    * Module level Configuration stuff
    */
   public String[] getAttributeNames() {
-    return new String[] { BUTTON_TEXT, ICON, HOT_KEY, TURN_FORMAT, REPORT_FORMAT };
+    return new String[] { BUTTON_TEXT, ICON, HOT_KEY, FONT_FAMILY, FONT_SIZE, FONT_BOLD, FONT_ITALIC, TURN_FORMAT, REPORT_FORMAT };
   }
 
   public void setAttribute(String name, Object value) {
@@ -137,11 +173,41 @@ public class TurnCounter extends AbstractConfigurable implements CommandEncoder,
     else if (TURN_FORMAT.equals(name)) {
       turnFormat.setFormat((String) value);
     }
+    else if (FONT_FAMILY.equals(name)) {
+      fontFamily = (String) value;
+      setDisplayFont();
+    }
+    else if (FONT_SIZE.equals(name)) {
+      if (value instanceof String) {
+        value = new Integer((String) value);
+      }
+      fontSize = ((Integer) value).intValue();
+      setDisplayFont();
+    }
+    else if (FONT_BOLD.equals(name)) {
+      if (value instanceof String) {
+        value = new Boolean((String) value);
+      }
+      fontBold = ((Boolean) value).booleanValue();
+      setDisplayFont();
+    }
+    else if (FONT_ITALIC.equals(name)) {
+      if (value instanceof String) {
+        value = new Boolean((String) value);
+      }
+      fontItalic = ((Boolean) value).booleanValue();
+      setDisplayFont();
+    }
     else {
       launch.setAttribute(name, value);
     }
   }
 
+  protected void setDisplayFont() {
+    int style = (fontBold ? Font.BOLD : 0) + (fontItalic ? Font.ITALIC : 0);
+    turnLabel.setFont(new Font(fontFamily, style, fontSize));
+  }
+  
   public String getAttributeValueString(String name) {
     if (REPORT_FORMAT.equals(name)) {
       return reportFormat.getFormat();
@@ -149,17 +215,33 @@ public class TurnCounter extends AbstractConfigurable implements CommandEncoder,
     else if (TURN_FORMAT.equals(name)) {
       return turnFormat.getFormat();
     }
+    else if (FONT_FAMILY.equals(name)) {
+      return fontFamily;
+    }
+    else if (FONT_SIZE.equals(name)) {
+      return fontSize + "";
+    }
+    else if (FONT_BOLD.equals(name)) {
+      return fontBold + "";
+    }
+    else if (FONT_ITALIC.equals(name)) {
+      return fontItalic + "";
+    }
     else {
       return launch.getAttributeValueString(name);
     }
   }
-
+  
   public String[] getAttributeDescriptions() {
-    return new String[] { "Button text:  ", "Button Icon:  ", "Hotkey:  ", "Turn Format", "Report Format:  " };
+    return new String[] { "Button text:  ", "Button Icon:  ", "Hotkey:  ", 
+        "Font Family:  ", "Size:  ", "Bold?", "Italic?", 
+        "Turn Format:  ", "Report Format:  " };
   }
 
   public Class[] getAttributeTypes() {
-    return new Class[] { String.class, IconConfig.class, KeyStroke.class, TurnFormatConfig.class, ReportFormatConfig.class };
+    return new Class[] { String.class, IconConfig.class, KeyStroke.class, 
+        FontFamilyConfig.class, Integer.class, Boolean.class, Boolean.class, 
+        TurnFormatConfig.class, ReportFormatConfig.class };
   }
 
   public static class IconConfig implements ConfigurerFactory {
@@ -186,12 +268,19 @@ public class TurnCounter extends AbstractConfigurable implements CommandEncoder,
     }
   }
   
+  public static class FontFamilyConfig extends StringEnum {
+    public String[] getValidValues(AutoConfigurable target) {
+      return new String[] { "Dialog", "DialogInput", "Monospaced", "SanSerif", "Serif"};
+    }
+ 
+  }
+  
   public Class[] getAllowableConfigureComponents() {
     return new Class[] { TurnLevel.class };
   }
 
   public static String getConfigureTypeName() {
-    return "Turn Counter";
+    return "Turn Counter v"+VERSION;
   }
 
   public void addTo(Buildable b) {
@@ -216,13 +305,13 @@ public class TurnCounter extends AbstractConfigurable implements CommandEncoder,
     savedTurn = getTurn();
   }
 
-  public void cancel() {
-    restoreState();
-  }
-
-  protected void restoreState() {
-    setState(savedState);
-  }
+//  public void cancel() {
+//    restoreState();
+//  }
+//
+//  protected void restoreState() {
+//    setState(savedState);
+//  }
 
   protected void save() {
 
@@ -239,6 +328,8 @@ public class TurnCounter extends AbstractConfigurable implements CommandEncoder,
       
       setLaunchToolTip();
     }
+    
+    captureState();
 
   }
 
@@ -248,6 +339,17 @@ public class TurnCounter extends AbstractConfigurable implements CommandEncoder,
       TurnLevel level = (TurnLevel) levels.get(i);
       turnFormat.setProperty(LEVEL_NAME + (i + 1), level.getConfigureName());
       turnFormat.setProperty(LEVEL_TURN + (i + 1), level.getValueName());
+    }
+    return turnFormat.getText();
+  }
+  
+  // Find longest possible string that can be returned
+  protected String getLongestTurn() {
+    
+    for (int i = 0; i < levels.size(); i++) {
+      TurnLevel level = (TurnLevel) levels.get(i);
+      turnFormat.setProperty(LEVEL_NAME + (i + 1), level.getConfigureName());
+      turnFormat.setProperty(LEVEL_TURN + (i + 1), level.getLongestValueName());
     }
     return turnFormat.getText();
   }
@@ -296,21 +398,26 @@ public class TurnCounter extends AbstractConfigurable implements CommandEncoder,
     updateTurnDisplay();
   }
 
+  public void actionPerformed(ActionEvent e) {
+    if (e.getActionCommand().equals(SET_COMMAND)) {
+      set();
+    }    
+  }
+  
   protected void set() {
     savedSetState = getState();
     if (setDialog == null) {
       setDialog = new SetDialog();
-      setDialog.setTitle("Set Turn");
+      setDialog.setTitle("Set " + getConfigureName());
     }
     setDialog.setControls();
     setSetVisibility(false);
-    turnDialog.setVisible(false);
     setDialog.setVisible(true);
   }
 
   protected void updateTurnDisplay() {
-    turnDialog.setControls();
-    turnDialog.repaint();
+    turnWindow.setControls();
+    turnWindow.repaint();
   }
 
   public Command decode(String command) {
@@ -335,7 +442,7 @@ public class TurnCounter extends AbstractConfigurable implements CommandEncoder,
       reset();
     }
     else {
-      turnDialog.setVisible(false);
+      turnWindow.setVisible(false);
     }
   }
 
@@ -358,12 +465,16 @@ public class TurnCounter extends AbstractConfigurable implements CommandEncoder,
     levels.remove(level);
   }
 
-  protected class TurnDialog extends JDialog {
+  protected class TurnWindow extends JWindow implements MouseListener, MouseMotionListener {
 
+    protected JPanel mainPanel;
     protected JPanel controlPanel;
-    protected JPanel controls = null;
+    protected JPanel buttonPanel;
+    protected JPanel rightPanel;
+    protected Point lastDrag;
+    protected boolean dragging = false;
 
-    protected TurnDialog() {
+    protected TurnWindow() {
       super(GameModule.getGameModule().getFrame());
       initComponents();
       setLocation(100, 100);
@@ -371,84 +482,193 @@ public class TurnCounter extends AbstractConfigurable implements CommandEncoder,
     }
 
     protected void initComponents() {
-      getContentPane().setLayout(new BoxLayout(getContentPane(), BoxLayout.Y_AXIS));
-      setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
-      addWindowListener(new WindowAdapter() {
-        public void windowClosing(WindowEvent e) {
-          cancel();
-          setVisible(false);
-        }
-      });
+
+      //setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
+      mainPanel = new JPanel();
+      //((JFrame) getParent()).getRootPane().setWindowDecorationStyle(JRootPane.NONE);
+      mainPanel.setLayout(new BoxLayout(mainPanel, BoxLayout.Y_AXIS));
+      mainPanel.setBorder(BorderFactory.createCompoundBorder(
+          BorderFactory.createRaisedBevelBorder(), BorderFactory.createLoweredBevelBorder()));
+      getContentPane().add(mainPanel);
+//      
+//      addWindowListener(new WindowAdapter() {
+//        public void windowClosing(WindowEvent e) {
+//          cancel();
+//          setVisible(false);
+//        }
+//      });
 
       controlPanel = new JPanel();
-      controlPanel.setLayout(new BoxLayout(controlPanel, BoxLayout.X_AXIS));
-      getContentPane().add(controlPanel);
-
-      JPanel p = new JPanel();
-
-      JButton nextButton = new JButton("Next");
-      p.add(nextButton);
+      
+      buttonPanel = new JPanel();
+      buttonPanel.setLayout(new BoxLayout(buttonPanel, BoxLayout.Y_AXIS));
+      buttonPanel.setPreferredSize(new Dimension(18, 36));
+      
+      JButton nextButton = new BasicArrowButton(BasicArrowButton.NORTH);
+      nextButton.setToolTipText("Next Turn");
+      buttonPanel.add(nextButton);
       nextButton.addActionListener(new ActionListener() {
         public void actionPerformed(ActionEvent e) {
           next();
+          save();
         }
       });
 
-      JButton prevButton = new JButton("Prev");
-      p.add(prevButton);
+      JButton prevButton = new BasicArrowButton(BasicArrowButton.SOUTH);
+      prevButton.setToolTipText("Previous Turn");
+      buttonPanel.add(prevButton);
       prevButton.addActionListener(new ActionListener() {
         public void actionPerformed(ActionEvent e) {
           prev();
-        }
-      });
-
-      JButton saveButton = new JButton("Save");
-      p.add(saveButton);
-      saveButton.addActionListener(new ActionListener() {
-        public void actionPerformed(ActionEvent e) {
           save();
-          setVisible(false);
         }
       });
+      
+      controlPanel.add(buttonPanel);
+      
+      //controlPanel.setLayout(new BoxLayout(controlPanel, BoxLayout.X_AXIS));
+      //turnLabel = new JLabel();
+      setDisplayFont();
+      controlPanel.add(turnLabel);      
 
-      JButton cancelButton = new JButton("Cancel");
+//      JPanel p = new JPanel();
+
+//      JButton saveButton = new JButton("Save");
+//      p.add(saveButton);
+//      saveButton.addActionListener(new ActionListener() {
+//        public void actionPerformed(ActionEvent e) {
+//          save();
+//          setVisible(false);
+//        }
+//      });
+
+      rightPanel = new JPanel();
+      rightPanel.setLayout(new BoxLayout(rightPanel, BoxLayout.Y_AXIS));
+      rightPanel.setPreferredSize(new Dimension(18, 18));
+      
+      JButton cancelButton = new CancelButton(); 
+      cancelButton.setToolTipText("Hide Turn Window");
+      //cancelButton.setSize(15, 15);
+      //cancelButton.setPreferredSize(new Dimension(15, 15));
+//      cancelButton.setMaximumSize(new Dimension(15, 15));
       cancelButton.addActionListener(new ActionListener() {
         public void actionPerformed(ActionEvent e) {
-          cancel();
+          //cancel();
           setVisible(false);
         }
       });
-      p.add(cancelButton);
+      rightPanel.add(cancelButton);
+      
+//      JPanel fillerPanel = new JPanel();
+//      Dimension size = new Dimension(15, 15);
+//      fillerPanel.setPreferredSize(size);
+//      rightPanel.add(fillerPanel);
+      //JButton tempButton = new BasicArrowButton(BasicArrowButton.NORTH); 
+      //tempButton.setVisible(false);
+      //rightPanel.add(tempButton);
+      
+      controlPanel.add(rightPanel);
+      mainPanel.add(controlPanel);
 
-      JButton configButton = new JButton("Set");
-      p.add(configButton);
-      configButton.addActionListener(new ActionListener() {
-        public void actionPerformed(ActionEvent e) {
-          set();
-        }
-      });
-      getContentPane().add(p);
+//      mainPanel.add(p);
+      
+      addMouseListener(this);
+      addMouseMotionListener(this);
+      pack();
     }
 
     public void setControls() {
-      if (controls != null) {
-        controlPanel.remove(controls);
-      }
-
-      controls = new JPanel();
-
-      Iterator it = levels.iterator();
-      while (it.hasNext()) {
-        TurnLevel level = (TurnLevel) it.next();
-        controls.add(level.getDisplayControls());
-      }
-
-      controlPanel.add(controls);
+      turnLabel.setText(getTurn());
+      TextLayout layout = new TextLayout(getLongestTurn(), turnLabel.getFont(), new FontRenderContext(new AffineTransform(), true, false));
+      turnLabel.setPreferredSize(new Dimension((int) layout.getBounds().getWidth()+10, (int) layout.getBounds().getHeight()+10));
       pack();
+      turnLabel.repaint();
+      dragging = false;
     }
+
+    public void mouseDragged(MouseEvent e) {
+      Point here = e.getPoint();
+      int xOffset = here.x - lastDrag.x;
+      int yOffset = here.y - lastDrag.y;
+      setLocation(getLocation().x+xOffset, getLocation().y+yOffset);
+      repaint();
+    }
+
+    public void mouseMoved(MouseEvent e) {
+      
+    }
+
+    public void mouseClicked(MouseEvent e) {
+      if (e.isMetaDown()) {
+        doPopup(e.getPoint());
+      }
+    }
+
+    public void mouseEntered(MouseEvent e) {
+      
+    }
+
+    public void mouseExited(MouseEvent e) {
+      
+    }
+
+    public void mousePressed(MouseEvent e) {
+      dragging = true;
+      lastDrag = e.getPoint();
+    }
+
+    public void mouseReleased(MouseEvent e) {
+      dragging = false;
+    }
+    
+    public void doPopup(Point p) {
+      if (popup == null) {
+        buildPopup();
+      }
+
+      popup.show(this, p.x, p.y);
+    }
+    
+  }
+  
+  protected void buildPopup() {
+    
+    popup = new JPopupMenu();
+    popup.addPopupMenuListener(new javax.swing.event.PopupMenuListener() {
+      public void popupMenuCanceled(javax.swing.event.PopupMenuEvent evt) {
+        turnWindow.repaint();
+      }
+
+      public void popupMenuWillBecomeInvisible(javax.swing.event.PopupMenuEvent evt) {
+        turnWindow.repaint();
+      }
+
+      public void popupMenuWillBecomeVisible(javax.swing.event.PopupMenuEvent evt) {
+      }
+    });
+    
+    JMenuItem item = new JMenuItem(SET_COMMAND);
+    item.addActionListener(this);
+    popup.add(item);
   }
 
-
+  protected class CancelButton extends BasicArrowButton {
+    
+    public CancelButton() {
+      super(BasicArrowButton.CENTER);
+    }
+    
+    public void paint(Graphics g) {
+      super.paint(g);
+      Graphics2D g2 = (Graphics2D) g;
+      g2.setStroke(new BasicStroke(1.8f));
+      //g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+      Rectangle r = getBounds();
+      g.drawLine(5, 5, r.width-5, r.height-5);
+      g.drawLine(5, r.height-5, r.width-5, 5);
+    }
+  }
+  
   protected class SetDialog extends JDialog {
 
     protected JPanel panel;
@@ -477,6 +697,7 @@ public class TurnCounter extends AbstractConfigurable implements CommandEncoder,
       JPanel p = new JPanel();
 
       JButton saveButton = new JButton("Save");
+      saveButton.setToolTipText("Save Changes to Turn Counter");
       p.add(saveButton);
       saveButton.addActionListener(new ActionListener() {
         public void actionPerformed(ActionEvent e) {
@@ -486,6 +707,7 @@ public class TurnCounter extends AbstractConfigurable implements CommandEncoder,
       });
 
       JButton cancelButton = new JButton("Cancel");
+      cancelButton.setToolTipText("Discard Changes to Turn Counter");
       cancelButton.addActionListener(new ActionListener() {
         public void actionPerformed(ActionEvent e) {
           cancelSet();
@@ -495,6 +717,7 @@ public class TurnCounter extends AbstractConfigurable implements CommandEncoder,
       p.add(cancelButton);
 
       JButton configButton = new JButton("Configure");
+      configButton.setToolTipText("Show/Hide Configure Options");
       configButton.addActionListener(new ActionListener() {
         public void actionPerformed(ActionEvent e) {
           toggleSetVisibility();
@@ -528,12 +751,12 @@ public class TurnCounter extends AbstractConfigurable implements CommandEncoder,
   
   protected void cancelSet() {
     setState(savedSetState);
-    turnDialog.setVisible(true);
+    turnWindow.setVisible(true);
   }
   
   protected void saveSet() {
+    save();
     updateTurnDisplay();
-    turnDialog.setVisible(true);
   }
   
   protected void toggleSetVisibility() {
