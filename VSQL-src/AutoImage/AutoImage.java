@@ -77,7 +77,7 @@ public class AutoImage extends Decorator  implements EditablePiece {
   public void mySetState(String newState) {
     if (defn != null) {
       defn.setState(newState);
-      buildImage();
+      reBuildImage();
     }
   }
 
@@ -103,7 +103,7 @@ public class AutoImage extends Decorator  implements EditablePiece {
   public Command myKeyEvent(KeyStroke stroke) {
     ChangeTracker change = new ChangeTracker(this);
     defn.keyEvent(stroke);
-    buildImage();
+    reBuildImage();
     return change.getChangeCommand();
   }
 
@@ -150,7 +150,10 @@ public class AutoImage extends Decorator  implements EditablePiece {
         return;
       }
       defn = (ImageDefn) defn.clone();
-    //}
+      reBuildImage();
+  }
+  
+  protected void reBuildImage() {
     if (defn != null) {
       layout = defn.getLayout();
       image = (BufferedImage) defn.getVisualizerImage();

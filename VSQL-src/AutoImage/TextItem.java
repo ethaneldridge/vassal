@@ -36,7 +36,6 @@ import VASSAL.configure.FormattedStringConfigurer;
 import VASSAL.configure.HotKeyConfigurer;
 import VASSAL.configure.StringEnum;
 import VASSAL.configure.VisibilityCondition;
-import VASSAL.counters.Labeler;
 import VASSAL.tools.FormattedString;
 import VASSAL.tools.SequenceEncoder;
 
@@ -66,6 +65,12 @@ public class TextItem extends Item {
   protected static final String PIECE_NAME = "pieceName";
   protected static final String LABEL = "label";
   protected static final String DEFAULT_FORMAT = "$"+PIECE_NAME+"$";
+  
+  public static final int AL_CENTER = 0;
+  public static final int AL_RIGHT = 1;
+  public static final int AL_LEFT = 2;
+  public static final int AL_TOP = 3;
+  public static final int AL_BOTTOM = 4;
   
   protected FontStyle fontStyle = new FontStyle();
   protected String alignment = CENTER;
@@ -282,12 +287,12 @@ public class TextItem extends Item {
     Color fg = ti.getFgColor().getColor();
     Color bg = ti.getBgColor().getColor();
 
-    int align = Labeler.CENTER;
-    if (alignment == LEFT) {
-      align = Labeler.LEFT;
+    int align = AL_CENTER;
+    if (alignment.equals(LEFT)) {
+      align = AL_LEFT;
     }
-    else if (alignment == RIGHT) {
-      align = Labeler.RIGHT;
+    else if (alignment.equals(RIGHT)) {
+      align = AL_RIGHT;
     }
 
     Point origin = getOrigin();
@@ -318,7 +323,7 @@ public class TextItem extends Item {
 //    }
 
     ((Graphics2D) g).setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
-    drawLabel(g, s, origin.x, origin.y, f, align, Labeler.CENTER, fg, bg, null, getRotation());
+    drawLabel(g, s, origin.x, origin.y, f, align, AL_CENTER, fg, bg, null, getRotation());
   }
 
   public String getType() {
@@ -402,18 +407,18 @@ public class TextItem extends Item {
     int x0 = x;
     int y0 = y;
     switch (hAlign) {
-      case Labeler.CENTER:
+      case AL_CENTER:
         x0 = x - width / 2;
         break;
-      case Labeler.LEFT:
+      case AL_RIGHT:
         x0 = x - width;
         break;
     }
     switch (vAlign) {
-      case Labeler.CENTER:
+      case AL_CENTER:
         y0 = y - height / 2;
         break;
-      case Labeler.BOTTOM:
+      case AL_BOTTOM:
         y0 = y - height;
         break;
     }
