@@ -37,8 +37,7 @@ import java.awt.event.WindowEvent;
 import java.awt.font.FontRenderContext;
 import java.awt.font.TextLayout;
 import java.awt.geom.AffineTransform;
-import java.util.ArrayList;
-import java.util.Iterator;
+import java.util.Enumeration;
 
 import javax.swing.BorderFactory;
 import javax.swing.BoxLayout;
@@ -77,10 +76,10 @@ import VASSAL.tools.SequenceEncoder;
 /**
  * Generic Turn Counter
  */
-public class TurnCounter extends AbstractConfigurable implements CommandEncoder, GameComponent, ActionListener {
+public class TurnTracker extends AbstractConfigurable implements CommandEncoder, GameComponent, ActionListener {
 
   protected static final String COMMAND_PREFIX = "TURN\t";
-  public static final String VERSION = "1.2";
+  public static final String VERSION = "1.3";
 
   public static final String HOT_KEY = "hotkey";
   public static final String ICON = "icon";
@@ -104,7 +103,6 @@ public class TurnCounter extends AbstractConfigurable implements CommandEncoder,
   protected FormattedString reportFormat = new PlayerIdFormattedString("* <$" + GlobalOptions.PLAYER_ID
       + "$> Turn Updated from $"+OLD_TURN+"$ to $"+NEW_TURN+"$");
 
-  protected ArrayList levels = new ArrayList(5);
   protected TurnWindow turnWindow;
   protected SetDialog setDialog;
   protected LaunchButton launch;
@@ -118,10 +116,11 @@ public class TurnCounter extends AbstractConfigurable implements CommandEncoder,
   protected String savedSetState = "";
   protected String savedTurn = "";
   protected JPopupMenu popup;
+  
+  protected int currentTurn = 0;
 
-  public TurnCounter() {
+  public TurnTracker() {
     turnWindow = new TurnWindow();    
-    //turnLabel.setToolTipText("Use Right-click to Set or Configure Turn Counter");
     
     ActionListener al = new ActionListener() {
       public void actionPerformed(java.awt.event.ActionEvent e) {
@@ -131,7 +130,7 @@ public class TurnCounter extends AbstractConfigurable implements CommandEncoder,
       }
     };
     launch = new LaunchButton("Turn", BUTTON_TEXT, HOT_KEY, ICON, al);
-    launch.setToolTipText("Turn Counter");
+    launch.setToolTipText("Turn Tracker");
     launch.setEnabled(false);
     turnWindow.pack();    
     
@@ -139,9 +138,10 @@ public class TurnCounter extends AbstractConfigurable implements CommandEncoder,
   
   public String getState() {
     SequenceEncoder se = new SequenceEncoder('|');
-    Iterator it = levels.iterator();
-    while (it.hasNext()) {
-      TurnLevel level = (TurnLevel) it.next();
+    se.append(currentTurn);
+    Enumeration e = getComponents(TurnLevel.class);
+    while (e.hasMoreElements()) {
+      TurnLevel level = (TurnLevel) e.nextElement();
       se.append(level.getState());
     }
     return se.getValue();
@@ -149,9 +149,13 @@ public class TurnCounter extends AbstractConfigurable implements CommandEncoder,
 
   public void setState(String newState) {
     SequenceEncoder.Decoder sd = new SequenceEncoder.Decoder(newState, '|');
-    for (int i = 0; i < levels.size(); i++) {
-      ((TurnLevel) levels.get(i)).setState(sd.nextToken(""));
+    currentTurn = sd.nextInt(0);
+    Enumeration e =  getComponents(TurnLevel.class);
+    while (e.hasMoreElements()) {
+      TurnLevel level = (TurnLevel) e.nextElement();
+      level.setState(sd.nextToken(""));
     }
+    
     setLaunchToolTip();
     updateTurnDisplay();
   }
@@ -159,6 +163,7 @@ public class TurnCounter extends AbstractConfigurable implements CommandEncoder,
   protected void setLaunchToolTip() {
     launch.setToolTipText(getTurn());
   }
+  
   /*
    * Module level Configuration stuff
    */
@@ -246,7 +251,7 @@ public class TurnCounter extends AbstractConfigurable implements CommandEncoder,
 
   public static class IconConfig implements ConfigurerFactory {
     public Configurer getConfigurer(AutoConfigurable c, String key, String name) {
-      return new IconConfigurer(key, name, ((TurnCounter) c).launch.getAttributeValueString(ICON));
+      return new IconConfigurer(key, name, ((TurnTracker) c).launch.getAttributeValueString(ICON));
     }
   }
 
@@ -258,9 +263,9 @@ public class TurnCounter extends AbstractConfigurable implements CommandEncoder,
 
   public static class TurnFormatConfig implements ConfigurerFactory {
     public Configurer getConfigurer(AutoConfigurable c, String key, String name) {
-      TurnCounter tc = (TurnCounter) c;
-      String s[] = new String[2 * tc.levels.size()];
-      for (int i = 0; i < tc.levels.size(); i++) {
+      TurnTracker tc = (TurnTracker) c;
+      String s[] = new String[2 * tc.getTurnLevelCount()];
+      for (int i = 0; i < tc.getTurnLevelCount(); i++) {
         s[i * 2] = LEVEL_NAME + ((i + 1) + "");
         s[i * 2 + 1] = LEVEL_TURN + ((i + 1) + "");
       }
@@ -280,7 +285,7 @@ public class TurnCounter extends AbstractConfigurable implements CommandEncoder,
   }
 
   public static String getConfigureTypeName() {
-    return "Turn Counter v"+VERSION;
+    return "Turn Tracker v"+VERSION;
   }
 
   public void addTo(Buildable b) {
@@ -305,14 +310,6 @@ public class TurnCounter extends AbstractConfigurable implements CommandEncoder,
     savedTurn = getTurn();
   }
 
-//  public void cancel() {
-//    restoreState();
-//  }
-//
-//  protected void restoreState() {
-//    setState(savedState);
-//  }
-
   protected void save() {
 
     if (!savedState.equals(getState())) {
@@ -333,68 +330,99 @@ public class TurnCounter extends AbstractConfigurable implements CommandEncoder,
 
   }
 
+  protected TurnLevel getTurnLevel(int i) {
+    return (TurnLevel) buildComponents.get(i);
+  }
+
+  protected int getTurnLevelCount() {
+    return buildComponents.size();
+  }
+  
+  protected Enumeration getTurnLevels() {
+    return getBuildComponents();
+  }
+  
   protected String getTurn() {
-   
-    for (int i = 0; i < levels.size(); i++) {
-      TurnLevel level = (TurnLevel) levels.get(i);
+    int i = 0;
+    Enumeration e =  getComponents(TurnLevel.class);
+    while (e.hasMoreElements()) {
+      TurnLevel level = (TurnLevel) e.nextElement();
       turnFormat.setProperty(LEVEL_NAME + (i + 1), level.getConfigureName());
       turnFormat.setProperty(LEVEL_TURN + (i + 1), level.getValueName());
+      i++;
     }
     return turnFormat.getText();
   }
   
   // Find longest possible string that can be returned
   protected String getLongestTurn() {
-    
-    for (int i = 0; i < levels.size(); i++) {
-      TurnLevel level = (TurnLevel) levels.get(i);
+    int i = 0;
+    Enumeration e =  getComponents(TurnLevel.class);
+    while (e.hasMoreElements()) {
+      TurnLevel level = (TurnLevel) e.nextElement();
       turnFormat.setProperty(LEVEL_NAME + (i + 1), level.getConfigureName());
       turnFormat.setProperty(LEVEL_TURN + (i + 1), level.getLongestValueName());
+      i++;
     }
     return turnFormat.getText();
   }
-  /*
-   * Advance the lowest level counter, plus propagate any rollovers
-   */
+
   protected void next() {
 
-    if (levels.size() == 0) {
+    if (getTurnLevelCount() == 0) {
       return;
     }
 
-    int i = levels.size();
-    TurnLevel level = ((TurnLevel) levels.get(--i));
+    TurnLevel level = getTurnLevel(currentTurn);
     level.advance();
-    boolean rollOver = level.hasRolledOver();
-
-    for (i--; i >= 0; i--) {
-      if (rollOver) {
-        level = (TurnLevel) levels.get(i);
-        level.advance();
-        rollOver = level.hasRolledOver();
+    if (level.hasRolledOver()) {
+      currentTurn++;
+      if (currentTurn >= getTurnLevelCount()) {
+        currentTurn = 0;
       }
     }
+    
+//    int i = buildComponents.size();
+//    TurnLevel level = (TurnLevel) buildComponents.get(--i);
+//    level.advance();
+//    boolean rollOver = level.hasRolledOver();
+//
+//    for (i--; i >= 0; i--) {
+//      if (rollOver) {
+//        level = (TurnLevel) buildComponents.get(i);
+//        level.advance();
+//        rollOver = level.hasRolledOver();
+//      }
+//    }
     updateTurnDisplay();
   }
-
+  
   protected void prev() {
 
-    if (levels.size() == 0) {
+    if (getTurnLevelCount() == 0) {
       return;
     }
 
-    int i = levels.size();
-    TurnLevel level = ((TurnLevel) levels.get(--i));
+    TurnLevel level = getTurnLevel(currentTurn);
     level.retreat();
-    boolean rollOver = level.hasRolledOver();
-
-    for (i--; i >= 0; i--) {
-      if (rollOver) {
-        level = (TurnLevel) levels.get(i);
-        level.retreat();
-        rollOver = level.hasRolledOver();
+    if (level.hasRolledOver()) {
+      currentTurn--;
+      if (currentTurn < 0) {
+        currentTurn = getTurnLevelCount()-1;
       }
     }
+//    int i = buildComponents.size();
+//    TurnLevel level = ((TurnLevel) buildComponents.get(--i));
+//    level.retreat();
+//    boolean rollOver = level.hasRolledOver();
+//
+//    for (i--; i >= 0; i--) {
+//      if (rollOver) {
+//        level = (TurnLevel) buildComponents.get(i);
+//        level.retreat();
+//        rollOver = level.hasRolledOver();
+//      }
+//    }
     updateTurnDisplay();
   }
 
@@ -447,22 +475,14 @@ public class TurnCounter extends AbstractConfigurable implements CommandEncoder,
   }
 
   protected void reset() {
-    for (int i = 0; i < levels.size(); i++) {
-      ((TurnLevel) levels.get(i)).reset();
+    for (int i = 0; i < getTurnLevelCount(); i++) {
+      (getTurnLevel(i)).reset();
     }
     setLaunchToolTip();
   }
   
   public Command getRestoreCommand() {
     return new SetTurn(getState(), this);
-  }
-
-  protected void addLevel(TurnLevel level) {
-    levels.add(level);
-  }
-
-  protected void removeLevel(TurnLevel level) {
-    levels.remove(level);
   }
 
   protected class TurnWindow extends JWindow implements MouseListener, MouseMotionListener {
@@ -736,9 +756,9 @@ public class TurnCounter extends AbstractConfigurable implements CommandEncoder,
       controls = new JPanel();
       controls.setLayout(new BoxLayout(controls, BoxLayout.X_AXIS));
 
-      Iterator it = levels.iterator();
-      while (it.hasNext()) {
-        TurnLevel level = (TurnLevel) it.next();
+      Enumeration e = getTurnLevels();
+      while (e.hasMoreElements()) {
+        TurnLevel level = (TurnLevel) e.nextElement();
         JComponent c = level.getSetControls();
         c.setAlignmentX(Component.TOP_ALIGNMENT);
         controls.add(c);
@@ -760,15 +780,15 @@ public class TurnCounter extends AbstractConfigurable implements CommandEncoder,
   }
   
   protected void toggleSetVisibility() {
-    for (int i = 0; i < levels.size(); i++) {
-      ((TurnLevel) levels.get(i)).toggleConfigVisibility();
+    for (int i = 0; i < getTurnLevelCount(); i++) {
+      getTurnLevel(i).toggleConfigVisibility();
     }
     setDialog.pack();
   }
   
   protected void setSetVisibility(boolean b) {
-    for (int i = 0; i < levels.size(); i++) {
-      ((TurnLevel) levels.get(i)).setConfigVisibility(b);
+    for (int i = 0; i < getTurnLevelCount(); i++) {
+      getTurnLevel(i).setConfigVisibility(b);
     }
     setDialog.pack();
   }
@@ -776,15 +796,15 @@ public class TurnCounter extends AbstractConfigurable implements CommandEncoder,
   public static class SetTurn extends Command {
     private String oldState;
     private String newState;
-    private TurnCounter turn;
+    private TurnTracker turn;
 
-    public SetTurn(String newState, TurnCounter t) {
+    public SetTurn(String newState, TurnTracker t) {
       this.newState = newState;
       oldState = t.getState();
       turn = t;
     }
     
-    public SetTurn(TurnCounter t, String oldState) {
+    public SetTurn(TurnTracker t, String oldState) {
       newState = t.getState();
       this.oldState = oldState;
       turn = t;

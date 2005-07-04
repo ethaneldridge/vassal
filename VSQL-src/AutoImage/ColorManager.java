@@ -236,9 +236,9 @@ public class ColorManager extends AbstractConfigurable {
     ColorSwatch gcolor = getColorSwatch(colorName);
     if (gcolor != null) {
       Color color = gcolor.getColor();
-      if (color != null) {
+      //if (color != null) {
         return color;
-      }
+      //}
     }
     return DEFAULT_COLOR;
   }

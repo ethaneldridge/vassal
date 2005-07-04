@@ -22,6 +22,8 @@ package Dev;
 import java.awt.Component;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
+import java.util.ArrayList;
+import java.util.Enumeration;
 
 import javax.swing.Box;
 import javax.swing.BoxLayout;
@@ -57,6 +59,7 @@ public class TurnLevel extends AbstractConfigurable {
   protected int start = 0;
   protected int incr = 1;
   protected String[] list = new String[0];
+  protected ArrayList levels = new ArrayList(5);
   
   protected boolean rolledOver = false;
   
@@ -64,6 +67,7 @@ public class TurnLevel extends AbstractConfigurable {
   protected int current = 0;
   protected int first = 0;
   protected boolean[] active = new boolean[0]; 
+  protected int level = -1;
 
   // Other Variables
   protected IntConfigurer counterVal;
@@ -84,6 +88,7 @@ public class TurnLevel extends AbstractConfigurable {
   }
   
   public void reset() {
+    // Reset this level
     if (isCounter()) {
       current = start;
     }
@@ -94,6 +99,11 @@ public class TurnLevel extends AbstractConfigurable {
         active[i] = true;
       }
     }
+    // Reset each sublevel
+    for (int i = 0; i < getTurnLevelCount(); i++) {
+      getTurnLevel(i).reset();
+    }
+    level = getTurnLevelCount()-1;
   }
   
   protected String getState() {
@@ -118,6 +128,18 @@ public class TurnLevel extends AbstractConfigurable {
     for (int i=0; i < s.length; i++) {
       active[i] = s[i].equals("true");
     }
+  }
+  
+  protected TurnLevel getTurnLevel(int i) {
+    return (TurnLevel) buildComponents.get(i);
+  }
+
+  protected int getTurnLevelCount() {
+    return buildComponents.size();
+  }
+  
+  protected Enumeration getTurnLevels() {
+    return getBuildComponents();
   }
   
   public JPanel getDisplayControls() {
@@ -354,6 +376,14 @@ public class TurnLevel extends AbstractConfigurable {
     return rolledOver;
   }
   
+  public void addLevel(TurnLevel level) {
+    levels.add(level);
+  }
+
+  public void removeLevel(TurnLevel level) {
+    levels.remove(level);
+  }
+  
   public String[] getAttributeDescriptions() {
     return new String[] { "Name:  ", "Type:  ", "Start Value:  ", "Increment By:  ", "List:  " };
   }
@@ -419,7 +449,7 @@ public class TurnLevel extends AbstractConfigurable {
   }
 
   public void removeFrom(Buildable parent) {
-    ((TurnCounter) parent).removeLevel(this);
+
   }
 
   public HelpFile getHelpFile() {
@@ -427,11 +457,11 @@ public class TurnLevel extends AbstractConfigurable {
   }
 
   public Class[] getAllowableConfigureComponents() {
-    return new Class[0];
+    return new Class[] {TurnLevel.class};
   }
 
   public void addTo(Buildable parent) {
-    ((TurnCounter) parent).addLevel(this);
+
   }
 
   public static String getConfigureTypeName() {

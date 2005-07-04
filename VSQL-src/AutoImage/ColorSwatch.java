@@ -142,16 +142,22 @@ public class ColorSwatch extends AbstractConfigurable {
   
   public String encode() {
     
-    SequenceEncoder se = new SequenceEncoder(';');
-    se.append(getConfigureName());
-    se.append(getColor());
-    return se.getValue();
+//    SequenceEncoder se = new SequenceEncoder(';');
+//    se.append(getConfigureName());
+//    //se.append(getColor());
+//    return se.getValue();
+    return getConfigureName();
   }
   
   public void decode(String s) {
     SequenceEncoder.Decoder sd = new SequenceEncoder.Decoder(s, ';');
     setConfigureName(sd.nextToken());
-    setColor(sd.nextColor(Color.BLACK));
+    Color c = ColorManager.getColorManager().getColorByName(getConfigureName());
+    if (c == null && !getConfigureName().equals(CLEAR)) {
+      c = ColorManager.getColorManager().getColorByName("BLACK");
+    }
+    setColor(c);
+    //setColor(sd.nextColor(Color.BLACK));
   }
   
   public static ColorSwatch getDefaultSwatch() {
