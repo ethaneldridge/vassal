@@ -3,6 +3,8 @@ package AutoImage;
 import java.awt.Color;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
 
@@ -244,8 +246,15 @@ public class ColorManager extends AbstractConfigurable {
   }
   
   public String[] getColorNames() {
+
     String[] names = new String[userColors.size() + standardColors.length];
+    ArrayList a = new ArrayList();
     Iterator i = userColors.values().iterator();
+    while (i.hasNext()) {
+      a.add ((ColorSwatch) i.next());
+    }
+    Collections.sort(a);
+    i = a.iterator();
     int j = 0;
     while (i.hasNext()) {
       names[j++] = ((ColorSwatch) i.next()).getConfigureName();

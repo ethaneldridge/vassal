@@ -321,6 +321,19 @@ public class ImageDefn extends AbstractConfigurable implements Visualizable, Clo
     return null;
   }
   
+  public ImageItemInstance getImageInstance(String name) {
+    Iterator i = instances.iterator();
+    while (i.hasNext()) {
+      ItemInstance instance = (ItemInstance) i.next();
+      if (instance instanceof ImageItemInstance) {
+        if (name.equals(instance.getName())) {
+          return (ImageItemInstance) instance;
+        }
+      }
+    }
+    return null;
+  }
+  
   /*
    * Reconcile our current elements with the elements in the owning scheme.
    */
@@ -345,7 +358,8 @@ public class ImageDefn extends AbstractConfigurable implements Visualizable, Clo
         String type = item.getType();
         String location = item.getLocation();
 
-        if (type.equals(SymbolItem.TYPE) || type.equals(TextItem.TYPE) || type.equals(ShapeItem.TYPE)) {
+//        if (type.equals(SymbolItem.TYPE) || type.equals(TextItem.TYPE) || 
+//            type.equals(ShapeItem.TYPE) || type.equals(ImageItem.TYPE)) {
           boolean found = false;
           e = instances.iterator();
           while (e.hasNext() && !found) {
@@ -359,7 +373,7 @@ public class ImageDefn extends AbstractConfigurable implements Visualizable, Clo
             newInstances.add(instance);
           }
         }
-      }
+//      }
   
       instances = newInstances;
       if (defnConfig != null) {

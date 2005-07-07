@@ -20,6 +20,8 @@
 package turn;
 
 import java.awt.BasicStroke;
+import java.awt.BorderLayout;
+import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Font;
@@ -29,18 +31,16 @@ import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
-import java.awt.event.MouseMotionListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
-import java.awt.font.FontRenderContext;
-import java.awt.font.TextLayout;
-import java.awt.geom.AffineTransform;
 import java.util.ArrayList;
 import java.util.Enumeration;
 
 import javax.swing.BorderFactory;
+import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
 import javax.swing.JComponent;
@@ -49,9 +49,8 @@ import javax.swing.JLabel;
 import javax.swing.JMenuItem;
 import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
-import javax.swing.JWindow;
 import javax.swing.KeyStroke;
-import javax.swing.plaf.basic.BasicArrowButton;
+import javax.swing.border.BevelBorder;
 
 import VASSAL.build.AbstractConfigurable;
 import VASSAL.build.AutoConfigurable;
@@ -172,32 +171,32 @@ public class TurnTracker extends AbstractConfigurable implements CommandEncoder,
     return new String[] { BUTTON_TEXT, ICON, HOT_KEY, FONT_FAMILY, FONT_SIZE, FONT_BOLD, FONT_ITALIC, TURN_FORMAT, REPORT_FORMAT };
   }
 
-  public void setAttribute(String name, Object value) {
-    if (REPORT_FORMAT.equals(name)) {
+  public void setAttribute(String key, Object value) {
+    if (REPORT_FORMAT.equals(key)) {
       reportFormat.setFormat((String) value);
     }
-    else if (TURN_FORMAT.equals(name)) {
+    else if (TURN_FORMAT.equals(key)) {
       turnFormat.setFormat((String) value);
     }
-    else if (FONT_FAMILY.equals(name)) {
+    else if (FONT_FAMILY.equals(key)) {
       fontFamily = (String) value;
       setDisplayFont();
     }
-    else if (FONT_SIZE.equals(name)) {
+    else if (FONT_SIZE.equals(key)) {
       if (value instanceof String) {
         value = new Integer((String) value);
       }
       fontSize = ((Integer) value).intValue();
       setDisplayFont();
     }
-    else if (FONT_BOLD.equals(name)) {
+    else if (FONT_BOLD.equals(key)) {
       if (value instanceof String) {
         value = new Boolean((String) value);
       }
       fontBold = ((Boolean) value).booleanValue();
       setDisplayFont();
     }
-    else if (FONT_ITALIC.equals(name)) {
+    else if (FONT_ITALIC.equals(key)) {
       if (value instanceof String) {
         value = new Boolean((String) value);
       }
@@ -205,7 +204,7 @@ public class TurnTracker extends AbstractConfigurable implements CommandEncoder,
       setDisplayFont();
     }
     else {
-      launch.setAttribute(name, value);
+      launch.setAttribute(key, value);
     }
   }
 
@@ -214,27 +213,27 @@ public class TurnTracker extends AbstractConfigurable implements CommandEncoder,
     turnLabel.setFont(new Font(fontFamily, style, fontSize));
   }
   
-  public String getAttributeValueString(String name) {
-    if (REPORT_FORMAT.equals(name)) {
+  public String getAttributeValueString(String key) {
+    if (REPORT_FORMAT.equals(key)) {
       return reportFormat.getFormat();
     }
-    else if (TURN_FORMAT.equals(name)) {
+    else if (TURN_FORMAT.equals(key)) {
       return turnFormat.getFormat();
     }
-    else if (FONT_FAMILY.equals(name)) {
+    else if (FONT_FAMILY.equals(key)) {
       return fontFamily;
     }
-    else if (FONT_SIZE.equals(name)) {
+    else if (FONT_SIZE.equals(key)) {
       return fontSize + "";
     }
-    else if (FONT_BOLD.equals(name)) {
+    else if (FONT_BOLD.equals(key)) {
       return fontBold + "";
     }
-    else if (FONT_ITALIC.equals(name)) {
+    else if (FONT_ITALIC.equals(key)) {
       return fontItalic + "";
     }
     else {
-      return launch.getAttributeValueString(name);
+      return launch.getAttributeValueString(key);
     }
   }
   
@@ -261,7 +260,7 @@ public class TurnTracker extends AbstractConfigurable implements CommandEncoder,
     public Configurer getConfigurer(AutoConfigurable c, String key, String name) {
       TurnTracker t = (TurnTracker) c;
       String s[] = new String[t.getLevelCount()];
-      for (int i = 0; i > s.length; i++) {
+      for (int i = 0; i < s.length; i++) {
         s[i] = LEVEL+(i+1);
       }
       return new FormattedStringConfigurer(key, name, s);
@@ -331,7 +330,12 @@ public class TurnTracker extends AbstractConfigurable implements CommandEncoder,
   }
 
   protected TurnLevel getTurnLevel(int i) {
-    return (TurnLevel) buildComponents.get(i);
+    if (buildComponents != null && buildComponents.size() > i) {
+      return (TurnLevel) buildComponents.get(i);
+    }
+    else {
+      return null;
+    }
   }
 
   protected int getTurnLevelCount() {
@@ -366,7 +370,10 @@ public class TurnTracker extends AbstractConfigurable implements CommandEncoder,
   
   protected ArrayList getLevelStrings() {
     ArrayList turnDesc = new ArrayList(5);
-    getTurnLevel(currentTurn).getTurnStrings(turnDesc);
+    TurnLevel level = getTurnLevel(currentTurn);
+    if (level != null) {
+      level.getTurnStrings(turnDesc);
+    }
     return turnDesc;
   }
   
@@ -385,7 +392,7 @@ public class TurnTracker extends AbstractConfigurable implements CommandEncoder,
 //      i++;
 //    }
 //    return turnFormat.getText();
-    return "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx";
+    return "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx";
   }
 
   protected void next() {
@@ -401,6 +408,7 @@ public class TurnTracker extends AbstractConfigurable implements CommandEncoder,
       if (currentTurn >= getTurnLevelCount()) {
         currentTurn = 0;
       }
+      getTurnLevel(currentTurn).setLow();
     }
     
 //    int i = buildComponents.size();
@@ -431,6 +439,7 @@ public class TurnTracker extends AbstractConfigurable implements CommandEncoder,
       if (currentTurn < 0) {
         currentTurn = getTurnLevelCount()-1;
       }
+      getTurnLevel(currentTurn).setHigh();
     }
 //    int i = buildComponents.size();
 //    TurnLevel level = ((TurnLevel) buildComponents.get(--i));
@@ -488,10 +497,10 @@ public class TurnTracker extends AbstractConfigurable implements CommandEncoder,
   public void setup(boolean gameStarting) {
     launch.setEnabled(gameStarting);
     if (gameStarting) {
-      //reset();
     }
     else {
       turnWindow.setVisible(false);
+      reset();
     }
   }
 
@@ -499,6 +508,7 @@ public class TurnTracker extends AbstractConfigurable implements CommandEncoder,
     for (int i = 0; i < getTurnLevelCount(); i++) {
       (getTurnLevel(i)).reset();
     }
+    currentTurn = 0;
     setLaunchToolTip();
   }
   
@@ -506,14 +516,16 @@ public class TurnTracker extends AbstractConfigurable implements CommandEncoder,
     return new SetTurn(getState(), this);
   }
 
-  protected class TurnWindow extends JWindow implements MouseListener, MouseMotionListener {
+  //protected class TurnWindow extends JWindow implements MouseListener, MouseMotionListener {
+    protected class TurnWindow extends JDialog implements MouseListener {
 
     protected JPanel mainPanel;
     protected JPanel controlPanel;
+    protected JPanel turnPanel;
     protected JPanel buttonPanel;
-    protected JPanel rightPanel;
-    protected Point lastDrag;
-    protected boolean dragging = false;
+ //   protected JPanel rightPanel;
+ //   protected Point lastDrag;
+ //   protected boolean dragging = false;
 
     protected TurnWindow() {
       super(GameModule.getGameModule().getFrame());
@@ -528,8 +540,8 @@ public class TurnTracker extends AbstractConfigurable implements CommandEncoder,
       mainPanel = new JPanel();
       //((JFrame) getParent()).getRootPane().setWindowDecorationStyle(JRootPane.NONE);
       mainPanel.setLayout(new BoxLayout(mainPanel, BoxLayout.Y_AXIS));
-      mainPanel.setBorder(BorderFactory.createCompoundBorder(
-          BorderFactory.createRaisedBevelBorder(), BorderFactory.createLoweredBevelBorder()));
+//      mainPanel.setBorder(BorderFactory.createCompoundBorder(
+//          BorderFactory.createRaisedBevelBorder(), BorderFactory.createLoweredBevelBorder()));
       getContentPane().add(mainPanel);
 //      
 //      addWindowListener(new WindowAdapter() {
@@ -539,38 +551,60 @@ public class TurnTracker extends AbstractConfigurable implements CommandEncoder,
 //        }
 //      });
 
+      // Create a panel to contain the next/prev buttons
       controlPanel = new JPanel();
+      controlPanel.setLayout(new BoxLayout(controlPanel, BoxLayout.X_AXIS));
       
       buttonPanel = new JPanel();
       buttonPanel.setLayout(new BoxLayout(buttonPanel, BoxLayout.Y_AXIS));
       buttonPanel.setPreferredSize(new Dimension(18, 36));
       
-      JButton nextButton = new BasicArrowButton(BasicArrowButton.NORTH);
+      JLabel nextButton = new IconButton(PLUS_ICON, 20, 20);
       nextButton.setToolTipText("Next Turn");
+      nextButton.setAlignmentY(Component.TOP_ALIGNMENT);
       buttonPanel.add(nextButton);
-      nextButton.addActionListener(new ActionListener() {
-        public void actionPerformed(ActionEvent e) {
+      nextButton.addMouseListener(new MouseAdapter() {
+        public void mouseClicked(MouseEvent arg0) {
           next();
           save();
         }
-      });
+        });
+//        public void actionPerformed(ActionEvent e) {
+//          next();
+//          save();
+//        }
+//      });
 
-      JButton prevButton = new BasicArrowButton(BasicArrowButton.SOUTH);
+      JLabel prevButton = new IconButton(MINUS_ICON, 20, 20);
       prevButton.setToolTipText("Previous Turn");
+      prevButton.setAlignmentY(Component.TOP_ALIGNMENT);
       buttonPanel.add(prevButton);
-      prevButton.addActionListener(new ActionListener() {
-        public void actionPerformed(ActionEvent e) {
-          prev();
+      prevButton.addMouseListener(new MouseAdapter() {
+        public void mouseClicked(MouseEvent arg0) {
+          next();
           save();
         }
-      });
+        });
+//      prevButton.addActionListener(new ActionListener() {
+//        public void actionPerformed(ActionEvent e) {
+//          prev();
+//          save();
+//        }
+//      });
+      
+      buttonPanel.add(Box.createVerticalGlue());
       
       controlPanel.add(buttonPanel);
       
+      // Next, the Label containing the Turn Text
       //controlPanel.setLayout(new BoxLayout(controlPanel, BoxLayout.X_AXIS));
       //turnLabel = new JLabel();
       setDisplayFont();
-      controlPanel.add(turnLabel);      
+      turnPanel = new JPanel();
+      turnPanel.setBorder(BorderFactory.createLineBorder(Color.BLACK));
+      turnPanel.add(BorderLayout.CENTER,turnLabel);
+      
+      controlPanel.add(turnPanel);      
 
 //      JPanel p = new JPanel();
 
@@ -583,22 +617,22 @@ public class TurnTracker extends AbstractConfigurable implements CommandEncoder,
 //        }
 //      });
 
-      rightPanel = new JPanel();
-      rightPanel.setLayout(new BoxLayout(rightPanel, BoxLayout.Y_AXIS));
-      rightPanel.setPreferredSize(new Dimension(18, 18));
+//      rightPanel = new JPanel();
+//      rightPanel.setLayout(new BoxLayout(rightPanel, BoxLayout.Y_AXIS));
+//      rightPanel.setPreferredSize(new Dimension(18, 18));
       
-      JButton cancelButton = new CancelButton(); 
-      cancelButton.setToolTipText("Hide Turn Window");
-      //cancelButton.setSize(15, 15);
-      //cancelButton.setPreferredSize(new Dimension(15, 15));
-//      cancelButton.setMaximumSize(new Dimension(15, 15));
-      cancelButton.addActionListener(new ActionListener() {
-        public void actionPerformed(ActionEvent e) {
-          //cancel();
-          setVisible(false);
-        }
-      });
-      rightPanel.add(cancelButton);
+//      JButton cancelButton = new CancelButton(); 
+//      cancelButton.setToolTipText("Hide Turn Window");
+//      //cancelButton.setSize(15, 15);
+//      //cancelButton.setPreferredSize(new Dimension(15, 15));
+////      cancelButton.setMaximumSize(new Dimension(15, 15));
+//      cancelButton.addActionListener(new ActionListener() {
+//        public void actionPerformed(ActionEvent e) {
+//          //cancel();
+//          setVisible(false);
+//        }
+//      });
+//      rightPanel.add(cancelButton);
       
 //      JPanel fillerPanel = new JPanel();
 //      Dimension size = new Dimension(15, 15);
@@ -608,37 +642,37 @@ public class TurnTracker extends AbstractConfigurable implements CommandEncoder,
       //tempButton.setVisible(false);
       //rightPanel.add(tempButton);
       
-      controlPanel.add(rightPanel);
+//      controlPanel.add(rightPanel);
       mainPanel.add(controlPanel);
 
 //      mainPanel.add(p);
       
       addMouseListener(this);
-      addMouseMotionListener(this);
+//      addMouseMotionListener(this);
       pack();
     }
 
     public void setControls() {
       turnLabel.setText(getTurnString());
-      TextLayout layout = new TextLayout(getLongestTurn(), turnLabel.getFont(), new FontRenderContext(new AffineTransform(), true, false));
-      turnLabel.setPreferredSize(new Dimension((int) layout.getBounds().getWidth()+10, (int) layout.getBounds().getHeight()+10));
+//      TextLayout layout = new TextLayout(getLongestTurn(), turnLabel.getFont(), new FontRenderContext(new AffineTransform(), true, false));
+//      turnLabel.setPreferredSize(new Dimension((int) layout.getBounds().getWidth()+10, (int) layout.getBounds().getHeight()+10));
       pack();
       turnLabel.repaint();
-      dragging = false;
+//      dragging = false;
     }
 
-    public void mouseDragged(MouseEvent e) {
-      Point here = e.getPoint();
-      int xOffset = here.x - lastDrag.x;
-      int yOffset = here.y - lastDrag.y;
-      setLocation(getLocation().x+xOffset, getLocation().y+yOffset);
-      repaint();
-    }
-
-    public void mouseMoved(MouseEvent e) {
-      
-    }
-
+//    public void mouseDragged(MouseEvent e) {
+//      Point here = e.getPoint();
+//      int xOffset = here.x - lastDrag.x;
+//      int yOffset = here.y - lastDrag.y;
+//      setLocation(getLocation().x+xOffset, getLocation().y+yOffset);
+//      repaint();
+//    }
+//
+//    public void mouseMoved(MouseEvent e) {
+//      
+//    }
+//
     public void mouseClicked(MouseEvent e) {
       if (e.isMetaDown()) {
         doPopup(e.getPoint());
@@ -654,12 +688,12 @@ public class TurnTracker extends AbstractConfigurable implements CommandEncoder,
     }
 
     public void mousePressed(MouseEvent e) {
-      dragging = true;
-      lastDrag = e.getPoint();
+//      dragging = true;
+//      lastDrag = e.getPoint();
     }
 
     public void mouseReleased(MouseEvent e) {
-      dragging = false;
+//      dragging = false;
     }
     
     public void doPopup(Point p) {
@@ -693,20 +727,68 @@ public class TurnTracker extends AbstractConfigurable implements CommandEncoder,
     popup.add(item);
   }
 
-  protected class CancelButton extends BasicArrowButton {
+  public static final int PLUS_ICON = 0;
+  public static final int MINUS_ICON = 1;
+  public static final int TICK_ICON = 2;
+  public static final int CROSS_ICON = 3;
+  
+  protected class IconButton extends JLabel implements MouseListener {
     
-    public CancelButton() {
-      super(BasicArrowButton.CENTER);
+    protected int type;
+    protected int w, h;
+    
+    public IconButton(int t, int w, int h) {
+      super();
+      this.type = t;
+      this.w = w;
+      this.h = h;
+      setMaximumSize(new Dimension(w, h));
+      setMinimumSize(new Dimension(w, h));
+      setPreferredSize(new Dimension(w, h));
+      setBorder(BorderFactory.createBevelBorder(BevelBorder.RAISED));
     }
     
     public void paint(Graphics g) {
       super.paint(g);
       Graphics2D g2 = (Graphics2D) g;
-      g2.setStroke(new BasicStroke(1.8f));
+      g2.setStroke(new BasicStroke(2f));
       //g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
       Rectangle r = getBounds();
-      g.drawLine(5, 5, r.width-5, r.height-5);
-      g.drawLine(5, r.height-5, r.width-5, 5);
+      
+      switch (type) {
+        case PLUS_ICON:
+          g.drawLine(5, r.height/2, r.width-5, r.height/2);
+          g.drawLine(r.width/2, 5, r.width/2, r.height-5);
+          break;
+        case MINUS_ICON:
+          g.drawLine(5, r.height/2, r.width-5, r.height/2);
+          break;
+        case TICK_ICON:
+          break;
+        case CROSS_ICON:
+          break;        
+      }
+    }
+
+
+    public void mouseClicked(MouseEvent arg0) {
+      
+    }
+
+    public void mouseEntered(MouseEvent arg0) {
+      
+    }
+
+    public void mouseExited(MouseEvent arg0) {
+      
+    }
+
+    public void mousePressed(MouseEvent arg0) {
+      
+    }
+
+    public void mouseReleased(MouseEvent arg0) {
+      
     }
   }
   

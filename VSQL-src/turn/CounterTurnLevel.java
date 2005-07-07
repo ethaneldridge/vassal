@@ -44,9 +44,16 @@ public class CounterTurnLevel extends TurnLevel {
    */
   protected void reset() {
     super.reset();
-    current = start;    
+    setLow();    
   }
 
+  protected void setLow() {
+    current = start;
+  }
+  
+  protected void setHigh() {
+    current = loopLimit;
+  }
   /* 
    * Generate the state of the level
    */
@@ -94,8 +101,10 @@ public class CounterTurnLevel extends TurnLevel {
    * 3. If LOOP is reached, roll over the counter  
    */
   protected void advance() {
+    // Advance sub-levels
     super.advance();
 
+    // If no sub-levels, or they rolled over, advance this level
     if (getTurnLevelCount() == 0 || (getTurnLevelCount() > 0 && hasSubLevelRolledOver())) {
       current++;
       if (loop && current > loopLimit) {
@@ -106,12 +115,19 @@ public class CounterTurnLevel extends TurnLevel {
     
   }
 
-  /* (non-Javadoc)
-   * @see turn.TurnLevel#retreat()
-   */
   protected void retreat() {
-    // TODO Auto-generated method stub
+    // Retreat sub-levels
+    super.retreat();	
     
+    // If no sub-levels, or they rolled over, retreat this level
+    int oldCurrent = current;
+    if (getTurnLevelCount() == 0 || (getTurnLevelCount() > 0 && hasSubLevelRolledOver())) {
+      current--;
+      if (loop && oldCurrent <= start) {
+        current = loopLimit;
+        setRolledOver(true);
+      }
+    }    
   }
 
   /* (non-Javadoc)
@@ -139,15 +155,30 @@ public class CounterTurnLevel extends TurnLevel {
   }
 
   public String[] getAttributeDescriptions() {
-    return new String[] { "Name:  ", "Start Value:  ", "Increment By:  ", "Loop?", "Loop at:  " };
+    String a[] = super.getAttributeDescriptions();
+    String b[] = new String[] { "Start Value:  ", "Increment By:  ", "Loop?", "Loop at:  " };
+    String c[]= new String[a.length + b.length];
+    System.arraycopy(a, 0, c, 0, a.length);
+    System.arraycopy(b, 0, c, a.length, b.length);
+    return c;
   }
 
   public Class[] getAttributeTypes() {
-    return new Class[] { String.class, Integer.class, Integer.class, Boolean.class, Integer.class };
+    Class a[] = super.getAttributeTypes();
+    Class b[] = new Class[] { Integer.class, Integer.class, Boolean.class, Integer.class };
+    Class c[]= new Class[a.length + b.length];
+    System.arraycopy(a, 0, c, 0, a.length);
+    System.arraycopy(b, 0, c, a.length, b.length);
+    return c;
   }
 
   public String[] getAttributeNames() {
-    return new String[] { NAME, START, INCR, LOOP, LOOP_LIMIT };
+    String a[] = super.getAttributeNames();
+    String b[] = new String[] { START, INCR, LOOP, LOOP_LIMIT };
+    String c[]= new String[a.length + b.length];
+    System.arraycopy(a, 0, c, 0, a.length);
+    System.arraycopy(b, 0, c, a.length, b.length);
+    return c;  
   }
 
   public void setAttribute(String key, Object value) {

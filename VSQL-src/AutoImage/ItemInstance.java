@@ -99,6 +99,9 @@ public abstract class ItemInstance extends AbstractConfigurable {
     else if (type.equals(ShapeItem.TYPE)) {
       return new ShapeItemInstance(name, type, location);
     }
+    else if (type.equals(ImageItem.TYPE)) {
+      return new ImageItemInstance(name, type, location);
+    }
     return null;
   }
 

@@ -390,7 +390,7 @@ public class TextItem extends Item {
   
   public static class TextSource extends StringEnum {
     public String[] getValidValues(AutoConfigurable target) {
-      return new String[] { "Variable", "Fixed", "Command" };
+      return new String[] { SRC_VARIABLE, SRC_FIXED, SRC_COMMAND };
     }
   }
   

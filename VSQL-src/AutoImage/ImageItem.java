@@ -28,7 +28,9 @@ import java.awt.RenderingHints;
 import java.io.File;
 import java.io.IOException;
 
+import VASSAL.build.AutoConfigurable;
 import VASSAL.build.GameModule;
+import VASSAL.configure.StringEnum;
 import VASSAL.configure.VisibilityCondition;
 import VASSAL.tools.DataArchive;
 import VASSAL.tools.SequenceEncoder;
@@ -37,11 +39,17 @@ public class ImageItem extends Item {
 
   public static final String TYPE = "Image";
   
+  public static final String SRC_VARIABLE = "Variable";
+  public static final String SRC_FIXED = "Fixed";  
+  
   protected static final String IMAGE = "image";
+  public static final String SOURCE = "source";
 
+  protected String imageSource = SRC_FIXED;
   protected String imageName = "";
   protected Image image = null;
   protected Rectangle imageBounds = new Rectangle();
+  
 
   public ImageItem() {
     super();
@@ -57,7 +65,7 @@ public class ImageItem extends Item {
   }
   
   public String[] getAttributeDescriptions() {
-    String a[] = new String[] { "Image:  " };
+    String a[] = new String[] { "Image:  ", "Image Source:  " };
     String b[] = super.getAttributeDescriptions();
     String c[] = new String[a.length + b.length];
     System.arraycopy(b, 0, c, 0, 2);
@@ -67,7 +75,7 @@ public class ImageItem extends Item {
   }
 
   public Class[] getAttributeTypes() {
-    Class a[] = new Class[] { Image.class };
+    Class a[] = new Class[] { Image.class, TextSource.class };
     Class b[] = super.getAttributeTypes();
     Class c[] = new Class[a.length + b.length];
     System.arraycopy(b, 0, c, 0, 2);
@@ -77,7 +85,7 @@ public class ImageItem extends Item {
   }
 
   public String[] getAttributeNames() {
-    String a[] = new String[] { IMAGE };
+    String a[] = new String[] { IMAGE, SOURCE };
     String b[] = super.getAttributeNames();
     String c[] = new String[a.length + b.length];
     System.arraycopy(b, 0, c, 0, 2);
@@ -100,6 +108,9 @@ public class ImageItem extends Item {
         }
       }
     }
+    else if (SOURCE.equals(key)) {
+      imageSource = (String) o;
+    }
     else {
       super.setAttribute(key, o);
     }
@@ -115,6 +126,9 @@ public class ImageItem extends Item {
     if (IMAGE.equals(key)) {
       return imageName;
     }  
+    else if (SOURCE.equals(key)) {
+      return imageSource + "";
+    }
     else {
       return super.getAttributeValueString(key);
     }
@@ -124,6 +138,9 @@ public class ImageItem extends Item {
     if (ROTATION.equals(name)) {
        return falseCond;
      }
+    else if (IMAGE.equals(name)) {
+      return fixedCond;
+    }
      else {
        return super.getAttributeVisibility(name);
      }
@@ -135,6 +152,17 @@ public class ImageItem extends Item {
     }
   };
   
+  private VisibilityCondition fixedCond = new VisibilityCondition() {
+    public boolean shouldBeVisible() {
+      return imageSource.equals(SRC_FIXED);
+    }
+  };
+  
+  public static class TextSource extends StringEnum {
+    public String[] getValidValues(AutoConfigurable target) {
+      return new String[] { SRC_VARIABLE, SRC_FIXED };
+    }
+  }
   public void draw(Graphics g, ImageDefn defn) {
 
 //    Color fg = defn.getFgColor().getColor();
@@ -143,7 +171,7 @@ public class ImageItem extends Item {
     Point origin = getOrigin();
     
     ((Graphics2D) g).setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING,RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
-    loadImage();
+    loadImage(defn);
     if (image != null) {
       g.drawImage(image, origin.x + imageBounds.x, origin.y + imageBounds.y, null);
     }
@@ -153,11 +181,31 @@ public class ImageItem extends Item {
     return TYPE;
   }
   
-  protected void loadImage() {
+  public boolean isFixed() {
+    return imageSource.equals(SRC_FIXED);
+  }
+  
+  protected void loadImage(ImageDefn defn) {
     
-    if (imageName.trim().length() > 0) {
+    ImageItemInstance Ii = null;
+    if (defn != null) {
+      Ii = defn.getImageInstance(getConfigureName());
+    }
+    if (Ii == null) {
+      Ii = new ImageItemInstance();
+    }
+    
+    String iName;
+    if (imageSource.equals(SRC_FIXED)) {
+      iName = imageName;
+    }
+    else {
+      iName = Ii.getImageName();
+    }
+     
+    if (iName.trim().length() > 0) {
       try {
-        image = GameModule.getGameModule().getDataArchive().getCachedImage(imageName);
+        image = GameModule.getGameModule().getDataArchive().getCachedImage(iName);
         imageBounds = DataArchive.getImageBounds(image);
       }
       catch (IOException e) {

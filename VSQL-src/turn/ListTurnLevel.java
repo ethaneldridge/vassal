@@ -41,11 +41,23 @@ public class ListTurnLevel extends TurnLevel {
    */
   protected void reset() {
     super.reset();
-    current = 0;
-    first = 0;
     for (int i = 0; i < active.length; i++) {
       active[i] = true;
-    } 
+    }
+    setLow();
+  }
+  
+  protected void setLow() {
+    current = 0;
+    first = 0;
+  }
+  
+  protected void setHigh() {
+    current = first;
+    current--;
+    if (current < 0) {
+      current = list.length-1;
+    }
   }
 
   /* 
@@ -129,12 +141,24 @@ public class ListTurnLevel extends TurnLevel {
     
   }
 
-  /* (non-Javadoc)
-   * @see turn.TurnLevel#retreat()
-   */
   protected void retreat() {
-    // TODO Auto-generated method stub
-    
+    super.retreat();
+
+    if (getTurnLevelCount() == 0 || (getTurnLevelCount() > 0 && hasSubLevelRolledOver())) {
+      int idx = current;
+      boolean done = false;
+      for (int i = 0; i < list.length && !done; i++) {
+        if (idx == first) {
+          rolledOver = true;
+        }
+        idx--;
+        if (idx < 0) {
+          idx = list.length-1;
+        }
+        done = active[idx];
+      }
+      current = idx;
+    }    
   }
 
   /* (non-Javadoc)
@@ -162,15 +186,30 @@ public class ListTurnLevel extends TurnLevel {
   }
 
   public String[] getAttributeDescriptions() {
-    return new String[] { "Name:  ", "List:  "  };
+    String a[] = super.getAttributeDescriptions();
+    String b[] = new String[] { "List:  " };
+    String c[]= new String[a.length + b.length];
+    System.arraycopy(a, 0, c, 0, a.length);
+    System.arraycopy(b, 0, c, a.length, b.length);
+    return c;
   }
 
   public Class[] getAttributeTypes() {
-    return new Class[] { String.class, String[].class };
+    Class a[] = super.getAttributeTypes();
+    Class b[] = new Class[] { String[].class };
+    Class c[]= new Class[a.length + b.length];
+    System.arraycopy(a, 0, c, 0, a.length);
+    System.arraycopy(b, 0, c, a.length, b.length);
+    return c;
   }
 
   public String[] getAttributeNames() {
-    return new String[] { NAME, LIST };
+    String a[] = super.getAttributeNames();
+    String b[] = new String[] { LIST };
+    String c[]= new String[a.length + b.length];
+    System.arraycopy(a, 0, c, 0, a.length);
+    System.arraycopy(b, 0, c, a.length, b.length);
+    return c;    
   }
 
   public void setAttribute(String key, Object value) {

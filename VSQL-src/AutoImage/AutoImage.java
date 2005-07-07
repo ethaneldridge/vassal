@@ -75,7 +75,7 @@ public class AutoImage extends Decorator  implements EditablePiece {
   }
   
   public void mySetState(String newState) {
-    if (defn != null) {
+    if (defn != null && getMap() != null) {
       defn.setState(newState);
       reBuildImage();
     }

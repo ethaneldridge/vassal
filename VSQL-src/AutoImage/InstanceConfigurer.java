@@ -135,6 +135,9 @@ public class InstanceConfigurer extends Configurer {
       else if (p[i].startsWith(ShapeItem.TYPE)) {
         props.add(new ShapeItemInstance(p[i], defn));
       }
+      else if (p[i].startsWith(ImageItem.TYPE)) {
+        props.add(new ImageItemInstance(p[i], defn));
+      }
     }
     return props;
   }

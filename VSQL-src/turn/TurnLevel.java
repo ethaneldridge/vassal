@@ -25,16 +25,22 @@ import java.util.Enumeration;
 import javax.swing.JComponent;
 
 import VASSAL.build.AbstractConfigurable;
+import VASSAL.build.AutoConfigurable;
 import VASSAL.build.Buildable;
 import VASSAL.build.module.documentation.HelpFile;
+import VASSAL.configure.Configurer;
+import VASSAL.configure.ConfigurerFactory;
+import VASSAL.configure.FormattedStringConfigurer;
+import VASSAL.tools.FormattedString;
 
 
 public abstract class TurnLevel extends AbstractConfigurable {
 
   protected static final String NAME = "name";
+  protected static final String TURN_FORMAT = "turnFormat";
   
-//  protected static final String TURN_NAME = "turnName";
-//  protected static final String TURN_TEXT = "turnText";
+  protected static final String TURN_NAME = "turnName";
+  protected static final String TURN_TEXT = "turnText";
     
   protected int start = 0;		// Counter Start value
   
@@ -45,14 +51,17 @@ public abstract class TurnLevel extends AbstractConfigurable {
   protected boolean subLevelRolledOver = false;
   protected boolean rolledOver = false;
   
+  protected FormattedString turnFormat = new FormattedString("$"+TURN_TEXT+"$");
+  
   protected abstract String getState();
   protected abstract void setState(String code);
   protected abstract String getValueString();
   protected abstract String getLongestValueName();
-  protected abstract void retreat();
   protected abstract JComponent getSetControls();
   protected abstract void toggleConfigVisibility();
   protected abstract void setConfigVisibility(boolean b);
+  protected abstract void setLow();
+  protected abstract void setHigh();
 
   public TurnLevel() {
     super();
@@ -82,19 +91,37 @@ public abstract class TurnLevel extends AbstractConfigurable {
           currentSubLevel = 0;
           subLevelRolledOver = true;
         }
+        getTurnLevel(currentSubLevel).setLow();
+      }
+    }
+  }
+  
+  protected void retreat() {
+    rolledOver = false;
+    subLevelRolledOver = false;
+    if (getTurnLevelCount() > 0) {
+      TurnLevel subLevel = getTurnLevel(currentSubLevel);
+      subLevel.retreat();
+      if (subLevel.hasRolledOver()) {
+        currentSubLevel--;
+        if (currentSubLevel < 0) {
+          currentSubLevel = getTurnLevelCount()-1;
+          subLevelRolledOver = true;
+        }
+        getTurnLevel(currentSubLevel).setHigh();
       }
     }
   }
   
   // Return the description of this turn 
-//  public String getTurnString() {
-//    turnFormat.setProperty(TURN_NAME, getConfigureName());
-//    turnFormat.setProperty(TURN_TEXT, getValueString());
-//    return turnFormat.getText();
-//  }
+  public String getTurnString() {
+    turnFormat.setProperty(TURN_NAME, getConfigureName());
+    turnFormat.setProperty(TURN_TEXT, getValueString());
+    return turnFormat.getText();
+  }
   
   public void getTurnStrings(ArrayList desc) {
-    desc.add(getValueString());
+    desc.add(getTurnString());
     if (getTurnLevelCount() > 0) {
       getTurnLevel(currentSubLevel).getTurnStrings(desc);
     }
@@ -120,16 +147,33 @@ public abstract class TurnLevel extends AbstractConfigurable {
     return getBuildComponents();
   }
 
+  public String[] getAttributeDescriptions() {
+    return new String[] { "Name:  ", "Turn Format:  "  };
+  }
+  
+  public Class[] getAttributeTypes() {
+    return new Class[] { String.class, TurnFormatConfig.class };
+  }
+
+  public String[] getAttributeNames() {
+    return new String[] { NAME, TURN_FORMAT };
+  }
+  
   public void setAttribute(String key, Object value) {
     if (NAME.equals(key)) {
       setConfigureName((String) value);
     }
-
+    else if (TURN_FORMAT.equals(key)) {
+      turnFormat.setFormat((String) value);
+    }
   }
   
   public String getAttributeValueString(String key) {
     if (NAME.equals(key)) {
       return getConfigureName();
+    }
+    else if (TURN_FORMAT.equals(key)) {
+      return turnFormat.getFormat();
     }
     else {
       return "";
@@ -152,4 +196,9 @@ public abstract class TurnLevel extends AbstractConfigurable {
     
   }
 
+  public static class TurnFormatConfig implements ConfigurerFactory {
+    public Configurer getConfigurer(AutoConfigurable c, String key, String name) {
+      return new FormattedStringConfigurer(key, name, new String[] {TURN_NAME, TURN_TEXT });
+    }
+  }
 }
