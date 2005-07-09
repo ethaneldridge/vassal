@@ -198,7 +198,12 @@ public class ShapeItem extends Item {
     origin.translate(-getWidth() / 2, -getHeight() / 2);    
     Rectangle r = new Rectangle(origin.x, origin.y, getWidth(), getHeight());
 
-    ((Graphics2D) g).setRenderingHint(RenderingHints.KEY_ANTIALIASING,RenderingHints.VALUE_ANTIALIAS_ON);
+    if (isAntialias()) {    
+      ((Graphics2D) g).setRenderingHint(RenderingHints.KEY_ANTIALIASING,RenderingHints.VALUE_ANTIALIAS_ON);
+    } 
+    else {
+      ((Graphics2D) g).setRenderingHint(RenderingHints.KEY_ANTIALIASING,RenderingHints.VALUE_ANTIALIAS_OFF);
+    }
     
     g.setColor(fg);
     if (shape.equals(RECT)) {

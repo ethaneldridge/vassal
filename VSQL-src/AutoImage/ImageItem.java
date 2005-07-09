@@ -19,12 +19,14 @@
 
 package AutoImage;
 
+import java.awt.Color;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Image;
 import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.RenderingHints;
+import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 
@@ -170,7 +172,12 @@ public class ImageItem extends Item {
     
     Point origin = getOrigin();
     
-    ((Graphics2D) g).setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING,RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
+    if (isAntialias()) {    
+      ((Graphics2D) g).setRenderingHint(RenderingHints.KEY_ANTIALIASING,RenderingHints.VALUE_ANTIALIAS_ON);
+    } 
+    else {
+      ((Graphics2D) g).setRenderingHint(RenderingHints.KEY_ANTIALIASING,RenderingHints.VALUE_ANTIALIAS_OFF);
+    }
     loadImage(defn);
     if (image != null) {
       g.drawImage(image, origin.x + imageBounds.x, origin.y + imageBounds.y, null);
@@ -202,20 +209,27 @@ public class ImageItem extends Item {
     else {
       iName = Ii.getImageName();
     }
-     
-    if (iName.trim().length() > 0) {
+    
+    image = null;
+    imageBounds = new Rectangle();
+    
+    if (iName == null) {
+      
+    }
+    else if(iName.trim().length() == 0) {
+      image = new BufferedImage(10, 10, BufferedImage.TYPE_4BYTE_ABGR);
+      Graphics bg = image.getGraphics();
+      bg.setColor(Color.black);
+      bg.drawRect(0, 0, 9, 9);
+      imageBounds = new Rectangle(-5, -5, 10, 10);
+    }
+    else {
       try {
         image = GameModule.getGameModule().getDataArchive().getCachedImage(iName);
         imageBounds = DataArchive.getImageBounds(image);
       }
       catch (IOException e) {
-        image = null;
-        imageBounds = new Rectangle();
       }
-    }
-    else {
-      image = null;
-      imageBounds = new Rectangle();
     }
   }
   
@@ -235,7 +249,7 @@ public class ImageItem extends Item {
    
     SequenceEncoder se1 = new SequenceEncoder(TYPE, ';');
     
-    se1.append(imageName);
+    se1.append(imageName+"");
    
     SequenceEncoder se2 = new SequenceEncoder(se1.getValue(), '|');
     se2.append(super.encode());

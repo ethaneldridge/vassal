@@ -307,22 +307,14 @@ public class TextItem extends Item {
         }
       }
     }
-//    if (s == null || s.length() == 0) {
-//      String name = ti.getName() + "";
-//      switch (name.length()) {
-//        case 0:
-//          s = "Xx";
-//          break;
-//        case 1:
-//          s = name;
-//          break;
-//        default:
-//          s = name.substring(0, 2);
-//          break;
-//      }
-//    }
 
-    ((Graphics2D) g).setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
+    if (isAntialias()) {    
+      ((Graphics2D) g).setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING,RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
+    } 
+    else {
+      ((Graphics2D) g).setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING,RenderingHints.VALUE_TEXT_ANTIALIAS_OFF);
+    }
+
     drawLabel(g, s, origin.x, origin.y, f, align, AL_CENTER, fg, bg, null, getRotation());
   }
 

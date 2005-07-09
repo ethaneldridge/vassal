@@ -55,7 +55,7 @@ public class ImageItemInstance extends ItemInstance {
     se.append(getType());
     se.append(getName());
     se.append(getLocation());
-    se.append(imageName);
+    se.append(imageName+"");
     return se.getValue();
   }
 

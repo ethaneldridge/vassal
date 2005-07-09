@@ -73,6 +73,9 @@ public class ListTurnLevel extends TurnLevel {
       s[i] = active[i] + "";
     }
     se.append(s);
+    for (int i = 0; i < getTurnLevelCount(); i++) {
+      se.append(getTurnLevel(i).getState());
+    }
     return se.getValue();
   }
 
@@ -89,6 +92,9 @@ public class ListTurnLevel extends TurnLevel {
     active = new boolean[s.length];
     for (int i=0; i < s.length; i++) {
       active[i] = s[i].equals("true");
+    }
+    for (int i = 0; i < getTurnLevelCount(); i++) {
+      getTurnLevel(i).setState(sd.nextToken(""));
     }
   }
 

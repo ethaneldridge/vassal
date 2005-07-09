@@ -46,11 +46,14 @@ import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JDialog;
 import javax.swing.JLabel;
+import javax.swing.JMenu;
 import javax.swing.JMenuItem;
 import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
+import javax.swing.JTextArea;
 import javax.swing.KeyStroke;
 import javax.swing.border.BevelBorder;
+import javax.swing.border.Border;
 
 import VASSAL.build.AbstractConfigurable;
 import VASSAL.build.AutoConfigurable;
@@ -66,8 +69,8 @@ import VASSAL.configure.Configurer;
 import VASSAL.configure.ConfigurerFactory;
 import VASSAL.configure.FormattedStringConfigurer;
 import VASSAL.configure.IconConfigurer;
+import VASSAL.configure.IntConfigurer;
 import VASSAL.configure.PlayerIdFormattedStringConfigurer;
-import VASSAL.configure.StringEnum;
 import VASSAL.tools.FormattedString;
 import VASSAL.tools.LaunchButton;
 import VASSAL.tools.PlayerIdFormattedString;
@@ -81,22 +84,27 @@ public class TurnTracker extends AbstractConfigurable implements CommandEncoder,
   protected static final String COMMAND_PREFIX = "TURN\t";
   public static final String VERSION = "1.3";
 
+  public static final String NAME = "name";
   public static final String HOT_KEY = "hotkey";
   public static final String ICON = "icon";
   public static final String BUTTON_TEXT = "buttonText";
-  public static final String FONT_FAMILY = "fontFamily";
-  public static final String FONT_SIZE = "fontSize";
-  public static final String FONT_BOLD = "bold";
-  public static final String FONT_ITALIC = "italic";
   protected static final String TURN_FORMAT = "turnFormat";
   public static final String REPORT_FORMAT = "reportFormat";
+  
+  private static final String FONT_SIZE = "size";
+  private static final String FONT_STYLE = "style";
 
   /** Variable name for reporting format */
   public static final String OLD_TURN = "oldTurn";
   public static final String NEW_TURN = "newTurn";
   public static final String LEVEL = "level";
   
+  public static final String TURN_FONT = "Dialog";
   public static final String SET_COMMAND = "Set";
+  public static final String PLAIN_COMMAND = "Plain";
+  public static final String BOLD_COMMAND = "Bold";
+  
+  public static final String[] FONT_FAMILYS = new String[] { "Dialog", "DialogInput", "Monospaced", "SanSerif", "Serif"};
 
   protected FormattedString turnFormat = new FormattedString("$"+LEVEL+"1$");
 
@@ -106,11 +114,7 @@ public class TurnTracker extends AbstractConfigurable implements CommandEncoder,
   protected TurnWindow turnWindow;
   protected SetDialog setDialog;
   protected LaunchButton launch;
-  protected String fontFamily = "Dialog";
-  protected int fontSize = 18;
-  protected boolean fontBold = false;
-  protected boolean fontItalic = false;
-  protected JLabel turnLabel = new JLabel();
+  protected JTextArea turnLabel = new JTextArea();
   
   protected String savedState = "";
   protected String savedSetState = "";
@@ -120,11 +124,9 @@ public class TurnTracker extends AbstractConfigurable implements CommandEncoder,
   protected int currentTurn = 0;
 
   public TurnTracker() {
-    turnWindow = new TurnWindow();    
     
     ActionListener al = new ActionListener() {
       public void actionPerformed(java.awt.event.ActionEvent e) {
-        captureState();
         turnWindow.setControls();
         turnWindow.setVisible(!turnWindow.isShowing());
       }
@@ -132,7 +134,6 @@ public class TurnTracker extends AbstractConfigurable implements CommandEncoder,
     launch = new LaunchButton("Turn", BUTTON_TEXT, HOT_KEY, ICON, al);
     launch.setToolTipText("Turn Tracker");
     launch.setEnabled(false);
-    turnWindow.pack();    
     
   }
   
@@ -168,40 +169,18 @@ public class TurnTracker extends AbstractConfigurable implements CommandEncoder,
    * Module level Configuration stuff
    */
   public String[] getAttributeNames() {
-    return new String[] { BUTTON_TEXT, ICON, HOT_KEY, FONT_FAMILY, FONT_SIZE, FONT_BOLD, FONT_ITALIC, TURN_FORMAT, REPORT_FORMAT };
+    return new String[] { NAME, BUTTON_TEXT, ICON, HOT_KEY, TURN_FORMAT, REPORT_FORMAT };
   }
 
   public void setAttribute(String key, Object value) {
-    if (REPORT_FORMAT.equals(key)) {
+    if (NAME.equals(key)) {
+      setConfigureName((String) value);
+    }
+    else if (REPORT_FORMAT.equals(key)) {
       reportFormat.setFormat((String) value);
     }
     else if (TURN_FORMAT.equals(key)) {
       turnFormat.setFormat((String) value);
-    }
-    else if (FONT_FAMILY.equals(key)) {
-      fontFamily = (String) value;
-      setDisplayFont();
-    }
-    else if (FONT_SIZE.equals(key)) {
-      if (value instanceof String) {
-        value = new Integer((String) value);
-      }
-      fontSize = ((Integer) value).intValue();
-      setDisplayFont();
-    }
-    else if (FONT_BOLD.equals(key)) {
-      if (value instanceof String) {
-        value = new Boolean((String) value);
-      }
-      fontBold = ((Boolean) value).booleanValue();
-      setDisplayFont();
-    }
-    else if (FONT_ITALIC.equals(key)) {
-      if (value instanceof String) {
-        value = new Boolean((String) value);
-      }
-      fontItalic = ((Boolean) value).booleanValue();
-      setDisplayFont();
     }
     else {
       launch.setAttribute(key, value);
@@ -209,28 +188,45 @@ public class TurnTracker extends AbstractConfigurable implements CommandEncoder,
   }
 
   protected void setDisplayFont() {
-    int style = (fontBold ? Font.BOLD : 0) + (fontItalic ? Font.ITALIC : 0);
-    turnLabel.setFont(new Font(fontFamily, style, fontSize));
+    turnLabel.setFont(getDisplayFont());
+    if (turnWindow != null) {
+      turnWindow.pack();
+    }
+  }
+  
+  protected Font getDisplayFont() {
+    int style = getFontStyle();
+    int size = getFontSize();
+    return new Font(TURN_FONT, style, size);
+  }
+  
+  protected void setFontStyle(int style) {
+    GameModule.getGameModule().getPrefs().setValue(FONT_STYLE, new Integer(style));
+    setDisplayFont();
+  }
+  
+  protected int getFontStyle() {
+    return ((Integer) GameModule.getGameModule().getPrefs().getValue(FONT_STYLE)).intValue();
+  }
+  
+  protected void setFontSize(int size) {
+    GameModule.getGameModule().getPrefs().setValue(FONT_SIZE, new Integer(size));
+    setDisplayFont();
+  }
+  
+  protected int getFontSize() {
+    return ((Integer) GameModule.getGameModule().getPrefs().getValue(FONT_SIZE)).intValue();
   }
   
   public String getAttributeValueString(String key) {
-    if (REPORT_FORMAT.equals(key)) {
+    if (NAME.equals(key)) {
+      return getConfigureName() + "";
+    }
+    else if (REPORT_FORMAT.equals(key)) {
       return reportFormat.getFormat();
     }
     else if (TURN_FORMAT.equals(key)) {
       return turnFormat.getFormat();
-    }
-    else if (FONT_FAMILY.equals(key)) {
-      return fontFamily;
-    }
-    else if (FONT_SIZE.equals(key)) {
-      return fontSize + "";
-    }
-    else if (FONT_BOLD.equals(key)) {
-      return fontBold + "";
-    }
-    else if (FONT_ITALIC.equals(key)) {
-      return fontItalic + "";
     }
     else {
       return launch.getAttributeValueString(key);
@@ -238,14 +234,12 @@ public class TurnTracker extends AbstractConfigurable implements CommandEncoder,
   }
   
   public String[] getAttributeDescriptions() {
-    return new String[] { "Button text:  ", "Button Icon:  ", "Hotkey:  ", 
-        "Font Family:  ", "Size:  ", "Bold?", "Italic?", 
+    return new String[] { "Name:  ", "Button text:  ", "Button Icon:  ", "Hotkey:  ", 
         "Turn Format", "Report Format:  " };
   }
 
   public Class[] getAttributeTypes() {
-    return new Class[] { String.class, IconConfig.class, KeyStroke.class, 
-        FontFamilyConfig.class, Integer.class, Boolean.class, Boolean.class, 
+    return new Class[] { String.class, String.class, IconConfig.class, KeyStroke.class, 
         TurnFormatConfig.class, ReportFormatConfig.class };
   }
 
@@ -272,12 +266,7 @@ public class TurnTracker extends AbstractConfigurable implements CommandEncoder,
       return new PlayerIdFormattedStringConfigurer(key, name, new String[] {OLD_TURN, NEW_TURN } );
     }
   }
-  
-  public static class FontFamilyConfig extends StringEnum {
-    public String[] getValidValues(AutoConfigurable target) {
-      return new String[] { "Dialog", "DialogInput", "Monospaced", "SanSerif", "Serif"};
-    }
-   }
+
   
   public Class[] getAllowableConfigureComponents() {
     return new Class[] { CounterTurnLevel.class, ListTurnLevel.class };
@@ -292,6 +281,17 @@ public class TurnTracker extends AbstractConfigurable implements CommandEncoder,
     launch.setAlignmentY(0.0F);
     GameModule.getGameModule().addCommandEncoder(this);
     GameModule.getGameModule().getGameState().addGameComponent(this);
+    
+    // Create preferences for Turn text
+    final IntConfigurer size = new IntConfigurer(FONT_SIZE, "", new Integer(12));
+    final IntConfigurer style = new IntConfigurer(FONT_STYLE, "", new Integer(Font.PLAIN));
+    
+    GameModule.getGameModule().getPrefs().addOption(null, size);
+    GameModule.getGameModule().getPrefs().addOption(null, style);
+ 
+    turnWindow = new TurnWindow();    
+    turnWindow.pack(); 
+
   }
 
   public void removeFrom(Buildable b) {
@@ -311,12 +311,14 @@ public class TurnTracker extends AbstractConfigurable implements CommandEncoder,
 
   protected void save() {
 
+    String currentState = getState();
     if (!savedState.equals(getState())) {
       
       reportFormat.setProperty(OLD_TURN, savedTurn);
       reportFormat.setProperty(NEW_TURN, getTurnString());
 
-      Command c = new Chatter.DisplayText(GameModule.getGameModule().getChatter(), reportFormat.getText());
+      String s = updateString(reportFormat.getText(), new String[] { "\\n", "\\t" }, new String[] { " - ", " " });
+      Command c = new Chatter.DisplayText(GameModule.getGameModule().getChatter(), s);
       c.execute();
       c.append(new SetTurn(this, savedState));
 
@@ -411,18 +413,6 @@ public class TurnTracker extends AbstractConfigurable implements CommandEncoder,
       getTurnLevel(currentTurn).setLow();
     }
     
-//    int i = buildComponents.size();
-//    TurnLevel level = (TurnLevel) buildComponents.get(--i);
-//    level.advance();
-//    boolean rollOver = level.hasRolledOver();
-//
-//    for (i--; i >= 0; i--) {
-//      if (rollOver) {
-//        level = (TurnLevel) buildComponents.get(i);
-//        level.advance();
-//        rollOver = level.hasRolledOver();
-//      }
-//    }
     updateTurnDisplay();
   }
   
@@ -441,25 +431,29 @@ public class TurnTracker extends AbstractConfigurable implements CommandEncoder,
       }
       getTurnLevel(currentTurn).setHigh();
     }
-//    int i = buildComponents.size();
-//    TurnLevel level = ((TurnLevel) buildComponents.get(--i));
-//    level.retreat();
-//    boolean rollOver = level.hasRolledOver();
-//
-//    for (i--; i >= 0; i--) {
-//      if (rollOver) {
-//        level = (TurnLevel) buildComponents.get(i);
-//        level.retreat();
-//        rollOver = level.hasRolledOver();
-//      }
-//    }
+
     updateTurnDisplay();
   }
 
   public void actionPerformed(ActionEvent e) {
     if (e.getActionCommand().equals(SET_COMMAND)) {
       set();
-    }    
+    }
+    else if (e.getActionCommand().equals(PLAIN_COMMAND)) {
+      setFontStyle(Font.PLAIN);
+    }
+    else if (e.getActionCommand().equals(BOLD_COMMAND)) {
+      setFontStyle(Font.BOLD);
+    }
+    else {
+      try {
+        int size = Integer.parseInt(e.getActionCommand());
+        setFontSize(size);
+      }
+      catch (Exception ex) {
+        
+      }
+    }
   }
   
   protected void set() {
@@ -512,44 +506,50 @@ public class TurnTracker extends AbstractConfigurable implements CommandEncoder,
     setLaunchToolTip();
   }
   
+  public String updateString(String str, String[] from, String[] to) {
+    
+    StringBuffer s = new StringBuffer(str);
+  
+    for (int i = 0; i < from.length; i++) {
+      replace(s, from[i], to[i]);
+    }
+    
+    return s.toString();
+  }
+  
+  public void replace(StringBuffer s, String from, String to) {
+    
+    int i = s.indexOf(from);
+    while (i >= 0) {
+      s = s.replace(i, i+2, to);
+      i = s.indexOf(from);
+    }
+  }
+  
   public Command getRestoreCommand() {
     return new SetTurn(getState(), this);
   }
 
-  //protected class TurnWindow extends JWindow implements MouseListener, MouseMotionListener {
-    protected class TurnWindow extends JDialog implements MouseListener {
+  protected class TurnWindow extends JDialog implements MouseListener {
 
+   protected final int BUTTON_SIZE = 20;
     protected JPanel mainPanel;
     protected JPanel controlPanel;
     protected JPanel turnPanel;
     protected JPanel buttonPanel;
- //   protected JPanel rightPanel;
- //   protected Point lastDrag;
- //   protected boolean dragging = false;
 
     protected TurnWindow() {
       super(GameModule.getGameModule().getFrame());
       initComponents();
-      setLocation(100, 100);
-      //setLocationRelativeTo(getOwner());
     }
 
     protected void initComponents() {
 
-      //setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
+      setTitle(getConfigureName());
+
       mainPanel = new JPanel();
-      //((JFrame) getParent()).getRootPane().setWindowDecorationStyle(JRootPane.NONE);
       mainPanel.setLayout(new BoxLayout(mainPanel, BoxLayout.Y_AXIS));
-//      mainPanel.setBorder(BorderFactory.createCompoundBorder(
-//          BorderFactory.createRaisedBevelBorder(), BorderFactory.createLoweredBevelBorder()));
       getContentPane().add(mainPanel);
-//      
-//      addWindowListener(new WindowAdapter() {
-//        public void windowClosing(WindowEvent e) {
-//          cancel();
-//          setVisible(false);
-//        }
-//      });
 
       // Create a panel to contain the next/prev buttons
       controlPanel = new JPanel();
@@ -557,122 +557,68 @@ public class TurnTracker extends AbstractConfigurable implements CommandEncoder,
       
       buttonPanel = new JPanel();
       buttonPanel.setLayout(new BoxLayout(buttonPanel, BoxLayout.Y_AXIS));
-      buttonPanel.setPreferredSize(new Dimension(18, 36));
+      buttonPanel.setPreferredSize(new Dimension(BUTTON_SIZE, BUTTON_SIZE*2));
       
-      JLabel nextButton = new IconButton(PLUS_ICON, 20, 20);
+      JLabel nextButton = new IconButton(PLUS_ICON, BUTTON_SIZE, BUTTON_SIZE);
       nextButton.setToolTipText("Next Turn");
       nextButton.setAlignmentY(Component.TOP_ALIGNMENT);
       buttonPanel.add(nextButton);
       nextButton.addMouseListener(new MouseAdapter() {
         public void mouseClicked(MouseEvent arg0) {
+          captureState();
           next();
           save();
         }
         });
-//        public void actionPerformed(ActionEvent e) {
-//          next();
-//          save();
-//        }
-//      });
 
-      JLabel prevButton = new IconButton(MINUS_ICON, 20, 20);
+      JLabel prevButton = new IconButton(MINUS_ICON, BUTTON_SIZE, BUTTON_SIZE);
       prevButton.setToolTipText("Previous Turn");
       prevButton.setAlignmentY(Component.TOP_ALIGNMENT);
       buttonPanel.add(prevButton);
       prevButton.addMouseListener(new MouseAdapter() {
         public void mouseClicked(MouseEvent arg0) {
-          next();
+          captureState();
+          prev();
           save();
         }
         });
-//      prevButton.addActionListener(new ActionListener() {
-//        public void actionPerformed(ActionEvent e) {
-//          prev();
-//          save();
-//        }
-//      });
       
       buttonPanel.add(Box.createVerticalGlue());
       
       controlPanel.add(buttonPanel);
       
       // Next, the Label containing the Turn Text
-      //controlPanel.setLayout(new BoxLayout(controlPanel, BoxLayout.X_AXIS));
-      //turnLabel = new JLabel();
       setDisplayFont();
+      turnLabel.setEditable(false);
+      turnLabel.setFocusable(false);
+      
       turnPanel = new JPanel();
       turnPanel.setBorder(BorderFactory.createLineBorder(Color.BLACK));
-      turnPanel.add(BorderLayout.CENTER,turnLabel);
+      //turnPanel.setLayout(new BoxLayout(turnPanel, BoxLayout.X_AXIS));
+      turnPanel.add(BorderLayout.CENTER, turnLabel);
+      turnLabel.addMouseListener(this);
       
-      controlPanel.add(turnPanel);      
-
-//      JPanel p = new JPanel();
-
-//      JButton saveButton = new JButton("Save");
-//      p.add(saveButton);
-//      saveButton.addActionListener(new ActionListener() {
-//        public void actionPerformed(ActionEvent e) {
-//          save();
-//          setVisible(false);
-//        }
-//      });
-
-//      rightPanel = new JPanel();
-//      rightPanel.setLayout(new BoxLayout(rightPanel, BoxLayout.Y_AXIS));
-//      rightPanel.setPreferredSize(new Dimension(18, 18));
+      controlPanel.add(turnPanel);  
       
-//      JButton cancelButton = new CancelButton(); 
-//      cancelButton.setToolTipText("Hide Turn Window");
-//      //cancelButton.setSize(15, 15);
-//      //cancelButton.setPreferredSize(new Dimension(15, 15));
-////      cancelButton.setMaximumSize(new Dimension(15, 15));
-//      cancelButton.addActionListener(new ActionListener() {
-//        public void actionPerformed(ActionEvent e) {
-//          //cancel();
-//          setVisible(false);
-//        }
-//      });
-//      rightPanel.add(cancelButton);
-      
-//      JPanel fillerPanel = new JPanel();
-//      Dimension size = new Dimension(15, 15);
-//      fillerPanel.setPreferredSize(size);
-//      rightPanel.add(fillerPanel);
-      //JButton tempButton = new BasicArrowButton(BasicArrowButton.NORTH); 
-      //tempButton.setVisible(false);
-      //rightPanel.add(tempButton);
-      
-//      controlPanel.add(rightPanel);
       mainPanel.add(controlPanel);
-
-//      mainPanel.add(p);
       
       addMouseListener(this);
-//      addMouseMotionListener(this);
+
       pack();
+      setLocation(100, 100);
     }
 
     public void setControls() {
-      turnLabel.setText(getTurnString());
+      String s = updateString(getTurnString(), new String[] { "\\n", "\\t" }, new String[] { "\n", "    " });
+      
+      turnLabel.setText(s);
+      
 //      TextLayout layout = new TextLayout(getLongestTurn(), turnLabel.getFont(), new FontRenderContext(new AffineTransform(), true, false));
 //      turnLabel.setPreferredSize(new Dimension((int) layout.getBounds().getWidth()+10, (int) layout.getBounds().getHeight()+10));
-      pack();
-      turnLabel.repaint();
-//      dragging = false;
-    }
 
-//    public void mouseDragged(MouseEvent e) {
-//      Point here = e.getPoint();
-//      int xOffset = here.x - lastDrag.x;
-//      int yOffset = here.y - lastDrag.y;
-//      setLocation(getLocation().x+xOffset, getLocation().y+yOffset);
-//      repaint();
-//    }
-//
-//    public void mouseMoved(MouseEvent e) {
-//      
-//    }
-//
+      turnLabel.repaint();
+    }
+           
     public void mouseClicked(MouseEvent e) {
       if (e.isMetaDown()) {
         doPopup(e.getPoint());
@@ -725,8 +671,32 @@ public class TurnTracker extends AbstractConfigurable implements CommandEncoder,
     JMenuItem item = new JMenuItem(SET_COMMAND);
     item.addActionListener(this);
     popup.add(item);
+    
+    JMenu font = new JMenu("Font");
+    
+    JMenu size = new JMenu("Size");
+    addItem(size, "10");
+    addItem(size, "12");
+    addItem(size, "14");
+    addItem(size, "16");
+    addItem(size, "18");
+    addItem(size, "20");    
+    font.add(size);
+    
+    JMenu style = new JMenu("Style");
+    addItem(style, PLAIN_COMMAND);
+    addItem(style, BOLD_COMMAND);
+    font.add(style);
+    
+    popup.add(font);
   }
 
+  protected void addItem(JMenu menu, String command) {
+    JMenuItem item = new JMenuItem(command);
+    item.addActionListener(this);
+    menu.add(item);
+  }
+  
   public static final int PLUS_ICON = 0;
   public static final int MINUS_ICON = 1;
   public static final int TICK_ICON = 2;
@@ -736,6 +706,9 @@ public class TurnTracker extends AbstractConfigurable implements CommandEncoder,
     
     protected int type;
     protected int w, h;
+    Border raised = BorderFactory.createBevelBorder(BevelBorder.RAISED);
+    Border lowered = BorderFactory.createBevelBorder(BevelBorder.LOWERED);
+    
     
     public IconButton(int t, int w, int h) {
       super();
@@ -745,7 +718,8 @@ public class TurnTracker extends AbstractConfigurable implements CommandEncoder,
       setMaximumSize(new Dimension(w, h));
       setMinimumSize(new Dimension(w, h));
       setPreferredSize(new Dimension(w, h));
-      setBorder(BorderFactory.createBevelBorder(BevelBorder.RAISED));
+      setBorder(raised);
+      addMouseListener(this);
     }
     
     public void paint(Graphics g) {
@@ -784,11 +758,13 @@ public class TurnTracker extends AbstractConfigurable implements CommandEncoder,
     }
 
     public void mousePressed(MouseEvent arg0) {
-      
+      setBorder(lowered);
+      repaint();
     }
 
     public void mouseReleased(MouseEvent arg0) {
-      
+      setBorder(raised);
+      repaint();
     }
   }
   

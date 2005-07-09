@@ -15,4 +15,4 @@ public class BattleTechCommandEncoder extends BasicCommandEncoder {
     }
     return piece;
   }
-}
+} 

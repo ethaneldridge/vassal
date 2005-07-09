@@ -19,7 +19,9 @@
 package AutoImage;
 
 import java.awt.Graphics;
+import java.awt.Graphics2D;
 import java.awt.Point;
+import java.awt.RenderingHints;
 
 import VASSAL.build.AbstractConfigurable;
 import VASSAL.build.AutoConfigurable;
@@ -47,11 +49,13 @@ public abstract class Item extends AbstractConfigurable {
   protected static final String ROTATION = "rotation";
   protected static final String X_OFFSET = "xoffset";
   protected static final String Y_OFFSET = "yoffset";
+  protected static final String ANTIALIAS = "antialias";
 
   String location = Layout.CENTER;
   protected int xoffset, yoffset;
   protected boolean advanced = false;
   protected int rotation = 0;
+  protected boolean antialias = true;
 
   protected Layout layout;
 
@@ -72,13 +76,13 @@ public abstract class Item extends AbstractConfigurable {
 
   public String[] getAttributeDescriptions() {
     return new String[] { "Name:  ", "Location:  ", "Advanced Options", 
-        "X Offset:  ", "Y Offset:  ", "Rotation (Degrees):  "};
+        "X Offset:  ", "Y Offset:  ", "Rotation (Degrees):  ", "Anti-alias?"};
 
   }
 
   public Class[] getAttributeTypes() {
     return new Class[] { String.class, LocationConfig.class,  Boolean.class,
-        Integer.class, Integer.class, Integer.class };
+        Integer.class, Integer.class, Integer.class, Boolean.class };
   }
 
   public static class IconConfig implements ConfigurerFactory {
@@ -94,7 +98,7 @@ public abstract class Item extends AbstractConfigurable {
   }
 
   public String[] getAttributeNames() {
-    return new String[] { NAME, LOCATION, ADVANCED, X_OFFSET, Y_OFFSET, ROTATION };
+    return new String[] { NAME, LOCATION, ADVANCED, X_OFFSET, Y_OFFSET, ROTATION, ANTIALIAS };
   }
 
   public void setAttribute(String key, Object o) {
@@ -128,6 +132,12 @@ public abstract class Item extends AbstractConfigurable {
       }
       rotation = ((Integer) o).intValue();
     }
+    else if (ANTIALIAS.equals(key)) {
+      if (o instanceof String) {
+        o = new Boolean(Boolean.getBoolean((String) o));
+      }
+      antialias = ((Boolean) o).booleanValue();
+    }
 
   }
 
@@ -150,12 +160,15 @@ public abstract class Item extends AbstractConfigurable {
     else if (ROTATION.equals(key)) {
       return rotation + "";
     }
+    else if (ANTIALIAS.equals(key)) {
+      return antialias + "";
+    }
     else
       return null;
   }
 
   public VisibilityCondition getAttributeVisibility(String name) {
-   if (ROTATION.equals(name) || X_OFFSET.equals(name) || Y_OFFSET.equals(name)) {
+   if (ROTATION.equals(name) || X_OFFSET.equals(name) || Y_OFFSET.equals(name) || ANTIALIAS.equals(name)) {
       return advancedCond;
     }
     else {
@@ -208,6 +221,10 @@ public abstract class Item extends AbstractConfigurable {
     return rotation;
   }
   
+  public boolean isAntialias() {
+    return antialias;
+  }
+  
   protected Point getOrigin() {
     Point p = Layout.getPosition(getLocation(), layout);
     p.translate(getXoffset(), getYoffset());
@@ -246,6 +263,7 @@ public abstract class Item extends AbstractConfigurable {
     item.xoffset = sd2.nextInt(0);
     item.yoffset = sd2.nextInt(0);
     item.rotation = sd2.nextInt(0);
+    item.antialias = sd2.nextBoolean(true);
     
     return item;
   }
@@ -257,6 +275,7 @@ public abstract class Item extends AbstractConfigurable {
     se.append(xoffset);
     se.append(yoffset);
     se.append(rotation);
+    se.append(antialias);
     return se.getValue();
   }
   

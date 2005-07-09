@@ -208,7 +208,7 @@ public class Symbol {
       BasicStroke stroke = new BasicStroke(lineWidth, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND);
       Graphics2D g2 = ((Graphics2D) g);
       g2.setStroke(stroke);
-      g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+      //g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 
       g.drawRect(bounds.x, bounds.y, bounds.width, bounds.height);
 
@@ -216,14 +216,16 @@ public class Symbol {
       drawSize(g, size, bounds);
       
       g.setColor(fg);
-      draw(g, name1, bounds, false);
-      draw(g, name2, bounds, true);
+      draw(g, lineWidth, name1, bounds, false);
+      draw(g, lineWidth, name2, bounds, true);
     }
 
-    protected static void draw(Graphics g, String name, Rectangle bounds, boolean drawLow) {
+    protected static void draw(Graphics g, float lineWidth, String name, Rectangle bounds, boolean drawLow) {
 
       Graphics2D g2 = (Graphics2D) g;
-
+      BasicStroke stroke = new BasicStroke(lineWidth, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND);
+      g2.setStroke(stroke);
+      
       int x_left = bounds.x;
       int x_center = bounds.x + bounds.width / 2 + 1;
       int x_right = bounds.x + bounds.width;
@@ -296,8 +298,8 @@ public class Symbol {
 
       else if (name.equals(ENGINEERS)) {
         BasicStroke oldStroke = (BasicStroke) g2.getStroke();
-        BasicStroke stroke = new BasicStroke(oldStroke.getLineWidth() * 1.2f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND);
-        g2.setStroke(stroke);
+        BasicStroke estroke = new BasicStroke(oldStroke.getLineWidth() * 1.2f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND);
+        g2.setStroke(estroke);
         int yh = (int) (bounds.height * 0.2);
         int y1 = drawLow ? y_bottom - yh - 1 : y_top + (bounds.height - yh) / 2;
         int y2 = y1 + yh;
@@ -423,7 +425,7 @@ public class Symbol {
       big2.setBackground(null);
    
       big2.setStroke(g2.getStroke());
-      big2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+      //big2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 
       int x_pos = 0;
       for (int i = 0; i < count; i++) {
@@ -440,7 +442,6 @@ public class Symbol {
           big.drawLine(x_pos+sym_w/2, 0, x_pos+sym_w/2, sym_h);
         }
         else if (type.equals(BRIGADE_SYMBOL)) {
-          //big2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_OFF);
           BasicStroke stroke = new BasicStroke(1.0f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND);
           g2.setStroke(stroke);
           big.drawLine(x_pos, 0, x_pos+sym_w, sym_h);

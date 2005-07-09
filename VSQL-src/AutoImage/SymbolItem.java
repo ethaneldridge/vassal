@@ -23,6 +23,7 @@ import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Point;
 import java.awt.Rectangle;
+import java.awt.RenderingHints;
 import java.awt.geom.AffineTransform;
 
 import VASSAL.build.AutoConfigurable;
@@ -181,6 +182,13 @@ public class SymbolItem extends Item {
         AffineTransform newXForm =
           AffineTransform.getRotateInstance(Math.toRadians(getRotation()), getOrigin().x, getOrigin().y);
         g2d.transform(newXForm);
+    }
+    
+    if (isAntialias()) {    
+      ((Graphics2D) g).setRenderingHint(RenderingHints.KEY_ANTIALIASING,RenderingHints.VALUE_ANTIALIAS_ON);
+    } 
+    else {
+      ((Graphics2D) g).setRenderingHint(RenderingHints.KEY_ANTIALIASING,RenderingHints.VALUE_ANTIALIAS_OFF);
     }
     
     symbol.draw(g, r, si.getFgColor().getColor(), si.getBgColor().getColor(), si.getSizeColor().getColor(), (float) lineWidth);
