@@ -65,6 +65,7 @@ import VASSAL.build.module.GlobalOptions;
 import VASSAL.build.module.documentation.HelpFile;
 import VASSAL.command.Command;
 import VASSAL.command.CommandEncoder;
+import VASSAL.configure.ColorConfigurer;
 import VASSAL.configure.Configurer;
 import VASSAL.configure.ConfigurerFactory;
 import VASSAL.configure.FormattedStringConfigurer;
@@ -88,8 +89,10 @@ public class TurnTracker extends AbstractConfigurable implements CommandEncoder,
   public static final String HOT_KEY = "hotkey";
   public static final String ICON = "icon";
   public static final String BUTTON_TEXT = "buttonText";
-  protected static final String TURN_FORMAT = "turnFormat";
+  public static final String TURN_FORMAT = "turnFormat";
   public static final String REPORT_FORMAT = "reportFormat";
+  public static final String COLOR = "color";
+  
   
   private static final String FONT_SIZE = "size";
   private static final String FONT_STYLE = "style";
@@ -110,6 +113,8 @@ public class TurnTracker extends AbstractConfigurable implements CommandEncoder,
 
   protected PlayerIdFormattedString reportFormat = new PlayerIdFormattedString("* <$" + GlobalOptions.PLAYER_ID
       + "$> Turn Updated from $"+OLD_TURN+"$ to $"+NEW_TURN+"$");
+  
+  protected Color color = Color.white;
 
   protected TurnWindow turnWindow;
   protected SetDialog setDialog;
@@ -169,7 +174,7 @@ public class TurnTracker extends AbstractConfigurable implements CommandEncoder,
    * Module level Configuration stuff
    */
   public String[] getAttributeNames() {
-    return new String[] { NAME, BUTTON_TEXT, ICON, HOT_KEY, TURN_FORMAT, REPORT_FORMAT };
+    return new String[] { NAME, BUTTON_TEXT, ICON, HOT_KEY, COLOR, TURN_FORMAT, REPORT_FORMAT };
   }
 
   public void setAttribute(String key, Object value) {
@@ -181,6 +186,13 @@ public class TurnTracker extends AbstractConfigurable implements CommandEncoder,
     }
     else if (TURN_FORMAT.equals(key)) {
       turnFormat.setFormat((String) value);
+    }
+    else if (COLOR.equals(key)) {
+      if (value instanceof String) {
+        value = ColorConfigurer.stringToColor((String) value);
+      }
+      color = (Color) value;
+      turnWindow.setColor(color);
     }
     else {
       launch.setAttribute(key, value);
@@ -228,18 +240,21 @@ public class TurnTracker extends AbstractConfigurable implements CommandEncoder,
     else if (TURN_FORMAT.equals(key)) {
       return turnFormat.getFormat();
     }
+    else if (COLOR.equals(key)) {
+      return ColorConfigurer.colorToString(color);
+    }
     else {
       return launch.getAttributeValueString(key);
     }
   }
   
   public String[] getAttributeDescriptions() {
-    return new String[] { "Name:  ", "Button text:  ", "Button Icon:  ", "Hotkey:  ", 
+    return new String[] { "Name:  ", "Button text:  ", "Button Icon:  ", "Hotkey:  ", "Background Color:  ",
         "Turn Format", "Report Format:  " };
   }
 
   public Class[] getAttributeTypes() {
-    return new Class[] { String.class, String.class, IconConfig.class, KeyStroke.class, 
+    return new Class[] { String.class, String.class, IconConfig.class, KeyStroke.class, Color.class, 
         TurnFormatConfig.class, ReportFormatConfig.class };
   }
 
@@ -290,6 +305,7 @@ public class TurnTracker extends AbstractConfigurable implements CommandEncoder,
     GameModule.getGameModule().getPrefs().addOption(null, style);
  
     turnWindow = new TurnWindow();    
+    turnWindow.setColor(color);
     turnWindow.pack(); 
 
   }
@@ -349,15 +365,6 @@ public class TurnTracker extends AbstractConfigurable implements CommandEncoder,
   }
   
   protected String getTurnString() {
-//    int i = 0;
-//    Enumeration e =  getComponents(TurnLevel.class);
-//    while (e.hasMoreElements()) {
-//      TurnLevel level = (TurnLevel) e.nextElement();
-//      turnFormat.setProperty(LEVEL_NAME + (i + 1), level.getConfigureName());
-//      turnFormat.setProperty(LEVEL_TURN + (i + 1), level.getValueName());
-//      i++;
-//    }
-//    return turnFormat.getText();
 
     turnFormat.clearProperties();
     ArrayList turnDesc = getLevelStrings();
@@ -384,18 +391,18 @@ public class TurnTracker extends AbstractConfigurable implements CommandEncoder,
   }
   
   // Find longest possible string that can be returned
-  protected String getLongestTurn() {
-//    int i = 0;
-//    Enumeration e =  getComponents(TurnLevel.class);
-//    while (e.hasMoreElements()) {
-//      TurnLevel level = (TurnLevel) e.nextElement();
-//      turnFormat.setProperty(LEVEL_NAME + (i + 1), level.getConfigureName());
-//      turnFormat.setProperty(LEVEL_TURN + (i + 1), level.getLongestValueName());
-//      i++;
-//    }
-//    return turnFormat.getText();
-    return "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx";
-  }
+//  protected String getLongestTurn() {
+////    int i = 0;
+////    Enumeration e =  getComponents(TurnLevel.class);
+////    while (e.hasMoreElements()) {
+////      TurnLevel level = (TurnLevel) e.nextElement();
+////      turnFormat.setProperty(LEVEL_NAME + (i + 1), level.getConfigureName());
+////      turnFormat.setProperty(LEVEL_TURN + (i + 1), level.getLongestValueName());
+////      i++;
+////    }
+////    return turnFormat.getText();
+//    return "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx";
+//  }
 
   protected void next() {
 
@@ -462,13 +469,14 @@ public class TurnTracker extends AbstractConfigurable implements CommandEncoder,
       setDialog = new SetDialog();
       setDialog.setTitle("Set " + getConfigureName());
     }
-    setDialog.setControls();
+   // setDialog.setControls();
     setSetVisibility(false);
     setDialog.setVisible(true);
   }
 
   protected void updateTurnDisplay() {
     turnWindow.setControls();
+    turnWindow.setColor(color);
     turnWindow.repaint();
   }
 
@@ -543,6 +551,12 @@ public class TurnTracker extends AbstractConfigurable implements CommandEncoder,
       initComponents();
     }
 
+
+    public void setColor(Color color) {
+      turnPanel.setBackground(color);
+      turnLabel.setBackground(color);    
+    }
+
     protected void initComponents() {
 
       setTitle(getConfigureName());
@@ -612,11 +626,11 @@ public class TurnTracker extends AbstractConfigurable implements CommandEncoder,
       String s = updateString(getTurnString(), new String[] { "\\n", "\\t" }, new String[] { "\n", "    " });
       
       turnLabel.setText(s);
+      pack();
       
 //      TextLayout layout = new TextLayout(getLongestTurn(), turnLabel.getFont(), new FontRenderContext(new AffineTransform(), true, false));
 //      turnLabel.setPreferredSize(new Dimension((int) layout.getBounds().getWidth()+10, (int) layout.getBounds().getHeight()+10));
-
-      turnLabel.repaint();
+//      turnLabel.repaint();
     }
            
     public void mouseClicked(MouseEvent e) {
@@ -672,6 +686,7 @@ public class TurnTracker extends AbstractConfigurable implements CommandEncoder,
     item.addActionListener(this);
     popup.add(item);
     
+    // Configure Font
     JMenu font = new JMenu("Font");
     
     JMenu size = new JMenu("Size");
@@ -689,6 +704,14 @@ public class TurnTracker extends AbstractConfigurable implements CommandEncoder,
     font.add(style);
     
     popup.add(font);
+    
+    // Configure List Items
+    JMenu config = new JMenu("Configure");
+    
+    for (int i = 0; i < getTurnLevelCount(); i++) {
+      config.add(getTurnLevel(i).getConfigMenu());
+    }
+    popup.add(config);
   }
 
   protected void addItem(JMenu menu, String command) {

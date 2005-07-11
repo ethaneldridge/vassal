@@ -1,46 +1,18 @@
 package BattleTech;
 
-import java.awt.Component;
-import java.awt.Container;
-import java.awt.FlowLayout;
-import java.awt.Frame;
-import java.awt.Graphics;
-import java.awt.Image;
-import java.awt.Point;
-import java.awt.Rectangle;
-import java.awt.Shape;
-import java.awt.event.WindowAdapter;
-import java.awt.event.WindowEvent;
-import java.io.IOException;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-
-import javax.swing.BoxLayout;
-import javax.swing.ImageIcon;
-import javax.swing.JDialog;
-import javax.swing.JFrame;
-import javax.swing.JLabel;
-import javax.swing.JPanel;
-import javax.swing.KeyStroke;
-import javax.swing.event.*;
 import java.awt.*;
-import javax.swing.JSplitPane;
-import javax.swing.JSpinner;
+import java.awt.event.*;
+
+import java.io.IOException;
+
+import javax.swing.event.*;
 import javax.swing.*;
 
-
 import VASSAL.build.GameModule;
-import VASSAL.command.Command;
-import VASSAL.configure.HotKeyConfigurer;
-import VASSAL.configure.StringConfigurer;
-import VASSAL.counters.Decorator;
-import VASSAL.counters.EditablePiece;
-import VASSAL.counters.GamePiece;
-import VASSAL.counters.ImagePicker;
-import VASSAL.counters.KeyCommand;
-import VASSAL.counters.PieceEditor;
-import VASSAL.tools.DataArchive;
-import VASSAL.tools.SequenceEncoder;
+import VASSAL.command.*;
+import VASSAL.configure.*;
+import VASSAL.counters.*;
+import VASSAL.tools.*;
 
 import BattleTech.MessageBox;
 
@@ -52,6 +24,7 @@ public class ViewInfo extends Decorator implements EditablePiece, ActionListener
 	
 	// declaration of the window vars
 	public static final String ID = "vinfo;";
+	private String dataString;
 	private KeyCommand[] command;
 	private String commandName;
 	private KeyStroke key;
@@ -91,12 +64,14 @@ public class ViewInfo extends Decorator implements EditablePiece, ActionListener
     private JRadioButton jRadioButton8 = new JRadioButton();
 
  	// declaration of the data vars
-	private String warriorName = "";
+	//private String warriorName = ""; using warriorname configurer instead
 	private String gunSkill = "";
 	private String pilotSkill = "";
 	private String warriorHitsTaken = "";
 	private String heatBuildup = "";
 	  	  
+	private ChangeTracker tracker;
+	
 	public ViewInfo() 
 	{
 		this(ID + "ViewInfo;I;", null);
@@ -207,6 +182,7 @@ public class ViewInfo extends Decorator implements EditablePiece, ActionListener
 	        {
 	        	public void windowClosing(WindowEvent evt) 
 	        	{
+	        		transmitInfo();
 	        	}
 	        }
 	        );
@@ -215,14 +191,40 @@ public class ViewInfo extends Decorator implements EditablePiece, ActionListener
 	        frame.setSize(HEIGHT,WIDTH);
 	        frame.setTitle(getName());
 	        frame.setResizable(true);
+	        tracker = new ChangeTracker(this);
 	        frame.setVisible(true);
+	        
 		}
 		return null;
 	}
 
-	public void mySetState(String s) {
+	public void transmitInfo()
+	{
+		GameModule mod = GameModule.getGameModule();
+
+		//Command c = new changeVI(this, getState());
+	    //c.execute();
+	    mod.sendAndLog(tracker.getChangeCommand());
+	}
+	
+	public void mySetState(String s) 
+	{
+	  if (s != null && s.length() > 0) {
+			s = s.substring(ID.length());
+			SequenceEncoder.Decoder st = new SequenceEncoder.Decoder(s, ';');
+			this.warriorname.setText(st.nextToken(""));
+			this.pilotSkill = st.nextToken();
+	  }
+	
 	}
 
+	public String myGetState() 
+	{
+		SequenceEncoder se = new SequenceEncoder(';');
+		se.append(this.warriorname.getText()).append(this.pilotSkill);
+		return ID + se.getValue();
+	}
+	
 	public Rectangle boundingBox() 
 	{
 		Rectangle r = piece.boundingBox();
@@ -260,11 +262,6 @@ public class ViewInfo extends Decorator implements EditablePiece, ActionListener
 		return null;
 	}
 	  
-	public String myGetState() 
-	{
-		return "";
-	}
-
 	public static class Ed implements PieceEditor 
 	{
 		private StringConfigurer nameInput;
@@ -341,9 +338,12 @@ public class ViewInfo extends Decorator implements EditablePiece, ActionListener
         jLabel1.setText("Warrior Data");
         jLabel1.setBounds(new Rectangle(3, 4, 100, 21));
         
-        warriorname.setText(this.warriorName);
-        warriorname.setBounds(new Rectangle(66, 30, 115, 21));
-        warriorname.addActionListener(this);
+        StringConfigurer warriorname = new StringConfigurer(null, "", "");
+        warriorname.getControls().setBounds(new Rectangle(66, 30, 115, 21));
+   
+//        warriorname.setText(this.warriorName);
+//        warriorname.setBounds(new Rectangle(66, 30, 115, 21));
+//        warriorname.addActionListener(this);
         
         jLabel2.setBorder(BorderFactory.createEtchedBorder());
         jLabel2.setText("Name :");
@@ -431,7 +431,7 @@ public class ViewInfo extends Decorator implements EditablePiece, ActionListener
         jPanel2.add(jLabel3);
         jPanel2.add(jLabel4);
         jPanel2.add(jLabel5);
-        jPanel2.add(warriorname);
+        jPanel2.add(warriorname.getControls());
         jPanel2.add(pilotskill);
         jPanel2.add(gunskill);
         jPanel2.add(hitsTakenSpinner);
@@ -461,10 +461,10 @@ public class ViewInfo extends Decorator implements EditablePiece, ActionListener
 
     public void actionPerformed(ActionEvent e) 
     {
-    	if(e.getSource().equals(warriorname))
-    	{
-    		this.warriorName = warriorname.getText();
-    	}
+//    	if(e.getSource().equals(warriorname))
+//    	{
+//    		this.warriorName = warriorname.getText();
+//    	}
     	if(e.getSource().equals(gunskill))
     	{
     		this.gunSkill = gunskill.getText();
@@ -486,7 +486,35 @@ public class ViewInfo extends Decorator implements EditablePiece, ActionListener
     		heatBuildup = jSpinner2.getValue().toString();
     	}
     }
+
+//    public static class changeVI extends Command 
+//    {
+//        private ViewInfo VI;
+//        private String warriorName;
+//        private String pilotSkill;
+//        private String oldState;
+//        
+//        public changeVI(ViewInfo VI, String values) 
+//        {
+//            this.VI = VI;
+//            values = values.substring(ID.length());
+//			SequenceEncoder.Decoder st = new SequenceEncoder.Decoder(values, ';');
+//			this.warriorName = st.nextToken();
+//			this.pilotSkill = st.nextToken();
+//
+//        }       
+//        protected void executeCommand() 
+//        {
+//            //VI.warriorName = this.warriorName;
+//            VI.pilotSkill = this.pilotSkill;
+//        }
+//        protected Command myUndoCommand() 
+//        {
+//            return new changeVI(VI, oldState);
+//        }       
+//    }
 }
 //	MessageBox box = new MessageBox(this);
 //	box.setTitle("Test");
 //	box.ask(this.warriorName);
+

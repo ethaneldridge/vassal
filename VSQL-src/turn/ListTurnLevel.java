@@ -19,18 +19,35 @@
  
 package turn;
 
-import javax.swing.JComponent;
+import java.awt.Container;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
+import java.util.EventObject;
 
+import javax.swing.BoxLayout;
+import javax.swing.JButton;
+import javax.swing.JComponent;
+import javax.swing.JDialog;
+import javax.swing.JMenu;
+import javax.swing.JMenuItem;
+import javax.swing.JPanel;
+
+import VASSAL.build.GameModule;
+import VASSAL.configure.BooleanConfigurer;
 import VASSAL.configure.StringArrayConfigurer;
 import VASSAL.tools.SequenceEncoder;
 
-public class ListTurnLevel extends TurnLevel {
+public class ListTurnLevel extends TurnLevel implements ActionListener {
 
   protected static final String LIST = "list";
   
   protected int first = 0;
   protected String[] list = new String[0];
   protected boolean[] active = new boolean[0]; 
+  
+  protected JDialog configDialog;
   
   public ListTurnLevel() {
     super();
@@ -167,6 +184,26 @@ public class ListTurnLevel extends TurnLevel {
     }    
   }
 
+
+  protected JMenu getConfigMenu() {
+    JMenu menu = super.getConfigMenu();
+    
+    JMenuItem item = new JMenuItem("Configure " + getConfigureName());
+    item.addActionListener(this);
+    menu.add(item, 0);
+
+    return menu;
+    
+  }
+  
+  // Configure which Items are active
+  public void actionPerformed(ActionEvent arg0) {
+    if (configDialog == null) {
+      configDialog = new ConfigDialog();
+    }
+    configDialog.setVisible(true);
+    
+  }
   /* (non-Javadoc)
    * @see turn.TurnLevel#getSetControls()
    */
@@ -248,4 +285,55 @@ public class ListTurnLevel extends TurnLevel {
     return "List";
   }
 
+  protected class ConfigDialog extends JDialog {
+    
+    public ConfigDialog() {
+      super(GameModule.getGameModule().getFrame());
+      Container pane = getContentPane();
+      pane.setLayout(new BoxLayout(pane, BoxLayout.Y_AXIS));
+      
+      for (int i = 0; i < list.length; i++) {
+        
+        BooleanConfigurer b = new BooleanConfigurer(null, list[i], new Boolean(active[i]));
+        b.addPropertyChangeListener(new PropertyChangeListener() {
+          public void propertyChange(PropertyChangeEvent e) {
+            BooleanConfigurer b = (BooleanConfigurer) e.getSource();
+            String option = b.getName();
+            for (int i = 0; i < list.length; i++) {
+              if (list[i].equals(option)) {
+                active[i] = ((BooleanConfigurer) e.getSource()).booleanValue().booleanValue();
+              }
+            }
+          }
+        });
+        pane.add(b.getControls());
+        
+      }
+      
+      JPanel p = new JPanel();
+
+      JButton saveButton = new JButton("Save");
+      saveButton.setToolTipText("Save Changes");
+      p.add(saveButton);
+      saveButton.addActionListener(new ActionListener() {
+        public void actionPerformed(ActionEvent e) {
+          setVisible(false);
+        }
+      });
+
+      JButton cancelButton = new JButton("Cancel");
+      cancelButton.setToolTipText("Discard Changes");
+      cancelButton.addActionListener(new ActionListener() {
+        public void actionPerformed(ActionEvent e) {
+          setVisible(false);
+        }
+      });
+      p.add(cancelButton);
+      
+      pane.add(p);
+      pack();
+    }
+    
+    
+  }
  }

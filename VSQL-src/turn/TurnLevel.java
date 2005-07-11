@@ -23,6 +23,7 @@ import java.util.ArrayList;
 import java.util.Enumeration;
 
 import javax.swing.JComponent;
+import javax.swing.JMenu;
 
 import VASSAL.build.AbstractConfigurable;
 import VASSAL.build.AutoConfigurable;
@@ -125,6 +126,16 @@ public abstract class TurnLevel extends AbstractConfigurable {
     if (getTurnLevelCount() > 0) {
       getTurnLevel(currentSubLevel).getTurnStrings(desc);
     }
+  }
+  
+  protected JMenu getConfigMenu() {
+    JMenu menu = new JMenu(getConfigureName());
+    
+    for (int i = 0; i < getTurnLevelCount(); i++) {
+      menu.add(getTurnLevel(i).getConfigMenu());
+    }
+    
+    return menu;
   }
   
   protected void setRolledOver(boolean b) {
