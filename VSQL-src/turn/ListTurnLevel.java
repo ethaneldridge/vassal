@@ -19,16 +19,15 @@
  
 package turn;
 
+import java.awt.Component;
 import java.awt.Container;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
-import java.util.EventObject;
 
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
-import javax.swing.JComponent;
 import javax.swing.JDialog;
 import javax.swing.JMenu;
 import javax.swing.JMenuItem;
@@ -37,6 +36,8 @@ import javax.swing.JPanel;
 import VASSAL.build.GameModule;
 import VASSAL.configure.BooleanConfigurer;
 import VASSAL.configure.StringArrayConfigurer;
+import VASSAL.configure.StringEnumConfigurer;
+import VASSAL.tools.FormattedString;
 import VASSAL.tools.SequenceEncoder;
 
 public class ListTurnLevel extends TurnLevel implements ActionListener {
@@ -46,11 +47,13 @@ public class ListTurnLevel extends TurnLevel implements ActionListener {
   protected int first = 0;
   protected String[] list = new String[0];
   protected boolean[] active = new boolean[0]; 
-  
+    
   protected JDialog configDialog;
+  protected Component setControls;
   
   public ListTurnLevel() {
     super();
+    turnFormat = new FormattedString("$"+TURN_NAME+"$ - $"+TURN_TEXT+"$");
   }
   
   /*
@@ -65,8 +68,8 @@ public class ListTurnLevel extends TurnLevel implements ActionListener {
   }
   
   protected void setLow() {
-    current = 0;
-    first = 0;
+    current = first;
+    super.setLow();
   }
   
   protected void setHigh() {
@@ -75,6 +78,7 @@ public class ListTurnLevel extends TurnLevel implements ActionListener {
     if (current < 0) {
       current = list.length-1;
     }
+    super.setHigh();
   }
 
   /* 
@@ -185,49 +189,42 @@ public class ListTurnLevel extends TurnLevel implements ActionListener {
   }
 
 
-  protected JMenu getConfigMenu() {
-    JMenu menu = super.getConfigMenu();
+  protected void buildConfigMenu(JMenu configMenu) {
+    JMenu menu = getConfigMenu();
+    if (menu != null) {
+      configMenu.add(menu);
+    }
     
     JMenuItem item = new JMenuItem("Configure " + getConfigureName());
     item.addActionListener(this);
-    menu.add(item, 0);
-
-    return menu;
+    configMenu.add(item);
     
   }
   
   // Configure which Items are active
   public void actionPerformed(ActionEvent arg0) {
-    if (configDialog == null) {
-      configDialog = new ConfigDialog();
-    }
+    configDialog = new ConfigDialog();
     configDialog.setVisible(true);
     
   }
-  /* (non-Javadoc)
-   * @see turn.TurnLevel#getSetControls()
-   */
-  protected JComponent getSetControls() {
-    // TODO Auto-generated method stub
-    return null;
+  
+  protected  Component getSetControl() {
+     
+    StringEnumConfigurer config = new StringEnumConfigurer("", " "+getConfigureName()+":  ", list);
+    config.addPropertyChangeListener(new PropertyChangeListener() {
+      public void propertyChange(PropertyChangeEvent e) {
+        String option = ((StringEnumConfigurer) e.getSource()).getValueString();
+        for (int i = 0; i < list.length; i++) {
+          if (option.equals(list[i])) {
+            current = i;
+            updateTurnDisplay();
+          }
+        }
+      }});
+    config.setValue(list[current]);
+    return config.getControls();
   }
-
-  /* (non-Javadoc)
-   * @see turn.TurnLevel#toggleConfigVisibility()
-   */
-  protected void toggleConfigVisibility() {
-    // TODO Auto-generated method stub
-    
-  }
-
-  /* (non-Javadoc)
-   * @see turn.TurnLevel#setConfigVisibility(boolean)
-   */
-  protected void setConfigVisibility(boolean b) {
-    // TODO Auto-generated method stub
-    
-  }
-
+  
   public String[] getAttributeDescriptions() {
     String a[] = super.getAttributeDescriptions();
     String b[] = new String[] { "List:  " };
@@ -288,9 +285,23 @@ public class ListTurnLevel extends TurnLevel implements ActionListener {
   protected class ConfigDialog extends JDialog {
     
     public ConfigDialog() {
-      super(GameModule.getGameModule().getFrame());
+      super(GameModule.getGameModule().getFrame(), "Configure " + getConfigureName());
       Container pane = getContentPane();
       pane.setLayout(new BoxLayout(pane, BoxLayout.Y_AXIS));
+      
+      StringEnumConfigurer firstItem = new StringEnumConfigurer("", "First " + getConfigureName() + " in " + parent.getConfigureName() + " :  ", list);
+      firstItem.setValue(list[first]);
+      firstItem.addPropertyChangeListener(new PropertyChangeListener() {
+        public void propertyChange(PropertyChangeEvent e) {
+          String option = ((StringEnumConfigurer) e.getSource()).getValueString();
+          for (int i = 0; i < list.length; i++) {
+            if (list[i].equals(option)) {
+              first = i;
+            }
+          }
+        }        
+      });
+      pane.add(firstItem.getControls());
       
       for (int i = 0; i < list.length; i++) {
         

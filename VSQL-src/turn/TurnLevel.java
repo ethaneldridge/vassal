@@ -19,11 +19,21 @@
  
 package turn;
 
+import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Component;
+import java.awt.Dimension;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 import java.util.ArrayList;
 import java.util.Enumeration;
 
-import javax.swing.JComponent;
+import javax.swing.BorderFactory;
+import javax.swing.Box;
+import javax.swing.BoxLayout;
+import javax.swing.JDialog;
 import javax.swing.JMenu;
+import javax.swing.JPanel;
 
 import VASSAL.build.AbstractConfigurable;
 import VASSAL.build.AutoConfigurable;
@@ -32,6 +42,7 @@ import VASSAL.build.module.documentation.HelpFile;
 import VASSAL.configure.Configurer;
 import VASSAL.configure.ConfigurerFactory;
 import VASSAL.configure.FormattedStringConfigurer;
+import VASSAL.configure.StringEnumConfigurer;
 import VASSAL.tools.FormattedString;
 
 
@@ -42,6 +53,12 @@ public abstract class TurnLevel extends AbstractConfigurable {
   
   protected static final String TURN_NAME = "turnName";
   protected static final String TURN_TEXT = "turnText";
+  
+  protected TurnTracker turn;
+  protected JDialog setDialog;
+  protected AbstractConfigurable parent;
+  protected JPanel levelSetControls = null;
+  protected Component childSetControls = null;
     
   protected int start = 0;		// Counter Start value
   
@@ -52,22 +69,18 @@ public abstract class TurnLevel extends AbstractConfigurable {
   protected boolean subLevelRolledOver = false;
   protected boolean rolledOver = false;
   
-  protected FormattedString turnFormat = new FormattedString("$"+TURN_TEXT+"$");
+  protected FormattedString turnFormat;
   
   protected abstract String getState();
   protected abstract void setState(String code);
   protected abstract String getValueString();
   protected abstract String getLongestValueName();
-  protected abstract JComponent getSetControls();
-  protected abstract void toggleConfigVisibility();
-  protected abstract void setConfigVisibility(boolean b);
-  protected abstract void setLow();
-  protected abstract void setHigh();
+  protected abstract Component getSetControl();
 
   public TurnLevel() {
     super();
+    turnFormat = new FormattedString("$"+TURN_TEXT+"$");
   }
-  
   
   protected boolean hasSubLevelRolledOver() {
     return subLevelRolledOver;
@@ -77,7 +90,7 @@ public abstract class TurnLevel extends AbstractConfigurable {
     for (int i = 0; i < getTurnLevelCount(); i++) {
       getTurnLevel(i).reset();
     }
-    currentSubLevel = getTurnLevelCount()-1;
+    currentSubLevel = 0;
   }
   
   protected  void advance() {
@@ -128,14 +141,85 @@ public abstract class TurnLevel extends AbstractConfigurable {
     }
   }
   
-  protected JMenu getConfigMenu() {
-    JMenu menu = new JMenu(getConfigureName());
-    
-    for (int i = 0; i < getTurnLevelCount(); i++) {
-      menu.add(getTurnLevel(i).getConfigMenu());
+  protected void buildConfigMenu(JMenu menu) {
+    JMenu m = getConfigMenu();
+    if (m != null) {
+      menu.add(m);
     }
+  }
+  
+  protected JMenu getConfigMenu() {
     
+    JMenu menu = null;
+    
+    if (getTurnLevelCount() > 0) {
+      menu = new JMenu(getConfigureName());
+    
+      for (int i = 0; i < getTurnLevelCount(); i++) {
+        getTurnLevel(i).buildConfigMenu(menu);
+      }
+    }
     return menu;
+  }
+  
+  protected Component getSetControls(JDialog dialog, TurnTracker turn) {
+    this.turn = turn;
+    this.setDialog = dialog;
+    
+    levelSetControls = new JPanel();
+    levelSetControls.setLayout(new BoxLayout(levelSetControls, BoxLayout.Y_AXIS));
+    JPanel p = new JPanel();
+    p.setLayout(new BoxLayout(p, BoxLayout.Y_AXIS));
+    p.setBorder(BorderFactory.createLineBorder(Color.black));
+    
+    p.add(getSetControl());
+    
+    if (getTurnLevelCount() > 1) {
+      String s[] = new String[getTurnLevelCount()];
+      for (int i = 0; i < s.length; i++) {
+        s[i] = getTurnLevel(i).getConfigureName();
+      }    
+      StringEnumConfigurer e = new StringEnumConfigurer(null, " Select:  ", s);
+      e.setValue(getTurnLevel(currentSubLevel).getConfigureName());
+      e.addPropertyChangeListener(new PropertyChangeListener() {
+        public void propertyChange(PropertyChangeEvent e) {
+          String option = ((StringEnumConfigurer) e.getSource()).getValueString();
+          for (int i = 0; i < getTurnLevelCount(); i++) {
+            if (option.equals(getTurnLevel(i).getConfigureName())) {
+                currentSubLevel = i;
+                updateTurnDisplay();
+                addChildControls();
+            }
+          }
+        }});
+      p.add(e.getControls());
+    }
+
+    levelSetControls.add(p);
+    levelSetControls.add(Box.createRigidArea(new Dimension(0, 5)));
+    
+    addChildControls();
+    
+    return levelSetControls;
+  }
+  
+  protected void addChildControls () {
+    if (childSetControls != null) {
+      levelSetControls.remove(childSetControls);
+    }
+    if (currentSubLevel >= 0) {
+      childSetControls = getTurnLevel(currentSubLevel).getSetControls(setDialog, turn);
+      levelSetControls.add(childSetControls);
+      setDialog.pack();
+    }
+  }
+
+  protected TurnTracker getTurn() {
+    return turn;
+  }
+  
+  public void updateTurnDisplay() {
+    turn.updateTurnDisplay();
   }
   
   protected void setRolledOver(boolean b) {
@@ -158,6 +242,20 @@ public abstract class TurnLevel extends AbstractConfigurable {
     return getBuildComponents();
   }
 
+  protected void setLow() {
+    if (getTurnLevelCount() > 0) {
+      currentSubLevel = 0;
+      getTurnLevel(currentSubLevel).setLow();
+    }
+  }
+
+  protected void setHigh() {
+    if (getTurnLevelCount() > 0) {
+      currentSubLevel = getTurnLevelCount()-1;
+      getTurnLevel(currentSubLevel).setHigh();
+    }
+  }
+  
   public String[] getAttributeDescriptions() {
     return new String[] { "Name:  ", "Turn Format:  "  };
   }
@@ -191,6 +289,10 @@ public abstract class TurnLevel extends AbstractConfigurable {
     }
   }
   
+  public void addTo(Buildable parent) {
+    
+  }
+  
   public void removeFrom(Buildable parent) {
     
   }
@@ -201,10 +303,6 @@ public abstract class TurnLevel extends AbstractConfigurable {
 
   public Class[] getAllowableConfigureComponents() {
     return new Class[] {CounterTurnLevel.class, ListTurnLevel.class};
-  }
-
-  public void addTo(Buildable parent) {
-    
   }
 
   public static class TurnFormatConfig implements ConfigurerFactory {

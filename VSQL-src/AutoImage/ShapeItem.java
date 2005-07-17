@@ -205,15 +205,17 @@ public class ShapeItem extends Item {
       ((Graphics2D) g).setRenderingHint(RenderingHints.KEY_ANTIALIASING,RenderingHints.VALUE_ANTIALIAS_OFF);
     }
     
-    g.setColor(fg);
-    if (shape.equals(RECT)) {
-      g.fillRect(r.x, r.y, r.width, r.height);
-    }
-    else if (shape.equals(RRECT)) {
-      g.fillRoundRect(r.x, r.y, r.width, r.height, bevel*2, bevel*2);
-    }
-    else if (shape.equals(OVAL)) {
-      g.fillOval(r.x, r.y, r.width, r.height);
+    if (fg != null) {
+      g.setColor(fg);
+      if (shape.equals(RECT)) {
+        g.fillRect(r.x, r.y, r.width, r.height);
+      }
+      else if (shape.equals(RRECT)) {
+        g.fillRoundRect(r.x, r.y, r.width, r.height, bevel*2, bevel*2);
+      }
+      else if (shape.equals(OVAL)) {
+        g.fillOval(r.x, r.y, r.width, r.height);
+      }
     }
     
     if (bg != null) {

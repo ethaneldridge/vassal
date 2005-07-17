@@ -19,8 +19,11 @@
  
 package turn;
 
-import javax.swing.JComponent;
+import java.awt.Component;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 
+import VASSAL.configure.IntConfigurer;
 import VASSAL.configure.VisibilityCondition;
 import VASSAL.tools.SequenceEncoder;
 
@@ -49,10 +52,12 @@ public class CounterTurnLevel extends TurnLevel {
 
   protected void setLow() {
     current = start;
+    super.setLow();
   }
   
   protected void setHigh() {
     current = loopLimit;
+    super.setHigh();
   }
   /* 
    * Generate the state of the level
@@ -130,28 +135,21 @@ public class CounterTurnLevel extends TurnLevel {
     }    
   }
 
-  /* (non-Javadoc)
-   * @see turn.TurnLevel#getSetControls()
-   */
-  protected JComponent getSetControls() {
-    // TODO Auto-generated method stub
-    return null;
-  }
-
-  /* (non-Javadoc)
-   * @see turn.TurnLevel#toggleConfigVisibility()
-   */
-  protected void toggleConfigVisibility() {
-    // TODO Auto-generated method stub
+  protected Component getSetControl() {
     
-  }
-
-  /* (non-Javadoc)
-   * @see turn.TurnLevel#setConfigVisibility(boolean)
-   */
-  protected void setConfigVisibility(boolean b) {
-    // TODO Auto-generated method stub
+    IntConfigurer config = new IntConfigurer("", " "+getConfigureName()+":  ", new Integer(current));
+    config.addPropertyChangeListener(new PropertyChangeListener() {
+      public void propertyChange(PropertyChangeEvent e) {
+        current = ((Integer) ((IntConfigurer) e.getSource()).getValue()).intValue();
+        updateTurnDisplay();
+      }});
     
+    return config.getControls();
+    
+//    if (getTurnLevelCount() > 0) {
+//      p.add(getTurnLevel(currentSubLevel).getSetControls(turn));
+//    }
+
   }
 
   public String[] getAttributeDescriptions() {

@@ -36,6 +36,8 @@ import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 import java.util.ArrayList;
 import java.util.Enumeration;
 
@@ -43,7 +45,6 @@ import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
-import javax.swing.JComponent;
 import javax.swing.JDialog;
 import javax.swing.JLabel;
 import javax.swing.JMenu;
@@ -72,18 +73,22 @@ import VASSAL.configure.FormattedStringConfigurer;
 import VASSAL.configure.IconConfigurer;
 import VASSAL.configure.IntConfigurer;
 import VASSAL.configure.PlayerIdFormattedStringConfigurer;
+import VASSAL.configure.StringEnumConfigurer;
 import VASSAL.tools.FormattedString;
 import VASSAL.tools.LaunchButton;
 import VASSAL.tools.PlayerIdFormattedString;
 import VASSAL.tools.SequenceEncoder;
+import VASSAL.tools.UniqueIdManager;
 
 /**
  * Generic Turn Counter
  */
-public class TurnTracker extends AbstractConfigurable implements CommandEncoder, GameComponent, ActionListener {
+public class TurnTracker extends AbstractConfigurable implements CommandEncoder, GameComponent, ActionListener, UniqueIdManager.Identifyable {
 
-  protected static final String COMMAND_PREFIX = "TURN\t";
-  public static final String VERSION = "1.3";
+  protected static UniqueIdManager idMgr = new UniqueIdManager("TurnTracker");
+  
+  protected static final String COMMAND_PREFIX = "TURN";
+  public static final String VERSION = "1.5";
 
   public static final String NAME = "name";
   public static final String HOT_KEY = "hotkey";
@@ -126,7 +131,8 @@ public class TurnTracker extends AbstractConfigurable implements CommandEncoder,
   protected String savedTurn = "";
   protected JPopupMenu popup;
   
-  protected int currentTurn = 0;
+  protected int currentLevel = 0;
+  protected String id;
 
   public TurnTracker() {
     
@@ -144,7 +150,7 @@ public class TurnTracker extends AbstractConfigurable implements CommandEncoder,
   
   public String getState() {
     SequenceEncoder se = new SequenceEncoder('|');
-    se.append(currentTurn);
+    se.append(currentLevel);
     Enumeration e = getComponents(TurnLevel.class);
     while (e.hasMoreElements()) {
       TurnLevel level = (TurnLevel) e.nextElement();
@@ -155,7 +161,7 @@ public class TurnTracker extends AbstractConfigurable implements CommandEncoder,
 
   public void setState(String newState) {
     SequenceEncoder.Decoder sd = new SequenceEncoder.Decoder(newState, '|');
-    currentTurn = sd.nextInt(0);
+    currentLevel = sd.nextInt(0);
     Enumeration e =  getComponents(TurnLevel.class);
     while (e.hasMoreElements()) {
       TurnLevel level = (TurnLevel) e.nextElement();
@@ -192,7 +198,6 @@ public class TurnTracker extends AbstractConfigurable implements CommandEncoder,
         value = ColorConfigurer.stringToColor((String) value);
       }
       color = (Color) value;
-      turnWindow.setColor(color);
     }
     else {
       launch.setAttribute(key, value);
@@ -296,6 +301,7 @@ public class TurnTracker extends AbstractConfigurable implements CommandEncoder,
     launch.setAlignmentY(0.0F);
     GameModule.getGameModule().addCommandEncoder(this);
     GameModule.getGameModule().getGameState().addGameComponent(this);
+    idMgr.add(this);
     
     // Create preferences for Turn text
     final IntConfigurer size = new IntConfigurer(FONT_SIZE, "", new Integer(12));
@@ -320,6 +326,14 @@ public class TurnTracker extends AbstractConfigurable implements CommandEncoder,
     return null;
   }
 
+  public void setId(String id) {
+    this.id = id;
+  }
+
+  public String getId() {
+    return id;
+  }
+  
   protected void captureState() {
     savedState = getState();
     savedTurn = getTurnString();
@@ -379,7 +393,7 @@ public class TurnTracker extends AbstractConfigurable implements CommandEncoder,
   
   protected ArrayList getLevelStrings() {
     ArrayList turnDesc = new ArrayList(5);
-    TurnLevel level = getTurnLevel(currentTurn);
+    TurnLevel level = getTurnLevel(currentLevel);
     if (level != null) {
       level.getTurnStrings(turnDesc);
     }
@@ -389,20 +403,6 @@ public class TurnTracker extends AbstractConfigurable implements CommandEncoder,
   protected int getLevelCount() {
     return getLevelStrings().size();
   }
-  
-  // Find longest possible string that can be returned
-//  protected String getLongestTurn() {
-////    int i = 0;
-////    Enumeration e =  getComponents(TurnLevel.class);
-////    while (e.hasMoreElements()) {
-////      TurnLevel level = (TurnLevel) e.nextElement();
-////      turnFormat.setProperty(LEVEL_NAME + (i + 1), level.getConfigureName());
-////      turnFormat.setProperty(LEVEL_TURN + (i + 1), level.getLongestValueName());
-////      i++;
-////    }
-////    return turnFormat.getText();
-//    return "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx";
-//  }
 
   protected void next() {
 
@@ -410,14 +410,14 @@ public class TurnTracker extends AbstractConfigurable implements CommandEncoder,
       return;
     }
 
-    TurnLevel level = getTurnLevel(currentTurn);
+    TurnLevel level = getTurnLevel(currentLevel);
     level.advance();
     if (level.hasRolledOver()) {
-      currentTurn++;
-      if (currentTurn >= getTurnLevelCount()) {
-        currentTurn = 0;
+      currentLevel++;
+      if (currentLevel >= getTurnLevelCount()) {
+        currentLevel = 0;
       }
-      getTurnLevel(currentTurn).setLow();
+      getTurnLevel(currentLevel).setLow();
     }
     
     updateTurnDisplay();
@@ -429,14 +429,14 @@ public class TurnTracker extends AbstractConfigurable implements CommandEncoder,
       return;
     }
 
-    TurnLevel level = getTurnLevel(currentTurn);
+    TurnLevel level = getTurnLevel(currentLevel);
     level.retreat();
     if (level.hasRolledOver()) {
-      currentTurn--;
-      if (currentTurn < 0) {
-        currentTurn = getTurnLevelCount()-1;
+      currentLevel--;
+      if (currentLevel < 0) {
+        currentLevel = getTurnLevelCount()-1;
       }
-      getTurnLevel(currentTurn).setHigh();
+      getTurnLevel(currentLevel).setHigh();
     }
 
     updateTurnDisplay();
@@ -469,8 +469,8 @@ public class TurnTracker extends AbstractConfigurable implements CommandEncoder,
       setDialog = new SetDialog();
       setDialog.setTitle("Set " + getConfigureName());
     }
-   // setDialog.setControls();
-    setSetVisibility(false);
+   setDialog.setControls(this);
+    //setSetVisibility(false);
     setDialog.setVisible(true);
   }
 
@@ -482,8 +482,10 @@ public class TurnTracker extends AbstractConfigurable implements CommandEncoder,
 
   public Command decode(String command) {
     Command comm = null;
-    if (command.startsWith(COMMAND_PREFIX)) {
-     comm = new SetTurn(command.substring(COMMAND_PREFIX.length()), this);
+    if (command.startsWith(COMMAND_PREFIX+getId())) {
+      SequenceEncoder.Decoder sd = new SequenceEncoder.Decoder(command, '\t');
+      sd.nextToken("");
+     comm = new SetTurn(sd.nextToken(""), this);
     }
     return comm;
   }
@@ -491,7 +493,11 @@ public class TurnTracker extends AbstractConfigurable implements CommandEncoder,
   public String encode(Command c) {
     String s = null;
     if (c instanceof SetTurn) {
-      s = COMMAND_PREFIX + ((SetTurn) c).newState;
+      SetTurn com = (SetTurn) c;
+      SequenceEncoder se = new SequenceEncoder('\t');
+      se.append(COMMAND_PREFIX + com.getTurn().getId());
+      se.append(com.newState);
+      return se.getValue();
     }
     return s;
   }
@@ -510,7 +516,7 @@ public class TurnTracker extends AbstractConfigurable implements CommandEncoder,
     for (int i = 0; i < getTurnLevelCount(); i++) {
       (getTurnLevel(i)).reset();
     }
-    currentTurn = 0;
+    currentLevel = 0;
     setLaunchToolTip();
   }
   
@@ -709,8 +715,9 @@ public class TurnTracker extends AbstractConfigurable implements CommandEncoder,
     JMenu config = new JMenu("Configure");
     
     for (int i = 0; i < getTurnLevelCount(); i++) {
-      config.add(getTurnLevel(i).getConfigMenu());
+      getTurnLevel(i).buildConfigMenu(config);
     }
+    
     popup.add(config);
   }
 
@@ -795,11 +802,17 @@ public class TurnTracker extends AbstractConfigurable implements CommandEncoder,
 
     protected JPanel panel;
     protected JPanel controls = null;
+    protected ArrayList levelPanels = new ArrayList();
+    protected JPanel levelControls = null;
+    protected Component childControls = null;
+    protected TurnTracker turn;
+    protected JDialog me;
 
     protected SetDialog() {
       super(GameModule.getGameModule().getFrame());
       initComponents();
       setLocation(100, 100);
+      me = this;
     }
     
     protected void initComponents() {
@@ -813,7 +826,7 @@ public class TurnTracker extends AbstractConfigurable implements CommandEncoder,
       });
 
       panel = new JPanel();
-      panel.setLayout(new BoxLayout(panel, BoxLayout.X_AXIS));
+      panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
       getContentPane().add(panel);
 
       JPanel p = new JPanel();
@@ -837,38 +850,61 @@ public class TurnTracker extends AbstractConfigurable implements CommandEncoder,
         }
       });
       p.add(cancelButton);
-
-      JButton configButton = new JButton("Configure");
-      configButton.setToolTipText("Show/Hide Configure Options");
-      configButton.addActionListener(new ActionListener() {
-        public void actionPerformed(ActionEvent e) {
-          toggleSetVisibility();
-        }
-      });
-      p.add(configButton);
       
       getContentPane().add(p);
     }
 
-    public void setControls() {
+    public void setControls(TurnTracker turn) {
+      
+      this.turn = turn;
+      
       if (controls != null) {
         panel.remove(controls);
       }
 
       controls = new JPanel();
-      controls.setLayout(new BoxLayout(controls, BoxLayout.X_AXIS));
+      controls.setLayout(new BoxLayout(controls, BoxLayout.Y_AXIS));
 
-      Enumeration e = getTurnLevels();
-      while (e.hasMoreElements()) {
-        TurnLevel level = (TurnLevel) e.nextElement();
-        JComponent c = level.getSetControls();
-        c.setAlignmentX(Component.TOP_ALIGNMENT);
-        controls.add(c);
+      levelControls = new JPanel();
+      levelControls.setLayout(new BoxLayout(levelControls, BoxLayout.Y_AXIS));
+      
+      if (getTurnLevelCount() > 1) {
+        String s[] = new String[getTurnLevelCount()];
+        for (int i = 0; i < s.length; i++) {
+          s[i] = getTurnLevel(i).getConfigureName();
+        }    
+        StringEnumConfigurer e = new StringEnumConfigurer(null, " Select:  ", s);
+        e.setValue(getTurnLevel(currentLevel).getConfigureName());
+        levelControls.add(e.getControls());
+        e.addPropertyChangeListener(new PropertyChangeListener() {
+          public void propertyChange(PropertyChangeEvent e) {
+            String option = ((StringEnumConfigurer) e.getSource()).getValueString();
+            for (int i = 0; i < getTurnLevelCount(); i++) {
+              if (option.equals(getTurnLevel(i).getConfigureName())) {
+                  currentLevel = i;
+                  updateTurnDisplay();
+                  addChildControls();
+              }
+            }
+          }});
       }
+      
+      addChildControls();
+      
+      controls.add(levelControls);
 
       panel.add(controls);
       pack();
     }
+    
+    protected void addChildControls () {
+      if (childControls != null) {
+        levelControls.remove(childControls);
+      }
+      childControls = getTurnLevel(currentLevel).getSetControls(me, turn);
+      levelControls.add(childControls);
+    }
+     
   }
   
   protected void cancelSet() {
@@ -880,21 +916,7 @@ public class TurnTracker extends AbstractConfigurable implements CommandEncoder,
     save();
     updateTurnDisplay();
   }
-  
-  protected void toggleSetVisibility() {
-    for (int i = 0; i < getTurnLevelCount(); i++) {
-      getTurnLevel(i).toggleConfigVisibility();
-    }
-    setDialog.pack();
-  }
-  
-  protected void setSetVisibility(boolean b) {
-    for (int i = 0; i < getTurnLevelCount(); i++) {
-      getTurnLevel(i).setConfigVisibility(b);
-    }
-    setDialog.pack();
-  }
-  
+
   public static class SetTurn extends Command {
     private String oldState;
     private String newState;
@@ -912,6 +934,10 @@ public class TurnTracker extends AbstractConfigurable implements CommandEncoder,
       turn = t;
     }
 
+    public TurnTracker getTurn() {
+      return turn;
+    }
+    
     protected void executeCommand() {
       turn.setState(newState);
     }
