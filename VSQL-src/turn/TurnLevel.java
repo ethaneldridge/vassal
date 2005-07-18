@@ -19,7 +19,6 @@
  
 package turn;
 
-import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
@@ -162,6 +161,8 @@ public abstract class TurnLevel extends AbstractConfigurable {
     return menu;
   }
   
+  private static final Dimension FILLER = new Dimension(0, 3);
+  
   protected Component getSetControls(JDialog dialog, TurnTracker turn) {
     this.turn = turn;
     this.setDialog = dialog;
@@ -172,7 +173,9 @@ public abstract class TurnLevel extends AbstractConfigurable {
     p.setLayout(new BoxLayout(p, BoxLayout.Y_AXIS));
     p.setBorder(BorderFactory.createLineBorder(Color.black));
     
+    p.add(Box.createRigidArea(FILLER));
     p.add(getSetControl());
+    p.add(Box.createRigidArea(FILLER));
     
     if (getTurnLevelCount() > 1) {
       String s[] = new String[getTurnLevelCount()];
@@ -193,10 +196,11 @@ public abstract class TurnLevel extends AbstractConfigurable {
           }
         }});
       p.add(e.getControls());
+      p.add(Box.createRigidArea(FILLER));
     }
 
     levelSetControls.add(p);
-    levelSetControls.add(Box.createRigidArea(new Dimension(0, 5)));
+    levelSetControls.add(Box.createRigidArea(FILLER));
     
     addChildControls();
     
@@ -207,7 +211,7 @@ public abstract class TurnLevel extends AbstractConfigurable {
     if (childSetControls != null) {
       levelSetControls.remove(childSetControls);
     }
-    if (currentSubLevel >= 0) {
+    if (getTurnLevelCount() > 0) {
       childSetControls = getTurnLevel(currentSubLevel).getSetControls(setDialog, turn);
       levelSetControls.add(childSetControls);
       setDialog.pack();
@@ -290,7 +294,7 @@ public abstract class TurnLevel extends AbstractConfigurable {
   }
   
   public void addTo(Buildable parent) {
-    
+    this.parent = (AbstractConfigurable) parent;    
   }
   
   public void removeFrom(Buildable parent) {

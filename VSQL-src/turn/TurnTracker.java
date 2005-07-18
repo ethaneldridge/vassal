@@ -798,6 +798,8 @@ public class TurnTracker extends AbstractConfigurable implements CommandEncoder,
     }
   }
   
+  private static final Dimension FILLER = new Dimension(0, 3);
+  
   protected class SetDialog extends JDialog {
 
     protected JPanel panel;
@@ -869,13 +871,16 @@ public class TurnTracker extends AbstractConfigurable implements CommandEncoder,
       levelControls.setLayout(new BoxLayout(levelControls, BoxLayout.Y_AXIS));
       
       if (getTurnLevelCount() > 1) {
+        JPanel p = new JPanel();
+        p.setLayout(new BoxLayout(p, BoxLayout.Y_AXIS));
+        p.setBorder(BorderFactory.createLineBorder(Color.black));
+        
         String s[] = new String[getTurnLevelCount()];
         for (int i = 0; i < s.length; i++) {
           s[i] = getTurnLevel(i).getConfigureName();
         }    
         StringEnumConfigurer e = new StringEnumConfigurer(null, " Select:  ", s);
         e.setValue(getTurnLevel(currentLevel).getConfigureName());
-        levelControls.add(e.getControls());
         e.addPropertyChangeListener(new PropertyChangeListener() {
           public void propertyChange(PropertyChangeEvent e) {
             String option = ((StringEnumConfigurer) e.getSource()).getValueString();
@@ -887,6 +892,13 @@ public class TurnTracker extends AbstractConfigurable implements CommandEncoder,
               }
             }
           }});
+        
+        p.add(Box.createRigidArea(FILLER));
+        p.add(e.getControls());
+        p.add(Box.createRigidArea(FILLER));
+        levelControls.add(p);
+        levelControls.add(Box.createRigidArea(FILLER));
+        
       }
       
       addChildControls();
@@ -903,6 +915,7 @@ public class TurnTracker extends AbstractConfigurable implements CommandEncoder,
       }
       childControls = getTurnLevel(currentLevel).getSetControls(me, turn);
       levelControls.add(childControls);
+      pack();
     }
      
   }
