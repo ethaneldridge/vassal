@@ -36,7 +36,7 @@ import VASSAL.configure.SingleChildInstance;
  */
 public class AutoImages extends AbstractConfigurable {
   
-  public static final String VERSION = "1.8";
+  public static final String VERSION = "1.9";
   
   protected static AutoImages instance;
   protected LayoutsContainer definitions;
@@ -138,17 +138,11 @@ public class AutoImages extends AbstractConfigurable {
   }
   
   public HelpFile getHelpFile() {
+//    HelpFile help = new HelpFile();
+//    help.setAttribute(HelpFile.FILE, "AutoImage/help/AutoImages.html");
+//    return help;
     return null;
   }
-    
-//    File dir = VASSAL.build.module.Documentation.getDocumentationBaseDir();
-//    dir = new File(dir, "ReferenceManual");
-//    try {
-//      return new HelpFile(null, new File(dir, "Map.htm"));
-//    }
-//    catch (MalformedURLException ex) {
-//      return null;
-//    }
 
   public void removeFrom(Buildable parent) {
   }

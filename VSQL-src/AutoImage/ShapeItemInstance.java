@@ -28,10 +28,11 @@ public class ShapeItemInstance extends ItemInstance {
 
   public static final String BORDER_COLOR = "borderColor";
   
-  private ColorSwatch borderColor = ColorSwatch.getClear();
+  private ColorSwatch borderColor = ColorSwatch.getBlack();
   
   public ShapeItemInstance() {
     super();
+    setFgColor(ColorSwatch.getClear());
   }
 
   public ShapeItemInstance(String code, ImageDefn defn) {
@@ -42,6 +43,7 @@ public class ShapeItemInstance extends ItemInstance {
 
   public ShapeItemInstance(String name, String type, String location) {
     super(name, type, location);
+    setFgColor(ColorSwatch.getClear());
   }
 
   public String encode() {

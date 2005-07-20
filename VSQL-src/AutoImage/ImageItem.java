@@ -221,6 +221,8 @@ public class ImageItem extends Item {
       Graphics bg = image.getGraphics();
       bg.setColor(Color.black);
       bg.drawRect(0, 0, 9, 9);
+      bg.drawLine(0, 0, 9, 9);
+      bg.drawLine(0, 9, 9, 0);
       imageBounds = new Rectangle(-5, -5, 10, 10);
     }
     else {
@@ -240,7 +242,8 @@ public class ImageItem extends Item {
     ImageItem item = new ImageItem(l);
     
     sd.nextToken();
-    item.imageName = sd.nextToken();
+    item.imageName = sd.nextToken("");
+    item.imageSource = sd.nextToken(SRC_FIXED);
     
     return item;
   }
@@ -250,6 +253,7 @@ public class ImageItem extends Item {
     SequenceEncoder se1 = new SequenceEncoder(TYPE, ';');
     
     se1.append(imageName+"");
+    se1.append(imageSource+"");
    
     SequenceEncoder se2 = new SequenceEncoder(se1.getValue(), '|');
     se2.append(super.encode());

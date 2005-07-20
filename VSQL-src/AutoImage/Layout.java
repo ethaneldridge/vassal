@@ -318,13 +318,14 @@ public class Layout extends AbstractConfigurable implements Visualizable {
 
       // Add Border
       if (getBorder().equals(BORDER_PLAIN) || getBorder().equals(BORDER_FANCY)) {
+        Color bg = bgColor == null ? Color.WHITE : bgColor;
         g.setColor(imageDefn.getBorderColor().getColor());
         ((Graphics2D) g).setStroke(new BasicStroke(1.0f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
         g.drawRect(0, 0, width - 1, height - 1);
         if (getBorder().equals(BORDER_FANCY)) {
-          Color lt = new Color(bgColor.getRed() / 2, bgColor.getGreen() / 2, bgColor.getBlue() / 2);
-          Color dk = new Color(bgColor.getRed() + (255 - bgColor.getRed()) / 2, bgColor.getGreen()
-              + (255 - bgColor.getGreen()) / 2, bgColor.getBlue() + (255 - bgColor.getBlue()) / 2);
+          Color lt = new Color(bg.getRed() / 2, bg.getGreen() / 2, bg.getBlue() / 2);
+          Color dk = new Color(bg.getRed() + (255 - bg.getRed()) / 2, bg.getGreen()
+              + (255 - bg.getGreen()) / 2, bg.getBlue() + (255 - bg.getBlue()) / 2);
           g.setColor(dk);
           g.drawLine(1, 1, width - 3, 1);
           g.drawLine(1, 2, 1, height - 3);

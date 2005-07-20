@@ -145,18 +145,6 @@ public class FontManager extends AbstractConfigurable {
   public void removeFrom(Buildable parent) {
   }
 
-  //  public Font getFontByName (String colorName) {
-  //
-  //      GenericFontStyle gfont = (GenericFontStyle) fontStyles.get(colorName);
-  //      if (gfont != null) {
-  //        Font font = gfont.getFont();
-  //        if (font != null) {
-  //          return font;
-  //        }
-  //      }
-  //    return DEFAULT_FONT;
-  //  }
-
   public String[] getFontNames() {
     String[] names = new String[fontStyles.size()];
     Iterator i = fontStyles.values().iterator();

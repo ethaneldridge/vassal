@@ -211,6 +211,7 @@ public class ListTurnLevel extends TurnLevel implements ActionListener {
   protected  Component getSetControl() {
      
     StringEnumConfigurer config = new StringEnumConfigurer("", " "+getConfigureName()+":  ", list);
+    config.setValue(list[current]);
     config.addPropertyChangeListener(new PropertyChangeListener() {
       public void propertyChange(PropertyChangeEvent e) {
         String option = ((StringEnumConfigurer) e.getSource()).getValueString();
@@ -221,7 +222,7 @@ public class ListTurnLevel extends TurnLevel implements ActionListener {
           }
         }
       }});
-    config.setValue(list[current]);
+
     return config.getControls();
   }
   
