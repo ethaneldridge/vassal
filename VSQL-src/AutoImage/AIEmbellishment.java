@@ -91,7 +91,7 @@ public class AIEmbellishment extends Embellishment {
     aiNames = new String[commonName.length];
 
     for (int i = 0; i < commonName.length; i++) {
-      String s = commonName[i];
+      String s = commonName[i] + "";
       if (s.startsWith("+")) {
         s = s.substring(1, s.length());
       }

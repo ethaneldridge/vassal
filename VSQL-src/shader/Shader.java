@@ -23,10 +23,15 @@ import java.awt.AlphaComposite;
 import java.awt.Color;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
+import java.awt.Image;
+import java.awt.Point;
 import java.awt.Rectangle;
+import java.awt.Shape;
 import java.awt.TexturePaint;
 import java.awt.event.ActionListener;
 import java.awt.image.BufferedImage;
+import java.io.File;
+import java.io.IOException;
 
 import javax.swing.KeyStroke;
 
@@ -38,11 +43,16 @@ import VASSAL.build.module.GameComponent;
 import VASSAL.build.module.Map;
 import VASSAL.build.module.documentation.HelpFile;
 import VASSAL.build.module.map.Drawable;
+import VASSAL.build.module.map.boardPicker.Board;
+import VASSAL.build.module.map.boardPicker.board.HexGrid;
+import VASSAL.build.module.map.boardPicker.board.MapGrid;
 import VASSAL.command.Command;
 import VASSAL.configure.ColorConfigurer;
 import VASSAL.configure.Configurer;
 import VASSAL.configure.ConfigurerFactory;
 import VASSAL.configure.IconConfigurer;
+import VASSAL.configure.StringEnum;
+import VASSAL.configure.VisibilityCondition;
 import VASSAL.tools.LaunchButton;
 
 public class Shader extends AbstractConfigurable implements Drawable, GameComponent {
@@ -52,13 +62,22 @@ public class Shader extends AbstractConfigurable implements Drawable, GameCompon
   public static final String HOT_KEY = "hotkey";
   public static final String ICON = "icon";
   public static final String BUTTON_TEXT = "buttonText";
+  public static final String TYPE = "type";
   public static final String COLOR = "color";
+  public static final String IMAGE = "image";
+  public static final String OPACITY = "opacity";
+  
+  public static final String TYPE_STD = "Standard";
+  public static final String TYPE_IMAGE = "Image";
   
   protected LaunchButton launch;
-  protected BufferedImage shading;
+  protected BufferedImage shading = null;
   protected Rectangle shadeRect;
-  protected Color color;
+  protected String imageName = "";
+  protected Color color = Color.BLACK;
+  protected String type = TYPE_STD;
   protected boolean shadingVisible;
+  protected int opacity = 100;
   protected Map map;
   
   public Shader() {
@@ -77,13 +96,24 @@ public class Shader extends AbstractConfigurable implements Drawable, GameCompon
   }
   
   public void buildShading() {
-    shading = new BufferedImage(2, 2, BufferedImage.TYPE_4BYTE_ABGR);
-    Graphics2D g2 = shading.createGraphics();
-    g2.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.5F));
-    g2.setColor(color);
-    g2.drawLine(0, 0, 0, 0);
-    g2.drawLine(1, 1, 1, 1);
-    shadeRect = new Rectangle(0,0,2,2);
+    if (type.equals(TYPE_STD)) {
+      shading = new BufferedImage(2, 2, BufferedImage.TYPE_4BYTE_ABGR);
+      Graphics2D g2 = shading.createGraphics();
+      g2.setColor(color);
+      g2.drawLine(0, 0, 0, 0);
+      g2.drawLine(1, 1, 1, 1);
+    }
+    else {
+      try {
+        shading = (BufferedImage) GameModule.getGameModule().getDataArchive().getCachedImage(imageName);
+      }
+      catch (IOException ex) {
+      }
+    }
+    shadeRect = new Rectangle(0,0,shading.getWidth(),shading.getHeight());   
+    if (map != null) {
+      map.repaint();
+    }
   }
   
   public void reset() {
@@ -96,21 +126,28 @@ public class Shader extends AbstractConfigurable implements Drawable, GameCompon
   }
   
   public void draw(Graphics g, Map map) {
-    if (shadingVisible) {
+    if (shadingVisible && shading != null) {
       Graphics2D g2 = (Graphics2D) g;
       g2.setPaint(new TexturePaint(shading, shadeRect));
-      g2.fillRect(50, 50, 100, 100);
+      g2.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, opacity / 100.0f));
+      shadeHex(g2, 100, 100);
     }
   }
 
   public String[] getAttributeDescriptions() {
-    return new String[] { "Name:  ", "Button text:  ", "Button Icon:  ", "Hotkey:  ", "Color:  " };
+    return new String[] { "Name:  ", "Button text:  ", "Button Icon:  ", "Hotkey:  ", 
+        "Shading Type:  ", "Color:  ", "Image:  ", "Opacity (%)" };
   }
 
   public Class[] getAttributeTypes() {
-    return new Class[] { String.class, String.class, IconConfig.class, KeyStroke.class, Color.class };
+    return new Class[] { String.class, String.class, IconConfig.class, KeyStroke.class, TypeConfig.class, Color.class, Image.class, Integer.class };
   }
 
+  public static class TypeConfig extends StringEnum {
+    public String[] getValidValues(AutoConfigurable target) {
+      return new String[]{TYPE_STD, TYPE_IMAGE};
+    }
+  }
   public static class IconConfig implements ConfigurerFactory {
     public Configurer getConfigurer(AutoConfigurable c, String key, String name) {
       return new IconConfigurer(key, name, ((Shader) c).launch.getAttributeValueString(ICON));
@@ -118,7 +155,7 @@ public class Shader extends AbstractConfigurable implements Drawable, GameCompon
   }
   
   public String[] getAttributeNames() {
-    return new String[] { NAME, BUTTON_TEXT, ICON, HOT_KEY, COLOR };
+    return new String[] { NAME, BUTTON_TEXT, ICON, HOT_KEY, TYPE, COLOR, IMAGE, OPACITY };
   }
 
   public void setAttribute(String key, Object value) {
@@ -126,13 +163,32 @@ public class Shader extends AbstractConfigurable implements Drawable, GameCompon
       setConfigureName((String) value);
       launch.setToolTipText((String) value);
     }
+    else if (TYPE.equals(key)) {
+      type = (String) value;
+    }
     else if (COLOR.equals(key)) {
       if (value instanceof String) {
         value = ColorConfigurer.stringToColor((String) value);
       }
       color = (Color) value;
       buildShading();
-      map.repaint();
+    }
+    else if (IMAGE.equals(key)) {
+      if (value instanceof File) {
+        value = ((File) value).getName();
+      }
+      imageName = (String) value;
+      buildShading();
+    }
+    else if (OPACITY.equals(key)) {
+      if (value instanceof String) {
+        value = new Integer((String) value);
+      }
+      opacity = ((Integer) value).intValue();
+      if (opacity < 0 || opacity > 100) {
+        opacity = 100;
+      }
+      buildShading();
     }
     else {
       launch.setAttribute(key, value);
@@ -143,8 +199,17 @@ public class Shader extends AbstractConfigurable implements Drawable, GameCompon
     if (NAME.equals(key)) {
       return getConfigureName() + "";
     }
+    else if (TYPE.equals(key)) {
+      return type + ""; 
+    }
     else if (COLOR.equals(key)) {
       return ColorConfigurer.colorToString(color);
+    }
+    else if (IMAGE.equals(key)) {
+      return imageName + "";
+    }
+    else if (OPACITY.equals(key)) {
+      return opacity + "";
     }
     else {
       return launch.getAttributeValueString(key);
@@ -152,6 +217,26 @@ public class Shader extends AbstractConfigurable implements Drawable, GameCompon
 
   }
 
+  public VisibilityCondition getAttributeVisibility(String name) {
+    if (IMAGE.equals(name)) {
+      return new VisibilityCondition() {
+        public boolean shouldBeVisible() {
+          return type.equals(TYPE_IMAGE);
+        }
+      };
+    }  
+    else if (COLOR.equals(name)) {
+      return new VisibilityCondition() {
+        public boolean shouldBeVisible() {
+          return type.equals(TYPE_STD);
+        }
+      };
+    } 
+    else {
+      return super.getAttributeVisibility(name);
+    }
+  }
+  
   public static String getConfigureTypeName() {
     return "Shader v"+VERSION;
   }
@@ -185,6 +270,17 @@ public class Shader extends AbstractConfigurable implements Drawable, GameCompon
 
   public Command getRestoreCommand() {
     return null;
+  }
+  
+  protected void shadeHex(Graphics2D g2, int x, int y) {
+    
+    Point p = map.snapTo(new Point(x, y));
+    Board b = map.findBoard(p);
+    MapGrid m = b.getGrid();
+    ShadeableHexGrid h = (ShadeableHexGrid) m;
+    Shape hex = h.getHexShape(p.x, p.y, map.getZoom(), b.isReversed());
+    
+    g2.fill(hex);
   }
 
 }
