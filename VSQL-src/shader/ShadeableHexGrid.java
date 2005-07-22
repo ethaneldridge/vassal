@@ -21,19 +21,19 @@ package shader;
 
 import java.awt.Point;
 import java.awt.Polygon;
-import java.awt.Shape;
+import java.awt.geom.Area;
 
 import VASSAL.build.module.map.boardPicker.board.HexGrid;
 
 public class ShadeableHexGrid extends HexGrid {
 
-  public Shape getHexShape(int centerX, int centerY, double zoom, boolean reversed) {
+  public Area getHexShape(int centerX, int centerY, double zoom, boolean reversed) {
     Polygon poly = new Polygon(); 
     
-    float x = (float) centerX;
-    float y = (float) centerY;
+    float x = (float) (sideways ? centerY : centerX) * (float) zoom;
+    float y = (float) (sideways ? centerX : centerY) * (float) zoom;
     
-    float x1,y1, x2,y2, x3,y3, x4, y4;
+    float x1,y1, x2,y2, x3,y3, x4, y4, x5, y5, x6, y6;
 
     float deltaX = (float) (this.dx * zoom);
     float deltaY = (float) (this.dy * zoom);
@@ -44,31 +44,50 @@ public class ShadeableHexGrid extends HexGrid {
     Point p2 = new Point();
     Point p3 = new Point();
     Point p4 = new Point();
+    Point p5 = new Point();
+    Point p6 = new Point();
     
     x1 = x - r;
     y1 = y;
     p1.setLocation(Math.round(x1), Math.round(y1));
+    
     x2 = x - .5F * r;
     y2 = reversed ? y + .5F * deltaY : y - .5F * deltaY;
     p2.setLocation(Math.round(x2), Math.round(y2));
+    
     x3 = x + .5F * r;
     y3 = y2;
-    p3.setLocation(Math.round(x3), Math.round(y3));
+    p3.setLocation(Math.round(x3)+1, Math.round(y3));
+    
     x4 = x + r;
     y4 = y;
-    p4.setLocation(Math.round(x4), Math.round(y4));
+    p4.setLocation(Math.round(x4)+1, Math.round(y4));
+    
+    x5 = x3;
+    y5 = reversed ? y - .5F * deltaY : y + .5F * deltaY;
+    p5.setLocation(Math.round(x5)+1, Math.round(y5)+1);
+    
+    x6 = x2;
+    y6 = y5;
+    p6.setLocation(Math.round(x6), Math.round(y6)+1);
+    
     if (sideways) {
       rotate(p1);
       rotate(p2);
       rotate(p3);
       rotate(p4);
+      rotate(p5);
+      rotate(p6);
     }
+    
     poly.addPoint(p1.x, p1.y);
     poly.addPoint(p2.x, p2.y);
     poly.addPoint(p3.x, p3.y);
     poly.addPoint(p4.x, p4.y);
+    poly.addPoint(p5.x, p5.y);
+    poly.addPoint(p6.x, p6.y);
     poly.addPoint(p1.x, p1.y);
     
-    return poly;
+    return new Area(poly);
   }
 }

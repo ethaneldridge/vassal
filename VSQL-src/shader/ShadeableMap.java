@@ -56,22 +56,22 @@ public class ShadeableMap extends Map {
   protected void drawShaders(Graphics g, int offset, int offset2) {
     Iterator i = shaders.iterator();
     while (i.hasNext()) {
-      ((Shader) i.next()).draw(g, this);
+      ((MapShader) i.next()).draw(g, this);
     }    
   }
   
   protected void drawShaders(Graphics g, Rectangle visibleRect) {
     Iterator i = shaders.iterator();
     while (i.hasNext()) {
-      ((Shader) i.next()).draw(g, this);
+      ((MapShader) i.next()).draw(g, this);
     }    
   }
   
-  protected void addShader(Shader shader) {
+  protected void addShader(MapShader shader) {
     shaders.add(shader);
   }
   
-  protected void removeShader(Shader shader) {
+  protected void removeShader(MapShader shader) {
     shaders.remove(shader);
   }
 }
