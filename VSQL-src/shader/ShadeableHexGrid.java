@@ -27,6 +27,10 @@ import VASSAL.build.module.map.boardPicker.board.HexGrid;
 
 public class ShadeableHexGrid extends HexGrid {
 
+  public ShadeableHexGrid() {
+    super();
+  }
+  
   public Area getHexShape(int centerX, int centerY, double zoom, boolean reversed) {
     Polygon poly = new Polygon(); 
     
@@ -89,5 +93,9 @@ public class ShadeableHexGrid extends HexGrid {
     poly.addPoint(p1.x, p1.y);
     
     return new Area(poly);
+  }
+  
+  public static String getConfigureTypeName() {
+    return "Shadeable Hex Grid";
   }
 }

@@ -25,6 +25,7 @@ import java.util.ArrayList;
 import java.util.Iterator;
 
 import VASSAL.build.module.Map;
+import VASSAL.counters.GamePiece;
 
 public class ShadeableMap extends Map {
 
@@ -67,11 +68,27 @@ public class ShadeableMap extends Map {
     }    
   }
   
+  /*
+   * A stack has been moved, rebuild the shaders
+   */
+  public void addPiece(GamePiece p) {
+    super.addPiece(p);
+    Iterator i = shaders.iterator();
+    while (i.hasNext()) {
+      ((MapShader) i.next()).update();
+    } 
+  }
+
+  
   protected void addShader(MapShader shader) {
     shaders.add(shader);
   }
   
   protected void removeShader(MapShader shader) {
     shaders.remove(shader);
+  }
+  
+  public static String getConfigureTypeName() {
+    return "Shadeable Map";
   }
 }

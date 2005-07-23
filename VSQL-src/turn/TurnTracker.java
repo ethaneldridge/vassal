@@ -88,7 +88,7 @@ public class TurnTracker extends AbstractConfigurable implements CommandEncoder,
   protected static UniqueIdManager idMgr = new UniqueIdManager("TurnTracker");
   
   protected static final String COMMAND_PREFIX = "TURN";
-  public static final String VERSION = "1.5";
+  public static final String VERSION = "1.6";
 
   public static final String NAME = "name";
   public static final String HOT_KEY = "hotkey";
@@ -546,11 +546,12 @@ public class TurnTracker extends AbstractConfigurable implements CommandEncoder,
 
   protected class TurnWindow extends JDialog implements MouseListener {
 
-   protected final int BUTTON_SIZE = 20;
+   protected final int BUTTON_SIZE = 25;
     protected JPanel mainPanel;
     protected JPanel controlPanel;
     protected JPanel turnPanel;
-    protected JPanel buttonPanel;
+    protected JPanel leftPanel;
+    protected JPanel rightPanel;
 
     protected TurnWindow() {
       super(GameModule.getGameModule().getFrame());
@@ -575,14 +576,14 @@ public class TurnTracker extends AbstractConfigurable implements CommandEncoder,
       controlPanel = new JPanel();
       controlPanel.setLayout(new BoxLayout(controlPanel, BoxLayout.X_AXIS));
       
-      buttonPanel = new JPanel();
-      buttonPanel.setLayout(new BoxLayout(buttonPanel, BoxLayout.Y_AXIS));
-      buttonPanel.setPreferredSize(new Dimension(BUTTON_SIZE, BUTTON_SIZE*2));
+      leftPanel = new JPanel();
+      //leftPanel.setLayout(new BoxLayout(leftPanel, BoxLayout.Y_AXIS));
+      //leftPanel.setPreferredSize(new Dimension(BUTTON_SIZE, BUTTON_SIZE*2));
       
       JLabel nextButton = new IconButton(PLUS_ICON, BUTTON_SIZE, BUTTON_SIZE);
       nextButton.setToolTipText("Next Turn");
       nextButton.setAlignmentY(Component.TOP_ALIGNMENT);
-      buttonPanel.add(nextButton);
+      leftPanel.add(nextButton);
       nextButton.addMouseListener(new MouseAdapter() {
         public void mouseClicked(MouseEvent arg0) {
           captureState();
@@ -591,10 +592,14 @@ public class TurnTracker extends AbstractConfigurable implements CommandEncoder,
         }
         });
 
+      rightPanel = new JPanel();
+      //rightPanel.setLayout(new BoxLayout(rightPanel, BoxLayout.Y_AXIS));
+      //rightPanel.setPreferredSize(new Dimension(BUTTON_SIZE, BUTTON_SIZE*2));
+      
       JLabel prevButton = new IconButton(MINUS_ICON, BUTTON_SIZE, BUTTON_SIZE);
       prevButton.setToolTipText("Previous Turn");
       prevButton.setAlignmentY(Component.TOP_ALIGNMENT);
-      buttonPanel.add(prevButton);
+      rightPanel.add(prevButton);
       prevButton.addMouseListener(new MouseAdapter() {
         public void mouseClicked(MouseEvent arg0) {
           captureState();
@@ -603,9 +608,8 @@ public class TurnTracker extends AbstractConfigurable implements CommandEncoder,
         }
         });
       
-      buttonPanel.add(Box.createVerticalGlue());
-      
-      controlPanel.add(buttonPanel);
+ //     leftPanel.add(Box.createVerticalGlue());
+ 
       
       // Next, the Label containing the Turn Text
       setDisplayFont();
@@ -617,8 +621,10 @@ public class TurnTracker extends AbstractConfigurable implements CommandEncoder,
       //turnPanel.setLayout(new BoxLayout(turnPanel, BoxLayout.X_AXIS));
       turnPanel.add(BorderLayout.CENTER, turnLabel);
       turnLabel.addMouseListener(this);
-      
-      controlPanel.add(turnPanel);  
+ 
+      controlPanel.add(rightPanel);
+      controlPanel.add(turnPanel);
+      controlPanel.add(leftPanel);
       
       mainPanel.add(controlPanel);
       
@@ -718,7 +724,9 @@ public class TurnTracker extends AbstractConfigurable implements CommandEncoder,
       getTurnLevel(i).buildConfigMenu(config);
     }
     
-    popup.add(config);
+    if (config.getItemCount() > 0) {
+      popup.add(config);
+    }
   }
 
   protected void addItem(JMenu menu, String command) {
@@ -745,7 +753,7 @@ public class TurnTracker extends AbstractConfigurable implements CommandEncoder,
       this.type = t;
       this.w = w;
       this.h = h;
-      setMaximumSize(new Dimension(w, h));
+      //setMaximumSize(new Dimension(w, h));
       setMinimumSize(new Dimension(w, h));
       setPreferredSize(new Dimension(w, h));
       setBorder(raised);
