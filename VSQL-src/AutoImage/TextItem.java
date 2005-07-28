@@ -19,12 +19,16 @@
 
 package AutoImage;
 
+import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Point;
 import java.awt.RenderingHints;
+import java.awt.Shape;
+import java.awt.font.FontRenderContext;
+import java.awt.font.TextLayout;
 import java.awt.geom.AffineTransform;
 
 import javax.swing.KeyStroke;
@@ -286,6 +290,8 @@ public class TextItem extends Item {
 
     Color fg = ti.getFgColor().getColor();
     Color bg = ti.getBgColor().getColor();
+    boolean outline = ti.isOutline();
+    Color ol = ti.getOutlineColor().getColor();
 
     int align = AL_CENTER;
     if (alignment.equals(LEFT)) {
@@ -315,7 +321,7 @@ public class TextItem extends Item {
       ((Graphics2D) g).setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING,RenderingHints.VALUE_TEXT_ANTIALIAS_OFF);
     }
 
-    drawLabel(g, s, origin.x, origin.y, f, align, AL_CENTER, fg, bg, null, getRotation());
+    drawLabel(g, s, origin.x, origin.y, f, align, AL_CENTER, fg, bg, null, getRotation(), outline, ol);
   }
 
   public String getType() {
@@ -364,6 +370,10 @@ public class TextItem extends Item {
     return se2.getValue();
   }
 
+  public boolean isOutline() {
+    return fontStyle.isOutline();
+  }
+  
   public boolean isFixed() {
     return textSource.equals(SRC_FIXED);
   }
@@ -392,7 +402,7 @@ public class TextItem extends Item {
     }
   }
 
-  public void drawLabel(Graphics g, String text, int x, int y, Font f, int hAlign, int vAlign, Color fgColor, Color bgColor, Color borderColor, int rotateDegrees) {
+  public static void drawLabel(Graphics g, String text, int x, int y, Font f, int hAlign, int vAlign, Color fgColor, Color bgColor, Color borderColor, int rotateDegrees, boolean outline, Color outlineColor) {
     g.setFont(f);
     int width = g.getFontMetrics().stringWidth(text + "  ");
     int height = g.getFontMetrics().getHeight();
@@ -433,8 +443,20 @@ public class TextItem extends Item {
       g.setColor(borderColor);
       g.drawRect(x0, y0, width, height);
     }
+
+    int y1 = y0 + g.getFontMetrics().getHeight() - g.getFontMetrics().getDescent();
+    String theText = " " + text + " ";
+    
+    if (outline && outlineColor != null) {
+      g.setColor(outlineColor);
+      g.drawString(theText, x0-1, y1-1);
+      g.drawString(theText, x0-1, y1+1);
+      g.drawString(theText, x0+1, y1-1);
+      g.drawString(theText, x0+1, y1+1);
+    }
+    
     g.setColor(fgColor);
-    g.drawString(" " + text + " ", x0, y0 + g.getFontMetrics().getHeight() - g.getFontMetrics().getDescent());
+    g.drawString(theText, x0, y1);
     
     if (rotateDegrees != 0) {
       g2d.setTransform(saveXForm); 

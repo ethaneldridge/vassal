@@ -37,22 +37,27 @@ public class FontStyle extends AbstractConfigurable {
   protected static final String NAME = "name";
   protected static final String STYLE = "style";
   
-  protected Font font;
+  protected OutlineFont font;
+  protected boolean outline;
   
   public FontStyle() {
     super();
     setConfigureName(FontManager.DEFAULT);
-    font = new Font(FontManager.DIALOG, Font.PLAIN, 10);
+    font = new OutlineFont(FontManager.DIALOG, Font.PLAIN, 10, false);
   }
   
-  public FontStyle(String name, Font f) {
+  public FontStyle(String name, OutlineFont f) {
     super();
     setConfigureName(name);
     font = f;
   }
   
-  public Font getFont() {
+  public OutlineFont getFont() {
     return font;
+  }
+  
+  public boolean isOutline() {
+    return font.isOutline();
   }
   
   public String[] getAttributeDescriptions() {
@@ -86,7 +91,7 @@ public class FontStyle extends AbstractConfigurable {
       if (o instanceof String) {
         o = FontConfigurer.decode((String) o);
       }
-      font = (Font) o;
+      font = (OutlineFont) o;
     }
    
   }

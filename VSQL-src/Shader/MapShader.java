@@ -17,21 +17,15 @@
  * http://www.opensource.org.
  */
 
-package shader;
+package Shader;
 
-import java.awt.AlphaComposite;
-import java.awt.Color;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
-import java.awt.Image;
 import java.awt.Point;
 import java.awt.Rectangle;
-import java.awt.TexturePaint;
 import java.awt.event.ActionListener;
 import java.awt.geom.Area;
 import java.awt.image.BufferedImage;
-import java.io.File;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Enumeration;
 
@@ -48,9 +42,7 @@ import VASSAL.build.module.map.Drawable;
 import VASSAL.build.module.map.boardPicker.Board;
 import VASSAL.build.module.map.boardPicker.board.MapGrid;
 import VASSAL.build.module.map.boardPicker.board.mapgrid.GridNumbering;
-import VASSAL.build.module.map.boardPicker.board.mapgrid.HexGridNumbering;
 import VASSAL.command.Command;
-import VASSAL.configure.ColorConfigurer;
 import VASSAL.configure.Configurer;
 import VASSAL.configure.ConfigurerFactory;
 import VASSAL.configure.IconConfigurer;
@@ -68,32 +60,21 @@ public class MapShader extends AbstractConfigurable implements Drawable, GameCom
   public static final String HOT_KEY = "hotkey";
   public static final String ICON = "icon";
   public static final String BUTTON_TEXT = "buttonText";
-  public static final String TYPE = "type";
-  public static final String COLOR = "color";
-  public static final String IMAGE = "image";
-  public static final String OPACITY = "opacity";
-  public static final String DEFAULT = "default";
 
-  public static final String TYPE_STD = "Standard";
-  public static final String TYPE_IMAGE = "Custom Image";
-  public static final String ON = "On";
-  public static final String OFF = "Off";
+  public static final String DEFAULT = "default";
+  public static final String DEFAULT_SHADE = "defaultShade";
+
+  public static final String NONE = "None";
+  public static final String SHADE = "Shade";
 
   protected LaunchButton launch;
-  protected BufferedImage shading = null;
-  protected Rectangle shadeRect;
-  protected String imageName = "";
-  protected Color color = Color.BLACK;
-  protected String type = TYPE_STD;
+
   protected boolean shadingVisible;
-  protected int opacity = 100;
-  protected String defaultShading = ON;
+  protected String defaultShading = SHADE;
+  protected String defaultShade = "";
   protected Map map;
   
   protected boolean dirty = true;
-  protected ArrayList boards = new ArrayList();
-  protected ArrayList hexList = new ArrayList();
-  protected ArrayList pieceList = new ArrayList();
 
   public MapShader() {
 
@@ -103,32 +84,31 @@ public class MapShader extends AbstractConfigurable implements Drawable, GameCom
       }
     };
     launch = new LaunchButton("Shade", BUTTON_TEXT, HOT_KEY, ICON, al);
-    launch.setToolTipText(getConfigureName());
     launch.setEnabled(false);
-
+    setConfigureName("MapShader");
     buildShading();
     reset();
   }
 
   public void buildShading() {
-    if (type.equals(TYPE_STD)) {
-      shading = new BufferedImage(2, 2, BufferedImage.TYPE_4BYTE_ABGR);
-      Graphics2D g2 = shading.createGraphics();
-      g2.setColor(color);
-      g2.drawLine(0, 0, 0, 0);
-      //g2.drawLine(1, 1, 1, 1);
-    }
-    else {
-      try {
-        shading = (BufferedImage) GameModule.getGameModule().getDataArchive().getCachedImage(imageName);
-      }
-      catch (IOException ex) {
-      }
-    }
-    shadeRect = new Rectangle(0, 0, shading.getWidth(), shading.getHeight());
-    if (map != null) {
-      map.repaint();
-    }
+//    if (type.equals(TYPE_STD)) {
+//      shading = new BufferedImage(2, 2, BufferedImage.TYPE_4BYTE_ABGR);
+//      Graphics2D g2 = shading.createGraphics();
+//      g2.setColor(color);
+//      g2.drawLine(0, 0, 0, 0);
+//      //g2.drawLine(1, 1, 1, 1);
+//    }
+//    else {
+//      try {
+//        shading = (BufferedImage) GameModule.getGameModule().getDataArchive().getCachedImage(imageName);
+//      }
+//      catch (IOException ex) {
+//      }
+//    }
+//    shadeRect = new Rectangle(0, 0, shading.getWidth(), shading.getHeight());
+//    if (map != null) {
+//      map.repaint();
+//    }
   }
 
   public void reset() {
@@ -141,7 +121,6 @@ public class MapShader extends AbstractConfigurable implements Drawable, GameCom
   }
 
   public void draw(Graphics g, Map m) {
-    if (shadingVisible && shading != null) {
       if (dirty) {
         buildShader();
       }
@@ -151,7 +130,6 @@ public class MapShader extends AbstractConfigurable implements Drawable, GameCom
 //      g2.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, opacity / 100.0f));
 //      shadeHex(g2, 70, 70);
     }
-  }
 
   /**
    * 
@@ -166,37 +144,25 @@ public class MapShader extends AbstractConfigurable implements Drawable, GameCom
    */
   protected void buildShader() {
 
-      // Find all boards with ShadeableHex children 
-      boards.clear();
-      hexList.clear();
       Enumeration e = map.getAllBoards();
       while (e.hasMoreElements()) {
         Board b = (Board) e.nextElement();
-        MapGrid grid = b.getGrid();
-        if (grid != null && grid instanceof ShadeableHexGrid) {
-          ShadeableHexGrid shadeGrid = (ShadeableHexGrid) grid;
-          GridNumbering numbering = shadeGrid.getGridNumbering();
-          if (numbering != null && numbering instanceof ShadeableHexGridNumbering) {
-            boards.add(b);
-            ShadeableHexGridNumbering hexNumbering = (ShadeableHexGridNumbering) numbering;
-            int rows = hexNumbering.getMaxRows();
-            int cols = hexNumbering.getMaxColumns();
-            boolean hexes[][] = new boolean[rows+2][cols+2];
-            hexList.add(hexes);
-          }
+        boolean doShade = true;
+        if (b instanceof ShadeableBoard) {
+          doShade = ((ShadeableBoard) b).isShadeable();
         }
-      }
-
-      // Find all pieces on the map that meet the shaders Marker criteria
-      pieceList.clear();
-      GamePiece pieces[] = map.getPieces();
-      for (int i = 0; i < pieces.length; i++) {
-        checkPiece(pieces[i]);
+        if (doShade) {
+          shadeBoard(b);
+        }
       }
       dirty = false;
     
   }
 
+  protected void shadeBoard(Board b) {
+    
+  }
+  
   private void checkPiece(GamePiece piece) {
     if (piece instanceof Stack) {
       Stack s = (Stack) piece;
@@ -206,7 +172,7 @@ public class MapShader extends AbstractConfigurable implements Drawable, GameCom
     }
     else {
       // Does this piece meet the criteria of any of our shaders?
-      pieceList.add(piece);
+      //pieceList.add(piece);
     }  
   }
 
@@ -251,24 +217,18 @@ public class MapShader extends AbstractConfigurable implements Drawable, GameCom
    * -----------------------------------------------------------------------
    */
   public String[] getAttributeDescriptions() {
-    return new String[] { "Name:  ", "Button text:  ", "Button Icon:  ", "Hotkey:  ", "Shading Type:  ", "Color:  ",
-        "Image:  ", "Opacity(%):  ", "Default Shading:  " };
+    return new String[] { "Name:  ", "Button text:  ", "Button Icon:  ", "Hotkey:  ", "Background Shading:  ", "Shade Name:  "};
+    
   }
 
   public Class[] getAttributeTypes() {
-    return new Class[] { String.class, String.class, IconConfig.class, KeyStroke.class, TypeConfig.class, Color.class,
-        Image.class, Integer.class, DefaultConfig.class };
+    return new Class[] { String.class, String.class, IconConfig.class, KeyStroke.class, DefaultConfig.class, String.class };
   }
 
-  public static class TypeConfig extends StringEnum {
-    public String[] getValidValues(AutoConfigurable target) {
-      return new String[] { TYPE_STD, TYPE_IMAGE };
-    }
-  }
 
   public static class DefaultConfig extends StringEnum {
     public String[] getValidValues(AutoConfigurable target) {
-      return new String[] { ON, OFF };
+      return new String[] { NONE, SHADE };
     }
   }
 
@@ -279,7 +239,7 @@ public class MapShader extends AbstractConfigurable implements Drawable, GameCom
   }
 
   public String[] getAttributeNames() {
-    return new String[] { NAME, BUTTON_TEXT, ICON, HOT_KEY, TYPE, COLOR, IMAGE, OPACITY, DEFAULT };
+    return new String[] { NAME, BUTTON_TEXT, ICON, HOT_KEY, DEFAULT, DEFAULT_SHADE };
   }
 
   public void setAttribute(String key, Object value) {
@@ -287,35 +247,12 @@ public class MapShader extends AbstractConfigurable implements Drawable, GameCom
       setConfigureName((String) value);
       launch.setToolTipText((String) value);
     }
-    else if (TYPE.equals(key)) {
-      type = (String) value;
-    }
-    else if (COLOR.equals(key)) {
-      if (value instanceof String) {
-        value = ColorConfigurer.stringToColor((String) value);
-      }
-      color = (Color) value;
-      buildShading();
-    }
-    else if (IMAGE.equals(key)) {
-      if (value instanceof File) {
-        value = ((File) value).getName();
-      }
-      imageName = (String) value;
-      buildShading();
-    }
-    else if (OPACITY.equals(key)) {
-      if (value instanceof String) {
-        value = new Integer((String) value);
-      }
-      opacity = ((Integer) value).intValue();
-      if (opacity < 0 || opacity > 100) {
-        opacity = 100;
-      }
-      buildShading();
-    }
+
     else if (DEFAULT.equals(key)) {
       defaultShading = (String) value;
+    }
+    else if (DEFAULT_SHADE.equals(key)) {
+      defaultShade = (String) value;
     }
     else {
       launch.setAttribute(key, value);
@@ -326,45 +263,16 @@ public class MapShader extends AbstractConfigurable implements Drawable, GameCom
     if (NAME.equals(key)) {
       return getConfigureName() + "";
     }
-    else if (TYPE.equals(key)) {
-      return type + "";
-    }
-    else if (COLOR.equals(key)) {
-      return ColorConfigurer.colorToString(color);
-    }
-    else if (IMAGE.equals(key)) {
-      return imageName + "";
-    }
-    else if (OPACITY.equals(key)) {
-      return opacity + "";
-    }
     else if (DEFAULT.equals(key)) {
       return defaultShading + "";
+    }
+    else if (DEFAULT_SHADE.equals(key)) {
+      return defaultShade;
     }
     else {
       return launch.getAttributeValueString(key);
     }
 
-  }
-
-  public VisibilityCondition getAttributeVisibility(String name) {
-    if (IMAGE.equals(name)) {
-      return new VisibilityCondition() {
-        public boolean shouldBeVisible() {
-          return type.equals(TYPE_IMAGE);
-        }
-      };
-    }
-    else if (COLOR.equals(name)) {
-      return new VisibilityCondition() {
-        public boolean shouldBeVisible() {
-          return type.equals(TYPE_STD);
-        }
-      };
-    }
-    else {
-      return super.getAttributeVisibility(name);
-    }
   }
 
   public static String getConfigureTypeName() {
@@ -383,9 +291,22 @@ public class MapShader extends AbstractConfigurable implements Drawable, GameCom
   }
 
   public Class[] getAllowableConfigureComponents() {
-    return new Class[] { Shader.class };
+    return new Class[] { Shade.class };
   }
 
+  public VisibilityCondition getAttributeVisibility(String name) {
+    if (DEFAULT_SHADE.equals(name)) {
+      return new VisibilityCondition() {
+        public boolean shouldBeVisible() {
+          return defaultShading.equals(SHADE);
+        }
+      };
+    }  
+
+    else {
+      return super.getAttributeVisibility(name);
+    }
+  }
   public void addTo(Buildable parent) {
     ((ShadeableMap) parent).addShader(this);
     GameModule.getGameModule().getToolBar().add(launch);

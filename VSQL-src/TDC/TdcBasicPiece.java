@@ -17,26 +17,35 @@
  * at http://www.opensource.org.
  */
  
-package shader;
+package TDC;
 
-import VASSAL.build.module.map.boardPicker.board.mapgrid.HexGridNumbering;
+import VASSAL.build.module.Map;
+import VASSAL.counters.BasicPiece;
 
-public class ShadeableHexGridNumbering extends HexGridNumbering {
+public class TdcBasicPiece extends BasicPiece {
 
-  public ShadeableHexGridNumbering() {
+  public static final String LOCATION_NAME = "locationName";
+  
+  public TdcBasicPiece() {
     super();
   }
   
-  public int getMaxRows() {
-    return super.getMaxRows();
-  }
-
-  public int getMaxColumns() {
-    return super.getMaxColumns();
+  public TdcBasicPiece(String type) {
+    super(type);
   }
   
-  public static String getConfigureTypeName() {
-    return "Shadeable Hex Grid Numbering";
+  public Object getProperty(Object key) {
+    
+    if (LOCATION_NAME.equals(key)) {
+      String loc = "";
+      Map map = getMap();
+      if (map != null) {
+        loc = map.locationName(this.getPosition());
+      }
+      return loc;
+    }
+    else {
+      return super.getProperty(key);      
+    }
   }
-  
 }

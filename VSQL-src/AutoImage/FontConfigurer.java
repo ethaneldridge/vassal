@@ -47,6 +47,7 @@ public class FontConfigurer extends Configurer {
   protected IntConfigurer size;
   protected BooleanConfigurer bold;
   protected BooleanConfigurer italic;
+  protected BooleanConfigurer outline;
   protected JComboBox family;
   protected JTextField demo;
 
@@ -54,7 +55,7 @@ public class FontConfigurer extends Configurer {
     super(key, name);
   }
 
-  public FontConfigurer(String key, String name, Font f) {
+  public FontConfigurer(String key, String name, OutlineFont f) {
     super(key, name);
     setValue(f);
   }
@@ -65,7 +66,7 @@ public class FontConfigurer extends Configurer {
     setName(f.getConfigureName());
   }
   public String getValueString() {
-    return encode((Font) value);
+    return encode((OutlineFont) value);
   }
 
   public void setValue(String s) {
@@ -98,6 +99,8 @@ public class FontConfigurer extends Configurer {
       box.add(bold.getControls());
       italic = new BooleanConfigurer(null, "Italic", new Boolean(isItalic()));
       box.add(italic.getControls());
+      outline = new BooleanConfigurer(null, "Outline", new Boolean(isOutline()));
+      box.add(outline.getControls());
       p.add(box);
 
       box = Box.createHorizontalBox();
@@ -124,6 +127,7 @@ public class FontConfigurer extends Configurer {
       size.addPropertyChangeListener(pc);
       bold.addPropertyChangeListener(pc);
       italic.addPropertyChangeListener(pc);
+      outline.addPropertyChangeListener(pc);
     }
     return p;
   }
@@ -134,7 +138,7 @@ public class FontConfigurer extends Configurer {
        (bold.booleanValue().booleanValue() ? Font.BOLD : 0) + 
        (italic.booleanValue().booleanValue() ? Font.ITALIC : 0); 
    
-    Font font = new Font((String) family.getSelectedItem(), style, Integer.parseInt(size.getValueString()));
+    OutlineFont font = new OutlineFont((String) family.getSelectedItem(), style, Integer.parseInt(size.getValueString()), outline.booleanValue().booleanValue());
 
     setValue(font);
 
@@ -147,22 +151,24 @@ public class FontConfigurer extends Configurer {
     
   }
 
-  protected Font getFontValue() {
-    return (Font) getValue();
+  protected OutlineFont getFontValue() {
+    return (OutlineFont) getValue();
   }
 
-  public static Font decode(String s) {
+  public static OutlineFont decode(String s) {
     SequenceEncoder.Decoder sd = new SequenceEncoder.Decoder(s, ',');
-    return new Font(
+    return new OutlineFont(
         sd.nextToken(FontManager.DIALOG), 
         sd.nextInt(Font.PLAIN), 
-        sd.nextInt(10));
+        sd.nextInt(10),
+        sd.nextBoolean(false));
   }
 
-  public static String encode(Font f) {
+  public static String encode(OutlineFont f) {
     SequenceEncoder se = new SequenceEncoder(f.getName(), ',');
     se.append(f.getStyle());
     se.append(f.getSize());
+    se.append(f.isOutline());
     return se.getValue();
   }
 
@@ -174,6 +180,10 @@ public class FontConfigurer extends Configurer {
   public boolean isItalic() {
     int style = (getFontValue()).getStyle();
     return style == Font.ITALIC || style == (Font.BOLD + Font.ITALIC);
+  }
+  
+  public boolean isOutline() {
+    return getFontValue().isOutline();
   }
 
 }

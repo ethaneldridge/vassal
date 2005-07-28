@@ -55,7 +55,7 @@ public class FontManager extends AbstractConfigurable {
   public static final String MONOSPACED = "Monospaced";
   
   public static final String DEFAULT = "Default";
-  public static final Font DEFAULT_FONT = new Font(DIALOG, Font.PLAIN, 12);
+  public static final OutlineFont DEFAULT_FONT = new OutlineFont(DIALOG, Font.PLAIN, 12, false);
 
   public static final String[] ALLOWABLE_FONTS = new String[] { DIALOG, DIALOG_INPUT, MONOSPACED, SANS_SERIF, SERIF };
   

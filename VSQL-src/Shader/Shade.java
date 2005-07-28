@@ -17,22 +17,30 @@
  * at http://www.opensource.org.
  */
  
-package shader;
+package Shader;
+
+import java.awt.Color;
+import java.awt.Image;
+import java.io.File;
 
 import VASSAL.build.AbstractConfigurable;
 import VASSAL.build.AutoConfigurable;
 import VASSAL.build.Buildable;
 import VASSAL.build.module.documentation.HelpFile;
+import VASSAL.configure.ColorConfigurer;
 import VASSAL.configure.StringEnum;
 import VASSAL.configure.VisibilityCondition;
 
 
-public class Shader extends AbstractConfigurable {
+public class Shade extends AbstractConfigurable {
 
   public static final String NAME = "name";
 
-  public static final String MARKER_NAME = "markerName";
-  public static final String MARKER_VALUE = "markerValue";
+  public static final String TYPE = "type";
+  public static final String COLOR = "color";
+  public static final String IMAGE = "image";
+  public static final String OPACITY = "opacity";
+  
   public static final String SETTING = "setting";
   public static final String RANGE_TYPE = "rangeType";
   public static final String RANGE = "range";
@@ -42,28 +50,41 @@ public class Shader extends AbstractConfigurable {
   public static final String RANGE_USER = "Set by User";
   public static final String SETTING_MARKER = "Use Marker Value";  
   
-  public static final String ON = "On";
-  public static final String OFF = "Off";
+  public static final String TYPE_STD = "Standard";
+  public static final String TYPE_IMAGE = "Custom Image";
+  public static final String LIGHT = "Light";
+  public static final String SHADE = "Shade";
   
   protected String marker = "";
   protected String markerValue = "";
   protected String rangeType = RANGE_FIXED;
   protected int range = 3;
-  protected String setting = ON;
+  protected String setting = LIGHT;
+  protected String imageName = "";
+  protected Color color = Color.BLACK;
+  protected String type = TYPE_STD;
+  protected int opacity = 100;
   
-  public Shader() {
+  public Shade() {
     super();
   }
   
   public String[] getAttributeDescriptions() {
-    return new String[] { "Shader Name:  ", "Select Counters with Marker Name:  ", 
-                                            "and Value:  ", "Shading:  ", "Range Source:  ", "Range:  "};
+    return new String[] { "Shade Name:  ", "Type:  ", "Shade Image:  ", "Color:  ",
+        "Image:  ", "Opacity(%):  ", "Range Source:  ", "Range:  "};
   }
 
   public Class[] getAttributeTypes() {
-    return new Class[] { String.class, String.class, String.class, SettingConfig.class, RangeConfig.class, Integer.class };
+    return new Class[] { String.class, SettingConfig.class, TypeConfig.class, Color.class,
+        Image.class, Integer.class, RangeConfig.class, Integer.class };
   }
 
+  public static class TypeConfig extends StringEnum {
+    public String[] getValidValues(AutoConfigurable target) {
+      return new String[] { TYPE_STD, TYPE_IMAGE };
+    }
+  }
+  
   public static class RangeConfig extends StringEnum {
     public String[] getValidValues(AutoConfigurable target) {
       return new String[]{ RANGE_FIXED, RANGE_USER, RANGE_MARKER };
@@ -72,26 +93,44 @@ public class Shader extends AbstractConfigurable {
   
   public static class SettingConfig extends StringEnum {
     public String[] getValidValues(AutoConfigurable target) {
-      return new String[]{ ON, OFF, SETTING_MARKER };
+      return new String[]{ LIGHT, SHADE };
     }
   }
   
   public String[] getAttributeNames() {
-    return new String[] { NAME, MARKER_NAME, MARKER_VALUE, SETTING, RANGE_TYPE, RANGE };
+    return new String[] { NAME, SETTING, TYPE, COLOR, IMAGE, OPACITY, RANGE_TYPE, RANGE };
   }
 
   public void setAttribute(String key, Object value) {
     if (NAME.equals(key)) {
       setConfigureName((String) value);
     }
-    else if (MARKER_NAME.equals(key)) {
-      marker = (String) value;
-    }
-    else if (MARKER_VALUE.equals(key)) {
-      markerValue = (String) value;
-    }
     else if (SETTING.equals(key)) {
       setting = (String) value;
+    }
+    else if (TYPE.equals(key)) {
+      type = (String) value;
+    }
+    else if (COLOR.equals(key)) {
+      if (value instanceof String) {
+        value = ColorConfigurer.stringToColor((String) value);
+      }
+      color = (Color) value;
+    }
+    else if (IMAGE.equals(key)) {
+      if (value instanceof File) {
+        value = ((File) value).getName();
+      }
+      imageName = (String) value;
+    }
+    else if (OPACITY.equals(key)) {
+      if (value instanceof String) {
+        value = new Integer((String) value);
+      }
+      opacity = ((Integer) value).intValue();
+      if (opacity < 0 || opacity > 100) {
+        opacity = 100;
+      }
     }
     else if (RANGE_TYPE.equals(key)) {
       rangeType = (String) value;
@@ -108,14 +147,20 @@ public class Shader extends AbstractConfigurable {
     if (NAME.equals(key)) {
       return getConfigureName();
     }
-    else if (MARKER_NAME.equals(key)) {
-      return marker;
-    }
-    else if (MARKER_VALUE.equals(key)) {
-      return markerValue;
-    }
     else if (SETTING.equals(key)) {
       return setting;
+    }
+    else if (TYPE.equals(key)) {
+      return type + "";
+    }
+    else if (COLOR.equals(key)) {
+      return ColorConfigurer.colorToString(color);
+    }
+    else if (IMAGE.equals(key)) {
+      return imageName + "";
+    }
+    else if (OPACITY.equals(key)) {
+      return opacity + "";
     }
     else if (RANGE_TYPE.equals(key)) {
       return rangeType;
@@ -136,13 +181,34 @@ public class Shader extends AbstractConfigurable {
         }
       };
     }  
+    else if (TYPE.equals(name) || OPACITY.equals(name)) {
+      return new VisibilityCondition() {
+        public boolean shouldBeVisible() {
+          return setting.equals(SHADE);
+        }
+      };
+    }
+    else if (IMAGE.equals(name)) {
+      return new VisibilityCondition() {
+        public boolean shouldBeVisible() {
+          return setting.equals(SHADE) && type.equals(TYPE_IMAGE);
+        }
+      };
+    }
+    else if (COLOR.equals(name)) {
+      return new VisibilityCondition() {
+        public boolean shouldBeVisible() {
+          return setting.equals(SHADE) && type.equals(TYPE_STD);
+        }
+      };
+    }
     else {
       return super.getAttributeVisibility(name);
     }
   }
   
   public static String getConfigureTypeName() {
-    return "Shader";
+    return "Shade";
   }
   
   public void removeFrom(Buildable parent) {

@@ -36,13 +36,16 @@ import VASSAL.tools.SequenceEncoder;
 public class TextItemInstance extends ItemInstance {
 
   protected static final String VALUE = "value";
+  protected static final String OUTLINE_COLOR = "outlineColor";
 
   protected String val = "";
+  protected ColorSwatch outlineColor = ColorSwatch.getClear();
   private boolean locked = false;
 
   public TextItemInstance() {
     super();
     val = "Xx";
+    outlineColor = ColorSwatch.getRed();
   }
 
   public TextItemInstance(String nam, String typ, String loc, String val) {
@@ -99,7 +102,20 @@ public class TextItemInstance extends ItemInstance {
   public boolean isLocked() {
     return locked;
   }
+  
+  public boolean isOutline() {
+    TextItem item = (TextItem) getItem();
+    return (item == null) ? false : item.isOutline();
+  }
 
+  public ColorSwatch getOutlineColor() {
+    return outlineColor;
+  }
+  
+  public void setOutlineColor(ColorSwatch c) {
+    outlineColor = c;
+  }
+  
   public void setState(String newState) {
     getItem();
     if (item != null && ((TextItem) item).isChangeable()) {
@@ -125,7 +141,7 @@ public class TextItemInstance extends ItemInstance {
     }
       
   }
-
+  
   public String encode() {
     SequenceEncoder se = new SequenceEncoder(';');
     se.append(getType());
@@ -134,6 +150,7 @@ public class TextItemInstance extends ItemInstance {
     se.append(getFgColor().encode());
     se.append(getBgColor().encode());
     se.append(getValue());
+    se.append(getOutlineColor().encode());
     return se.getValue();
   }
 
@@ -144,19 +161,20 @@ public class TextItemInstance extends ItemInstance {
     setLocation(sd.nextToken(""));
     setFgColor(new ColorSwatch(sd.nextToken("")));
     setBgColor(new ColorSwatch(sd.nextToken("")));
+    setOutlineColor(new ColorSwatch(sd.nextToken("")));
     setValue(sd.nextToken(""));
   }
 
   public String[] getAttributeDescriptions() {
-    return new String[] { "Value:  ", "Foreground Color:  ", "Background Color:  " };
+    return new String[] { "Value:  ", "Foreground Color:  ", "Background Color:  ", "Outline Color:  " };
   }
 
   public Class[] getAttributeTypes() {
-    return new Class[] { String.class, FgColorSwatchConfig.class, BgColorSwatchConfig.class, };
+    return new Class[] { String.class, FgColorSwatchConfig.class, BgColorSwatchConfig.class, OutlineColorSwatchConfig.class};
   }
 
   public String[] getAttributeNames() {
-    return new String[] { VALUE, FG_COLOR, BG_COLOR };
+    return new String[] { VALUE, FG_COLOR, BG_COLOR, OUTLINE_COLOR };
   }
 
   public void setAttribute(String key, Object o) {
@@ -176,6 +194,12 @@ public class TextItemInstance extends ItemInstance {
       }
       bgColor = (ColorSwatch) o;
     }
+    else if (OUTLINE_COLOR.equals(key)) {
+      if (o instanceof String) {
+        o = new ColorSwatch((String) o);
+      }
+      outlineColor = (ColorSwatch) o;
+    }
     if (myConfig != null) {
       myConfig.rebuildViz();
     }
@@ -192,6 +216,9 @@ public class TextItemInstance extends ItemInstance {
     else if (BG_COLOR.equals(key)) {
       return bgColor.encode();
     }
+    else if (OUTLINE_COLOR.equals(key)) {
+      return outlineColor.encode();
+    }
     else
       return null;
   }
@@ -206,6 +233,12 @@ public class TextItemInstance extends ItemInstance {
   public VisibilityCondition getAttributeVisibility(String name) {
     if (VALUE.equals(name)) {
       return valueCond;
+    }
+    else if (OUTLINE_COLOR.equals(name)) {
+      return new VisibilityCondition() {
+        public boolean shouldBeVisible() {
+          return isOutline();
+        }};
     }
     else {
       return super.getAttributeVisibility(name);
@@ -280,5 +313,12 @@ public class TextItemInstance extends ItemInstance {
       return new ColorSwatchConfigurer(key, name, ((ItemInstance) c).getFgColor());
     }
   }
+  
+  public static class OutlineColorSwatchConfig implements ConfigurerFactory {
+    public Configurer getConfigurer(AutoConfigurable c, String key, String name) {
+      return new ColorSwatchConfigurer(key, name, ((TextItemInstance) c).getOutlineColor());
+    }
+  }
+  
 
 }

@@ -17,7 +17,7 @@
  * at http://www.opensource.org.
  */
  
-package shader;
+package Shader;
 
 import java.awt.Graphics;
 import java.awt.Rectangle;
