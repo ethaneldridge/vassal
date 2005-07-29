@@ -91,7 +91,7 @@ public class Layout extends AbstractConfigurable implements Visualizable {
   protected int height = 54;
   protected String border = BORDER_3D;
   protected BufferedImage image;
-  protected ImageDefn imageDefn = new ImageDefn();
+  protected ImageDefn imageDefn;
   protected ArrayList items = new ArrayList();
 
   public Layout() {
@@ -158,7 +158,7 @@ public class Layout extends AbstractConfigurable implements Visualizable {
     else if (ITEMS.equals(key)) {
       decodeItemList((String) value);
     }
-    buildImage();
+    reBuildImage();
     LayoutConfig.refresh();
   }
 
@@ -273,7 +273,7 @@ public class Layout extends AbstractConfigurable implements Visualizable {
 
   public Image getVisualizerImage() {
     if (imageDefn == null) {
-      imageDefn = new ImageDefn();
+      imageDefn = new ImageDefn(this);
     }
     return getVisualizerImage(imageDefn);
   }
@@ -294,6 +294,11 @@ public class Layout extends AbstractConfigurable implements Visualizable {
     if (imageDefn == null) {
       imageDefn = new ImageDefn(this);
     }
+    buildImage(imageDefn);
+  }
+  
+  protected void reBuildImage() {
+    imageDefn = new ImageDefn(this);
     buildImage(imageDefn);
   }
 
@@ -386,7 +391,7 @@ public class Layout extends AbstractConfigurable implements Visualizable {
 
   public void rebuildVisualizerImage() {
     if (imageDefn == null) {
-      imageDefn = new ImageDefn();
+      imageDefn = new ImageDefn(this);
     }
     buildImage(imageDefn);
   }

@@ -19,16 +19,12 @@
 
 package AutoImage;
 
-import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Point;
 import java.awt.RenderingHints;
-import java.awt.Shape;
-import java.awt.font.FontRenderContext;
-import java.awt.font.TextLayout;
 import java.awt.geom.AffineTransform;
 
 import javax.swing.KeyStroke;
@@ -281,6 +277,10 @@ public class TextItem extends Item {
     Font f = fontStyle.getFont();
 
     if (defn != null) {
+      ti = defn.getTextInstance(name);
+    }
+    else {
+      defn = new ImageDefn(getLayout());
       ti = defn.getTextInstance(name);
     }
 

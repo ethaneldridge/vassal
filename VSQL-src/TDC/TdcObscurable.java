@@ -20,18 +20,19 @@
 package TDC;
 
 import VASSAL.build.module.Map;
-import VASSAL.counters.BasicPiece;
+import VASSAL.counters.GamePiece;
+import VASSAL.counters.Obscurable;
 
-public class TdcBasicPiece extends BasicPiece {
+public class TdcObscurable extends Obscurable {
 
   public static final String LOCATION_NAME = "locationName";
   
-  public TdcBasicPiece() {
+  public TdcObscurable() {
     super();
   }
-  
-  public TdcBasicPiece(String type) {
-    super(type);
+
+  public TdcObscurable(String type, GamePiece d) {
+    super(type, d);
   }
   
   public Object getProperty(Object key) {
@@ -48,4 +49,5 @@ public class TdcBasicPiece extends BasicPiece {
       return super.getProperty(key);      
     }
   }
+  
 }

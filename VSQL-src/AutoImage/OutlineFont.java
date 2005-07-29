@@ -25,6 +25,10 @@ public class OutlineFont extends Font {
 
   protected boolean outline;
   
+  public OutlineFont(String name, int style, int size) {
+    super(name, style, size);
+  }
+  
   public OutlineFont(String name, int style, int size, boolean outline) {
     super(name, style, size);
     this.outline = outline;

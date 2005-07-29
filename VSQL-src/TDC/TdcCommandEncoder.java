@@ -20,19 +20,22 @@
 package TDC;
 
 import VASSAL.build.module.BasicCommandEncoder;
-import VASSAL.counters.BasicPiece;
+import VASSAL.counters.Decorator;
 import VASSAL.counters.GamePiece;
+import VASSAL.counters.Obscurable;
 
 public class TdcCommandEncoder extends BasicCommandEncoder {
 
   public TdcCommandEncoder() {
   }
   
-  protected GamePiece createBasic(String type) {
-    if (type.startsWith(BasicPiece.ID)) {
-      return new TdcBasicPiece(type);
+  protected Decorator createDecorator(String type, GamePiece inner) {
+   if (type.startsWith(Obscurable.ID)) {
+      return new TdcObscurable(type, inner);
     }
-    return super.createBasic(type);
+   else {
+     return super.createDecorator(type,inner);
+   }
   }
-  
+
 }

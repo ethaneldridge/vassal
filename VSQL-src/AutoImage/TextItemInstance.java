@@ -39,7 +39,7 @@ public class TextItemInstance extends ItemInstance {
   protected static final String OUTLINE_COLOR = "outlineColor";
 
   protected String val = "";
-  protected ColorSwatch outlineColor = ColorSwatch.getClear();
+  protected ColorSwatch outlineColor = ColorSwatch.getRed();
   private boolean locked = false;
 
   public TextItemInstance() {
@@ -161,8 +161,8 @@ public class TextItemInstance extends ItemInstance {
     setLocation(sd.nextToken(""));
     setFgColor(new ColorSwatch(sd.nextToken("")));
     setBgColor(new ColorSwatch(sd.nextToken("")));
-    setOutlineColor(new ColorSwatch(sd.nextToken("")));
     setValue(sd.nextToken(""));
+    setOutlineColor(new ColorSwatch(sd.nextToken("")));
   }
 
   public String[] getAttributeDescriptions() {

@@ -304,8 +304,8 @@ public class TurnTracker extends AbstractConfigurable implements CommandEncoder,
     idMgr.add(this);
     
     // Create preferences for Turn text
-    final IntConfigurer size = new IntConfigurer(FONT_SIZE, "", new Integer(12));
-    final IntConfigurer style = new IntConfigurer(FONT_STYLE, "", new Integer(Font.PLAIN));
+    final IntConfigurer size = new IntConfigurer(FONT_SIZE, "", new Integer(14));
+    final IntConfigurer style = new IntConfigurer(FONT_STYLE, "", new Integer(Font.BOLD));
     
     GameModule.getGameModule().getPrefs().addOption(null, size);
     GameModule.getGameModule().getPrefs().addOption(null, style);

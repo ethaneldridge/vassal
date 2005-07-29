@@ -38,12 +38,11 @@ public class FontStyle extends AbstractConfigurable {
   protected static final String STYLE = "style";
   
   protected OutlineFont font;
-  protected boolean outline;
   
   public FontStyle() {
     super();
     setConfigureName(FontManager.DEFAULT);
-    font = new OutlineFont(FontManager.DIALOG, Font.PLAIN, 10, false);
+    font = new OutlineFont(FontManager.DIALOG, Font.PLAIN, 12, false);
   }
   
   public FontStyle(String name, OutlineFont f) {
