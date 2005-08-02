@@ -20,6 +20,8 @@ package VASSAL.build.module.map.boardPicker.board;
 
 import VASSAL.build.module.map.boardPicker.Board;
 import VASSAL.build.module.map.boardPicker.board.mapgrid.GridNumbering;
+import VASSAL.build.module.map.LocationRestriction;
+import VASSAL.counters.GamePiece;
 
 import java.awt.Point;
 
@@ -32,6 +34,11 @@ public interface MapGrid {
    * @return the nearest grid location to the given point
    */
   public Point snapTo(java.awt.Point p);
+
+  /**
+   * @return true if the given point may not be a local location.
+   * I.e., if this grid will attempt to snap it to the nearest grid location */
+  public boolean isLocationRestricted(Point p);
 
   /**
    * @return a string describing the location containing the given point

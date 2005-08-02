@@ -310,6 +310,10 @@ public class SquareGrid extends AbstractConfigurable implements MapGrid {
     return new Point(origin.x + (int) (nx * dx / 2), origin.y + (int) (ny * dy / 2));
   }
 
+  public boolean isLocationRestricted(Point p) {
+    return true;
+  }
+
   public String locationName(Point p) {
     return gridNumbering == null ? null : gridNumbering.locationName(p);
   }

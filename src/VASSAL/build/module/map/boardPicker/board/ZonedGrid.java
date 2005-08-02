@@ -95,7 +95,7 @@ public class ZonedGrid extends AbstractConfigurable implements MapGrid, GridCont
 
   public Class[] getAllowableConfigureComponents() {
     return background == null ? new Class[]{Zone.class, HexGrid.class, SquareGrid.class, RegionGrid.class}
-          : new Class[]{Zone.class};
+        : new Class[]{Zone.class};
   }
 
   public static String getConfigureTypeName() {
@@ -114,13 +114,13 @@ public class ZonedGrid extends AbstractConfigurable implements MapGrid, GridCont
   }
 
   public void removeFrom(Buildable parent) {
-    ((GridContainer)parent).removeGrid(this);
+    ((GridContainer) parent).removeGrid(this);
   }
 
   public void draw(Graphics g, Rectangle bounds, Rectangle visibleRect, double scale, boolean reversed) {
     Area allZones = null;
     AffineTransform transform = AffineTransform.getScaleInstance(scale, scale);
-    transform.translate(bounds.x,bounds.y);
+    transform.translate(bounds.x, bounds.y);
     for (Iterator it = zones.iterator(); it.hasNext();) {
       Zone zone = (Zone) it.next();
       if (allZones == null) {
@@ -138,12 +138,12 @@ public class ZonedGrid extends AbstractConfigurable implements MapGrid, GridCont
         clipArea.subtract(allZones);
         g2d.setClip(clipArea);
       }
-      background.draw(g,bounds,visibleRect,scale,reversed);
+      background.draw(g, bounds, visibleRect, scale, reversed);
       g2d.setClip(oldClip);
     }
     for (Iterator it = zones.iterator(); it.hasNext();) {
       Zone zone = (Zone) it.next();
-      zone.draw(g,bounds,visibleRect,scale,reversed);
+      zone.draw(g, bounds, visibleRect, scale, reversed);
     }
   }
 
@@ -168,35 +168,45 @@ public class ZonedGrid extends AbstractConfigurable implements MapGrid, GridCont
     String name = null;
     for (Iterator it = zones.iterator(); it.hasNext();) {
       Zone zone = (Zone) it.next();
-        if (zone.contains(p)) {
-          name = zone.locationName(p);
-          break;
-        }
+      if (zone.contains(p)) {
+        name = zone.locationName(p);
+        break;
+      }
     }
     if (name == null
-      && background != null) {
+        && background != null) {
       name = background.locationName(p);
     }
     return name;
   }
 
   public int range(Point p1, Point p2) {
-    return background != null ? background.range(p1,p2) : 0;
+    return background != null ? background.range(p1, p2) : 0;
   }
 
   public Point snapTo(Point p) {
     Point snap = null;
     for (Iterator it = zones.iterator(); it.hasNext();) {
       Zone zone = (Zone) it.next();
-        if (zone.contains(p)) {
-          snap = zone.snapTo(p);
-          break;
-        }
+      if (zone.contains(p)) {
+        snap = zone.snapTo(p);
+        break;
+      }
     }
     if (snap == null) {
       snap = background != null ? background.snapTo(p) : p;
     }
     return snap;
+  }
+
+  public boolean isLocationRestricted(Point p) {
+    for (Iterator it = zones.iterator(); it.hasNext();) {
+      Zone zone = (Zone) it.next();
+      if (zone.contains(p)) {
+        return zone.getGrid() != null && zone.getGrid().isLocationRestricted(p);
+      }
+    }
+    return background != null && background.isLocationRestricted(p);
   }
 
   public void addZone(Zone z) {

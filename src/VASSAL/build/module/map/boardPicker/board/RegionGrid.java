@@ -234,6 +234,10 @@ public class RegionGrid extends AbstractConfigurable implements MapGrid {
     return doSnap(p);
   }
 
+  public boolean isLocationRestricted(Point p) {
+    return snapTo;
+  }
+
   //
   // Internal routine to find closest point for region name reporting
   //

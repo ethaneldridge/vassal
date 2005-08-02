@@ -552,6 +552,23 @@ public class Map extends AbstractConfigurable implements GameComponent,
   }
 
   /**
+   * @return true if the given point may not be a local location.
+   * I.e., if this grid will attempt to snap it to the nearest grid location */
+  public boolean isLocationRestricted(Point p) {
+    Board b = findBoard(p);
+    if (b != null) {
+      Rectangle r = b.bounds();
+      Point snap = new Point(p);
+      snap.translate(-r.x, -r.y);
+      return b.isLocationRestricted(snap);
+
+    }
+    else {
+      return false;
+    }
+  }
+
+  /**
    * @return the nearest allowable point according to the {@link VASSAL.build.module.map.boardPicker.board.MapGrid} on the {@link Board} at this point
    *
    * @see Board#snapTo
@@ -566,6 +583,20 @@ public class Map extends AbstractConfigurable implements GameComponent,
     Rectangle r = b.bounds();
     snap.translate(-r.x, -r.y);
     snap = b.snapTo(snap);
+    // RFE 882378
+    // If we have snapped to a point 1 pixel off the edge of the map, move back onto the map.
+    if (snap.x == r.width + 1) {
+      snap.x = r.width - 1;
+    }
+    else if (snap.x == -1) {
+      snap.x = 0;
+    }
+    if (snap.y == r.height + 1) {
+      snap.y = r.height;
+    }
+    else if (snap.y == -1) {
+      snap.y = 0;
+    }
     snap.translate(r.x, r.y);
     return snap;
   }

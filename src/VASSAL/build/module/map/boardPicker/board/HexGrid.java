@@ -359,6 +359,10 @@ public class HexGrid extends AbstractConfigurable implements MapGrid {
     }
   }
 
+  public boolean isLocationRestricted(Point p) {
+    return true;
+  }
+
   /**
    * @return the nearest hex center
    */

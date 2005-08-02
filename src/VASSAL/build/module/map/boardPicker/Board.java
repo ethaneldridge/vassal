@@ -344,6 +344,13 @@ public class Board extends AbstractConfigurable implements GridContainer {
     return grid == null ? p : globalCoordinates(grid.snapTo(localCoordinates(p)));
   }
 
+  /**
+   * @return true if the given point may not be a local location.
+   * I.e., if this grid will attempt to snap it to the nearest grid location */
+  public boolean isLocationRestricted(Point p) {
+    return grid == null ? false : grid.isLocationRestricted(localCoordinates(p));
+  }
+
   public String fileName() {
     return imageFile;
   }

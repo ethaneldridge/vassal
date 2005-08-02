@@ -118,15 +118,14 @@ public class PieceMover extends AbstractBuildable implements
         GamePiece selected = null;
         if (this.map.getStackMetrics().isStackingEnabled()
             && this.map.getPieceCollection().canMerge(dragging, piece)) {
-          Board b = this.map.findBoard(pt);
-          if (b == null || b.getGrid() == null) {
-            selected = (GamePiece) super.visitDefault(piece);
-          }
-          else {
+          if (this.map.isLocationRestricted(pt)) {
             Point snap = this.map.snapTo(pt);
             if (piece.getPosition().equals(snap)) {
               selected = piece;
             }
+          }
+          else {
+            selected = (GamePiece) super.visitDefault(piece);
           }
         }
         if (selected != null
@@ -144,17 +143,15 @@ public class PieceMover extends AbstractBuildable implements
             && this.map.getPieceCollection().canMerge(dragging, s)
             && !DragBuffer.getBuffer().contains(s)
             && s.topPiece() != null) {
-          Board b = this.map.findBoard(pt);
-          if (b == null
-              || s.isExpanded()
-              || b.getGrid() == null) {
-            selected = (GamePiece) super.visitStack(s);
-          }
-          else {
+          if (!s.isExpanded()
+            && this.map.isLocationRestricted(pt)) {
             pt = this.map.snapTo(pt);
             if (s.getPosition().equals(pt) && s.topPiece() != null) {
               selected = s;
             }
+          }
+          else {
+            selected = (GamePiece) super.visitStack(s);
           }
         }
         return selected;
@@ -784,7 +781,7 @@ public class PieceMover extends AbstractBuildable implements
       boundingBox.x *= zoom;
       boundingBox.y *= zoom;
       calcDrawOffset();
-      relativePositions.add(new Point(0,0));
+      relativePositions.add(new Point(0, 0));
 
       while (dragContents.hasMoreElements()) {
         GamePiece nextPiece = dragContents.nextPiece();
@@ -795,7 +792,7 @@ public class PieceMover extends AbstractBuildable implements
         r.y *= zoom;
         Point p = new Point((int) Math.round(zoom * (nextPiece.getPosition().x - firstPiece.getPosition().x)),
                             (int) Math.round(zoom * (nextPiece.getPosition().y - firstPiece.getPosition().y)));
-        r.translate(p.x,p.y);
+        r.translate(p.x, p.y);
         boundingBox.add(r);
         relativePositions.add(p);
       }
