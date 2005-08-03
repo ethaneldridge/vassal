@@ -19,6 +19,7 @@
 package VASSAL.build.module;
 
 import VASSAL.build.AbstractConfigurable;
+import VASSAL.build.AutoConfigurable;
 import VASSAL.build.Buildable;
 import VASSAL.build.Configurable;
 import VASSAL.build.GameModule;
@@ -29,10 +30,13 @@ import VASSAL.command.Command;
 import VASSAL.command.CommandEncoder;
 import VASSAL.command.NullCommand;
 import VASSAL.configure.Configurer;
+import VASSAL.configure.ConfigurerFactory;
+import VASSAL.configure.IconConfigurer;
 import VASSAL.configure.TextConfigurer;
 import VASSAL.tools.LaunchButton;
 
 import javax.swing.*;
+
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.WindowAdapter;
@@ -55,7 +59,11 @@ public class NotesWindow extends AbstractConfigurable
   private PrivateNotesController privateNotes;
   private SecretNotesController secretNotes;
   private static final String COMMAND_PREFIX = "NOTES\t";
+
   public static final String HOT_KEY = "hotkey";
+  public static final String ICON = "icon";
+  public static final String BUTTON_TEXT = "buttonText";
+
   private String lastSavedNotes;
 
   public NotesWindow() {
@@ -69,8 +77,8 @@ public class NotesWindow extends AbstractConfigurable
         frame.setVisible(!frame.isShowing());
       }
     };
-    launch = new LaunchButton(null, null, null, "icon", al);
-    launch.setAttribute("icon", "/images/notes.gif");
+    launch = new LaunchButton("Notes", BUTTON_TEXT, HOT_KEY, ICON, al);
+    launch.setAttribute(ICON, "/images/notes.gif");
     launch.setToolTipText("Notes");
     frame.pack();
     setup(false);
@@ -169,14 +177,15 @@ public class NotesWindow extends AbstractConfigurable
   }
 
   public String[] getAttributeNames() {
-    return new String[0];
+    return new String[] {BUTTON_TEXT, ICON, HOT_KEY};
   }
 
   public void setAttribute(String name, Object value) {
+    launch.setAttribute(name, value);
   }
 
   public String getAttributeValueString(String name) {
-    return null;
+    return launch.getAttributeValueString(name);
   }
 
   public String encode(Command c) {
@@ -208,15 +217,17 @@ public class NotesWindow extends AbstractConfigurable
   }
 
   public String[] getAttributeDescriptions() {
-    return new String[0];
+    return new String[] {"Button text", "Button Icon", "Hotkey"};
   }
 
   public Class[] getAttributeTypes() {
-    return new Class[0];
+    return new Class[] {String.class, IconConfig.class, KeyStroke.class};
   }
 
-  public Configurer getConfigurer() {
-    return null;
+  public static class IconConfig implements ConfigurerFactory {
+    public Configurer getConfigurer(AutoConfigurable c, String key, String name) {
+      return new IconConfigurer(key, name, ((NotesWindow) c).launch.getAttributeValueString(ICON));
+    }
   }
 
   public Configurable[] getConfigureComponents() {
