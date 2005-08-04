@@ -19,14 +19,21 @@
 package VASL.counters;
 
 import VASSAL.build.GameModule;
+import VASSAL.build.Configurable;
+import VASSAL.build.widget.PieceSlot;
 import VASSAL.command.ChangePiece;
 import VASSAL.command.Command;
 import VASSAL.command.NullCommand;
+import VASSAL.configure.StringConfigurer;
+import VASSAL.configure.ChooseComponentPathDialog;
 import VASSAL.counters.*;
 import VASSAL.tools.SequenceEncoder;
+import VASSAL.tools.ComponentPathBuilder;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.ActionListener;
+import java.awt.event.ActionEvent;
 import java.awt.image.BufferedImage;
 
 public class Concealable extends Obscurable implements EditablePiece {
@@ -34,6 +41,7 @@ public class Concealable extends Obscurable implements EditablePiece {
 
   private String nation;
   private String nation2;
+  private String concealmentMarker;
   private Image concealedToMe;
   private Image concealedToOthers;
   private Dimension imageSize = new Dimension(-1, -1);
@@ -54,20 +62,22 @@ public class Concealable extends Obscurable implements EditablePiece {
     obscureKey = st.nextToken().toUpperCase().charAt(0);
     imageName = st.nextToken();
     nation = st.nextToken();
-    if (st.hasMoreTokens()) {
-      nation2 = st.nextToken();
+    nation2 = st.nextToken(null);
+    if ("".equals(nation2)) {
+      nation2 = null;
+    }
+    concealmentMarker = st.nextToken(null);
+    if ("".equals(concealmentMarker)) {
+      concealmentMarker = null;
     }
   }
 
   public String myGetType() {
-    String s = ID +
-        obscureKey + ";" +
-        imageName + ";" +
-        nation;
-    if (nation2 != null) {
-      s += ";" + nation2;
-    }
-    return s;
+    SequenceEncoder se = new SequenceEncoder(';');
+    se.append(obscureKey).append(imageName).append(nation);
+    se.append(nation2 != null ? nation2 : "");
+    se.append(concealmentMarker != null ? concealmentMarker : "");
+    return ID + se.getValue();
   }
 
   protected void drawObscuredToMe(Graphics g, int x, int y, Component obs, double zoom) {
@@ -201,26 +211,39 @@ public class Concealable extends Obscurable implements EditablePiece {
    * appropriate for this unit
    */
   public GamePiece createConcealment() {
-    GamePiece p = new BasicPiece(BasicPiece.ID + "K;D;" + imageName + ";?");
-    boolean large = imageName.indexOf("58") > 0;
-    if (!imageName.startsWith(nation)) { // Backward compatibility with generic concealment markers
-      large = imageName.substring(0, 1).toUpperCase().
-          equals(imageName.substring(0, 1));
-      String size = large ? "60;60" : "48;48";
-      if (nation2 != null) {
-        p = new ColoredBox(ColoredBox.ID + "ru" + ";" + size, p);
-        p = new ColoredBox(ColoredBox.ID + "ge" + ";"
-                           + (large ? "48;48" : "36;36"), p);
+    GamePiece p = null;
+    if (concealmentMarker != null) {
+      try {
+        Configurable[] c = ComponentPathBuilder.getInstance().getPath(concealmentMarker);
+        if (c[c.length - 1] instanceof PieceSlot) {
+          p = PieceCloner.getInstance().clonePiece(((PieceSlot) c[c.length - 1]).getPiece());
+        }
       }
-      else {
-        p = new ColoredBox(ColoredBox.ID + nation + ";" + size, p);
+      catch (ComponentPathBuilder.PathFormatException e) {
       }
-      p = new Embellishment(Embellishment.OLD_ID + ";;;;;;0;0;"
-                            + imageName + ",?", p);
     }
-    p = new Concealment(Concealment.ID + GameModule.getUserId() + ";" + nation, p);
-    p = new MarkMoved(MarkMoved.ID + (large ? "moved58" : "moved"), p);
-    p = new Hideable("hide;H;HIP;255,255,255", p);
+    if (p == null) {
+      p = new BasicPiece(BasicPiece.ID + "K;D;" + imageName + ";?");
+      boolean large = imageName.indexOf("58") > 0;
+      if (!imageName.startsWith(nation)) { // Backward compatibility with generic concealment markers
+        large = imageName.substring(0, 1).toUpperCase().
+            equals(imageName.substring(0, 1));
+        String size = large ? "60;60" : "48;48";
+        if (nation2 != null) {
+          p = new ColoredBox(ColoredBox.ID + "ru" + ";" + size, p);
+          p = new ColoredBox(ColoredBox.ID + "ge" + ";"
+                             + (large ? "48;48" : "36;36"), p);
+        }
+        else {
+          p = new ColoredBox(ColoredBox.ID + nation + ";" + size, p);
+        }
+        p = new Embellishment(Embellishment.OLD_ID + ";;;;;;0;0;"
+                              + imageName + ",?", p);
+      }
+      p = new Concealment(Concealment.ID + GameModule.getUserId() + ";" + nation, p);
+      p = new MarkMoved(MarkMoved.ID + (large ? "moved58" : "moved"), p);
+      p = new Hideable("hide;H;HIP;255,255,255", p);
+    }
     return p;
   }
 
@@ -305,6 +328,71 @@ public class Concealable extends Obscurable implements EditablePiece {
   }
 
   public PieceEditor getEditor() {
-    return new SimplePieceEditor(this);
+    return new Ed(this);
+  }
+
+  protected static class Ed implements PieceEditor {
+    private Box controls;
+    private StringConfigurer keyConfig;
+    private ImagePicker imageConfig;
+    private StringConfigurer nationConfig;
+    private String nation2;
+    private PieceSlot pieceInput;
+    private String concealmentMarkerPath;
+
+    public Ed(Concealable c) {
+      controls = Box.createVerticalBox();
+      keyConfig = new StringConfigurer(null, "Key Command CTRL-", String.valueOf(c.obscureKey));
+      controls.add(keyConfig.getControls());
+      imageConfig = new ImagePicker();
+      imageConfig.setImageName(c.imageName);
+      Box b = Box.createHorizontalBox();
+      b.add(new JLabel("View when concealed:  "));
+      b.add(imageConfig);
+      controls.add(b);
+      nationConfig = new StringConfigurer(null, "Nationality:  ", c.nation);
+      controls.add(nationConfig.getControls());
+      nation2 = c.nation2;
+
+      pieceInput = new PieceSlot();
+      JButton selectButton = new JButton("Select");
+      selectButton.addActionListener(new ActionListener() {
+        public void actionPerformed(ActionEvent e) {
+          ChooseComponentPathDialog d = new ChooseComponentPathDialog((Frame) SwingUtilities.getAncestorOfClass(Frame.class, controls), PieceSlot.class);
+          d.setVisible(true);
+          if (d.getTarget() instanceof PieceSlot) {
+            pieceInput.setPiece(((PieceSlot) d.getTarget()).getPiece());
+          }
+          if (d.getPath() != null) {
+            concealmentMarkerPath = ComponentPathBuilder.getInstance().getId(d.getPath());
+          }
+          else {
+            concealmentMarkerPath = null;
+          }
+        }
+      });
+      b = Box.createHorizontalBox();
+      b.add(new JLabel("Concealment Marker"));
+      b.add(pieceInput.getComponent());
+      b.add(selectButton);
+      controls.add(b);
+
+    }
+
+    public Component getControls() {
+      return controls;
+    }
+
+    public String getState() {
+      return "null";
+    }
+
+    public String getType() {
+      SequenceEncoder se = new SequenceEncoder(';');
+      se.append(keyConfig.getValueString()).append(imageConfig.getImageName()).append(nationConfig.getValueString());
+      se.append(nation2 != null ? nation2 : "");
+      se.append(concealmentMarkerPath != null ? concealmentMarkerPath : "");
+      return ID + se.getValue();
+    }
   }
 }
