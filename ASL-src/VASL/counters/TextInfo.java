@@ -33,6 +33,7 @@ public class TextInfo extends Decorator implements EditablePiece {
 
   private String info;
   private KeyCommand[] commands;
+  private static KeyCommand[] EMPTY_COMMANDS = new KeyCommand[0];
   private boolean showInfo = false;
   private Dimension infoSize;
   private Image infoImage;
@@ -69,8 +70,9 @@ public class TextInfo extends Decorator implements EditablePiece {
                                    KeyStroke.getKeyStroke('I', java.awt.event.InputEvent.CTRL_MASK),
                                    Decorator.getOutermost(this));
     }
-    commands[0].setEnabled(getMap() != null);
-    return commands;
+    boolean concealed = Boolean.TRUE.equals(getProperty(Properties.OBSCURED_TO_ME));
+    commands[0].setEnabled(getMap() != null && !concealed);
+    return concealed ? EMPTY_COMMANDS : commands;
   }
 
   public Command myKeyEvent(javax.swing.KeyStroke stroke) {
