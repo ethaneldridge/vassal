@@ -40,9 +40,6 @@ import VASSAL.tools.ComponentPathBuilder;
 import VASSAL.tools.SequenceEncoder;
 
 import javax.swing.*;
-import javax.swing.event.TreeSelectionEvent;
-import javax.swing.tree.DefaultMutableTreeNode;
-import javax.swing.tree.TreePath;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -310,29 +307,9 @@ public class PlaceMarker extends Decorator implements EditablePiece {
       return ID + se.getValue();
     }
 
-    private static class ChoosePieceDialog extends ChooseComponentDialog {
-      private Configurable[] path;
-
+    public static class ChoosePieceDialog extends ChooseComponentPathDialog {
       public ChoosePieceDialog(Frame owner, Class targetClass) {
         super(owner, targetClass);
-      }
-
-      public void valueChanged(TreeSelectionEvent e) {
-        super.valueChanged(e);
-        TreePath p = e.getPath();
-        if (p != null) {
-          DefaultMutableTreeNode node = (DefaultMutableTreeNode) p.getLastPathComponent();
-          Object[] userObjectPath = node.getUserObjectPath();
-          path = new Configurable[userObjectPath.length - 1];
-          System.arraycopy(userObjectPath, 1, path, 0, userObjectPath.length - 1);
-        }
-        else {
-          path = null;
-        }
-      }
-
-      public Configurable[] getPath() {
-        return path;
       }
 
       protected boolean isValidTarget(Object selected) {
