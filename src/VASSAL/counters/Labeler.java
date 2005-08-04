@@ -194,8 +194,8 @@ public class Labeler extends Decorator implements EditablePiece {
 
     if (labelImage != null) {
       Point p = getLabelPosition();
-      x += (int) (zoom * p.x);
-      y += (int) (zoom * p.y);
+      int labelX = x + (int) (zoom * p.x);
+      int labelY = y + (int) (zoom * p.y);
       
       AffineTransform saveXForm = null;
       Graphics2D g2d = (Graphics2D) g;
@@ -203,18 +203,17 @@ public class Labeler extends Decorator implements EditablePiece {
       if (rotateDegrees != 0) {
         saveXForm = g2d.getTransform(); 
         AffineTransform newXForm =
-          AffineTransform.getRotateInstance(Math.toRadians(rotateDegrees), 
-              (int) (zoom * getPosition().x), (int) (zoom * getPosition().y));
+          AffineTransform.getRotateInstance(Math.toRadians(rotateDegrees),x,y);
         g2d.transform(newXForm);
       }
       
       if (zoom != 1.0) {
         Image scaled = labelImage;
         scaled = GameModule.getGameModule().getDataArchive().getScaledImage(labelImage, zoom);
-        g.drawImage(scaled, x, y, obs);
+        g.drawImage(scaled, labelX, labelY, obs);
       }
       else {
-        g.drawImage(labelImage, x, y, obs);
+        g.drawImage(labelImage, labelX, labelY, obs);
       }
       
       if (rotateDegrees != 0) {
