@@ -17,7 +17,7 @@
  * http://www.opensource.org.
  */
 
-package VSQL;
+package wga;
 
 import java.awt.Point;
 import java.awt.event.ActionEvent;
@@ -36,13 +36,13 @@ import VASSAL.build.module.documentation.HelpFile;
 import VASSAL.build.widget.PieceSlot;
 import VASSAL.command.AddPiece;
 import VASSAL.command.RemovePiece;
+import VASSAL.counters.BasicPiece;
 import VASSAL.counters.Decorator;
 import VASSAL.counters.GamePiece;
-import VASSAL.counters.Labeler;
 import VASSAL.counters.Stack;
 import VASSAL.tools.LaunchButton;
 
-public class VSQLGamePieceRefresher extends AbstractConfigurable {
+public class Refresher extends AbstractConfigurable {
 
   protected LaunchButton launch;
   protected Map map;
@@ -50,7 +50,7 @@ public class VSQLGamePieceRefresher extends AbstractConfigurable {
   public static final String BUTTON_TEXT = "text";
   public static final String NAME = "name";
 
-  public VSQLGamePieceRefresher() {
+  public Refresher() {
     ActionListener refreshAction = new ActionListener() {
       public void actionPerformed(ActionEvent e) {
         refresh();
@@ -143,6 +143,7 @@ public class VSQLGamePieceRefresher extends AbstractConfigurable {
     Iterator maps = mapList.values().iterator();
     while (maps.hasNext()) {
       Map map = (Map) maps.next();
+      if (map != null) {
       GamePiece pieces[] = map.getPieces();
       for (int i = 0; i < pieces.length; i++) {
         GamePiece pieceOrStack = pieces[i];
@@ -155,6 +156,7 @@ public class VSQLGamePieceRefresher extends AbstractConfigurable {
         else {
           processPiece(pieceOrStack);
         }
+      }
       }
     }
   }
@@ -198,6 +200,7 @@ public class VSQLGamePieceRefresher extends AbstractConfigurable {
         newPiece = checkBuildable(oldPiece, bb);
       }
     }
+
     return newPiece;
   }
 
@@ -210,106 +213,45 @@ public class VSQLGamePieceRefresher extends AbstractConfigurable {
 
     //Same BasicPiece name?
     if (oldPieceName.equals(newPieceName)) {
-      if (embellishmentMatch(oldPiece, pallettePiece)) {
+
         GamePiece outer = Decorator.getOutermost(pallettePiece);
         newPiece = ((AddPiece) GameModule.getGameModule()
             .decode(GameModule.getGameModule().encode(new AddPiece(outer)))).getTarget();
-        updateLabels(newPiece, oldPiece);
-      }
+        updateState(newPiece, oldPiece);
     }
 
     return newPiece;
   }
-
-  /**
-   * Compare the name of the 1st image of the innermost Embellishment of 2
-   * Decorators.
-   */
-  protected boolean embellishmentMatch(GamePiece piece1, GamePiece piece2) {
-
-    String imageName1 = innerEmbImageName(piece1);
-    String imageName2 = innerEmbImageName(piece2);
-
-    if (imageName1 == null) {
-      return imageName2 == null;
-    }
-    else {
-      if (imageName2 == null) {
-        return imageName1 == null;
-      }
-      else {
-        return imageName1.equals(imageName2);
-      }
-    }
-  }
-
-  /*
-   * Find the name of the first image name of the innermost Embellishment
-   */
-
-  protected String innerEmbImageName(GamePiece piece) {
-
-    GamePiece p = piece;
-    String name = null;
-
-    while (p != null) {
-      p = Decorator.getDecorator(p, VSQLEmbellishment.class);
-      if (p != null) {
-        name = ((VSQLEmbellishment) p).getImageNames()[0];
-        p = ((Decorator) p).getInner();
-      }
-    }
-
-    return name;
-
-  }
-
-  public void updateLabels(GamePiece newPiece, GamePiece oldPiece) {
-
+  
+  public void updateState(GamePiece newPiece, GamePiece oldPiece) {
     GamePiece p = newPiece;
-    String type;
-
-    while (p != null) {
-      p = Decorator.getDecorator(p, Labeler.class);
-      if (p != null) {
-        Labeler label = (Labeler) p;
-        type = label.myGetType();
-        String newState = findState(oldPiece, type, Labeler.class);
-        if (newState != null) {
-          label.mySetState(newState);
-        }
-        p = ((Decorator) p).getInner();
+    while (p != null && !(p instanceof BasicPiece)) {
+      String type = ((Decorator) p).myGetType();
+      String newState = findState(oldPiece, type, p.getClass());
+      if (newState != null && newState.length() > 0) {
+        ((Decorator) p).mySetState(newState);
       }
+      p = ((Decorator) p).getInner();
     }
   }
-
+  
   public String findState(GamePiece piece, String typeToFind, Class findClass) {
 
     GamePiece p = piece;
-    while (p != null) {
-      p = Decorator.getDecorator(p, findClass);
-      if (p != null) {
-        if (p instanceof Labeler) {
-          Labeler l = (Labeler) p;
-          if (l.myGetType().equals(typeToFind)) {
-            return l.myGetState();
+    while (p != null && !(p instanceof BasicPiece)) {
+      Decorator d = (Decorator) Decorator.getDecorator(p, findClass);
+      if (d != null) {
+        if (d.getClass().equals(findClass)) {
+          if (d.myGetType().equals(typeToFind)) {
+            return d.myGetState();
           }
         }
+        p = d.getInner();
       }
+      else
+        p = null;
     }
     return null;
   }
 
-  //  protected class Embellishment2 extends Embellishment {
-  //    
-  //    public Embellishment2(Embellishment e) {
-  //      mySetType(e.myGetType());
-  //      mySetState(e.myGetState());
-  //    }
-  //    
-  //    public String[] getImageNames() {
-  //      return imageName;
-  //    }
-  //    
-  //  }
 }
