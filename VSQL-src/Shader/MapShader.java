@@ -23,11 +23,13 @@ import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Point;
 import java.awt.Rectangle;
+import java.awt.Shape;
 import java.awt.event.ActionListener;
+import java.awt.geom.AffineTransform;
 import java.awt.geom.Area;
-import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 import java.util.Enumeration;
+import java.util.Iterator;
 
 import javax.swing.KeyStroke;
 
@@ -41,18 +43,15 @@ import VASSAL.build.module.documentation.HelpFile;
 import VASSAL.build.module.map.Drawable;
 import VASSAL.build.module.map.boardPicker.Board;
 import VASSAL.build.module.map.boardPicker.board.MapGrid;
-import VASSAL.build.module.map.boardPicker.board.mapgrid.GridNumbering;
 import VASSAL.command.Command;
 import VASSAL.configure.Configurer;
 import VASSAL.configure.ConfigurerFactory;
 import VASSAL.configure.IconConfigurer;
 import VASSAL.configure.StringEnum;
 import VASSAL.configure.VisibilityCondition;
-import VASSAL.counters.GamePiece;
-import VASSAL.counters.Stack;
 import VASSAL.tools.LaunchButton;
 
-public class MapShader extends AbstractConfigurable implements Drawable, GameComponent {
+public class MapShader extends AbstractConfigurable implements GameComponent {
 
   public static final String VERSION = "1.0";
 
@@ -73,6 +72,10 @@ public class MapShader extends AbstractConfigurable implements Drawable, GameCom
   protected String defaultShading = SHADE;
   protected String defaultShade = "";
   protected Map map;
+  
+  protected ArrayList shade = new ArrayList();
+  protected ArrayList shadeablePieces = new ArrayList();
+  protected Area clip = new Area();
   
   protected boolean dirty = true;
 
@@ -119,24 +122,34 @@ public class MapShader extends AbstractConfigurable implements Drawable, GameCom
     shadingVisible = !shadingVisible;
     map.repaint();
   }
-
-  public void draw(Graphics g, Map m) {
+  
+  public void draw(Graphics g, Rectangle visibleRect, ShadeableMap m) {
+    if (shadingVisible) {
       if (dirty) {
         buildShader();
       }
-      drawShader(g);
-//      Graphics2D g2 = (Graphics2D) g;
-//      g2.setPaint(new TexturePaint(shading, shadeRect));
-//      g2.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, opacity / 100.0f));
-//      shadeHex(g2, 70, 70);
+      drawShader(g, m, visibleRect);
     }
+  }
 
   /**
    * 
    */
-  protected void drawShader(Graphics g) {
-    // TODO Auto-generated method stub
+  protected void drawShader(Graphics g, ShadeableMap m, Rectangle visibleRect) {
     
+    Shape oldClip = g.getClip();
+    Area theClip = new Area(clip);
+    theClip.transform(AffineTransform.getScaleInstance(m.getZoom(), m.getZoom()));
+    theClip.intersect(new Area(visibleRect));
+    g.setClip(theClip);
+    
+    Iterator it = shade.iterator();
+    while (it.hasNext()) {
+      Shade s = (Shade) it.next();
+      s.draw(g, m);
+    }
+    
+    g.setClip(oldClip);
   }
 
   /**
@@ -144,52 +157,34 @@ public class MapShader extends AbstractConfigurable implements Drawable, GameCom
    */
   protected void buildShader() {
 
+//      shadeablePieces.clear();
+//      for (int i=0; i < shade.size(); i++) {
+//        shadeablePieces.add(new ArrayList());
+//      }
+      
+      /**
+       * Build a clipping region excluding boards that do no want to be Shaded.
+       */
       Enumeration e = map.getAllBoards();
       while (e.hasMoreElements()) {
         Board b = (Board) e.nextElement();
         boolean doShade = true;
-        if (b instanceof ShadeableBoard) {
-          doShade = ((ShadeableBoard) b).isShadeable();
-        }
         if (doShade) {
-          shadeBoard(b);
+          clip.add(new Area(b.bounds()));
         }
       }
       dirty = false;
     
   }
 
-  protected void shadeBoard(Board b) {
-    
+  public void addShade(Shade s) {
+    shade.add(s);
   }
   
-  private void checkPiece(GamePiece piece) {
-    if (piece instanceof Stack) {
-      Stack s = (Stack) piece;
-      for (int i = 0; i < s.getPieceCount(); i++) {
-        checkPiece(s.getPieceAt(i));
-      }
-    }
-    else {
-      // Does this piece meet the criteria of any of our shaders?
-      //pieceList.add(piece);
-    }  
+  public void removeShade(Shade s) {
+    shade.remove(s);
   }
-
-  protected void shadeHex(Graphics2D g2, int x, int y) {
-
-    Point p = map.snapTo(new Point(x, y));
-    Point p2 = map.snapTo(new Point(x + 40, y + 40));
-    Board b = map.findBoard(p);
-    MapGrid m = b.getGrid();
-    ShadeableHexGrid h = (ShadeableHexGrid) m;
-    Area hex = h.getHexShape(p.x, p.y, map.getZoom(), b.isReversed());
-    Area hex2 = h.getHexShape(p2.x, p2.y, map.getZoom(), b.isReversed());
-    hex.add(hex2);
-
-    g2.fill(hex);
-  }
-
+  
   /*
    * update() is called by the Map when a piece is added or moved on the map
    * to indicate that the shader needs to be rebuilt.

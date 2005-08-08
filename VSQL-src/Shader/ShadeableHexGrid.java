@@ -21,6 +21,7 @@ package Shader;
 
 import java.awt.Point;
 import java.awt.Polygon;
+import java.awt.geom.AffineTransform;
 import java.awt.geom.Area;
 
 import VASSAL.build.module.map.boardPicker.board.HexGrid;
@@ -97,5 +98,42 @@ public class ShadeableHexGrid extends HexGrid {
   
   public static String getConfigureTypeName() {
     return "Shadeable Hex Grid";
+  }
+
+  /**
+   * Return an Area the shape of the hex grid to a given range, centred
+   * on 0,0.
+   */
+  public Area getRangeShape(int range, double zoom) {
+    //Choose a starting point 
+    Point origin = snapToHex(new Point(0, 0));
+    Area shape = getHexShape(origin.x, origin.y, zoom, false);
+    
+    for (int i = -range; i <= range; i++) {
+      int x = origin.x + (int) (i * dx);
+      
+      int length = range*2 + 1 - Math.abs(i);
+      
+      int startY = 0;
+      if (length % 2 == 1) {
+        startY = origin.y - (int) (dy * (length-1)/2);
+      }
+      else {
+        startY = origin.y  - (int) (dy * (0.5 + (length-2)/2));
+      }
+      
+      int y = startY;
+      for (int j = 0; j < length; j++) {
+        Point p = new Point(x, y);
+        rotateIfSideways(p);
+        shape.add(getHexShape(p.x, p.y, zoom, false));
+        y += dy;
+      }
+    }
+    
+    rotateIfSideways(origin);
+    shape.transform(AffineTransform.getTranslateInstance(0-origin.x, 0-origin.y));
+
+    return shape;
   }
 }
