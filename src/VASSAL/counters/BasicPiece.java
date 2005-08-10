@@ -24,6 +24,8 @@ import VASSAL.build.module.GlobalOptions;
 import VASSAL.build.module.Map;
 import VASSAL.build.module.documentation.HelpFile;
 import VASSAL.build.module.map.MenuDisplayer;
+import VASSAL.build.module.map.boardPicker.Board;
+import VASSAL.build.module.map.boardPicker.board.mapgrid.Zone;
 import VASSAL.command.AddPiece;
 import VASSAL.command.ChangePiece;
 import VASSAL.command.Command;
@@ -50,6 +52,21 @@ public class BasicPiece implements EditablePiece, StateMergeable {
   public static final String ID = "piece;";
   private static Highlighter highlighter;
 
+  /**
+   * Return information about the current location of the piece through getProperty():
+   * 
+   * LocationName - Current Location Name of piece as displayed in Chat Window
+   * CurrentMap   - Current Map name or "" if not on a map
+   * CurrentBoard - Current Board name or "" if not on a map
+   * CurrentZone  - If the current map has a multi-zoned grid, then
+   *                return the name of the Zone the piece is in, or "" 
+   *                if the piece is not in any zone, or not on a map
+   */ 
+  public static final String LOCATION_NAME = "LocationName";
+  public static final String CURRENT_MAP = "CurrentMap";
+  public static final String CURRENT_BOARD = "CurrentBoard";
+  public static final String CURRENT_ZONE = "CurrentZone";
+  
   public static Font POPUP_MENU_FONT = new Font("Dialog", 0, 11);
   protected Image image;
   protected Rectangle imageBounds;
@@ -119,6 +136,30 @@ public class BasicPiece implements EditablePiece, StateMergeable {
   public Object getProperty(Object key) {
     if (Properties.KEY_COMMANDS.equals(key)) {
       return getKeyCommands();
+    }
+    else if (LOCATION_NAME.equals(key)) {
+      return getMap() == null ? "" : getMap().locationName(getPosition());
+    }
+    else if (CURRENT_MAP.equals(key)) {
+      return getMap() == null ? "" : getMap().getConfigureName();
+    }
+    else if (CURRENT_BOARD.equals(key)) {
+      if (getMap() != null) {
+        Board b = getMap().findBoard(getPosition());
+        if (b != null) {
+          return b.getName();
+        }
+      }
+      return "";
+    }
+    else if (CURRENT_ZONE.equals(key)) {
+      if (getMap() != null) {
+        Zone z = getMap().findZone(getPosition());
+        if (z != null) {
+          return z.getName();
+        }
+      }
+      return "";
     }
     return props == null ? null : props.get(key);
   }

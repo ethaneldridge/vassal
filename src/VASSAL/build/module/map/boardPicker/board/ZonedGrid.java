@@ -184,14 +184,23 @@ public class ZonedGrid extends AbstractConfigurable implements MapGrid, GridCont
     return background != null ? background.range(p1, p2) : 0;
   }
 
-  public Point snapTo(Point p) {
-    Point snap = null;
+  public Zone findZone(Point p) {
+    Zone z = null;
     for (Iterator it = zones.iterator(); it.hasNext();) {
       Zone zone = (Zone) it.next();
       if (zone.contains(p)) {
-        snap = zone.snapTo(p);
+        z = zone;
         break;
       }
+    }
+    return z;
+  }
+
+  public Point snapTo(Point p) {
+    Point snap = null;
+    Zone z = findZone(p);
+    if (z != null) {
+      snap = z.snapTo(p);
     }
     if (snap == null) {
       snap = background != null ? background.snapTo(p) : p;

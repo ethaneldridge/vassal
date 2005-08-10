@@ -23,6 +23,9 @@ import VASSAL.build.*;
 import VASSAL.build.module.documentation.HelpFile;
 import VASSAL.build.module.map.*;
 import VASSAL.build.module.map.boardPicker.Board;
+import VASSAL.build.module.map.boardPicker.board.MapGrid;
+import VASSAL.build.module.map.boardPicker.board.ZonedGrid;
+import VASSAL.build.module.map.boardPicker.board.mapgrid.Zone;
 import VASSAL.command.AddPiece;
 import VASSAL.command.Command;
 import VASSAL.command.MoveTracker;
@@ -511,6 +514,22 @@ public class Map extends AbstractConfigurable implements GameComponent,
     return null;
   }
 
+  /**
+   * 
+   * @return the {@link Zone} on this map containing the argument point
+   */
+  public Zone findZone(Point p) {
+    Board b = findBoard(p);
+    if (b != null) {
+      MapGrid grid = b.getGrid();
+      if (grid != null && grid instanceof ZonedGrid) {
+        return ((ZonedGrid) grid).findZone(p);
+      }
+    }
+    
+    return null;
+  }
+  
   /**
    * Return the board with the given name
    * @param name

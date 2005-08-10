@@ -48,6 +48,11 @@ import java.util.Vector;
 public class Embellishment extends Decorator implements EditablePiece {
   public static final String OLD_ID = "emb;";
   public static final String ID = "emb2;"; // New type encoding
+  
+  public static final String IMAGE = "_Image";
+  public static final String NAME = "_Name";
+  public static final String LEVEL = "_Level";
+  public static final String ACTIVE = "_Active";
 
   protected String activateKey = "";
   protected String upKey, downKey;
@@ -66,6 +71,8 @@ public class Embellishment extends Decorator implements EditablePiece {
   protected String commonName[];
   protected Rectangle size[];
   protected boolean drawUnderneathWhenSelected = false;
+  
+  protected String name = "";
 
   protected KeyCommand[] commands;
 
@@ -122,6 +129,7 @@ public class Embellishment extends Decorator implements EditablePiece {
       imageName = st.nextStringArray(0);
       commonName = st.nextStringArray(imageName.length);
       loopLevels = st.nextBoolean(true);
+      name = st.nextToken("");
 
       value = activateKey.length() > 0 ? -1 : 1;
       nValues = imageName.length;
@@ -241,7 +249,8 @@ public class Embellishment extends Decorator implements EditablePiece {
         .append(yOff)
         .append(imageName)
         .append(commonName)
-        .append(loopLevels);
+        .append(loopLevels)
+        .append(name);    
     return ID + se.getValue();
   }
 
@@ -459,16 +468,51 @@ public class Embellishment extends Decorator implements EditablePiece {
   }
 
   public String getDescription() {
-    if (imageName.length == 0
-        || imageName[0] == null
-        || imageName[0].length() == 0) {
+    String displayName = name;
+    if (name == null
+      || name.length() == 0) {
+      if (imageName.length > 0
+        && imageName[0] != null
+        && imageName[0].length() > 0) {
+        displayName = imageName[0];
+      }
+    }
+    if (displayName == null
+      || displayName.length() == 0) {
       return "Layer";
     }
     else {
-      return "Layer - " + imageName[0];
+      return "Layer - " + displayName;
     }
   }
 
+  public Object getProperty(Object key) {
+    if (key.equals(name + IMAGE)) {
+      if (value > 0) {
+        return imageName[Math.abs(value)-1];
+      }
+      else
+        return "";
+    }
+    else if (key.equals(name + NAME)) {
+      if (value > 0) {
+        String s = commonName[Math.abs(value)-1];
+        if (s.startsWith("+")) return s.substring(1);
+        if (s.endsWith("+")) return s.substring(0,s.length()-2);
+        return s;
+      }
+      else 
+        return "";
+    }
+    else if (key.equals(name + LEVEL)) {
+      return value + "";
+    }
+    else if (key.equals(name + ACTIVE)) {
+      return isActive() + "";
+    }
+    return super.getProperty(key);
+  }
+  
   public HelpFile getHelpFile() {
     File dir = VASSAL.build.module.Documentation.getDocumentationBaseDir();
     dir = new File(dir, "ReferenceManual");
@@ -529,6 +573,7 @@ public class Embellishment extends Decorator implements EditablePiece {
     private JTextField resetCommand = new JTextField(8);
     private JCheckBox loop = new JCheckBox("Loop through levels");
     private HotKeyConfigurer resetKey = new HotKeyConfigurer(null, "Keyboard:  ");
+    private JTextField name = new JTextField(8);
 
     private JPanel controls;
     private List names;
@@ -543,8 +588,14 @@ public class Embellishment extends Decorator implements EditablePiece {
       controls = new JPanel();
       controls.setLayout(new BoxLayout(controls, BoxLayout.Y_AXIS));
 
+      Box nameControls = Box.createHorizontalBox();
+      nameControls.add(new JLabel("Name"));
+      nameControls.add(name);
+      controls.add(nameControls);
+      
       JPanel p = new JPanel();
       p.setLayout(new GridLayout(4, 3));
+      p.add(resetKey.getControls());
       activateCommand.setMaximumSize(activateCommand.getPreferredSize());
       p.add(activateCommand);
       p.add(activateModifiers.getControls());
@@ -772,7 +823,8 @@ public class Embellishment extends Decorator implements EditablePiece {
           .append(yOffInput.getText())
           .append((String[]) imageNames.toArray(new String[imageNames.size()]))
           .append((String[]) commonNames.toArray(new String[commonNames.size()]))
-          .append(loop.isSelected());
+          .append(loop.isSelected())
+          .append(name.getText());
       return ID + se.getValue();
 
     }
@@ -843,6 +895,7 @@ public class Embellishment extends Decorator implements EditablePiece {
     }
 
     public void reset(Embellishment e) {
+      name.setText(e.name);
       names = new Vector();
       isPrefix = new Vector();
       for (int i = 0; i < e.commonName.length; ++i) {
