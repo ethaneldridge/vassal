@@ -96,9 +96,13 @@ public class MassKeyCommand extends AbstractConfigurable implements PieceVisitor
   }
 
   public void apply() {
-    String mapFormat = map.getChangeFormat();
+    apply(map);
+  }
+
+  public void apply(Map m) {
+    String mapFormat = m.getChangeFormat();
     if (reportSingle) {
-      map.setAttribute(Map.CHANGE_FORMAT,"");
+      m.setAttribute(Map.CHANGE_FORMAT,"");
     }
     String reportText = reportFormat.getText();
     if (reportText.length() > 0) {
@@ -109,14 +113,14 @@ public class MassKeyCommand extends AbstractConfigurable implements PieceVisitor
       keyCommand = new NullCommand();
     }
     tracker = new BoundsTracker();
-    GamePiece[] p = map.getPieces();
+    GamePiece[] p = m.getPieces();
     for (int i = 0; i < p.length; ++i) {
       dispatcher.accept(p[i]);
     }
     tracker.repaint();
     GameModule.getGameModule().sendAndLog(keyCommand);
     if (reportSingle) {
-      map.setAttribute(Map.CHANGE_FORMAT,mapFormat);
+      m.setAttribute(Map.CHANGE_FORMAT,mapFormat);
     }
   }
 
@@ -252,6 +256,14 @@ public class MassKeyCommand extends AbstractConfigurable implements PieceVisitor
 
   public static String getConfigureTypeName() {
     return "Global Key Command";
+  }
+
+  protected LaunchButton getLaunchButton() {
+    return launch;
+  }
+
+  protected void setLaunchButton(LaunchButton launch) {
+    this.launch = launch;
   }
 
   public HelpFile getHelpFile() {
