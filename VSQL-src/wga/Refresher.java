@@ -39,6 +39,7 @@ import VASSAL.command.RemovePiece;
 import VASSAL.counters.BasicPiece;
 import VASSAL.counters.Decorator;
 import VASSAL.counters.GamePiece;
+import VASSAL.counters.PieceCloner;
 import VASSAL.counters.Stack;
 import VASSAL.tools.LaunchButton;
 
@@ -46,9 +47,12 @@ public class Refresher extends AbstractConfigurable {
 
   protected LaunchButton launch;
   protected Map map;
+  protected boolean visible;
 
+  public static final String VERSION = "1.1";
   public static final String BUTTON_TEXT = "text";
   public static final String NAME = "name";
+  public static final String VISIBLE = "visible";
 
   public Refresher() {
     ActionListener refreshAction = new ActionListener() {
@@ -57,23 +61,24 @@ public class Refresher extends AbstractConfigurable {
       }
     };
     launch = new LaunchButton(null, BUTTON_TEXT, null, null, refreshAction);
+    launch.setVisible(false);
   }
 
   public static String getConfigureTypeName() {
-    return "Gamepiece Refresher";
+    return "Gamepiece Refresher v" + VERSION;
   }
 
   public String[] getAttributeNames() {
-    String s[] = { NAME, BUTTON_TEXT };
+    String s[] = { NAME, BUTTON_TEXT, VISIBLE };
     return s;
   }
 
   public String[] getAttributeDescriptions() {
-    return new String[] { "Name", "Button text" };
+    return new String[] { "Name:  ", "Button text:  ", "Button is Visible?" };
   }
 
   public Class[] getAttributeTypes() {
-    return new Class[] { String.class, String.class };
+    return new Class[] { String.class, String.class, Boolean.class };
   }
 
   public void addTo(Buildable parent) {
@@ -92,6 +97,13 @@ public class Refresher extends AbstractConfigurable {
       setConfigureName((String) o);
       launch.setToolTipText((String) o);
     }
+    else if (VISIBLE.equals(key)) {
+      if (o instanceof String) {
+        o = new Boolean((String) o);
+      }
+      visible = ((Boolean) o).booleanValue();
+      launch.setVisible(visible);
+    }
     else {
       launch.setAttribute(key, o);
     }
@@ -100,6 +112,9 @@ public class Refresher extends AbstractConfigurable {
   public String getAttributeValueString(String key) {
     if (NAME.equals(key)) {
       return getConfigureName();
+    }    
+    else if (VISIBLE.equals(key)) {
+      return false + ""; // Force refresh button invisible when saving game
     }
     else {
       return launch.getAttributeValueString(key);
@@ -217,6 +232,7 @@ public class Refresher extends AbstractConfigurable {
         GamePiece outer = Decorator.getOutermost(pallettePiece);
         newPiece = ((AddPiece) GameModule.getGameModule()
             .decode(GameModule.getGameModule().encode(new AddPiece(outer)))).getTarget();
+        newPiece = PieceCloner.getInstance().clonePiece(newPiece);
         updateState(newPiece, oldPiece);
     }
 

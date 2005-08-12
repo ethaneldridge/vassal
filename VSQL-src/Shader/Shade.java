@@ -73,6 +73,7 @@ public class Shade extends AbstractConfigurable {
   public static final String TYPE_IMAGE = "Custom Image";
   public static final String LIGHT = "Light";
   public static final String SHADE = "Shade";
+  public static final String BACKGROUND = "Background";
 
   protected String marker = "";
   protected String markerValue = "";
@@ -80,7 +81,7 @@ public class Shade extends AbstractConfigurable {
   protected String rangeSource = RANGE_FIXED;
   protected int range = 3;
   protected int builtRange = 3;
-  protected String setting = LIGHT;
+  protected String setting = SHADE;
   protected String imageName = "";
   protected Color color = Color.BLACK;
   protected String type = TYPE_STD;
@@ -242,7 +243,7 @@ public class Shade extends AbstractConfigurable {
 
   public static class SettingConfig extends StringEnum {
     public String[] getValidValues(AutoConfigurable target) {
-      return new String[] { LIGHT, SHADE };
+      return new String[] { LIGHT, SHADE, BACKGROUND };
     }
   }
 
@@ -341,31 +342,38 @@ public class Shade extends AbstractConfigurable {
   }
 
   public VisibilityCondition getAttributeVisibility(String name) {
-    if (RANGE.equals(name)) {
+    if (PROPERTY_NAME.equals(name) || PROPERTY_VALUE.equals(name) || RANGE_TYPE.equals(name) || RANGE_SOURCE.equals(name)) {
       return new VisibilityCondition() {
         public boolean shouldBeVisible() {
-          return !rangeType.equals(RANGE_MARKER);
+          return !setting.equals(BACKGROUND);
+        }
+      };
+    }
+    else if (RANGE.equals(name)) {
+      return new VisibilityCondition() {
+        public boolean shouldBeVisible() {
+          return !setting.equals(BACKGROUND) && !rangeType.equals(RANGE_MARKER);
         }
       };
     }
     else if (TYPE.equals(name) || OPACITY.equals(name)) {
       return new VisibilityCondition() {
         public boolean shouldBeVisible() {
-          return setting.equals(SHADE);
+          return !setting.equals(LIGHT);
         }
       };
     }
     else if (IMAGE.equals(name)) {
       return new VisibilityCondition() {
         public boolean shouldBeVisible() {
-          return setting.equals(SHADE) && type.equals(TYPE_IMAGE);
+          return !setting.equals(LIGHT) && type.equals(TYPE_IMAGE);
         }
       };
     }
     else if (COLOR.equals(name)) {
       return new VisibilityCondition() {
         public boolean shouldBeVisible() {
-          return setting.equals(SHADE) && type.equals(TYPE_STD);
+          return !setting.equals(LIGHT) && type.equals(TYPE_STD);
         }
       };
     }

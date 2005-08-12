@@ -20,8 +20,6 @@
 package Shader;
 
 import java.awt.Graphics;
-import java.awt.Graphics2D;
-import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.Shape;
 import java.awt.event.ActionListener;
@@ -40,15 +38,11 @@ import VASSAL.build.GameModule;
 import VASSAL.build.module.GameComponent;
 import VASSAL.build.module.Map;
 import VASSAL.build.module.documentation.HelpFile;
-import VASSAL.build.module.map.Drawable;
 import VASSAL.build.module.map.boardPicker.Board;
-import VASSAL.build.module.map.boardPicker.board.MapGrid;
 import VASSAL.command.Command;
 import VASSAL.configure.Configurer;
 import VASSAL.configure.ConfigurerFactory;
 import VASSAL.configure.IconConfigurer;
-import VASSAL.configure.StringEnum;
-import VASSAL.configure.VisibilityCondition;
 import VASSAL.tools.LaunchButton;
 
 public class MapShader extends AbstractConfigurable implements GameComponent {
@@ -60,21 +54,12 @@ public class MapShader extends AbstractConfigurable implements GameComponent {
   public static final String ICON = "icon";
   public static final String BUTTON_TEXT = "buttonText";
 
-  public static final String DEFAULT = "default";
-  public static final String DEFAULT_SHADE = "defaultShade";
-
-  public static final String NONE = "None";
-  public static final String SHADE = "Shade";
-
   protected LaunchButton launch;
 
   protected boolean shadingVisible;
-  protected String defaultShading = SHADE;
-  protected String defaultShade = "";
   protected Map map;
   
   protected ArrayList shade = new ArrayList();
-  protected ArrayList shadeablePieces = new ArrayList();
   protected Area clip = new Area();
   
   protected boolean dirty = true;
@@ -89,29 +74,7 @@ public class MapShader extends AbstractConfigurable implements GameComponent {
     launch = new LaunchButton("Shade", BUTTON_TEXT, HOT_KEY, ICON, al);
     launch.setEnabled(false);
     setConfigureName("MapShader");
-    buildShading();
     reset();
-  }
-
-  public void buildShading() {
-//    if (type.equals(TYPE_STD)) {
-//      shading = new BufferedImage(2, 2, BufferedImage.TYPE_4BYTE_ABGR);
-//      Graphics2D g2 = shading.createGraphics();
-//      g2.setColor(color);
-//      g2.drawLine(0, 0, 0, 0);
-//      //g2.drawLine(1, 1, 1, 1);
-//    }
-//    else {
-//      try {
-//        shading = (BufferedImage) GameModule.getGameModule().getDataArchive().getCachedImage(imageName);
-//      }
-//      catch (IOException ex) {
-//      }
-//    }
-//    shadeRect = new Rectangle(0, 0, shading.getWidth(), shading.getHeight());
-//    if (map != null) {
-//      map.repaint();
-//    }
   }
 
   public void reset() {
@@ -156,11 +119,6 @@ public class MapShader extends AbstractConfigurable implements GameComponent {
    * 
    */
   protected void buildShader() {
-
-//      shadeablePieces.clear();
-//      for (int i=0; i < shade.size(); i++) {
-//        shadeablePieces.add(new ArrayList());
-//      }
       
       /**
        * Build a clipping region excluding boards that do no want to be Shaded.
@@ -212,19 +170,12 @@ public class MapShader extends AbstractConfigurable implements GameComponent {
    * -----------------------------------------------------------------------
    */
   public String[] getAttributeDescriptions() {
-    return new String[] { "Name:  ", "Button text:  ", "Button Icon:  ", "Hotkey:  ", "Background Shading:  ", "Shade Name:  "};
+    return new String[] { "Name:  ", "Button text:  ", "Button Icon:  ", "Hotkey:  " };
     
   }
 
   public Class[] getAttributeTypes() {
-    return new Class[] { String.class, String.class, IconConfig.class, KeyStroke.class, DefaultConfig.class, String.class };
-  }
-
-
-  public static class DefaultConfig extends StringEnum {
-    public String[] getValidValues(AutoConfigurable target) {
-      return new String[] { NONE, SHADE };
-    }
+    return new Class[] { String.class, String.class, IconConfig.class, KeyStroke.class};
   }
 
   public static class IconConfig implements ConfigurerFactory {
@@ -234,20 +185,13 @@ public class MapShader extends AbstractConfigurable implements GameComponent {
   }
 
   public String[] getAttributeNames() {
-    return new String[] { NAME, BUTTON_TEXT, ICON, HOT_KEY, DEFAULT, DEFAULT_SHADE };
+    return new String[] { NAME, BUTTON_TEXT, ICON, HOT_KEY };
   }
 
   public void setAttribute(String key, Object value) {
     if (NAME.equals(key)) {
       setConfigureName((String) value);
       launch.setToolTipText((String) value);
-    }
-
-    else if (DEFAULT.equals(key)) {
-      defaultShading = (String) value;
-    }
-    else if (DEFAULT_SHADE.equals(key)) {
-      defaultShade = (String) value;
     }
     else {
       launch.setAttribute(key, value);
@@ -257,12 +201,6 @@ public class MapShader extends AbstractConfigurable implements GameComponent {
   public String getAttributeValueString(String key) {
     if (NAME.equals(key)) {
       return getConfigureName() + "";
-    }
-    else if (DEFAULT.equals(key)) {
-      return defaultShading + "";
-    }
-    else if (DEFAULT_SHADE.equals(key)) {
-      return defaultShade;
     }
     else {
       return launch.getAttributeValueString(key);
@@ -289,19 +227,6 @@ public class MapShader extends AbstractConfigurable implements GameComponent {
     return new Class[] { Shade.class };
   }
 
-  public VisibilityCondition getAttributeVisibility(String name) {
-    if (DEFAULT_SHADE.equals(name)) {
-      return new VisibilityCondition() {
-        public boolean shouldBeVisible() {
-          return defaultShading.equals(SHADE);
-        }
-      };
-    }  
-
-    else {
-      return super.getAttributeVisibility(name);
-    }
-  }
   public void addTo(Buildable parent) {
     ((ShadeableMap) parent).addShader(this);
     GameModule.getGameModule().getToolBar().add(launch);
