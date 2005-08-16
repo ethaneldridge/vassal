@@ -59,6 +59,7 @@ public class MassKeyCommand extends AbstractConfigurable implements PieceVisitor
   public static final String HOTKEY = "buttonHotkey";
   public static final String KEY_COMMAND = "hotkey";
   public static final String AFFECTED_PIECE_NAMES = "names";
+  public static final String PROPERTIES_FILTER = "filter";
   public static final String REPORT_SINGLE = "reportSingle";
   public static final String REPORT_FORMAT = "reportFormat";
   public static final String CONDITION = "condition";
@@ -74,6 +75,8 @@ public class MassKeyCommand extends AbstractConfigurable implements PieceVisitor
   private String condition = ALWAYS;
   protected String checkProperty;
   protected String checkValue;
+  protected String propertiesFilter;
+  protected PieceFilter filter;
   protected PieceVisitorDispatcher dispatcher = new PieceVisitorDispatcher(this);
   private Map map;
   private Command keyCommand;
@@ -102,7 +105,7 @@ public class MassKeyCommand extends AbstractConfigurable implements PieceVisitor
   public void apply(Map m) {
     String mapFormat = m.getChangeFormat();
     if (reportSingle) {
-      m.setAttribute(Map.CHANGE_FORMAT,"");
+      m.setAttribute(Map.CHANGE_FORMAT, "");
     }
     String reportText = reportFormat.getText();
     if (reportText.length() > 0) {
@@ -120,7 +123,7 @@ public class MassKeyCommand extends AbstractConfigurable implements PieceVisitor
     tracker.repaint();
     GameModule.getGameModule().sendAndLog(keyCommand);
     if (reportSingle) {
-      m.setAttribute(Map.CHANGE_FORMAT,mapFormat);
+      m.setAttribute(Map.CHANGE_FORMAT, mapFormat);
     }
   }
 
@@ -153,38 +156,14 @@ public class MassKeyCommand extends AbstractConfigurable implements PieceVisitor
    * @return true if the KeyCommand should be applied to the <code>target</code> GamePiece
    */
   protected boolean isValidTarget(GamePiece target) {
-    boolean valid = false;
-    if (isAffected(target)) {
-      if (ALWAYS.equals(condition)) {
-        valid = true;
-      }
-      else if (IF_ACTIVE.equals(condition)) {
-        valid = Embellishment.getLayerWithMatchingActivateCommand(target, stroke, true) != null;
-      }
-      else if (IF_INACTIVE.equals(condition)) {
-        valid = Embellishment.getLayerWithMatchingActivateCommand(target, stroke, false) != null;
-      }
-    }
-    return valid;
+    return isAffected(target);
   }
 
   /**
    * Return true if the name of the argument GamePiece is in the list of target piece names
    */
   protected boolean isAffected(GamePiece target) {
-    boolean affected = false;
-    if (names != null) {
-      for (int j = 0; j < names.length; ++j) {
-        if (Decorator.getInnermost(target).getName().equals(names[j])) {
-          affected = true;
-          break;
-        }
-      }
-    }
-    else if (checkValue != null) {
-      affected = checkValue.equals(target.getProperty(checkProperty));
-    }
-    return affected;
+    return filter != null && filter.accept(target);
   }
 
   public Class[] getAllowableConfigureComponents() {
@@ -192,13 +171,20 @@ public class MassKeyCommand extends AbstractConfigurable implements PieceVisitor
   }
 
   public String[] getAttributeDescriptions() {
-    return new String[]{"Description", "Key Command", "Apply to pieces whose property", "is equal to the value", "Apply command", "Button text", "Button Icon", "Hotkey",
-                        "Suppress individual reports", "Report Format"};
+    if (condition == null) {
+      return new String[]{"Description", "Key Command", "Matching properties", "Button text", "Button Icon", "Hotkey",
+                          "Suppress individual reports", "Report Format"};
+    }
+    else {
+      return new String[]{"Description", "Key Command", "Matching properties", "Button text", "Button Icon", "Hotkey",
+                          "Suppress individual reports", "Report Format", "Apply Command"};
+
+    }
   }
 
   public String[] getAttributeNames() {
-    return new String[]{NAME, KEY_COMMAND, CHECK_PROPERTY, CHECK_VALUE, CONDITION, BUTTON_TEXT, ICON, HOTKEY,
-                        REPORT_SINGLE, REPORT_FORMAT, AFFECTED_PIECE_NAMES};
+    return new String[]{NAME, KEY_COMMAND, PROPERTIES_FILTER, BUTTON_TEXT, ICON, HOTKEY,
+                        REPORT_SINGLE, REPORT_FORMAT, CONDITION, CHECK_VALUE, CHECK_PROPERTY, AFFECTED_PIECE_NAMES};
   }
 
   public static class Prompt extends StringEnum {
@@ -208,8 +194,14 @@ public class MassKeyCommand extends AbstractConfigurable implements PieceVisitor
   }
 
   public Class[] getAttributeTypes() {
-    return new Class[]{String.class, KeyStroke.class, String.class, String.class, Prompt.class, String.class, IconConfig.class, KeyStroke.class,
-                       Boolean.class, ReportFormatConfig.class};
+    if (condition == null) {
+      return new Class[]{String.class, KeyStroke.class, String.class, String.class, IconConfig.class, KeyStroke.class,
+                         Boolean.class, ReportFormatConfig.class};
+    }
+    else {
+      return new Class[]{String.class, KeyStroke.class, String.class, String.class, IconConfig.class, KeyStroke.class,
+                         Boolean.class, ReportFormatConfig.class, Prompt.class};
+    }
   }
 
   public static class IconConfig implements ConfigurerFactory {
@@ -232,16 +224,19 @@ public class MassKeyCommand extends AbstractConfigurable implements PieceVisitor
       return HotKeyConfigurer.encode(stroke);
     }
     else if (AFFECTED_PIECE_NAMES.equals(key)) {
-      return StringArrayConfigurer.arrayToString(names);
+      return names == null || names.length == 0 ? null : StringArrayConfigurer.arrayToString(names);
     }
     else if (CHECK_PROPERTY.equals(key)) {
-      return checkProperty;
+      return propertiesFilter != null ? null : checkProperty;
     }
     else if (CHECK_VALUE.equals(key)) {
-      return checkValue;
+      return propertiesFilter != null ? null : checkValue;
+    }
+    else if (PROPERTIES_FILTER.equals(key)) {
+      return propertiesFilter;
     }
     else if (CONDITION.equals(key)) {
-      return condition;
+      return ALWAYS.equals(condition) ? null : condition;
     }
     else if (REPORT_SINGLE.equals(key)) {
       return reportSingle + "";
@@ -281,6 +276,33 @@ public class MassKeyCommand extends AbstractConfigurable implements PieceVisitor
     map.getToolBar().remove(launch);
   }
 
+  private void buildFilter() {
+    if (checkValue != null) {
+      propertiesFilter = checkProperty + "=" + checkValue;
+    }
+    if (propertiesFilter != null) {
+      filter = PropertiesPieceFilter.parse(propertiesFilter);
+    }
+    if (filter != null
+        && condition != null) {
+      filter = new BooleanAndPieceFilter(filter, new PieceFilter() {
+        public boolean accept(GamePiece piece) {
+          boolean valid = false;
+          if (ALWAYS.equals(condition)) {
+            valid = true;
+          }
+          else if (IF_ACTIVE.equals(condition)) {
+            valid = Embellishment.getLayerWithMatchingActivateCommand(piece, stroke, true) != null;
+          }
+          else if (IF_INACTIVE.equals(condition)) {
+            valid = Embellishment.getLayerWithMatchingActivateCommand(piece, stroke, false) != null;
+          }
+          return valid;
+        }
+      });
+    }
+  }
+
   public void setAttribute(String key, Object value) {
     if (DEPRECATED_NAME.equals(key)) {
       setAttribute(NAME, value);
@@ -305,20 +327,33 @@ public class MassKeyCommand extends AbstractConfigurable implements PieceVisitor
         names = null;
       }
       else {
-        checkProperty = null;
-        checkValue = null;
+        filter = new PieceFilter() {
+          public boolean accept(GamePiece piece) {
+            for (int j = 0; j < names.length; ++j) {
+              if (Decorator.getInnermost(piece).getName().equals(names[j])) {
+                return true;
+              }
+            }
+            return false;
+          }
+        };
       }
     }
     else if (CHECK_PROPERTY.equals(key)) {
       checkProperty = (String) value;
-      names = null;
+      buildFilter();
     }
     else if (CHECK_VALUE.equals(key)) {
       checkValue = (String) value;
-      names = null;
+      buildFilter();
+    }
+    else if (PROPERTIES_FILTER.equals(key)) {
+      propertiesFilter = (String) value;
+      buildFilter();
     }
     else if (CONDITION.equals(key)) {
       condition = (String) value;
+      buildFilter();
     }
     else if (REPORT_SINGLE.equals(key)) {
       if (value instanceof String) {
