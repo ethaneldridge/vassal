@@ -78,7 +78,7 @@ public class AIEmbellishment extends Embellishment {
   }
 
   public String getName() {
-    if (value > 0 && aiNames[value-1] != null) {
+    if (value > 0 && aiNames != null && aiNames[value-1] != null) {
       return aiNames[value-1];
     }
     else {
