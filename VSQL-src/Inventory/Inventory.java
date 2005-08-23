@@ -56,7 +56,7 @@ public class Inventory extends AbstractConfigurable implements GameComponent {
   protected LaunchButton launch;
   protected ArrayList counters;
 
-  public static final String VERSION = "1.1";
+  public static final String VERSION = "1.2";
   public static final String HOTKEY = "hotkey";
   public static final String BUTTON_TEXT = "text";
   public static final String NAME = "name";
@@ -146,12 +146,23 @@ public class Inventory extends AbstractConfigurable implements GameComponent {
         group = (String) p.getProperty(groupBy);
       }
 
+      int count = 1;
+      if (totalMarker.length() > 0) {
+        String s = (String) p.getProperty(totalMarker);
+        try {
+          count = Integer.parseInt(s);
+        }
+        catch (Exception e) {
+          count = 1;
+        }
+      }
+      
       Point pos = p.getPosition();
 
       boolean incMap = mapList.length > 0;
       String loc = p.getMap().getFullLocationName(pos, incMap);
 
-      Counter c = new Counter(group, p.getName(), loc);
+      Counter c = new Counter(group, p.getName(), loc, count);
 
       counters.add(c);
 
@@ -159,7 +170,7 @@ public class Inventory extends AbstractConfigurable implements GameComponent {
 
     Collections.sort(counters);
 
-    String[] result = new String[] { "Control Summary: " };
+    String[] result = new String[] { getConfigureName() + ": " };
     String lastBreak = null;
     String breakVal;
     int total = 0;
@@ -168,16 +179,16 @@ public class Inventory extends AbstractConfigurable implements GameComponent {
     Iterator i = counters.iterator();
     while (i.hasNext()) {
       Counter c = (Counter) i.next();
-      breakVal = c.getBreakKey();
+      breakVal = c.getBreakKey() + "";
       if (breakVal.equals(lastBreak)) {
-        count++;
+        count += c.getCount();
       }
       else {
         if (lastBreak != null) {
           result[0] += lastBreak + ": " + count + "  ";
         }
         lastBreak = breakVal;
-        count = 1;
+        count = c.getCount();
       }
     }
     
@@ -361,12 +372,12 @@ public class Inventory extends AbstractConfigurable implements GameComponent {
     private String location;
     private int count;
 
-    public Counter(String breakKey, String name, String location) {
+    public Counter(String breakKey, String name, String location, int count) {
       sortKey = breakKey + "*" + name;
       this.setBreakKey(breakKey);
       this.setName(name);
       this.location = location;
-      count = 1;
+      this.count = count;
     }
 
     protected void setBreakKey(String breakKey) {
@@ -384,9 +395,9 @@ public class Inventory extends AbstractConfigurable implements GameComponent {
     protected String getName() {
       return name;
     }
-
-    public void incr() {
-      count++;
+    
+    protected int getCount() {
+      return count;
     }
 
     public boolean equals(Object o) {
@@ -422,7 +433,7 @@ public class Inventory extends AbstractConfigurable implements GameComponent {
 
     public Selector(boolean all, String[] maps, String include) {
       allMaps = all;
-      maps = mapList;
+      mapList = maps;
       includeMarker = include;
     }
 
@@ -435,7 +446,7 @@ public class Inventory extends AbstractConfigurable implements GameComponent {
       if (piece.getMap() == null) return false;
 
       // If a list of Maps supplied, check map names match
-      if (!allMaps && mapList.length > 0) {
+      if (!allMaps && mapList != null && mapList.length > 0) {
         String mapName = piece.getMap().getMapName();
         boolean found = false;
         for (int i = 0; i < mapList.length && !found; i++) {

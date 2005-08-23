@@ -88,6 +88,10 @@ public abstract class TurnLevel extends AbstractConfigurable {
     return subLevelRolledOver;
   }
 
+  protected boolean isActive() {
+    return true;
+  }
+  
   protected void reset() {
     for (int i = 0; i < getTurnLevelCount(); i++) {
       getTurnLevel(i).reset();

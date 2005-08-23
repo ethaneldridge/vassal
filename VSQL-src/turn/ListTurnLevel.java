@@ -179,6 +179,9 @@ public class ListTurnLevel extends TurnLevel implements ActionListener {
         done = active[idx];
       }
       current = idx;
+      if (! done) {
+        rolledOver = true;
+      }
     }
 
   }
@@ -203,6 +206,16 @@ public class ListTurnLevel extends TurnLevel implements ActionListener {
     }
   }
 
+  /* A list turn level is active only if at least one item is active */
+  protected boolean isActive() {
+    for (int i = 0; i < active.length; i++) {
+      if (active[i]) {
+        return true;
+      }
+    }
+    return false;
+  }
+  
   protected void buildConfigMenu(JMenu configMenu) {
     JMenu menu = getConfigMenu();
     if (menu != null) {

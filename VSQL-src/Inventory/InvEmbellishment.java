@@ -24,7 +24,6 @@ import VASSAL.counters.GamePiece;
 
 public class InvEmbellishment extends Embellishment {
 
-  public static final String VERSION = "1.0";
   public static final String ID = "invEmb2;";
   public static final String LAYER_NAME = "LAYER_NAME";
   public static final String LAYER_IMAGE = "LAYER_IMAGE";
@@ -83,10 +82,10 @@ public class InvEmbellishment extends Embellishment {
   
   public String getDescription() {
     if (imageName.length == 0 || imageName[0] == null || imageName[0].length() == 0) {
-      return "Inv Layer v"+VERSION;
+      return "Inv Layer v"+Inventory.VERSION;
     }
     else {
-      return "Inv Layer v"+VERSION+" - " + imageName[0];
+      return "Inv Layer v"+Inventory.VERSION+" - " + imageName[0];
     }
   }
 
