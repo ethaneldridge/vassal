@@ -72,7 +72,7 @@ public class MassKeyCommand extends AbstractConfigurable implements PieceVisitor
   private LaunchButton launch;
   private KeyStroke stroke = KeyStroke.getKeyStroke(0, 0);
   private String[] names = new String[0];
-  private String condition = ALWAYS;
+  private String condition;
   protected String checkProperty;
   protected String checkValue;
   protected String propertiesFilter;
