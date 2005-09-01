@@ -27,10 +27,7 @@
 package VASSAL.build.module;
 
 import VASSAL.Info;
-import VASSAL.build.AbstractConfigurable;
-import VASSAL.build.AutoConfigurable;
-import VASSAL.build.Buildable;
-import VASSAL.build.GameModule;
+import VASSAL.build.*;
 import VASSAL.build.module.documentation.HelpFile;
 import VASSAL.configure.*;
 import VASSAL.tools.FormattedString;
@@ -38,6 +35,10 @@ import VASSAL.tools.FormattedString;
 import java.io.File;
 import java.net.MalformedURLException;
 import java.util.*;
+import java.util.List;
+import java.awt.*;
+
+import org.w3c.dom.*;
 
 public class GlobalOptions extends AbstractConfigurable {
   public static final String NON_OWNER_UNMASKABLE = "nonOwnerUnmaskable";
@@ -54,7 +55,7 @@ public class GlobalOptions extends AbstractConfigurable {
   public static final String PLAYER_NAME = "playerName";
   public static final String PLAYER_SIDE = "playerSide";
   public static final String PLAYER_ID = "playerId";
-  public static final String PLAYER_ID_FORMAT="playerIdFormat";
+  public static final String PLAYER_ID_FORMAT = "playerIdFormat";
 
   private String promptString = "Opponents can unmask my pieces";
   private String nonOwnerUnmaskable = NEVER;
@@ -63,8 +64,10 @@ public class GlobalOptions extends AbstractConfigurable {
   private String markMoved = NEVER;
 
   private java.util.Map properties = new HashMap();
+  private java.util.Map optionConfigurers = new HashMap();
+  private Properties optionInitialValues = new Properties();
 
-  private FormattedString playerIdFormat = new FormattedString("$"+PLAYER_NAME+"$");
+  private FormattedString playerIdFormat = new FormattedString("$" + PLAYER_NAME + "$");
 
   private static GlobalOptions instance;
   private boolean useSingleWindow;
@@ -111,7 +114,7 @@ public class GlobalOptions extends AbstractConfigurable {
 
   public static class PlayerIdFormatConfig implements ConfigurerFactory {
     public Configurer getConfigurer(AutoConfigurable c, String key, String name) {
-      return new FormattedStringConfigurer(key,name,new String[]{PLAYER_NAME,PLAYER_SIDE});
+      return new FormattedStringConfigurer(key, name, new String[]{PLAYER_NAME, PLAYER_SIDE});
     }
   }
 
@@ -124,7 +127,7 @@ public class GlobalOptions extends AbstractConfigurable {
                         null,
                         "Center on opponent's moves",
                         "Auto-report moves",
-      "Player Id format"};
+                        "Player Id format"};
   }
 
   public String[] getAttributeNames() {
@@ -137,6 +140,59 @@ public class GlobalOptions extends AbstractConfigurable {
 
   public Class[] getAttributeTypes() {
     return new Class[]{Prompt.class, null, Prompt.class, Prompt.class, PlayerIdFormatConfig.class};
+  }
+
+  /**
+   * Components may use GlobalOptions to store generic global attributes.
+   * This method registers the given key as an attribute of the GlobalOptions with the given type.
+   */
+  public void addOption(Configurer option) {
+    optionConfigurers.put(option.getKey(), option);
+    Object initValue = optionInitialValues.get(option.getKey());
+    if (initValue instanceof String) {
+      option.setValue((String)initValue);
+    }
+    if (config != null) {
+      ((Container)config.getControls()).add(option.getControls());
+    }
+  }
+
+  public void build(Element e) {
+    if (e != null) {
+      NamedNodeMap n = e.getAttributes();
+      for (int i = 0; i < n.getLength(); ++i) {
+        Attr att = (Attr) n.item(i);
+        setAttribute(att.getName(), att.getValue());
+      }
+      NodeList l = e.getElementsByTagName("option");
+      for (int i=0,len=l.getLength();i<len;++i) {
+        Element option = (Element)l.item(i);
+        optionInitialValues.put(option.getAttribute("name"),Builder.getText(option));
+      }
+    }
+  }
+
+  public Element getBuildElement(Document doc) {
+    Element e = super.getBuildElement(doc);
+    for (Iterator it = optionConfigurers.values().iterator(); it.hasNext();) {
+      Configurer configurer = (Configurer) it.next();
+      Element option = doc.createElement("option");
+      option.setAttribute("name",configurer.getKey());
+      option.appendChild(doc.createTextNode(configurer.getValueString()));
+      e.appendChild(option);
+    }
+    return e;
+  }
+
+  public Configurer getConfigurer() {
+    if (config == null) {
+      Configurer defaultConfig = super.getConfigurer();
+      for (Iterator it = optionConfigurers.values().iterator(); it.hasNext();) {
+        Configurer c = (Configurer) it.next();
+        ((Container)defaultConfig.getControls()).add(c.getControls());
+      }
+    }
+    return config;
   }
 
   public String getAttributeValueString(String key) {
@@ -155,12 +211,15 @@ public class GlobalOptions extends AbstractConfigurable {
     else if (MARK_MOVED.equals(key)) {
       return markMoved;
     }
-    else if (PLAYER_ID_FORMAT.equals(key)){
+    else if (PLAYER_ID_FORMAT.equals(key)) {
       return playerIdFormat.getFormat();
     }
-    else {
+    else if (!optionConfigurers.containsKey(key)) {
       Object val = properties.get(key);
       return val != null ? val.toString() : null;
+    }
+    else {
+      return null;
     }
   }
 
@@ -221,8 +280,11 @@ public class GlobalOptions extends AbstractConfigurable {
     else if (PLAYER_ID_FORMAT.equals(key)) {
       playerIdFormat.setFormat((String) value);
     }
+    else if (optionConfigurers.containsKey(key)) {
+      ((Configurer)optionConfigurers.get(key)).setValue(value);
+    }
     else {
-      properties.put(key,value);
+      properties.put(key, value);
     }
   }
 
@@ -240,7 +302,7 @@ public class GlobalOptions extends AbstractConfigurable {
 
   public String getPlayerId() {
     playerIdFormat.setProperty(PLAYER_NAME, (String) GameModule.getGameModule().getPrefs().getValue(GameModule.REAL_NAME));
-    playerIdFormat.setProperty(PLAYER_SIDE,PlayerRoster.getMySide());
+    playerIdFormat.setProperty(PLAYER_SIDE, PlayerRoster.getMySide());
     return playerIdFormat.getText();
   }
 

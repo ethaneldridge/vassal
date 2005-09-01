@@ -86,7 +86,7 @@ public class ExtensionsLoader implements CommandEncoder {
       msg = e.getClass().getName();
       msg = msg.substring(msg.lastIndexOf('.'));
     }
-    System.err.println("Unable to load extension " + name + ":  " + msg);
+    GameModule.getGameModule().warn("Unable to load extension " + name + ":  " + msg);
   }
 
   public Command decode(String command) {

@@ -69,61 +69,7 @@ public class AutoConfigurer extends Configurer
         continue;
       }
       Configurer config;
-      if (String.class.isAssignableFrom(type[i])) {
-        config = new StringConfigurer(name[i], prompt[i]);
-      }
-      else if (Integer.class.isAssignableFrom(type[i])) {
-        config = new IntConfigurer(name[i], prompt[i]);
-      }
-      else if (Double.class.isAssignableFrom(type[i])) {
-        config = new DoubleConfigurer(name[i], prompt[i]);
-      }
-      else if (Boolean.class.isAssignableFrom(type[i])) {
-        config = new BooleanConfigurer(name[i], prompt[i]);
-      }
-      else if (Image.class.isAssignableFrom(type[i])) {
-        config = new ImageConfigurer(name[i], prompt[i], GameModule.getGameModule().getArchiveWriter());
-      }
-      else if (Color.class.isAssignableFrom(type[i])) {
-        config = new ColorConfigurer(name[i], prompt[i]);
-      }
-      else if (KeyStroke.class.isAssignableFrom(type[i])) {
-        config = new HotKeyConfigurer(name[i], prompt[i]);
-      }
-      else if (java.io.File.class.isAssignableFrom(type[i])) {
-        config = new FileConfigurer(name[i], prompt[i], GameModule.getGameModule().getArchiveWriter());
-      }
-      else if (String[].class.isAssignableFrom(type[i])) {
-        config = new StringArrayConfigurer(name[i], prompt[i]);
-      }
-      else if (Icon.class.isAssignableFrom(type[i])) {
-        config = new IconConfigurer(name[i],prompt[i],null);
-      }
-      else if (StringEnum.class.isAssignableFrom(type[i])) {
-        try {
-          String[] validValues = ((StringEnum) type[i].newInstance()).getValidValues(target);
-          config = new StringEnumConfigurer(name[i], prompt[i], validValues);
-        }
-        catch (Exception e) {
-          e.printStackTrace();
-          config = new StringConfigurer(name[i], prompt[i]);
-        }
-      }
-      else if (ConfigurerFactory.class.isAssignableFrom(type[i])) {
-        try {
-          ConfigurerFactory f = (ConfigurerFactory) type[i].newInstance();
-          config = f.getConfigurer(target, name[i],prompt[i]);
-        }
-        catch (InstantiationException e) {
-          throw new IllegalArgumentException("Invalid class " + type[i].getName());
-        }
-        catch (IllegalAccessException e) {
-          throw new IllegalArgumentException("Invalid class " + type[i].getName());
-        }
-      }
-      else {
-        throw new IllegalArgumentException("Invalid class " + type[i].getName());
-      }
+      config = createConfigurer(type[i], name[i], prompt[i], target);
       if (config != null) {
         config.addPropertyChangeListener(this);
         config.setValue(target.getAttributeValueString(name[i]));
@@ -135,6 +81,66 @@ public class AutoConfigurer extends Configurer
       }
       setVisibility(name[i],c.getAttributeVisibility(name[i]));
     }
+  }
+
+  public static Configurer createConfigurer(Class type, String key, String prompt, AutoConfigurable target) {
+    Configurer config;
+    if (String.class.isAssignableFrom(type)) {
+      config = new StringConfigurer(key, prompt);
+    }
+    else if (Integer.class.isAssignableFrom(type)) {
+      config = new IntConfigurer(key, prompt);
+    }
+    else if (Double.class.isAssignableFrom(type)) {
+      config = new DoubleConfigurer(key, prompt);
+    }
+    else if (Boolean.class.isAssignableFrom(type)) {
+      config = new BooleanConfigurer(key, prompt);
+    }
+    else if (Image.class.isAssignableFrom(type)) {
+      config = new ImageConfigurer(key, prompt, GameModule.getGameModule().getArchiveWriter());
+    }
+    else if (Color.class.isAssignableFrom(type)) {
+      config = new ColorConfigurer(key, prompt);
+    }
+    else if (KeyStroke.class.isAssignableFrom(type)) {
+      config = new HotKeyConfigurer(key, prompt);
+    }
+    else if (java.io.File.class.isAssignableFrom(type)) {
+      config = new FileConfigurer(key, prompt, GameModule.getGameModule().getArchiveWriter());
+    }
+    else if (String[].class.isAssignableFrom(type)) {
+      config = new StringArrayConfigurer(key, prompt);
+    }
+    else if (Icon.class.isAssignableFrom(type)) {
+      config = new IconConfigurer(key,prompt,null);
+    }
+    else if (StringEnum.class.isAssignableFrom(type)) {
+      try {
+        String[] validValues = ((StringEnum) type.newInstance()).getValidValues(target);
+        config = new StringEnumConfigurer(key, prompt, validValues);
+      }
+      catch (Exception e) {
+        e.printStackTrace();
+        config = new StringConfigurer(key, prompt);
+      }
+    }
+    else if (ConfigurerFactory.class.isAssignableFrom(type)) {
+      try {
+        ConfigurerFactory f = (ConfigurerFactory) type.newInstance();
+        config = f.getConfigurer(target, key,prompt);
+      }
+      catch (InstantiationException e) {
+        throw new IllegalArgumentException("Invalid class " + type.getName());
+      }
+      catch (IllegalAccessException e) {
+        throw new IllegalArgumentException("Invalid class " + type.getName());
+      }
+    }
+    else {
+      throw new IllegalArgumentException("Invalid class " + type.getName());
+    }
+    return config;
   }
 
   public void reset() {

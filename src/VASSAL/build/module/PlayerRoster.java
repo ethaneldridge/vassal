@@ -18,24 +18,28 @@
  */
 package VASSAL.build.module;
 
-import VASSAL.build.*;
+import VASSAL.build.Buildable;
+import VASSAL.build.Builder;
+import VASSAL.build.Configurable;
+import VASSAL.build.GameModule;
 import VASSAL.build.module.documentation.HelpFile;
-import VASSAL.tools.*;
-import VASSAL.command.*;
+import VASSAL.command.Command;
+import VASSAL.command.CommandEncoder;
 import VASSAL.configure.Configurer;
-
-import java.util.*;
-import java.beans.PropertyChangeListener;
-import java.awt.*;
-import java.awt.event.ActionListener;
-import java.awt.event.ActionEvent;
-import java.net.URL;
-import java.net.MalformedURLException;
-import java.io.File;
-
-import org.w3c.dom.*;
+import VASSAL.tools.SequenceEncoder;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.NodeList;
 
 import javax.swing.*;
+import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.beans.PropertyChangeListener;
+import java.io.File;
+import java.net.MalformedURLException;
+import java.util.Enumeration;
+import java.util.Vector;
 
 /**
  * Maintains a list of players involved in the current game
