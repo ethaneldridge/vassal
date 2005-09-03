@@ -17,37 +17,37 @@
  * at http://www.opensource.org.
  */
  
-package tdc;
+package wga;
 
-import VASSAL.build.module.Map;
-import VASSAL.counters.GamePiece;
-import VASSAL.counters.Obscurable;
+import VASSAL.build.Buildable;
+import VASSAL.build.module.map.MassKeyCommand;
+import VASSAL.configure.VisibilityCondition;
 
 /**
+ * @author Brent Easton
+ *
  */
-public class TdcObscurable extends Obscurable {
+public class BasicMassKeyCommand extends MassKeyCommand {
+
+  public BasicMassKeyCommand() {
+  }
   
-  public static final String LOCATION_NAME = "LocationName";
-  
-  public TdcObscurable() {
-    super();
+  public void addTo(Buildable parent) {
   }
 
-  public TdcObscurable(String type, GamePiece d) {
-    super(type, d);
+  public void removeFrom(Buildable parent) {
   }
-
-  public Object getProperty(Object key) {
-    if (LOCATION_NAME.equals(key)) {
-      Map m = getMap();
-      if (m != null) {
-        return m.locationName(getPosition());
-      }
-      else
-        return null;
-    }
-    else {
-      return super.getProperty(key);
-    }
-  }
+  
+  public VisibilityCondition getAttributeVisibility(String name) {
+    if (ICON.equals(name) || BUTTON_TEXT.equals(name)|| HOTKEY.equals(name)) {
+       return new VisibilityCondition() {
+        public boolean shouldBeVisible() {
+          return false;
+        }};
+     }
+     else {
+       return null;
+     }
+   }
+   
 }

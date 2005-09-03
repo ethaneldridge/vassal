@@ -366,11 +366,11 @@ public class Inventory extends AbstractConfigurable implements GameComponent {
   }
 
   public class Counter implements Comparable {
-    private String sortKey;
-    private String breakKey;
-    private String name;
-    private String location;
-    private int count;
+    protected String sortKey;
+    protected String breakKey;
+    protected String name;
+    protected String location;
+    protected int count;
 
     public Counter(String breakKey, String name, String location, int count) {
       sortKey = breakKey + "*" + name;
@@ -380,23 +380,23 @@ public class Inventory extends AbstractConfigurable implements GameComponent {
       this.count = count;
     }
 
-    protected void setBreakKey(String breakKey) {
+    public void setBreakKey(String breakKey) {
       this.breakKey = breakKey;
     }
 
-    protected String getBreakKey() {
+    public String getBreakKey() {
       return breakKey;
     }
 
-    protected void setName(String name) {
+    public void setName(String name) {
       this.name = name;
     }
 
-    protected String getName() {
+    public String getName() {
       return name;
     }
     
-    protected int getCount() {
+    public int getCount() {
       return count;
     }
 

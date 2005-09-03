@@ -21,12 +21,13 @@ package Inventory;
 import Inventory.InvEmbellishment;
 import VASSAL.build.module.BasicCommandEncoder;
 import VASSAL.counters.Decorator;
+import VASSAL.counters.Embellishment;
 import VASSAL.counters.GamePiece;
 
 public class InvCommandEncoder extends BasicCommandEncoder {
 
   protected Decorator createDecorator(String type, GamePiece inner) {
-    if (type.startsWith(InvEmbellishment.ID)) {
+    if (type.startsWith(InvEmbellishment.ID) || type.startsWith(Embellishment.ID)) {     
       return new InvEmbellishment(type, inner);
     }
     return super.createDecorator(type, inner);
