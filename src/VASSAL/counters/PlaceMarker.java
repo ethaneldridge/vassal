@@ -150,7 +150,7 @@ public class PlaceMarker extends Decorator implements EditablePiece {
     }
   }
 
-  private GamePiece createMarker() {
+  protected GamePiece createMarker() {
     if (markerSpec == null) {
       return null;
     }

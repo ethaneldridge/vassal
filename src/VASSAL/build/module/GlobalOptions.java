@@ -64,7 +64,7 @@ public class GlobalOptions extends AbstractConfigurable {
   private String markMoved = NEVER;
 
   private java.util.Map properties = new HashMap();
-  private java.util.Map optionConfigurers = new HashMap();
+  private java.util.Map optionConfigurers = new LinkedHashMap();
   private Properties optionInitialValues = new Properties();
 
   private FormattedString playerIdFormat = new FormattedString("$" + PLAYER_NAME + "$");

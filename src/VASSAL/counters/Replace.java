@@ -74,6 +74,42 @@ public class Replace extends PlaceMarker {
     return new Ed(this);
   }
 
+  protected GamePiece createMarker() {
+    GamePiece marker = super.createMarker();
+    if (marker != null
+      && matchRotation) {
+      matchTraits(Decorator.getOutermost(this),marker);
+    }
+    return marker;
+  }
+
+  private void matchTraits(GamePiece base, GamePiece marker) {
+    if (!(base instanceof Decorator)
+      || !(marker instanceof Decorator)) {
+      return;
+    }
+    Decorator currentTrait = (Decorator)base;
+    Decorator lastMatch = (Decorator) marker;
+    while (currentTrait != null) {
+      Decorator candidate = lastMatch;
+      while (candidate != null) {
+        candidate = (Decorator) Decorator.getDecorator(candidate,currentTrait.getClass());
+        if (candidate != null
+          && candidate.myGetType().equals(currentTrait.myGetType())) {
+          candidate.mySetState(currentTrait.myGetState());
+          lastMatch = candidate;
+          candidate = null;
+        }
+      }
+      if (currentTrait.getInner() instanceof Decorator) {
+        currentTrait = (Decorator) currentTrait.getInner();
+      }
+      else {
+        currentTrait = null;
+      }
+    }
+  }
+
   protected static class Ed extends PlaceMarker.Ed {
     public Ed(Replace piece) {
       super(piece);
