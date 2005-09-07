@@ -25,6 +25,7 @@ import VASSAL.counters.Decorator;
 import VASSAL.counters.EditablePiece;
 import VASSAL.counters.GamePiece;
 import VASSAL.counters.KeyCommand;
+import VASSAL.counters.Marker;
 import VASSAL.counters.PieceCloner;
 import VASSAL.counters.PieceEditor;
 import VASSAL.counters.PieceFilter;
@@ -162,6 +163,12 @@ public class CounterGlobalKeyCommand extends Decorator implements EditablePiece,
   }
 
   public void apply() {
+    /*
+     * Rebuild the Properties filter if it contains variable elements.
+     */
+    if (propertiesFilter.indexOf(Marker.PROPERTY_MARKER) >= 0) {
+      filter = PropertiesPieceFilter.parse(Marker.updateMarkers(propertiesFilter, this));
+    }
     for (Enumeration e = GameModule.getGameModule().getComponents(Map.class); e.hasMoreElements();) {
       Map m = (Map) e.nextElement();
       apply(m);
@@ -173,7 +180,7 @@ public class CounterGlobalKeyCommand extends Decorator implements EditablePiece,
     if (reportSingle) {
       m.setAttribute(Map.CHANGE_FORMAT, "");
     }
-    String reportText = reportFormat.getText();
+    String reportText = reportFormat.getText(this);
     if (reportText.length() > 0) {
       keyCommand = new Chatter.DisplayText(GameModule.getGameModule().getChatter(), "*" + reportText);
       keyCommand.execute();
@@ -226,7 +233,7 @@ public class CounterGlobalKeyCommand extends Decorator implements EditablePiece,
 
   /**
    * Return true if the name of the argument GamePiece is in the list of target
-   * piece names
+   * piece names. 
    */
   protected boolean isAffected(GamePiece target) {
     return filter != null && filter.accept(target);

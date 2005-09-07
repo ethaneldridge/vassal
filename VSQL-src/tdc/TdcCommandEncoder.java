@@ -18,6 +18,7 @@
  */
 package tdc;
 
+import wga.CounterGlobalKeyCommand;
 import VASSAL.build.module.BasicCommandEncoder;
 import VASSAL.counters.Decorator;
 import VASSAL.counters.GamePiece;
@@ -28,6 +29,9 @@ public class TdcCommandEncoder extends BasicCommandEncoder {
   protected Decorator createDecorator(String type, GamePiece inner) {
     if (type.startsWith(Obscurable.ID)) {
       return new TdcObscurable(type, inner);
+    }
+    else if (type.startsWith(CounterGlobalKeyCommand.ID)) {
+      return new CounterGlobalKeyCommand(type, inner);
     }    
     return super.createDecorator(type, inner);
   }
