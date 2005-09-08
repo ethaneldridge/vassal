@@ -20,7 +20,6 @@ package VASSAL.build.module;
 
 import VASSAL.build.Buildable;
 import VASSAL.build.GameModule;
-import VASSAL.build.IllegalBuildException;
 import VASSAL.command.Command;
 import VASSAL.command.CommandEncoder;
 import VASSAL.configure.ColorConfigurer;
@@ -51,8 +50,6 @@ public class Chatter extends JPanel implements CommandEncoder, Buildable {
   protected static final String OTHER_CHAT_COLOR = "otherChatColor";
   protected static final String GAME_MSG_COLOR = "gameMessageColor";
   protected static final String SYS_MSG_COLOR = "systemMessageColor";
-
-  private String handle;
 
   public Chatter() {
     setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
@@ -105,7 +102,6 @@ public class Chatter extends JPanel implements CommandEncoder, Buildable {
 
   /** @deprecated use GlobalOptions.getPlayerId() */
   public void setHandle(String s) {
-    handle = s;
   }
 
   /** @deprecated use GlobalOptions.getPlayerId() */
@@ -147,7 +143,6 @@ public class Chatter extends JPanel implements CommandEncoder, Buildable {
     mod.setChatter(this);
     mod.addCommandEncoder(this);
     mod.addKeyStrokeSource(new KeyStrokeSource(this, WHEN_ANCESTOR_OF_FOCUSED_COMPONENT));
-    setHandle((String) mod.getPrefs().getOption(GameModule.REAL_NAME).getValue());
 
     FontConfigurer chatFont = new FontConfigurer
         ("ChatFont", "Chat Window Font: ");
@@ -342,7 +337,6 @@ public class Chatter extends JPanel implements CommandEncoder, Buildable {
 
   public static void main(String[] args) {
     Chatter chat = new Chatter();
-    chat.setHandle("test");
     JFrame f = new JFrame();
     f.getContentPane().add(chat);
     f.pack();

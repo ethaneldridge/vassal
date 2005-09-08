@@ -230,9 +230,10 @@ public class PlaceMarker extends Decorator implements EditablePiece {
     protected JButton selectButton = new JButton("Select");
     protected IntConfigurer xOffsetConfig = new IntConfigurer(null,"Horizontal offset");
     protected IntConfigurer yOffsetConfig = new IntConfigurer(null,"Vertical offset");
-    protected BooleanConfigurer matchRotationConfig = new BooleanConfigurer(null,"Match Rotation");
+    protected BooleanConfigurer matchRotationConfig;
 
     protected Ed(PlaceMarker piece) {
+      matchRotationConfig = createMatchRotationConfig();
       keyInput = new HotKeyConfigurer(null,"Keyboard Command:  ",piece.key);
       commandInput = new StringConfigurer(null, "Command: ", piece.command.getName());
       GamePiece marker = piece.createMarker();
@@ -276,6 +277,10 @@ public class PlaceMarker extends Decorator implements EditablePiece {
       p.add(yOffsetConfig.getControls());
       matchRotationConfig.setValue(new Boolean(piece.matchRotation));
       p.add(matchRotationConfig.getControls());
+    }
+
+    protected BooleanConfigurer createMatchRotationConfig() {
+      return new BooleanConfigurer(null,"Match Rotation");
     }
 
     public Component getControls() {

@@ -13,7 +13,7 @@
  * Library General Public License for more details.
  *
  * You should have received a copy of the GNU Library General Public
- * License along with this library; if not, copies are available 
+ * License along with this library; if not, copies are available
  * at http://www.opensource.org.
  */
 package VASSAL.counters;
@@ -21,6 +21,7 @@ package VASSAL.counters;
 import VASSAL.build.module.documentation.HelpFile;
 import VASSAL.command.Command;
 import VASSAL.command.RemovePiece;
+import VASSAL.configure.BooleanConfigurer;
 
 import javax.swing.*;
 import java.io.File;
@@ -114,6 +115,10 @@ public class Replace extends PlaceMarker {
     public Ed(Replace piece) {
       super(piece);
       defineButton.setText("Define Replacement");
+    }
+
+    protected BooleanConfigurer createMatchRotationConfig() {
+      return new BooleanConfigurer(null,"Match Current State");
     }
 
     public String getType() {

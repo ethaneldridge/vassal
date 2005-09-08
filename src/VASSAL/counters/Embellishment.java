@@ -122,7 +122,7 @@ public class Embellishment extends Decorator implements EditablePiece {
       downKey = st.nextToken("[");
       resetCommand = st.nextToken("Reset");
       resetKey = st.nextKeyStroke('R');
-      resetLevel = st.nextInt(0);
+      resetLevel = st.nextInt(1);
       drawUnderneathWhenSelected = st.nextBoolean(false);
       xOff = st.nextInt(0);
       yOff = st.nextInt(0);
