@@ -34,7 +34,7 @@ public class ASLDiceButton extends DiceButton {
   }
 
   protected void DR() {
-    String val = getReportPrefix();
+    String val = "";
     int total = 0;
     for (int i = 0; i < nDice; ++i) {
       int roll = (int) (ran.nextFloat() * nSides + 1) + plus;
@@ -45,7 +45,7 @@ public class ASLDiceButton extends DiceButton {
       }
     }
 
-    val += getReportSuffix();
+    val = formatResult(val);
     if (total == info.getAxisSAN()) {
       if (total == info.getAlliedSAN()) {
         val += " Axis/Allied SAN";
