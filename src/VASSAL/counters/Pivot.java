@@ -19,6 +19,7 @@
 package VASSAL.counters;
 
 import VASSAL.build.module.documentation.HelpFile;
+import VASSAL.build.module.map.MovementReporter;
 import VASSAL.command.ChangeTracker;
 import VASSAL.command.Command;
 import VASSAL.command.MoveTracker;
@@ -136,6 +137,13 @@ public class Pivot extends Decorator implements EditablePiece {
           MoveTracker moveTracker = new MoveTracker(outer);
           getMap().placeOrMerge(outer, pos);
           c = c.append(moveTracker.getMoveCommand());
+          MovementReporter r = new MovementReporter(c);
+          Command reportCommand = r.getReportCommand();
+          if (reportCommand != null) {
+            reportCommand.execute();
+          }
+          c = c.append(reportCommand);
+          c = c.append(r.markMovedPieces());
         }
         else {
           c = t.getChangeCommand();

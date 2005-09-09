@@ -21,10 +21,8 @@ package VASSAL.build.module.map;
 import VASSAL.build.GameModule;
 import VASSAL.build.module.Chatter;
 import VASSAL.build.module.Map;
-import VASSAL.command.AddPiece;
-import VASSAL.command.Command;
-import VASSAL.command.MovePiece;
-import VASSAL.command.NullCommand;
+import VASSAL.build.module.GlobalOptions;
+import VASSAL.command.*;
 import VASSAL.counters.*;
 import VASSAL.tools.FormattedString;
 import VASSAL.tools.PlayerIdFormattedString;
@@ -33,6 +31,7 @@ import java.awt.*;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Enumeration;
 
 /**
  * Builds an auto-report message for a collection of Move Commands
@@ -40,7 +39,8 @@ import java.util.List;
 public class MovementReporter {
   private FormattedString format = new PlayerIdFormattedString();
 
-  private List moves = new ArrayList();
+  private List movesToReport = new ArrayList();
+  private List movesToMark = new ArrayList();
 
   public MovementReporter(Command moveCommand) {
     extractMoveCommands(moveCommand);
@@ -61,20 +61,76 @@ public class MovementReporter {
       }
     }
     if (summary != null) {
-      int index = moves.indexOf(summary);
+      // Do we already have an instance that represents movement
+      // between the same two map positions on the same two maps?
+      int index = movesToReport.indexOf(summary);
       if (index >= 0
           && c instanceof MovePiece
           && shouldReport((MovePiece) c)) {
-        MoveSummary existing = (MoveSummary) moves.get(index);
+        MoveSummary existing = (MoveSummary) movesToReport.get(index);
         existing.append((MovePiece) c);
       }
       else {
-        moves.add(summary);
+        movesToReport.add(summary);
+      }
+      if (shouldMarkMoved()) {
+        movesToMark.add(summary);
       }
     }
     Command[] sub = c.getSubCommands();
     for (int i = 0; i < sub.length; i++) {
       extractMoveCommands(sub[i]);
+    }
+  }
+
+  /**
+   * Mark all pieces with the {@link MovementMarkable} trait
+   * @return the equivalent Command
+   */
+  public Command markMovedPieces() {
+    Command c = null;
+    if (!movesToMark.isEmpty()) {
+      c = new NullCommand();
+      for (Iterator it = movesToMark.iterator(); it.hasNext();) {
+        MoveSummary moveSummary = (MoveSummary) it.next();
+        for (Iterator iterator = moveSummary.pieces.iterator(); iterator.hasNext();) {
+          GamePiece p = (GamePiece) iterator.next();
+          c.append(markMoved(p));
+        }
+      }
+    }
+    return c;
+  }
+
+  public Command markMoved(GamePiece p) {
+    Command c = null;
+    if (p instanceof Stack) {
+      c = new NullCommand();
+      for (Enumeration e = ((Stack) p).getPieces(); e.hasMoreElements();) {
+        c.append(markMoved((GamePiece) e.nextElement()));
+      }
+    }
+    else if (p.getProperty(Properties.MOVED) != null) {
+      if (p.getId() != null) {
+        ChangeTracker comm = new ChangeTracker(p);
+        p.setProperty(Properties.MOVED, Boolean.TRUE);
+        c = comm.getChangeCommand();
+      }
+    }
+    return c;
+  }
+
+
+  protected boolean shouldMarkMoved() {
+    String option = GlobalOptions.getInstance().getAttributeValueString(GlobalOptions.MARK_MOVED);
+    if (GlobalOptions.ALWAYS.equals(option)) {
+      return true;
+    }
+    else if (GlobalOptions.NEVER.equals(option)) {
+      return false;
+    }
+    else {
+      return Boolean.TRUE.equals(GameModule.getGameModule().getPrefs().getValue(Map.MARK_MOVED));
     }
   }
 
@@ -97,12 +153,12 @@ public class MovementReporter {
       return false;
     }
     if (target instanceof Stack) {
-      GamePiece top = ((Stack)target).topPiece(null);
+      GamePiece top = ((Stack) target).topPiece(null);
       return top != null;
     }
     else {
       return !Boolean.TRUE.equals(target.getProperty(Properties.INVISIBLE_TO_ME))
-      && !Boolean.TRUE.equals(target.getProperty(Properties.INVISIBLE_TO_OTHERS));
+          && !Boolean.TRUE.equals(target.getProperty(Properties.INVISIBLE_TO_OTHERS));
     }
   }
 
@@ -111,7 +167,7 @@ public class MovementReporter {
     Obscurable.setAllHidden(true);
 
     Command c = new NullCommand();
-    for (Iterator it = moves.iterator(); it.hasNext();) {
+    for (Iterator it = movesToReport.iterator(); it.hasNext();) {
       MoveSummary ms = (MoveSummary) it.next();
       Map fromMap = Map.getMapById(ms.getOldMapId());
       Map toMap = Map.getMapById(ms.getNewMapId());

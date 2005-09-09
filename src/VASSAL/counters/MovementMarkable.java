@@ -169,7 +169,7 @@ public class MovementMarkable extends Decorator implements EditablePiece {
 
   public Object getProperty(Object key) {
     if (Properties.MOVED.equals(key)) {
-      return new Boolean(isMoved());
+      return isMoved() ? Boolean.TRUE : Boolean.FALSE;
     }
     else {
       return super.getProperty(key);

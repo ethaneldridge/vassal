@@ -19,6 +19,8 @@
 package VASSAL.counters;
 
 import VASSAL.build.module.documentation.HelpFile;
+import VASSAL.build.module.map.MovementReporter;
+import VASSAL.build.GameModule;
 import VASSAL.command.Command;
 import VASSAL.command.MoveTracker;
 import VASSAL.command.ChangeTracker;
@@ -108,6 +110,11 @@ public class Translate extends Decorator implements EditablePiece {
       if (moveStack
           && outer.getParent() != null
           && !outer.getParent().isExpanded()) {
+        // Only move entire stack if this is the top piece
+        // Otherwise moves the stack too far if the whole stack is multi-selected
+        if (outer != outer.getParent().topPiece(GameModule.getUserId())) {
+          return null;
+        }
         target = outer.getParent();
         c = new NullCommand();
         for (Enumeration e = outer.getParent().getPieces(); e.hasMoreElements();) {
@@ -137,6 +144,13 @@ public class Translate extends Decorator implements EditablePiece {
       }
       getMap().placeOrMerge(target, p);
       c = c.append(t.getMoveCommand());
+      MovementReporter r = new MovementReporter(c);
+      Command reportCommand = r.getReportCommand();
+      if (reportCommand != null) {
+        reportCommand.execute();
+      }
+      c.append(reportCommand);
+      c.append(r.markMovedPieces());
     }
     return c;
   }
