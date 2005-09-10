@@ -48,7 +48,7 @@ import java.util.Vector;
 public class Embellishment extends Decorator implements EditablePiece {
   public static final String OLD_ID = "emb;";
   public static final String ID = "emb2;"; // New type encoding
-  
+
   public static final String IMAGE = "_Image";
   public static final String NAME = "_Name";
   public static final String LEVEL = "_Level";
@@ -71,7 +71,7 @@ public class Embellishment extends Decorator implements EditablePiece {
   protected String commonName[];
   protected Rectangle size[];
   protected boolean drawUnderneathWhenSelected = false;
-  
+
   protected String name = "";
 
   protected KeyCommand[] commands;
@@ -97,6 +97,11 @@ public class Embellishment extends Decorator implements EditablePiece {
     return Math.abs(value) - 1;
   }
 
+  /**
+   * Set the current level - First level = 0
+   * Does not change the active status
+   * @param val
+   */
   public void setValue(int val) {
     if (val >= nValues) {
       throw new IllegalArgumentException();
@@ -250,7 +255,7 @@ public class Embellishment extends Decorator implements EditablePiece {
         .append(imageName)
         .append(commonName)
         .append(loopLevels)
-        .append(name);    
+        .append(name);
     return ID + se.getValue();
   }
 
@@ -392,7 +397,8 @@ public class Embellishment extends Decorator implements EditablePiece {
       if (tracker == null) {
         tracker = new ChangeTracker(this);
       }
-      setValue(resetLevel - 1);
+      setValue(Math.abs(resetLevel) - 1);
+      setActive(resetLevel > 0);
     }
     return tracker != null ? tracker.getChangeCommand() : null;
   }
@@ -410,7 +416,7 @@ public class Embellishment extends Decorator implements EditablePiece {
     if (value > 0) {
       return GameModule.getGameModule() == null ? null
           : GameModule.getGameModule().getDataArchive()
-          .getCachedImage(imageName[value - 1] + ".gif");
+          .getCachedImage(imageName[value - 1]);
     }
     else {
       return null;
@@ -501,7 +507,7 @@ public class Embellishment extends Decorator implements EditablePiece {
         if (s.endsWith("+")) return s.substring(0,s.length()-2);
         return s;
       }
-      else 
+      else
         return "";
     }
     else if (key.equals(name + LEVEL)) {
@@ -512,7 +518,7 @@ public class Embellishment extends Decorator implements EditablePiece {
     }
     return super.getProperty(key);
   }
-  
+
   public HelpFile getHelpFile() {
     File dir = VASSAL.build.module.Documentation.getDocumentationBaseDir();
     dir = new File(dir, "ReferenceManual");
@@ -592,7 +598,7 @@ public class Embellishment extends Decorator implements EditablePiece {
       nameControls.add(new JLabel("Name"));
       nameControls.add(name);
       controls.add(nameControls);
-      
+
       JPanel p = new JPanel();
       p.setLayout(new GridLayout(4, 3));
       p.add(resetKey.getControls());

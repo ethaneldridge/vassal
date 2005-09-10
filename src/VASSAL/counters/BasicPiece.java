@@ -101,7 +101,7 @@ public class BasicPiece implements EditablePiece, StateMergeable {
 
     if (imageName.trim().length() > 0) {
       try {
-        image = GameModule.getGameModule().getDataArchive().getCachedImage(imageName + ".gif");
+        image = GameModule.getGameModule().getDataArchive().getCachedImage(imageName);
         imageBounds = DataArchive.getImageBounds(image);
       }
       catch (IOException e) {

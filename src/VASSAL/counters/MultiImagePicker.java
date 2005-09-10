@@ -123,7 +123,7 @@ public class MultiImagePicker extends JPanel {
     }
     for (int i = 0; i < names.length; ++i) {
       ((ImagePicker) multiPanel.getComponent(i)).
-        setImageName(names[i] + ".gif");
+        setImageName(names[i]);
     }
   }
 }

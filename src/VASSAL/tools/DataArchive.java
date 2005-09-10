@@ -30,6 +30,7 @@ import java.awt.image.*;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.io.*;
+//import java.net.URI;
 import java.net.URL;
 import java.security.AllPermission;
 import java.security.CodeSource;
@@ -52,7 +53,9 @@ public class DataArchive extends SecureClassLoader {
   public static final String IMAGE_DIR = "images/";
   private BooleanConfigurer smoothPrefs;
   private CodeSource cs;
-  private static Image NULL_IMAGE = new BufferedImage(1,1,BufferedImage.TYPE_4BYTE_ABGR); // empty image for images scaled to zero size
+  private static Image NULL_IMAGE = new BufferedImage(1, 1, BufferedImage.TYPE_4BYTE_ABGR); // empty image for images scaled to zero size
+
+//  protected SVGManager svgManager;
 
   protected DataArchive() {
     super(DataArchive.class.getClassLoader());
@@ -111,16 +114,46 @@ public class DataArchive extends SecureClassLoader {
    */
   public Image getCachedImage(String file) throws IOException {
     file = IMAGE_DIR + file;
+    String gifFile = file + ".gif";
     if (imageCache.get(file) != null) {
       return (Image) imageCache.get(file);
     }
+    else if (imageCache.get(gifFile) != null) {
+      return (Image) imageCache.get(gifFile);
+    }
     else {
-      Image im = getImage(getFileStream(file));
+      Image im;
+//      if (file.endsWith(".svg")) {
+//        im = getSVGImage(file);
+//      }
+//      else {
+      try {
+        im = getImage(getFileStream(file));
+      }
+      catch (Exception e) {
+        im = getImage(getFileStream(gifFile));
+      }
+//      }
       imageCache.put(file, im);
       return im;
     }
   }
 
+/*
+  public Image getSVGImage(String file) {
+    if (svgManager == null) {
+      svgManager = new SVGManager();
+    }
+    Image im = null;
+    try {
+      im = svgManager.loadSVGImage(file, getFileStream(file));
+    }
+    catch (Exception e) {
+
+    }
+    return im;
+  }
+*/
   /**
    * Return a scaled instance of the image.
    * The image will be retrieved from cache if available, cached otherwise
@@ -154,7 +187,16 @@ public class DataArchive extends SecureClassLoader {
     ScaledCacheKey key = new ScaledCacheKey(base, d, reversed);
     Image scaled = (Image) scaledImageCache.get(key);
     if (scaled == null) {
+//      Object o = base.getProperty("comment", null);
+//      if (o instanceof URI) {
+//        if (svgManager == null) {
+//          svgManager = new SVGManager();
+//        }
+//        scaled = svgManager.createScaledInstance(base, d, reversed, (URI) o);
+//      }
+//      else {
       scaled = createScaledInstance(base, d, reversed, forceSmoothing);
+//      }
 
       new ImageIcon(scaled); // Wait for the image to load
       scaledImageCache.put(key, scaled);

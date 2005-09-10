@@ -13,7 +13,7 @@
  * Library General Public License for more details.
  *
  * You should have received a copy of the GNU Library General Public
- * License along with this library; if not, copies are available 
+ * License along with this library; if not, copies are available
  * at http://www.opensource.org.
  */
 package VASSAL.counters;
@@ -58,7 +58,7 @@ public class ImagePicker extends javax.swing.JPanel implements MouseListener, It
   }
 
   public void setImageName(String name) {
-    imageName = setSuffix(name);
+    imageName = name;
     remove(0);
     if (name == null) {
       add(noImage,0);
@@ -75,7 +75,7 @@ public class ImagePicker extends javax.swing.JPanel implements MouseListener, It
       }
     }
     select.removeItemListener(this);
-    select.setSelectedItem(name == null ? null : name+".gif");
+    select.setSelectedItem(name == null ? null : ((name.indexOf('.') > 0) ? name : name + ".gif"));
     select.addItemListener(this);
     revalidate();
     Window w = (Window) SwingUtilities.getAncestorOfClass(Window.class,this);
@@ -85,51 +85,11 @@ public class ImagePicker extends javax.swing.JPanel implements MouseListener, It
     repaint();
   }
 
-  private String setSuffix(String name) {
-    String s = name;
-    if (s != null
-      && s.indexOf(".gif") > 0) {
-      s = s.substring(0, s.indexOf(".gif"));
-    }
-    return s;
-  }
-
   private Image getImage() throws java.io.IOException {
     return imageName == null ? null
       : GameModule.getGameModule()
-      .getDataArchive().getCachedImage(imageName + ".gif");
+      .getDataArchive().getCachedImage(imageName);
   }
-
-  /*
-  public void paint(Graphics g) {
-    try {
-      g.clearRect(0, 0, getWidth(), getHeight());
-      g.drawImage(getImage(), 0, 0, this);
-    }
-    catch (java.io.IOException ex) {
-      noImage.paint(g);
-    }
-  }
-
-  public Dimension getPreferredSize() {
-    try {
-      Image im = getImage();
-      if (im == null) {
-        return noImage.getSize();
-      }
-      if (im.getWidth(this) < 0
-        || im.getHeight(this) < 0) {
-        throw new java.io.IOException("Image not yet loaded");
-      }
-      return new Dimension(im.getWidth(this),
-                           im.getHeight(this));
-    }
-    catch (java.io.IOException ex) {
-      //	  return new Dimension(60,60);
-      return noImage.getSize();
-    }
-  }
-   */
 
   public void mouseEntered(MouseEvent e) {
   }
@@ -160,7 +120,7 @@ public class ImagePicker extends javax.swing.JPanel implements MouseListener, It
       && fc.getSelectedFile().exists()) {
       String name = fc.getName(fc.getSelectedFile());
       GameModule.getGameModule().getArchiveWriter()
-        .addImage(fc.getSelectedFile().getPath(), setSuffix(name) + ".gif");
+        .addImage(fc.getSelectedFile().getPath(), name);
       select.setModel(new DefaultComboBoxModel(GameModule.getGameModule().getDataArchive().getImageNames()));
       setImageName(name);
     }
