@@ -121,6 +121,10 @@ public class BasicCommandEncoder implements CommandEncoder, Buildable {
     else if (type.startsWith(Translate.ID)) {
       return new Translate(type, inner);
     }
+    else if (type.startsWith(AreaOfEffect.ID)) {
+      return new AreaOfEffect(type, inner);
+    }
+    
     return null;
   }
 
