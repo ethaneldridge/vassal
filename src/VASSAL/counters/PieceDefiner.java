@@ -72,12 +72,12 @@ public class PieceDefiner extends javax.swing.JPanel implements HelpWindowExtens
       availableModel.addElement(new NonRectangular());
       availableModel.addElement(new MovementMarkable());
       availableModel.addElement(new Footprint());
+      availableModel.addElement(new AreaOfEffect());
       availableModel.addElement(new SubMenu());
       availableModel.addElement(new Restricted());
       availableModel.addElement(new Marker());
-      availableModel.addElement(new AreaOfEffect());
     }
-    
+
     inUseModel = new DefaultListModel();
     r = new Renderer();
     slot = new PieceSlot();
