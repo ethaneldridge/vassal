@@ -46,9 +46,9 @@ import java.util.Vector;
  */
 public class PlayerRoster implements Configurable, CommandEncoder, GameComponent {
   public static final String COMMAND_PREFIX = "PLAYER\t";
-  private Vector players = new Vector();
-  private DefaultListModel sides = new DefaultListModel();
-  private JButton retireButton = new JButton("Retire");
+  protected Vector players = new Vector();
+  protected DefaultListModel sides = new DefaultListModel();
+  protected JButton retireButton = new JButton("Retire");
 
   public void removeFrom(Buildable parent) {
     GameModule.getGameModule().getGameState().removeGameComponent(this);
