@@ -81,7 +81,7 @@ public class Footprint extends MovementMarkable {
   private KeyCommand showTrailCommand;
 
   public Footprint() {
-    this(ID, null);
+    super(Footprint.ID, null);
   }
 
   public Footprint(String type, GamePiece p) {
@@ -348,7 +348,7 @@ public class Footprint extends MovementMarkable {
         x2 = (int) (p.x * zoom);
         y2 = (int) (p.y * zoom);
 
-        drawTrack(g, x1, y1, x2, y2);
+        drawTrack(g, x1, y1, x2, y2, zoom);
       }
       lastP = p;
     }
@@ -358,7 +358,7 @@ public class Footprint extends MovementMarkable {
       x2 = (int) (here.x * zoom);
       y2 = (int) (here.y * zoom);
 
-      drawTrack(g, x1, y1, x2, y2);
+      drawTrack(g, x1, y1, x2, y2, zoom);
     }
 
     /*
@@ -426,7 +426,7 @@ public class Footprint extends MovementMarkable {
    * Draw a track from one Point to another. Don't draw under the circle as it shows
    * through with transparency turned on.
    */
-  protected void drawTrack(Graphics g, int x1, int y1, int x2, int y2) {
+  protected void drawTrack(Graphics g, int x1, int y1, int x2, int y2, double zoom) {
     double lastSqrt = -1;
     int lastDistSq = -1;
 
@@ -436,8 +436,8 @@ public class Footprint extends MovementMarkable {
       lastSqrt = Math.sqrt(distSq);
     }
 
-    int xDiff = (int) ((circleRadius * (x2 - x1)) / lastSqrt);
-    int yDiff = (int) ((circleRadius * (y2 - y1)) / lastSqrt);
+    int xDiff = (int) ((circleRadius * (x2 - x1) * zoom) / lastSqrt);
+    int yDiff = (int) ((circleRadius * (y2 - y1) * zoom) / lastSqrt);
 
     g.drawLine(x1 + xDiff, y1 + yDiff, x2 - xDiff, y2 - yDiff);
   }
