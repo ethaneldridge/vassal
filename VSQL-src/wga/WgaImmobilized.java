@@ -60,7 +60,7 @@ public class WgaImmobilized extends Decorator implements EditablePiece {
 
   protected class UseCtlShiftFilter implements EventFilter {
     public boolean rejectEvent(InputEvent evt) {
-      return !evt.isShiftDown() && !evt.isControlDown() &&!Boolean.TRUE.equals(getProperty(Properties.SELECTED));
+      return !(evt.isShiftDown() && evt.isControlDown()) &&!Boolean.TRUE.equals(getProperty(Properties.SELECTED));
     }
   };
   
@@ -71,10 +71,10 @@ public class WgaImmobilized extends Decorator implements EditablePiece {
   };
 
   public WgaImmobilized() {
-    this(null, Immobilized.ID);
+    this(Immobilized.ID, null);
   }
 
-  public WgaImmobilized(GamePiece p, String type) {
+  public WgaImmobilized(String type, GamePiece p) {
     setInner(p);
     mySetType(type);
   }
@@ -116,7 +116,7 @@ public class WgaImmobilized extends Decorator implements EditablePiece {
       return Boolean.TRUE;
     }
     else if (Properties.TERRAIN.equals(key)) {
-      return new Boolean(useShift || neverSelect);
+      return new Boolean(useShift || useCtlShift || neverSelect);
     }
     else if (Properties.IGNORE_GRID.equals(key)) {
       return new Boolean(ignoreGrid);

@@ -20,7 +20,7 @@
 package wga;
 
 import VASSAL.build.Buildable;
-import VASSAL.build.module.map.MassKeyCommand;
+import wga.MassKeyCommand;
 import VASSAL.configure.VisibilityCondition;
 
 /**

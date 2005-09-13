@@ -20,12 +20,14 @@
 package Shader;
 
 import wga.CounterGlobalKeyCommand;
+import wga.WgaImmobilized;
 import AutoImage.AIEmbellishment;
 import AutoImage.AutoImage;
 import VASSAL.build.module.BasicCommandEncoder;
 import VASSAL.counters.Decorator;
 import VASSAL.counters.Embellishment;
 import VASSAL.counters.GamePiece;
+import VASSAL.counters.Immobilized;
 
 public class CommandEncoder extends BasicCommandEncoder {
 
@@ -35,6 +37,9 @@ public class CommandEncoder extends BasicCommandEncoder {
     }
     else if (type.startsWith(Embellishment.ID)) {
       return new AIEmbellishment(type, inner);
+    }
+    else if (type.startsWith(Immobilized.ID)) {
+      return new WgaImmobilized(type, inner);
     }
     else if (type.startsWith(CounterGlobalKeyCommand.ID)) {
       return new CounterGlobalKeyCommand(type, inner);
