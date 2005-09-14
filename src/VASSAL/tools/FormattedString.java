@@ -7,6 +7,8 @@
 
 package VASSAL.tools;
 
+import VASSAL.counters.GamePiece;
+
 import java.util.HashMap;
 
 public class FormattedString {
@@ -38,16 +40,43 @@ public class FormattedString {
     props.clear();
   }
 
+  /**
+   * Return the resulting string after substituting properties
+   * @return
+   */
   public String getText() {
+    return getText(null);
+  }
+
+  /**
+   * Return the resulting string after substituting properties
+   * Also, if any property keys match a property in the given GamePiece,
+   * substitute the value of that property
+   * @see GamePiece#getProperty
+   * @param piece
+   * @return
+   */
+  public String getText(GamePiece piece) {
     StringBuffer buffer = new StringBuffer();
     SequenceEncoder.Decoder st = new SequenceEncoder.Decoder(formatString, '$');
     while (st.hasMoreTokens()) {
       String token = st.nextToken();
-      String value = (String) props.get(token);
-      if (value != null) {
-        buffer.append(value);
+      if (props.containsKey(token)) {
+        String value = (String) props.get(token);
+        if (value != null) {
+          buffer.append(value);
+        }
       }
-      else if (!props.containsKey(token)) {
+      else if (piece != null) {
+        Object value = piece.getProperty(token);
+        if (value != null) {
+          buffer.append(value.toString());
+        }
+        else {
+          buffer.append(token);
+        }
+      }
+      else {
         buffer.append(token);
       }
     }

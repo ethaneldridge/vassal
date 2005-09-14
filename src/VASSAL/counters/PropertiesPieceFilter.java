@@ -25,16 +25,60 @@ import java.util.StringTokenizer;
  * match a given set of conditions
  */
 public class PropertiesPieceFilter implements PieceFilter {
+  
+  public static final String EQ = "=";
+  public static final String NE = "!=";
+  public static final String LT = ".lt.";
+  public static final String LE = ".le.";
+  public static final String GT = ".gt.";
+  public static final String GE = ".ge.";
+  public static final String[] CONDITIONS = new String[] {EQ, NE, LT, LE, GT, GE};
+  
   private String name;
   private String value;
+  private String condition;
 
   public PropertiesPieceFilter(String name, String value) {
     this.name = name;
     this.value = value;
+    this.condition = EQ;
   }
 
+  public PropertiesPieceFilter(String name, String condition, String value) {
+    this(name, value);
+    this.condition = condition;
+  }
+  
   public boolean accept(GamePiece piece) {
-    return value.equals(piece.getProperty(name));
+
+    String v1 = (String) piece.getProperty(name) + "";
+    String v2 = value;
+
+    if (EQ.equals(condition)) {
+      return v1.equals(v2);
+    }
+    else if (NE.equals(condition)) {
+      return !v1.equals(v2);
+    }
+    else if (LT.equals(condition)) {
+      try { return Integer.parseInt(v1) < Integer.parseInt(v2); } 
+      catch (Exception e) { return v1.compareTo(v2) < 0; }
+    }
+    else if (LE.equals(condition)) {
+      try { return Integer.parseInt(v1) <= Integer.parseInt(v2); } 
+      catch (Exception e) { return v1.compareTo(v2) <= 0; }
+    }
+    else if (GT.equals(condition)) {
+      try { return Integer.parseInt(v1) > Integer.parseInt(v2); } 
+      catch (Exception e) { return v1.compareTo(v2) > 0; }
+    }
+    else if (GE.equals(condition)) {
+      try { return Integer.parseInt(v1) >= Integer.parseInt(v2); } 
+      catch (Exception e) { return v1.compareTo(v2) >= 0; }
+    }
+
+    return false;
+    
   }
 
   /**
@@ -45,7 +89,7 @@ public class PropertiesPieceFilter implements PieceFilter {
    */
   public static PieceFilter parse(String expression) {
     StringTokenizer st = new StringTokenizer(expression, "|");
-    PieceFilter f;
+    PieceFilter f = null;
     if (st.countTokens() > 1) {
       f = parse(st.nextToken());
       while (st.hasMoreTokens()) {
@@ -61,11 +105,13 @@ public class PropertiesPieceFilter implements PieceFilter {
         }
       }
       else {
-        st = new StringTokenizer(expression,"=");
-        if (st.countTokens() == 2) {
-          f = new PropertiesPieceFilter(st.nextToken().trim(),st.nextToken().trim());
+        for (int i = 0; i < CONDITIONS.length && f == null; i++) {
+          String[] s = expression.split(CONDITIONS[i]);
+          if (s.length == 2) {
+            f = new PropertiesPieceFilter(s[0].trim(), CONDITIONS[i], s[1].trim());
+          }
         }
-        else {
+        if (f == null) {
           f = new PieceFilter() {
             public boolean accept(GamePiece piece) {
               return false;

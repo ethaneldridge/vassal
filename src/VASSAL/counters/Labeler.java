@@ -50,6 +50,7 @@ public class Labeler extends Decorator implements EditablePiece {
   public static int VERTICAL_ALIGNMENT = TOP;
 
   private String label = "";
+  private String lastCachedLabel;
   private KeyStroke labelKey;
   private String menuCommand = "Change Label";
   private Font font = new Font("Dialog", 0, 10);
@@ -85,7 +86,7 @@ public class Labeler extends Decorator implements EditablePiece {
     labelKey = st.nextKeyStroke(null);
     if (st.hasMoreTokens()) {
       menuCommand = st.nextToken();
-      int fontSize = st.nextInt(10);      
+      int fontSize = st.nextInt(10);
       textBg = ColorConfigurer.stringToColor(st.nextToken());
       Color c = ColorConfigurer.stringToColor(st.nextToken());
       if (c != null) {
@@ -143,8 +144,8 @@ public class Labeler extends Decorator implements EditablePiece {
     }
     else {
       nameFormat.setProperty(PIECE_NAME,piece.getName());
-      nameFormat.setProperty(LABEL, label);
-      return nameFormat.getText();
+      nameFormat.setProperty(LABEL, getLabel());
+      return nameFormat.getText(this);
     }
   }
 
@@ -187,6 +188,11 @@ public class Labeler extends Decorator implements EditablePiece {
   }
 
   public void draw(Graphics g, int x, int y, Component obs, double zoom) {
+    String label = getLabel();
+    if (label != null
+      && !label.equals(lastCachedLabel)) {
+      labelImage = null;
+    }
     if (labelImage == null && label != null && label.length() > 0) {
       labelImage = createImage(obs);
     }
@@ -196,17 +202,17 @@ public class Labeler extends Decorator implements EditablePiece {
       Point p = getLabelPosition();
       int labelX = x + (int) (zoom * p.x);
       int labelY = y + (int) (zoom * p.y);
-      
+
       AffineTransform saveXForm = null;
       Graphics2D g2d = (Graphics2D) g;
-      
+
       if (rotateDegrees != 0) {
-        saveXForm = g2d.getTransform(); 
+        saveXForm = g2d.getTransform();
         AffineTransform newXForm =
           AffineTransform.getRotateInstance(Math.toRadians(rotateDegrees),x,y);
         g2d.transform(newXForm);
       }
-      
+
       if (zoom != 1.0) {
         Image scaled = labelImage;
         scaled = GameModule.getGameModule().getDataArchive().getScaledImage(labelImage, zoom);
@@ -215,11 +221,11 @@ public class Labeler extends Decorator implements EditablePiece {
       else {
         g.drawImage(labelImage, labelX, labelY, obs);
       }
-      
+
       if (rotateDegrees != 0) {
-        g2d.setTransform(saveXForm); 
+        g2d.setTransform(saveXForm);
       }
-      
+
     }
   }
 
@@ -284,7 +290,8 @@ public class Labeler extends Decorator implements EditablePiece {
   }
 
   protected Image createImage(Component obs) {
-    lbl.setText(label);
+    lastCachedLabel = getLabel();
+    lbl.setText(lastCachedLabel);
     lbl.setSize(lbl.getPreferredSize());
     int width = lbl.getWidth();
     int height = lbl.getHeight();
@@ -299,7 +306,7 @@ public class Labeler extends Decorator implements EditablePiece {
   }
 
   public String getLabel() {
-    return label;
+    return new FormattedString(label).getText(this);
   }
 
   public Rectangle boundingBox() {
@@ -411,7 +418,7 @@ public class Labeler extends Decorator implements EditablePiece {
       fontFamily.setSelectedItem(l.font.getFamily());
       b.add(fontFamily);
       controls.add(b);
-      
+
       b = Box.createHorizontalBox();
       fontSize = new IntConfigurer(null, "Font size:  ", new Integer(l.font.getSize()));
       b.add(fontSize.getControls());
@@ -477,7 +484,7 @@ public class Labeler extends Decorator implements EditablePiece {
       hJust.setSelectedItem(new Character(l.horizontalJust));
       b.add(hJust);
       controls.add(b);
-      
+
       rotate = new IntConfigurer(null, "Rotate Text (Degrees):  ", new Integer(l.rotateDegrees));
       controls.add(rotate.getControls());
     }
@@ -515,7 +522,7 @@ public class Labeler extends Decorator implements EditablePiece {
       se.append(hJust.getSelectedItem().toString());
       se.append(format.getValueString());
       se.append(fontFamily.getSelectedItem().toString());
-      int style = Font.PLAIN + (bold.booleanValue().booleanValue() ? Font.BOLD : 0) 
+      int style = Font.PLAIN + (bold.booleanValue().booleanValue() ? Font.BOLD : 0)
                              + (italic.booleanValue().booleanValue() ? Font.ITALIC : 0);
       se.append(style+"");
       i = (Integer) rotate.getValue();
@@ -523,7 +530,7 @@ public class Labeler extends Decorator implements EditablePiece {
         i = new Integer(0);
       }
       se.append(i.toString());
-      
+
       return ID + se.getValue();
     }
 
