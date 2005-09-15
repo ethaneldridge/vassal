@@ -28,6 +28,10 @@ public class BooleanConfigurer extends Configurer {
     super(key, name, val);
   }
 
+  public BooleanConfigurer(String key, String name, boolean val) {
+    super(key, name, val ? Boolean.TRUE : Boolean.FALSE);
+  }
+
   public BooleanConfigurer(String key, String name) {
     this(key, name, Boolean.FALSE);
   }

@@ -124,9 +124,9 @@ public class BasicCommandEncoder implements CommandEncoder, Buildable {
     else if (type.startsWith(AreaOfEffect.ID)) {
       return new AreaOfEffect(type, inner);
     }
-//    else if (type.startsWith(CounterGlobalKeyCommand.ID)) {
-//      return new CounterGlobalKeyCommand(type, inner);
-//    }
+    else if (type.startsWith(CounterGlobalKeyCommand.ID)) {
+      return new CounterGlobalKeyCommand(type, inner);
+    }
 
     return null;
   }

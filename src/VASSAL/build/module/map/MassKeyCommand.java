@@ -30,11 +30,8 @@ import VASSAL.build.AbstractConfigurable;
 import VASSAL.build.AutoConfigurable;
 import VASSAL.build.Buildable;
 import VASSAL.build.GameModule;
-import VASSAL.build.module.Chatter;
 import VASSAL.build.module.Map;
 import VASSAL.build.module.documentation.HelpFile;
-import VASSAL.command.Command;
-import VASSAL.command.NullCommand;
 import VASSAL.configure.*;
 import VASSAL.counters.*;
 import VASSAL.tools.FormattedString;
@@ -46,12 +43,11 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
 import java.net.MalformedURLException;
-import java.util.Enumeration;
 
 /** Adds a button to a map window toolbar.  Hitting the button applies a particular key command to all pieces
  * on that map with a given name.
  */
-public class MassKeyCommand extends AbstractConfigurable implements PieceVisitor {
+public class MassKeyCommand extends AbstractConfigurable {
   public static final String DEPRECATED_NAME = "text";
   public static final String NAME = "name";
   public static final String ICON = "icon";
@@ -77,11 +73,8 @@ public class MassKeyCommand extends AbstractConfigurable implements PieceVisitor
   protected String checkValue;
   protected String propertiesFilter;
   protected PieceFilter filter;
-  protected PieceVisitorDispatcher dispatcher = new PieceVisitorDispatcher(this);
   private Map map;
-  private Command keyCommand;
-  private BoundsTracker tracker;
-  protected boolean reportSingle;
+  private GlobalCommand globalCommand = new GlobalCommand();
   protected FormattedString reportFormat = new PlayerIdFormattedString("");
 
   public MassKeyCommand() {
@@ -103,67 +96,7 @@ public class MassKeyCommand extends AbstractConfigurable implements PieceVisitor
   }
 
   public void apply(Map m) {
-    String mapFormat = m.getChangeFormat();
-    if (reportSingle) {
-      m.setAttribute(Map.CHANGE_FORMAT, "");
-    }
-    String reportText = reportFormat.getText();
-    if (reportText.length() > 0) {
-      keyCommand = new Chatter.DisplayText(GameModule.getGameModule().getChatter(), "*" + reportText);
-      keyCommand.execute();
-    }
-    else {
-      keyCommand = new NullCommand();
-    }
-    tracker = new BoundsTracker();
-    GamePiece[] p = m.getPieces();
-    for (int i = 0; i < p.length; ++i) {
-      dispatcher.accept(p[i]);
-    }
-    tracker.repaint();
-    GameModule.getGameModule().sendAndLog(keyCommand);
-    if (reportSingle) {
-      m.setAttribute(Map.CHANGE_FORMAT, mapFormat);
-    }
-  }
-
-  /* We don't treat {@link Deck}s any differently than {@link Stack}s, so
-  no need to implement {@link DeckVisitor */
-  public Object visitStack(Stack s) {
-    for (Enumeration e = s.getPieces(); e.hasMoreElements();) {
-      apply((GamePiece) e.nextElement(), keyCommand, tracker);
-    }
-    return null;
-  }
-
-  public Object visitDefault(GamePiece p) {
-    apply(p, keyCommand, tracker);
-    return null;
-  }
-
-  private void apply(GamePiece p, Command c, BoundsTracker tracker) {
-    if (isValidTarget(p)) {
-      tracker.addPiece(p);
-      p.setProperty(Properties.SNAPSHOT, PieceCloner.getInstance().clonePiece(p));
-      c.append(p.keyEvent(stroke));
-      tracker.addPiece(p);
-    }
-  }
-
-  /**
-   *
-   * @param target
-   * @return true if the KeyCommand should be applied to the <code>target</code> GamePiece
-   */
-  protected boolean isValidTarget(GamePiece target) {
-    return isAffected(target);
-  }
-
-  /**
-   * Return true if the name of the argument GamePiece is in the list of target piece names
-   */
-  protected boolean isAffected(GamePiece target) {
-    return filter != null && filter.accept(target);
+    GameModule.getGameModule().sendAndLog(globalCommand.apply(m,filter));
   }
 
   public Class[] getAllowableConfigureComponents() {
@@ -239,7 +172,7 @@ public class MassKeyCommand extends AbstractConfigurable implements PieceVisitor
       return ALWAYS.equals(condition) ? null : condition;
     }
     else if (REPORT_SINGLE.equals(key)) {
-      return reportSingle + "";
+      return String.valueOf(globalCommand.isReportSingle());
     }
     else if (REPORT_FORMAT.equals(key)) {
       return reportFormat.getFormat();
@@ -359,7 +292,7 @@ public class MassKeyCommand extends AbstractConfigurable implements PieceVisitor
       if (value instanceof String) {
         value = new Boolean((String) value);
       }
-      reportSingle = ((Boolean) value).booleanValue();
+      globalCommand.setReportSingle(((Boolean) value).booleanValue());
     }
     else if (REPORT_FORMAT.equals(key)) {
       reportFormat.setFormat((String) value);
