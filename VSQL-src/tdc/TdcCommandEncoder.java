@@ -19,13 +19,20 @@
 package tdc;
 
 import wga.CounterGlobalKeyCommand;
+import VASSAL.build.Buildable;
 import VASSAL.build.module.BasicCommandEncoder;
+import VASSAL.counters.BasicPiece;
 import VASSAL.counters.Decorator;
 import VASSAL.counters.GamePiece;
 import VASSAL.counters.Obscurable;
 
 public class TdcCommandEncoder extends BasicCommandEncoder {
 
+  public void addTo(Buildable b) {
+    super.addTo(b);
+    BasicPiece.setHighlighter(new TdcHighlighter());
+  }
+  
   protected Decorator createDecorator(String type, GamePiece inner) {
     if (type.startsWith(Obscurable.ID)) {
       return new TdcObscurable(type, inner);
