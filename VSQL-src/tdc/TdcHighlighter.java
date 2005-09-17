@@ -16,7 +16,7 @@
  * License along with this library; if not, copies are available
  * at http://www.opensource.org.
  */
- 
+
 package tdc;
 
 import java.awt.Color;
@@ -28,7 +28,7 @@ import VASSAL.counters.GamePiece;
 
 /**
  * @author Brent Easton
- *
+ * 
  * Change border color depending on Command Status
  */
 public class TdcHighlighter extends ColoredBorder {
@@ -36,38 +36,53 @@ public class TdcHighlighter extends ColoredBorder {
   public TdcHighlighter() {
     super();
   }
-  
+
   /**
    * Change Color to Red if unit is not in command.
    */
   public void draw(GamePiece p, Graphics g, int x, int y, Component obs, double zoom) {
-    
-    if (inCommand(p)) {
+
+    if (p.getMap() == null) {
       super.draw(p, g, x, y, obs, zoom);
     }
     else {
-      Color oldColor = getColor();
-      int oldThickness = getThickness();
-      setColor(Color.red);
-      setThickness(3);
-      super.draw(p, g, x, y, obs, zoom);
-      setColor(oldColor);
-      setThickness(oldThickness);
+      if (inCommand(p)) {
+        super.draw(p, g, x, y, obs, zoom);
+      }
+      else {
+        Color oldColor = getColor();
+        int oldThickness = getThickness();
+        setColor(Color.red);
+        setThickness(3);
+        super.draw(p, g, x, y, obs, zoom);
+        setColor(oldColor);
+        setThickness(oldThickness);
+      }
     }
   }
-  
+
+  /**
+   * Check if gamepiece is In Command.
+   * @param p Gamepiece to check
+   * @return true if unit is in command range of an appropriate leader
+   */
   public boolean inCommand(GamePiece p) {
-    
+
     String unitClass = (String) p.getProperty("Class");
     if (unitClass != null) {
       if (unitClass.equals("Infantry") || unitClass.equals("Vehicle") || unitClass.equals("Gun")) {
-        String formation = (String) p.getProperty("Formation");
+        String compareProp = "Formation";
+        String formation = (String) p.getProperty(compareProp);
+        String ind = (String) p.getProperty("isIndependent") + "";        
         if (formation != null) {
-          
+          if (ind.equals("true")) {
+            compareProp = "Division";
+            formation = (String) p.getProperty(compareProp) + "";
+            
+          }
         }
       }
     }
     return false;
   }
 }
-

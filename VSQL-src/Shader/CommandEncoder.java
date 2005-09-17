@@ -19,7 +19,6 @@
  
 package Shader;
 
-import wga.CounterGlobalKeyCommand;
 import wga.WgaImmobilized;
 import AutoImage.AIEmbellishment;
 import AutoImage.AutoImage;
@@ -40,9 +39,6 @@ public class CommandEncoder extends BasicCommandEncoder {
     }
     else if (type.startsWith(Immobilized.ID)) {
       return new WgaImmobilized(type, inner);
-    }
-    else if (type.startsWith(CounterGlobalKeyCommand.ID)) {
-      return new CounterGlobalKeyCommand(type, inner);
     }
     else if (type.startsWith(Shading.ID)) {
       return new Shading(type, inner);
