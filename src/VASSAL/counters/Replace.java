@@ -58,9 +58,9 @@ public class Replace extends PlaceMarker {
 
   public HelpFile getHelpFile() {
     File dir = VASSAL.build.module.Documentation.getDocumentationBaseDir();
-    dir = new File(dir,"ReferenceManual");
+    dir = new File(dir, "ReferenceManual");
     try {
-      return new HelpFile(null,new File(dir,"Replace.htm"));
+      return new HelpFile(null, new File(dir, "Replace.htm"));
     }
     catch (MalformedURLException ex) {
       return null;
@@ -68,7 +68,7 @@ public class Replace extends PlaceMarker {
   }
 
   public String myGetType() {
-    return ID+super.myGetType().substring(PlaceMarker.ID.length());
+    return ID + super.myGetType().substring(PlaceMarker.ID.length());
   }
 
   public PieceEditor getEditor() {
@@ -78,28 +78,38 @@ public class Replace extends PlaceMarker {
   protected GamePiece createMarker() {
     GamePiece marker = super.createMarker();
     if (marker != null
-      && matchRotation) {
-      matchTraits(Decorator.getOutermost(this),marker);
+        && matchRotation) {
+      matchTraits(Decorator.getOutermost(this), marker);
     }
     return marker;
   }
 
   private void matchTraits(GamePiece base, GamePiece marker) {
     if (!(base instanceof Decorator)
-      || !(marker instanceof Decorator)) {
+        || !(marker instanceof Decorator)) {
       return;
     }
-    Decorator currentTrait = (Decorator)base;
+    Decorator currentTrait = (Decorator) base;
     Decorator lastMatch = (Decorator) marker;
     while (currentTrait != null) {
       Decorator candidate = lastMatch;
       while (candidate != null) {
-        candidate = (Decorator) Decorator.getDecorator(candidate,currentTrait.getClass());
-        if (candidate != null
-          && candidate.myGetType().equals(currentTrait.myGetType())) {
-          candidate.mySetState(currentTrait.myGetState());
-          lastMatch = candidate;
-          candidate = null;
+        candidate = (Decorator) Decorator.getDecorator(candidate, currentTrait.getClass());
+        if (candidate != null) {
+          if (candidate.myGetType().equals(currentTrait.myGetType())) {
+            candidate.mySetState(currentTrait.myGetState());
+            lastMatch = candidate;
+            candidate = null;
+          }
+          else {
+            GamePiece inner = candidate.getInner();
+            if (inner instanceof Decorator) {
+              candidate = (Decorator) inner;
+            }
+            else {
+              candidate = null;
+            }
+          }
         }
       }
       if (currentTrait.getInner() instanceof Decorator) {
@@ -118,12 +128,12 @@ public class Replace extends PlaceMarker {
     }
 
     protected BooleanConfigurer createMatchRotationConfig() {
-      return new BooleanConfigurer(null,"Match Current State");
+      return new BooleanConfigurer(null, "Match Current State");
     }
 
     public String getType() {
       String s = super.getType();
-      s = ID+s.substring(PlaceMarker.ID.length());
+      s = ID + s.substring(PlaceMarker.ID.length());
       return s;
     }
   }
