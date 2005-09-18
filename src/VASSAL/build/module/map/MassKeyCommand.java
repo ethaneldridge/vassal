@@ -250,6 +250,7 @@ public class MassKeyCommand extends AbstractConfigurable {
         value = HotKeyConfigurer.decode((String) value);
       }
       stroke = (KeyStroke) value;
+      globalCommand.setKeyStroke(stroke);
     }
     else if (AFFECTED_PIECE_NAMES.equals(key)) {
       if (value instanceof String) {

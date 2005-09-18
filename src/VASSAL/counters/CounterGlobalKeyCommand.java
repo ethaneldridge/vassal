@@ -5,7 +5,6 @@ import VASSAL.build.module.Map;
 import VASSAL.build.module.documentation.HelpFile;
 import VASSAL.command.Command;
 import VASSAL.configure.BooleanConfigurer;
-import VASSAL.configure.FormattedStringConfigurer;
 import VASSAL.configure.HotKeyConfigurer;
 import VASSAL.configure.StringConfigurer;
 import VASSAL.tools.FormattedString;
@@ -48,7 +47,7 @@ public class CounterGlobalKeyCommand extends Decorator implements EditablePiece 
   protected boolean allMaps;
 
   public CounterGlobalKeyCommand() {
-    this(ID + "Global;G", null);
+    this(ID, null);
   }
 
   public CounterGlobalKeyCommand(String type, GamePiece inner) {
@@ -59,13 +58,13 @@ public class CounterGlobalKeyCommand extends Decorator implements EditablePiece 
   public void mySetType(String type) {
     type = type.substring(ID.length());
     SequenceEncoder.Decoder st = new SequenceEncoder.Decoder(type, ';');
-    commandName = st.nextToken();
+    commandName = st.nextToken("Global Command");
     key = st.nextKeyStroke('G');
     globalKey = st.nextKeyStroke('K');
     propertiesFilter = st.nextToken("");
     allMaps = st.nextBoolean(false);
     globalCommand.setReportSingle(st.nextBoolean(true));
-    globalCommand.setReportFormat(st.nextToken(""));
+    globalCommand.setKeyStroke(globalKey);
     command = null;
   }
 
@@ -76,8 +75,7 @@ public class CounterGlobalKeyCommand extends Decorator implements EditablePiece 
         .append(globalKey)
         .append(propertiesFilter)
         .append(allMaps)
-        .append(globalCommand.isReportSingle())
-        .append(globalCommand.getReportFormat());
+        .append(globalCommand.isReportSingle());
     return ID + se.getValue();
   }
 
@@ -162,7 +160,6 @@ public class CounterGlobalKeyCommand extends Decorator implements EditablePiece 
     protected StringConfigurer propertyMatch;
     protected BooleanConfigurer suppress;
     protected BooleanConfigurer allMaps;
-    protected FormattedStringConfigurer reportFormat;
     protected JPanel controls;
 
     public Ed(CounterGlobalKeyCommand p) {
@@ -186,9 +183,6 @@ public class CounterGlobalKeyCommand extends Decorator implements EditablePiece 
 
       suppress = new BooleanConfigurer(null, "Suppress individual reports?", p.globalCommand.isReportSingle());
       controls.add(suppress.getControls());
-
-      reportFormat = new FormattedStringConfigurer(null, "Report Format: ");
-      controls.add(reportFormat.getControls());
     }
 
     public Component getControls() {
@@ -197,9 +191,12 @@ public class CounterGlobalKeyCommand extends Decorator implements EditablePiece 
 
     public String getType() {
       SequenceEncoder se = new SequenceEncoder(';');
-      se.append(nameInput.getValueString()).append((KeyStroke) keyInput.getValue()).append(
-          (KeyStroke) globalKey.getValue()).append(propertyMatch.getValueString()).append(allMaps.getValueString())
-          .append(suppress.booleanValue().booleanValue()).append(reportFormat.getValueString());
+      se.append(nameInput.getValueString())
+          .append((KeyStroke) keyInput.getValue())
+          .append((KeyStroke) globalKey.getValue())
+          .append(propertyMatch.getValueString())
+          .append(allMaps.getValueString())
+          .append(suppress.booleanValue().booleanValue());
       return ID + se.getValue();
     }
 

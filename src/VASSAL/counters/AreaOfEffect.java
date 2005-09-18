@@ -151,7 +151,7 @@ public class AreaOfEffect extends Decorator implements EditablePiece {
           int zoomedX = Math.round(fZoom*position.x);
           int zoomedY = Math.round(fZoom*position.y);
           Board board = map.findBoard(position);
-          MapGrid grid = board.getGrid();
+          MapGrid grid = board == null ? null : board.getGrid();
 
           if (grid instanceof HexGrid) {
             HexGrid hexGrid = (HexGrid) grid;
