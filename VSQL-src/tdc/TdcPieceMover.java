@@ -21,6 +21,7 @@ package tdc;
 
 import VASSAL.build.Buildable;
 import VASSAL.build.module.map.PieceMover;
+import VASSAL.counters.BasicPiece;
 
 /**
  * @author Brent
@@ -34,7 +35,9 @@ public class TdcPieceMover extends PieceMover {
   
   public void addTo(Buildable b) {
     super.addTo(b);
-    map.setHighlighter(new TdcHighlighter());
+    TdcHighlighter highlighter = new TdcHighlighter();
+    map.setHighlighter(highlighter);
+    BasicPiece.setHighlighter(highlighter);
   }
 
 }

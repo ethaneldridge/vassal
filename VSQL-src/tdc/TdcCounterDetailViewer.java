@@ -50,7 +50,7 @@ public class TdcCounterDetailViewer extends CounterDetailViewer {
       if (locationName == null) {
         locationName = map.locationName(piece.getPosition());
       }
-      String s = (String) piece.getProperty("Step");
+      String s = (String) piece.getProperty(TdcProperties.STEP);
       if (s != null) {
         int step = 0;
         try {
@@ -59,7 +59,7 @@ public class TdcCounterDetailViewer extends CounterDetailViewer {
         catch (Exception e) {     
         }
         if (step == 2) {
-          String a = (String) piece.getProperty("Step" + Embellishment.ACTIVE);
+          String a = (String) piece.getProperty(TdcProperties.STEP + Embellishment.ACTIVE);
           if (a != null && a.equals("true")) {
             step = 1;
           }

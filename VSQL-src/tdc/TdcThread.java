@@ -19,35 +19,32 @@
  
 package tdc;
 
-import VASSAL.build.module.Map;
-import VASSAL.counters.GamePiece;
-import VASSAL.counters.Obscurable;
+import java.awt.Point;
+import java.awt.event.MouseEvent;
+
+import VASSAL.build.module.map.LOS_Thread;
 
 /**
+ * @author Brent Easton
+ *
+ * TDC LOS Thread
+ * Force End point of LOS Thread to Snap to grid.
  */
-public class TdcObscurable extends Obscurable {
+public class TdcThread extends LOS_Thread {
   
-  public static final String LOCATION_NAME = "LocationName";
-  
-  public TdcObscurable() {
-    super();
-  }
+  public void mouseDragged(MouseEvent e) {
+    if (visible) {
+      retainAfterRelease = true;
 
-  public TdcObscurable(String type, GamePiece d) {
-    super(type, d);
-  }
+      Point p = e.getPoint();
+      //if (Boolean.TRUE.equals
+      //    (GameModule.getGameModule().getPrefs().getValue(SNAP_LOS))) {
+        p = map.componentCoordinates(map.snapTo(map.mapCoordinates(p)));
+      //}
+      arrow = map.mapCoordinates(p);
 
-  public Object getProperty(Object key) {
-    if (LOCATION_NAME.equals(key)) {
-      Map m = getMap();
-      if (m != null) {
-        return m.locationName(getPosition());
-      }
-      else
-        return null;
-    }
-    else {
-      return super.getProperty(key);
+      map.repaint();
     }
   }
+
 }

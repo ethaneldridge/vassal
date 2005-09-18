@@ -27,9 +27,9 @@ import VASSAL.counters.ColoredBorder;
 import VASSAL.counters.GamePiece;
 
 /**
+ * Change border color depending on Command Status
  * @author Brent Easton
  * 
- * Change border color depending on Command Status
  */
 public class TdcHighlighter extends ColoredBorder {
 
@@ -38,7 +38,7 @@ public class TdcHighlighter extends ColoredBorder {
   }
 
   /**
-   * Change Color to Red if unit is not in command.
+   * Change outline Color to 3 pixel wide Red if unit is not in command.
    */
   public void draw(GamePiece p, Graphics g, int x, int y, Component obs, double zoom) {
 
@@ -46,7 +46,8 @@ public class TdcHighlighter extends ColoredBorder {
       super.draw(p, g, x, y, obs, zoom);
     }
     else {
-      if (inCommand(p)) {
+      CommandRangeChecker check = new CommandRangeChecker(p);
+      if (check.inCommand()) {
         super.draw(p, g, x, y, obs, zoom);
       }
       else {
@@ -59,30 +60,5 @@ public class TdcHighlighter extends ColoredBorder {
         setThickness(oldThickness);
       }
     }
-  }
-
-  /**
-   * Check if gamepiece is In Command.
-   * @param p Gamepiece to check
-   * @return true if unit is in command range of an appropriate leader
-   */
-  public boolean inCommand(GamePiece p) {
-
-    String unitClass = (String) p.getProperty("Class");
-    if (unitClass != null) {
-      if (unitClass.equals("Infantry") || unitClass.equals("Vehicle") || unitClass.equals("Gun")) {
-        String compareProp = "Formation";
-        String formation = (String) p.getProperty(compareProp);
-        String ind = (String) p.getProperty("isIndependent") + "";        
-        if (formation != null) {
-          if (ind.equals("true")) {
-            compareProp = "Division";
-            formation = (String) p.getProperty(compareProp) + "";
-            
-          }
-        }
-      }
-    }
-    return false;
   }
 }
