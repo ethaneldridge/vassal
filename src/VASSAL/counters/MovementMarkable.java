@@ -153,7 +153,7 @@ public class MovementMarkable extends Decorator implements EditablePiece {
   }
 
   public String getDescription() {
-    return "Can be marked moved";
+    return "Mark When Moved";
   }
 
   public VASSAL.build.module.documentation.HelpFile getHelpFile() {

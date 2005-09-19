@@ -511,10 +511,10 @@ public class Embellishment extends Decorator implements EditablePiece {
         return "";
     }
     else if (key.equals(name + LEVEL)) {
-      return value + "";
+      return String.valueOf(value);
     }
     else if (key.equals(name + ACTIVE)) {
-      return isActive() + "";
+      return String.valueOf(isActive());
     }
     return super.getProperty(key);
   }

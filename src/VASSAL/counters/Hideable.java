@@ -61,10 +61,10 @@ public class Hideable extends Decorator implements EditablePiece {
       return hiddenBy;
     }
     else if (Properties.INVISIBLE_TO_ME.equals(key)) {
-      return new Boolean(invisibleToMe());
+      return invisibleToMe() ? Boolean.TRUE : Boolean.FALSE;
     }
     else if (Properties.INVISIBLE_TO_OTHERS.equals(key)) {
-      return new Boolean(invisibleToOthers());
+      return invisibleToOthers() ? Boolean.TRUE : Boolean.FALSE;
     }
     else {
       return super.getProperty(key);
@@ -205,7 +205,7 @@ public class Hideable extends Decorator implements EditablePiece {
   }
 
   public String getDescription() {
-    return "Can be Invisible";
+    return "Invisible";
   }
 
   public HelpFile getHelpFile() {

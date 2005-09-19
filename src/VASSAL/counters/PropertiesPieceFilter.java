@@ -18,68 +18,28 @@
  */
 package VASSAL.counters;
 
-import java.util.StringTokenizer;
+import java.util.regex.Pattern;
 
 /**
  * Accepts pieces based on whether the piece has properties that
  * match a given set of conditions
  */
-public class PropertiesPieceFilter implements PieceFilter {
-  
-  public static final String EQ = "=";
-  public static final String NE = "!=";
-  public static final String LT = ".lt.";
-  public static final String LE = ".le.";
-  public static final String GT = ".gt.";
-  public static final String GE = ".ge.";
-  public static final String[] CONDITIONS = new String[] {EQ, NE, LT, LE, GT, GE};
-  
-  private String name;
-  private String value;
-  private String condition;
+public class PropertiesPieceFilter {
 
-  public PropertiesPieceFilter(String name, String value) {
-    this.name = name;
-    this.value = value;
-    this.condition = EQ;
-  }
+  private static final Pattern[] CONDITIONS = new Pattern[]{Pattern.compile("!="),
+                                                            Pattern.compile("<="),
+                                                            Pattern.compile(">="),
+                                                            Pattern.compile(">"),
+                                                            Pattern.compile("<"),
+                                                            Pattern.compile("=")};
 
-  public PropertiesPieceFilter(String name, String condition, String value) {
-    this(name, value);
-    this.condition = condition;
-  }
-  
-  public boolean accept(GamePiece piece) {
-
-    String v1 = (String) piece.getProperty(name) + "";
-    String v2 = value;
-
-    if (EQ.equals(condition)) {
-      return v1.equals(v2);
+  private static final Pattern AND = Pattern.compile("&&");
+  private static final Pattern OR = Pattern.compile("\\|\\|");
+  private static PieceFilter NULL_FILTER = new PieceFilter() {
+    public boolean accept(GamePiece piece) {
+      return false;
     }
-    else if (NE.equals(condition)) {
-      return !v1.equals(v2);
-    }
-    else if (LT.equals(condition)) {
-      try { return Integer.parseInt(v1) < Integer.parseInt(v2); } 
-      catch (Exception e) { return v1.compareTo(v2) < 0; }
-    }
-    else if (LE.equals(condition)) {
-      try { return Integer.parseInt(v1) <= Integer.parseInt(v2); } 
-      catch (Exception e) { return v1.compareTo(v2) <= 0; }
-    }
-    else if (GT.equals(condition)) {
-      try { return Integer.parseInt(v1) > Integer.parseInt(v2); } 
-      catch (Exception e) { return v1.compareTo(v2) > 0; }
-    }
-    else if (GE.equals(condition)) {
-      try { return Integer.parseInt(v1) >= Integer.parseInt(v2); } 
-      catch (Exception e) { return v1.compareTo(v2) >= 0; }
-    }
-
-    return false;
-    
-  }
+  };
 
   /**
    * Return a PieceFilter parsed from a boolean expression such as
@@ -88,38 +48,157 @@ public class PropertiesPieceFilter implements PieceFilter {
    * @return
    */
   public static PieceFilter parse(String expression) {
-    StringTokenizer st = new StringTokenizer(expression, "|");
+    if (expression == null
+        || expression.length() == 0) {
+      return NULL_FILTER;
+    }
+    String[] s = OR.split(expression);
     PieceFilter f = null;
-    if (st.countTokens() > 1) {
-      f = parse(st.nextToken());
-      while (st.hasMoreTokens()) {
-        f = new BooleanOrPieceFilter(f, parse(st.nextToken()));
+    if (s.length > 1) {
+      f = parse(s[0]);
+      for (int i = 1; i < s.length; ++i) {
+        f = new BooleanOrPieceFilter(f, parse(s[i]));
       }
     }
     else {
-      st = new StringTokenizer(expression,"&");
-      if (st.countTokens() > 1) {
-        f = parse(st.nextToken());
-        while (st.hasMoreTokens()) {
-          f = new BooleanAndPieceFilter(f,parse(st.nextToken()));
+      s = AND.split(expression);
+      if (s.length > 1) {
+        f = parse(s[0]);
+        for (int i = 1; i < s.length; ++i) {
+          f = new BooleanAndPieceFilter(f, parse(s[i]));
         }
       }
       else {
         for (int i = 0; i < CONDITIONS.length && f == null; i++) {
-          String[] s = expression.split(CONDITIONS[i]);
+          s = CONDITIONS[i].split(expression);
           if (s.length == 2) {
-            f = new PropertiesPieceFilter(s[0].trim(), CONDITIONS[i], s[1].trim());
+            String name = s[0].trim();
+            String value = s[1].trim();
+            switch (i) {
+              case 0:
+                f = new NE(name, value);
+                break;
+              case 1:
+                f = new LE(name, value);
+                break;
+              case 2:
+                f = new GE(name, value);
+                break;
+              case 3:
+                f = new LT(name, value);
+                break;
+              case 4:
+                f = new GT(name, value);
+                break;
+              case 5:
+                f = new EQ(name, value);
+                break;
+            }
           }
         }
         if (f == null) {
-          f = new PieceFilter() {
-            public boolean accept(GamePiece piece) {
-              return false;
-            }
-          };
+          f = NULL_FILTER;
         }
       }
     }
     return f;
   }
+
+  private static abstract class ComparisonFilter implements PieceFilter {
+    protected String name;
+    protected String value;
+    protected Object alternate;
+
+    public ComparisonFilter(String name, String value) {
+      this.name = name;
+      this.value = value;
+      if ("true".equals(value)) {
+        alternate = Boolean.TRUE;
+      }
+      else if ("false".equals(value)) {
+        alternate = Boolean.FALSE;
+      }
+    }
+
+    protected int compareTo(GamePiece piece) {
+      String property = String.valueOf(piece.getProperty(name));
+      try {
+        return Integer.valueOf(property).compareTo(Integer.valueOf(value));
+      }
+      catch (NumberFormatException e) {
+        return property.compareTo(value);
+      }
+    }
+  }
+
+  private static class EQ extends ComparisonFilter {
+    public EQ(String name, String value) {
+      super(name, value);
+    }
+
+    public boolean accept(GamePiece piece) {
+      String property = String.valueOf(piece.getProperty(name));
+      boolean retVal = value.equals(property);
+      if (alternate != null) {
+        retVal = retVal || alternate.equals(property);
+      }
+      return retVal;
+    }
+  }
+
+  private static class NE extends ComparisonFilter {
+    public NE(String name, String value) {
+      super(name, value);
+    }
+
+    public boolean accept(GamePiece piece) {
+      String property = String.valueOf(piece.getProperty(name));
+      boolean retVal = !value.equals(property);
+      if (alternate != null) {
+        retVal = retVal && !alternate.equals(property);
+      }
+      return retVal;
+    }
+  }
+
+  private static class LT extends ComparisonFilter {
+    public LT(String name, String value) {
+      super(name, value);
+    }
+
+    public boolean accept(GamePiece piece) {
+      return compareTo(piece) < 0;
+    }
+  }
+
+  private static class LE extends ComparisonFilter {
+    public LE(String name, String value) {
+      super(name, value);
+    }
+
+    public boolean accept(GamePiece piece) {
+      return compareTo(piece) <= 0;
+    }
+  }
+
+  private static class GT extends ComparisonFilter {
+    public GT(String name, String value) {
+      super(name, value);
+    }
+
+    public boolean accept(GamePiece piece) {
+      return compareTo(piece) > 0;
+    }
+  }
+
+  private static class GE extends ComparisonFilter {
+    public GE(String name, String value) {
+      super(name, value);
+    }
+
+    public boolean accept(GamePiece piece) {
+      return compareTo(piece) >= 0;
+    }
+  }
+
 }
