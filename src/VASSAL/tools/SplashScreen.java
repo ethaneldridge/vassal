@@ -18,6 +18,8 @@
  */
 package VASSAL.tools;
 
+import VASSAL.build.GameModule;
+
 import java.awt.*;
 import java.awt.event.*;
 import javax.swing.*;
@@ -26,8 +28,14 @@ import javax.swing.*;
  * Displays an image centered on the screen
  */
 public class SplashScreen extends JWindow {
+  private static SplashScreen instance;
+
+  public static SplashScreen getInstance() {
+    return instance;
+  }
 
   public SplashScreen(Image im) {
+    instance = this;
     getContentPane().add(new JLabel(new ImageIcon(im)));
     pack();
     Dimension d = Toolkit.getDefaultToolkit().getScreenSize();

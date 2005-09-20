@@ -2,17 +2,22 @@ package VASSAL.counters;
 
 import VASSAL.build.GameModule;
 import VASSAL.build.module.Map;
+import VASSAL.build.module.map.boardPicker.Board;
 import VASSAL.build.module.documentation.HelpFile;
 import VASSAL.command.Command;
+import VASSAL.command.NullCommand;
 import VASSAL.configure.BooleanConfigurer;
 import VASSAL.configure.HotKeyConfigurer;
 import VASSAL.configure.StringConfigurer;
+import VASSAL.configure.IntConfigurer;
 import VASSAL.tools.FormattedString;
 import VASSAL.tools.SequenceEncoder;
 
 import javax.swing.*;
 import java.awt.*;
 import java.util.Enumeration;
+import java.beans.PropertyChangeListener;
+import java.beans.PropertyChangeEvent;
 
 /*
  * $Id$
@@ -44,7 +49,8 @@ public class CounterGlobalKeyCommand extends Decorator implements EditablePiece 
   protected KeyStroke globalKey;
   protected GlobalCommand globalCommand = new GlobalCommand();
   protected String propertiesFilter;
-  protected boolean allMaps;
+  protected boolean restrictRange;
+  protected int range;
 
   public CounterGlobalKeyCommand() {
     this(ID, null);
@@ -62,7 +68,8 @@ public class CounterGlobalKeyCommand extends Decorator implements EditablePiece 
     key = st.nextKeyStroke('G');
     globalKey = st.nextKeyStroke('K');
     propertiesFilter = st.nextToken("");
-    allMaps = st.nextBoolean(false);
+    restrictRange = st.nextBoolean(false);
+    range = st.nextInt(1);
     globalCommand.setReportSingle(st.nextBoolean(true));
     globalCommand.setKeyStroke(globalKey);
     command = null;
@@ -74,7 +81,8 @@ public class CounterGlobalKeyCommand extends Decorator implements EditablePiece 
         .append(key)
         .append(globalKey)
         .append(propertiesFilter)
-        .append(allMaps)
+        .append(restrictRange)
+        .append(range)
         .append(globalCommand.isReportSingle());
     return ID + se.getValue();
   }
@@ -89,7 +97,7 @@ public class CounterGlobalKeyCommand extends Decorator implements EditablePiece 
       }
     }
     if (command.length > 0) {
-      command[0].setEnabled(allMaps || getMap() != null);
+      command[0].setEnabled(restrictRange || getMap() != null);
     }
     return command;
   }
@@ -140,15 +148,35 @@ public class CounterGlobalKeyCommand extends Decorator implements EditablePiece 
 
   public void apply() {
     PieceFilter filter = PropertiesPieceFilter.parse(new FormattedString(propertiesFilter).getText(this));
-    Command c = null;
-    if (allMaps) {
-      for (Enumeration e = GameModule.getGameModule().getComponents(Map.class); e.hasMoreElements();) {
-        Map m = (Map) e.nextElement();
-        c = globalCommand.apply(m, filter);
-      }
+    Command c = new NullCommand();
+    if (restrictRange) {
+      final Point myPos = getPosition();
+      final Map myMap = getMap();
+      final Board myBoard = myMap.findBoard(myPos);
+      PieceFilter rangeFilter = new PieceFilter() {
+        public boolean accept(GamePiece piece) {
+          if (piece.getMap() == myMap) {
+            Point pos = piece.getPosition();
+            Board b = piece.getMap().findBoard(pos);
+            if (b == myBoard) {
+              int range=Integer.MAX_VALUE;
+              if (b.getGrid() != null) {
+                range = b.getGrid().range(myPos,pos);
+              }
+              else {
+                range = (int)Math.round(myPos.distance(pos));
+              }
+              return range <= CounterGlobalKeyCommand.this.range;
+            }
+          }
+          return false;
+        }
+      };
+      filter = new BooleanAndPieceFilter(filter,rangeFilter);
     }
-    else if (getMap() != null) {
-      c = globalCommand.apply(getMap(), filter);
+    for (Enumeration e = GameModule.getGameModule().getComponents(Map.class); e.hasMoreElements();) {
+      Map m = (Map) e.nextElement();
+      c = c.append(globalCommand.apply(m, filter));
     }
     GameModule.getGameModule().sendAndLog(c);
   }
@@ -159,7 +187,8 @@ public class CounterGlobalKeyCommand extends Decorator implements EditablePiece 
     protected HotKeyConfigurer globalKey;
     protected StringConfigurer propertyMatch;
     protected BooleanConfigurer suppress;
-    protected BooleanConfigurer allMaps;
+    protected BooleanConfigurer restrictRange;
+    protected IntConfigurer range;
     protected JPanel controls;
 
     public Ed(CounterGlobalKeyCommand p) {
@@ -178,8 +207,22 @@ public class CounterGlobalKeyCommand extends Decorator implements EditablePiece 
       propertyMatch = new StringConfigurer(null, "Matching Properties:  ", p.propertiesFilter);
       controls.add(propertyMatch.getControls());
 
-      allMaps = new BooleanConfigurer(null, "Apply to all maps:  ", p.allMaps);
-      controls.add(allMaps.getControls());
+      restrictRange = new BooleanConfigurer(null, "Restrict Range", p.restrictRange);
+      controls.add(restrictRange.getControls());
+
+      range = new IntConfigurer(null, "Range:  ", new Integer(p.range));
+      controls.add(range.getControls());
+      PropertyChangeListener l = new PropertyChangeListener() {
+        public void propertyChange(PropertyChangeEvent evt) {
+          range.getControls().setVisible(Boolean.TRUE.equals(restrictRange.getValue()));
+          Window w = SwingUtilities.getWindowAncestor(range.getControls());
+          if (w != null) {
+            w.pack();
+          }
+        }
+      };
+      restrictRange.addPropertyChangeListener(l);
+      l.propertyChange(null);
 
       suppress = new BooleanConfigurer(null, "Suppress individual reports?", p.globalCommand.isReportSingle());
       controls.add(suppress.getControls());
@@ -195,7 +238,8 @@ public class CounterGlobalKeyCommand extends Decorator implements EditablePiece 
           .append((KeyStroke) keyInput.getValue())
           .append((KeyStroke) globalKey.getValue())
           .append(propertyMatch.getValueString())
-          .append(allMaps.getValueString())
+          .append(restrictRange.getValueString())
+          .append(range.getValueString())
           .append(suppress.booleanValue().booleanValue());
       return ID + se.getValue();
     }

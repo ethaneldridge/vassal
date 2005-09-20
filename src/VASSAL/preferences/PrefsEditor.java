@@ -13,13 +13,14 @@
  * Library General Public License for more details.
  *
  * You should have received a copy of the GNU Library General Public
- * License along with this library; if not, copies are available 
+ * License along with this library; if not, copies are available
  * at http://www.opensource.org.
  */
 package VASSAL.preferences;
 
 import VASSAL.configure.Configurer;
 import VASSAL.tools.ArchiveWriter;
+import VASSAL.tools.SplashScreen;
 
 import javax.swing.*;
 import java.awt.*;
@@ -51,11 +52,11 @@ public class PrefsEditor {
         storeValues();
         dialog.pack();
         Dimension d = Toolkit.getDefaultToolkit().getScreenSize();
-        dialog.setLocation(d.width/2-dialog.getWidth()/2,0);
+        dialog.setLocation(d.width / 2 - dialog.getWidth() / 2, 0);
         dialog.setVisible(true);
       }
     };
-    editAction.putValue(Action.MNEMONIC_KEY,new Integer((int)'P'));
+    editAction.putValue(Action.MNEMONIC_KEY, new Integer((int) 'P'));
 
     prefs = new Vector();
 
@@ -79,19 +80,19 @@ public class PrefsEditor {
 
   public void initDialog(Frame parent) {
     if (dialog == null) {
-      dialog = new JDialog(parent,true);
+      dialog = new JDialog(parent, true);
       dialog.setTitle("Preferences");
       dialog.setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
 
       //Handle window closing correctly.
       dialog.addWindowListener(new WindowAdapter() {
-      	public void windowClosing(WindowEvent we) {
-      		cancel();
-      	}
+        public void windowClosing(WindowEvent we) {
+          cancel();
+        }
       });
-      
+
       dialog.getContentPane().setLayout
-        (new BoxLayout(dialog.getContentPane(), BoxLayout.Y_AXIS));
+          (new BoxLayout(dialog.getContentPane(), BoxLayout.Y_AXIS));
       dialog.getContentPane().add(optionsTab);
       dialog.getContentPane().add(buttonPanel);
     }
@@ -108,11 +109,18 @@ public class PrefsEditor {
   public void addOption(String category, Configurer c, String prompt) {
     if (prompt != null) {
       if (setupDialog == null) {
-        setupDialog = new JDialog((JFrame) null, true);
+        setupDialog = new JDialog((Frame) null, true);
         setupDialog.setTitle("Initial Setup");
         setupDialog.getContentPane().setLayout
-          (new BoxLayout(setupDialog.getContentPane(), BoxLayout.Y_AXIS));
+            (new BoxLayout(setupDialog.getContentPane(), BoxLayout.Y_AXIS));
         setupDialog.setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
+        setupDialog.addComponentListener(new ComponentAdapter() {
+          public void componentShown(ComponentEvent e) {
+            if (SplashScreen.getInstance() != null) {
+              SplashScreen.getInstance().toBack();
+            }
+          }
+        });
       }
       setupDialog.getContentPane().add(new JLabel(prompt));
       setupDialog.getContentPane().add(c.getControls());
@@ -196,7 +204,7 @@ public class PrefsEditor {
       write();
     }
     catch (IOException e) {
-      JOptionPane.showMessageDialog(dialog.getOwner(),"Unable to save preferences.\n","Save error",JOptionPane.ERROR_MESSAGE);
+      JOptionPane.showMessageDialog(dialog.getOwner(), "Unable to save preferences.\n", "Save error", JOptionPane.ERROR_MESSAGE);
     }
     dialog.setVisible(false);
   }
@@ -207,7 +215,7 @@ public class PrefsEditor {
 
   public void write() throws IOException {
     for (Enumeration e = prefs.elements(); e.hasMoreElements();) {
-      ((Prefs)e.nextElement()).save();
+      ((Prefs) e.nextElement()).save();
     }
     archive.write();
   }

@@ -181,7 +181,7 @@ public class ZonedGrid extends AbstractConfigurable implements MapGrid, GridCont
   }
 
   public int range(Point p1, Point p2) {
-    return background != null ? background.range(p1, p2) : 0;
+    return background != null ? background.range(p1, p2) : (int)Math.round(p1.distance(p2));
   }
 
   public Zone findZone(Point p) {
