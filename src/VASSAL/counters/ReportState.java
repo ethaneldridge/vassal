@@ -172,12 +172,12 @@ public class ReportState extends Decorator implements EditablePiece {
           }
           format.setFormat(theFormat);
 
-          String reportText = format.getText();
+          String reportText = format.getText(this);
 
           if (getMap() != null) {
             format.setFormat(getMap().getChangeFormat());
             format.setProperty(Map.MESSAGE, reportText);
-            reportText = format.getText();
+            reportText = format.getText(this);
           }
 
           if (reportText.length() > 0) {

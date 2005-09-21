@@ -33,6 +33,9 @@ import java.util.Vector;
 import java.io.File;
 import java.net.MalformedURLException;
 
+/**
+ * Displays a movement trail indicating where a piece has been moved
+ */
 public class Footprint extends MovementMarkable {
 
   public static final String ID = "footprint";
@@ -327,6 +330,7 @@ public class Footprint extends MovementMarkable {
     }
 
     g2d.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, transparency));
+    g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 
     float thickness = Math.max(1.0f,(float)(zoom*lineWidth));
     g2d.setStroke(new BasicStroke(thickness));
@@ -616,7 +620,7 @@ public class Footprint extends MovementMarkable {
     }
 
     public String getState() {
-      return "null";
+      return String.valueOf(gv.booleanValue().booleanValue());
     }
 
     public String getType() {
