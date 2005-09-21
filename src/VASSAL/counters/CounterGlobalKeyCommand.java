@@ -2,22 +2,23 @@ package VASSAL.counters;
 
 import VASSAL.build.GameModule;
 import VASSAL.build.module.Map;
-import VASSAL.build.module.map.boardPicker.Board;
 import VASSAL.build.module.documentation.HelpFile;
 import VASSAL.command.Command;
 import VASSAL.command.NullCommand;
 import VASSAL.configure.BooleanConfigurer;
 import VASSAL.configure.HotKeyConfigurer;
-import VASSAL.configure.StringConfigurer;
 import VASSAL.configure.IntConfigurer;
+import VASSAL.configure.StringConfigurer;
 import VASSAL.tools.FormattedString;
 import VASSAL.tools.SequenceEncoder;
 
 import javax.swing.*;
 import java.awt.*;
-import java.util.Enumeration;
-import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
+import java.util.Enumeration;
+import java.io.File;
+import java.net.MalformedURLException;
 
 /*
  * $Id$
@@ -143,36 +144,21 @@ public class CounterGlobalKeyCommand extends Decorator implements EditablePiece 
   }
 
   public HelpFile getHelpFile() {
-    return null;
+    File dir = VASSAL.build.module.Documentation.getDocumentationBaseDir();
+    dir = new File(dir, "ReferenceManual");
+    try {
+      return new HelpFile(null, new File(dir, "GlobalKeyCommand.htm"));
+    }
+    catch (MalformedURLException ex) {
+      return null;
+    }
   }
 
   public void apply() {
     PieceFilter filter = PropertiesPieceFilter.parse(new FormattedString(propertiesFilter).getText(this));
     Command c = new NullCommand();
     if (restrictRange) {
-      final Point myPos = getPosition();
-      final Map myMap = getMap();
-      final Board myBoard = myMap.findBoard(myPos);
-      PieceFilter rangeFilter = new PieceFilter() {
-        public boolean accept(GamePiece piece) {
-          if (piece.getMap() == myMap) {
-            Point pos = piece.getPosition();
-            Board b = piece.getMap().findBoard(pos);
-            if (b == myBoard) {
-              int range=Integer.MAX_VALUE;
-              if (b.getGrid() != null) {
-                range = b.getGrid().range(myPos,pos);
-              }
-              else {
-                range = (int)Math.round(myPos.distance(pos));
-              }
-              return range <= CounterGlobalKeyCommand.this.range;
-            }
-          }
-          return false;
-        }
-      };
-      filter = new BooleanAndPieceFilter(filter,rangeFilter);
+      filter = new BooleanAndPieceFilter(filter,new RangeFilter(getMap(), getPosition(),range));
     }
     for (Enumeration e = GameModule.getGameModule().getComponents(Map.class); e.hasMoreElements();) {
       Map m = (Map) e.nextElement();
@@ -224,7 +210,7 @@ public class CounterGlobalKeyCommand extends Decorator implements EditablePiece 
       restrictRange.addPropertyChangeListener(l);
       l.propertyChange(null);
 
-      suppress = new BooleanConfigurer(null, "Suppress individual reports?", p.globalCommand.isReportSingle());
+      suppress = new BooleanConfigurer(null, "Suppress individual reports", p.globalCommand.isReportSingle());
       controls.add(suppress.getControls());
     }
 

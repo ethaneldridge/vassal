@@ -116,9 +116,7 @@ public class PrefsEditor {
         setupDialog.setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
         setupDialog.addComponentListener(new ComponentAdapter() {
           public void componentShown(ComponentEvent e) {
-            if (SplashScreen.getInstance() != null) {
-              SplashScreen.getInstance().toBack();
-            }
+            SplashScreen.sendAllToBack();
           }
         });
       }

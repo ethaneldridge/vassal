@@ -18,24 +18,21 @@
  */
 package VASSAL.tools;
 
-import VASSAL.build.GameModule;
-
-import java.awt.*;
-import java.awt.event.*;
 import javax.swing.*;
+import java.awt.*;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.util.ArrayList;
+import java.util.Iterator;
 
 /**
  * Displays an image centered on the screen
  */
 public class SplashScreen extends JWindow {
-  private static SplashScreen instance;
-
-  public static SplashScreen getInstance() {
-    return instance;
-  }
+  private static java.util.List instances = new ArrayList();
 
   public SplashScreen(Image im) {
-    instance = this;
+    instances.add(this);
     getContentPane().add(new JLabel(new ImageIcon(im)));
     pack();
     Dimension d = Toolkit.getDefaultToolkit().getScreenSize();
@@ -52,6 +49,13 @@ public class SplashScreen extends JWindow {
     super.setVisible(vis);
     if (vis) {
       toFront();
+    }
+  }
+
+  public static void sendAllToBack() {
+    for (Iterator it = instances.iterator(); it.hasNext();) {
+      Window w = (Window) it.next();
+      w.toBack();
     }
   }
 }
