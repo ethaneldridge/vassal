@@ -87,6 +87,8 @@ public class Map extends AbstractConfigurable implements GameComponent,
   protected Vector mouseListenerStack = new Vector();
 
   protected Vector boards = new Vector();
+  private int[][] boardWidths; // Cache of board widths by row/column
+  private int[][] boardHeights; // Cache of board heights by row/column
 
   protected PieceCollection pieces = new DefaultPieceCollection();
 
@@ -515,7 +517,7 @@ public class Map extends AbstractConfigurable implements GameComponent,
   }
 
   /**
-   * 
+   *
    * @return the {@link Zone} on this map containing the argument point
    */
   public Zone findZone(Point p) {
@@ -526,10 +528,10 @@ public class Map extends AbstractConfigurable implements GameComponent,
         return ((ZonedGrid) grid).findZone(p);
       }
     }
-    
+
     return null;
   }
-  
+
   /**
    * Return the board with the given name
    * @param name
@@ -1013,9 +1015,11 @@ public class Map extends AbstractConfigurable implements GameComponent,
   }
 
   public void drawBoardsInRegion(Graphics g, Rectangle visibleRect) {
+    Point offset = new Point(edgeBuffer.width,edgeBuffer.height);
     for (int i = 0; i < boards.size(); ++i) {
       Board b = (Board) boards.elementAt(i);
-      b.drawRegion(g, componentCoordinates(b.bounds().getLocation()), visibleRect, getZoom(), theMap);
+      Point p = getZoom() == 1.0 ? b.bounds().getLocation() : getLocation(b,offset,getZoom());
+      b.drawRegion(g, p, visibleRect, getZoom(), theMap);
     }
   }
 
@@ -1069,7 +1073,6 @@ public class Map extends AbstractConfigurable implements GameComponent,
    * is in the upper left corner
    */
   public void paint(Graphics g, int xOffset, int yOffset) {
-    clearMapBorder(g); // To avoid ghost pieces around the edge
 
     drawBoards(g, xOffset, yOffset, getZoom(), theMap);
     drawPieces(g, xOffset, yOffset);
@@ -1177,24 +1180,40 @@ public class Map extends AbstractConfigurable implements GameComponent,
    * the origin of Board B will be adjusted N pixels to the right.
    */
   protected void setBoardBoundaries() {
-    for (int n = 0; n < boards.size(); ++n) {
-      Board board = (Board) boards.elementAt(n);
-      board.setLocation(0, 0);
-      for (int i = 0; i < boards.size(); i++) {
-        Board b = (Board) boards.elementAt(i);
-        if (b.relativePosition().x < board.relativePosition().x
-
-            && b.relativePosition().y == board.relativePosition().y) {
-          board.translate(b.bounds().width, 0);
-        }
-        if (b.relativePosition().y < board.relativePosition().y
-            && b.relativePosition().x == board.relativePosition().x) {
-          board.translate(0, b.bounds().height);
-        }
-      }
-      board.translate(edgeBuffer.width, edgeBuffer.height);
+    int maxX = 0;
+    int maxY = 0;
+    for (int i = 0,n = boards.size(); i < n; ++i) {
+      Point relPos = ((Board) boards.get(i)).relativePosition();
+      maxX = Math.max(maxX, relPos.x);
+      maxY = Math.max(maxY, relPos.y);
+    }
+    boardWidths = new int[maxX+1][maxY+1];
+    boardHeights = new int[maxX+1][maxY+1];
+    for (int i = 0,n = boards.size(); i < n; ++i) {
+      Board b = (Board) boards.get(i);
+      Point relPos = b.relativePosition();
+      boardWidths[relPos.x][relPos.y] = b.bounds().width;
+      boardHeights[relPos.x][relPos.y] = b.bounds().height;
+    }
+    Point offset = new Point(edgeBuffer.width, edgeBuffer.height);
+    for (int i = 0,n = boards.size(); i < n; ++i) {
+      Board b = (Board) boards.get(i);
+      Point location = getLocation(b, offset, 1.0);
+      b.setLocation(location.x, location.y);
     }
     theMap.revalidate();
+  }
+
+  protected Point getLocation(Board b, Point offset, double zoom) {
+    Point p = new Point(offset);
+    Point relPos = b.relativePosition();
+    for (int x = 0; x < relPos.x; ++x) {
+      p.translate((int) Math.floor(zoom * boardWidths[x][relPos.y]), 0);
+    }
+    for (int y = 0; y < relPos.y; ++y) {
+      p.translate(0, (int) Math.floor(zoom * boardHeights[relPos.x][y]));
+    }
+    return p;
   }
 
   /**
@@ -1202,11 +1221,11 @@ public class Map extends AbstractConfigurable implements GameComponent,
    * onto the given Graphics object */
   public void drawBoards(Graphics g, int xoffset, int yoffset,
                          double zoom, Component obs) {
+    Point offset = new Point(xoffset+(int)(zoom*edgeBuffer.width), yoffset+(int)(zoom*edgeBuffer.height));
     for (int i = 0; i < boards.size(); ++i) {
       Board b = (Board) boards.elementAt(i);
-      b.draw(g,
-             xoffset + Math.round(b.bounds().x * (float) zoom),
-             yoffset + Math.round(b.bounds().y * (float) zoom), zoom, obs);
+      Point p = zoom == 1.0 ? b.bounds().getLocation() : getLocation(b, offset, zoom);
+      b.draw(g, p.x, p.y, zoom, obs);
     }
   }
 

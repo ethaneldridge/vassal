@@ -151,6 +151,7 @@ public class Translate extends Decorator implements EditablePiece {
       }
       c.append(reportCommand);
       c.append(r.markMovedPieces());
+      getMap().ensureVisible(getMap().selectionBoundsOf(outer));
     }
     return c;
   }

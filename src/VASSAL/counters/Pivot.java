@@ -144,6 +144,7 @@ public class Pivot extends Decorator implements EditablePiece {
           }
           c = c.append(reportCommand);
           c = c.append(r.markMovedPieces());
+          getMap().ensureVisible(getMap().selectionBoundsOf(outer));
         }
         else {
           c = t.getChangeCommand();
