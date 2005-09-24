@@ -22,7 +22,9 @@ package tdc;
 import java.awt.Point;
 import java.awt.event.MouseEvent;
 
+import VASSAL.build.module.Map;
 import VASSAL.build.module.map.LOS_Thread;
+import VASSAL.build.module.map.boardPicker.Board;
 
 /**
  * @author Brent Easton
@@ -31,6 +33,28 @@ import VASSAL.build.module.map.LOS_Thread;
  * Force End point of LOS Thread to Snap to grid.
  */
 public class TdcThread extends LOS_Thread {
+  
+  public void draw(java.awt.Graphics g, Map m) {
+    if (!visible) {
+      return;
+    }
+    g.setColor(threadColor);
+    Point mapAnchor = map.componentCoordinates(anchor);
+    Point mapArrow = map.componentCoordinates(arrow);
+    g.drawLine(mapAnchor.x, mapAnchor.y, mapArrow.x, mapArrow.y);
+    Board b;
+    if (drawRange) {
+      if (rangeScale > 0) {
+        int dist = (int)(rangeRounding + anchor.getLocation().distance(arrow.getLocation())/rangeScale);
+        drawRange(g, dist);
+      }
+      else if ((b = map.findBoard(anchor)) != null
+        && b.getGrid() != null) {
+        drawRange(g, b.getGrid().range(b.snapTo(anchor), arrow));
+      }
+    }
+  }
+
   
   public void mouseDragged(MouseEvent e) {
     if (visible) {

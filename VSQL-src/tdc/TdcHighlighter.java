@@ -22,6 +22,7 @@ package tdc;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Graphics;
+import java.awt.Rectangle;
 
 import VASSAL.counters.ColoredBorder;
 import VASSAL.counters.GamePiece;
@@ -56,6 +57,12 @@ public class TdcHighlighter extends ColoredBorder {
         setColor(Color.red);
         setThickness(3);
         super.draw(p, g, x, y, obs, zoom);
+        Rectangle r = p.getShape().getBounds();
+        int x1 = x - 1 + (int) (zoom * r.x);
+        int y1 = y - 1 + (int) (zoom * r.y);
+        g.drawLine(x1, y1 + (int) (zoom * r.height), 
+                     x1 + (int) (zoom * r.width),
+                     y1);
         setColor(oldColor);
         setThickness(oldThickness);
       }
