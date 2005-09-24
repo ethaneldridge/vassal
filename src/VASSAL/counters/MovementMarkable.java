@@ -105,7 +105,7 @@ public class MovementMarkable extends Decorator implements EditablePiece {
   }
 
   public Command myKeyEvent(javax.swing.KeyStroke stroke) {
-    if (stroke.equals(key)) {
+    if (stroke != null && stroke.equals(key)) {
       ChangeTracker c = new ChangeTracker(this);
       // Set the property on the entire piece so all traits can respond
       Decorator.getOutermost(this).setProperty(Properties.MOVED, new Boolean(!hasMoved));

@@ -27,7 +27,7 @@ import java.net.MalformedURLException;
  * Library General Public License for more details.
  *
  * You should have received a copy of the GNU Library General Public
- * License along with this library; if not, copies are available 
+ * License along with this library; if not, copies are available
  * at http://www.opensource.org.
  */
 
@@ -35,132 +35,131 @@ import java.net.MalformedURLException;
  * This trait adds a command that creates a duplicate of the selected Gamepiece
  */
 public class Delete extends Decorator implements EditablePiece {
-	public static final String ID = "delete;";
-	private KeyCommand[] command;
-	private String commandName;
-	private KeyStroke key;
+  public static final String ID = "delete;";
+  private KeyCommand[] keyCommands;
+  private KeyCommand deleteCommand;
+  private String commandName;
+  private KeyStroke key;
 
-	public Delete() {
-		this(ID + "Delete;D", null);
-	}
+  public Delete() {
+    this(ID + "Delete;D", null);
+  }
 
-	public Delete(String type, GamePiece inner) {
-		mySetType(type);
-		setInner(inner);
-	}
+  public Delete(String type, GamePiece inner) {
+    mySetType(type);
+    setInner(inner);
+  }
 
-	public void mySetType(String type) {
-		type = type.substring(ID.length());
-		SequenceEncoder.Decoder st = new SequenceEncoder.Decoder(type, ';');
-		commandName = st.nextToken();
-		key = st.nextKeyStroke('D');
-    command = null;
-	}
+  public void mySetType(String type) {
+    type = type.substring(ID.length());
+    SequenceEncoder.Decoder st = new SequenceEncoder.Decoder(type, ';');
+    commandName = st.nextToken();
+    key = st.nextKeyStroke('D');
+    keyCommands = null;
+  }
 
-	public String myGetType() {
-		SequenceEncoder se = new SequenceEncoder(';');
-		se.append(commandName).append(key);
-		return ID + se.getValue();
-	}
+  public String myGetType() {
+    SequenceEncoder se = new SequenceEncoder(';');
+    se.append(commandName).append(key);
+    return ID + se.getValue();
+  }
 
-	protected KeyCommand[] myGetKeyCommands() {
-		if (command == null) {
-			if (commandName.length() > 0 && key != null) {
-				command =
-					new KeyCommand[] { new KeyCommand(commandName, key, Decorator.getOutermost(this))};
-			}
-			else {
-				command = new KeyCommand[0];
-			}
-		}
-		if (command.length > 0) {
-			command[0].setEnabled(getMap() != null);
-		}
-		return command;
-	}
+  protected KeyCommand[] myGetKeyCommands() {
+    if (keyCommands == null) {
+      deleteCommand = new KeyCommand(commandName, key, Decorator.getOutermost(this));
+      if (commandName.length() > 0) {
+        keyCommands = new KeyCommand[]{deleteCommand};
+      }
+      else {
+        keyCommands = new KeyCommand[0];
+      }
+    }
+    deleteCommand.setEnabled(getMap() != null);
+    return keyCommands;
+  }
 
-	public String myGetState() {
-		return "";
-	}
+  public String myGetState() {
+    return "";
+  }
 
-	public Command myKeyEvent(KeyStroke stroke) {
-		Command c = null;
-		myGetKeyCommands();
-		if (command[0].matches(stroke)) {
-			GamePiece outer = Decorator.getOutermost(this);
-			c = new RemovePiece(outer);
-			c.execute();
-		}
-		return c;
-	}
+  public Command myKeyEvent(KeyStroke stroke) {
+    Command c = null;
+    myGetKeyCommands();
+    if (deleteCommand.matches(stroke)) {
+      GamePiece outer = Decorator.getOutermost(this);
+      c = new RemovePiece(outer);
+      c.execute();
+    }
+    return c;
+  }
 
-	public void mySetState(String newState) {
-	}
+  public void mySetState(String newState) {
+  }
 
-	public Rectangle boundingBox() {
-		return piece.boundingBox();
-	}
+  public Rectangle boundingBox() {
+    return piece.boundingBox();
+  }
 
-	public void draw(Graphics g, int x, int y, Component obs, double zoom) {
-		piece.draw(g, x, y, obs, zoom);
-	}
+  public void draw(Graphics g, int x, int y, Component obs, double zoom) {
+    piece.draw(g, x, y, obs, zoom);
+  }
 
-	public String getName() {
-		return piece.getName();
-	}
+  public String getName() {
+    return piece.getName();
+  }
 
-	public Shape getShape() {
-		return piece.getShape();
-	}
+  public Shape getShape() {
+    return piece.getShape();
+  }
 
-	public PieceEditor getEditor() {
-		return new Ed(this);
-	}
+  public PieceEditor getEditor() {
+    return new Ed(this);
+  }
 
-	public String getDescription() {
-		return "Delete";
-	}
+  public String getDescription() {
+    return "Delete";
+  }
 
-	public HelpFile getHelpFile() {
-		File dir = VASSAL.build.module.Documentation.getDocumentationBaseDir();
-		dir = new File(dir, "ReferenceManual");
-		try {
-			return new HelpFile(null, new File(dir, "GamePiece.htm"),"#Delete");
-		}
-		catch (MalformedURLException ex) {
-			return null;
-		}
-	}
+  public HelpFile getHelpFile() {
+    File dir = VASSAL.build.module.Documentation.getDocumentationBaseDir();
+    dir = new File(dir, "ReferenceManual");
+    try {
+      return new HelpFile(null, new File(dir, "GamePiece.htm"), "#Delete");
+    }
+    catch (MalformedURLException ex) {
+      return null;
+    }
+  }
 
-	public static class Ed implements PieceEditor {
-		private StringConfigurer nameInput;
-		private HotKeyConfigurer keyInput;
-		private JPanel controls;
+  public static class Ed implements PieceEditor {
+    private StringConfigurer nameInput;
+    private HotKeyConfigurer keyInput;
+    private JPanel controls;
 
-		public Ed(Delete p) {
-			controls = new JPanel();
-			controls.setLayout(new BoxLayout(controls, BoxLayout.Y_AXIS));
+    public Ed(Delete p) {
+      controls = new JPanel();
+      controls.setLayout(new BoxLayout(controls, BoxLayout.Y_AXIS));
 
-			nameInput = new StringConfigurer(null, "Command name:  ", p.commandName);
-			controls.add(nameInput.getControls());
+      nameInput = new StringConfigurer(null, "Command name:  ", p.commandName);
+      controls.add(nameInput.getControls());
 
-			keyInput = new HotKeyConfigurer(null,"Keyboard Command:  ",p.key);
-			controls.add(keyInput.getControls());
+      keyInput = new HotKeyConfigurer(null, "Keyboard Command:  ", p.key);
+      controls.add(keyInput.getControls());
 
-		}
+    }
 
-		public Component getControls() {
-			return controls;
-		}
+    public Component getControls() {
+      return controls;
+    }
 
-		public String getType() {
-			SequenceEncoder se = new SequenceEncoder(';');
-			se.append(nameInput.getValueString()).append((KeyStroke)keyInput.getValue());
-			return ID + se.getValue();
-		}
+    public String getType() {
+      SequenceEncoder se = new SequenceEncoder(';');
+      se.append(nameInput.getValueString()).append((KeyStroke) keyInput.getValue());
+      return ID + se.getValue();
+    }
 
-		public String getState() {
-			return "";
-		}
-	}
+    public String getState() {
+      return "";
+    }
+  }
 }

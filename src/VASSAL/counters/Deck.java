@@ -637,10 +637,15 @@ public class Deck extends Stack {
     JButton b = new JButton("Ok");
     b.addActionListener(new ActionListener() {
       public void actionPerformed(ActionEvent e) {
-        nextDraw = new ArrayList();
         int[] selection = list.getSelectedIndices();
-        for (int i = 0; i < selection.length; ++i) {
-          nextDraw.add(getPieceAt(pieces.length - selection[i] - 1));
+        if (selection.length > 0) {
+          nextDraw = new ArrayList();
+          for (int i = 0; i < selection.length; ++i) {
+            nextDraw.add(getPieceAt(pieces.length - selection[i] - 1));
+          }
+        }
+        else {
+          nextDraw = null;
         }
         d.dispose();
       }

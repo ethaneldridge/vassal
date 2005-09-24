@@ -30,6 +30,7 @@ import VASSAL.tools.SequenceEncoder;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.geom.Area;
 import java.awt.event.InputEvent;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
@@ -154,10 +155,27 @@ public class Obscurable extends Decorator implements EditablePiece {
 
   public Shape getShape() {
     if (obscuredToMe()) {
-      return bBoxObscuredToMe();
+      return obscuredToMeView.getShape();
     }
     else if (obscuredToOthers()) {
-      return bBoxObscuredToOthers();
+      switch (displayStyle) {
+        case BACKGROUND:
+          return obscuredToMeView.getShape();
+        case INSET:
+          return piece.getShape();
+        case PEEK:
+          if (peeking && Boolean.TRUE.equals(getProperty(Properties.SELECTED))) {
+            return piece.getShape();
+          }
+          else {
+            return obscuredToMeView.getShape();
+          }
+        case IMAGE:
+          Area area = new Area(obscuredToOthersView.getShape());
+          area.add(new Area(piece.getShape()));
+          return area;
+      }
+      return piece.getShape();
     }
     else {
       return piece.getShape();
