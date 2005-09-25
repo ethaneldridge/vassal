@@ -30,6 +30,7 @@ import javax.swing.*;
 
 import java.awt.*;
 import java.awt.geom.AffineTransform;
+import java.awt.geom.Area;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.net.MalformedURLException;
@@ -55,7 +56,7 @@ public class Labeler extends Decorator implements EditablePiece {
   private String menuCommand = "Change Label";
   private Font font = new Font("Dialog", 0, 10);
   private KeyCommand[] commands;
-  private FormattedString nameFormat = new FormattedString("$"+PIECE_NAME+"$ ($"+LABEL+"$)");
+  private FormattedString nameFormat = new FormattedString("$" + PIECE_NAME + "$ ($" + LABEL + "$)");
   private static final String PIECE_NAME = "pieceName";
   private static final String LABEL = "label";
 
@@ -98,7 +99,7 @@ public class Labeler extends Decorator implements EditablePiece {
       horizontalOffset = st.nextInt(0);
       verticalJust = st.nextChar('b');
       horizontalJust = st.nextChar('c');
-      nameFormat.setFormat(st.nextToken("$"+PIECE_NAME+"$ ($"+LABEL+"$)"));
+      nameFormat.setFormat(st.nextToken("$" + PIECE_NAME + "$ ($" + LABEL + "$)"));
       String fontFamily = st.nextToken("Dialog");
       int fontStyle = st.nextInt(Font.PLAIN);
       font = new Font(fontFamily, fontStyle, fontSize);
@@ -143,7 +144,7 @@ public class Labeler extends Decorator implements EditablePiece {
       return piece.getName();
     }
     else {
-      nameFormat.setProperty(PIECE_NAME,piece.getName());
+      nameFormat.setProperty(PIECE_NAME, piece.getName());
       nameFormat.setProperty(LABEL, getLabel());
       return nameFormat.getText(this);
     }
@@ -190,7 +191,7 @@ public class Labeler extends Decorator implements EditablePiece {
   public void draw(Graphics g, int x, int y, Component obs, double zoom) {
     String label = getLabel();
     if (label != null
-      && !label.equals(lastCachedLabel)) {
+        && !label.equals(lastCachedLabel)) {
       labelImage = null;
     }
     if (labelImage == null && label != null && label.length() > 0) {
@@ -209,7 +210,7 @@ public class Labeler extends Decorator implements EditablePiece {
       if (rotateDegrees != 0) {
         saveXForm = g2d.getTransform();
         AffineTransform newXForm =
-          AffineTransform.getRotateInstance(Math.toRadians(rotateDegrees),x,y);
+            AffineTransform.getRotateInstance(Math.toRadians(rotateDegrees), x, y);
         g2d.transform(newXForm);
       }
 
@@ -295,7 +296,7 @@ public class Labeler extends Decorator implements EditablePiece {
     lbl.setSize(lbl.getPreferredSize());
     int width = lbl.getWidth();
     int height = lbl.getHeight();
-    BufferedImage im = new BufferedImage(width,height,BufferedImage.TYPE_4BYTE_ABGR);
+    BufferedImage im = new BufferedImage(width, height, BufferedImage.TYPE_4BYTE_ABGR);
     Graphics g = im.createGraphics();
     if (textBg != null) {
       g.setColor(textBg);
@@ -318,7 +319,15 @@ public class Labeler extends Decorator implements EditablePiece {
   }
 
   public Shape getShape() {
-    return piece.getShape();
+    if (labelKey != null) {
+      return piece.getShape();
+    }
+    else {
+      Area a = new Area(piece.getShape());
+      Rectangle r = new Rectangle(getLabelPosition(), lbl.getSize());
+      a.add(new Area(r));
+      return a;
+    }
   }
 
   public KeyCommand[] myGetKeyCommands() {
@@ -398,14 +407,14 @@ public class Labeler extends Decorator implements EditablePiece {
       initialValue = new StringConfigurer(null, "Text:  ", l.label);
       controls.add(initialValue.getControls());
 
-      format = new FormattedStringConfigurer(null,"Name format:  ",new String[]{PIECE_NAME,LABEL});
+      format = new FormattedStringConfigurer(null, "Name format:  ", new String[]{PIECE_NAME, LABEL});
       format.setValue(l.nameFormat.getFormat());
       controls.add(format.getControls());
 
       command = new StringConfigurer(null, "Menu Command:  ", l.menuCommand);
       controls.add(command.getControls());
 
-      labelKeyInput = new HotKeyConfigurer(null,"Keyboard Command:  ",l.labelKey);
+      labelKeyInput = new HotKeyConfigurer(null, "Keyboard Command:  ", l.labelKey);
       controls.add(labelKeyInput.getControls());
 
       Box b = Box.createHorizontalBox();
@@ -495,7 +504,7 @@ public class Labeler extends Decorator implements EditablePiece {
 
     public String getType() {
       SequenceEncoder se = new SequenceEncoder(';');
-      se.append((KeyStroke)labelKeyInput.getValue());
+      se.append((KeyStroke) labelKeyInput.getValue());
       se.append(command.getValueString());
 
       Integer i = (Integer) fontSize.getValue();
@@ -523,8 +532,8 @@ public class Labeler extends Decorator implements EditablePiece {
       se.append(format.getValueString());
       se.append(fontFamily.getSelectedItem().toString());
       int style = Font.PLAIN + (bold.booleanValue().booleanValue() ? Font.BOLD : 0)
-                             + (italic.booleanValue().booleanValue() ? Font.ITALIC : 0);
-      se.append(style+"");
+          + (italic.booleanValue().booleanValue() ? Font.ITALIC : 0);
+      se.append(style + "");
       i = (Integer) rotate.getValue();
       if (i == null) {
         i = new Integer(0);
