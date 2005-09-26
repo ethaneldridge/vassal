@@ -106,7 +106,7 @@ public class NotesWindow extends AbstractConfigurable
   protected void save() {
     Command c = new NullCommand();
     if (!lastSavedNotes.equals(notes.getValue())) {
-      c.append(new SetNote((String) notes.getValue()));
+      c.append(new SetNote(notes.getValueString()));
     }
     c.append(privateNotes.save());
     c.append(secretNotes.save());

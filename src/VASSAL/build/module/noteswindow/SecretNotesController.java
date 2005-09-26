@@ -137,8 +137,8 @@ public class SecretNotesController implements GameComponent, CommandEncoder, Add
       s = COMMAND_PREFIX +
           se.append(note.getName())
           .append(note.getOwner())
-          .append("" + note.isHidden())
-          .append(note.getText())
+          .append(note.isHidden())
+          .append(TextConfigurer.escapeNewlines(note.getText()))
           .append(date)
           .append(note.getHandle()).getValue();
     }

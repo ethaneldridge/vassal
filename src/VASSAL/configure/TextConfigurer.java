@@ -45,11 +45,30 @@ public class TextConfigurer extends Configurer {
     return escapeNewlines((String) getValue());
   }
 
+  /**
+   * Encodes a string by replacing newlines with '|' characters
+   * @param s
+   * @return
+   */
   public static String escapeNewlines(String s) {
     SequenceEncoder se = new SequenceEncoder('|');
-    StringTokenizer st = new StringTokenizer(s, "\n\r");
+    StringTokenizer st = new StringTokenizer(s, "\n\r", true);
+    boolean wasNewLine = true;
     while (st.hasMoreTokens()) {
-      se.append(st.nextToken());
+      String token = st.nextToken();
+      switch (token.charAt(0)) {
+        case '\n':
+          if (wasNewLine) {
+            se.append("");
+          }
+          wasNewLine = true;
+          break;
+        case '\r':
+          break;
+        default:
+          se.append(token);
+          wasNewLine = false;
+      }
     }
     return se.getValue() == null ? "" : se.getValue();
   }
@@ -66,6 +85,11 @@ public class TextConfigurer extends Configurer {
     }
   }
 
+  /**
+   * Restores a string by replacing '|' with newlines
+   * @param s
+   * @return
+   */
   public static String restoreNewlines(String s) {
     SequenceEncoder.Decoder st = new SequenceEncoder.Decoder(s, '|');
     String text = "";
