@@ -403,6 +403,12 @@ public class FreeRotator extends Decorator implements EditablePiece, MouseListen
   public void mouseMoved(MouseEvent e) {
   }
 
+  /**
+   * Return a full-scale cached image of this piece, rotated to the appropriate angle.
+   * @param angle
+   * @param obs
+   * @return
+   */
   public Image getRotatedImage(double angle, Component obs) {
     Image rotated = getCachedUnrotatedImage(angle);
     if (unrotated.isChanged()) {
@@ -414,15 +420,21 @@ public class FreeRotator extends Decorator implements EditablePiece, MouseListen
       if (Info.is2dEnabled()) {
         Rectangle unrotatedBounds = piece.boundingBox();
         rotatedBounds = boundingBox();
-        rotated = new BufferedImage(rotatedBounds.width, rotatedBounds.height, BufferedImage.TYPE_4BYTE_ABGR);
-        ((BufferedImage) rotated).setRGB(0, 0, rotatedBounds.width, rotatedBounds.height, new int[rotatedBounds.width * rotatedBounds.height], 0, rotatedBounds.width);
-        Graphics2D g2d = ((BufferedImage) rotated).createGraphics();
-        g2d.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR);
-//      g2d.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_NEAREST_NEIGHBOR);
-        AffineTransform t = AffineTransform.getTranslateInstance(-rotatedBounds.x, -rotatedBounds.y);
-        t.rotate(-Math.PI * angle / 180.0);
-        t.translate(unrotatedBounds.x, unrotatedBounds.y);
-        g2d.drawImage(unrotated.getImage(obs), t, obs);
+        if (rotatedBounds.width > 0
+            && rotatedBounds.height > 0) {
+          rotated = new BufferedImage(rotatedBounds.width, rotatedBounds.height, BufferedImage.TYPE_4BYTE_ABGR);
+          ((BufferedImage) rotated).setRGB(0, 0, rotatedBounds.width, rotatedBounds.height, new int[rotatedBounds.width * rotatedBounds.height], 0, rotatedBounds.width);
+          Graphics2D g2d = ((BufferedImage) rotated).createGraphics();
+          g2d.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR);
+          AffineTransform t = AffineTransform.getTranslateInstance(-rotatedBounds.x, -rotatedBounds.y);
+          t.rotate(-Math.PI * angle / 180.0);
+          t.translate(unrotatedBounds.x, unrotatedBounds.y);
+          g2d.drawImage(unrotated.getImage(obs), t, obs);
+        }
+        else {
+          // If no visible area, create a dummy 1x1 transparent image
+          rotated = new BufferedImage(1, 1, BufferedImage.TYPE_4BYTE_ABGR);
+        }
       }
       else {
         RotateFilter filter = new RotateFilter(angle);
