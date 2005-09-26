@@ -21,6 +21,7 @@ package VASSAL.tools;
 import VASSAL.build.module.GlobalOptions;
 import VASSAL.build.module.PlayerRoster;
 import VASSAL.build.GameModule;
+import VASSAL.counters.GamePiece;
 
 /** Utility subclass of {@link FormattedString} which automatically includes
  * variables for Player name, side, and id
@@ -33,10 +34,10 @@ public class PlayerIdFormattedString extends FormattedString {
     super(s);
   }
 
-  public String getText() {
+  public String getText(GamePiece piece) {
     setProperty(GlobalOptions.PLAYER_NAME, (String) GameModule.getGameModule().getPrefs().getValue(GameModule.REAL_NAME));
     setProperty(GlobalOptions.PLAYER_SIDE,PlayerRoster.getMySide());
     setProperty(GlobalOptions.PLAYER_ID,GlobalOptions.getInstance().getPlayerId());
-    return super.getText();
+    return super.getText(piece);
   }
 }
