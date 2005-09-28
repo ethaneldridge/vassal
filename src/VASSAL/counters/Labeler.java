@@ -350,7 +350,7 @@ public class Labeler extends Decorator implements EditablePiece {
         && commands[0].matches(stroke)) {
       ChangeTracker tracker = new ChangeTracker(this);
       String s = (String) JOptionPane.showInputDialog
-          (getMap() == null ? null : getMap().getView(),
+          (getMap() == null ? null : getMap().getView().getTopLevelAncestor(),
            commands[0].getName(),
            null,
            JOptionPane.QUESTION_MESSAGE,

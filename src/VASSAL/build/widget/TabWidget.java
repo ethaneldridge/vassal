@@ -59,7 +59,7 @@ public class TabWidget extends Widget
             widgets.addElement(w);
             if (tab != null) {
                 tab.removeChangeListener(this);
-                if (widgets.size() > 0) {
+                if (widgets.size() > 1) {
                     tab.addTab(w.getConfigureName(), new JPanel());
                 }
                 else {

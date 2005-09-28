@@ -311,6 +311,7 @@ public class Map extends AbstractConfigurable implements GameComponent,
       addChild(new KeyBufferer());
       addChild(new ImageSaver());
       addChild(new CounterDetailViewer());
+      setMapName("Main Map");
     }
     setup(false);
   }

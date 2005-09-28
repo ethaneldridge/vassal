@@ -122,6 +122,9 @@ public class MovePiece extends Command {
           if (newMap.apply(mergeFinder) == null) {
             newMap.placeAt(piece, newPosition);
           }
+          if (piece.getParent() != null) {
+            piece.getParent().insert(piece, 0);
+          }
         }
       }
       else {
