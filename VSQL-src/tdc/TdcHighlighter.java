@@ -39,7 +39,8 @@ public class TdcHighlighter extends ColoredBorder {
   }
 
   /**
-   * Change outline Color to 3 pixel wide Red if unit is not in command.
+   * Change outline Color to 3 pixel wide Red and a diagonal 1 pixel
+   * slash if unit is not in command.
    */
   public void draw(GamePiece p, Graphics g, int x, int y, Component obs, double zoom) {
 

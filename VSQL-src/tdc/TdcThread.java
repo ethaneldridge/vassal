@@ -19,14 +19,18 @@
  
 package tdc;
 
+import java.awt.Color;
 import java.awt.Point;
 import java.awt.event.MouseEvent;
+
+import javax.swing.KeyStroke;
 
 import VASSAL.build.module.Map;
 import VASSAL.build.module.map.LOS_Thread;
 import VASSAL.build.module.map.boardPicker.Board;
 import VASSAL.build.module.map.boardPicker.board.HexGrid;
 import VASSAL.build.module.map.boardPicker.board.mapgrid.HexGridNumbering;
+import VASSAL.configure.VisibilityCondition;
 
 /**
  * @author Brent Easton
@@ -35,6 +39,111 @@ import VASSAL.build.module.map.boardPicker.board.mapgrid.HexGridNumbering;
  * Force End point of LOS Thread to Snap to grid.
  */
 public class TdcThread extends LOS_Thread {
+  
+  public static final String HIDE_OPACITY = "hideOpacity";
+  protected int hideOpacity = 0;
+  
+  public String[] getAttributeNames() {
+    return new String[]{HOTKEY, LABEL, DRAW_RANGE, RANGE_SCALE, RANGE_ROUNDING, HIDE_COUNTERS, HIDE_OPACITY, LOS_COLOR, RANGE_FOREGROUND, RANGE_BACKGROUND};
+  }
+  
+  public String[] getAttributeDescriptions() {
+    return new String[]{"Hotkey",
+                        "Button text",
+                        "Draw Range",
+                        "Pixels per range unit",
+                        "Round fractions",
+                        "Hide Pieces while drawing",
+                        "Opacity of hidden pieces (0-100%)",
+                        "Thread color"};
+  }
+
+  public Class[] getAttributeTypes() {
+    return new Class[]{KeyStroke.class,
+                       String.class,
+                       Boolean.class,
+                       Integer.class,
+                       RoundingOptions.class,
+                       Boolean.class,
+                       Integer.class,
+                       Color.class};
+  }
+
+  public void setAttribute(String key, Object value) {
+    if (HIDE_OPACITY.equals(key)) {
+      if (value instanceof String) {
+        value = new Integer((String) value);
+      }
+      setTransparency (((Integer) value).intValue());
+    }
+    else {
+      super.setAttribute(key, value);
+    }
+  }
+
+
+  protected void setTransparency(int h) {
+    if (h < 0) {
+      hideOpacity = 0;
+    }
+    else if (h > 100) {
+      hideOpacity = 100;
+    }
+    else {
+      hideOpacity = h;
+    }
+  }
+
+  public String getAttributeValueString(String key) {
+    if (HIDE_OPACITY.equals(key)) {
+      return String.valueOf(hideOpacity);
+    }
+    else {
+      return super.getAttributeValueString(key);
+    }
+  }
+  
+  public VisibilityCondition getAttributeVisibility(String name) {
+    VisibilityCondition cond = null;
+    if (HIDE_OPACITY.equals(name)) {
+      cond = new VisibilityCondition() {
+        public boolean shouldBeVisible() {
+          return hideCounters;
+        }
+      };
+      return cond;
+    }
+    else {
+      return super.getAttributeVisibility(name);
+    }      
+  }
+  
+  protected void launch() {
+    if (!visible) {
+      map.pushMouseListener(this);
+      if (hideCounters) {
+        ((TdcMap) map).setPieceOpacity(hideOpacity / 100.0f);
+        map.repaint();
+      }
+      visible = true;
+      anchor.move(0, 0);
+      arrow.move(0, 0);
+      retainAfterRelease = false;
+    }
+  }
+  
+  public void mouseReleased(MouseEvent e) {
+    if (retainAfterRelease) {
+      retainAfterRelease = false;
+    }
+    else if (e.getWhen() != lastRelease) {
+      visible = false;
+      ((TdcMap) map).setPieceOpacity(1.0f);
+      map.popMouseListener();
+      map.repaint();
+    }
+    lastRelease = e.getWhen();
+  }
   
   public void draw(java.awt.Graphics g, Map m) {
     if (!visible) {
@@ -53,21 +162,16 @@ public class TdcThread extends LOS_Thread {
       else if ((b = map.findBoard(anchor)) != null
         && b.getGrid() != null) {
 
-        Point new_anchor = smartSnap(m, b, anchor);
-        Point new_arrow = smartSnap(m, b, arrow);
-//        int anchor_col = numbering.getColumn(b.snapTo(anchor));
-//        int anchor_row = numbering.getRow(b.snapTo(anchor));
-//        int arrow_col = numbering.getColumn(arrow);
-//        int arrow_row = numbering.getRow(arrow);
+        Point new_anchor = trueSnap(m, b, anchor);
+        Point new_arrow = trueSnap(m, b, arrow);
         
         int range = b.getGrid().range(new_anchor, new_arrow);
-        //drawRange(g, b.getGrid().range(b.snapTo(anchor), arrow));
         drawRange(g, range);
       }
     }
   }
 
-  protected Point smartSnap(Map m, Board b, Point anchor) {
+  protected Point trueSnap(Map m, Board b, Point anchor) {
     HexGrid grid = (HexGrid) b.getGrid();
     HexGridNumbering numbering = (HexGridNumbering) grid.getGridNumbering();
     double dx = grid.getHexWidth() / 4;

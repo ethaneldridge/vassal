@@ -26,7 +26,9 @@ import java.awt.Graphics2D;
 import java.awt.Point;
 import java.awt.Rectangle;
 
+import VASSAL.build.Buildable;
 import VASSAL.build.module.Map;
+import VASSAL.counters.BasicPiece;
 import VASSAL.counters.GamePiece;
 import VASSAL.counters.Properties;
 import VASSAL.counters.Stack;
@@ -37,6 +39,13 @@ import VASSAL.counters.Stack;
 public class TdcMap extends Map {
 
   private float pieceOpacity = 1.0f;
+  
+  public void addTo(Buildable b) {
+    super.addTo(b);
+    TdcHighlighter highlighter = new TdcHighlighter();
+    setHighlighter(highlighter);
+    BasicPiece.setHighlighter(highlighter);
+  }
   
   public Point componentCoordinates(Point p1) {
     return new Point((int) Math.round(p1.x * getZoom()), (int) Math.round(p1.y * getZoom()));
