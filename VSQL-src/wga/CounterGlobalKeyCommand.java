@@ -166,9 +166,9 @@ public class CounterGlobalKeyCommand extends Decorator implements EditablePiece,
     /*
      * Rebuild the Properties filter if it contains variable elements.
      */
-    if (propertiesFilter.indexOf(Marker.PROPERTY_MARKER) >= 0) {
-      filter = PropertiesPieceFilter.parse(Marker.updateMarkers(propertiesFilter, this));
-    }
+//    if (propertiesFilter.indexOf(Marker.PROPERTY_MARKER) >= 0) {
+//      filter = PropertiesPieceFilter.parse(Marker.updateMarkers(propertiesFilter, this));
+//    }
     for (Enumeration e = GameModule.getGameModule().getComponents(Map.class); e.hasMoreElements();) {
       Map m = (Map) e.nextElement();
       apply(m);

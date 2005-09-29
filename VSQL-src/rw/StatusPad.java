@@ -1,14 +1,23 @@
 package rw;
 
 import java.awt.Component;
+import java.awt.Container;
+import java.awt.Dimension;
+import java.awt.Frame;
 import java.awt.Graphics;
+import java.awt.Image;
 import java.awt.Rectangle;
 import java.awt.Shape;
+import java.awt.image.BufferedImage;
 
 import javax.swing.BoxLayout;
+import javax.swing.JDialog;
+import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.KeyStroke;
 
+import VASSAL.build.GameModule;
+import VASSAL.build.module.Map;
 import VASSAL.build.module.documentation.HelpFile;
 import VASSAL.command.Command;
 import VASSAL.configure.HotKeyConfigurer;
@@ -48,9 +57,13 @@ public class StatusPad extends Decorator implements EditablePiece {
   protected static final String DEFAULT_COMMAND = "Status";
   protected static final char DEFAULT_KEY = 'S';
   
+  public static final String BACKGROUND_IMAGE = "statuspad.png"; 
+  protected static Image backgroundImage;
+     
   protected KeyCommand[] command;
   protected String commandName;
   protected KeyStroke key;
+  protected StatusPadDialog frame;
 
   public StatusPad() {
     this(ID + DEFAULT_COMMAND + ";" + DEFAULT_KEY, null);
@@ -99,7 +112,11 @@ public class StatusPad extends Decorator implements EditablePiece {
     Command c = null;
     myGetKeyCommands();
     if (command[0].matches(stroke)) {
-      
+      if (frame == null) {
+        frame = buildDialog();
+        frame.pack();
+      }
+      frame.setVisible(true);
     }
     return c;
   }
@@ -135,6 +152,82 @@ public class StatusPad extends Decorator implements EditablePiece {
       return null;
   }
 
+  /**
+   * Share background image between all Status Pads
+   * @return background Image
+   */
+  public static Image getBackgroundImage() {
+    if (backgroundImage == null) {
+      try {
+        backgroundImage = GameModule.getGameModule().getDataArchive().getCachedImage(BACKGROUND_IMAGE);
+      }
+      catch (Exception e) {
+        backgroundImage = new BufferedImage(100, 100, BufferedImage.TYPE_INT_ARGB);
+      }
+    }
+    return backgroundImage;
+  }
+  
+  /**
+   * Build the Status Pad Dialog
+   */
+  public StatusPadDialog buildDialog() {
+    Map map = piece.getMap();
+    Frame parent = null;
+    
+    if (map != null && map.getView() != null) {
+      Container topWin = map.getView().getTopLevelAncestor();
+      if (topWin instanceof JFrame) {
+        parent = (Frame) topWin;
+      }
+    }
+
+    StatusPadDialog dialog = new StatusPadDialog(parent);
+    return dialog;
+  }
+  
+  /**
+   * The Status Pad Dialog
+   */
+  public class StatusPadDialog extends JDialog {
+
+    protected int width, height;
+
+    protected Frame owner;
+    protected JPanel mainPanel;
+    
+    public StatusPadDialog (Frame owner) {
+      super(owner, false);
+      this.owner = owner;
+      mainPanel = new StatusPanel(this);
+      getContentPane().add(mainPanel);
+    }
+  }
+  
+  /**
+   * 
+   * The Main Panel of the Status Pad, drawing the background Image.
+   * Create all sub-components in here
+   */
+  protected class StatusPanel extends JPanel {
+    
+    protected Component parent;
+    
+    public StatusPanel(Component owner) {
+      parent = owner;
+
+      getBackgroundImage().getWidth(owner); // Forces the image to size itself
+      Dimension size = new Dimension(getBackgroundImage().getWidth(owner), getBackgroundImage().getHeight(owner));
+
+      setSize(size);
+      setPreferredSize(size);
+    }
+    
+    protected void paintComponent(Graphics g) {
+      g.drawImage(getBackgroundImage(), 0, 0, parent);
+    }
+  }
+  
   public static class Ed implements PieceEditor {
     private StringConfigurer nameInput;
     private HotKeyConfigurer keyInput;

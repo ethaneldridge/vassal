@@ -58,11 +58,11 @@ public class TdcHighlighter extends ColoredBorder {
         setThickness(3);
         super.draw(p, g, x, y, obs, zoom);
         Rectangle r = p.getShape().getBounds();
-        int x1 = x - 1 + (int) (zoom * r.x);
-        int y1 = y - 1 + (int) (zoom * r.y);
-        g.drawLine(x1, y1 + (int) (zoom * r.height), 
-                     x1 + (int) (zoom * r.width),
-                     y1);
+        int x1 = x + (int) (zoom * r.x) - 1;
+        int y2 = y + (int) (zoom * (r.y + r.height));
+        int x2 = x1 + (int) (zoom * r.width);
+        int y1 = y2 - (int) (zoom * 75);
+        g.drawLine(x1, y2, x2, y1);
         setColor(oldColor);
         setThickness(oldThickness);
       }

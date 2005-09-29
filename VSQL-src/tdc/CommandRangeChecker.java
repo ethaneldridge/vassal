@@ -92,7 +92,7 @@ public class CommandRangeChecker {
     }
     
     if (leaderFormationValue != null && leaderFormationValue.length() > 0 && piece.getMap() != null) {
-      PieceFilter filter = PropertiesPieceFilter.parse(TdcProperties.CLASS + "=" + TdcProperties.LEADER + " & "
+      PieceFilter filter = PropertiesPieceFilter.parse(TdcProperties.CLASS + "=" + TdcProperties.LEADER + " && "
           + leaderFormationType + " = " + leaderFormationValue);
       LeaderVisitor visitor = new LeaderVisitor(filter, piece);
       PieceVisitorDispatcher dispatcher = new PieceVisitorDispatcher(visitor);
