@@ -146,7 +146,7 @@ public class Labeler extends Decorator implements EditablePiece {
     else {
       nameFormat.setProperty(PIECE_NAME, piece.getName());
       nameFormat.setProperty(LABEL, getLabel());
-      return nameFormat.getText(this);
+      return nameFormat.getText(Decorator.getOutermost(this));
     }
   }
 
@@ -307,7 +307,7 @@ public class Labeler extends Decorator implements EditablePiece {
   }
 
   public String getLabel() {
-    return new FormattedString(label).getText(this);
+    return new FormattedString(label).getText(Decorator.getOutermost(this));
   }
 
   public Rectangle boundingBox() {

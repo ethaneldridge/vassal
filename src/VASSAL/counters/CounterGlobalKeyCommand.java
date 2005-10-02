@@ -155,7 +155,7 @@ public class CounterGlobalKeyCommand extends Decorator implements EditablePiece 
   }
 
   public void apply() {
-    PieceFilter filter = PropertiesPieceFilter.parse(new FormattedString(propertiesFilter).getText(this));
+    PieceFilter filter = PropertiesPieceFilter.parse(new FormattedString(propertiesFilter).getText(Decorator.getOutermost(this)));
     Command c = new NullCommand();
     if (restrictRange) {
       filter = new BooleanAndPieceFilter(filter,new RangeFilter(getMap(), getPosition(),range));
