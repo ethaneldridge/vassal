@@ -70,30 +70,37 @@ public class PropertiesPieceFilter {
       }
       else {
         for (int i = 0; i < CONDITIONS.length && f == null; i++) {
-          s = CONDITIONS[i].split(expression);
-          if (s.length == 2) {
-            String name = s[0].trim();
-            String value = s[1].trim();
-            switch (i) {
-              case 0:
-                f = new NE(name, value);
-                break;
-              case 1:
-                f = new LE(name, value);
-                break;
-              case 2:
-                f = new GE(name, value);
-                break;
-              case 3:
-                f = new LT(name, value);
-                break;
-              case 4:
-                f = new GT(name, value);
-                break;
-              case 5:
-                f = new EQ(name, value);
-                break;
+          if (expression.indexOf(CONDITIONS[i].pattern()) >= 0) {
+            s = CONDITIONS[i].split(expression);
+            String name = "";
+            String value = "";
+            if (s.length > 0) {
+              name = s[0].trim();
+              if (s.length > 1) {
+                value = s[1].trim();
+              }
+              switch (i) {
+                case 0:
+                  f = new NE(name, value);
+                  break;
+                case 1:
+                  f = new LE(name, value);
+                  break;
+                case 2:
+                  f = new GE(name, value);
+                  break;
+                case 3:
+                  f = new GT(name, value);
+                  break;
+                case 4:
+                  f = new LT(name, value);
+                  break;
+                case 5:
+                  f = new EQ(name, value);
+                  break;
+              }
             }
+            break;
           }
         }
         if (f == null) {
