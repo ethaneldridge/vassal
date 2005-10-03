@@ -45,13 +45,13 @@ import java.util.Enumeration;
  */
 public class Translate extends Decorator implements EditablePiece {
   public static final String ID = "translate;";
-  private KeyCommand[] commands;
-  private String commandName;
-  private KeyStroke keyCommand;
-  private int xDist;
-  private int yDist;
-  private boolean moveStack;
-  private KeyCommand moveCommand;
+  protected KeyCommand[] commands;
+  protected String commandName;
+  protected KeyStroke keyCommand;
+  protected int xDist;
+  protected int yDist;
+  protected boolean moveStack;
+  protected KeyCommand moveCommand;
 
   public Translate() {
     this(ID + "Move Forward", null);

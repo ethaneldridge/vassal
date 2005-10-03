@@ -62,7 +62,7 @@ public class Stack implements GamePiece, StateMergeable {
   }
 
   /**
-   * @return an Enumeration of the pieces in the stack.
+   * @return an Enumeration of the pieces in the stack, from the bottom up
    * This is a clone of the contents so add/remove operations
    * during read won't affect it.
    */
@@ -70,6 +70,10 @@ public class Stack implements GamePiece, StateMergeable {
     return new AllPieceEnum();
   }
 
+  /**
+   * Return an enumeration of the pieces in the start, from the top down
+   * @return
+   */
   public Enumeration getPiecesInReverseOrder() {
     return new ReversePieceEnum();
   }

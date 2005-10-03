@@ -56,6 +56,7 @@ public class LOS_Thread extends AbstractConfigurable implements
   public static final String LABEL = "label";
   public static final String DRAW_RANGE = "drawRange";
   public static final String HIDE_COUNTERS = "hideCounters";
+  public static final String HIDE_OPACITY = "hideOpacity";
   public static final String RANGE_BACKGROUND = "rangeBg";
   public static final String RANGE_FOREGROUND = "rangeFg";
   public static final String RANGE_SCALE = "scale";
@@ -78,6 +79,7 @@ public class LOS_Thread extends AbstractConfigurable implements
   protected int rangeScale;
   protected double rangeRounding=0.5;
   protected boolean hideCounters;
+  protected int hideOpacity = 0;
   protected String fixedColor;
   protected Color threadColor = Color.black, rangeFg = Color.white, rangeBg = Color.black;
 
@@ -160,7 +162,7 @@ public class LOS_Thread extends AbstractConfigurable implements
    * </pre>
    */
   public String[] getAttributeNames() {
-    return new String[]{HOTKEY, LABEL, DRAW_RANGE, RANGE_SCALE, RANGE_ROUNDING, HIDE_COUNTERS, LOS_COLOR, RANGE_FOREGROUND, RANGE_BACKGROUND};
+    return new String[]{HOTKEY, LABEL, DRAW_RANGE, RANGE_SCALE, RANGE_ROUNDING, HIDE_COUNTERS, HIDE_OPACITY, LOS_COLOR, RANGE_FOREGROUND, RANGE_BACKGROUND};
   }
 
   public void setAttribute(String key, Object value) {
@@ -193,6 +195,12 @@ public class LOS_Thread extends AbstractConfigurable implements
       }
       hideCounters = ((Boolean) value).booleanValue();
     }
+    else if (HIDE_OPACITY.equals(key)) {
+      if (value instanceof String) {
+        value = new Integer((String) value);
+      }
+      setTransparency (((Integer) value).intValue());
+    }
     else if (RANGE_FOREGROUND.equals(key)) {
       if (value instanceof String) {
         value = ColorConfigurer.stringToColor((String) value);
@@ -217,6 +225,19 @@ public class LOS_Thread extends AbstractConfigurable implements
     }
   }
 
+
+  protected void setTransparency(int h) {
+    if (h < 0) {
+      hideOpacity = 0;
+    }
+    else if (h > 100) {
+      hideOpacity = 100;
+    }
+    else {
+      hideOpacity = h;
+    }
+  }
+
   public String getAttributeValueString(String key) {
     if (DRAW_RANGE.equals(key)) {
       return "" + drawRange;
@@ -237,6 +258,9 @@ public class LOS_Thread extends AbstractConfigurable implements
     }
     else if (HIDE_COUNTERS.equals(key)) {
       return "" + hideCounters;
+    }
+    else if (HIDE_OPACITY.equals(key)) {
+      return String.valueOf(hideOpacity);
     }
     else if (RANGE_FOREGROUND.equals(key)) {
       return ColorConfigurer.colorToString(rangeFg);
@@ -281,7 +305,7 @@ public class LOS_Thread extends AbstractConfigurable implements
     if (!visible) {
       map.pushMouseListener(this);
       if (hideCounters) {
-        map.setPiecesVisible(false);
+        map.setPieceOpacity(hideOpacity / 100.0f);
         map.repaint();
       }
       visible = true;
@@ -320,7 +344,8 @@ public class LOS_Thread extends AbstractConfigurable implements
     }
     else if (e.getWhen() != lastRelease) {
       visible = false;
-      map.setPiecesVisible(true);
+      //map.setPiecesVisible(true);
+      map.setPieceOpacity(1.0f);
       map.popMouseListener();
       map.repaint();
     }
@@ -406,6 +431,7 @@ public class LOS_Thread extends AbstractConfigurable implements
                         "Pixels per range unit",
                         "Round fractions",
                         "Hide Pieces while drawing",
+                        "Opacity of hidden pieces (0-100%)",
                         "Thread color"};
   }
 
@@ -416,6 +442,7 @@ public class LOS_Thread extends AbstractConfigurable implements
                        Integer.class,
                        RoundingOptions.class,
                        Boolean.class,
+                       Integer.class,
                        Color.class};
   }
 
@@ -428,7 +455,14 @@ public class LOS_Thread extends AbstractConfigurable implements
           return drawRange;
         }
       };
+    } else if (HIDE_OPACITY.equals(name)) {
+      cond = new VisibilityCondition() {
+        public boolean shouldBeVisible() {
+          return hideCounters;
+        }
+      };
     }
+      
     return cond;
   }
 

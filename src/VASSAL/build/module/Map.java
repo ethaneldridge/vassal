@@ -96,6 +96,7 @@ public class Map extends AbstractConfigurable implements GameComponent,
 
   private boolean clearFirst = false;  //  Whether to clear the display before drawing the map
   private boolean hideCounters = false;//  Option to hide counters to see map
+  protected float pieceOpacity = 1.0f;
   private boolean allowMultiple = false;
   private VisibilityCondition visibilityCondition;
   private DragGestureListener dragGestureListener;
@@ -1030,6 +1031,9 @@ public class Map extends AbstractConfigurable implements GameComponent,
 
   public void drawPiecesInRegion(Graphics g, Rectangle visibleRect) {
     if (!hideCounters) {
+      Graphics2D g2d = (Graphics2D) g;
+      Composite oldComposite = g2d.getComposite();
+      g2d.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER,pieceOpacity));
       GamePiece[] stack = pieces.getPieces();
       for (int i = 0; i < stack.length; ++i) {
         Point pt = componentCoordinates(stack[i].getPosition());
@@ -1044,11 +1048,15 @@ public class Map extends AbstractConfigurable implements GameComponent,
           }
         }
       }
+      g2d.setComposite(oldComposite);
     }
   }
 
   public void drawPieces(Graphics g, int xOffset, int yOffset) {
     if (!hideCounters) {
+      Graphics2D g2d = (Graphics2D) g;
+      Composite oldComposite = g2d.getComposite();
+      g2d.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER,pieceOpacity));
       GamePiece[] stack = pieces.getPieces();
       for (int i = 0; i < stack.length; ++i) {
         Point pt = componentCoordinates(stack[i].getPosition());
@@ -1058,6 +1066,7 @@ public class Map extends AbstractConfigurable implements GameComponent,
               (stack[i], g, pt.x - xOffset, pt.y - yOffset, theMap, getZoom());
         }
       }
+      g2d.setComposite(oldComposite);
     }
   }
 
@@ -1262,6 +1271,14 @@ public class Map extends AbstractConfigurable implements GameComponent,
 
   public boolean isPiecesVisible() {
     return !hideCounters;
+  }
+
+  public float getPieceOpacity() {
+    return pieceOpacity;
+  }
+
+  public void setPieceOpacity(float pieceOpacity) {
+    this.pieceOpacity = pieceOpacity;
   }
 
   /**
