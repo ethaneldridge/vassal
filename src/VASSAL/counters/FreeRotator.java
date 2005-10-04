@@ -46,6 +46,7 @@ import java.net.MalformedURLException;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.ArrayList;
+import java.util.Random;
 
 /**
  * A Decorator that rotates a GamePiece to an arbitrary angle
@@ -63,6 +64,13 @@ public class FreeRotator extends Decorator implements EditablePiece, MouseListen
   private String rotateCWText = "Rotate CW";
   private KeyStroke rotateCCWKey;
   private String rotateCCWText = "Rotate CCW";
+
+  // for Random Rotate
+  private KeyCommand rotateRNDCommand;
+  private String rotateRNDText = "";
+  private KeyStroke rotateRNDKey;
+  // END for Random Rotate
+
   private boolean useUnrotatedShape;
 
   private double[] validAngles = new double[]{0.0};
@@ -77,7 +85,8 @@ public class FreeRotator extends Decorator implements EditablePiece, MouseListen
   private boolean drawGhost;
 
   public FreeRotator() {
-    this(ID + "6;];[;Rotate CW;Rotate CCW", null);
+    // modified for random rotation (added two ; )
+    this(ID + "6;];[;Rotate CW;Rotate CCW;;;", null);
   }
 
   public FreeRotator(String type, GamePiece inner) {
@@ -172,6 +181,10 @@ public class FreeRotator extends Decorator implements EditablePiece, MouseListen
       rotateCWText = st.nextToken("");
       rotateCCWText = st.nextToken("");
     }
+    // for random rotation
+    rotateRNDKey = st.nextKeyStroke(null);
+    rotateRNDText = st.nextToken("");
+    // end for random rotation
     commands = null;
   }
 
@@ -225,6 +238,10 @@ public class FreeRotator extends Decorator implements EditablePiece, MouseListen
           .append(rotateCWText)
           .append(rotateCCWText);
     }
+    // for random rotation
+    se.append(rotateRNDKey);
+    se.append(rotateRNDText);
+    // end for random rotation
     return ID + se.getValue();
   }
 
@@ -255,6 +272,10 @@ public class FreeRotator extends Decorator implements EditablePiece, MouseListen
 
       rotateCCWCommand = new KeyCommand(rotateCCWText, rotateCCWKey, outer);
 
+      // for random rotation
+      rotateRNDCommand = new KeyCommand(rotateRNDText, rotateRNDKey, outer);
+      // end random rotation
+
       if (validAngles.length == 1) {
         if (setAngleText.length() > 0) {
           l.add(setAngleCommand);
@@ -281,6 +302,11 @@ public class FreeRotator extends Decorator implements EditablePiece, MouseListen
         }
         setAngleCommand.setEnabled(false);
       }
+      // for random rotate
+      if (rotateRNDText.length() > 0) {
+        l.add(rotateRNDCommand);
+      }
+      // end for random rotate
       commands = (KeyCommand[]) l.toArray(new KeyCommand[l.size()]);
     }
     setAngleCommand.setEnabled(getMap() != null && validAngles.length == 1 && setAngleText.length() > 0);
@@ -317,6 +343,22 @@ public class FreeRotator extends Decorator implements EditablePiece, MouseListen
       angleIndex = (angleIndex - 1 + validAngles.length) % validAngles.length;
       c = tracker.getChangeCommand();
     }
+    // for random rotation
+    else if (rotateRNDCommand.matches(stroke)) {
+      ChangeTracker tracker = new ChangeTracker(this);
+      // get random #
+      Random rand = GameModule.getGameModule().getRNG();
+      if (validAngles.length == 1) {
+        // we are a free rotate, set angle to 0-360 use setAngle(double)
+        setAngle(rand.nextDouble() * 360);
+      }
+      else {
+        // we are set rotate, set angleIndex to a number between 0 and validAngles.lenth
+        angleIndex = (rand.nextInt(validAngles.length));
+      }
+      c = tracker.getChangeCommand();
+    }
+    // end random rotation
     return c;
   }
 
@@ -493,18 +535,26 @@ public class FreeRotator extends Decorator implements EditablePiece, MouseListen
     private IntConfigurer facingsConfig;
     private HotKeyConfigurer cwKeyConfig;
     private HotKeyConfigurer ccwKeyConfig;
+    //  random rotate
+    private HotKeyConfigurer rndKeyConfig;
+    //  end random rotate
     private JTextField anyCommand;
     private JTextField cwCommand;
     private JTextField ccwCommand;
+    private JTextField rndCommand;
     private Box anyControls;
     private Box cwControls;
     private Box ccwControls;
+    private Box rndControls;
 
     private JPanel panel;
 
     public Ed(FreeRotator p) {
       cwKeyConfig = new HotKeyConfigurer(null, "Command to rotate clockwise:  ", p.rotateCWKey);
-      ccwKeyConfig = new HotKeyConfigurer(null, "Command to rorate counterclockwise:  ", p.rotateCCWKey);
+      ccwKeyConfig = new HotKeyConfigurer(null, "Command to rotate counterclockwise:  ", p.rotateCCWKey);
+      // random rotate
+      rndKeyConfig = new HotKeyConfigurer(null, "Command to rotate randomly:  ", p.rotateRNDKey);
+      // end random rotate
       anyConfig = new BooleanConfigurer
           (null, "Allow arbitrary rotations",
            new Boolean(p.validAngles.length == 1));
@@ -545,6 +595,17 @@ public class FreeRotator extends Decorator implements EditablePiece, MouseListen
       anyControls.add(anyCommand);
       panel.add(anyControls);
 
+      //    random rotate
+      rndControls = Box.createHorizontalBox();
+      rndControls.add(rndKeyConfig.getControls());
+      rndControls.add(new JLabel("Menu text:"));
+      rndCommand = new JTextField(12);
+      rndCommand.setMaximumSize(rndCommand.getPreferredSize());
+      rndCommand.setText(p.rotateRNDText);
+      rndControls.add(rndCommand);
+      panel.add(rndControls);
+      //    end random rotate
+
       anyConfig.addPropertyChangeListener(this);
       propertyChange(null);
     }
@@ -579,6 +640,11 @@ public class FreeRotator extends Decorator implements EditablePiece, MouseListen
         se.append(ccwCommand.getText() == null ?
                   "" : ccwCommand.getText().trim());
       }
+      // random rotate
+      se.append((KeyStroke) rndKeyConfig.getValue());
+      se.append(rndCommand.getText() == null ?
+                "" : rndCommand.getText().trim());
+      // end random rotate
       return ID + se.getValue();
     }
 
@@ -587,3 +653,4 @@ public class FreeRotator extends Decorator implements EditablePiece, MouseListen
     }
   }
 }
+
