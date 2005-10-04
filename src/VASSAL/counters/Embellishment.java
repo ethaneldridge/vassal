@@ -40,6 +40,8 @@ import java.util.Enumeration;
 import java.util.List;
 import java.util.Vector;
 
+// for random layers
+
 /**
  * The "Layer" trait. Contains a list of images that the user may cycle through.
  * The current image is superimposed over the inner piece.  The entire layer may
@@ -62,6 +64,12 @@ public class Embellishment extends Decorator implements EditablePiece {
   protected int resetLevel;
   protected boolean loopLevels;
   protected KeyStroke resetKey;
+
+  // random layers
+  //protected KeyCommand rndCommand;
+  protected KeyStroke rndKey;
+  private String rndText = "Randomize";
+  // end random layers
 
   protected int value = -1;  // Index of the image to draw.  Negative if inactive
   protected String activationStatus = "";
@@ -135,6 +143,12 @@ public class Embellishment extends Decorator implements EditablePiece {
       commonName = st.nextStringArray(imageName.length);
       loopLevels = st.nextBoolean(true);
       name = st.nextToken("");
+
+      //    random layers
+      rndKey = st.nextKeyStroke(null);
+      rndText = st.nextToken("Randomize");
+
+      // end random layers
 
       value = activateKey.length() > 0 ? -1 : 1;
       nValues = imageName.length;
@@ -255,7 +269,10 @@ public class Embellishment extends Decorator implements EditablePiece {
         .append(imageName)
         .append(commonName)
         .append(loopLevels)
-        .append(name);
+        .append(name)
+        .append(rndKey)// random layers
+        .append(rndText); // random layers
+
     return ID + se.getValue();
   }
 
@@ -340,6 +357,11 @@ public class Embellishment extends Decorator implements EditablePiece {
       if (resetKey != null && resetCommand.length() > 0) {
         l.add(new KeyCommand(resetCommand, resetKey, outer));
       }
+      // random layers
+      if (rndKey != null && rndText.length() > 0) {
+        l.add(new KeyCommand(rndText, rndKey, outer));
+      }
+      // end random layers
       commands = (KeyCommand[]) l.toArray(new KeyCommand[l.size()]);
     }
     return commands;
@@ -372,9 +394,9 @@ public class Embellishment extends Decorator implements EditablePiece {
           tracker = new ChangeTracker(this);
         }
         int val = Math.abs(value);
-          if (++val > nValues) {
-            val = loopLevels ? 1 : nValues;
-          }
+        if (++val > nValues) {
+          val = loopLevels ? 1 : nValues;
+        }
         value = value > 0 ? val : -val;
         break;
       }
@@ -400,6 +422,17 @@ public class Embellishment extends Decorator implements EditablePiece {
       setValue(Math.abs(resetLevel) - 1);
       setActive(resetLevel > 0);
     }
+    // random layers
+    if (rndKey != null
+        && rndKey.equals(stroke)) {
+      if (tracker == null) {
+        tracker = new ChangeTracker(this);
+      }
+      int val = 0;
+      val = GameModule.getGameModule().getRNG().nextInt(nValues) + 1;
+      value = value > 0 ? val : -val;
+    }
+    // end random layers
     return tracker != null ? tracker.getChangeCommand() : null;
   }
 
@@ -458,7 +491,7 @@ public class Embellishment extends Decorator implements EditablePiece {
 
   public Shape getShape() {
     if (value > 0
-      && !drawUnderneathWhenSelected) {
+        && !drawUnderneathWhenSelected) {
       if (Info.is2dEnabled()) {
         Area a = new Area(piece.getShape());
         a.add(new Area(getCurrentImageBounds()));
@@ -476,15 +509,15 @@ public class Embellishment extends Decorator implements EditablePiece {
   public String getDescription() {
     String displayName = name;
     if (name == null
-      || name.length() == 0) {
+        || name.length() == 0) {
       if (imageName.length > 0
-        && imageName[0] != null
-        && imageName[0].length() > 0) {
+          && imageName[0] != null
+          && imageName[0].length() > 0) {
         displayName = imageName[0];
       }
     }
     if (displayName == null
-      || displayName.length() == 0) {
+        || displayName.length() == 0) {
       return "Layer";
     }
     else {
@@ -495,16 +528,16 @@ public class Embellishment extends Decorator implements EditablePiece {
   public Object getProperty(Object key) {
     if (key.equals(name + IMAGE)) {
       if (value > 0) {
-        return imageName[Math.abs(value)-1];
+        return imageName[Math.abs(value) - 1];
       }
       else
         return "";
     }
     else if (key.equals(name + NAME)) {
       if (value > 0) {
-        String s = commonName[Math.abs(value)-1];
+        String s = commonName[Math.abs(value) - 1];
         if (s.startsWith("+")) return s.substring(1);
-        if (s.endsWith("+")) return s.substring(0,s.length()-2);
+        if (s.endsWith("+")) return s.substring(0, s.length() - 2);
         return s;
       }
       else
@@ -568,6 +601,9 @@ public class Embellishment extends Decorator implements EditablePiece {
     private KeyModifiersConfigurer upModifiers = new KeyModifiersConfigurer(null, "key:  ");
     private JTextField downCommand = new JTextField("Decrease");
     private KeyModifiersConfigurer downModifiers = new KeyModifiersConfigurer(null, "key:  ");
+    // random layers
+    private JTextField rndCommand = new JTextField(8);
+    // random layers
     private JTextField xOffInput = new JTextField(2);
     private JTextField yOffInput = new JTextField(2);
     private JTextField levelNameInput = new JTextField(8);
@@ -587,6 +623,8 @@ public class Embellishment extends Decorator implements EditablePiece {
     private static final Integer NEITHER = new Integer(0);
     private static final Integer PREFIX = new Integer(1);
     private static final Integer SUFFIX = new Integer(2);
+    //  random layers
+    private HotKeyConfigurer rndKeyConfig;
 
     public Ed(Embellishment e) {
       Box box;
@@ -598,9 +636,9 @@ public class Embellishment extends Decorator implements EditablePiece {
       nameControls.add(new JLabel("Name"));
       nameControls.add(name);
       controls.add(nameControls);
-
       JPanel p = new JPanel();
-      p.setLayout(new GridLayout(4, 3));
+      p.setLayout(new GridLayout(5, 3));
+
       p.add(resetKey.getControls());
       activateCommand.setMaximumSize(activateCommand.getPreferredSize());
       p.add(activateCommand);
@@ -624,6 +662,19 @@ public class Embellishment extends Decorator implements EditablePiece {
       resetControls.add(resetCommand);
       p.add(resetControls);
       p.add(resetKey.getControls());
+
+      //    random layer
+      p.add(new JLabel("Randomize"));
+      Box rndControls = Box.createHorizontalBox();
+      rndControls.add(new JLabel("Command: "));
+      rndCommand = new JTextField(12);
+      rndCommand.setMaximumSize(rndCommand.getPreferredSize());
+      rndCommand.setText(e.rndText);
+      rndControls.add(rndCommand);
+      p.add(rndControls);
+      rndKeyConfig = new HotKeyConfigurer(null, "Keyboard: ", e.rndKey);
+      p.add(rndKeyConfig.getControls());
+      //    end random layer
 
       box = Box.createVerticalBox();
       alwaysActive.addItemListener
@@ -830,7 +881,11 @@ public class Embellishment extends Decorator implements EditablePiece {
           .append((String[]) imageNames.toArray(new String[imageNames.size()]))
           .append((String[]) commonNames.toArray(new String[commonNames.size()]))
           .append(loop.isSelected())
-          .append(name.getText());
+          .append(name.getText())
+          .append((KeyStroke) rndKeyConfig.getValue())
+          .append(rndCommand.getText() == null ?
+                  "" : rndCommand.getText().trim());
+
       return ID + se.getValue();
 
     }
@@ -964,3 +1019,4 @@ public class Embellishment extends Decorator implements EditablePiece {
 
   }
 }
+
