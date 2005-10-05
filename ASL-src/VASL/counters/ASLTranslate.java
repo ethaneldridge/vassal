@@ -19,14 +19,14 @@
 package VASL.counters;
 
 import VASSAL.command.Command;
-import VASSAL.command.MoveTracker;
+import VASSAL.command.NullCommand;
 import VASSAL.counters.GamePiece;
 import VASSAL.counters.Stack;
 import VASSAL.counters.Translate;
 
-import javax.swing.*;
-import java.awt.*;
+import java.util.ArrayList;
 import java.util.Enumeration;
+import java.util.Iterator;
 
 /**
  * Modifies the {@link Translate} base class by not moving counters with the {@link ASLProperties#LOCATION} trait
@@ -39,21 +39,30 @@ public class ASLTranslate extends Translate {
     super(type, inner);
   }
 
-  public Command myKeyEvent(KeyStroke stroke) {
-    Point p = getPosition();
-    Command c = super.myKeyEvent(stroke);
-    if (c != null
-        && getParent() != null) {
-      // Return LOCATION pieces to original location
-      Stack parent = getParent();
-      for (Enumeration e = parent.getPiecesInReverseOrder(); e.hasMoreElements();) {
+  protected Command moveTarget(GamePiece target) {
+    Command c;
+    if (target instanceof Stack) {
+      Stack s = (Stack) target;
+      ArrayList movable = new ArrayList();
+      for (Enumeration e = s.getPieces(); e.hasMoreElements();) {
         GamePiece piece = (GamePiece) e.nextElement();
-        if (piece.getProperty(ASLProperties.LOCATION) != null) {
-          MoveTracker t = new MoveTracker(piece);
-          getMap().placeOrMerge(piece, p);
-          c = c.append(t.getMoveCommand());
+        if (piece.getProperty(ASLProperties.LOCATION) == null) {
+          movable.add(piece);
         }
       }
+      if (movable.size() == s.getPieceCount()) {
+        return super.moveTarget(s);
+      }
+      else {
+        c = new NullCommand();
+        for (Iterator it = movable.iterator(); it.hasNext();) {
+          GamePiece gamePiece = (GamePiece) it.next();
+          c.append(super.moveTarget(gamePiece));
+        }
+      }
+    }
+    else {
+    c = super.moveTarget(target);
     }
     return c;
   }
