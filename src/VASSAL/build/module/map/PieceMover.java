@@ -76,6 +76,7 @@ public class PieceMover extends AbstractBuildable implements
   protected PieceFinder dragTargetSelector; // Selects drag target from mouse click on the Map
   protected PieceFinder dropTargetSelector; // Selects piece to merge with at the drop destination
   protected PieceVisitorDispatcher selectionProcessor; // Processes drag target after having been selected
+  protected Comparator pieceSorter = new PieceSorter();
 
   public void addTo(Buildable b) {
     dragTargetSelector = createDragTargetSelector();
@@ -589,32 +590,7 @@ public class PieceMover extends AbstractBuildable implements
    * This sorts the contents to be in the same order as the pieces were in their original parent stack.
    */
   public int compare(Object o1, Object o2) {
-    GamePiece p1 = (GamePiece) o1;
-    GamePiece p2 = (GamePiece) o2;
-    int result = 0;
-    if (p1.getMap() == null && p2.getMap() == null) {
-      return 0;
-    }
-    else if (p1.getMap() == null) {
-      return 1;
-    }
-    else if (p2.getMap() == null) {
-      return -1;
-    }
-    if (p1.getMap() != p2.getMap()) {
-      result = new Sort.Alpha().compare(p1.getMap().getId(), p2.getMap().getId());
-    }
-    else {
-      Stack s1 = p1 instanceof Stack ? (Stack) p1 : p1.getParent();
-      Stack s2 = p2 instanceof Stack ? (Stack) p2 : p2.getParent();
-      if (s1 != null && s2 != null) {
-        result = p1.getMap().indexOf(s1) - p2.getMap().indexOf(s2);
-        if (result == 0) { // Pieces must be in the same stack
-          result = s1.indexOf(p1) - s2.indexOf(p2);
-        }
-      }
-    }
-    return result;
+    return pieceSorter.compare(o1,o2);
   }
 
   /** Implements a psudo-cursor that follows the mouse cursor when user drags gamepieces.
