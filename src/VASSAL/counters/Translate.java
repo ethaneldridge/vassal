@@ -105,55 +105,56 @@ public class Translate extends Decorator implements EditablePiece {
     myGetKeyCommands();
     Command c = null;
     if (moveCommand.matches(stroke)) {
-      GamePiece outer = Decorator.getOutermost(this);
-      GamePiece target = outer;
-      if (moveStack
-          && outer.getParent() != null
-          && !outer.getParent().isExpanded()) {
-        // Only move entire stack if this is the top piece
-        // Otherwise moves the stack too far if the whole stack is multi-selected
-        if (outer != outer.getParent().topPiece(GameModule.getUserId())) {
-          return null;
+      GamePiece target = findTarget(stroke);
+      if (target != null) {
+        c = moveTarget(target);
+        MovementReporter r = new MovementReporter(c);
+        Command reportCommand = r.getReportCommand();
+        if (reportCommand != null) {
+          reportCommand.execute();
         }
-        target = outer.getParent();
-        c = new NullCommand();
-        for (Enumeration e = outer.getParent().getPieces(); e.hasMoreElements();) {
-          GamePiece p = (GamePiece) e.nextElement();
-          ChangeTracker ct = new ChangeTracker(p);
-          p.setProperty(Properties.MOVED, Boolean.TRUE);
-          c = c.append(ct.getChangeCommand());
-        }
+        c.append(reportCommand);
+        c.append(r.markMovedPieces());
+        getMap().ensureVisible(getMap().selectionBoundsOf(target));
       }
-      else {
-        ChangeTracker ct = new ChangeTracker(outer);
-        outer.setProperty(Properties.MOVED, Boolean.TRUE);
-        c = ct.getChangeCommand();
-      }
-      MoveTracker t = new MoveTracker(target);
-      Point p = new Point(getPosition());
-      p.translate(xDist, -yDist);
-      FreeRotator myRotation = (FreeRotator) Decorator.getDecorator(this, FreeRotator.class);
-      if (myRotation != null) {
-        Point2D myPosition = getPosition().getLocation();
-        Point2D p2d = p.getLocation();
-        p2d = AffineTransform.getRotateInstance(myRotation.getAngleInRadians(), myPosition.getX(), myPosition.getY()).transform(p2d, null);
-        p = new Point((int) p2d.getX(), (int) p2d.getY());
-      }
-      if (!Boolean.TRUE.equals(outer.getProperty(Properties.IGNORE_GRID))) {
-        p = getMap().snapTo(p);
-      }
-      getMap().placeOrMerge(target, p);
-      c = c.append(t.getMoveCommand());
-      MovementReporter r = new MovementReporter(c);
-      Command reportCommand = r.getReportCommand();
-      if (reportCommand != null) {
-        reportCommand.execute();
-      }
-      c.append(reportCommand);
-      c.append(r.markMovedPieces());
-      getMap().ensureVisible(getMap().selectionBoundsOf(outer));
     }
     return c;
+  }
+
+  protected Command moveTarget(GamePiece target) {
+    MoveTracker t = new MoveTracker(target);
+    Point p = new Point(getPosition());
+    p.translate(xDist, -yDist);
+    FreeRotator myRotation = (FreeRotator) Decorator.getDecorator(this, FreeRotator.class);
+    if (myRotation != null) {
+      Point2D myPosition = getPosition().getLocation();
+      Point2D p2d = p.getLocation();
+      p2d = AffineTransform.getRotateInstance(myRotation.getAngleInRadians(), myPosition.getX(), myPosition.getY()).transform(p2d, null);
+      p = new Point((int) p2d.getX(), (int) p2d.getY());
+    }
+    if (!Boolean.TRUE.equals(Decorator.getOutermost(this).getProperty(Properties.IGNORE_GRID))) {
+      p = getMap().snapTo(p);
+    }
+    getMap().placeOrMerge(target, p);
+    return t.getMoveCommand();
+  }
+
+  protected GamePiece findTarget(KeyStroke stroke) {
+    GamePiece outer = Decorator.getOutermost(this);
+    GamePiece target = outer;
+    if (moveStack
+        && outer.getParent() != null
+        && !outer.getParent().isExpanded()) {
+      // Only move entire stack if this is the top piece
+      // Otherwise moves the stack too far if the whole stack is multi-selected
+      if (outer != outer.getParent().topPiece(GameModule.getUserId())) {
+        target = null;
+      }
+      else {
+        target = outer.getParent();
+      }
+    }
+    return target;
   }
 
   public void mySetState(String newState) {
