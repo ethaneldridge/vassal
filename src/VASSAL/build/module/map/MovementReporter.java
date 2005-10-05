@@ -250,8 +250,11 @@ public class MovementReporter {
 
       if (!newPosition.equals(moveSummary.newPosition)) return false;
       if (!newMapId.equals(moveSummary.newMapId)) return false;
-      if (oldPosition != null ? !oldPosition.equals(moveSummary.oldPosition) : moveSummary.oldPosition != null) return false;
       if (oldMapId != null ? !oldMapId.equals(moveSummary.oldMapId) : moveSummary.oldMapId != null) return false;
+      if (oldMapId != null) {
+        // If there is no old map, then ignore the old position for equals() purposes.
+        if (oldPosition != null ? !oldPosition.equals(moveSummary.oldPosition) : moveSummary.oldPosition != null) return false;
+      }
 
       return true;
     }
@@ -260,14 +263,17 @@ public class MovementReporter {
       int result;
       result = (oldMapId != null ? oldMapId.hashCode() : 0);
       result = 29 * result + newMapId.hashCode();
-      result = 29 * result + (oldPosition != null ? oldPosition.hashCode() : 0);
       result = 29 * result + newPosition.hashCode();
+      if (oldMapId != null) {
+        result = 29 * result + (oldPosition != null ? oldPosition.hashCode() : 0);
+      }
       return result;
     }
 
     public void append(MovePiece movePiece) {
       GamePiece target = GameModule.getGameModule().getGameState().getPieceForId(movePiece.getId());
-      if (target != null) {
+      if (target != null
+        && !pieces.contains(target)) {
         pieces.add(target);
       }
     }
