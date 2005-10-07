@@ -56,7 +56,7 @@ public class Inventory extends AbstractConfigurable implements GameComponent {
   protected LaunchButton launch;
   protected ArrayList counters;
 
-  public static final String VERSION = "1.2";
+  public static final String VERSION = "1.3";
   public static final String HOTKEY = "hotkey";
   public static final String BUTTON_TEXT = "text";
   public static final String NAME = "name";
@@ -143,12 +143,12 @@ public class Inventory extends AbstractConfigurable implements GameComponent {
 
       String group = "";
       if (groupBy.length() > 0) {
-        group = (String) p.getProperty(groupBy);
+        group = getGroupByValue(p);
       }
 
       int count = 1;
       if (totalMarker.length() > 0) {
-        String s = (String) p.getProperty(totalMarker);
+        String s = getTotalValue(p);
         try {
           count = Integer.parseInt(s);
         }
@@ -200,6 +200,14 @@ public class Inventory extends AbstractConfigurable implements GameComponent {
     c.execute();
     GameModule.getGameModule().sendAndLog(c);
 
+  }
+
+  protected String getTotalValue(GamePiece p) {
+    return (String) p.getProperty(totalMarker);
+  }
+
+  protected String getGroupByValue(GamePiece p) {
+    return (String) p.getProperty(groupBy);
   }
 
   public class DisplayResults extends Command {
