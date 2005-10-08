@@ -37,6 +37,7 @@ import VASSAL.configure.VisibilityCondition;
  *
  * TDC LOS Thread
  * Force End point of LOS Thread to Snap to grid.
+ * Calculate range correctly.
  */
 public class TdcThread extends LOS_Thread {
   

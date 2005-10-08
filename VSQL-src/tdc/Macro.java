@@ -1,7 +1,7 @@
 /*
  * $Id$
  *
- * Copyright (c) 2000-2003 by Rodney Kinney
+ * Copyright (c) 2000-2005 by Rodney Kinney, Brent Easton
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Library General Public
@@ -16,15 +16,8 @@
  * License along with this library; if not, copies are available
  * at http://www.opensource.org.
  */
-/*
- * Created by IntelliJ IDEA.
- * User: rkinney
- * Date: Oct 2, 2002
- * Time: 6:30:35 AM
- * To change template for new class use
- * Code Style | Class Templates options (Tools | IDE Options).
- */
-package Dev;
+
+package tdc;
 
 import java.awt.Component;
 import java.awt.Graphics;
@@ -32,6 +25,7 @@ import java.awt.Rectangle;
 import java.awt.Shape;
 import java.awt.event.InputEvent;
 
+import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.JPanel;
 import javax.swing.KeyStroke;
@@ -39,6 +33,7 @@ import javax.swing.KeyStroke;
 import VASSAL.build.module.documentation.HelpFile;
 import VASSAL.command.Command;
 import VASSAL.command.NullCommand;
+import VASSAL.configure.HotKeyConfigurer;
 import VASSAL.configure.KeyStrokeArrayConfigurer;
 import VASSAL.configure.StringConfigurer;
 import VASSAL.counters.Decorator;
@@ -52,14 +47,20 @@ import VASSAL.tools.FormattedString;
 import VASSAL.tools.SequenceEncoder;
 
 /**
- * A GamePiece with this trait will echo the piece's current name when any of a given key commands are pressed
- * (and after they take effect)
- */
+ * Look for specific keystrokes
+ * Match against an optional Property Filter
+ * Execute a series of Keystrokes against this same piece
+ * */
 public class Macro extends Decorator implements EditablePiece {
+  
   public static final String ID = "macro;";
-  protected KeyStroke[] watchKeys;
-  protected String propertyMatch;
-  protected KeyStroke[] actionKeys;
+  
+  protected String name = "";
+  protected String command = "";
+  protected KeyStroke key = null;
+  protected String propertyMatch = "";
+  protected KeyStroke[] watchKeys = new KeyStroke[0];
+  protected KeyStroke[] actionKeys = new KeyStroke[0];
 
   public Macro() {
     this(ID, null);
@@ -83,7 +84,12 @@ public class Macro extends Decorator implements EditablePiece {
   }
 
   protected KeyCommand[] myGetKeyCommands() {
-    return new KeyCommand[0];
+    if (command.length() > 0 && key != null) {
+      return new KeyCommand[] {new KeyCommand(command, key, Decorator.getOutermost(this))};
+    }
+    else {
+      return new KeyCommand[0];
+    }
   }
 
   public String myGetState() {
@@ -92,22 +98,35 @@ public class Macro extends Decorator implements EditablePiece {
 
   public String myGetType() {
     SequenceEncoder se = new SequenceEncoder(';');
-    se.append(KeyStrokeArrayConfigurer.encode(watchKeys)).append(propertyMatch).append(KeyStrokeArrayConfigurer.encode(actionKeys));
+    se.append(name)
+      .append(command)
+      .append(key)
+      .append(propertyMatch)
+      .append(KeyStrokeArrayConfigurer.encode(watchKeys))
+      .append(KeyStrokeArrayConfigurer.encode(actionKeys));
+  
     return ID + se.getValue();
   }
-
+  
   public Command myKeyEvent(KeyStroke stroke) {
  
-    // 1. Does it match one of our keystrokes?
+    /*
+     * 1. Are we interested in this key command?
+     *     Is it our command key?
+     *     Does it match one of our watching keystrokes?
+     */
     boolean seen = false;
+    seen = stroke.equals(key);
+
     for (int i = 0; i < watchKeys.length && !seen; i++) {
       seen = stroke.equals(watchKeys[i]);
     }
+ 
     if (!seen) {
       return null;
     }
     
-    // 2. Check the Property Filter?
+    // 2. Check the Property Filter
     GamePiece outer = Decorator.getOutermost(this);
     if (propertyMatch != null && propertyMatch.length() > 0) {
       PieceFilter filter = PropertiesPieceFilter.parse(new FormattedString(propertyMatch).getText(outer));
@@ -132,7 +151,11 @@ public class Macro extends Decorator implements EditablePiece {
   }
 
   public String getDescription() {
-    return "Macro";
+    String s = "Macro";
+    if (name.length() > 0) {
+      s += " - " + name;
+    }
+    return s;
   }
 
   public HelpFile getHelpFile() {
@@ -142,6 +165,10 @@ public class Macro extends Decorator implements EditablePiece {
   public void mySetType(String type) {
     SequenceEncoder.Decoder st = new SequenceEncoder.Decoder(type, ';');
     st.nextToken();
+    name = st.nextToken("");
+    command = st.nextToken("Macro");
+    key = st.nextKeyStroke('M');
+    propertyMatch = st.nextToken("");
     
     String keys = st.nextToken("");
     if (keys.indexOf(',') > 0) {
@@ -154,19 +181,16 @@ public class Macro extends Decorator implements EditablePiece {
       }
     }
     
-    propertyMatch = st.nextToken("");
-  
     keys = st.nextToken("");
     if (keys.indexOf(',') > 0) {
       actionKeys = KeyStrokeArrayConfigurer.decode(keys);
     }
     else {
-      watchKeys = new KeyStroke[keys.length()];
-      for (int i = 0; i < watchKeys.length; i++) {
+      actionKeys = new KeyStroke[keys.length()];
+      for (int i = 0; i < actionKeys.length; i++) {
         actionKeys[i] = KeyStroke.getKeyStroke(keys.charAt(i),InputEvent.CTRL_MASK);
       }
     }
-    
   }
 
   public PieceEditor getEditor() {
@@ -175,27 +199,41 @@ public class Macro extends Decorator implements EditablePiece {
 
   public static class Ed implements PieceEditor {
 
+    private StringConfigurer name;
+    private StringConfigurer command;
+    private HotKeyConfigurer key;
+    private StringConfigurer propertyMatch;
     private KeyStrokeArrayConfigurer watchKeys;
     private KeyStrokeArrayConfigurer actionKeys;
-    private StringConfigurer propertyMatch;
     private JPanel box;
-
+    
     public Ed(Macro piece) {
 
       box = new JPanel();
       box.setLayout(new BoxLayout(box, BoxLayout.Y_AXIS));
       
-      watchKeys = new KeyStrokeArrayConfigurer(null, "Watch for these keystrokes:  ", piece.watchKeys);
-      box.add(watchKeys.getControls());
-   
-      propertyMatch = new StringConfigurer(null, "And match these properties:  ", piece.propertyMatch);
+      name = new StringConfigurer(null, "Macro Name:  ", piece.name);
+      box.add(name.getControls());
+
+      propertyMatch = new StringConfigurer(null, "Matching Properties:  ", piece.propertyMatch);
       box.add(propertyMatch.getControls());
-   
-      actionKeys = new KeyStrokeArrayConfigurer(null, "To perform these keystrokes:  ", piece.watchKeys);
-      box.add(actionKeys.getControls());      
+
+      Box commandBox = Box.createHorizontalBox();
+      command = new StringConfigurer(null, "Menu Command:  ", piece.command);
+      commandBox.add(command.getControls());
+      key = new HotKeyConfigurer(null, "  KeyStroke:  ", piece.key);
+      commandBox.add(key.getControls());
+      box.add(commandBox);
+     
+      watchKeys = new KeyStrokeArrayConfigurer(null, "Watch for these Keystrokes:  ", piece.watchKeys);
+      box.add(watchKeys.getControls());
+      
+      actionKeys = new KeyStrokeArrayConfigurer(null, "Perform these Keystrokes:  ", piece.actionKeys);
+      box.add(actionKeys.getControls());
 
     }
 
+   
     public Component getControls() {
       return box;
     }
@@ -206,7 +244,12 @@ public class Macro extends Decorator implements EditablePiece {
 
     public String getType() {
       SequenceEncoder se = new SequenceEncoder(';');
-      se.append(watchKeys.getValueString()).append(propertyMatch.getValueString()).append(actionKeys.getValueString());
+      se.append(name.getValueString())
+      .append(command.getValueString())
+      .append((KeyStroke) key.getValue())
+      .append(propertyMatch.getValueString())
+      .append(watchKeys.getValueString())
+      .append(actionKeys.getValueString());
       return ID + se.getValue();
     }
   }

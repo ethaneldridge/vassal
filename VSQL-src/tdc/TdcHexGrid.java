@@ -31,10 +31,10 @@ import java.awt.geom.Area;
 import VASSAL.build.module.map.boardPicker.board.HexGrid;
 
 /**
- * @author Brent
+ * @author Brent Easton
  *
- * TODO To change the template for this generated type comment go to
- * Window - Preferences - Java - Code Style - Code Templates
+ * Draw the centre dots as 3x3 squares centred on the hex centre instead
+ * of 2x2 offset. Improves look of LOS thread.
  */
 public class TdcHexGrid extends HexGrid {
   public void forceDraw(Graphics g, Rectangle bounds, Rectangle visibleRect, double zoom, boolean reversed) {

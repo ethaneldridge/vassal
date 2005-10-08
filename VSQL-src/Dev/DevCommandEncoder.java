@@ -16,13 +16,14 @@
  * along with this library; if not, copies are available at
  * http://www.opensource.org.
  */
-package tdc;
+package Dev;
 
+import tdc.Macro;
 import VASSAL.build.module.BasicCommandEncoder;
 import VASSAL.counters.Decorator;
 import VASSAL.counters.GamePiece;
 
-public class TdcCommandEncoder extends BasicCommandEncoder {
+public class DevCommandEncoder extends BasicCommandEncoder {
 
   protected Decorator createDecorator(String type, GamePiece inner) {
     if (type.startsWith(Macro.ID)) {     
