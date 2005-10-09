@@ -47,9 +47,10 @@ import VASSAL.tools.FormattedString;
 import VASSAL.tools.SequenceEncoder;
 
 /**
- * Look for specific keystrokes
- * Match against an optional Property Filter
+ * Macro
  * Execute a series of Keystrokes against this same piece
+ *  - Triggered by own KeyCommand or list of keystrokes
+ *  - Match against an optional Property Filter
  * */
 public class Macro extends Decorator implements EditablePiece {
   
@@ -126,7 +127,7 @@ public class Macro extends Decorator implements EditablePiece {
       return null;
     }
     
-    // 2. Check the Property Filter
+    // 2. Check the Property Filter if it exists. 
     GamePiece outer = Decorator.getOutermost(this);
     if (propertyMatch != null && propertyMatch.length() > 0) {
       PieceFilter filter = PropertiesPieceFilter.parse(new FormattedString(propertyMatch).getText(outer));

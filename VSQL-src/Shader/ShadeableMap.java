@@ -29,8 +29,6 @@ import java.util.Iterator;
 import VASSAL.build.module.Map;
 import VASSAL.build.module.map.boardPicker.Board;
 import VASSAL.build.module.map.boardPicker.board.MapGrid;
-import VASSAL.build.module.map.boardPicker.board.ZonedGrid;
-import VASSAL.build.module.map.boardPicker.board.mapgrid.Zone;
 import VASSAL.counters.GamePiece;
 
 public class ShadeableMap extends Map {
@@ -82,38 +80,12 @@ public class ShadeableMap extends Map {
     return "Shadeable Map";
   }
 
-  /**
-   * @param range
-   */
   public Area getGridRangeShape(Point p, int range) {
 
     Board b = findBoard(p);
     MapGrid grid = b.getGrid();
     
-    return getGridRangeShape(grid, p, range);
+    return grid.getRangeShape(range, getZoom());
     
-  }
-  
-  protected Area getGridRangeShape(MapGrid grid, Point p, int range) {
-    if (grid instanceof ShadeableHexGrid) {
-      return ((ShadeableHexGrid) grid).getRangeShape(range, getZoom());
-    }
-    else if (grid instanceof ShadeableSquareGrid) {
-      return ((ShadeableSquareGrid) grid).getRangeShape(range, getZoom());
-    }
-    else if (grid instanceof ZonedGrid) {
-      grid = ((ZonedGrid) grid).getBackgroundGrid();
-      if (grid == null) {
-        Zone z = ((ZonedGrid) grid).findZone(p);
-        if (z != null) {
-          grid = z.getGrid();
-          return getGridRangeShape(grid, p, range);
-        }
-      }
-      else {
-        return getGridRangeShape(grid, p, range);
-      }
-    }
-    return null;
   }
 }

@@ -86,7 +86,7 @@ public class MapShader extends AbstractConfigurable implements GameComponent {
     map.repaint();
   }
   
-  public void draw(Graphics g, Rectangle visibleRect, ShadeableMap m) {
+  public void draw(Graphics g, Rectangle visibleRect, Map m) {
     if (shadingVisible) {
       if (dirty) {
         buildShader();
@@ -98,7 +98,7 @@ public class MapShader extends AbstractConfigurable implements GameComponent {
   /**
    * 
    */
-  protected void drawShader(Graphics g, ShadeableMap m, Rectangle visibleRect) {
+  protected void drawShader(Graphics g, Map m, Rectangle visibleRect) {
     
     Shape oldClip = g.getClip();
     Area theClip = new Area(clip);

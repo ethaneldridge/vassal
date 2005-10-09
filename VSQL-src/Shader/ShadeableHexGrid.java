@@ -32,7 +32,7 @@ public class ShadeableHexGrid extends HexGrid {
     super();
   }
   
-  public Area getHexShape(int centerX, int centerY, double zoom, boolean reversed) {
+  public Area getShape(int centerX, int centerY, double zoom, boolean reversed) {
     Polygon poly = new Polygon(); 
     
     float x = (float) (sideways ? centerY : centerX) * (float) zoom;
@@ -107,7 +107,7 @@ public class ShadeableHexGrid extends HexGrid {
   public Area getRangeShape(int range, double zoom) {
     //Choose a starting point 
     Point origin = snapToHex(new Point(0, 0));
-    Area shape = getHexShape(origin.x, origin.y, zoom, false);
+    Area shape = getShape(origin.x, origin.y, zoom, false);
     
     for (int i = -range; i <= range; i++) {
       int x = origin.x + (int) (i * dx);
@@ -126,7 +126,7 @@ public class ShadeableHexGrid extends HexGrid {
       for (int j = 0; j < length; j++) {
         Point p = new Point(x, y);
         rotateIfSideways(p);
-        shape.add(getHexShape(p.x, p.y, zoom, false));
+        shape.add(getShape(p.x, p.y, zoom, false));
         y += dy;
       }
     }

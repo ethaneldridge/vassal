@@ -38,6 +38,7 @@ import VASSAL.build.AbstractConfigurable;
 import VASSAL.build.AutoConfigurable;
 import VASSAL.build.Buildable;
 import VASSAL.build.GameModule;
+import VASSAL.build.module.Map;
 import VASSAL.build.module.documentation.HelpFile;
 import VASSAL.configure.ColorConfigurer;
 import VASSAL.configure.StringEnum;
@@ -96,7 +97,7 @@ public class Shade extends AbstractConfigurable {
     super();
   }
 
-  public void draw(Graphics g, ShadeableMap map) {
+  public void draw(Graphics g, Map map) {
     
     buildShading();
     
@@ -120,7 +121,7 @@ public class Shade extends AbstractConfigurable {
     
   }
   
-  public Area getShape(ShadeableMap map) {
+  public Area getShape(Map map) {
     
     Area area = new Area();
     
@@ -132,7 +133,7 @@ public class Shade extends AbstractConfigurable {
     return area;
   }
 
-  protected void checkPiece(Area area, GamePiece piece, ShadeableMap map) {
+  protected void checkPiece(Area area, GamePiece piece, Map map) {
     if (piece instanceof Stack) {
       Stack s = (Stack) piece;
       for (int i = 0; i < s.getPieceCount(); i++) {
@@ -147,7 +148,7 @@ public class Shade extends AbstractConfigurable {
     }
   }
 
-  protected Area getShadeShape(GamePiece piece, ShadeableMap map) {
+  protected Area getShadeShape(GamePiece piece, Map map) {
 
     if (shape == null || getRange() != builtRange) {
       buildShape(piece.getPosition(), map);
@@ -203,12 +204,12 @@ public class Shade extends AbstractConfigurable {
   /*
    * Build the shape of the shade as an Area of the correct size centred on (0, 0)
    */
-  protected void buildShape(Point p, ShadeableMap map) {
+  protected void buildShape(Point p, Map map) {
     if (rangeType.equals(RANGE_PIXELS)) {
       shape = new Area(new Ellipse2D.Double(-range, -range, range*2, range*2));
     }
     else if (rangeType.equals(RANGE_GRID)) {
-      shape = map.getGridRangeShape(p, range);
+      shape = ((ShadeableMap) map).getGridRangeShape(p, range);
     }
     builtRange = getRange();
   }
