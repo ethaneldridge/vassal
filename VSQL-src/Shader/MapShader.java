@@ -43,26 +43,44 @@ import VASSAL.command.Command;
 import VASSAL.configure.Configurer;
 import VASSAL.configure.ConfigurerFactory;
 import VASSAL.configure.IconConfigurer;
+import VASSAL.configure.StringArrayConfigurer;
+import VASSAL.configure.StringEnum;
+import VASSAL.configure.VisibilityCondition;
 import VASSAL.tools.LaunchButton;
 
 public class MapShader extends AbstractConfigurable implements GameComponent {
 
-  public static final String VERSION = "1.0";
+  public static final String VERSION = "1.1";
 
   public static final String NAME = "name";
+  public static final String ALWAYS_ON = "alwaysOn";
   public static final String HOT_KEY = "hotkey";
   public static final String ICON = "icon";
   public static final String BUTTON_TEXT = "buttonText";
+  public static final String BOARDS = "boards";
+  public static final String BOARD_LIST = "boardList";
+
+  public static final String ALL_BOARDS = "Yes";
+  public static final String EXC_BOARDS = "No, exclude Boards in list";
+  public static final String INC_BOARDS = "No, only shade Boards in List";
 
   protected LaunchButton launch;
-
+  protected boolean alwaysOn = false;
+  protected String boardSelection = ALL_BOARDS;
+  protected String[] boardList = new String[0];
   protected boolean shadingVisible;
   protected Map map;
-  
+
   protected ArrayList shade = new ArrayList();
   protected Area clip = new Area();
-  
+
   protected boolean dirty = true;
+
+  public static class BoardPrompt extends StringEnum {
+    public String[] getValidValues(AutoConfigurable target) {
+      return new String[] { ALL_BOARDS, EXC_BOARDS, INC_BOARDS };
+    }
+  }
 
   public MapShader() {
 
@@ -73,84 +91,106 @@ public class MapShader extends AbstractConfigurable implements GameComponent {
     };
     launch = new LaunchButton("Shade", BUTTON_TEXT, HOT_KEY, ICON, al);
     launch.setEnabled(false);
+    launch.setVisible(!alwaysOn);
     setConfigureName("MapShader");
     reset();
   }
 
   public void reset() {
-    shadingVisible = false;
+    shadingVisible = alwaysOn;
   }
 
   protected void toggleShading() {
     shadingVisible = !shadingVisible;
     map.repaint();
   }
-  
+
   public void draw(Graphics g, Rectangle visibleRect, Map m) {
     if (shadingVisible) {
       if (dirty) {
-        buildShader();
+        buildClip();
       }
       drawShader(g, m, visibleRect);
     }
   }
 
   /**
-   * 
+   *  
    */
   protected void drawShader(Graphics g, Map m, Rectangle visibleRect) {
-    
+
     Shape oldClip = g.getClip();
-    Area theClip = new Area(clip);
-    theClip.transform(AffineTransform.getScaleInstance(m.getZoom(), m.getZoom()));
-    theClip.intersect(new Area(visibleRect));
-    g.setClip(theClip);
     
+    if (clip != null) {
+      Area theClip = new Area(clip);
+      theClip.transform(AffineTransform.getScaleInstance(m.getZoom(), m.getZoom()));
+      theClip.intersect(new Area(visibleRect));
+      g.setClip(theClip);
+    }
+
     Iterator it = shade.iterator();
     while (it.hasNext()) {
       Shade s = (Shade) it.next();
       s.draw(g, m);
     }
-    
-    g.setClip(oldClip);
+
+    if (clip != null) {
+      g.setClip(oldClip);
+    }
   }
 
   /**
-   * 
+   *  
    */
-  protected void buildShader() {
-      
-      /**
-       * Build a clipping region excluding boards that do no want to be Shaded.
-       */
+  protected void buildClip() {
+
+    /**
+     * Build a clipping region excluding boards that do no want to be Shaded.
+     * Leave clip null for all boards
+     */
+    clip = null;
+    if (!boardSelection.equals(ALL_BOARDS)) {
       Enumeration e = map.getAllBoards();
       while (e.hasMoreElements()) {
         Board b = (Board) e.nextElement();
-        boolean doShade = true;
+        String boardName = b.getName();
+        boolean doShade = false;
+        if (boardSelection.equals(EXC_BOARDS)) {
+          doShade = true;
+          for (int i = 0; i < boardList.length && doShade; i++) {
+            doShade = !boardList[i].equals(boardName);
+          }
+        }
+        else if (boardSelection.equals(INC_BOARDS)) {
+          for (int i = 0; i < boardList.length && !doShade; i++) {
+            doShade = boardList[i].equals(boardName);
+          }
+        }
         if (doShade) {
           clip.add(new Area(b.bounds()));
         }
       }
-      dirty = false;
-    
+    }
+    dirty = false;
+
   }
 
   public void addShade(Shade s) {
     shade.add(s);
   }
-  
+
   public void removeShade(Shade s) {
     shade.remove(s);
   }
-  
+
   /*
-   * update() is called by the Map when a piece is added or moved on the map
-   * to indicate that the shader needs to be rebuilt.
+   * update() is called by the Map when a piece is added or moved on the map to
+   * indicate that the shader needs to be rebuilt.
    */
   protected void update() {
     dirty = true;
   }
-  
+
   /*
    * -----------------------------------------------------------------------
    * GameComponent Implementation
@@ -170,12 +210,14 @@ public class MapShader extends AbstractConfigurable implements GameComponent {
    * -----------------------------------------------------------------------
    */
   public String[] getAttributeDescriptions() {
-    return new String[] { "Name:  ", "Button text:  ", "Button Icon:  ", "Hotkey:  " };
-    
+    return new String[] { "Name:  ", "Shading Always On?", "Button text:  ", "Button Icon:  ", "Hotkey:  ",
+        "All boards in map get Shaded?  ", "Board List:  " };
+
   }
 
   public Class[] getAttributeTypes() {
-    return new Class[] { String.class, String.class, IconConfig.class, KeyStroke.class};
+    return new Class[] { String.class, Boolean.class, String.class, IconConfig.class, KeyStroke.class,
+        BoardPrompt.class, String[].class };
   }
 
   public static class IconConfig implements ConfigurerFactory {
@@ -185,13 +227,29 @@ public class MapShader extends AbstractConfigurable implements GameComponent {
   }
 
   public String[] getAttributeNames() {
-    return new String[] { NAME, BUTTON_TEXT, ICON, HOT_KEY };
+    return new String[] { NAME, ALWAYS_ON, BUTTON_TEXT, ICON, HOT_KEY, BOARDS, BOARD_LIST };
   }
 
   public void setAttribute(String key, Object value) {
     if (NAME.equals(key)) {
       setConfigureName((String) value);
       launch.setToolTipText((String) value);
+    }
+    else if (ALWAYS_ON.equals(key)) {
+      if (value instanceof String) {
+        value = new Boolean((String) value);
+      }
+      alwaysOn = ((Boolean) value).booleanValue();
+      launch.setVisible(!alwaysOn);
+    }
+    else if (BOARDS.equals(key)) {
+      boardSelection = (String) value;
+    }
+    else if (BOARD_LIST.equals(key)) {
+      if (value instanceof String) {
+        value = StringArrayConfigurer.stringToArray((String) value);
+      }
+      boardList = (String[]) value;
     }
     else {
       launch.setAttribute(key, value);
@@ -202,10 +260,39 @@ public class MapShader extends AbstractConfigurable implements GameComponent {
     if (NAME.equals(key)) {
       return getConfigureName() + "";
     }
+    else if (ALWAYS_ON.equals(key)) {
+      return String.valueOf(alwaysOn);
+    }
+    else if (BOARDS.equals(key)) {
+      return boardSelection + "";
+    }
+    else if (BOARD_LIST.equals(key)) {
+      return StringArrayConfigurer.arrayToString(boardList);
+    }
     else {
       return launch.getAttributeValueString(key);
     }
 
+  }
+
+  public VisibilityCondition getAttributeVisibility(String name) {
+    if (ICON.equals(name) || HOT_KEY.equals(name) || BUTTON_TEXT.equals(name)) {
+      return new VisibilityCondition() {
+        public boolean shouldBeVisible() {
+          return !alwaysOn;
+        }
+      };
+    }
+    else if (BOARD_LIST.equals(name)) {
+      return new VisibilityCondition() {
+        public boolean shouldBeVisible() {
+          return !boardSelection.equals(ALL_BOARDS);
+        }
+      };
+    }
+    else {
+      return super.getAttributeVisibility(name);
+    }
   }
 
   public static String getConfigureTypeName() {

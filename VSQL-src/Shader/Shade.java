@@ -49,43 +49,40 @@ import VASSAL.counters.Stack;
 public class Shade extends AbstractConfigurable {
 
   public static final String NAME = "name";
-
   public static final String TYPE = "type";
+  public static final String PATTERN = "pattern";
   public static final String COLOR = "color";
   public static final String IMAGE = "image";
   public static final String OPACITY = "opacity";
 
-  public static final String PROPERTY_NAME = "propertyName";
-  public static final String PROPERTY_VALUE = "propertyValue";
-
-  public static final String SETTING = "setting";
   public static final String RANGE_TYPE = "rangeType";
   public static final String RANGE_SOURCE = "rangeSource";
   public static final String RANGE = "range";
+  public static final String MARKER = "marker";
 
+  public static final String BG_TYPE = "Background";
+  public static final String FG_TYPE = "Foreground";
+  
   public static final String RANGE_MARKER = "Use Marker Value";
   public static final String RANGE_FIXED = "Fixed";
-  public static final String RANGE_USER = "Set by User";
   public static final String RANGE_GRID = "Grid Elements";
   public static final String RANGE_PIXELS = "Pixels";
-  public static final String SETTING_MARKER = "Use Marker Value";
 
-  public static final String TYPE_STD = "Standard";
+  public static final String TYPE_25_PERCENT = "25%";
+  public static final String TYPE_50_PERCENT = "50%"; 
+  public static final String TYPE_75_PERCENT = "75%"; 
+  public static final String TYPE_SOLID = "100% (Solid)"; 
   public static final String TYPE_IMAGE = "Custom Image";
-  public static final String LIGHT = "Light";
-  public static final String SHADE = "Shade";
-  public static final String BACKGROUND = "Background";
 
-  protected String marker = "";
-  protected String markerValue = "";
   protected String rangeType = RANGE_GRID;
   protected String rangeSource = RANGE_FIXED;
   protected int range = 3;
+  protected String rangeMarker = "";
   protected int builtRange = 3;
-  protected String setting = SHADE;
   protected String imageName = "";
   protected Color color = Color.BLACK;
-  protected String type = TYPE_STD;
+  protected String type = FG_TYPE;
+  protected String pattern = TYPE_25_PERCENT;
   protected int opacity = 100;
 
   //protected ShadeableMap map;
@@ -140,12 +137,12 @@ public class Shade extends AbstractConfigurable {
         checkPiece(area, s.getPieceAt(i), map);
       }
     }
-    else {
-      String val = (String) piece.getProperty(marker);
-      if (val != null && val.equals(markerValue)) {
-        area.add(getShadeShape(piece, map));
-      }
-    }
+//    else {
+//      String val = (String) piece.getProperty(marker);
+//      if (val != null && val.equals(markerValue)) {
+//        area.add(getShadeShape(piece, map));
+//      }
+//    }
   }
 
   protected Area getShadeShape(GamePiece piece, Map map) {
@@ -180,20 +177,34 @@ public class Shade extends AbstractConfigurable {
       return;
     }
     
-    if (type.equals(TYPE_STD)) {
-      shading = new BufferedImage(2, 2, BufferedImage.TYPE_4BYTE_ABGR);
-      Graphics2D g2 = shading.createGraphics();
-      g2.setColor(color);
-      g2.drawLine(0, 0, 0, 0);
-      //g2.drawLine(1, 1, 1, 1);
-    }
-    else {
+    if (pattern.equals(TYPE_IMAGE)) {
       try {
         shading = (BufferedImage) GameModule.getGameModule().getDataArchive().getCachedImage(imageName);
       }
       catch (IOException ex) {
       }
     }
+    else {
+      shading = new BufferedImage(2, 2, BufferedImage.TYPE_4BYTE_ABGR);
+      Graphics2D g2 = shading.createGraphics();
+      g2.setColor(color);
+      if (pattern.equals(TYPE_25_PERCENT)) {
+        g2.drawLine(0, 0, 0, 0);
+      }
+      else if (pattern.equals(TYPE_50_PERCENT)) {
+        g2.drawLine(0, 0, 0, 0);
+        g2.drawLine(1, 1, 1, 1);
+      }
+      else if (pattern.equals(TYPE_75_PERCENT)) {
+        g2.drawLine(0, 0, 1, 0);
+        g2.drawLine(1, 1, 1, 1);
+      }
+      else if (pattern.equals(TYPE_SOLID)) {
+        g2.drawLine(0, 0, 1, 0);
+        g2.drawLine(0, 1, 1, 1);
+      }
+    }
+
     shadeRect = new Rectangle(0, 0, shading.getWidth(), shading.getHeight());
   }
   
@@ -215,18 +226,24 @@ public class Shade extends AbstractConfigurable {
   }
 
   public String[] getAttributeDescriptions() {
-    return new String[] { "Shade Name:  ", "Type:  ", "Shade Image:  ", "Color:  ", "Image:  ", "Opacity(%):  ",
-        "Property Name:  ", "Property Value:  ", "Range Type:  ", "Range Source:  ", "Range:  " };
+    return new String[] { "Name:  ", "Type:  ", "Shade Pattern:  ", "Color:  ", "Image:  ", "Opacity(%):  ",
+        "Range Type:  ", "Range Source:  ", "Range:  ", "Marker:  " };
   }
 
   public Class[] getAttributeTypes() {
-    return new Class[] { String.class, SettingConfig.class, TypeConfig.class, Color.class, Image.class, Integer.class,
-        String.class, String.class, RangeTypeConfig.class, RangeSourceConfig.class, Integer.class };
+    return new Class[] { String.class, TypePrompt.class, PatternPrompt.class, Color.class, Image.class, Integer.class,
+        RangeTypeConfig.class, RangeSourceConfig.class, Integer.class, String.class };
   }
 
-  public static class TypeConfig extends StringEnum {
+  public static class TypePrompt extends StringEnum {
     public String[] getValidValues(AutoConfigurable target) {
-      return new String[] { TYPE_STD, TYPE_IMAGE };
+      return new String[] { FG_TYPE, BG_TYPE };
+    }
+  }
+  
+  public static class PatternPrompt extends StringEnum {
+    public String[] getValidValues(AutoConfigurable target) {
+      return new String[] { TYPE_25_PERCENT, TYPE_50_PERCENT, TYPE_75_PERCENT, TYPE_SOLID, TYPE_IMAGE };
     }
   }
 
@@ -238,29 +255,23 @@ public class Shade extends AbstractConfigurable {
   
   public static class RangeSourceConfig extends StringEnum {
     public String[] getValidValues(AutoConfigurable target) {
-      return new String[] { RANGE_FIXED, RANGE_USER, RANGE_MARKER };
-    }
-  }
-
-  public static class SettingConfig extends StringEnum {
-    public String[] getValidValues(AutoConfigurable target) {
-      return new String[] { LIGHT, SHADE, BACKGROUND };
+      return new String[] { RANGE_FIXED, RANGE_MARKER };
     }
   }
 
   public String[] getAttributeNames() {
-    return new String[] { NAME, SETTING, TYPE, COLOR, IMAGE, OPACITY, PROPERTY_NAME, PROPERTY_VALUE, RANGE_TYPE, RANGE_SOURCE, RANGE };
+    return new String[] { NAME, TYPE, PATTERN, COLOR, IMAGE, OPACITY, RANGE_TYPE, RANGE_SOURCE, RANGE, MARKER };
   }
 
   public void setAttribute(String key, Object value) {
     if (NAME.equals(key)) {
       setConfigureName((String) value);
     }
-    else if (SETTING.equals(key)) {
-      setting = (String) value;
-    }
     else if (TYPE.equals(key)) {
       type = (String) value;
+    }
+    else if (PATTERN.equals(key)) {
+      pattern = (String) value;
     }
     else if (COLOR.equals(key)) {
       if (value instanceof String) {
@@ -283,12 +294,6 @@ public class Shade extends AbstractConfigurable {
         opacity = 100;
       }
     }
-    else if (PROPERTY_NAME.equals(key)) {
-      marker = (String) value;
-    }
-    else if (PROPERTY_VALUE.equals(key)) {
-      markerValue = (String) value;
-    }
     else if (RANGE_TYPE.equals(key)) {
       rangeType = (String) value;
     }
@@ -301,17 +306,20 @@ public class Shade extends AbstractConfigurable {
       }
       range = ((Integer) value).intValue();
     }
+    else if (MARKER.equals(key)) {
+      rangeMarker = (String) value;
+    }
   }
 
   public String getAttributeValueString(String key) {
     if (NAME.equals(key)) {
       return getConfigureName();
     }
-    else if (SETTING.equals(key)) {
-      return setting;
-    }
     else if (TYPE.equals(key)) {
       return type + "";
+    }
+    else if (PATTERN.equals(key)) {
+      return pattern + "";
     }
     else if (COLOR.equals(key)) {
       return ColorConfigurer.colorToString(color);
@@ -322,12 +330,6 @@ public class Shade extends AbstractConfigurable {
     else if (OPACITY.equals(key)) {
       return opacity + "";
     }
-    else if (PROPERTY_NAME.equals(key)) {
-      return marker;
-    }
-    else if (PROPERTY_VALUE.equals(key)) {
-      return markerValue;
-    }
     else if (RANGE_TYPE.equals(key)) {
       return rangeType;
     }
@@ -337,44 +339,41 @@ public class Shade extends AbstractConfigurable {
     else if (RANGE.equals(key)) {
       return range + "";
     }
+    else if (MARKER.equals(key)) {
+      return rangeMarker;
+    }
     else {
       return null;
     }
   }
 
   public VisibilityCondition getAttributeVisibility(String name) {
-    if (PROPERTY_NAME.equals(name) || PROPERTY_VALUE.equals(name) || RANGE_TYPE.equals(name) || RANGE_SOURCE.equals(name)) {
+
+   if (COLOR.equals(name)) {
       return new VisibilityCondition() {
         public boolean shouldBeVisible() {
-          return !setting.equals(BACKGROUND);
+          return !pattern.equals(TYPE_IMAGE);
+        }
+      };
+    }
+   else if (IMAGE.equals(name)) {
+      return new VisibilityCondition() {
+        public boolean shouldBeVisible() {
+          return pattern.equals(TYPE_IMAGE);
         }
       };
     }
     else if (RANGE.equals(name)) {
       return new VisibilityCondition() {
         public boolean shouldBeVisible() {
-          return !setting.equals(BACKGROUND) && !rangeType.equals(RANGE_MARKER);
+          return rangeSource.equals(RANGE_FIXED);
         }
       };
     }
-    else if (TYPE.equals(name) || OPACITY.equals(name)) {
+    else if (MARKER.equals(name)) {
       return new VisibilityCondition() {
         public boolean shouldBeVisible() {
-          return !setting.equals(LIGHT);
-        }
-      };
-    }
-    else if (IMAGE.equals(name)) {
-      return new VisibilityCondition() {
-        public boolean shouldBeVisible() {
-          return !setting.equals(LIGHT) && type.equals(TYPE_IMAGE);
-        }
-      };
-    }
-    else if (COLOR.equals(name)) {
-      return new VisibilityCondition() {
-        public boolean shouldBeVisible() {
-          return !setting.equals(LIGHT) && type.equals(TYPE_STD);
+          return rangeSource.equals(RANGE_MARKER);
         }
       };
     }
