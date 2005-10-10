@@ -73,7 +73,7 @@ public class MovementReporter {
       else {
         movesToReport.add(summary);
       }
-      if (shouldMarkMoved()) {
+      if (shouldMarkMoved(summary)) {
         movesToMark.add(summary);
       }
     }
@@ -121,8 +121,11 @@ public class MovementReporter {
   }
 
 
-  protected boolean shouldMarkMoved() {
-    String option = GlobalOptions.getInstance().getAttributeValueString(GlobalOptions.MARK_MOVED);
+  protected boolean shouldMarkMoved(MoveSummary summary) {
+    String option = Map.getMapById(summary.getNewMapId()).getAttributeValueString(Map.MARK_MOVED);
+    if (option == null) {
+      option = GlobalOptions.getInstance().getAttributeValueString(GlobalOptions.MARK_MOVED);
+    }
     if (GlobalOptions.ALWAYS.equals(option)) {
       return true;
     }

@@ -285,6 +285,7 @@ public class Translate extends Decorator implements EditablePiece {
         comm.append(c);
         move.map.ensureVisible(move.map.selectionBoundsOf(move.piece));
         pieces.remove(move.piece);
+        move.map.repaint();
       }
       MovementReporter r = new MovementReporter(comm);
       Command reportCommand = r.getReportCommand();
