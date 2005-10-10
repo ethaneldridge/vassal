@@ -624,23 +624,6 @@ public class Map extends AbstractConfigurable implements GameComponent,
     return snap;
   }
 
-  /**
-   *
-   * @param p
-   * @return false if this point is in a no-go area
-   */
-  public boolean isSnappable(Point p) {
-    return true;
-    // TODO re-enable this when the Board class is updated
-/*
-    Board b = findBoard(p);
-    if (b == null) {
-      return true;
-    }
-    return b.isSnappable(p);
-*/
-  }
-
   /** The buffer of empty space around the boards in the Map window,
    * in component coordinates at 100% zoom
    */
@@ -1471,42 +1454,7 @@ public class Map extends AbstractConfigurable implements GameComponent,
    * @see StackMetrics#merge
    */
   public Command placeOrMerge(final GamePiece p, final Point pt) {
-    PieceVisitorDispatcher dispatch = new DeckVisitorDispatcher(new DeckVisitor() {
-      public Object visitDeck(Deck d) {
-        if (d.getPosition().equals(pt)) {
-          return getStackMetrics().merge(d, p);
-        }
-        else {
-          return null;
-        }
-      }
-
-      public Object visitStack(Stack s) {
-        if (s.getPosition().equals(pt)
-            && getStackMetrics().isStackingEnabled()
-            && !Boolean.TRUE.equals(p.getProperty(Properties.NO_STACK))
-            && s.topPiece() != null) {
-          return getStackMetrics().merge(s, p);
-        }
-        else {
-          return null;
-        }
-      }
-
-      public Object visitDefault(GamePiece piece) {
-        if (piece.getPosition().equals(pt)
-            && getStackMetrics().isStackingEnabled()
-            && !Boolean.TRUE.equals(p.getProperty(Properties.NO_STACK))
-            && !Boolean.TRUE.equals(piece.getProperty(Properties.INVISIBLE_TO_ME))
-            && !Boolean.TRUE.equals(piece.getProperty(Properties.NO_STACK))) {
-          return getStackMetrics().merge(piece, p);
-        }
-        else {
-          return null;
-        }
-      }
-    });
-    Command c = apply(dispatch);
+    Command c = apply(new DeckVisitorDispatcher(new Merger(this,pt,p)));
     if (c == null) {
       c = placeAt(p, pt);
     }
@@ -1864,6 +1812,59 @@ public class Map extends AbstractConfigurable implements GameComponent,
     }
     return theMap;
   }
+
+  /**
+   * Implements default logic for merging pieces at a given location within a map
+   * Returns a {@link Command} that merges the input {@link GamePiece} with
+   * an existing piece at the input position, provided the pieces are stackable,
+   * visible, in the same layer, etc.
+   */
+  public static class Merger implements DeckVisitor {
+    private Point pt;
+    private Map map;
+    private GamePiece p;
+
+    public Merger(Map map, Point pt, GamePiece p) {
+      this.map = map;
+      this.pt = pt;
+      this.p = p;
+    }
+
+      public Object visitDeck(Deck d) {
+        if (d.getPosition().equals(pt)) {
+          return map.getStackMetrics().merge(d, p);
+        }
+        else {
+          return null;
+        }
+      }
+
+      public Object visitStack(Stack s) {
+        if (s.getPosition().equals(pt)
+            && map.getStackMetrics().isStackingEnabled()
+            && !Boolean.TRUE.equals(p.getProperty(Properties.NO_STACK))
+            && s.topPiece() != null) {
+          return map.getStackMetrics().merge(s, p);
+        }
+        else {
+          return null;
+        }
+      }
+
+      public Object visitDefault(GamePiece piece) {
+        if (piece.getPosition().equals(pt)
+            && map.getStackMetrics().isStackingEnabled()
+            && !Boolean.TRUE.equals(p.getProperty(Properties.NO_STACK))
+            && !Boolean.TRUE.equals(piece.getProperty(Properties.INVISIBLE_TO_ME))
+            && !Boolean.TRUE.equals(piece.getProperty(Properties.NO_STACK))) {
+          return map.getStackMetrics().merge(piece, p);
+        }
+        else {
+          return null;
+        }
+      }
+    }
+
 
   /**
    * The component that represents the map itself

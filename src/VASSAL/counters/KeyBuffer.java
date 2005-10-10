@@ -20,7 +20,6 @@ package VASSAL.counters;
 
 import VASSAL.command.Command;
 import VASSAL.command.NullCommand;
-import VASSAL.tools.Sort;
 
 import java.util.*;
 
@@ -29,6 +28,7 @@ public class KeyBuffer {
   private static KeyBuffer theBuffer;
   private List pieces;
   private BoundsTracker bounds;
+  private Comparator pieceSorter = new PieceSorter();
 
   private KeyBuffer() {
     pieces = new ArrayList();
@@ -87,6 +87,7 @@ public class KeyBuffer {
   }
 
   public Command keyCommand(javax.swing.KeyStroke stroke) {
+    sort(pieceSorter);
     Command comm = new NullCommand();
 
     bounds.clear();

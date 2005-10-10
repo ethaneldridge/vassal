@@ -18,12 +18,11 @@
  */
 package VASSAL.counters;
 
+import VASSAL.build.GameModule;
+import VASSAL.build.module.Map;
 import VASSAL.build.module.documentation.HelpFile;
 import VASSAL.build.module.map.MovementReporter;
-import VASSAL.build.GameModule;
 import VASSAL.command.Command;
-import VASSAL.command.MoveTracker;
-import VASSAL.command.ChangeTracker;
 import VASSAL.command.NullCommand;
 import VASSAL.configure.BooleanConfigurer;
 import VASSAL.configure.HotKeyConfigurer;
@@ -37,7 +36,10 @@ import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
 import java.io.File;
 import java.net.MalformedURLException;
-import java.util.Enumeration;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.Set;
 
 /**
  * Give a piece a command that moves it a fixed amount in a particular direction,
@@ -52,6 +54,7 @@ public class Translate extends Decorator implements EditablePiece {
   protected int yDist;
   protected boolean moveStack;
   protected KeyCommand moveCommand;
+  protected static MoveExecuter mover;
 
   public Translate() {
     this(ID + "Move Forward", null);
@@ -105,24 +108,28 @@ public class Translate extends Decorator implements EditablePiece {
     myGetKeyCommands();
     Command c = null;
     if (moveCommand.matches(stroke)) {
+      if (mover == null) {
+        mover = new MoveExecuter();
+        SwingUtilities.invokeLater(mover);
+      }
       GamePiece target = findTarget(stroke);
       if (target != null) {
         c = moveTarget(target);
-        MovementReporter r = new MovementReporter(c);
-        Command reportCommand = r.getReportCommand();
-        if (reportCommand != null) {
-          reportCommand.execute();
-        }
-        c.append(reportCommand);
-        c.append(r.markMovedPieces());
-        getMap().ensureVisible(getMap().selectionBoundsOf(target));
+//        MovementReporter r = new MovementReporter(c);
+//        Command reportCommand = r.getReportCommand();
+//        if (reportCommand != null) {
+//          reportCommand.execute();
+//        }
+//        c.append(reportCommand);
+//        c.append(r.markMovedPieces());
+//        getMap().ensureVisible(getMap().selectionBoundsOf(target));
       }
     }
     return c;
   }
 
   protected Command moveTarget(GamePiece target) {
-    MoveTracker t = new MoveTracker(target);
+//    MoveTracker t = new MoveTracker(target);
     Point p = new Point(getPosition());
     p.translate(xDist, -yDist);
     FreeRotator myRotation = (FreeRotator) Decorator.getDecorator(this, FreeRotator.class);
@@ -135,8 +142,10 @@ public class Translate extends Decorator implements EditablePiece {
     if (!Boolean.TRUE.equals(Decorator.getOutermost(this).getProperty(Properties.IGNORE_GRID))) {
       p = getMap().snapTo(p);
     }
-    getMap().placeOrMerge(target, p);
-    return t.getMoveCommand();
+    mover.add(target.getMap(), target, p);
+//    getMap().placeOrMerge(target, p);
+//    return t.getMoveCommand();
+    return null;
   }
 
   protected GamePiece findTarget(KeyStroke stroke) {
@@ -229,4 +238,80 @@ public class Translate extends Decorator implements EditablePiece {
     }
   }
 
+  /**
+   * Batches up all the movement commands resulting from a single KeyEvent and executes them at once.
+   * Ensures that pieces that are moving won't be merged with other moving pieces until they've been moved
+   */
+  public static class MoveExecuter implements Runnable {
+    private java.util.List moves = new ArrayList();
+    private Set pieces = new HashSet();
+
+    public void run() {
+      Command comm = new NullCommand();
+      for (Iterator it = moves.iterator(); it.hasNext();) {
+        final Move move = (Move) it.next();
+        final Map.Merger merger = new Map.Merger(move.map, move.pos, move.piece);
+        DeckVisitor v = new DeckVisitor() {
+          public Object visitDeck(Deck d) {
+            return merger.visitDeck(d);
+          }
+
+          public Object visitStack(Stack s) {
+            if (!pieces.contains(s)
+                && move.map.getPieceCollection().canMerge(s, move.piece)) {
+              return merger.visitStack(s);
+            }
+            else {
+              return null;
+            }
+          }
+
+          public Object visitDefault(GamePiece p) {
+            if (!pieces.contains(p)
+                && move.map.getPieceCollection().canMerge(p, move.piece)) {
+              return merger.visitDefault(p);
+            }
+            else {
+              return null;
+            }
+          }
+        };
+
+        DeckVisitorDispatcher dispatch = new DeckVisitorDispatcher(v);
+        Command c = move.map.apply(dispatch);
+        if (c == null) {
+          c = move.map.placeAt(move.piece, move.pos);
+        }
+        comm.append(c);
+        move.map.ensureVisible(move.map.selectionBoundsOf(move.piece));
+        pieces.remove(move.piece);
+      }
+      MovementReporter r = new MovementReporter(comm);
+      Command reportCommand = r.getReportCommand();
+      if (reportCommand != null) {
+        reportCommand.execute();
+      }
+      comm.append(reportCommand);
+      comm.append(r.markMovedPieces());
+      GameModule.getGameModule().sendAndLog(comm);
+      mover = null;
+    }
+
+    public void add(Map map, GamePiece piece, Point pos) {
+      moves.add(new Move(map, piece, pos));
+      pieces.add(piece);
+    }
+
+    private static class Move {
+      private Map map;
+      private GamePiece piece;
+      private Point pos;
+
+      public Move(Map map, GamePiece piece, Point pos) {
+        this.map = map;
+        this.piece = piece;
+        this.pos = pos;
+      }
+    }
+  }
 }
