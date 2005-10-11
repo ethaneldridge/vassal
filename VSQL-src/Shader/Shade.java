@@ -55,18 +55,11 @@ public class Shade extends AbstractConfigurable {
   public static final String IMAGE = "image";
   public static final String OPACITY = "opacity";
 
-  public static final String RANGE_TYPE = "rangeType";
-  public static final String RANGE_SOURCE = "rangeSource";
+  public static final String RANGE_TEXT = "rangeType";
   public static final String RANGE = "range";
-  public static final String MARKER = "marker";
 
   public static final String BG_TYPE = "Background";
   public static final String FG_TYPE = "Foreground";
-  
-  public static final String RANGE_MARKER = "Use Marker Value";
-  public static final String RANGE_FIXED = "Fixed";
-  public static final String RANGE_GRID = "Grid Elements";
-  public static final String RANGE_PIXELS = "Pixels";
 
   public static final String TYPE_25_PERCENT = "25%";
   public static final String TYPE_50_PERCENT = "50%"; 
@@ -74,10 +67,8 @@ public class Shade extends AbstractConfigurable {
   public static final String TYPE_SOLID = "100% (Solid)"; 
   public static final String TYPE_IMAGE = "Custom Image";
 
-  protected String rangeType = RANGE_GRID;
-  protected String rangeSource = RANGE_FIXED;
+  protected String rangeText = "";
   protected int range = 3;
-  protected String rangeMarker = "";
   protected int builtRange = 3;
   protected String imageName = "";
   protected Color color = Color.BLACK;
@@ -87,16 +78,16 @@ public class Shade extends AbstractConfigurable {
 
   //protected ShadeableMap map;
   protected Area shape;
-  protected BufferedImage shading = null;
-  protected Rectangle shadeRect = new Rectangle();
+  protected BufferedImage shadePattern = null;
+  protected Rectangle patternRect = new Rectangle();
 
   public Shade() {
     super();
   }
 
-  public void draw(Graphics g, Map map) {
+  public void draw(Graphics g, Map map, Rectangle visibleRect) {
     
-    buildShading();
+    buildPattern();
     
     Area myShape = getShape(map);
     
@@ -111,7 +102,7 @@ public class Shade extends AbstractConfigurable {
 //    theShape.transform(zoom);
     
     //AffineTransform saveXform = g2.getTransform();
-    g2.setPaint(new TexturePaint(shading, shadeRect));
+    g2.setPaint(new TexturePaint(shadePattern, patternRect));
     g2.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, opacity / 100.0f));
     g2.fill(myShape);
     //g2.setTransform(saveXform);
@@ -172,21 +163,21 @@ public class Shade extends AbstractConfigurable {
   /*
    * Build the repeating rectangle used to generate the shade.
    */
-  protected void buildShading() {
-    if (shading != null) {
+  protected void buildPattern() {
+    if (shadePattern != null) {
       return;
     }
     
     if (pattern.equals(TYPE_IMAGE)) {
       try {
-        shading = (BufferedImage) GameModule.getGameModule().getDataArchive().getCachedImage(imageName);
+        shadePattern = (BufferedImage) GameModule.getGameModule().getDataArchive().getCachedImage(imageName);
       }
       catch (IOException ex) {
       }
     }
     else {
-      shading = new BufferedImage(2, 2, BufferedImage.TYPE_4BYTE_ABGR);
-      Graphics2D g2 = shading.createGraphics();
+      shadePattern = new BufferedImage(2, 2, BufferedImage.TYPE_4BYTE_ABGR);
+      Graphics2D g2 = shadePattern.createGraphics();
       g2.setColor(color);
       if (pattern.equals(TYPE_25_PERCENT)) {
         g2.drawLine(0, 0, 0, 0);
@@ -205,7 +196,7 @@ public class Shade extends AbstractConfigurable {
       }
     }
 
-    shadeRect = new Rectangle(0, 0, shading.getWidth(), shading.getHeight());
+    patternRect = new Rectangle(0, 0, shadePattern.getWidth(), shadePattern.getHeight());
   }
   
   protected int getRange() {
@@ -216,23 +207,23 @@ public class Shade extends AbstractConfigurable {
    * Build the shape of the shade as an Area of the correct size centred on (0, 0)
    */
   protected void buildShape(Point p, Map map) {
-    if (rangeType.equals(RANGE_PIXELS)) {
-      shape = new Area(new Ellipse2D.Double(-range, -range, range*2, range*2));
-    }
-    else if (rangeType.equals(RANGE_GRID)) {
-      shape = ((ShadeableMap) map).getGridRangeShape(p, range);
-    }
-    builtRange = getRange();
+//    if (rangeType.equals(RANGE_PIXELS)) {
+//      shape = new Area(new Ellipse2D.Double(-range, -range, range*2, range*2));
+//    }
+//    else if (rangeType.equals(RANGE_GRID)) {
+//      shape = ((ShadeableMap) map).getGridRangeShape(p, range);
+//    }
+//    builtRange = getRange();
   }
 
   public String[] getAttributeDescriptions() {
     return new String[] { "Name:  ", "Type:  ", "Shade Pattern:  ", "Color:  ", "Image:  ", "Opacity(%):  ",
-        "Range Type:  ", "Range Source:  ", "Range:  ", "Marker:  " };
+        "Default Range Text:  ", "Default Range:  " };
   }
 
   public Class[] getAttributeTypes() {
     return new Class[] { String.class, TypePrompt.class, PatternPrompt.class, Color.class, Image.class, Integer.class,
-        RangeTypeConfig.class, RangeSourceConfig.class, Integer.class, String.class };
+        String.class, Integer.class };
   }
 
   public static class TypePrompt extends StringEnum {
@@ -247,20 +238,9 @@ public class Shade extends AbstractConfigurable {
     }
   }
 
-  public static class RangeTypeConfig extends StringEnum {
-    public String[] getValidValues(AutoConfigurable target) {
-      return new String[] { RANGE_GRID, RANGE_PIXELS };
-    }
-  }
-  
-  public static class RangeSourceConfig extends StringEnum {
-    public String[] getValidValues(AutoConfigurable target) {
-      return new String[] { RANGE_FIXED, RANGE_MARKER };
-    }
-  }
 
   public String[] getAttributeNames() {
-    return new String[] { NAME, TYPE, PATTERN, COLOR, IMAGE, OPACITY, RANGE_TYPE, RANGE_SOURCE, RANGE, MARKER };
+    return new String[] { NAME, TYPE, PATTERN, COLOR, IMAGE, OPACITY, RANGE_TEXT, RANGE };
   }
 
   public void setAttribute(String key, Object value) {
@@ -294,20 +274,14 @@ public class Shade extends AbstractConfigurable {
         opacity = 100;
       }
     }
-    else if (RANGE_TYPE.equals(key)) {
-      rangeType = (String) value;
-    }
-    else if (RANGE_SOURCE.equals(key)) {
-      rangeSource = (String) value;
+    else if (RANGE_TEXT.equals(key)) {
+      rangeText = (String) value;
     }
     else if (RANGE.equals(key)) {
       if (value instanceof String) {
         value = new Integer((String) value);
       }
       range = ((Integer) value).intValue();
-    }
-    else if (MARKER.equals(key)) {
-      rangeMarker = (String) value;
     }
   }
 
@@ -330,17 +304,11 @@ public class Shade extends AbstractConfigurable {
     else if (OPACITY.equals(key)) {
       return opacity + "";
     }
-    else if (RANGE_TYPE.equals(key)) {
-      return rangeType;
-    }
-    else if (RANGE_SOURCE.equals(key)) {
-      return rangeSource;
+    else if (RANGE_TEXT.equals(key)) {
+      return rangeText;
     }
     else if (RANGE.equals(key)) {
       return range + "";
-    }
-    else if (MARKER.equals(key)) {
-      return rangeMarker;
     }
     else {
       return null;
@@ -360,20 +328,6 @@ public class Shade extends AbstractConfigurable {
       return new VisibilityCondition() {
         public boolean shouldBeVisible() {
           return pattern.equals(TYPE_IMAGE);
-        }
-      };
-    }
-    else if (RANGE.equals(name)) {
-      return new VisibilityCondition() {
-        public boolean shouldBeVisible() {
-          return rangeSource.equals(RANGE_FIXED);
-        }
-      };
-    }
-    else if (MARKER.equals(name)) {
-      return new VisibilityCondition() {
-        public boolean shouldBeVisible() {
-          return rangeSource.equals(RANGE_MARKER);
         }
       };
     }

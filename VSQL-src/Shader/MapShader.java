@@ -72,9 +72,7 @@ public class MapShader extends AbstractConfigurable implements GameComponent {
   protected Map map;
 
   protected ArrayList shade = new ArrayList();
-  protected Area clip = new Area();
-
-  protected boolean dirty = true;
+  protected Area boardClip = null;
 
   public static class BoardPrompt extends StringEnum {
     public String[] getValidValues(AutoConfigurable target) {
@@ -107,9 +105,7 @@ public class MapShader extends AbstractConfigurable implements GameComponent {
 
   public void draw(Graphics g, Rectangle visibleRect, Map m) {
     if (shadingVisible) {
-      if (dirty) {
-        buildClip();
-      }
+      buildBoardClip();
       drawShader(g, m, visibleRect);
     }
   }
@@ -120,59 +116,61 @@ public class MapShader extends AbstractConfigurable implements GameComponent {
   protected void drawShader(Graphics g, Map m, Rectangle visibleRect) {
 
     Shape oldClip = g.getClip();
-    
-    if (clip != null) {
-      Area theClip = new Area(clip);
+    Area theClip;
+
+    if (boardClip == null) {
+      theClip = new Area(visibleRect);
+    }
+    else {
+      theClip = new Area(boardClip);
       theClip.transform(AffineTransform.getScaleInstance(m.getZoom(), m.getZoom()));
       theClip.intersect(new Area(visibleRect));
-      g.setClip(theClip);
     }
+    g.setClip(theClip);
 
     Iterator it = shade.iterator();
     while (it.hasNext()) {
       Shade s = (Shade) it.next();
-      s.draw(g, m);
+      s.draw(g, m, visibleRect);
     }
 
-    if (clip != null) {
-      g.setClip(oldClip);
-    }
+    g.setClip(oldClip);
+
   }
 
   /**
    *  
    */
-  protected void buildClip() {
+  protected void buildBoardClip() {
 
     /**
      * Build a clipping region excluding boards that do no want to be Shaded.
      * Leave clip null for all boards
      */
-    clip = null;
-    if (!boardSelection.equals(ALL_BOARDS)) {
-      Enumeration e = map.getAllBoards();
-      while (e.hasMoreElements()) {
-        Board b = (Board) e.nextElement();
-        String boardName = b.getName();
-        boolean doShade = false;
-        if (boardSelection.equals(EXC_BOARDS)) {
-          doShade = true;
-          for (int i = 0; i < boardList.length && doShade; i++) {
-            doShade = !boardList[i].equals(boardName);
+    if (boardClip == null) {
+      if (!boardSelection.equals(ALL_BOARDS)) {
+        Enumeration e = map.getAllBoards();
+        while (e.hasMoreElements()) {
+          Board b = (Board) e.nextElement();
+          String boardName = b.getName();
+          boolean doShade = false;
+          if (boardSelection.equals(EXC_BOARDS)) {
+            doShade = true;
+            for (int i = 0; i < boardList.length && doShade; i++) {
+              doShade = !boardList[i].equals(boardName);
+            }
           }
-        }
-        else if (boardSelection.equals(INC_BOARDS)) {
-          for (int i = 0; i < boardList.length && !doShade; i++) {
-            doShade = boardList[i].equals(boardName);
+          else if (boardSelection.equals(INC_BOARDS)) {
+            for (int i = 0; i < boardList.length && !doShade; i++) {
+              doShade = boardList[i].equals(boardName);
+            }
           }
-        }
-        if (doShade) {
-          clip.add(new Area(b.bounds()));
+          if (doShade) {
+            boardClip.add(new Area(b.bounds()));
+          }
         }
       }
     }
-    dirty = false;
-
   }
 
   public void addShade(Shade s) {
@@ -188,7 +186,7 @@ public class MapShader extends AbstractConfigurable implements GameComponent {
    * indicate that the shader needs to be rebuilt.
    */
   protected void update() {
-    dirty = true;
+
   }
 
   /*
