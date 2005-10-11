@@ -13,7 +13,7 @@
  * Library General Public License for more details.
  *
  * You should have received a copy of the GNU Library General Public
- * License along with this library; if not, copies are available 
+ * License along with this library; if not, copies are available
  * at http://www.opensource.org.
  */
 package VASSAL.counters;
@@ -60,7 +60,7 @@ public class Marker extends Decorator implements EditablePiece {
     while (st.hasMoreTokens()) {
       v.add(st.nextToken());
     }
-    keys = (String[])v.toArray(new String[v.size()]);
+    keys = (String[]) v.toArray(new String[v.size()]);
     values = new String[keys.length];
     for (int i = 0; i < keys.length; ++i) {
       values[i] = "";
@@ -136,7 +136,7 @@ public class Marker extends Decorator implements EditablePiece {
 
   public String getDescription() {
     if (keys != null && keys.length > 0 && values.length > 0) {
-      return "Marker - "+keys[0]+" = "+values[0];
+      return "Marker - " + keys[0] + " = " + values[0];
     }
     else
       return "Marker";
@@ -144,9 +144,9 @@ public class Marker extends Decorator implements EditablePiece {
 
   public VASSAL.build.module.documentation.HelpFile getHelpFile() {
     File dir = VASSAL.build.module.Documentation.getDocumentationBaseDir();
-    dir = new File(dir,"ReferenceManual");
+    dir = new File(dir, "ReferenceManual");
     try {
-      return new HelpFile(null,new File(dir,"PropertyMarker.htm"));
+      return new HelpFile(null, new File(dir, "PropertyMarker.htm"));
     }
     catch (MalformedURLException ex) {
       return null;
@@ -161,11 +161,22 @@ public class Marker extends Decorator implements EditablePiece {
     private StringConfigurer propName;
     private StringConfigurer propValue;
     private JPanel panel;
+
     private Ed(Marker m) {
       panel = new JPanel();
-      panel.setLayout(new BoxLayout(panel,BoxLayout.Y_AXIS));
-      propName = new StringConfigurer(null,"Property name:  ",m.keys.length == 0 ? "" : m.keys[0]);
-      propValue = new StringConfigurer(null,"Property value:  ",m.values.length == 0 ? "" : m.values[0]);
+      panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
+      SequenceEncoder seKeys = new SequenceEncoder(',');
+      for (int i = 0; i < m.keys.length; ++i) {
+        seKeys.append(m.keys[i]);
+      }
+
+      SequenceEncoder seValues = new SequenceEncoder(',');
+      for (int i = 0; i < m.values.length; ++i) {
+        seValues.append(m.values[i]);
+      }
+
+      propName = new StringConfigurer(null, "Property name:  ", m.keys.length == 0 ? "" : seKeys.getValue());
+      propValue = new StringConfigurer(null, "Property value:  ", m.values.length == 0 ? "" : seValues.getValue());
       panel.add(propName.getControls());
       panel.add(propValue.getControls());
     }
@@ -179,7 +190,7 @@ public class Marker extends Decorator implements EditablePiece {
     }
 
     public String getType() {
-      return Marker.ID+propName.getValueString();
+      return Marker.ID + propName.getValueString();
     }
   }
 }
