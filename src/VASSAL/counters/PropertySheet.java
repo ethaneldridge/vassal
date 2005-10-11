@@ -24,13 +24,15 @@ import VASSAL.command.ChangePiece;
 import VASSAL.command.Command;
 import VASSAL.tools.SequenceEncoder;
 
+import java.util.List;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.io.File;
 import java.net.MalformedURLException;
-import java.util.Vector;
+import java.util.HashMap;
+import java.util.ArrayList;
 
 import javax.swing.event.*;
 import javax.swing.text.*;
@@ -50,7 +52,7 @@ public class PropertySheet extends Decorator implements EditablePiece {
   protected char launchKey;
   protected KeyCommand launch;
   protected Color backgroundColor;
-  String m_definition;
+  protected String m_definition;
 
   protected PropertySheetDialog frame;
   protected JButton applyButton;
@@ -77,9 +79,10 @@ public class PropertySheet extends Decorator implements EditablePiece {
 
   protected boolean isUpdating;
 
-  String state;
-  java.util.Vector m_values;
-  java.util.Vector m_fields; //TODO: dispose this if frame destroyed (is this possible?)
+  protected String state;
+  protected HashMap properties = new HashMap();
+  java.util.List m_values;
+  java.util.List m_fields;
 
 
   static final char TYPE_DELIMITOR = ';';
@@ -224,43 +227,60 @@ public class PropertySheet extends Decorator implements EditablePiece {
       }
     }
 
-    if (state != encoder.getValue()) {
+    if (encoder.getValue() != null
+        && !encoder.getValue().equals(state)) {
 
-      state = encoder.getValue();
+      mySetState(encoder.getValue());
 
       GamePiece outer = Decorator.getOutermost(PropertySheet.this);
       if (outer.getId() != null) {
         GameModule.getGameModule().sendAndLog(new ChangePiece(outer.getId(), oldState, outer.getState()));
       }
     }
-
   }
 
 
   private void updateFieldsFromState() {
-
-
     isUpdating = true;
+    properties.clear();
 
-    if (frame != null) {
-      SequenceEncoder.Decoder stateDecoder = new SequenceEncoder.Decoder(state, STATE_DELIMITOR);
-      for (int iField = 0; stateDecoder.hasMoreTokens(); ++iField) {
-        String value = stateDecoder.nextToken();
-        value = value.replace(LINE_DELIMINATOR, '\n');
+    SequenceEncoder.Decoder defDecoder = new SequenceEncoder.Decoder(m_definition, DEF_DELIMITOR);
+    SequenceEncoder.Decoder stateDecoder = new SequenceEncoder.Decoder(state, STATE_DELIMITOR);
+    for (int iField = 0; defDecoder.hasMoreTokens(); ++iField) {
+      String name = defDecoder.nextToken();
+      int type = name.charAt(0) - '0';
+      name = name.substring(1);
+      String value = stateDecoder.nextToken("");
+      switch (type) {
+        case TICKS:
+        case TICKS_VAL:
+        case TICKS_MAX:
+        case TICKS_VALMAX:
+          int index = value.indexOf('/');
+          if (index > 0) {
+            properties.put(name, value.substring(0, index));
+          }
+          else {
+            properties.put(name, value);
+          }
+          break;
+        default:
+          properties.put(name, value);
+      }
+      value = value.replace(LINE_DELIMINATOR, '\n');
 
-        if (frame != null) {
-          Object field = m_fields.get(iField);
-          if (field instanceof JTextComponent) {
-            ((JTextComponent) field).setText(value);
-          }
-          else if (field instanceof TickPanel) {
-            ((TickPanel) field).updateValue(value);
-          }
+      if (frame != null) {
+        Object field = m_fields.get(iField);
+        if (field instanceof JTextComponent) {
+          ((JTextComponent) field).setText(value);
+        }
+        else if (field instanceof TickPanel) {
+          ((TickPanel) field).updateValue(value);
         }
       }
-      if (applyButton != null) {
-        applyButton.setEnabled(false);
-      }
+    }
+    if (applyButton != null) {
+      applyButton.setEnabled(false);
     }
     isUpdating = false;
   }
@@ -274,12 +294,7 @@ public class PropertySheet extends Decorator implements EditablePiece {
 
         Container pane;
 
-        m_fields = new Vector();
-        // We can apply a custom icon for this window with this code:
-        //  JFrame DummyFrame = new JFrame();
-        //  final Image icon =
-        //    Toolkit.getDefaultToolkit().getImage( "E:/eclipse/workspace/LayeredPaneDemo/images/dukeWaveRed.gif" );
-        //  DummyFrame.setIconImage( icon );
+        m_fields = new ArrayList();
         VASSAL.build.module.Map map = piece.getMap();
         Frame parent = null;
         if (map != null && map.getView() != null) {
@@ -485,6 +500,14 @@ public class PropertySheet extends Decorator implements EditablePiece {
     else {
       return null;
     }
+  }
+
+  public Object getProperty(Object key) {
+    Object value = properties.get(key);
+    if (value == null) {
+      value = super.getProperty(key);
+    }
+    return value;
   }
 
   public String getDescription() {
@@ -869,15 +892,11 @@ public class PropertySheet extends Decorator implements EditablePiece {
     private JTextField valField;
     private JTextField maxField;
     private TickLabel ticks;
-    private Vector actionListeners = new Vector();
-    private Vector documentListeners = new Vector();
+    private List actionListeners = new ArrayList();
+    private java.util.List documentListeners = new ArrayList();
 
     public TickPanel(String value, int type) {
       super(new GridBagLayout());
-      //super(new FlowLayout());
-      //super( new BorderLayout());
-
-      //Debug.trace("TickPanel( " + value + ", " + type + ")");
       set(value);
 
       panelType = type;
@@ -1060,7 +1079,7 @@ public class PropertySheet extends Decorator implements EditablePiece {
     private int numTicks = 0;
     private int maxTicks = 0;
     protected int panelType;
-    private Vector actionListeners = new Vector();
+    private java.util.List actionListeners = new ArrayList();
 
     public int getNumTicks() {
       return numTicks;

@@ -115,21 +115,12 @@ public class Translate extends Decorator implements EditablePiece {
       GamePiece target = findTarget(stroke);
       if (target != null) {
         c = moveTarget(target);
-//        MovementReporter r = new MovementReporter(c);
-//        Command reportCommand = r.getReportCommand();
-//        if (reportCommand != null) {
-//          reportCommand.execute();
-//        }
-//        c.append(reportCommand);
-//        c.append(r.markMovedPieces());
-//        getMap().ensureVisible(getMap().selectionBoundsOf(target));
       }
     }
     return c;
   }
 
   protected Command moveTarget(GamePiece target) {
-//    MoveTracker t = new MoveTracker(target);
     Point p = new Point(getPosition());
     p.translate(xDist, -yDist);
     FreeRotator myRotation = (FreeRotator) Decorator.getDecorator(this, FreeRotator.class);
@@ -143,8 +134,6 @@ public class Translate extends Decorator implements EditablePiece {
       p = getMap().snapTo(p);
     }
     mover.add(target.getMap(), target, p);
-//    getMap().placeOrMerge(target, p);
-//    return t.getMoveCommand();
     return null;
   }
 
