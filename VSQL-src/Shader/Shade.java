@@ -24,12 +24,9 @@ import java.awt.Color;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Image;
-import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.TexturePaint;
-import java.awt.geom.AffineTransform;
 import java.awt.geom.Area;
-import java.awt.geom.Ellipse2D;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
@@ -67,9 +64,9 @@ public class Shade extends AbstractConfigurable {
   public static final String TYPE_SOLID = "100% (Solid)"; 
   public static final String TYPE_IMAGE = "Custom Image";
 
-  protected String rangeText = "";
-  protected int range = 3;
-  protected int builtRange = 3;
+  protected String defaultRangeText = "";
+  protected int defaultRange = 3;
+//  protected int builtRange = 3;
   protected String imageName = "";
   protected Color color = Color.BLACK;
   protected String type = FG_TYPE;
@@ -87,13 +84,10 @@ public class Shade extends AbstractConfigurable {
 
   public void draw(Graphics g, Map map, Rectangle visibleRect) {
     
-    buildPattern();
+    buildShadePattern();
     
-    Area myShape = getShape(map);
+    Area myShape = getShadeShape(map, visibleRect);
     
-    /* 
-     * Translate, Zoom and draw the shade
-     */
     Graphics2D g2 = (Graphics2D) g;
 //    double z = map.getZoom();
 //
@@ -109,9 +103,15 @@ public class Shade extends AbstractConfigurable {
     
   }
   
-  public Area getShape(Map map) {
+  public Area getShadeShape(Map map, Rectangle visibleRect) {
     
-    Area area = new Area();
+    Area area;
+    if (type.equals(FG_TYPE)) {
+      area = new Area();
+    }
+    else {
+      area = new Area(visibleRect);
+    }
     
     GamePiece pieces[] = map.getPieces();
     for (int i = 0; i < pieces.length; i++) {
@@ -128,42 +128,23 @@ public class Shade extends AbstractConfigurable {
         checkPiece(area, s.getPieceAt(i), map);
       }
     }
-//    else {
-//      String val = (String) piece.getProperty(marker);
-//      if (val != null && val.equals(markerValue)) {
-//        area.add(getShadeShape(piece, map));
-//      }
-//    }
-  }
-
-  protected Area getShadeShape(GamePiece piece, Map map) {
-
-    if (shape == null || getRange() != builtRange) {
-      buildShape(piece.getPosition(), map);
+    else {
+      Area shape = (Area) piece.getProperty(name + Shading.SHAPE);
+      if (shape != null) {
+        if (type.equals(FG_TYPE)) {
+          area.add(shape);
+        }
+        else {
+          area.subtract(shape);
+        }
+      }
     }
-    /* 
-     * Translate, Zoom and draw the shade
-     */
-    Point p = piece.getPosition();
-    double z = map.getZoom();
-
-    Area theShape = new Area(shape);
-    theShape.transform(AffineTransform.getScaleInstance(z, z));
-    theShape.transform(AffineTransform.getTranslateInstance(p.x * z, p.y * z));
-    return theShape;
-    
-//    AffineTransform saveXform = g2.getTransform();
-//    g2.translate(p.x * z, p.y * z);
-//    g2.setPaint(new TexturePaint(shading, shadeRect));
-//    g2.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, opacity / 100.0f));
-//    g2.fill(theShape);
-//    g2.setTransform(saveXform);
   }
 
   /*
    * Build the repeating rectangle used to generate the shade.
    */
-  protected void buildPattern() {
+  protected void buildShadePattern() {
     if (shadePattern != null) {
       return;
     }
@@ -199,21 +180,8 @@ public class Shade extends AbstractConfigurable {
     patternRect = new Rectangle(0, 0, shadePattern.getWidth(), shadePattern.getHeight());
   }
   
-  protected int getRange() {
-    return range;
-  }
-  
-  /*
-   * Build the shape of the shade as an Area of the correct size centred on (0, 0)
-   */
-  protected void buildShape(Point p, Map map) {
-//    if (rangeType.equals(RANGE_PIXELS)) {
-//      shape = new Area(new Ellipse2D.Double(-range, -range, range*2, range*2));
-//    }
-//    else if (rangeType.equals(RANGE_GRID)) {
-//      shape = ((ShadeableMap) map).getGridRangeShape(p, range);
-//    }
-//    builtRange = getRange();
+  protected int getDefaultRange() {
+    return defaultRange;
   }
 
   public String[] getAttributeDescriptions() {
@@ -275,13 +243,13 @@ public class Shade extends AbstractConfigurable {
       }
     }
     else if (RANGE_TEXT.equals(key)) {
-      rangeText = (String) value;
+      defaultRangeText = (String) value;
     }
     else if (RANGE.equals(key)) {
       if (value instanceof String) {
         value = new Integer((String) value);
       }
-      range = ((Integer) value).intValue();
+      defaultRange = ((Integer) value).intValue();
     }
   }
 
@@ -305,10 +273,10 @@ public class Shade extends AbstractConfigurable {
       return opacity + "";
     }
     else if (RANGE_TEXT.equals(key)) {
-      return rangeText;
+      return defaultRangeText;
     }
     else if (RANGE.equals(key)) {
-      return range + "";
+      return defaultRange + "";
     }
     else {
       return null;

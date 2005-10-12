@@ -1,29 +1,34 @@
 /*
  * $Id$
- *
+ * 
  * Copyright (c) 2000-2005 by Rodney Kinney, Brent Easton
- *
- * This library is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Library General Public
- * License (LGPL) as published by the Free Software Foundation.
- *
- * This library is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * Library General Public License for more details.
- *
- * You should have received a copy of the GNU Library General Public
- * License along with this library; if not, copies are available 
- * at http://www.opensource.org.
+ * 
+ * This library is free software; you can redistribute it and/or modify it under
+ * the terms of the GNU Library General Public License (LGPL) as published by
+ * the Free Software Foundation.
+ * 
+ * This library is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU Library General Public License for more
+ * details.
+ * 
+ * You should have received a copy of the GNU Library General Public License
+ * along with this library; if not, copies are available at
+ * http://www.opensource.org.
  */
 package Shader;
 
 import java.awt.Component;
+import java.awt.Point;
 import java.awt.Shape;
 import java.awt.Window;
+import java.awt.geom.AffineTransform;
 import java.awt.geom.Area;
+import java.awt.geom.Ellipse2D;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
+import java.util.ArrayList;
+import java.util.List;
 
 import javax.swing.Box;
 import javax.swing.BoxLayout;
@@ -31,6 +36,7 @@ import javax.swing.JPanel;
 import javax.swing.KeyStroke;
 import javax.swing.SwingUtilities;
 
+import VASSAL.build.module.Map;
 import VASSAL.command.Command;
 import VASSAL.configure.HotKeyConfigurer;
 import VASSAL.configure.IntConfigurer;
@@ -44,7 +50,7 @@ import VASSAL.counters.PieceEditor;
 import VASSAL.tools.SequenceEncoder;
 
 public class Shading extends Decorator implements EditablePiece {
-  
+
   public static final String ID = "shade;";
   public static final String SHADE_TYPE = "shadeType";
   public static final String SHADE_SHAPE = "shadeShape";
@@ -53,25 +59,38 @@ public class Shading extends Decorator implements EditablePiece {
   public static final String RANGE_FIXED = "Fixed";
   public static final String RANGE_GRID = "Grid Elements";
   public static final String RANGE_PIXELS = "Pixels";
-  
+
   public static final String ALWAYS_ON = "Always On";
   public static final String BY_COMMAND = "By Command";
-  public static final String BY_FILTER = "By Matching Properties";   
-  
+  public static final String BY_FILTER = "By Matching Properties";
+
+  public static final String RANGE = "_Range";
+  public static final String SHAPE = "_Shape";
+
   protected String shade = "";
-  protected Area shape = null;
   protected String activation;
+  protected boolean activated = false;
   protected String enableCommand = "";
   protected String disableCommand = "";
   protected String toggleCommand = "";
-  protected KeyStroke enableStroke = null;
-  protected KeyStroke disableStroke = null;
-  protected KeyStroke toggleStroke = null;
+  protected KeyStroke enableKey = null;
+  protected KeyStroke disableKey = null;
+  protected KeyStroke toggleKey = null;
   protected String propertyFilter = "";
   protected String rangeType = "";
   protected String rangeSource = "";
   protected int fixedRange = 0;
   protected String markerName = "";
+
+  // Cache details of last built shade shape
+  protected Area shape = null;
+  protected Area transformedShape = null;
+  protected double lastZoom = -1.0;
+  protected int lastRange = -1;
+  protected Map lastMap = null;
+  protected Point lastPosition = null;
+
+  protected KeyCommand[] commands;
 
   public Shading() {
     this(ID, null);
@@ -87,13 +106,14 @@ public class Shading extends Decorator implements EditablePiece {
     SequenceEncoder.Decoder sd = new SequenceEncoder.Decoder(s, ',');
     shade = sd.nextToken("");
     activation = sd.nextToken(BY_COMMAND);
+    activated = activation.equals(ALWAYS_ON);
     propertyFilter = sd.nextToken("");
     enableCommand = sd.nextToken("Enable");
     disableCommand = sd.nextToken("Disable");
     toggleCommand = sd.nextToken("Toggle");
-    enableStroke = sd.nextKeyStroke('E');
-    disableStroke = sd.nextKeyStroke('D');
-    toggleStroke = sd.nextKeyStroke('T');
+    enableKey = sd.nextKeyStroke('E');
+    disableKey = sd.nextKeyStroke('D');
+    toggleKey = sd.nextKeyStroke('T');
     rangeType = sd.nextToken(RANGE_GRID);
     rangeSource = sd.nextToken(RANGE_FIXED);
     markerName = sd.nextToken("");
@@ -116,25 +136,72 @@ public class Shading extends Decorator implements EditablePiece {
     return piece.getShape();
   }
 
-//  public Object getProperty(Object key) {
-//    if (SHADE_TYPE.equals(key)) {
-//      return shade;
-//    }
-//    else if (SHADE_SHAPE.equals(key)) {
-//      return shape;
-//    }
-//    else if (SHADE_RANGE.equals(key)) {
-//      if (rangeType.equals(RANGE_FIXED)) {
-//        return new Integer(fixedRange);
-//      }
-//      else {
-//        return new Integer(-1);
-//      }
-//    }
-//    else {
-//      return super.getProperty(key);
-//    }
-//  }
+  public Object getProperty(Object key) {
+    if (key.equals(shade + SHAPE)) {
+      if (activated) {
+        return getShadeShape();
+      }
+      else {
+        return null;
+      }
+    }
+    else {
+      return super.getProperty(key);
+    }
+  }
+
+  /**
+   * Return the Shape of the shade of ativated
+   */
+  protected Object getShadeShape() {
+    if (activated) {
+
+      Map map = getMap();
+      int range = getRange();
+      double z = map.getZoom();
+      Point p = getPosition();
+
+      if (map != null) {
+        if (range != lastRange || p != lastPosition || z != lastZoom) {
+
+          if (rangeType.equals(RANGE_PIXELS)) {
+            shape = new Area(new Ellipse2D.Double(-range, -range, range * 2, range * 2));
+          }
+          else if (rangeType.equals(RANGE_GRID)) {
+            shape = ((ShadeableMap) map).getGridRangeShape(p, range);
+          }
+
+          transformedShape = new Area(shape);
+          transformedShape.transform(AffineTransform.getScaleInstance(z, z));
+          transformedShape.transform(AffineTransform.getTranslateInstance(p.x * z, p.y * z));
+
+          lastZoom = z;
+          lastRange = range;
+          lastMap = map;
+          lastPosition = p;
+        }
+        return transformedShape;
+      }
+    }
+    return null;
+  }
+
+  protected int getRange() {
+    int range = 0;
+    if (rangeType.equals(RANGE_FIXED)) {
+      range = fixedRange;
+    }
+    else if (rangeType.equals(RANGE_MARKER)) {
+      try {
+        range = Integer.parseInt((String) Decorator.getOutermost(this).getProperty(markerName));
+      }
+      catch (Exception e) {
+
+      }
+    }
+
+    return range;
+  }
 
   public void setProperty(Object key, Object value) {
     super.setProperty(key, value);
@@ -149,27 +216,44 @@ public class Shading extends Decorator implements EditablePiece {
 
   public String myGetType() {
     SequenceEncoder se = new SequenceEncoder(',');
-    se.append(shade)
-      .append(activation)
-      .append(propertyFilter)
-      .append(enableCommand)
-      .append(disableCommand)
-      .append(toggleCommand)
-      .append(enableStroke)
-      .append(disableStroke)
-      .append(toggleStroke)
-      .append(rangeType)
-      .append(rangeSource)
-      .append(markerName)
-      .append(fixedRange);
+    se.append(shade).append(activation).append(propertyFilter).append(enableCommand).append(disableCommand).append(
+        toggleCommand).append(enableKey).append(disableKey).append(toggleKey).append(rangeType).append(rangeSource)
+        .append(markerName).append(fixedRange);
     return ID + se.getValue();
   }
 
   protected KeyCommand[] myGetKeyCommands() {
-    return new KeyCommand[0];
+    if (commands == null) {
+      List l = new ArrayList();
+      GamePiece outer = Decorator.getOutermost(this);
+
+      if (enableKey != null && enableCommand.length() > 0) {
+        l.add(new KeyCommand(enableCommand, enableKey, outer));
+      }
+
+      if (disableKey != null && disableCommand.length() > 0) {
+        l.add(new KeyCommand(disableCommand, disableKey, outer));
+      }
+
+      if (toggleKey != null && toggleCommand.length() > 0) {
+        l.add(new KeyCommand(toggleCommand, toggleKey, outer));
+      }
+
+      commands = (KeyCommand[]) l.toArray(new KeyCommand[l.size()]);
+    }
+    return commands;
   }
 
   public Command myKeyEvent(KeyStroke stroke) {
+    if (enableKey != null && enableKey.equals(stroke)) {
+      activated = true;
+    }
+    else if (disableKey != null && disableKey.equals(stroke)) {
+      activated = false;
+    }
+    else if (toggleKey != null && toggleKey.equals(stroke)) {
+      activated = !activated;
+    }
     return null;
   }
 
@@ -182,7 +266,7 @@ public class Shading extends Decorator implements EditablePiece {
   }
 
   public VASSAL.build.module.documentation.HelpFile getHelpFile() {
-    return null;   
+    return null;
   }
 
   public PieceEditor getEditor() {
@@ -204,94 +288,96 @@ public class Shading extends Decorator implements EditablePiece {
     protected IntConfigurer fixedRange;
     protected StringConfigurer markerName;
     protected Component fixedRangeControls;
-    
+
     protected Box commandBox;
     protected Box filterBox;
     protected Box rangeBox;
     protected Box markerBox;
-    
+
     protected JPanel panel;
+
     protected Ed(Shading m) {
-      
+
       panel = new JPanel();
-      panel.setLayout(new BoxLayout(panel,BoxLayout.Y_AXIS));
-      
-      shadeType = new StringConfigurer(null,"Shade Type Name:  ",m.shade);
+      panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
+
+      shadeType = new StringConfigurer(null, "Shade Type Name:  ", m.shade);
       panel.add(shadeType.getControls());
 
-      activationType = new StringEnumConfigurer(null, "Activation Method:  ", new String[] { ALWAYS_ON, BY_COMMAND, BY_FILTER });
+      activationType = new StringEnumConfigurer(null, "Activation Method:  ", new String[] { ALWAYS_ON, BY_COMMAND,
+          BY_FILTER });
       activationType.setValue(m.activation);
       activationType.addPropertyChangeListener(this);
       panel.add(activationType.getControls());
-      
+
       commandBox = Box.createVerticalBox();
       Box box = Box.createHorizontalBox();
-      enableCommand = new StringConfigurer(null,"Enable Command:  ",m.enableCommand);
-      enableStroke  = new HotKeyConfigurer(null, "  KeyStroke:  ", m.enableStroke);
+      enableCommand = new StringConfigurer(null, "Enable Command:  ", m.enableCommand);
+      enableStroke = new HotKeyConfigurer(null, "  KeyStroke:  ", m.enableKey);
       box.add(enableCommand.getControls());
       box.add(enableStroke.getControls());
       commandBox.add(box);
-      
+
       box = Box.createHorizontalBox();
-      disableCommand = new StringConfigurer(null,"Disable Command:  ",m.disableCommand);
-      disableStroke  = new HotKeyConfigurer(null, "  KeyStroke:  ", m.disableStroke);
+      disableCommand = new StringConfigurer(null, "Disable Command:  ", m.disableCommand);
+      disableStroke = new HotKeyConfigurer(null, "  KeyStroke:  ", m.disableKey);
       box.add(disableCommand.getControls());
       box.add(disableStroke.getControls());
       commandBox.add(box);
-      
+
       box = Box.createHorizontalBox();
-      toggleCommand = new StringConfigurer(null,"Toggle Command:  ",m.toggleCommand);
-      toggleStroke  = new HotKeyConfigurer(null, "  KeyStroke:  ", m.toggleStroke);
+      toggleCommand = new StringConfigurer(null, "Toggle Command:  ", m.toggleCommand);
+      toggleStroke = new HotKeyConfigurer(null, "  KeyStroke:  ", m.toggleKey);
       box.add(toggleCommand.getControls());
       box.add(toggleStroke.getControls());
       commandBox.add(box);
-      
+
       panel.add(commandBox);
-      
+
       filterBox = Box.createHorizontalBox();
-      propertyFilter = new StringConfigurer(null,"Matching Properties:  ",m.propertyFilter);
+      propertyFilter = new StringConfigurer(null, "Matching Properties:  ", m.propertyFilter);
       filterBox.add(propertyFilter.getControls());
       panel.add(filterBox);
-        
-      rangeType = new StringEnumConfigurer(null, "Range Type:  ", new String[] {RANGE_GRID, RANGE_PIXELS });
+
+      rangeType = new StringEnumConfigurer(null, "Range Type:  ", new String[] { RANGE_GRID, RANGE_PIXELS });
       rangeType.setValue(m.rangeType);
       panel.add(rangeType.getControls());
 
-      rangeSource = new StringEnumConfigurer(null, "Range Source:  ", new String[] {RANGE_FIXED, RANGE_MARKER });
+      rangeSource = new StringEnumConfigurer(null, "Range Source:  ", new String[] { RANGE_FIXED, RANGE_MARKER });
       rangeSource.setValue(m.rangeSource);
       rangeSource.addPropertyChangeListener(this);
       panel.add(rangeSource.getControls());
-      
+
       rangeBox = Box.createHorizontalBox();
       fixedRange = new IntConfigurer(null, "Range:  ", new Integer(m.fixedRange));
       fixedRangeControls = fixedRange.getControls();
       rangeBox.add(fixedRange.getControls());
       panel.add(rangeBox);
-      
+
       markerBox = Box.createHorizontalBox();
-      markerName = new StringConfigurer(null,"Marker Name:  ",m.markerName);
+      markerName = new StringConfigurer(null, "Marker Name:  ", m.markerName);
       markerBox.add(markerName.getControls());
       panel.add(markerBox);
 
       adjustVisibility();
-      
+
     }
 
     public void propertyChange(PropertyChangeEvent arg0) {
       adjustVisibility();
     }
-    
+
     public void adjustVisibility() {
       commandBox.setVisible(activationType.getValueString().equals(BY_COMMAND));
       filterBox.setVisible(activationType.getValueString().equals(BY_FILTER));
       rangeBox.setVisible(rangeSource.getValueString().equals(RANGE_FIXED));
       markerBox.setVisible(rangeSource.getValueString().equals(RANGE_MARKER));
       Window w = SwingUtilities.getWindowAncestor(panel);
-      if ( w!= null) {
+      if (w != null) {
         w.pack();
       }
     }
-    
+
     public Component getControls() {
       return panel;
     }
@@ -302,19 +388,12 @@ public class Shading extends Decorator implements EditablePiece {
 
     public String getType() {
       SequenceEncoder se = new SequenceEncoder(',');
-      se.append(shadeType.getValueString())
-      .append(activationType.getValueString())
-      .append(propertyFilter.getValueString())
-      .append(enableCommand.getValueString())
-      .append(disableCommand.getValueString())
-      .append(toggleCommand.getValueString())
-      .append((KeyStroke) enableStroke.getValue())
-      .append((KeyStroke) disableStroke.getValue())
-      .append((KeyStroke) toggleStroke.getValue())
-      .append(rangeType.getValueString())
-      .append(rangeSource.getValueString())
-      .append(markerName.getValueString())
-      .append(fixedRange.getValueString());
+      se.append(shadeType.getValueString()).append(activationType.getValueString()).append(
+          propertyFilter.getValueString()).append(enableCommand.getValueString()).append(
+          disableCommand.getValueString()).append(toggleCommand.getValueString()).append(
+          (KeyStroke) enableStroke.getValue()).append((KeyStroke) disableStroke.getValue()).append(
+          (KeyStroke) toggleStroke.getValue()).append(rangeType.getValueString()).append(rangeSource.getValueString())
+          .append(markerName.getValueString()).append(fixedRange.getValueString());
       return ID + se.getValue();
     }
 
