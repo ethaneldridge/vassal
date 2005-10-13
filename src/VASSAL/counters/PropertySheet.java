@@ -248,6 +248,9 @@ public class PropertySheet extends Decorator implements EditablePiece {
     SequenceEncoder.Decoder stateDecoder = new SequenceEncoder.Decoder(state, STATE_DELIMITOR);
     for (int iField = 0; defDecoder.hasMoreTokens(); ++iField) {
       String name = defDecoder.nextToken();
+      if (name.length() == 0) {
+        continue;
+      }
       int type = name.charAt(0) - '0';
       name = name.substring(1);
       String value = stateDecoder.nextToken("");
