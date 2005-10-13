@@ -485,17 +485,8 @@ public abstract class GameModule extends AbstractConfigurable implements Command
   public void quit() {
     boolean cancelled = false;
     try {
-      if (getGameState().isModified()) {
-        switch (JOptionPane.showConfirmDialog
-            (null, "Save Game?",
-             "", JOptionPane.YES_NO_CANCEL_OPTION)) {
-          case JOptionPane.YES_OPTION:
-            getGameState().saveGame();
-            break;
-          case JOptionPane.CANCEL_OPTION:
-            cancelled = true;
-        }
-      }
+      getGameState().setup(false);
+      cancelled = getGameState().isGameStarted();
       if (!cancelled) {
         if (fileDialog != null
             && fileDialog.getDirectory() != null) {
