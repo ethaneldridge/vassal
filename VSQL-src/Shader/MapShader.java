@@ -148,26 +148,28 @@ public class MapShader extends AbstractConfigurable implements GameComponent {
      * Leave clip null for all boards
      */
     if (boardClip == null) {
-      if (!boardSelection.equals(ALL_BOARDS)) {
-        Enumeration e = map.getAllBoards();
-        while (e.hasMoreElements()) {
-          Board b = (Board) e.nextElement();
-          String boardName = b.getName();
-          boolean doShade = false;
-          if (boardSelection.equals(EXC_BOARDS)) {
-            doShade = true;
-            for (int i = 0; i < boardList.length && doShade; i++) {
-              doShade = !boardList[i].equals(boardName);
-            }
+      boardClip = new Area();
+      Enumeration e = map.getAllBoards();
+      while (e.hasMoreElements()) {
+        Board b = (Board) e.nextElement();
+        String boardName = b.getName();
+        boolean doShade = false;
+        if (boardSelection.equals(ALL_BOARDS)) {
+          doShade = true;
+        }
+        else if (boardSelection.equals(EXC_BOARDS)) {
+          doShade = true;
+          for (int i = 0; i < boardList.length && doShade; i++) {
+            doShade = !boardList[i].equals(boardName);
           }
-          else if (boardSelection.equals(INC_BOARDS)) {
-            for (int i = 0; i < boardList.length && !doShade; i++) {
-              doShade = boardList[i].equals(boardName);
-            }
+        }
+        else if (boardSelection.equals(INC_BOARDS)) {
+          for (int i = 0; i < boardList.length && !doShade; i++) {
+            doShade = boardList[i].equals(boardName);
           }
-          if (doShade) {
-            boardClip.add(new Area(b.bounds()));
-          }
+        }
+        if (doShade) {
+          boardClip.add(new Area(b.bounds()));
         }
       }
     }
@@ -181,12 +183,17 @@ public class MapShader extends AbstractConfigurable implements GameComponent {
     shade.remove(s);
   }
 
-  /*
-   * update() is called by the Map when a piece is added or moved on the map to
-   * indicate that the shader needs to be rebuilt.
+  /**
+   * Mark dirty shade as needing to be rebuilt.
    */
-  protected void update() {
-
+  public void dirtyShade(String shadeName) {
+    Iterator it = shade.iterator();
+    while (it.hasNext()) {
+      Shade s = (Shade) it.next();
+      if (s.getConfigureName().equals(shadeName)) {
+        s.setDirty(true);
+      }
+    }
   }
 
   /*
@@ -239,6 +246,7 @@ public class MapShader extends AbstractConfigurable implements GameComponent {
       }
       alwaysOn = ((Boolean) value).booleanValue();
       launch.setVisible(!alwaysOn);
+      reset();
     }
     else if (BOARDS.equals(key)) {
       boardSelection = (String) value;

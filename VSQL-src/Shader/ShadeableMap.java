@@ -29,7 +29,6 @@ import java.util.Iterator;
 import VASSAL.build.module.Map;
 import VASSAL.build.module.map.boardPicker.Board;
 import VASSAL.build.module.map.boardPicker.board.MapGrid;
-import VASSAL.counters.GamePiece;
 
 public class ShadeableMap extends Map {
 
@@ -56,16 +55,16 @@ public class ShadeableMap extends Map {
     }    
   }
   
-  /*
-   * A stack has been moved, rebuild the shaders
-   */
-  public void addPiece(GamePiece p) {
-    super.addPiece(p);
-    Iterator i = shaders.iterator();
-    while (i.hasNext()) {
-      ((MapShader) i.next()).update();
-    } 
-  }
+//  /*
+//   * A stack has been moved, rebuild the shaders
+//   */
+//  public void addPiece(GamePiece p) {
+//    super.addPiece(p);
+//    Iterator i = shaders.iterator();
+//    while (i.hasNext()) {
+//      ((MapShader) i.next()).update();
+//    } 
+//  }
 
   
   protected void addShader(MapShader shader) {
@@ -76,6 +75,13 @@ public class ShadeableMap extends Map {
     shaders.remove(shader);
   }
   
+  public void dirtyShade(String shadeName) {
+    Iterator i = shaders.iterator();
+    while (i.hasNext()) {
+      ((MapShader) i.next()).dirtyShade(shadeName);
+    } 
+  }
+  
   public static String getConfigureTypeName() {
     return "Shadeable Map";
   }
@@ -83,9 +89,13 @@ public class ShadeableMap extends Map {
   public Area getGridRangeShape(Point p, int range) {
 
     Board b = findBoard(p);
-    MapGrid grid = b.getGrid();
-    
-    return grid.getRangeShape(range, getZoom());
+    if (b != null) {
+      MapGrid grid = b.getGrid();
+      if (grid != null) {
+        return grid.getRangeShape(range, getZoom());
+      }
+    }
+    return null;
     
   }
 }

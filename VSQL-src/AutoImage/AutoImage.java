@@ -47,6 +47,7 @@ import VASSAL.tools.SequenceEncoder;
 public class AutoImage extends Decorator  implements EditablePiece {
 
   public static final String ID = "autoImage;";
+  public static final String PROPERTY_PREFIX = "AI_";
   
   protected static final String NAME = "name";
   protected static final String DEFN_NAME = "defnName";
@@ -196,6 +197,13 @@ public class AutoImage extends Decorator  implements EditablePiece {
 
   public HelpFile getHelpFile() {
     return null;
+  }
+  
+  public Object getProperty(Object key) {
+    if (key instanceof String && ((String) key).startsWith(PROPERTY_PREFIX) && defn != null) {
+      return defn.getProperty(key);
+    }
+    return super.getProperty(key);
   }
   
   protected static class Ed implements PieceEditor {

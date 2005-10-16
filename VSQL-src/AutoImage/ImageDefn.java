@@ -459,4 +459,18 @@ public class ImageDefn extends AbstractConfigurable implements Visualizable, Clo
     }
     return name;
   }
+
+  /**
+   * @param key
+   * @return
+   */
+  public Object getProperty(Object key) {
+    Object result = null;
+    Iterator i = instances.iterator();
+    while (i.hasNext() && result == null) {
+      ItemInstance instance = (ItemInstance) i.next();
+      result = instance.getProperty(key);
+    }
+    return result;
+  }
 }

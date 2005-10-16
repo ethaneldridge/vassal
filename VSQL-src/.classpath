@@ -4,5 +4,6 @@
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
 	<classpathentry kind="src" path="/CASL"/>
 	<classpathentry kind="src" path="/VASSAL"/>
+	<classpathentry kind="lib" path="C:/Program Files/ejp/lib/tracerapi.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

@@ -211,5 +211,9 @@ public abstract class ItemInstance extends AbstractConfigurable {
   public String formatName(String name) {
     return name;
   }
+
+  public Object getProperty(Object key) {
+    return null;
+  }
   
 }

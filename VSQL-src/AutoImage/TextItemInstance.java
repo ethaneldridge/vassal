@@ -319,6 +319,15 @@ public class TextItemInstance extends ItemInstance {
       return new ColorSwatchConfigurer(key, name, ((TextItemInstance) c).getOutlineColor());
     }
   }
+
+  public Object getProperty(Object key) {
+     String k = (String) key;
+     String propertyName = k.substring(AutoImage.PROPERTY_PREFIX.length());
+     if (propertyName.equals(name)) {
+       return getValue();
+     }
+     return null;
+  }
   
 
 }

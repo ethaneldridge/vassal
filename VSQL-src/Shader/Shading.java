@@ -47,6 +47,7 @@ import VASSAL.counters.EditablePiece;
 import VASSAL.counters.GamePiece;
 import VASSAL.counters.KeyCommand;
 import VASSAL.counters.PieceEditor;
+import VASSAL.counters.Properties;
 import VASSAL.tools.SequenceEncoder;
 
 public class Shading extends Decorator implements EditablePiece {
@@ -137,6 +138,9 @@ public class Shading extends Decorator implements EditablePiece {
   }
 
   public Object getProperty(Object key) {
+    if (Properties.MOVED.equals(key)) {
+      dirtyShade();
+    }
     if (key.equals(shade + SHAPE)) {
       if (activated) {
         return getShadeShape();
@@ -149,9 +153,20 @@ public class Shading extends Decorator implements EditablePiece {
       return super.getProperty(key);
     }
   }
+  
+  /**
+   * Counter has changed state in some way that affects the display of
+   * shade, so tell the Shade object to rebuild itself.
+   */
+  protected void dirtyShade() {
+    ShadeableMap m = (ShadeableMap) getMap();
+    if (m != null) {
+      m.dirtyShade(shade);
+    }
+  }
 
   /**
-   * Return the Shape of the shade of ativated
+   * Return the Shape of the shade if activated
    */
   protected Object getShadeShape() {
     if (activated) {
@@ -172,7 +187,7 @@ public class Shading extends Decorator implements EditablePiece {
           }
 
           transformedShape = new Area(shape);
-          transformedShape.transform(AffineTransform.getScaleInstance(z, z));
+          //transformedShape.transform(AffineTransform.getScaleInstance(z, z));
           transformedShape.transform(AffineTransform.getTranslateInstance(p.x * z, p.y * z));
 
           lastZoom = z;
@@ -188,10 +203,10 @@ public class Shading extends Decorator implements EditablePiece {
 
   protected int getRange() {
     int range = 0;
-    if (rangeType.equals(RANGE_FIXED)) {
+    if (rangeSource.equals(RANGE_FIXED)) {
       range = fixedRange;
     }
-    else if (rangeType.equals(RANGE_MARKER)) {
+    else if (rangeSource.equals(RANGE_MARKER)) {
       try {
         range = Integer.parseInt((String) Decorator.getOutermost(this).getProperty(markerName));
       }
@@ -204,6 +219,9 @@ public class Shading extends Decorator implements EditablePiece {
   }
 
   public void setProperty(Object key, Object value) {
+    if (Properties.MOVED.equals(key)) {
+      dirtyShade();
+    }
     super.setProperty(key, value);
   }
 
@@ -223,7 +241,7 @@ public class Shading extends Decorator implements EditablePiece {
   }
 
   protected KeyCommand[] myGetKeyCommands() {
-    if (commands == null) {
+    if (commands == null && activation.equals(BY_COMMAND)) {
       List l = new ArrayList();
       GamePiece outer = Decorator.getOutermost(this);
 
@@ -241,20 +259,32 @@ public class Shading extends Decorator implements EditablePiece {
 
       commands = (KeyCommand[]) l.toArray(new KeyCommand[l.size()]);
     }
+    if (commands == null) {
+      commands = new KeyCommand[0];
+    }
     return commands;
   }
 
   public Command myKeyEvent(KeyStroke stroke) {
-    if (enableKey != null && enableKey.equals(stroke)) {
-      activated = true;
-    }
-    else if (disableKey != null && disableKey.equals(stroke)) {
-      activated = false;
-    }
-    else if (toggleKey != null && toggleKey.equals(stroke)) {
-      activated = !activated;
+    if (activation.equals(BY_COMMAND)) {
+      if (enableKey != null && enableKey.equals(stroke)) {
+        setActivated(true);
+      }
+      else if (disableKey != null && disableKey.equals(stroke)) {
+        setActivated(false);
+      }
+      else if (toggleKey != null && toggleKey.equals(stroke)) {
+        setActivated(!activated);
+      }
     }
     return null;
+  }
+  
+  public void setActivated(boolean b) {
+    if (b != activated) {
+      activated = b;
+      dirtyShade();
+    }
   }
 
   public String getDescription() {
