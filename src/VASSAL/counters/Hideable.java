@@ -265,7 +265,7 @@ public class Hideable extends Decorator implements EditablePiece {
       SequenceEncoder se = new SequenceEncoder(';');
       se.append((KeyStroke) hideKeyInput.getValue())
           .append(hideCommandInput.getText())
-          .append(colorConfig.getValue() == null ? "" : ";" + colorConfig.getValueString());
+          .append(colorConfig.getValue() == null ? "" : colorConfig.getValueString());
       return ID + se.getValue();
     }
 
