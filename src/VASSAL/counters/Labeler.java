@@ -57,6 +57,7 @@ public class Labeler extends Decorator implements EditablePiece {
   private Font font = new Font("Dialog", 0, 10);
   private KeyCommand[] commands;
   private FormattedString nameFormat = new FormattedString("$" + PIECE_NAME + "$ ($" + LABEL + "$)");
+  private FormattedString labelFormat = new FormattedString("");
   private static final String PIECE_NAME = "pieceName";
   private static final String LABEL = "label";
 
@@ -69,6 +70,7 @@ public class Labeler extends Decorator implements EditablePiece {
   private int verticalOffset = 0;
   private int horizontalOffset = 0;
   protected int rotateDegrees;
+  protected String propertyName;
 
   public Labeler() {
     this(ID, null);
@@ -85,28 +87,33 @@ public class Labeler extends Decorator implements EditablePiece {
     SequenceEncoder.Decoder st = new SequenceEncoder.Decoder(type, ';');
     st.nextToken();
     labelKey = st.nextKeyStroke(null);
-    if (st.hasMoreTokens()) {
-      menuCommand = st.nextToken();
-      int fontSize = st.nextInt(10);
-      textBg = ColorConfigurer.stringToColor(st.nextToken());
-      Color c = ColorConfigurer.stringToColor(st.nextToken());
-      if (c != null) {
-        textFg = c;
-      }
-      verticalPos = st.nextChar('t');
-      verticalOffset = st.nextInt(0);
-      horizontalPos = st.nextChar('c');
-      horizontalOffset = st.nextInt(0);
-      verticalJust = st.nextChar('b');
-      horizontalJust = st.nextChar('c');
-      nameFormat.setFormat(st.nextToken("$" + PIECE_NAME + "$ ($" + LABEL + "$)"));
-      String fontFamily = st.nextToken("Dialog");
-      int fontStyle = st.nextInt(Font.PLAIN);
-      font = new Font(fontFamily, fontStyle, fontSize);
-      rotateDegrees = st.nextInt(0);
-    }
+    menuCommand = st.nextToken("Change Label");
+    int fontSize = st.nextInt(10);
+    textBg = st.nextColor(null);
+    textFg = st.nextColor(null);
+    verticalPos = st.nextChar('t');
+    verticalOffset = st.nextInt(0);
+    horizontalPos = st.nextChar('c');
+    horizontalOffset = st.nextInt(0);
+    verticalJust = st.nextChar('b');
+    horizontalJust = st.nextChar('c');
+    nameFormat.setFormat(st.nextToken("$" + PIECE_NAME + "$ ($" + LABEL + "$)"));
+    String fontFamily = st.nextToken("Dialog");
+    int fontStyle = st.nextInt(Font.PLAIN);
+    font = new Font(fontFamily, fontStyle, fontSize);
+    rotateDegrees = st.nextInt(0);
+    propertyName = st.nextToken("TextLabel");
     lbl.setForeground(textFg);
     lbl.setFont(font);
+  }
+
+  public Object getProperty(Object key) {
+    if (key.equals(propertyName)) {
+      return getLabel();
+    }
+    else {
+      return super.getProperty(key);
+    }
   }
 
   public String myGetType() {
@@ -128,6 +135,7 @@ public class Labeler extends Decorator implements EditablePiece {
     se.append(font.getFamily());
     se.append(font.getStyle());
     se.append(String.valueOf(rotateDegrees));
+    se.append(propertyName);
     return ID + se.getValue();
   }
 
@@ -273,7 +281,13 @@ public class Labeler extends Decorator implements EditablePiece {
     if (s == null) {
       s = "";
     }
+    int index = s.indexOf("$" + propertyName + "$");
+    while (index >= 0) {
+      s = s.substring(0, index) + s.substring(index + propertyName.length() + 2);
+      index = s.indexOf("$" + propertyName + "$");
+    }
     label = s;
+    labelFormat.setFormat(label);
     if (getMap() != null && label != null && label.length() > 0) {
       labelImage = createImage(getMap().getView());
     }
@@ -307,7 +321,7 @@ public class Labeler extends Decorator implements EditablePiece {
   }
 
   public String getLabel() {
-    return new FormattedString(label).getText(Decorator.getOutermost(this));
+    return labelFormat.getText(Decorator.getOutermost(this));
   }
 
   public Rectangle boundingBox() {
@@ -400,6 +414,7 @@ public class Labeler extends Decorator implements EditablePiece {
     private JComboBox fontFamily;
     private IntConfigurer rotate;
     private BooleanConfigurer bold, italic;
+    private StringConfigurer propertyNameConfig;
 
     public Ed(Labeler l) {
       controls.setLayout(new BoxLayout(controls, BoxLayout.Y_AXIS));
@@ -496,6 +511,9 @@ public class Labeler extends Decorator implements EditablePiece {
 
       rotate = new IntConfigurer(null, "Rotate Text (Degrees):  ", new Integer(l.rotateDegrees));
       controls.add(rotate.getControls());
+
+      propertyNameConfig = new StringConfigurer(null, "Property Name:  ", l.propertyName);
+      controls.add(propertyNameConfig.getControls());
     }
 
     public String getState() {
@@ -539,6 +557,7 @@ public class Labeler extends Decorator implements EditablePiece {
         i = new Integer(0);
       }
       se.append(i.toString());
+      se.append(propertyNameConfig.getValueString());
 
       return ID + se.getValue();
     }
