@@ -20,6 +20,7 @@ package Shader;
 
 import java.awt.Component;
 import java.awt.Point;
+import java.awt.Rectangle;
 import java.awt.Shape;
 import java.awt.Window;
 import java.awt.geom.AffineTransform;
@@ -47,7 +48,9 @@ import VASSAL.counters.EditablePiece;
 import VASSAL.counters.GamePiece;
 import VASSAL.counters.KeyCommand;
 import VASSAL.counters.PieceEditor;
-import VASSAL.counters.Properties;
+import VASSAL.counters.PieceFilter;
+import VASSAL.counters.PropertiesPieceFilter;
+import VASSAL.tools.PlayerIdFormattedString;
 import VASSAL.tools.SequenceEncoder;
 
 public class Shading extends Decorator implements EditablePiece {
@@ -57,6 +60,7 @@ public class Shading extends Decorator implements EditablePiece {
   public static final String SHADE_SHAPE = "shadeShape";
 
   public static final String RANGE_MARKER = "Use Marker Value";
+  public static final String RANGE_SHADE = "Use default range from Shade";
   public static final String RANGE_FIXED = "Fixed";
   public static final String RANGE_GRID = "Grid Elements";
   public static final String RANGE_PIXELS = "Pixels";
@@ -67,6 +71,7 @@ public class Shading extends Decorator implements EditablePiece {
 
   public static final String RANGE = "_Range";
   public static final String SHAPE = "_Shape";
+  public static final String ACTIVE = "_Active";
 
   protected String shade = "";
   protected String activation;
@@ -138,11 +143,12 @@ public class Shading extends Decorator implements EditablePiece {
   }
 
   public Object getProperty(Object key) {
-    if (Properties.MOVED.equals(key)) {
-      dirtyShade();
+
+    if (key.equals(shade + ACTIVE)) {
+      return getActivated() ? "true" : "false";
     }
-    if (key.equals(shade + SHAPE)) {
-      if (activated) {
+    else if (key.equals(shade + SHAPE)) {
+      if (getActivated()) {
         return getShadeShape();
       }
       else {
@@ -155,21 +161,36 @@ public class Shading extends Decorator implements EditablePiece {
   }
   
   /**
+   * Is this Shading visible?
+   * @return Shading activation status
+   */
+  protected boolean getActivated() {
+    if (activation.equals(BY_FILTER)) {
+      GamePiece outer = Decorator.getOutermost(this);
+      PieceFilter filter = PropertiesPieceFilter.parse(new PlayerIdFormattedString(propertyFilter).getText(outer));
+      return filter.accept(outer);
+    }
+    else {
+      return activated;
+    }
+  }
+  
+  /**
    * Counter has changed state in some way that affects the display of
    * shade, so tell the Shade object to rebuild itself.
    */
   protected void dirtyShade() {
-    ShadeableMap m = (ShadeableMap) getMap();
-    if (m != null) {
-      m.dirtyShade(shade);
+   Map m = getMap();
+    if (m != null && m instanceof ShadeableMap) {
+      ((ShadeableMap) m).dirtyShade(shade);
     }
   }
 
   /**
-   * Return the Shape of the shade if activated
+   * Return the Shape of the this shading if activated
    */
   protected Object getShadeShape() {
-    if (activated) {
+    if (getActivated()) {
 
       Map map = getMap();
       int range = getRange();
@@ -188,6 +209,7 @@ public class Shading extends Decorator implements EditablePiece {
 
           transformedShape = new Area(shape);
           //transformedShape.transform(AffineTransform.getScaleInstance(z, z));
+          Rectangle box = this.boundingBox();
           transformedShape.transform(AffineTransform.getTranslateInstance(p.x * z, p.y * z));
 
           lastZoom = z;
@@ -201,6 +223,10 @@ public class Shading extends Decorator implements EditablePiece {
     return null;
   }
 
+  /**
+   * Calculate the range of this Shading.
+   * @return range
+   */
   protected int getRange() {
     int range = 0;
     if (rangeSource.equals(RANGE_FIXED)) {
@@ -214,15 +240,29 @@ public class Shading extends Decorator implements EditablePiece {
 
       }
     }
+    else if (rangeSource.equals(RANGE_SHADE)) {
+      Map map = getMap();
+      if (map != null && map instanceof ShadeableMap) {
+        Shade s = ((ShadeableMap) map).getShade(shade);
+        if (s != null) {
+          return s.getDefaultRange();
+        }
+      }
+    }
 
     return range;
   }
 
+  /**
+   * If a setProperty call changed the Activation status of this unit,
+   * force the Shade to redraw. 
+   */
   public void setProperty(Object key, Object value) {
-    if (Properties.MOVED.equals(key)) {
+    boolean oldActivated = getActivated();
+    super.setProperty(key, value);
+    if (getActivated() != oldActivated) {
       dirtyShade();
     }
-    super.setProperty(key, value);
   }
 
   public String myGetState() {
@@ -265,6 +305,20 @@ public class Shading extends Decorator implements EditablePiece {
     return commands;
   }
 
+  /**
+   * If this, or any inner keyCommand changes the activation status,
+   * (i.e. changing a property used by a BY_FILTER activation),
+   * force the Shade to redraw.
+   */
+  public Command keyEvent(KeyStroke stroke) {
+    boolean oldActivated = getActivated();
+    Command c = super.keyEvent(stroke);
+    if (getActivated() != oldActivated) {
+      dirtyShade();
+    }
+    return c;
+  }
+  
   public Command myKeyEvent(KeyStroke stroke) {
     if (activation.equals(BY_COMMAND)) {
       if (enableKey != null && enableKey.equals(stroke)) {
@@ -283,7 +337,6 @@ public class Shading extends Decorator implements EditablePiece {
   public void setActivated(boolean b) {
     if (b != activated) {
       activated = b;
-      dirtyShade();
     }
   }
 
@@ -373,7 +426,7 @@ public class Shading extends Decorator implements EditablePiece {
       rangeType.setValue(m.rangeType);
       panel.add(rangeType.getControls());
 
-      rangeSource = new StringEnumConfigurer(null, "Range Source:  ", new String[] { RANGE_FIXED, RANGE_MARKER });
+      rangeSource = new StringEnumConfigurer(null, "Range Source:  ", new String[] { RANGE_FIXED, RANGE_MARKER, RANGE_SHADE });
       rangeSource.setValue(m.rangeSource);
       rangeSource.addPropertyChangeListener(this);
       panel.add(rangeSource.getControls());

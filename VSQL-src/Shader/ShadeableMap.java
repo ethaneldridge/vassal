@@ -29,6 +29,8 @@ import java.util.Iterator;
 import VASSAL.build.module.Map;
 import VASSAL.build.module.map.boardPicker.Board;
 import VASSAL.build.module.map.boardPicker.board.MapGrid;
+import VASSAL.command.Command;
+import VASSAL.counters.GamePiece;
 
 public class ShadeableMap extends Map {
 
@@ -39,6 +41,10 @@ public class ShadeableMap extends Map {
     shaders = new ArrayList();
   }
 
+  /**
+   * Over-ride Map.paintRegion().
+   * Draw Map shaders aft the boards and before the pieces.
+   */
   public void paintRegion(Graphics g, Rectangle visibleRect) {
     clearMapBorder(g); // To avoid ghost pieces around the edge
 
@@ -48,6 +54,11 @@ public class ShadeableMap extends Map {
     drawDrawable(g);
   }
 
+  /**
+   * Draw all MapShaders registered on this map.
+   * @param g Graphics
+   * @param visibleRect Visible part of map on screen
+   */
   protected void drawShaders(Graphics g, Rectangle visibleRect) {
     Iterator i = shaders.iterator();
     while (i.hasNext()) {
@@ -55,30 +66,90 @@ public class ShadeableMap extends Map {
     }    
   }
   
-//  /*
-//   * A stack has been moved, rebuild the shaders
-//   */
-//  public void addPiece(GamePiece p) {
-//    super.addPiece(p);
-//    Iterator i = shaders.iterator();
-//    while (i.hasNext()) {
-//      ((MapShader) i.next()).update();
-//    } 
-//  }
-
+  /**
+   * A Gamepiece is being moved to or from this map, Rebuild any shade in either map
+   * that this piece has active. 
+   */
+  public void addPiece(GamePiece p) {
+    Map fromMap = p.getMap();
+    if (fromMap != null && fromMap instanceof ShadeableMap) {
+      ((ShadeableMap) fromMap).dirtyShade(p);
+    }
+    
+    super.addPiece(p);
+    
+    Map toMap = p.getMap();
+    if (toMap != null && toMap instanceof ShadeableMap) {
+      ((ShadeableMap) toMap).dirtyShade(p);
+    }
+  }
   
+  public void removePiece(GamePiece p) {
+    Map fromMap = p.getMap();
+    if (fromMap != null && fromMap instanceof ShadeableMap) {
+      ((ShadeableMap) fromMap).dirtyShade(p);
+    }
+    
+    super.removePiece(p);
+  }
+
+  public Command placeOrMerge(final GamePiece p, final Point pt) {
+    Command c = super.placeOrMerge(p, pt);
+    Map map = p.getMap();
+    if (map != null && map instanceof ShadeableMap) {
+      ((ShadeableMap) map).dirtyShade(p);
+    }
+    return c;
+  }
+  
+  /**
+   * Add a Shader to the list of Shaders on this map.
+   * @param shader The shader to add.
+   */
   protected void addShader(MapShader shader) {
     shaders.add(shader);
   }
   
+  /**
+   * Removed a Shader from the list of Shaders on this map.
+   * @param shader The shader to remove
+   */
   protected void removeShader(MapShader shader) {
     shaders.remove(shader);
   }
   
+  /**
+   * Mark the specified Shade as dirty. Must be rebuild when next redisplayed.
+   * @param shadeName Name of the Shade to mark dirty
+   */
   public void dirtyShade(String shadeName) {
+    Shade s = getShade(shadeName);
+    if (s != null) {
+      s.setDirty(true);
+    }
+  }
+
+  /**
+   * Return the Shade of the given name
+   * @param shadeName 
+   * @return
+   */
+  public Shade getShade(String shadeName) {
+    Shade s = null;
     Iterator i = shaders.iterator();
     while (i.hasNext()) {
-      ((MapShader) i.next()).dirtyShade(shadeName);
+      s = ((MapShader) i.next()).getShade(shadeName);
+    } 
+    return s;
+  }
+  /**
+   * Mark any Shade that this piece has Active as dirty.
+   * @param piece The piece to check
+   */
+  public void dirtyShade(GamePiece piece) {
+    Iterator i = shaders.iterator();
+    while (i.hasNext()) {
+      ((MapShader) i.next()).dirtyShade(piece);
     } 
   }
   
@@ -86,6 +157,13 @@ public class ShadeableMap extends Map {
     return "Shadeable Map";
   }
 
+  /**
+   * Return an Area centered on a given point out to a set number
+   * of grid elements (hexes or squares).
+   * @param p Center point
+   * @param range Range in grid elements
+   * @return Area representing the shape of the range.
+   */
   public Area getGridRangeShape(Point p, int range) {
 
     Board b = findBoard(p);

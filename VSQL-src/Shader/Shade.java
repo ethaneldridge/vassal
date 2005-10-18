@@ -63,8 +63,8 @@ public class Shade extends AbstractConfigurable {
   public static final String BORDER_COLOR = "borderColor";
   public static final String BORDER_WIDTH = "borderWidth";
 
-  public static final String RANGE_TEXT = "rangeType";
   public static final String RANGE = "range";
+  public static final String VARIABLE_RANGE = "variableRange";
 
   public static final String BG_TYPE = "Background";
   public static final String FG_TYPE = "Foreground";
@@ -75,9 +75,8 @@ public class Shade extends AbstractConfigurable {
   public static final String TYPE_SOLID = "100% (Solid)"; 
   public static final String TYPE_IMAGE = "Custom Image";
 
-  protected String defaultRangeText = "";
+  protected boolean variableDefaultRange = false;
   protected int defaultRange = 3;
-//  protected int builtRange = 3;
   protected String imageName = "";
   protected Color color = Color.BLACK;
   protected String type = FG_TYPE;
@@ -110,6 +109,13 @@ public class Shade extends AbstractConfigurable {
 
   public void draw(Graphics g, Map map, Rectangle visibleRect) {
 
+    double zoom = map.getZoom();
+    if (zoom != lastZoom) {
+      buildStroke(zoom);
+      setDirty(true);
+      lastZoom = zoom;
+    }
+    
     Graphics2D g2 = (Graphics2D) g;
     g2.setComposite(getComposite());
     g2.setColor(getColor());
@@ -240,9 +246,8 @@ public class Shade extends AbstractConfigurable {
   
   protected BasicStroke getStroke(double zoom) {
     
-    if (stroke == null || zoom != lastZoom) {
+    if (stroke == null) {
       buildStroke(zoom);
-      lastZoom = zoom;
     }
 
     return stroke;
@@ -258,6 +263,10 @@ public class Shade extends AbstractConfigurable {
   
   public Color getBorderColor() {
     return borderColor;
+  }
+  
+  public boolean isVariableDefaultRange() {
+    return variableDefaultRange;
   }
   
   /**
@@ -285,13 +294,13 @@ public class Shade extends AbstractConfigurable {
   public String[] getAttributeDescriptions() {
     return new String[] { "Name:  ", "Type:  ", "Shade Pattern:  ", "Color:  ", "Image:  ",
         "Border?  ", "Border Color:  ", "Border Width:  ",
-        "Opacity(%):  ", "Default Range Text:  ", "Default Range:  " };
+        "Opacity(%):  ", "Default Range:  ", "Variable Default Range?  " };
   }
 
   public Class[] getAttributeTypes() {
     return new Class[] { String.class, TypePrompt.class, PatternPrompt.class, Color.class, Image.class,
         Boolean.class, Color.class, Integer.class,
-        Integer.class, String.class, Integer.class };
+        Integer.class, Integer.class, Boolean.class };
   }
 
   public static class TypePrompt extends StringEnum {
@@ -308,7 +317,7 @@ public class Shade extends AbstractConfigurable {
 
 
   public String[] getAttributeNames() {
-    return new String[] { NAME, TYPE, PATTERN, COLOR, IMAGE, BORDER, BORDER_COLOR, BORDER_WIDTH, OPACITY, RANGE_TEXT, RANGE };
+    return new String[] { NAME, TYPE, PATTERN, COLOR, IMAGE, BORDER, BORDER_COLOR, BORDER_WIDTH, OPACITY, RANGE, VARIABLE_RANGE };
   }
 
   public void setAttribute(String key, Object value) {
@@ -370,14 +379,17 @@ public class Shade extends AbstractConfigurable {
       }
       buildComposite();
     }
-    else if (RANGE_TEXT.equals(key)) {
-      defaultRangeText = (String) value;
-    }
     else if (RANGE.equals(key)) {
       if (value instanceof String) {
         value = new Integer((String) value);
       }
       defaultRange = ((Integer) value).intValue();
+    }
+    else if (VARIABLE_RANGE.equals(key)) {
+      if (value instanceof String) {
+        value = new Boolean((String) value);
+      }
+      variableDefaultRange = ((Boolean) value).booleanValue();
     }
   }
 
@@ -409,11 +421,11 @@ public class Shade extends AbstractConfigurable {
     else if (OPACITY.equals(key)) {
       return opacity + "";
     }
-    else if (RANGE_TEXT.equals(key)) {
-      return defaultRangeText;
-    }
     else if (RANGE.equals(key)) {
       return defaultRange + "";
+    }
+    else if (VARIABLE_RANGE.equals(key)) {
+      return String.valueOf(variableDefaultRange);
     }
     else {
       return null;
@@ -436,6 +448,13 @@ public class Shade extends AbstractConfigurable {
         }
       };
     }
+   else if (BORDER_COLOR.equals(name) || BORDER_WIDTH.equals(name)) {
+     return new VisibilityCondition() {
+       public boolean shouldBeVisible() {
+         return border;
+       }
+     };
+   }
     else {
       return super.getAttributeVisibility(name);
     }
