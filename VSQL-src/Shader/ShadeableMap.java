@@ -152,7 +152,13 @@ public class ShadeableMap extends Map {
       ((MapShader) i.next()).dirtyShade(piece);
     } 
   }
-  
+
+  public void dirtyAllShade() {
+    Iterator i = shaders.iterator();
+    while (i.hasNext()) {
+      ((MapShader) i.next()).dirtyAllShade();
+    } 
+  }
   public static String getConfigureTypeName() {
     return "Shadeable Map";
   }
@@ -175,5 +181,12 @@ public class ShadeableMap extends Map {
     }
     return null;
     
+  }
+  
+  public void setup(boolean starting) {
+    super.setup(starting);
+    if(starting) {
+      dirtyAllShade();
+    }
   }
 }
