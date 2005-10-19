@@ -43,63 +43,56 @@ public class ShadeableMap extends Map {
 
   /**
    * Over-ride Map.paintRegion().
-   * Draw Map shaders aft the boards and before the pieces.
+   * Draw Map shaders
    */
   public void paintRegion(Graphics g, Rectangle visibleRect) {
     clearMapBorder(g); // To avoid ghost pieces around the edge
 
     drawBoardsInRegion(g, visibleRect);
-    drawShaders(g, visibleRect);
+    drawShaders(g, visibleRect, false); // Draw any Shaders under counters
     drawPiecesInRegion(g, visibleRect);
+    drawShaders(g, visibleRect, true);  // Draw any Shaders over counters
     drawDrawable(g);
   }
 
   /**
-   * Draw all MapShaders registered on this map.
+   * Draw MapShaders registered on this map marked over or under counters as required.
    * @param g Graphics
    * @param visibleRect Visible part of map on screen
    */
-  protected void drawShaders(Graphics g, Rectangle visibleRect) {
+  protected void drawShaders(Graphics g, Rectangle visibleRect, boolean drawOverCounters) {
     Iterator i = shaders.iterator();
     while (i.hasNext()) {
-      ((MapShader) i.next()).draw(g, visibleRect, this);
+      ((MapShader) i.next()).draw(g, visibleRect, this, drawOverCounters);
     }    
   }
   
   /**
-   * A Gamepiece is being moved to or from this map, Rebuild any shade in either map
-   * that this piece has active. 
+   * A Gamepiece is being moved to or from this map, Rebuild any shaders 
+   * in either map that this piece has active. 
    */
   public void addPiece(GamePiece p) {
-    Map fromMap = p.getMap();
-    if (fromMap != null && fromMap instanceof ShadeableMap) {
-      ((ShadeableMap) fromMap).dirtyShade(p);
-    }
-    
+    checkShade(p);
     super.addPiece(p);
-    
-    Map toMap = p.getMap();
-    if (toMap != null && toMap instanceof ShadeableMap) {
-      ((ShadeableMap) toMap).dirtyShade(p);
-    }
+    checkShade(p);
   }
   
   public void removePiece(GamePiece p) {
-    Map fromMap = p.getMap();
-    if (fromMap != null && fromMap instanceof ShadeableMap) {
-      ((ShadeableMap) fromMap).dirtyShade(p);
-    }
-    
+    checkShade(p);    
     super.removePiece(p);
   }
 
   public Command placeOrMerge(final GamePiece p, final Point pt) {
     Command c = super.placeOrMerge(p, pt);
+    checkShade(p);
+    return c;
+  }
+  
+  protected void checkShade(GamePiece p) {
     Map map = p.getMap();
     if (map != null && map instanceof ShadeableMap) {
-      ((ShadeableMap) map).dirtyShade(p);
+      ((ShadeableMap) map).markShadeDirty(p);
     }
-    return c;
   }
   
   /**
@@ -119,17 +112,6 @@ public class ShadeableMap extends Map {
   }
   
   /**
-   * Mark the specified Shade as dirty. Must be rebuild when next redisplayed.
-   * @param shadeName Name of the Shade to mark dirty
-   */
-  public void dirtyShade(String shadeName) {
-    Shade s = getShade(shadeName);
-    if (s != null) {
-      s.setDirty(true);
-    }
-  }
-
-  /**
    * Return the Shade of the given name
    * @param shadeName 
    * @return
@@ -146,17 +128,32 @@ public class ShadeableMap extends Map {
    * Mark any Shade that this piece has Active as dirty.
    * @param piece The piece to check
    */
-  public void dirtyShade(GamePiece piece) {
+  public void markShadeDirty(GamePiece piece) {
     Iterator i = shaders.iterator();
     while (i.hasNext()) {
-      ((MapShader) i.next()).dirtyShade(piece);
+      ((MapShader) i.next()).markShadeDirty(piece);
     } 
   }
 
-  public void dirtyAllShade() {
+  /**
+   * Mark the specified Shade as dirty. Must be rebuild when next redisplayed.
+   * @param shadeName Name of the Shade to mark dirty
+   */
+  public void markShadeDirty(String shadeName) {
+    Shade s = getShade(shadeName);
+    if (s != null) {
+      s.setDirty(true);
+    }
+  }
+  
+  /**
+   * Mark all Shaders as Dirty
+   *
+   */
+  public void markAllShadersDirty() {
     Iterator i = shaders.iterator();
     while (i.hasNext()) {
-      ((MapShader) i.next()).dirtyAllShade();
+      ((MapShader) i.next()).markAllShadersDirty();
     } 
   }
   public static String getConfigureTypeName() {
@@ -186,7 +183,7 @@ public class ShadeableMap extends Map {
   public void setup(boolean starting) {
     super.setup(starting);
     if(starting) {
-      dirtyAllShade();
+      markAllShadersDirty();
     }
   }
 }

@@ -22,10 +22,13 @@ package Shader;
 import java.awt.AlphaComposite;
 import java.awt.BasicStroke;
 import java.awt.Color;
+import java.awt.Composite;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Image;
+import java.awt.Paint;
 import java.awt.Rectangle;
+import java.awt.Stroke;
 import java.awt.TexturePaint;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -58,6 +61,7 @@ public class Shade extends AbstractConfigurable implements ActionListener {
 
   public static final String NAME = "name";
   public static final String TYPE = "type";
+  public static final String DRAW_OVER = "drawOver";
   public static final String PATTERN = "pattern";
   public static final String COLOR = "color";
   public static final String IMAGE = "image";
@@ -86,6 +90,7 @@ public class Shade extends AbstractConfigurable implements ActionListener {
   protected String imageName = "";
   protected Color color = Color.BLACK;
   protected String type = FG_TYPE;
+  protected boolean drawOver = false;
   protected String pattern = TYPE_25_PERCENT;
   protected int opacity = 100;
   protected boolean border = false;
@@ -123,6 +128,12 @@ public class Shade extends AbstractConfigurable implements ActionListener {
     }
     
     Graphics2D g2 = (Graphics2D) g;
+    
+    Composite oldComposite = g2.getComposite();
+    Color oldColor = g2.getColor();
+    Paint oldPaint = g2.getPaint();
+    Stroke oldStroke = g2.getStroke();
+    
     g2.setComposite(getComposite());
     g2.setColor(getColor());
     g2.setPaint(getTexture());
@@ -132,7 +143,11 @@ public class Shade extends AbstractConfigurable implements ActionListener {
       g2.setColor(getBorderColor());
       g2.draw(getShadeShape(map, visibleRect));
     }
-
+    
+    g2.setComposite(oldComposite);
+    g2.setColor(oldColor);
+    g2.setPaint(oldPaint);
+    g2.setStroke(oldStroke);
   }
   
   /**
@@ -204,7 +219,8 @@ public class Shade extends AbstractConfigurable implements ActionListener {
   }
 
   /**
-   * Get/Build the repeating rectangle used to generate the shade.
+   * Get/Build the repeating rectangle used to generate the shade texture
+   * pattern.
    */
   protected BufferedImage getShadePattern() {
     if (shadePattern == null) {
@@ -301,6 +317,10 @@ public class Shade extends AbstractConfigurable implements ActionListener {
     return defaultRange;
   }
 
+  public boolean isDrawOver() {
+    return drawOver;
+  }
+  
   /**
    * Called when player requests a change to the default range for this Shade.
    */
@@ -313,13 +333,13 @@ public class Shade extends AbstractConfigurable implements ActionListener {
   }
   
   public String[] getAttributeDescriptions() {
-    return new String[] { "Name:  ", "Type:  ", "Shade Pattern:  ", "Color:  ", "Image:  ",
+    return new String[] { "Name:  ", "Type:  ", "Draw Shade on top of Counters?  ", "Shade Pattern:  ", "Color:  ", "Image:  ",
         "Border?  ", "Border Color:  ", "Border Width:  ",
         "Opacity(%):  ", "Default Range:  ", "Variable Default Range?  ", "Default Range Prompt:  " };
   }
 
   public Class[] getAttributeTypes() {
-    return new Class[] { String.class, TypePrompt.class, PatternPrompt.class, Color.class, Image.class,
+    return new Class[] { String.class, TypePrompt.class, Boolean.class, PatternPrompt.class, Color.class, Image.class,
         Boolean.class, Color.class, Integer.class,
         Integer.class, Integer.class, Boolean.class, String.class };
   }
@@ -338,7 +358,7 @@ public class Shade extends AbstractConfigurable implements ActionListener {
 
 
   public String[] getAttributeNames() {
-    return new String[] { NAME, TYPE, PATTERN, COLOR, IMAGE, BORDER, BORDER_COLOR, BORDER_WIDTH, OPACITY, RANGE, VARIABLE_RANGE, RANGE_PROMPT };
+    return new String[] { NAME, TYPE, DRAW_OVER,  PATTERN, COLOR, IMAGE, BORDER, BORDER_COLOR, BORDER_WIDTH, OPACITY, RANGE, VARIABLE_RANGE, RANGE_PROMPT };
   }
 
   public void setAttribute(String key, Object value) {
@@ -347,6 +367,12 @@ public class Shade extends AbstractConfigurable implements ActionListener {
     }
     else if (TYPE.equals(key)) {
       type = (String) value;
+    }
+    else if (DRAW_OVER.equals(key)) {
+      if (value instanceof String) {
+        value = new Boolean((String) value);
+      }
+      drawOver = ((Boolean) value).booleanValue();
     }
     else if (PATTERN.equals(key)) {
       pattern = (String) value;
@@ -423,6 +449,9 @@ public class Shade extends AbstractConfigurable implements ActionListener {
     }
     else if (TYPE.equals(key)) {
       return type + "";
+    }
+    else if (DRAW_OVER.equals(key)) {
+      return String.valueOf(drawOver);
     }
     else if (PATTERN.equals(key)) {
       return pattern + "";
