@@ -622,12 +622,14 @@ public class StackMetrics extends AbstractConfigurable {
         if (fixedParent == null) {
           if (fixed instanceof Stack) {
             fixedParent = (Stack) fixed;
+            index = fixedParent.getPieceCount();
           }
           else {
             fixedParent = createStack(fixed);
             GameModule.getGameModule().getGameState().addPiece(fixedParent);
             fixed.getMap().addPiece(fixedParent);
             comm = comm.append(new AddPiece(fixedParent));
+            index = 1;
           }
         }
         if (isNewPiece) {
