@@ -219,7 +219,7 @@ public class Shading extends Decorator implements EditablePiece {
             shape = new Area(new Ellipse2D.Double(-range, -range, range * 2, range * 2));
           }
           else if (rangeType.equals(RANGE_GRID)) {
-            shape = ((ShadeableMap) map).getGridRangeShape(p, range);
+            shape = map.getGridRangeShape(p, range);
           }
 
           transformedShape = new Area(shape);
@@ -256,10 +256,10 @@ public class Shading extends Decorator implements EditablePiece {
     else if (rangeSource.equals(RANGE_SHADE)) {
       Map map = getMap();
       if (map != null && map instanceof ShadeableMap) {
-        Shade s = ((ShadeableMap) map).getShade(shade);
-        if (s != null) {
-          return s.getDefaultRange();
-        }
+        //Shade s = ((ShadeableMap) map).getShade(shade);
+        //if (s != null) {
+        //  return s.getDefaultRange();
+        //}
       }
     }
 

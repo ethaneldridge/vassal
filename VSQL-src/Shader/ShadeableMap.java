@@ -88,6 +88,10 @@ public class ShadeableMap extends Map {
     return c;
   }
   
+  /**
+   * Mark Shader on this pieces map Dirty if this piece was on a map
+   */
+  
   protected void checkShade(GamePiece p) {
     Map map = p.getMap();
     if (map != null && map instanceof ShadeableMap) {
@@ -116,14 +120,14 @@ public class ShadeableMap extends Map {
    * @param shadeName 
    * @return
    */
-  public Shade getShade(String shadeName) {
-    Shade s = null;
-    Iterator i = shaders.iterator();
-    while (i.hasNext()) {
-      s = ((MapShader) i.next()).getShade(shadeName);
-    } 
-    return s;
-  }
+//  public Shade getShade(String shadeName) {
+//    Shade s = null;
+//    Iterator i = shaders.iterator();
+//    while (i.hasNext()) {
+//      s = ((MapShader) i.next()).getShade(shadeName);
+//    } 
+//    return s;
+//  }
   /**
    * Mark any Shade that this piece has Active as dirty.
    * @param piece The piece to check
@@ -139,12 +143,12 @@ public class ShadeableMap extends Map {
    * Mark the specified Shade as dirty. Must be rebuild when next redisplayed.
    * @param shadeName Name of the Shade to mark dirty
    */
-  public void markShadeDirty(String shadeName) {
-    Shade s = getShade(shadeName);
-    if (s != null) {
-      s.setDirty(true);
-    }
-  }
+//  public void markShadeDirty(String shadeName) {
+//    Shade s = getShade(shadeName);
+//    if (s != null) {
+//      s.setDirty(true);
+//    }
+//  }
   
   /**
    * Mark all Shaders as Dirty

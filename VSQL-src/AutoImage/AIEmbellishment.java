@@ -105,4 +105,12 @@ public class AIEmbellishment extends Embellishment {
       }
     }
   }
+  
+  public Object getProperty(Object key) {
+    if (key instanceof String && ((String) key).startsWith(AutoImage.PROPERTY_PREFIX)) {
+      return autoImages[value-1].getProperty(key);
+    }
+    return super.getProperty(key);
+  }
+  
 }
