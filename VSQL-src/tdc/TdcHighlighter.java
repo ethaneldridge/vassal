@@ -21,11 +21,14 @@ package tdc;
 
 import java.awt.Color;
 import java.awt.Component;
+import java.awt.Font;
 import java.awt.Graphics;
+import java.awt.Graphics2D;
 import java.awt.Rectangle;
 
 import VASSAL.counters.ColoredBorder;
 import VASSAL.counters.GamePiece;
+import VASSAL.counters.Labeler;
 
 /**
  * Change border color depending on Command Status
@@ -34,6 +37,9 @@ import VASSAL.counters.GamePiece;
  */
 public class TdcHighlighter extends ColoredBorder {
 
+  protected static Font numberFont = null;
+  protected static double lastZoom = 0;
+  
   public TdcHighlighter() {
     super();
   }
@@ -53,8 +59,10 @@ public class TdcHighlighter extends ColoredBorder {
         super.draw(p, g, x, y, obs, zoom);
       }
       else {
+        Graphics2D g2 = (Graphics2D) g;
         Color oldColor = getColor();
         int oldThickness = getThickness();
+
         setColor(Color.red);
         setThickness(3);
         super.draw(p, g, x, y, obs, zoom);
@@ -64,6 +72,13 @@ public class TdcHighlighter extends ColoredBorder {
         int x2 = x1 + (int) (zoom * r.width);
         int y1 = y2 - (int) (zoom * 75);
         g.drawLine(x1, y2, x2, y1);
+
+        if (numberFont == null || lastZoom != zoom) {
+          numberFont = new Font("Dialog", Font.BOLD, (int) (16*zoom));
+        }
+
+        Labeler.drawLabel(g, "-1", x+(int)(51*zoom), y-(int)(28*zoom), numberFont, Labeler.CENTER, Labeler.CENTER, Color.RED, Color.WHITE, Color.BLACK);
+        
         setColor(oldColor);
         setThickness(oldThickness);
       }
