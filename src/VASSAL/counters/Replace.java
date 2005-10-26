@@ -84,7 +84,7 @@ public class Replace extends PlaceMarker {
     return marker;
   }
 
-  private void matchTraits(GamePiece base, GamePiece marker) {
+  protected void matchTraits(GamePiece base, GamePiece marker) {
     if (!(base instanceof Decorator)
         || !(marker instanceof Decorator)) {
       return;
