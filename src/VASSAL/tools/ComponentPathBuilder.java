@@ -23,6 +23,7 @@ import VASSAL.build.GameModule;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Iterator;
 
 /**
  * Provides an XPath-like syntax for identifying configuration components
@@ -85,28 +86,56 @@ public class ComponentPathBuilder {
       }
       Configurable[] children = parent.getConfigureComponents();
       Configurable match = null;
+      List partialMatches = new ArrayList();
       int i = -1;
       while (++i < children.length) {
         if (className.equals(children[i].getClass().getName())) {
-          match = children[i];
+          partialMatches.add(children[i]);
           if (name == null ? children[i].getConfigureName() == null
               : name.equals(children[i].getConfigureName())) {
+            match = children[i];
             break;
           }
         }
       }
       if (match != null) {
-        path.add(match);
-        addToPath(match, st, path);
+          path.add(match);
+          addToPath(match, st, path);
+      }
+      else if (partialMatches.size() > 0) {
+        List subPath = null;
+        for (Iterator it = partialMatches.iterator(); it.hasNext();) {
+          Configurable candidate = (Configurable) it.next();
+          List l = new ArrayList();
+          try {
+            addToPath(candidate,st.copy(),l);
+            subPath = l;
+            subPath.add(0,candidate);
+            break;
+          }
+          catch (PathFormatException e) {
+            // No match found here.  Continue
+          }
+        }
+        if (subPath != null) {
+          path.addAll(subPath);
+        }
+        else {
+          findFailed(className, name, parent);
+        }
       }
       else {
-        String msgName = name;
-        if (msgName == null) {
-          msgName = className.substring(className.lastIndexOf('.') + 1);
-        }
-        throw new PathFormatException("Could not find " + msgName + " in " + VASSAL.configure.ConfigureTree.getConfigureName(parent.getClass()));
+        findFailed(className, name, parent);
       }
     }
+  }
+
+  private void findFailed(String className, String name, Configurable parent) throws PathFormatException {
+    String msgName = name;
+    if (msgName == null) {
+      msgName = className.substring(className.lastIndexOf('.') + 1);
+    }
+    throw new PathFormatException("Could not find " + msgName + " in " + VASSAL.configure.ConfigureTree.getConfigureName(parent.getClass()));
   }
 
   public static class PathFormatException extends Exception {

@@ -184,6 +184,10 @@ public class SequenceEncoder {
       return value;
     }
 
+    public Decoder copy() {
+      return new Decoder(val, delimit);
+    }
+
     /**
      * Parse the next token into an integer
      * @param defaultValue Return this value if no more tokens, or next token doesn't parse to an integer
