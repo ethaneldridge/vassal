@@ -43,6 +43,9 @@ public class TdcPieceMover extends PieceMover {
 
   protected Command movedPiece(GamePiece p, Point loc) {
     Command c = super.movedPiece(p, loc);
+    if (c == null) {
+      c = new NullCommand();
+    }
     if (p.getMap() != null) {
       if (p instanceof Stack) {
         Enumeration e = ((Stack) p).getPieces();

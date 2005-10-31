@@ -29,6 +29,9 @@ public class DevCommandEncoder extends BasicCommandEncoder {
     if (type.startsWith(Macro.ID)) {     
       return new Macro(type, inner);
     }
+    else if (type.startsWith(ConditionalMarker.ID)) {     
+      return new ConditionalMarker(type, inner);
+    }
     return super.createDecorator(type, inner);
   }
 }
