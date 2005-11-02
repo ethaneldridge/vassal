@@ -41,7 +41,7 @@ public class ModuleUpdaterDialog extends JDialog {
     this.helpWindow = w;
     setTitle("Module Updater");
     getContentPane().setLayout(new BoxLayout(getContentPane(), BoxLayout.Y_AXIS));
-    final FileConfigurer fileConfig = new FileConfigurer(null, "Module file of older version:  ");
+    final FileConfigurer fileConfig = new FileConfigurer(null, "File containing older version:  ");
     getContentPane().add(fileConfig.getControls());
     Box b = Box.createHorizontalBox();
     final JButton saveButton = new JButton("Create Updater");
@@ -61,7 +61,7 @@ public class ModuleUpdaterDialog extends JDialog {
           ZipUpdater updater = null;
           try {
             updater = new ZipUpdater((File) fileConfig.getValue());
-            updater.createUpdater(new File(GameModule.getGameModule().getDataArchive().getArchive().getName()), output);
+            updater.createUpdater(new File(GameModule.getGameModule().getArchiveWriter().getArchive().getName()), output);
           }
           catch (IOException e1) {
             String msg = e1.getMessage();

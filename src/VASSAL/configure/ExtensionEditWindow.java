@@ -54,6 +54,12 @@ public class ExtensionEditWindow extends VASSAL.configure.ModuleEditWindow {
     }
   }
 
+  protected JMenu createUpdateMenu() {
+    JMenu m = super.createUpdateMenu();
+    ((JMenuItem)m.getMenuComponent(0)).setText("Create extension updater");
+    return m;
+  }
+
   protected void save() {
     ValidationReport report = new ValidationReport();
     GameModule.getGameModule().validate(GameModule.getGameModule(),report);

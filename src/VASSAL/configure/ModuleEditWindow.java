@@ -13,7 +13,7 @@
  * Library General Public License for more details.
  *
  * You should have received a copy of the GNU Library General Public
- * License along with this library; if not, copies are available 
+ * License along with this library; if not, copies are available
  * at http://www.opensource.org.
  */
 package VASSAL.configure;
@@ -62,18 +62,19 @@ public class ModuleEditWindow extends JFrame implements WindowListener {
     toolbar = new JToolBar();
     toolbar.setFloatable(false);
     SaveAction saveAction = new SaveAction() {
-          public void actionPerformed(ActionEvent e) {
-            ModuleEditWindow.this.save();
-          }
-        };
+      public void actionPerformed(ActionEvent e) {
+        ModuleEditWindow.this.save();
+      }
+    };
     toolbar.add(saveAction);
     SaveAsAction saveAsAction = new SaveAsAction() {
-          public void actionPerformed(ActionEvent e) {
-            ModuleEditWindow.this.saveAs();
-          }
-        };
+      public void actionPerformed(ActionEvent e) {
+        ModuleEditWindow.this.saveAs();
+      }
+    };
     toolbar.add(saveAsAction);
-    Action helpAction = null;;
+    Action helpAction = null;
+    ;
     try {
       File dir = VASSAL.build.module.Documentation.getDocumentationBaseDir();
       dir = new File(dir, "ReferenceManual");
@@ -102,22 +103,26 @@ public class ModuleEditWindow extends JFrame implements WindowListener {
       helpMenu.add(mi);
       mb.add(helpMenu);
     }
-    JMenu updaterMenu = new JMenu("Updates");
-    mi = new JMenuItem("Create module updater");
-    mi.addActionListener(new ActionListener() {
-      public void actionPerformed(ActionEvent e) {
-        new ModuleUpdaterDialog(ModuleEditWindow.this,helpWindow).setVisible(true);
-      }
-    });
-    updaterMenu.add(mi);
-    mb.add(updaterMenu);
+    mb.add(createUpdateMenu());
     setJMenuBar(mb);
     pack();
   }
 
+  protected JMenu createUpdateMenu() {
+    JMenu updaterMenu = new JMenu("Updates");
+    JMenuItem mi = new JMenuItem("Create module updater");
+    mi.addActionListener(new ActionListener() {
+      public void actionPerformed(ActionEvent e) {
+        new ModuleUpdaterDialog(ModuleEditWindow.this, helpWindow).setVisible(true);
+      }
+    });
+    updaterMenu.add(mi);
+    return updaterMenu;
+  }
+
   protected void saveAs() {
     ValidationReport report = new ValidationReport();
-    GameModule.getGameModule().validate(GameModule.getGameModule(),report);
+    GameModule.getGameModule().validate(GameModule.getGameModule(), report);
     if (report.getWarnings().size() == 0) {
       GameModule.getGameModule().saveAs();
     }
@@ -135,7 +140,7 @@ public class ModuleEditWindow extends JFrame implements WindowListener {
 
   protected void save() {
     ValidationReport report = new ValidationReport();
-    GameModule.getGameModule().validate(GameModule.getGameModule(),report);
+    GameModule.getGameModule().validate(GameModule.getGameModule(), report);
     if (report.getWarnings().size() == 0) {
       GameModule.getGameModule().save();
     }
@@ -144,6 +149,7 @@ public class ModuleEditWindow extends JFrame implements WindowListener {
         public void ok() {
           GameModule.getGameModule().save();
         }
+
         public void cancel() {
         }
       }).setVisible(true);
@@ -155,7 +161,7 @@ public class ModuleEditWindow extends JFrame implements WindowListener {
     if (configureName == null) {
       configureName = "Module";
     }
-    setTitle("Edit "+configureName);
+    setTitle("Edit " + configureName);
   }
 
   public void windowActivated(WindowEvent e) {

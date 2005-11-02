@@ -102,27 +102,31 @@ public class ComponentPathBuilder {
         path.add(match);
         addToPath(match, st, path);
       }
-      else if (partialMatches.size() > 0
-          && st.hasMoreTokens()) {
-        List subPath = null;
-        for (Iterator it = partialMatches.iterator(); it.hasNext();) {
-          Configurable candidate = (Configurable) it.next();
-          List l = new ArrayList();
-          try {
-            addToPath(candidate, st.copy(), l);
-            subPath = l;
-            subPath.add(0, candidate);
-            break;
-          }
-          catch (PathFormatException e) {
-            // No match found here.  Continue
-          }
-        }
-        if (subPath != null) {
-          path.addAll(subPath);
+      else if (partialMatches.size() > 0) {
+        if (!st.hasMoreTokens()) {
+           path.add(partialMatches.get(0));
         }
         else {
-          findFailed(className, name, parent);
+          List subPath = null;
+          for (Iterator it = partialMatches.iterator(); it.hasNext();) {
+            Configurable candidate = (Configurable) it.next();
+            List l = new ArrayList();
+            try {
+              addToPath(candidate, st.copy(), l);
+              subPath = l;
+              subPath.add(0, candidate);
+              break;
+            }
+            catch (PathFormatException e) {
+              // No match found here.  Continue
+            }
+          }
+          if (subPath != null) {
+            path.addAll(subPath);
+          }
+          else {
+            findFailed(className, name, parent);
+          }
         }
       }
       else {
