@@ -29,6 +29,7 @@ import java.awt.*;
 import java.awt.event.WindowListener;
 import java.awt.event.WindowEvent;
 import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.io.File;
@@ -60,27 +61,57 @@ public class ModuleEditWindow extends JFrame implements WindowListener {
     getContentPane().add(view);
     toolbar = new JToolBar();
     toolbar.setFloatable(false);
-    toolbar.add(new SaveAction() {
-      public void actionPerformed(ActionEvent e) {
-        ModuleEditWindow.this.save();
-      }
-    });
-    toolbar.add(new SaveAsAction() {
-      public void actionPerformed(ActionEvent e) {
-        ModuleEditWindow.this.saveAs();
-      }
-    });
+    SaveAction saveAction = new SaveAction() {
+          public void actionPerformed(ActionEvent e) {
+            ModuleEditWindow.this.save();
+          }
+        };
+    toolbar.add(saveAction);
+    SaveAsAction saveAsAction = new SaveAsAction() {
+          public void actionPerformed(ActionEvent e) {
+            ModuleEditWindow.this.saveAs();
+          }
+        };
+    toolbar.add(saveAsAction);
+    Action helpAction = null;;
     try {
       File dir = VASSAL.build.module.Documentation.getDocumentationBaseDir();
       dir = new File(dir, "ReferenceManual");
-      Action a = new ShowHelpAction(helpWindow, HelpFile.toURL(new File(dir, "index.htm")), helpWindow.getClass().getResource("/images/Help16.gif"));
-      a.putValue(Action.SHORT_DESCRIPTION, "Reference Manual");
-      toolbar.add(a);
+      helpAction = new ShowHelpAction(helpWindow, HelpFile.toURL(new File(dir, "index.htm")), helpWindow.getClass().getResource("/images/Help16.gif"));
+      helpAction.putValue(Action.SHORT_DESCRIPTION, "Reference Manual");
+      toolbar.add(helpAction);
     }
     catch (MalformedURLException e) {
       e.printStackTrace();
     }
     getContentPane().add(toolbar, BorderLayout.NORTH);
+    JMenuBar mb = new JMenuBar();
+    JMenuItem mi;
+    JMenu fileMenu = new JMenu("File");
+    mi = new JMenuItem("Save");
+    mi.addActionListener(saveAction);
+    fileMenu.add(mi);
+    mi = new JMenuItem("Save as ...");
+    mi.addActionListener(saveAsAction);
+    fileMenu.add(mi);
+    mb.add(fileMenu);
+    if (helpAction != null) {
+      JMenu helpMenu = new JMenu("Help");
+      mi = new JMenuItem("Reference Manual");
+      mi.addActionListener(helpAction);
+      helpMenu.add(mi);
+      mb.add(helpMenu);
+    }
+    JMenu updaterMenu = new JMenu("Updates");
+    mi = new JMenuItem("Create module updater");
+    mi.addActionListener(new ActionListener() {
+      public void actionPerformed(ActionEvent e) {
+        new ModuleUpdaterDialog(ModuleEditWindow.this,helpWindow).setVisible(true);
+      }
+    });
+    updaterMenu.add(mi);
+    mb.add(updaterMenu);
+    setJMenuBar(mb);
     pack();
   }
 

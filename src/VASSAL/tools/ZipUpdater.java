@@ -40,15 +40,16 @@ import java.util.zip.ZipOutputStream;
 public class ZipUpdater {
   public static final String CHECKSUM_RESOURCE = "checksums";
   public static final String TARGET_ARCHIVE = "target";
+  public static final String UPDATED_ARCHIVE_NAME = "finalName";
   public static final String ENTRIES_DIR = "entries/";
-  private String inputArchiveName;
-  private ZipFile input;
+  private File oldFile;
+  private ZipFile oldZipFile;
   private Properties checkSums;
 
-  public ZipUpdater(String input) throws IOException {
-    this.inputArchiveName = input;
-    if (!new File(inputArchiveName).exists()) {
-      throw new IOException("Could not find file " + inputArchiveName);
+  public ZipUpdater(File input) throws IOException {
+    this.oldFile = input;
+    if (!oldFile.exists()) {
+      throw new IOException("Could not find file " + input.getPath());
     }
   }
 
@@ -62,7 +63,7 @@ public class ZipUpdater {
         byte[] buffer = new byte[1024];
         int count;
         while ((count = in.read(buffer)) > 0) {
-          checksum.update(buffer,0,count);
+          checksum.update(buffer, 0, count);
         }
         crc = checksum.getValue();
       }
@@ -71,11 +72,11 @@ public class ZipUpdater {
   }
 
   private long copyEntry(ZipOutputStream output, ZipEntry newEntry) throws IOException {
-    return writeEntry(input.getInputStream(new ZipEntry(newEntry.getName())), output, newEntry);
+    return writeEntry(oldZipFile.getInputStream(new ZipEntry(newEntry.getName())), output, newEntry);
   }
 
   private long replaceEntry(ZipOutputStream output, ZipEntry newEntry) throws IOException {
-    return writeEntry(getClass().getResourceAsStream("/"+ENTRIES_DIR + newEntry.getName()), output, newEntry);
+    return writeEntry(getClass().getResourceAsStream("/" + ENTRIES_DIR + newEntry.getName()), output, newEntry);
   }
 
   private long writeEntry(InputStream zis, ZipOutputStream output, ZipEntry newEntry) throws IOException {
@@ -97,11 +98,11 @@ public class ZipUpdater {
     return checksum.getValue();
   }
 
-  public void write() throws IOException {
+  public void write(File destination) throws IOException {
     checkSums = new Properties();
-    checkSums.load(ZipUpdater.class.getResourceAsStream("/"+CHECKSUM_RESOURCE));
+    checkSums.load(ZipUpdater.class.getResourceAsStream("/" + CHECKSUM_RESOURCE));
 
-    input = new ZipFile(inputArchiveName);
+    oldZipFile = new ZipFile(oldFile.getPath());
 
     File tempFile = File.createTempFile("VSL", ".zip");
     ZipOutputStream output = new ZipOutputStream(new FileOutputStream(tempFile));
@@ -114,10 +115,10 @@ public class ZipUpdater {
       catch (NumberFormatException invalid) {
         throw new IOException("Invalid checksum " + checkSums.getProperty(entryName, "<none>") + " for entry " + entryName);
       }
-      ZipEntry entry = input.getEntry(entryName);
+      ZipEntry entry = oldZipFile.getEntry(entryName);
       ZipEntry newEntry = new ZipEntry(entryName);
       newEntry.setMethod(entry != null ? entry.getMethod() : ZipEntry.DEFLATED);
-      if (targetSum == getCrc(input, entry)) {
+      if (targetSum == getCrc(oldZipFile, entry)) {
         if (targetSum != copyEntry(output, newEntry)) {
           throw new IOException("Checksum mismatch for entry " + entry.getName());
         }
@@ -128,23 +129,25 @@ public class ZipUpdater {
         }
       }
     }
-    input.close();
+    oldZipFile.close();
     output.close();
 
-    File f = new File(inputArchiveName);
-    int index = inputArchiveName.lastIndexOf(".");
-    String backup = index < 0 || index == inputArchiveName.length() - 1
-      ? inputArchiveName + "Backup" : inputArchiveName.substring(0, index) + "Backup" + inputArchiveName.substring(index);
-    if (!f.renameTo(new File(backup))) {
-      throw new IOException("Unable to create backup file " + backup + ".\nUpdated file is in " + tempFile.getPath());
+    if (destination.getName().equals(oldFile.getName())) {
+      String updatedName = destination.getName();
+      int index = updatedName.lastIndexOf(".");
+      String backup = index < 0 || index == updatedName.length() - 1
+          ? updatedName + "Backup" : updatedName.substring(0, index) + "Backup" + updatedName.substring(index);
+      if (!oldFile.renameTo(new File(backup))) {
+        throw new IOException("Unable to create backup file " + backup + ".\nUpdated file is in " + tempFile.getPath());
+      }
     }
-    if (!tempFile.renameTo(f)) {
-      throw new IOException("Unable to write to file " + inputArchiveName + ".\nUpdated file is in " + tempFile.getPath());
+    if (!tempFile.renameTo(destination)) {
+      throw new IOException("Unable to write to file " + destination.getPath()+ ".\nUpdated file is in " + tempFile.getPath());
     }
   }
 
-  public void createUpdater(String goalArchiveName) throws IOException {
-    checkSums = new Properties();
+  public void createUpdater(File newFile) throws IOException {
+    String inputArchiveName = oldFile.getName();
     int index = inputArchiveName.indexOf(".");
     String jarName;
     if (index >= 0) {
@@ -153,13 +156,23 @@ public class ZipUpdater {
     else {
       jarName = "update" + inputArchiveName;
     }
-    input = new ZipFile(inputArchiveName);
-    ZipFile goal = new ZipFile(goalArchiveName);
-    JarOutputStream out = new JarOutputStream(new FileOutputStream(jarName));
+    createUpdater(newFile, new File(jarName));
+  }
+
+  public void createUpdater(File newFile, File updaterFile) throws IOException {
+    if (!updaterFile.getName().endsWith(".jar")) {
+      String newName = updaterFile.getName().replace('.','_')+".jar";
+      updaterFile = new File(updaterFile.getParentFile(),newName);
+    }
+    checkSums = new Properties();
+    oldZipFile = new ZipFile(oldFile);
+    String inputArchiveName = oldFile.getName();
+    ZipFile goal = new ZipFile(newFile);
+    JarOutputStream out = new JarOutputStream(new FileOutputStream(updaterFile));
     for (Enumeration e = goal.entries(); e.hasMoreElements();) {
       ZipEntry entry = (ZipEntry) e.nextElement();
       long goalCrc = getCrc(goal, entry);
-      long inputCrc = getCrc(input, input.getEntry(entry.getName()));
+      long inputCrc = getCrc(oldZipFile, oldZipFile.getEntry(entry.getName()));
       if (goalCrc != inputCrc) {
         ZipEntry outputEntry = new ZipEntry(ENTRIES_DIR + entry.getName());
         outputEntry.setMethod(entry.getMethod());
@@ -172,12 +185,16 @@ public class ZipUpdater {
     manifestEntry.setMethod(ZipEntry.DEFLATED);
     StringBuffer buffer = new StringBuffer();
     buffer.append("Manifest-Version: 1.0\n")
-      .append("Main-Class: VASSAL.tools.ZipUpdater\n");
+        .append("Main-Class: VASSAL.tools.ZipUpdater\n");
     writeEntry(new ByteArrayInputStream(buffer.toString().getBytes("UTF-8")), out, manifestEntry);
 
     ZipEntry nameEntry = new ZipEntry(TARGET_ARCHIVE);
     nameEntry.setMethod(ZipEntry.DEFLATED);
     writeEntry(new ByteArrayInputStream(inputArchiveName.getBytes("UTF-8")), out, nameEntry);
+
+    ZipEntry updatedEntry = new ZipEntry(UPDATED_ARCHIVE_NAME);
+    updatedEntry.setMethod(ZipEntry.DEFLATED);
+    writeEntry(new ByteArrayInputStream(newFile.getName().getBytes("UTF-8")), out, updatedEntry);
 
     ByteArrayOutputStream byteOut = new ByteArrayOutputStream();
     checkSums.store(byteOut, null);
@@ -194,24 +211,26 @@ public class ZipUpdater {
   }
 
   public static void main(String[] args) {
-    String archiveName = "<unknown>";
+    String oldArchiveName = "<unknown>";
     try {
       if (args.length > 1) {
         String base = args[0];
         String goal = args[1];
-        ZipUpdater updater = new ZipUpdater(base);
-        updater.createUpdater(goal);
+        ZipUpdater updater = new ZipUpdater(new File(base));
+        updater.createUpdater(new File(goal));
       }
       else {
-        BufferedReader r = new BufferedReader(new InputStreamReader(ZipUpdater.class.getResourceAsStream("/"+TARGET_ARCHIVE)));
-        archiveName = r.readLine();
-        ZipUpdater updater = new ZipUpdater(archiveName);
-        updater.write();
+        BufferedReader r = new BufferedReader(new InputStreamReader(ZipUpdater.class.getResourceAsStream("/" + TARGET_ARCHIVE)));
+        oldArchiveName = r.readLine();
+        r = new BufferedReader(new InputStreamReader(ZipUpdater.class.getResourceAsStream("/" + UPDATED_ARCHIVE_NAME)));
+        String newArchiveName = r.readLine();
+        ZipUpdater updater = new ZipUpdater(new File(oldArchiveName));
+        updater.write(new File(newArchiveName));
       }
     }
     catch (IOException e) {
       e.printStackTrace();
-      JOptionPane.showMessageDialog(null, "Unable to update " + archiveName + ".\n" + e.getMessage(), "Update failed", JOptionPane.ERROR_MESSAGE);
+      JOptionPane.showMessageDialog(null, "Unable to update " + oldArchiveName + ".\n" + e.getMessage(), "Update failed", JOptionPane.ERROR_MESSAGE);
     }
   }
 
