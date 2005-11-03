@@ -117,6 +117,13 @@ public class ModuleEditWindow extends JFrame implements WindowListener {
       }
     });
     updaterMenu.add(mi);
+    mi = new JMenuItem("Update saved games");
+    mi.addActionListener(new ActionListener() {
+      public void actionPerformed(ActionEvent e) {
+        new SavedGameUpdaterDialog(ModuleEditWindow.this, helpWindow).setVisible(true);
+      }
+    });
+    updaterMenu.add(mi);
     return updaterMenu;
   }
 

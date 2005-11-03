@@ -44,11 +44,17 @@ public class Replace extends PlaceMarker {
   public Command myKeyEvent(KeyStroke stroke) {
     Command c = null;
     if (command.matches(stroke)) {
-      c = super.myKeyEvent(stroke);
-      Command remove = new RemovePiece(Decorator.getOutermost(this));
-      remove.execute();
-      c.append(remove);
+      c = replacePiece();
     }
+    return c;
+  }
+
+  protected Command replacePiece() {
+    Command c;
+    c = placeMarker();
+    Command remove = new RemovePiece(Decorator.getOutermost(this));
+    remove.execute();
+    c.append(remove);
     return c;
   }
 

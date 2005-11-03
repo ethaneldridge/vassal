@@ -106,48 +106,52 @@ public class PlaceMarker extends Decorator implements EditablePiece {
   public Command myKeyEvent(KeyStroke stroke) {
     myGetKeyCommands();
     if (command.matches(stroke)) {
-      GamePiece marker = createMarker();
-      Command c = null;
-      if (marker != null) {
-        GamePiece outer = getOutermost(this);
-        Point p = getPosition();
-        p.translate(xOffset,-yOffset);
-        if (matchRotation) {
-          FreeRotator myRotation = (FreeRotator) Decorator.getDecorator(outer,FreeRotator.class);
-          FreeRotator markerRotation = (FreeRotator) Decorator.getDecorator(marker,FreeRotator.class);
-          if (myRotation != null
-            && markerRotation != null) {
-            markerRotation.setAngle(myRotation.getAngle());
-            Point2D myPosition = getPosition().getLocation();
-            Point2D markerPosition = p.getLocation();
-            markerPosition = AffineTransform.getRotateInstance(myRotation.getAngleInRadians(),myPosition.getX(), myPosition.getY()).transform(markerPosition,null);
-            p = new Point((int)markerPosition.getX(),(int)markerPosition.getY());
-          }
-        }
-        if (!Boolean.TRUE.equals(marker.getProperty(Properties.IGNORE_GRID))) {
-          p = getMap().snapTo(p);
-        }
-        c = getMap().placeOrMerge(marker,p);
-        KeyBuffer.getBuffer().remove(outer);
-        KeyBuffer.getBuffer().add(marker);
-        if (markerText != null && getMap() != null) {
-          if (!Boolean.TRUE.equals(outer.getProperty(Properties.OBSCURED_TO_OTHERS))
-              && !Boolean.TRUE.equals(outer.getProperty(Properties.OBSCURED_TO_ME))
-              && !Boolean.TRUE.equals(outer.getProperty(Properties.INVISIBLE_TO_OTHERS))) {
-            String location = getMap().locationName(getPosition());
-            if (location != null) {
-              Command display = new Chatter.DisplayText(GameModule.getGameModule().getChatter(), " * " + location + ":  " + outer.getName() + " " + markerText + " * ");
-              display.execute();
-              c = c == null ? display : c.append(display);
-            }
-          }
-        }
-      }
-      return c;
+      return placeMarker();
     }
     else {
       return null;
     }
+  }
+
+  protected Command placeMarker() {
+    GamePiece marker = createMarker();
+    Command c = null;
+    if (marker != null) {
+      GamePiece outer = getOutermost(this);
+      Point p = getPosition();
+      p.translate(xOffset,-yOffset);
+      if (matchRotation) {
+        FreeRotator myRotation = (FreeRotator) Decorator.getDecorator(outer,FreeRotator.class);
+        FreeRotator markerRotation = (FreeRotator) Decorator.getDecorator(marker,FreeRotator.class);
+        if (myRotation != null
+          && markerRotation != null) {
+          markerRotation.setAngle(myRotation.getAngle());
+          Point2D myPosition = getPosition().getLocation();
+          Point2D markerPosition = p.getLocation();
+          markerPosition = AffineTransform.getRotateInstance(myRotation.getAngleInRadians(),myPosition.getX(), myPosition.getY()).transform(markerPosition,null);
+          p = new Point((int)markerPosition.getX(),(int)markerPosition.getY());
+        }
+      }
+      if (!Boolean.TRUE.equals(marker.getProperty(Properties.IGNORE_GRID))) {
+        p = getMap().snapTo(p);
+      }
+      c = getMap().placeOrMerge(marker,p);
+      KeyBuffer.getBuffer().remove(outer);
+      KeyBuffer.getBuffer().add(marker);
+      if (markerText != null && getMap() != null) {
+        if (!Boolean.TRUE.equals(outer.getProperty(Properties.OBSCURED_TO_OTHERS))
+            && !Boolean.TRUE.equals(outer.getProperty(Properties.OBSCURED_TO_ME))
+            && !Boolean.TRUE.equals(outer.getProperty(Properties.INVISIBLE_TO_OTHERS))) {
+          String location = getMap().locationName(getPosition());
+          if (location != null) {
+            Command display = new Chatter.DisplayText(GameModule.getGameModule().getChatter(), " * " + location + ":  " + outer.getName() + " " + markerText + " * ");
+            display.execute();
+            c = c == null ? display : c.append(display);
+          }
+        }
+      }
+    }
+    return c;
   }
 
   protected GamePiece createMarker() {

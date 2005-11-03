@@ -13,7 +13,7 @@
  * Library General Public License for more details.
  *
  * You should have received a copy of the GNU Library General Public
- * License along with this library; if not, copies are available 
+ * License along with this library; if not, copies are available
  * at http://www.opensource.org.
  */
 package VASSAL.configure;
@@ -57,6 +57,7 @@ public class ExtensionEditWindow extends VASSAL.configure.ModuleEditWindow {
   protected JMenu createUpdateMenu() {
     JMenu m = super.createUpdateMenu();
     ((JMenuItem)m.getMenuComponent(0)).setText("Create extension updater");
+    m.remove(1);
     return m;
   }
 
