@@ -33,6 +33,7 @@ import java.io.IOException;
 import java.io.FileOutputStream;
 import java.net.MalformedURLException;
 import java.util.Properties;
+import java.lang.reflect.InvocationTargetException;
 
 public class SavedGameUpdaterDialog extends JDialog {
   private HelpWindow helpWindow;
@@ -141,14 +142,34 @@ public class SavedGameUpdaterDialog extends JDialog {
   }
 
   private void updateGames() {
-    for (int i=0,n=savedGamesModel.size();i<n;++i) {
-      try {
-        updater.updateSavedGame(oldPieceInfo,(File)savedGamesModel.getElementAt(i));
+    updateButton.setEnabled(false);
+    Runnable runnable = new Runnable() {
+      public void run() {
+        for (int i=0,n=savedGamesModel.size();i<n;++i) {
+          try {
+            File savedGame = (File)savedGamesModel.getElementAt(i);
+            updater.updateSavedGame(oldPieceInfo,savedGame);
+            GameModule.getGameModule().warn("Updated "+savedGame.getName()+" from version "+versionField.getText()+" to "+GameModule.getGameModule().getGameVersion());
+          }
+          catch (final IOException e) {
+            Runnable showError = new Runnable() {
+              public void run() {
+                showErrorMessage(e,"Update failed","Unable to save file");
+              }
+            };
+            try {
+              SwingUtilities.invokeAndWait(showError);
+            }
+            catch (InterruptedException e1) {
+            }
+            catch (InvocationTargetException e1) {
+            }
+          }
+        }
+        updateButton.setEnabled(true);
       }
-      catch (IOException e) {
-        showErrorMessage(e,"Update failed","Unable to save file");
-      }
-    }
+    };
+    new Thread(runnable).start();
   }
 
   private void chooseSavedGames() {

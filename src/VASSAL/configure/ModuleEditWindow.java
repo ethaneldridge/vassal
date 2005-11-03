@@ -109,7 +109,7 @@ public class ModuleEditWindow extends JFrame implements WindowListener {
   }
 
   protected JMenu createUpdateMenu() {
-    JMenu updaterMenu = new JMenu("Updates");
+    JMenu updaterMenu = new JMenu("Updaters");
     JMenuItem mi = new JMenuItem("Create module updater");
     mi.addActionListener(new ActionListener() {
       public void actionPerformed(ActionEvent e) {
