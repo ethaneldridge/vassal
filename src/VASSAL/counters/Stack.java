@@ -86,9 +86,6 @@ public class Stack implements GamePiece, StateMergeable {
   }
 
   public void remove(GamePiece p) {
-    if (Boolean.TRUE.equals(p.getProperty(Properties.SELECTED))) {
-      selectNext(p);
-    }
     removePieceAt(indexOf(p));
     if (getMap() != null) {
       getMap().repaint(getMap().boundingBoxOf(this));
@@ -279,6 +276,26 @@ public class Stack implements GamePiece, StateMergeable {
         }
       }
     }
+  }
+
+  public GamePiece getPieceBeneath(GamePiece p) {
+    int index = indexOf(p);
+    while (index-- > 0) {
+      if (!Boolean.TRUE.equals(contents[index].getProperty(Properties.INVISIBLE_TO_ME))) {
+        return contents[index];
+      }
+    }
+    return null;
+  }
+
+  public GamePiece getPieceAbove(GamePiece p) {
+    int index = indexOf(p);
+    while (index++ < getPieceCount()) {
+      if (!Boolean.TRUE.equals(contents[index].getProperty(Properties.INVISIBLE_TO_ME))) {
+        return contents[index];
+      }
+    }
+    return null;
   }
 
   /** @return the top visible piece in this stack */

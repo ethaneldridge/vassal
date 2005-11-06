@@ -337,12 +337,6 @@ public class PieceMover extends AbstractBuildable implements
   /** Invoked after a piece has been moved */
   protected Command movedPiece(GamePiece p, Point loc) {
     Command c = null;
-    if (p instanceof Stack) {
-      GamePiece top = ((Stack) p).topPiece();
-      if (top != null) {
-        KeyBuffer.getBuffer().add(top);
-      }
-    }
     if (!loc.equals(p.getPosition())) {
       c = markMoved(p, true);
     }
@@ -401,7 +395,6 @@ public class PieceMover extends AbstractBuildable implements
     if (!it.hasMoreElements()) {
       return null;
     }
-    KeyBuffer.getBuffer().clear();
 
     Point offset = null;
     Command comm = new NullCommand();

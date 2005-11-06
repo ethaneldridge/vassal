@@ -412,6 +412,10 @@ public class BasicPiece implements EditablePiece, StateMergeable {
     return comm;
   }
 
+  /**
+   * @deprecated use MenuDisplayer
+   * @param e
+   */
   public void showPopup(MouseEvent e) {
     DragBuffer.getBuffer().clear();
     KeyBuffer.getBuffer().clear();

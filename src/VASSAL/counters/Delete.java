@@ -1,6 +1,7 @@
 package VASSAL.counters;
 
 import VASSAL.build.module.documentation.HelpFile;
+import VASSAL.build.GameModule;
 import VASSAL.command.Command;
 import VASSAL.command.RemovePiece;
 import VASSAL.configure.HotKeyConfigurer;
@@ -87,6 +88,23 @@ public class Delete extends Decorator implements EditablePiece {
     myGetKeyCommands();
     if (deleteCommand.matches(stroke)) {
       GamePiece outer = Decorator.getOutermost(this);
+      if (getParent() != null) {
+        GamePiece next = getParent().getPieceBeneath(outer);
+        if (next == null)
+          next = getParent().getPieceAbove(outer);
+        if (next != null) {
+          final GamePiece selected = next;
+          Runnable runnable = new Runnable() {
+            public void run() {
+              // Don't select if the next piece has itself been deleted
+              if (GameModule.getGameModule().getGameState().getPieceForId(selected.getId()) != null) {
+                KeyBuffer.getBuffer().add(selected);
+              }
+            }
+          };
+          SwingUtilities.invokeLater(runnable);
+        }
+      }
       c = new RemovePiece(outer);
       c.execute();
     }

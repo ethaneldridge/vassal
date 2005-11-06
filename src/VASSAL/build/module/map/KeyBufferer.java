@@ -71,12 +71,13 @@ public class KeyBufferer extends MouseAdapter implements Buildable, MouseMotionL
       filter = (EventFilter) p.getProperty(Properties.EVENT_FILTER);
     }
     boolean ignoreEvent = filter != null && filter.rejectEvent(e);
-    if (!e.isShiftDown()
-        || ignoreEvent) {
-      KeyBuffer.getBuffer().clear();
-    }
     if (p != null && !ignoreEvent) {
-      KeyBuffer.getBuffer().add(p);
+      if (!KeyBuffer.getBuffer().contains(p)) {
+        if (!e.isShiftDown()) {
+          KeyBuffer.getBuffer().clear();
+        }
+        KeyBuffer.getBuffer().add(p);
+      }
       if (p.getParent() != null) {
         map.getPieceCollection().moveToFront(p.getParent());
       }
@@ -85,6 +86,7 @@ public class KeyBufferer extends MouseAdapter implements Buildable, MouseMotionL
       }
     }
     else {
+      KeyBuffer.getBuffer().clear();
       anchor = map.componentCoordinates(e.getPoint());
       selection = new Rectangle(anchor.x, anchor.y, 0, 0);
       if (map.getHighlighter() instanceof ColoredBorder) {
