@@ -213,7 +213,7 @@ public class MovementReporter {
 
     public MoveSummary(AddPiece c) {
       GamePiece target = c.getTarget();
-      newMapId = target.getMap().getConfigureName();
+      newMapId = target.getMap().getIdentifier();
       newPosition = target.getPosition();
       pieces.add(target);
     }
