@@ -1253,7 +1253,7 @@ public class Map extends AbstractConfigurable implements GameComponent,
   }
 
   public boolean isPiecesVisible() {
-    return !hideCounters;
+    return !hideCounters && pieceOpacity != 0;
   }
 
   public float getPieceOpacity() {

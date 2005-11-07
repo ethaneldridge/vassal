@@ -65,7 +65,7 @@ public class ExtensionsLoader implements CommandEncoder {
             ModuleExtension ext = new ModuleExtension(new DataArchive(extensions[i]));
             ext.build();
             String msg = "Extension " + ext.getName() + " v" + ext.getVersion() + " loaded";
-            loadedExtensions.add(ext.getName());
+            loadedExtensions.add(extensions[i]);
             GameModule.getGameModule().warn(msg);
             System.err.println(msg);
           }
