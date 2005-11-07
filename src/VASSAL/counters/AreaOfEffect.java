@@ -19,6 +19,7 @@
 package VASSAL.counters;
 
 import java.awt.*;
+import java.awt.geom.AffineTransform;
 import java.io.File;
 import java.net.MalformedURLException;
 import java.beans.PropertyChangeListener;
@@ -179,12 +180,22 @@ public class AreaOfEffect extends Decorator implements EditablePiece {
             // Hexes have three vertices in the vertical direction; Top, Middle, and Bottom
             float dyOneHalf = dyHex / 2.0F;
 
+            AffineTransform oldTransform = null;
+            if (hexGrid.isSideways()) {
+              oldTransform = g2d.getTransform();
+              AffineTransform t = AffineTransform.getRotateInstance(Math.PI/2,zoomedX,zoomedY);
+              g2d.transform(t);
+            }
+
             // Draw the transparency at the GamePiece location
             drawPolygon(zoomedX, zoomedY, fZoom*dxOneThird, fZoom*dyOneHalf, g2d);
 
             // Each radius unit is drawn as a ring surrounding the GamePiece location
             for (int i = 1; i <= radius; i++) {
               drawPolygonRing(zoomedX, zoomedY, fZoom*dxHex, fZoom*dyHex, i, g2d);
+            }
+            if (oldTransform != null) {
+              g2d.setTransform(oldTransform);
             }
           }
           else if (grid instanceof SquareGrid) {
@@ -371,7 +382,7 @@ public class AreaOfEffect extends Decorator implements EditablePiece {
 		}
 
 		public String getState() {
-			return "true";
+			return "false";
 		}
 
 		public String getType() {
