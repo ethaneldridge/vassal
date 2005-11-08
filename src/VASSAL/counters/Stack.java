@@ -290,7 +290,7 @@ public class Stack implements GamePiece, StateMergeable {
 
   public GamePiece getPieceAbove(GamePiece p) {
     int index = indexOf(p);
-    while (index++ < getPieceCount()) {
+    while (++index < getPieceCount()) {
       if (!Boolean.TRUE.equals(contents[index].getProperty(Properties.INVISIBLE_TO_ME))) {
         return contents[index];
       }
