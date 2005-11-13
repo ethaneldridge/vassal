@@ -1,7 +1,12 @@
+package VASSAL.build.module.map.boardPicker.board;
+
+import java.awt.geom.Area;
+import java.awt.*;
+
 /*
  * $Id$
  *
- * Copyright (c) 2000-2003 by Rodney Kinney
+ * Copyright (c) 2005 by Rodney Kinney
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Library General Public
@@ -13,21 +18,19 @@
  * Library General Public License for more details.
  *
  * You should have received a copy of the GNU Library General Public
- * License along with this library; if not, copies are available
+ * License along with this library; if not, copies are available 
  * at http://www.opensource.org.
  */
-package VASSAL.build.module.map;
-
-import VASSAL.build.module.Map;
 
 /**
- * A component may implement the Drawable interface if it has
- * graphical information the should be drawn whenever the Map is
- * drawn.
- *
- * @see Map#addDrawComponent */
-public interface Drawable {
-  public void draw(java.awt.Graphics g, Map map);
-
-  public boolean drawAboveCounters();
+ * A Map grid that consists of a regular tiling of shapes
+ */
+public interface GeometricGrid extends MapGrid {
+  /**
+   * Return the Area representing a set of tiles on the grid
+   * @param center the center of the tiles
+   * @param range the number of tiles outward from the center to include
+   * @return
+   */
+  public Area getGridShape(Point center, int range);
 }

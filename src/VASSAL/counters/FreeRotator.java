@@ -218,6 +218,10 @@ public class FreeRotator extends Decorator implements EditablePiece, MouseListen
     }
   }
 
+  public boolean drawAboveCounters() {
+    return true;
+  }
+
   private Point getGhostPosition() {
     AffineTransform t = AffineTransform.getRotateInstance(-Math.PI * tempAngle / 180. - getAngleInRadians(), pivot.x, pivot.y);
     Point2D newPos2D = new Point2D.Float(getPosition().x, getPosition().y);

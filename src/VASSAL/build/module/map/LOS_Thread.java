@@ -301,6 +301,10 @@ public class LOS_Thread extends AbstractConfigurable implements
     }
   }
 
+  public boolean drawAboveCounters() {
+    return true;
+  }
+
   protected void launch() {
     if (!visible) {
       map.pushMouseListener(this);

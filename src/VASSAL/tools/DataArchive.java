@@ -26,17 +26,20 @@ import VASSAL.configure.BooleanConfigurer;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.geom.AffineTransform;
-import java.awt.image.*;
+import java.awt.image.BufferedImage;
+import java.awt.image.FilteredImageSource;
+import java.awt.image.ImageFilter;
+import java.awt.image.ImageProducer;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.io.*;
-//import java.net.URI;
 import java.net.URL;
 import java.security.AllPermission;
 import java.security.CodeSource;
 import java.security.PermissionCollection;
 import java.security.SecureClassLoader;
 import java.util.*;
+import java.util.List;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 import java.util.zip.ZipInputStream;
@@ -497,13 +500,10 @@ public class DataArchive extends SecureClassLoader {
 
   public String[] getImageNames() {
     if (isNameCacheStale()) {
-      Vector v = new Vector();
-      listImageNames(v);
-      Sort.quicksort(v, new Sort.Alpha());
-      imageNames = new String[v.size()];
-      for (int i = 0; i < imageNames.length; ++i) {
-        imageNames[i] = (String) v.elementAt(i);
-      }
+      List l = new ArrayList();
+      listImageNames(l);
+      Collections.sort(l,String.CASE_INSENSITIVE_ORDER);
+      imageNames = (String[]) l.toArray(new String[l.size()]);
     }
     return imageNames;
   }
@@ -518,9 +518,9 @@ public class DataArchive extends SecureClassLoader {
 
   /**
    * Place the names of the image files stored in this DataArchive into the argument Vector
-   * @param v
+   * @param l
    */
-  protected void listImageNames(Vector v) {
+  protected void listImageNames(List l) {
     if (archive != null) {
       try {
         ZipInputStream zis
@@ -529,7 +529,7 @@ public class DataArchive extends SecureClassLoader {
         ZipEntry entry = null;
         while ((entry = zis.getNextEntry()) != null) {
           if (entry.getName().startsWith(IMAGE_DIR)) {
-            v.addElement(entry.getName().substring(IMAGE_DIR.length()));
+            l.add(entry.getName().substring(IMAGE_DIR.length()));
           }
         }
       }
@@ -538,7 +538,7 @@ public class DataArchive extends SecureClassLoader {
       }
     }
     for (Enumeration e = extensions.elements(); e.hasMoreElements();) {
-      ((DataArchive) e.nextElement()).listImageNames(v);
+      ((DataArchive) e.nextElement()).listImageNames(l);
     }
   }
 

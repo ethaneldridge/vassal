@@ -31,13 +31,16 @@ import VASSAL.configure.VisibilityCondition;
 
 import java.awt.*;
 import java.awt.geom.Area;
+import java.awt.geom.AffineTransform;
 import java.io.File;
 import java.net.MalformedURLException;
+import java.util.Map;
+import java.util.HashMap;
 
 /**
  * A Hexgrid is a map grid composed of hexes.
  */
-public class HexGrid extends AbstractConfigurable implements MapGrid {
+public class HexGrid extends AbstractConfigurable implements GeometricGrid {
   protected Point origin = new Point(0, 32);
 
   protected double dx;
@@ -53,6 +56,7 @@ public class HexGrid extends AbstractConfigurable implements MapGrid {
   protected boolean cornersLegal = false;
   protected Color color = Color.black;
   protected boolean sideways = false;
+  protected Map shapeCache = new HashMap();
 
   public static final String X0 = "x0";
   public static final String Y0 = "y0";
@@ -174,6 +178,7 @@ public class HexGrid extends AbstractConfigurable implements MapGrid {
   public void setHexSize(double size) {
     dy = size;
     dx = Math.sqrt(3) * size / 2.;
+    shapeCache.clear();
   }
 
   public double getHexSize() {
@@ -198,7 +203,7 @@ public class HexGrid extends AbstractConfigurable implements MapGrid {
   }
 
   public void removeFrom(Buildable b) {
-  ((GridContainer) b).removeGrid(this);
+    ((GridContainer) b).removeGrid(this);
   }
 
   public static String getConfigureTypeName() {
@@ -320,6 +325,7 @@ public class HexGrid extends AbstractConfigurable implements MapGrid {
       }
       color = (Color) val;
     }
+    shapeCache.clear();
   }
 
   public Class[] getAllowableConfigureComponents() {
@@ -408,6 +414,113 @@ public class HexGrid extends AbstractConfigurable implements MapGrid {
     }
   }
 
+
+  public Area getGridShape(Point center, int range) {
+    Area shape = (Area) shapeCache.get(new Integer(range));
+    if (shape == null) {
+      //Choose a starting point
+      Point origin = new Point(0, 0);
+      shape = getSingleHexShape(origin.x, origin.y, false);
+
+      for (int i = -range; i <= range; i++) {
+        int x = origin.x + (int) (i * dx);
+
+        int length = range * 2 + 1 - Math.abs(i);
+
+        int startY = 0;
+        if (length % 2 == 1) {
+          startY = origin.y - (int) (dy * (length - 1) / 2);
+        }
+        else {
+          startY = origin.y - (int) (dy * (0.5 + (length - 2) / 2));
+        }
+
+        int y = startY;
+        for (int j = 0; j < length; j++) {
+          Point p = new Point(x, y);
+          rotateIfSideways(p);
+          shape.add(getSingleHexShape(p.x, p.y, false));
+          y += dy;
+        }
+      }
+
+      rotateIfSideways(origin);
+      shape.transform(AffineTransform.getTranslateInstance(0 - origin.x, 0 - origin.y));
+      shapeCache.put(new Integer(range), shape);
+    }
+    shape = new Area(AffineTransform.getTranslateInstance(center.x, center.y).createTransformedShape(shape));
+    return shape;
+  }
+
+  /**
+   * Return the Shape of a single hex
+   * @param centerX X co-ord of hex centre
+   * @param centerY Y co-ord of hex centre
+   * @return Hex Shape
+   */
+  protected Area getSingleHexShape(int centerX, int centerY, boolean reversed) {
+    Polygon poly = new Polygon();
+
+    float x = (float) (sideways ? centerY : centerX);
+    float y = (float) (sideways ? centerX : centerY);
+
+    float x1,y1, x2,y2, x3,y3, x4, y4, x5, y5, x6, y6;
+
+    float deltaX = (float) (this.dx);
+    float deltaY = (float) (this.dy);
+
+    float r = 2.F * deltaX / 3.F;
+
+    Point p1 = new Point();
+    Point p2 = new Point();
+    Point p3 = new Point();
+    Point p4 = new Point();
+    Point p5 = new Point();
+    Point p6 = new Point();
+
+    x1 = x - r;
+    y1 = y;
+    p1.setLocation(Math.round(x1), Math.round(y1));
+
+    x2 = x - .5F * r;
+    y2 = reversed ? y + .5F * deltaY : y - .5F * deltaY;
+    p2.setLocation(Math.round(x2), Math.round(y2));
+
+    x3 = x + .5F * r;
+    y3 = y2;
+    p3.setLocation(Math.round(x3) + 1, Math.round(y3));
+
+    x4 = x + r;
+    y4 = y;
+    p4.setLocation(Math.round(x4) + 1, Math.round(y4));
+
+    x5 = x3;
+    y5 = reversed ? y - .5F * deltaY : y + .5F * deltaY;
+    p5.setLocation(Math.round(x5) + 1, Math.round(y5) + 1);
+
+    x6 = x2;
+    y6 = y5;
+    p6.setLocation(Math.round(x6), Math.round(y6) + 1);
+
+    if (sideways) {
+      rotate(p1);
+      rotate(p2);
+      rotate(p3);
+      rotate(p4);
+      rotate(p5);
+      rotate(p6);
+    }
+
+    poly.addPoint(p1.x, p1.y);
+    poly.addPoint(p2.x, p2.y);
+    poly.addPoint(p3.x, p3.y);
+    poly.addPoint(p4.x, p4.y);
+    poly.addPoint(p5.x, p5.y);
+    poly.addPoint(p6.x, p6.y);
+    poly.addPoint(p1.x, p1.y);
+
+    return new Area(poly);
+  }
 
   public int range(Point p1, Point p2) {
     p1 = new Point(p1);
@@ -597,28 +710,21 @@ public class HexGrid extends AbstractConfigurable implements MapGrid {
 
 
   public void setGridNumbering(GridNumbering numbering) {
-
     this.numbering = numbering;
-
   }
 
 
   public GridNumbering getGridNumbering() {
-
     return numbering;
-
   }
 
 
   public Point getOrigin() {
-
     return new Point(origin);
-
   }
 
 
   private class ConfigureHexGrid extends javax.swing.JPanel {
-
     /** Initializes the Form */
     public ConfigureHexGrid() {
       initComponents();

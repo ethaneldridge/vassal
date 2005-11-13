@@ -135,7 +135,9 @@ public class Marker extends Decorator implements EditablePiece {
   }
 
   public String getDescription() {
-    if (keys != null && keys.length > 0 && values.length > 0) {
+    if (keys != null
+        && keys.length > 0 && keys[0].length() > 0
+        && values.length > 0 && values[0].length() > 0) {
       return "Marker - " + keys[0] + " = " + values[0];
     }
     else

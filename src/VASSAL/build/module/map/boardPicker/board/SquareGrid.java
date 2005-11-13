@@ -29,10 +29,13 @@ import VASSAL.configure.VisibilityCondition;
 
 import java.awt.*;
 import java.awt.geom.Area;
+import java.awt.geom.AffineTransform;
 import java.io.File;
 import java.net.MalformedURLException;
+import java.util.HashMap;
+import java.util.Map;
 
-public class SquareGrid extends AbstractConfigurable implements MapGrid {
+public class SquareGrid extends AbstractConfigurable implements GeometricGrid {
   private double dx = 48.0;
   private double dy = 48.0;
   private Point origin = new Point(24, 24);
@@ -42,6 +45,7 @@ public class SquareGrid extends AbstractConfigurable implements MapGrid {
   private boolean dotsVisible = false;
   private Color color;
   protected GridContainer container;
+  protected Map shapeCache = new HashMap();
 
   private GridNumbering gridNumbering;
 
@@ -51,30 +55,21 @@ public class SquareGrid extends AbstractConfigurable implements MapGrid {
   }
 
   public void setGridNumbering(GridNumbering gridNumbering) {
-
     this.gridNumbering = gridNumbering;
-
   }
 
 
   public double getDx() {
-
     return dx;
-
   }
 
 
   public double getDy() {
-
     return dy;
-
   }
 
-
   public Point getOrigin() {
-
     return new Point(origin);
-
   }
 
   public GridContainer getContainer() {
@@ -250,6 +245,7 @@ public class SquareGrid extends AbstractConfigurable implements MapGrid {
       }
       color = (Color) val;
     }
+    shapeCache.clear();
   }
 
   public Class[] getAllowableConfigureComponents() {
@@ -263,6 +259,38 @@ public class SquareGrid extends AbstractConfigurable implements MapGrid {
   public int range(Point p1, Point p2) {
     return Math.max(Math.abs((int) Math.floor((p2.x - p1.x) / dx + 0.5))
                     , Math.abs((int) Math.floor((p2.y - p1.y) / dy + 0.5)));
+  }
+
+  public Area getGridShape(Point center, int range) {
+    Area shape = (Area) shapeCache.get(new Integer(range));
+    if (shape == null) {
+      shape = getSingleSquareShape(0, 0);
+      double dx = getDx();
+      double dy = getDy();
+
+      for (int x = -range; x < range + 1; x++) {
+        int x1 = (int) (x * dx);
+//        int yRange = range - Math.abs(x); /* This creates a diamond-shaped range.  Configuration option?  */
+        int yRange = range;
+        for (int y = -yRange; y < yRange + 1; y++) {
+          int y1 = (int) (y * dy);
+          shape.add(getSingleSquareShape(x1, y1));
+        }
+      }
+      shapeCache.put(new Integer(range), shape);
+    }
+    shape = new Area(AffineTransform.getTranslateInstance(center.x, center.y).createTransformedShape(shape));
+    return shape;
+  }
+
+  /**
+   * Return the Shape of a single grid square
+   */
+  public Area getSingleSquareShape(int centerX, int centerY) {
+    double dx = getDx();
+    double dy = getDy();
+    Rectangle rect = new Rectangle((int) (centerX - dx / 2), (int) (centerY - dy / 2), (int) dx, (int) dy);
+    return new Area(rect);
   }
 
   public Point snapTo(Point p) {

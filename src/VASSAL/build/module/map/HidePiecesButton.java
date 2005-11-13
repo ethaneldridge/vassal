@@ -162,6 +162,10 @@ public class HidePiecesButton extends JPanel implements MouseListener,
     repaint();
   }
 
+  public boolean drawAboveCounters() {
+    return false;
+  }
+
   public void paint(Graphics g) {
   }
 

@@ -30,6 +30,7 @@ import VASSAL.configure.Configurer;
 import java.awt.*;
 import java.awt.geom.Area;
 import java.awt.geom.AffineTransform;
+import java.awt.geom.Ellipse2D;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.io.File;
@@ -38,7 +39,7 @@ import java.net.MalformedURLException;
 /**
  * Map Grid that contains any number of {@link VASSAL.build.module.map.boardPicker.board.mapgrid.Zone}s against a background {@link MapGrid}
  */
-public class ZonedGrid extends AbstractConfigurable implements MapGrid, GridContainer {
+public class ZonedGrid extends AbstractConfigurable implements GeometricGrid, GridContainer {
   private ArrayList zones = new ArrayList();
   private MapGrid background;
   private GridContainer container;
@@ -181,7 +182,32 @@ public class ZonedGrid extends AbstractConfigurable implements MapGrid, GridCont
   }
 
   public int range(Point p1, Point p2) {
-    return background != null ? background.range(p1, p2) : (int)Math.round(p1.distance(p2));
+    MapGrid grid = background;
+    Zone z1 = findZone(p1);
+    Zone z2 = findZone(p2);
+    if (z1 == z2
+      && z1 != null
+      && z1.getGrid() != null) {
+      grid = z1.getGrid();
+    }
+    return grid != null ? grid.range(p1, p2) : (int)Math.round(p1.distance(p2));
+  }
+
+  public Area getGridShape(Point center, int range) {
+    Area a = null;
+    Zone z = findZone(center);
+    if (z != null
+      && z.getGrid() instanceof GeometricGrid) {
+      a = ((GeometricGrid)z.getGrid()).getGridShape(center,range);
+    }
+    if (a == null
+      && background instanceof GeometricGrid) {
+      a = ((GeometricGrid)background).getGridShape(center,range);
+    }
+    if (a == null) {
+      a = new Area(new Ellipse2D.Double(center.x-range, center.y-range, range * 2, range * 2));
+    }
+    return a;
   }
 
   public Zone findZone(Point p) {

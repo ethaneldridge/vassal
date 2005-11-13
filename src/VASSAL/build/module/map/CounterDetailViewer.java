@@ -134,6 +134,10 @@ public class CounterDetailViewer extends AbstractConfigurable implements Drawabl
     }
   }
 
+  public boolean drawAboveCounters() {
+    return true;
+  }
+
   public void draw(Graphics g, Point pt, JComponent comp) {
 
 //    if (currentPiece == null) {

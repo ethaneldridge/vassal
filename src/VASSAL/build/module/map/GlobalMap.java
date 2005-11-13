@@ -201,6 +201,10 @@ public class GlobalMap extends JPanel implements MouseListener,
     repaint();
   }
 
+  public boolean drawAboveCounters() {
+    return false;
+  }
+
   public void paint(Graphics g) {
     g.clearRect(0, 0, getSize().width, getSize().height);
     map.drawBoards(g, -Math.round((float) scale * map.getEdgeBuffer().width),

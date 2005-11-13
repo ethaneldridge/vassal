@@ -90,6 +90,10 @@ public class MineaturesPieceMover extends PieceMover implements MouseMotionListe
     }
   }
 
+  public boolean drawAboveCounters() {
+    return true;
+  }
+
   /**
    * A Mouse release event will be translated to this location (in map coordinates).
    * This allows restrictions, such as distance limitations, to be put on where a piece may move.

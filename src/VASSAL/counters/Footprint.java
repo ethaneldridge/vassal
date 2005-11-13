@@ -297,6 +297,8 @@ public class Footprint extends MovementMarkable {
     if (transparencyPercent > 100) transparencyPercent = 100;
     float transparency = (float) transparencyPercent / 100.0f;
     Composite oldComposite = g2d.getComposite();
+    Stroke oldStroke = g2d.getStroke();
+    Color oldColor = g2d.getColor();
 
     /**
      * newClip is an overall clipping region made up of the Map itself and a
@@ -407,6 +409,8 @@ public class Footprint extends MovementMarkable {
       }
     }
     g2d.setComposite(oldComposite);
+    g2d.setStroke(oldStroke);
+    g2d.setColor(oldColor);
     g.setClip(oldClip);
 
   }

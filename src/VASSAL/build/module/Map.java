@@ -995,8 +995,9 @@ public class Map extends AbstractConfigurable implements GameComponent,
     clearMapBorder(g); // To avoid ghost pieces around the edge
 
     drawBoardsInRegion(g, visibleRect);
+    drawDrawable(g,false);
     drawPiecesInRegion(g, visibleRect);
-    drawDrawable(g);
+    drawDrawable(g,true);
   }
 
   public void drawBoardsInRegion(Graphics g, Rectangle visibleRect) {
@@ -1053,10 +1054,13 @@ public class Map extends AbstractConfigurable implements GameComponent,
     }
   }
 
-  public void drawDrawable(Graphics g) {
+  public void drawDrawable(Graphics g, boolean aboveCounters) {
     for (Enumeration e = drawComponents.elements();
          e.hasMoreElements();) {
-      ((Drawable) e.nextElement()).draw(g, this);
+      Drawable drawable = (Drawable) e.nextElement();
+      if (!(aboveCounters ^ drawable.drawAboveCounters())) {
+        drawable.draw(g, this);
+      }
     }
   }
 
@@ -1067,8 +1071,9 @@ public class Map extends AbstractConfigurable implements GameComponent,
   public void paint(Graphics g, int xOffset, int yOffset) {
 
     drawBoards(g, xOffset, yOffset, getZoom(), theMap);
+    drawDrawable(g,false);
     drawPieces(g, xOffset, yOffset);
-    drawDrawable(g);
+    drawDrawable(g,true);
   }
 
   public Highlighter getHighlighter() {
@@ -1746,7 +1751,7 @@ public class Map extends AbstractConfigurable implements GameComponent,
   public Class[] getAllowableConfigureComponents() {
     Class[] c = {GlobalMap.class, LOS_Thread.class, HidePiecesButton.class,
                  Zoomer.class, CounterDetailViewer.class, LayeredPieceCollection.class, ImageSaver.class,
-                 TextSaver.class, DrawPile.class, SetupStack.class, MassKeyCommand.class, PieceRecenterer.class};
+                 TextSaver.class, DrawPile.class, SetupStack.class, MassKeyCommand.class, MapShader.class, PieceRecenterer.class};
     return c;
   }
 
