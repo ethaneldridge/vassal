@@ -379,7 +379,7 @@ public class MapShader extends AbstractConfigurable implements GameComponent, Dr
     launch = new LaunchButton("Shade", BUTTON_TEXT, HOT_KEY, ICON, al);
     launch.setEnabled(false);
     setLaunchButtonVisibility();
-    setConfigureName("MapShader");
+    setConfigureName("Shading");
     reset();
   }
 
@@ -670,7 +670,7 @@ public class MapShader extends AbstractConfigurable implements GameComponent, Dr
   }
 
   public static String getConfigureTypeName() {
-    return "Map Shader";
+    return "Map Shading";
   }
 
   public void removeFrom(Buildable parent) {

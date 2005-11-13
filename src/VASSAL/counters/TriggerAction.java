@@ -108,7 +108,18 @@ public class TriggerAction extends Decorator implements EditablePiece {
   
     return ID + se.getValue();
   }
-  
+
+  /**
+   * Apply key commands to inner pieces first
+   * @param stroke
+   * @return
+   */
+  public Command keyEvent(KeyStroke stroke) {
+    Command c = piece.keyEvent(stroke);
+    return c == null ? myKeyEvent(stroke)
+        : c.append(myKeyEvent(stroke));
+  }
+
   public Command myKeyEvent(KeyStroke stroke) {
     if (triggeredKeys == null) {
       // Keep track of the keystrokes that we've already responded to within this event loop

@@ -258,12 +258,12 @@ public class AreaOfEffect extends Decorator implements EditablePiece, MapShader.
       panel.add(new JSeparator());
       panel.add(new JLabel(" "));
 
-      useMapShader = new BooleanConfigurer(null, "Use Map Shader", trait.mapShaderName != null);
+      useMapShader = new BooleanConfigurer(null, "Use Map Shading", trait.mapShaderName != null);
       panel.add(useMapShader.getControls());
       selectShader = Box.createHorizontalBox();
 
       panel.add(selectShader);
-      JLabel l = new JLabel("Map Shader:  ");
+      JLabel l = new JLabel("Map Shading:  ");
       selectShader.add(l);
       final JTextField tf = new JTextField(12);
       tf.setEditable(false);
