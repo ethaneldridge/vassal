@@ -27,7 +27,6 @@ import VASSAL.build.module.map.boardPicker.board.MapGrid;
 import VASSAL.command.ChangeTracker;
 import VASSAL.command.Command;
 import VASSAL.configure.*;
-import VASSAL.tools.ComponentPathBuilder;
 import VASSAL.tools.SequenceEncoder;
 
 import javax.swing.*;
@@ -63,6 +62,7 @@ public class AreaOfEffect extends Decorator implements EditablePiece, MapShader.
   protected KeyCommand[] commands;
   protected String mapShaderName;
   protected MapShader shader;
+  private KeyCommand keyCommand;
 
   public AreaOfEffect() {
     this(ID + ColorConfigurer.colorToString(defaultTransparencyColor), null);
@@ -99,6 +99,7 @@ public class AreaOfEffect extends Decorator implements EditablePiece, MapShader.
     alwaysActive = st.nextBoolean(true);
     activateCommand = st.nextToken("Show Area");
     activateKey = st.nextKeyStroke(null);
+    keyCommand = new KeyCommand(activateCommand, activateKey, Decorator.getOutermost(this));
     mapShaderName = st.nextToken("");
     if (mapShaderName.length() == 0) {
       mapShaderName = null;
@@ -189,11 +190,11 @@ public class AreaOfEffect extends Decorator implements EditablePiece, MapShader.
   // No hot-keys
   protected KeyCommand[] myGetKeyCommands() {
     if (commands == null) {
-      if (alwaysActive) {
+      if (alwaysActive || activateCommand.length() == 0) {
         commands = new KeyCommand[0];
       }
       else {
-        commands = new KeyCommand[]{new KeyCommand(activateCommand, activateKey, Decorator.getOutermost(this))};
+        commands = new KeyCommand[]{keyCommand};
       }
     }
     return commands;
@@ -203,8 +204,8 @@ public class AreaOfEffect extends Decorator implements EditablePiece, MapShader.
   public Command myKeyEvent(KeyStroke stroke) {
     Command c = null;
     myGetKeyCommands();
-    if (commands.length > 0
-        && commands[0].matches(stroke)) {
+    if (!alwaysActive
+        && keyCommand.matches(stroke)) {
       ChangeTracker t = new ChangeTracker(this);
       active = !active;
       c = t.getChangeCommand();
