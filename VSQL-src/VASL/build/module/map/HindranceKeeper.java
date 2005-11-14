@@ -132,4 +132,12 @@ public class HindranceKeeper extends AbstractBuildable implements Drawable, KeyL
 
   public void keyTyped(KeyEvent e) {
   }
+
+  /* (non-Javadoc)
+   * @see VASSAL.build.module.map.Drawable#drawAboveCounters()
+   */
+  public boolean drawAboveCounters() {
+    // TODO Auto-generated method stub
+    return false;
+  }
 }

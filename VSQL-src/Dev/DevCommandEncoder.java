@@ -19,18 +19,17 @@
 package Dev;
 
 import tdc.Macro;
-import VASSAL.build.module.BasicCommandEncoder;
 import VASSAL.counters.Decorator;
 import VASSAL.counters.GamePiece;
 
-public class DevCommandEncoder extends BasicCommandEncoder {
+public class DevCommandEncoder extends AutoImage.CommandEncoder {
 
   protected Decorator createDecorator(String type, GamePiece inner) {
     if (type.startsWith(Macro.ID)) {     
       return new Macro(type, inner);
     }
-    else if (type.startsWith(ConditionalMarker.ID)) {     
-      return new ConditionalMarker(type, inner);
+    else if (type.startsWith(Switch.ID)) {     
+      return new Switch(type, inner);
     }
     return super.createDecorator(type, inner);
   }

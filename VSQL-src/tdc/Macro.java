@@ -130,7 +130,7 @@ public class Macro extends Decorator implements EditablePiece {
     // 2. Check the Property Filter if it exists. 
     GamePiece outer = Decorator.getOutermost(this);
     if (propertyMatch != null && propertyMatch.length() > 0) {
-      PieceFilter filter = PropertiesPieceFilter.parse(new FormattedString(propertyMatch).getText(outer));
+      PieceFilter filter = PropertiesPieceFilter.parse(propertyMatch);
       if (!filter.accept(outer)) {
         return null;
       }

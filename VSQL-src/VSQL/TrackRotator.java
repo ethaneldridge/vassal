@@ -578,4 +578,12 @@ public class TrackRotator extends Decorator implements EditablePiece, MouseListe
       return "0";
     }
   }
+
+  /* (non-Javadoc)
+   * @see VASSAL.build.module.map.Drawable#drawAboveCounters()
+   */
+  public boolean drawAboveCounters() {
+    // TODO Auto-generated method stub
+    return false;
+  }
 }
