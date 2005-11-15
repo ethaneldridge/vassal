@@ -43,6 +43,7 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.util.Enumeration;
+import java.net.MalformedURLException;
 
 /**
  *
@@ -680,7 +681,14 @@ public class MapShader extends AbstractConfigurable implements GameComponent, Dr
   }
 
   public HelpFile getHelpFile() {
-    return null;
+    File dir = VASSAL.build.module.Documentation.getDocumentationBaseDir();
+    dir = new File(dir, "ReferenceManual");
+    try {
+      return new HelpFile(null, new File(dir, "Map.htm"), "#MapShading");
+    }
+    catch (MalformedURLException ex) {
+      return null;
+    }
   }
 
   public void addTo(Buildable parent) {

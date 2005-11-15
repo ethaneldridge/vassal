@@ -26,6 +26,8 @@ import java.awt.Shape;
 import java.awt.event.InputEvent;
 import java.util.Set;
 import java.util.HashSet;
+import java.io.File;
+import java.net.MalformedURLException;
 
 import javax.swing.*;
 
@@ -52,9 +54,9 @@ import VASSAL.tools.SequenceEncoder;
  *  - Match against an optional Property Filter
  * */
 public class TriggerAction extends Decorator implements EditablePiece {
-  
+
   public static final String ID = "macro;";
-  
+
   protected String name = "";
   protected String command = "";
   protected KeyStroke key = null;
@@ -105,7 +107,7 @@ public class TriggerAction extends Decorator implements EditablePiece {
       .append(propertyMatch)
       .append(KeyStrokeArrayConfigurer.encode(watchKeys))
       .append(KeyStrokeArrayConfigurer.encode(actionKeys));
-  
+
     return ID + se.getValue();
   }
 
@@ -150,12 +152,12 @@ public class TriggerAction extends Decorator implements EditablePiece {
         triggeredKeys.add(watchKeys[i]);
       }
     }
- 
+
     if (!seen) {
       return null;
     }
-    
-    // 2. Check the Property Filter if it exists. 
+
+    // 2. Check the Property Filter if it exists.
     GamePiece outer = Decorator.getOutermost(this);
     if (propertyMatch != null && propertyMatch.length() > 0) {
       PieceFilter filter = PropertiesPieceFilter.parse(new FormattedString(propertyMatch).getText(outer));
@@ -163,7 +165,7 @@ public class TriggerAction extends Decorator implements EditablePiece {
         return null;
       }
     }
-    
+
     // 3. Issue the outgoing keystrokes
     Command c = new NullCommand();
     for (int i = 0; i < actionKeys.length; i++) {
@@ -188,7 +190,14 @@ public class TriggerAction extends Decorator implements EditablePiece {
   }
 
   public HelpFile getHelpFile() {
+    File dir = VASSAL.build.module.Documentation.getDocumentationBaseDir();
+    dir = new File(dir, "ReferenceManual");
+    try {
+      return new HelpFile(null, new File(dir, "TriggerAction.htm"));
+    }
+    catch (MalformedURLException ex) {
       return null;
+    }
   }
 
   public void mySetType(String type) {
@@ -198,7 +207,7 @@ public class TriggerAction extends Decorator implements EditablePiece {
     command = st.nextToken("Trigger");
     key = st.nextKeyStroke('T');
     propertyMatch = st.nextToken("");
-    
+
     String keys = st.nextToken("");
     if (keys.indexOf(',') > 0) {
       watchKeys = KeyStrokeArrayConfigurer.decode(keys);
@@ -209,7 +218,7 @@ public class TriggerAction extends Decorator implements EditablePiece {
         watchKeys[i] = KeyStroke.getKeyStroke(keys.charAt(i),InputEvent.CTRL_MASK);
       }
     }
-    
+
     keys = st.nextToken("");
     if (keys.indexOf(',') > 0) {
       actionKeys = KeyStrokeArrayConfigurer.decode(keys);
@@ -235,12 +244,12 @@ public class TriggerAction extends Decorator implements EditablePiece {
     private KeyStrokeArrayConfigurer watchKeys;
     private KeyStrokeArrayConfigurer actionKeys;
     private JPanel box;
-    
+
     public Ed(TriggerAction piece) {
 
       box = new JPanel();
       box.setLayout(new BoxLayout(box, BoxLayout.Y_AXIS));
-      
+
       name = new StringConfigurer(null, "Trigger Name:  ", piece.name);
       box.add(name.getControls());
 
@@ -253,16 +262,16 @@ public class TriggerAction extends Decorator implements EditablePiece {
       key = new HotKeyConfigurer(null, "  KeyStroke:  ", piece.key);
       commandBox.add(key.getControls());
       box.add(commandBox);
-     
+
       watchKeys = new KeyStrokeArrayConfigurer(null, "Watch for these Keystrokes:  ", piece.watchKeys);
       box.add(watchKeys.getControls());
-      
+
       actionKeys = new KeyStrokeArrayConfigurer(null, "Perform these Keystrokes:  ", piece.actionKeys);
       box.add(actionKeys.getControls());
 
     }
 
-   
+
     public Component getControls() {
       return box;
     }
