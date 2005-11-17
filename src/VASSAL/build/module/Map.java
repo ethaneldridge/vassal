@@ -46,6 +46,8 @@ import java.io.File;
 import java.net.MalformedURLException;
 import java.util.Enumeration;
 import java.util.Vector;
+import java.util.ArrayList;
+import java.util.Iterator;
 
 /**
  * The Map is the main component for displaying and containing {@link
@@ -777,14 +779,24 @@ public class Map extends AbstractConfigurable implements GameComponent,
    * When focus is lost, deselect all selected counters on this map.
    */
   public void focusLost(FocusEvent fe) {
-    for (Enumeration e = KeyBuffer.getBuffer().getPieces();
-         e.hasMoreElements();) {
-      GamePiece p = (GamePiece) e.nextElement();
-      if (p.getMap() == this) {
-        KeyBuffer.getBuffer().remove(p);
+    if (!fe.isTemporary()) {
+      boolean dirty = false;
+      java.util.List l = new ArrayList();
+      for (Enumeration e = KeyBuffer.getBuffer().getPieces();
+           e.hasMoreElements();) {
+        l.add(e.nextElement());
+      }
+      for (Iterator it = l.iterator(); it.hasNext();) {
+        GamePiece p = (GamePiece) it.next();
+        if (p.getMap() == this) {
+          KeyBuffer.getBuffer().remove(p);
+          dirty = true;
+        }
+      }
+      if (dirty) {
+        theMap.repaint();
       }
     }
-    theMap.repaint();
   }
 
   /**
@@ -995,15 +1007,15 @@ public class Map extends AbstractConfigurable implements GameComponent,
     clearMapBorder(g); // To avoid ghost pieces around the edge
 
     drawBoardsInRegion(g, visibleRect);
-    drawDrawable(g,false);
+    drawDrawable(g, false);
     drawPiecesInRegion(g, visibleRect);
-    drawDrawable(g,true);
+    drawDrawable(g, true);
   }
 
   public void drawBoardsInRegion(Graphics g, Rectangle visibleRect) {
     for (int i = 0; i < boards.size(); ++i) {
       Board b = (Board) boards.elementAt(i);
-      Point p = getLocation(b,getZoom());
+      Point p = getLocation(b, getZoom());
       b.drawRegion(g, p, visibleRect, getZoom(), theMap);
     }
   }
@@ -1017,7 +1029,7 @@ public class Map extends AbstractConfigurable implements GameComponent,
     if (!hideCounters) {
       Graphics2D g2d = (Graphics2D) g;
       Composite oldComposite = g2d.getComposite();
-      g2d.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER,pieceOpacity));
+      g2d.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, pieceOpacity));
       GamePiece[] stack = pieces.getPieces();
       for (int i = 0; i < stack.length; ++i) {
         Point pt = componentCoordinates(stack[i].getPosition());
@@ -1040,7 +1052,7 @@ public class Map extends AbstractConfigurable implements GameComponent,
     if (!hideCounters) {
       Graphics2D g2d = (Graphics2D) g;
       Composite oldComposite = g2d.getComposite();
-      g2d.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER,pieceOpacity));
+      g2d.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, pieceOpacity));
       GamePiece[] stack = pieces.getPieces();
       for (int i = 0; i < stack.length; ++i) {
         Point pt = componentCoordinates(stack[i].getPosition());
@@ -1071,9 +1083,9 @@ public class Map extends AbstractConfigurable implements GameComponent,
   public void paint(Graphics g, int xOffset, int yOffset) {
 
     drawBoards(g, xOffset, yOffset, getZoom(), theMap);
-    drawDrawable(g,false);
+    drawDrawable(g, false);
     drawPieces(g, xOffset, yOffset);
-    drawDrawable(g,true);
+    drawDrawable(g, true);
   }
 
   public Highlighter getHighlighter() {
@@ -1184,8 +1196,8 @@ public class Map extends AbstractConfigurable implements GameComponent,
       maxX = Math.max(maxX, relPos.x);
       maxY = Math.max(maxY, relPos.y);
     }
-    boardWidths = new int[maxX+1][maxY+1];
-    boardHeights = new int[maxX+1][maxY+1];
+    boardWidths = new int[maxX + 1][maxY + 1];
+    boardHeights = new int[maxX + 1][maxY + 1];
     for (int i = 0,n = boards.size(); i < n; ++i) {
       Board b = (Board) boards.get(i);
       Point relPos = b.relativePosition();
@@ -1198,7 +1210,7 @@ public class Map extends AbstractConfigurable implements GameComponent,
       Point relPos = b.relativePosition();
       Point location = getLocation(relPos.x, relPos.y, 1.0);
       b.setLocation(location.x, location.y);
-      b.translate(offset.x,offset.y);
+      b.translate(offset.x, offset.y);
     }
     theMap.revalidate();
   }
@@ -1210,8 +1222,8 @@ public class Map extends AbstractConfigurable implements GameComponent,
     }
     else {
       Point relPos = b.relativePosition();
-      p = getLocation(relPos.x,relPos.y,zoom);
-      p.translate((int)(zoom*edgeBuffer.width), (int)(zoom*edgeBuffer.height));
+      p = getLocation(relPos.x, relPos.y, zoom);
+      p.translate((int) (zoom * edgeBuffer.width), (int) (zoom * edgeBuffer.height));
     }
     return p;
   }
@@ -1234,7 +1246,7 @@ public class Map extends AbstractConfigurable implements GameComponent,
                          double zoom, Component obs) {
     for (int i = 0; i < boards.size(); ++i) {
       Board b = (Board) boards.elementAt(i);
-      Point p = getLocation(b,zoom);
+      Point p = getLocation(b, zoom);
       p.translate(xoffset, yoffset);
       b.draw(g, p.x, p.y, zoom, obs);
     }
@@ -1459,7 +1471,7 @@ public class Map extends AbstractConfigurable implements GameComponent,
    * @see StackMetrics#merge
    */
   public Command placeOrMerge(final GamePiece p, final Point pt) {
-    Command c = apply(new DeckVisitorDispatcher(new Merger(this,pt,p)));
+    Command c = apply(new DeckVisitorDispatcher(new Merger(this, pt, p)));
     if (c == null) {
       c = placeAt(p, pt);
     }
@@ -1835,40 +1847,40 @@ public class Map extends AbstractConfigurable implements GameComponent,
       this.p = p;
     }
 
-      public Object visitDeck(Deck d) {
-        if (d.getPosition().equals(pt)) {
-          return map.getStackMetrics().merge(d, p);
-        }
-        else {
-          return null;
-        }
+    public Object visitDeck(Deck d) {
+      if (d.getPosition().equals(pt)) {
+        return map.getStackMetrics().merge(d, p);
       }
-
-      public Object visitStack(Stack s) {
-        if (s.getPosition().equals(pt)
-            && map.getStackMetrics().isStackingEnabled()
-            && !Boolean.TRUE.equals(p.getProperty(Properties.NO_STACK))
-            && s.topPiece() != null) {
-          return map.getStackMetrics().merge(s, p);
-        }
-        else {
-          return null;
-        }
-      }
-
-      public Object visitDefault(GamePiece piece) {
-        if (piece.getPosition().equals(pt)
-            && map.getStackMetrics().isStackingEnabled()
-            && !Boolean.TRUE.equals(p.getProperty(Properties.NO_STACK))
-            && !Boolean.TRUE.equals(piece.getProperty(Properties.INVISIBLE_TO_ME))
-            && !Boolean.TRUE.equals(piece.getProperty(Properties.NO_STACK))) {
-          return map.getStackMetrics().merge(piece, p);
-        }
-        else {
-          return null;
-        }
+      else {
+        return null;
       }
     }
+
+    public Object visitStack(Stack s) {
+      if (s.getPosition().equals(pt)
+          && map.getStackMetrics().isStackingEnabled()
+          && !Boolean.TRUE.equals(p.getProperty(Properties.NO_STACK))
+          && s.topPiece() != null) {
+        return map.getStackMetrics().merge(s, p);
+      }
+      else {
+        return null;
+      }
+    }
+
+    public Object visitDefault(GamePiece piece) {
+      if (piece.getPosition().equals(pt)
+          && map.getStackMetrics().isStackingEnabled()
+          && !Boolean.TRUE.equals(p.getProperty(Properties.NO_STACK))
+          && !Boolean.TRUE.equals(piece.getProperty(Properties.INVISIBLE_TO_ME))
+          && !Boolean.TRUE.equals(piece.getProperty(Properties.NO_STACK))) {
+        return map.getStackMetrics().merge(piece, p);
+      }
+      else {
+        return null;
+      }
+    }
+  }
 
 
   /**

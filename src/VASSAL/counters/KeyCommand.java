@@ -28,6 +28,7 @@ public class KeyCommand extends AbstractAction {
   private String name;
   private KeyStroke stroke;
   private GamePiece target;
+  private boolean global;
 
   public KeyCommand(String name, KeyStroke key, GamePiece target) {
     super(key == null ? name : name + "  " + HotKeyConfigurer.getString(key));
@@ -52,17 +53,38 @@ public class KeyCommand extends AbstractAction {
     return target;
   }
 
+  /**
+   * If true, then this action will apply to all selected pieces
+   * @return
+   */
+  public boolean isGlobal() {
+    return global;
+  }
+
+  /**
+   * If true, then this action will apply to all selected pieces
+   * @param global
+   */
+  public void setGlobal(boolean global) {
+    this.global = global;
+  }
+
   public void actionPerformed(java.awt.event.ActionEvent evt) {
-    BoundsTracker t = new BoundsTracker();
-    GamePiece outer = Decorator.getOutermost(target);
-    t.addPiece(outer);
-    outer.setProperty(Properties.SNAPSHOT,PieceCloner.getInstance().clonePiece(outer)); // save state prior to command
-    Command c = outer.keyEvent(stroke);
-    if (target.getId() != null) {
-      GameModule.getGameModule().sendAndLog(c);
+    if (global) {
+      GameModule.getGameModule().sendAndLog(KeyBuffer.getBuffer().keyCommand(stroke));
     }
-    t.addPiece(outer);
-    t.repaint();
+    else {
+      BoundsTracker t = new BoundsTracker();
+      GamePiece outer = Decorator.getOutermost(target);
+      t.addPiece(outer);
+      outer.setProperty(Properties.SNAPSHOT, PieceCloner.getInstance().clonePiece(outer)); // save state prior to command
+      Command c = outer.keyEvent(stroke);
+      if (target.getId() != null) {
+        GameModule.getGameModule().sendAndLog(c);
+      }
+      t.addPiece(outer);
+      t.repaint();
+    }
   }
 }
 

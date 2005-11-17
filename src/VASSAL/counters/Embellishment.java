@@ -68,7 +68,7 @@ public class Embellishment extends Decorator implements EditablePiece {
   // random layers
   //protected KeyCommand rndCommand;
   protected KeyStroke rndKey;
-  private String rndText = "Randomize";
+  private String rndText = "";
   // end random layers
 
   protected int value = -1;  // Index of the image to draw.  Negative if inactive
@@ -146,7 +146,7 @@ public class Embellishment extends Decorator implements EditablePiece {
 
       //    random layers
       rndKey = st.nextKeyStroke(null);
-      rndText = st.nextToken("Randomize");
+      rndText = st.nextToken("");
 
       // end random layers
 

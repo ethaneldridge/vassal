@@ -412,42 +412,6 @@ public class BasicPiece implements EditablePiece, StateMergeable {
     return comm;
   }
 
-  /**
-   * @deprecated use MenuDisplayer
-   * @param e
-   */
-  public void showPopup(MouseEvent e) {
-    DragBuffer.getBuffer().clear();
-    KeyBuffer.getBuffer().clear();
-    KeyBuffer.getBuffer().add(Decorator.getOutermost(this));
-    Point p = e.getPoint();
-    if (e.getSource() == getMap()) {
-      p = getMap().componentCoordinates(e.getPoint());
-    }
-    if (popup == null) {
-      popup = MenuDisplayer.createPopup(Decorator.getOutermost(this));
-    }
-    if (e.getSource() instanceof Component) {
-      final Component target = (Component) e.getSource();
-      popup.addPopupMenuListener(new javax.swing.event.PopupMenuListener() {
-        public void popupMenuCanceled
-            (javax.swing.event.PopupMenuEvent evt) {
-          target.repaint();
-        }
-
-        public void popupMenuWillBecomeInvisible
-            (javax.swing.event.PopupMenuEvent evt) {
-          target.repaint();
-        }
-
-        public void popupMenuWillBecomeVisible
-            (javax.swing.event.PopupMenuEvent evt) {
-        }
-      });
-      popup.show(target, p.x, p.y);
-    }
-  }
-
   public String getState() {
     SequenceEncoder se = new SequenceEncoder(';');
     String mapName = map == null ? "null" : map.getIdentifier();

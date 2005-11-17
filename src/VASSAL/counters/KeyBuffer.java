@@ -111,7 +111,7 @@ public class KeyBuffer {
   }
 
   public Enumeration getPieces() {
-    return new Vector(pieces).elements();
+    return Collections.enumeration(pieces);
   }
 
   public void sort(Comparator comp) {

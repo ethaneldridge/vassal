@@ -77,6 +77,16 @@ public class MenuDisplayer extends MouseAdapter implements Buildable {
   }
 
   public static JPopupMenu createPopup(GamePiece target) {
+    return createPopup(target,false);
+  }
+
+  /**
+   *
+   * @param target
+   * @param global If true, then apply the KeyCommands globally, i.e. to all selected pieces
+   * @return
+   */
+  public static JPopupMenu createPopup(GamePiece target, boolean global) {
     JPopupMenu popup = new JPopupMenu();
     KeyCommand c[] = (KeyCommand[]) target.getProperty(Properties.KEY_COMMANDS);
     if (c != null) {
@@ -85,6 +95,7 @@ public class MenuDisplayer extends MouseAdapter implements Buildable {
       HashMap subMenus = new HashMap(); // Maps instances of KeyCommandSubMenu to corresponding JMenu
       HashMap commandNames = new HashMap(); // Maps name to a list of commands with that name
       for (int i = 0; i < c.length; ++i) {
+        c[i].setGlobal(global);
         KeyStroke stroke = c[i].getKeyStroke();
         JMenuItem item = null;
         if (c[i] instanceof KeyCommandSubMenu) {
@@ -154,7 +165,7 @@ public class MenuDisplayer extends MouseAdapter implements Buildable {
         EventFilter filter = (EventFilter) p.getProperty(Properties.EVENT_FILTER);
         if (filter == null
             || !filter.rejectEvent(e)) {
-          JPopupMenu popup = createPopup(p);
+          JPopupMenu popup = createPopup(p,true);
           Point pt = map.componentCoordinates(e.getPoint());
           popup.addPopupMenuListener(new javax.swing.event.PopupMenuListener() {
             public void popupMenuCanceled
@@ -164,7 +175,6 @@ public class MenuDisplayer extends MouseAdapter implements Buildable {
 
             public void popupMenuWillBecomeInvisible
                 (javax.swing.event.PopupMenuEvent evt) {
-              KeyBuffer.getBuffer().add(p);
               map.repaint();
             }
 
@@ -172,7 +182,7 @@ public class MenuDisplayer extends MouseAdapter implements Buildable {
                 (javax.swing.event.PopupMenuEvent evt) {
             }
           });
-          KeyBuffer.getBuffer().clear();
+//          KeyBuffer.getBuffer().clear();
           popup.show(map.getView(), pt.x, pt.y);
           e.consume();
         }
