@@ -75,7 +75,13 @@ public class ZipUpdater implements Runnable {
   }
 
   private long replaceEntry(ZipOutputStream output, ZipEntry newEntry) throws IOException {
-    return writeEntry(getClass().getResourceAsStream("/" + ENTRIES_DIR + newEntry.getName()), output, newEntry);
+    InputStream newContents = getClass().getResourceAsStream("/" + ENTRIES_DIR + newEntry.getName());
+    if (newContents == null) {
+      throw new IOException("This updater was created with an original that differs from the file you're trying to update.\nLocal entry does not match original:  "+newEntry.getName());
+    }
+    else {
+      return writeEntry(newContents, output, newEntry);
+    }
   }
 
   private long writeEntry(InputStream zis, ZipOutputStream output, ZipEntry newEntry) throws IOException {
@@ -227,9 +233,9 @@ public class ZipUpdater implements Runnable {
     String oldArchiveName = "<unknown>";
     try {
       if (args.length > 1) {
-        String base = args[0];
+        oldArchiveName = args[0];
         String goal = args[1];
-        ZipUpdater updater = new ZipUpdater(new File(base));
+        ZipUpdater updater = new ZipUpdater(new File(oldArchiveName));
         updater.createUpdater(new File(goal));
       }
       else {
