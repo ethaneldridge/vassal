@@ -37,7 +37,7 @@ import java.util.zip.ZipOutputStream;
  * User: rkinney
  * Date: Oct 23, 2003
  */
-public class ZipUpdater {
+public class ZipUpdater implements Runnable {
   public static final String CHECKSUM_RESOURCE = "checksums";
   public static final String TARGET_ARCHIVE = "target";
   public static final String UPDATED_ARCHIVE_NAME = "finalName";
@@ -45,7 +45,6 @@ public class ZipUpdater {
   private File oldFile;
   private ZipFile oldZipFile;
   private Properties checkSums;
-
   public ZipUpdater(File input) throws IOException {
     this.oldFile = input;
     if (!oldFile.exists()) {
@@ -210,6 +209,20 @@ public class ZipUpdater {
     out.close();
   }
 
+  private String fileName;
+  private Exception error;
+
+  private ZipUpdater(String fileName, Exception error) {
+    this.fileName = fileName;
+    this.error = error;
+  }
+
+  public void run() {
+    JOptionPane.showMessageDialog(null, "Unable to update " + fileName + ".\n" + error.getMessage(), "Update failed", JOptionPane.ERROR_MESSAGE);
+    System.exit(0);
+  }
+
+
   public static void main(String[] args) {
     String oldArchiveName = "<unknown>";
     try {
@@ -228,9 +241,14 @@ public class ZipUpdater {
         updater.write(new File(newArchiveName));
       }
     }
-    catch (IOException e) {
+    catch (final IOException e) {
       e.printStackTrace();
-      JOptionPane.showMessageDialog(null, "Unable to update " + oldArchiveName + ".\n" + e.getMessage(), "Update failed", JOptionPane.ERROR_MESSAGE);
+      try {
+        SwingUtilities.invokeAndWait(new ZipUpdater(oldArchiveName,e));
+      }
+      catch (Exception e1) {
+        e1.printStackTrace();
+      }
     }
   }
 
