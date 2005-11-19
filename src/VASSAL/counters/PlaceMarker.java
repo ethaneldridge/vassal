@@ -167,7 +167,7 @@ public class PlaceMarker extends Decorator implements EditablePiece {
       try {
         Configurable[] c = ComponentPathBuilder.getInstance().getPath(markerSpec);
         if (c[c.length - 1] instanceof PieceSlot) {
-          piece = PieceCloner.getInstance().clonePiece(((PieceSlot) c[c.length - 1]).getPiece());
+          piece = ((PieceSlot) c[c.length - 1]).getPiece();
         }
       }
       catch (ComponentPathBuilder.PathFormatException e) {
@@ -175,6 +175,9 @@ public class PlaceMarker extends Decorator implements EditablePiece {
     }
     if (piece == null) {
       piece = new BasicPiece();
+    }
+    else {
+      piece = PieceCloner.getInstance().clonePiece(piece);
     }
     return piece;
   }
