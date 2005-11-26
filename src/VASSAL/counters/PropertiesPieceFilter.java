@@ -31,6 +31,7 @@ public class PropertiesPieceFilter {
                                                             Pattern.compile(">="),
                                                             Pattern.compile(">"),
                                                             Pattern.compile("<"),
+                                                            Pattern.compile("=~"),
                                                             Pattern.compile("=")};
 
   private static final Pattern AND = Pattern.compile("&&");
@@ -96,6 +97,9 @@ public class PropertiesPieceFilter {
                   f = new LT(name, value);
                   break;
                 case 5:
+                  f = new MATCH(name, value);
+                  break;
+                case 6:
                   f = new EQ(name, value);
                   break;
               }
@@ -208,4 +212,14 @@ public class PropertiesPieceFilter {
     }
   }
 
+  private static class MATCH extends ComparisonFilter {
+    public MATCH(String name, String value) {
+      super(name, value);
+    }
+
+    public boolean accept(GamePiece piece) {
+      String property = String.valueOf(piece.getProperty(name));
+      return Pattern.matches(value, property);
+    }
+  }
 }
