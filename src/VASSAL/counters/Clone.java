@@ -40,6 +40,7 @@ public class Clone extends Decorator implements EditablePiece {
   private KeyCommand[] command;
   private String commandName;
   private KeyStroke key;
+  private KeyCommand cloneCommand;
 
   public Clone() {
     this(ID + "Clone;C", null);
@@ -66,9 +67,10 @@ public class Clone extends Decorator implements EditablePiece {
 
   protected KeyCommand[] myGetKeyCommands() {
     if (command == null) {
+      cloneCommand = new KeyCommand(commandName, key, Decorator.getOutermost(this));
       if (commandName.length() > 0 && key != null) {
         command =
-            new KeyCommand[]{new KeyCommand(commandName, key, Decorator.getOutermost(this))};
+            new KeyCommand[]{cloneCommand};
       }
       else {
         command = new KeyCommand[0];
@@ -87,7 +89,7 @@ public class Clone extends Decorator implements EditablePiece {
   public Command myKeyEvent(KeyStroke stroke) {
     Command c = null;
     myGetKeyCommands();
-    if (command[0].matches(stroke)) {
+    if (cloneCommand.matches(stroke)) {
       GamePiece outer = Decorator.getOutermost(this);
       GamePiece newPiece = ((AddPiece) GameModule.getGameModule().decode(GameModule.getGameModule().encode(new AddPiece(outer)))).getTarget();
       newPiece.setId(null);

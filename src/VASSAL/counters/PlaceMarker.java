@@ -60,6 +60,7 @@ public class PlaceMarker extends Decorator implements EditablePiece {
   protected int xOffset=0;
   protected int yOffset=0;
   protected boolean matchRotation=false;
+  protected KeyCommand[] commands;
 
   public PlaceMarker() {
     this(ID + "Place Marker;M;null;null", null);
@@ -85,7 +86,7 @@ public class PlaceMarker extends Decorator implements EditablePiece {
   protected KeyCommand[] myGetKeyCommands() {
     command.setEnabled(getMap() != null
                        && markerSpec != null);
-    return new KeyCommand[]{command};
+    return commands;
   }
 
   public String myGetState() {
@@ -210,6 +211,12 @@ public class PlaceMarker extends Decorator implements EditablePiece {
     String name = st.nextToken();
     key = st.nextKeyStroke(null);
     command = new KeyCommand(name, key, this);
+    if (name.length() > 0 && key != null) {
+      commands = new KeyCommand[]{command};
+    }
+    else {
+      commands = new KeyCommand[0];
+    }
     markerSpec = st.nextToken();
     if ("null".equals(markerSpec)) {
       markerSpec = null;
