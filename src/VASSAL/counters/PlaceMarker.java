@@ -155,7 +155,26 @@ public class PlaceMarker extends Decorator implements EditablePiece {
     return c;
   }
 
+  /**
+   * The marker, with prototypes fully expanded
+   * @return
+   */
   protected GamePiece createMarker() {
+    GamePiece piece = createBaseMarker();
+    if (piece == null) {
+      piece = new BasicPiece();
+    }
+    else {
+      piece = PieceCloner.getInstance().clonePiece(piece);
+    }
+    return piece;
+  }
+
+  /**
+   * The marker, with prototypes unexpanded
+   * @return
+   */
+  protected GamePiece createBaseMarker() {
     if (markerSpec == null) {
       return null;
     }
@@ -163,6 +182,7 @@ public class PlaceMarker extends Decorator implements EditablePiece {
     if (markerSpec.startsWith(BasicCommandEncoder.ADD)) {
       AddPiece comm = (AddPiece) GameModule.getGameModule().decode(markerSpec);
       piece = comm.getTarget();
+      piece.setState(comm.getState());
     }
     else {
       try {
@@ -173,12 +193,6 @@ public class PlaceMarker extends Decorator implements EditablePiece {
       }
       catch (ComponentPathBuilder.PathFormatException e) {
       }
-    }
-    if (piece == null) {
-      piece = new BasicPiece();
-    }
-    else {
-      piece = PieceCloner.getInstance().clonePiece(piece);
     }
     return piece;
   }
@@ -250,7 +264,7 @@ public class PlaceMarker extends Decorator implements EditablePiece {
       matchRotationConfig = createMatchRotationConfig();
       keyInput = new HotKeyConfigurer(null,"Keyboard Command:  ",piece.key);
       commandInput = new StringConfigurer(null, "Command: ", piece.command.getName());
-      GamePiece marker = piece.createMarker();
+      GamePiece marker = piece.createBaseMarker();
       pieceInput = new PieceSlot(marker);
 
       markerSlotPath = piece.markerSpec;
