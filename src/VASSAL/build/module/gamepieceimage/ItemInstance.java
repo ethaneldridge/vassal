@@ -1,17 +1,17 @@
 /*
  * $Id$
- * 
+ *
  * Copyright (c) 2005 by Rodney Kinney, Brent Easton
- * 
+ *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Library General Public License (LGPL) as published by
  * the Free Software Foundation.
- * 
+ *
  * This library is distributed in the hope that it will be useful, but WITHOUT
  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
  * FOR A PARTICULAR PURPOSE. See the GNU Library General Public License for more
  * details.
- * 
+ *
  * You should have received a copy of the GNU Library General Public License
  * along with this library; if not, copies are available at
  * http://www.opensource.org.
@@ -31,7 +31,7 @@ public abstract class ItemInstance extends AbstractConfigurable {
 
   public static final String FG_COLOR = "fgColor";
   public static final String BG_COLOR = "bgColor";
-  
+
   protected String type = "";
   protected String location = "";
   protected ColorSwatch bgColor = ColorSwatch.getClear();
@@ -39,7 +39,7 @@ public abstract class ItemInstance extends AbstractConfigurable {
   protected GamePieceImage defn;
   protected Item item;
   private String state = "";
-  
+
   protected InstanceConfigurer myConfig = null;
 
   public ItemInstance(String nam, String typ, String loc) {
@@ -60,11 +60,7 @@ public abstract class ItemInstance extends AbstractConfigurable {
   /*
    * Generate a copy of the instance for use by the Generic trait.
    */
-  
-  public ItemInstance statefulCopy() {
-    return this;
-  }
-  
+
   protected void setItem() {
     if (defn != null) {
       GamePieceLayout layout = defn.getLayout();
@@ -73,18 +69,18 @@ public abstract class ItemInstance extends AbstractConfigurable {
       }
     }
   }
-  
+
   public Item getItem() {
     if (item == null) {
       setItem();
     }
     return item;
   }
-  
+
   public void setConfig(InstanceConfigurer i) {
     myConfig = i;
   }
-  
+
   public abstract String encode();
 
   public static ItemInstance newDefaultInstance(String name, String type, String location) {
@@ -193,13 +189,13 @@ public abstract class ItemInstance extends AbstractConfigurable {
 
   public int getKeyCommandCount() {
     return 0;
-    
+
   }
-  
+
   public KeyCommand[] getKeyCommands(GamePiece target) {
     return new KeyCommand[getKeyCommandCount()];
   }
-  
+
   public void keyEvent(KeyStroke stroke) {
     return;
   }
@@ -215,5 +211,5 @@ public abstract class ItemInstance extends AbstractConfigurable {
   public Object getProperty(Object key) {
     return null;
   }
-  
+
 }

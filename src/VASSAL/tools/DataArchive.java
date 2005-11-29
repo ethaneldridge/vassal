@@ -49,9 +49,10 @@ import java.util.zip.ZipInputStream;
  */
 public class DataArchive extends SecureClassLoader {
   protected ZipFile archive = null;
-  protected Vector extensions = new Vector();
-  private Hashtable imageCache = new Hashtable();
-  private Hashtable scaledImageCache = new Hashtable();
+  protected List extensions = new ArrayList();
+  private HashMap imageCache = new HashMap();
+  private HashMap scaledImageCache = new HashMap();
+  private HashMap imageSources = new HashMap();
   protected String[] imageNames;
   public static final String IMAGE_DIR = "images/";
   private BooleanConfigurer smoothPrefs;
@@ -115,30 +116,31 @@ public class DataArchive extends SecureClassLoader {
    ** Find an image from the archive
    * Once an image is found, cache it in Hashtable
    */
-  public Image getCachedImage(String file) throws IOException {
-    file = IMAGE_DIR + file;
-    String gifFile = file + ".gif";
-    if (imageCache.get(file) != null) {
-      return (Image) imageCache.get(file);
+  public Image getCachedImage(String name) throws IOException {
+    String path = IMAGE_DIR + name;
+    String gifPath = path + ".gif";
+    Image image = (Image)imageCache.get(path);
+    ImageSource src;
+    if (image != null) {
+      return image;
     }
-    else if (imageCache.get(gifFile) != null) {
-      return (Image) imageCache.get(gifFile);
+    else if ((image = (Image)imageCache.get(gifPath)) != null) {
+      return image;
+    }
+    else if ((src = (ImageSource)imageSources.get(name)) != null) {
+      image = src.getImage();
+      imageCache.put(path,image);
+      return image;
     }
     else {
-      Image im;
-//      if (file.endsWith(".svg")) {
-//        im = getSVGImage(file);
-//      }
-//      else {
       try {
-        im = getImage(getFileStream(file));
+        image = getImage(getFileStream(path));
       }
-      catch (Exception e) {
-        im = getImage(getFileStream(gifFile));
+      catch (IOException e) {
+        image = getImage(getFileStream(gifPath));
       }
-//      }
-      imageCache.put(file, im);
-      return im;
+      imageCache.put(path, image);
+      return image;
     }
   }
 
@@ -333,6 +335,17 @@ public class DataArchive extends SecureClassLoader {
     return Toolkit.getDefaultToolkit().createImage(getBytes(in));
   }
 
+  public void addImageSource(String name, ImageSource src) {
+    imageSources.put(name,src);
+    imageNames = null;
+  }
+
+  public void removeImageSource(String name) {
+    imageSources.remove(name);
+    imageNames = null;
+    unCacheImage(name);
+  }
+
   /**
    * Read all available bytes from the given InputStream
    */
@@ -371,7 +384,7 @@ public class DataArchive extends SecureClassLoader {
     }
     else {
       for (int i = 0; i < extensions.size() && stream == null; ++i) {
-        DataArchive ext = (DataArchive) extensions.elementAt(i);
+        DataArchive ext = (DataArchive) extensions.get(i);
         try {
           stream = ext.getFileStream(file);
         }
@@ -398,7 +411,7 @@ public class DataArchive extends SecureClassLoader {
     }
     else {
       for (int i = 0; i < extensions.size() && url == null; ++i) {
-        DataArchive ext = (DataArchive) extensions.elementAt(i);
+        DataArchive ext = (DataArchive) extensions.get(i);
         try {
           url = ext.getURL(fileName);
         }
@@ -418,7 +431,7 @@ public class DataArchive extends SecureClassLoader {
    * @param ext the extension
    */
   public void addExtension(DataArchive ext) {
-    extensions.addElement(ext);
+    extensions.add(ext);
   }
 
   /**
@@ -432,8 +445,8 @@ public class DataArchive extends SecureClassLoader {
       writer = (ArchiveWriter) this;
     }
     else {
-      for (Enumeration e = extensions.elements(); e.hasMoreElements();) {
-        Object o = e.nextElement();
+      for (Iterator it = extensions.iterator(); it.hasNext();) {
+        Object o = it.next();
         if (o instanceof ArchiveWriter) {
           writer = (ArchiveWriter) o;
           break;
@@ -510,8 +523,8 @@ public class DataArchive extends SecureClassLoader {
 
   protected boolean isNameCacheStale() {
     boolean isStale = imageNames == null;
-    for (Enumeration e = extensions.elements(); e.hasMoreElements() && !isStale;) {
-      isStale = ((DataArchive) e.nextElement()).imageNames == null;
+    for (Iterator it = extensions.iterator(); it.hasNext() && !isStale;) {
+      isStale = ((DataArchive) it.next()).imageNames == null;
     }
     return isStale;
   }
@@ -521,6 +534,9 @@ public class DataArchive extends SecureClassLoader {
    * @param l
    */
   protected void listImageNames(List l) {
+    for (Iterator it = imageSources.keySet().iterator(); it.hasNext();) {
+      l.add(it.next());
+    }
     if (archive != null) {
       try {
         ZipInputStream zis
@@ -537,8 +553,8 @@ public class DataArchive extends SecureClassLoader {
         e.printStackTrace();
       }
     }
-    for (Enumeration e = extensions.elements(); e.hasMoreElements();) {
-      ((DataArchive) e.nextElement()).listImageNames(l);
+    for (Iterator it = extensions.iterator(); it.hasNext();) {
+      ((DataArchive) it.next()).listImageNames(l);
     }
   }
 

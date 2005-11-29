@@ -19,17 +19,6 @@
 
 package VASSAL.build.module.gamepieceimage;
 
-import java.awt.BasicStroke;
-import java.awt.Color;
-import java.awt.Graphics;
-import java.awt.Graphics2D;
-import java.awt.Image;
-import java.awt.Point;
-import java.awt.image.BufferedImage;
-import java.util.ArrayList;
-import java.util.Enumeration;
-import java.util.Iterator;
-
 import VASSAL.build.AbstractConfigurable;
 import VASSAL.build.AutoConfigurable;
 import VASSAL.build.Buildable;
@@ -38,6 +27,12 @@ import VASSAL.configure.Configurer;
 import VASSAL.configure.ConfigurerFactory;
 import VASSAL.configure.StringEnum;
 import VASSAL.tools.SequenceEncoder;
+
+import java.awt.*;
+import java.awt.image.BufferedImage;
+import java.util.ArrayList;
+import java.util.Enumeration;
+import java.util.Iterator;
 
 public class GamePieceLayout extends AbstractConfigurable implements Visualizable {
 
@@ -82,8 +77,8 @@ public class GamePieceLayout extends AbstractConfigurable implements Visualizabl
         y = Y_POS[i];
       }
     }
-    x = (int) x * layout.getLayoutWidth() / 100;
-    y = (int) y * layout.getLayoutHeight() / 100;
+    x = x * layout.getLayoutWidth() / 100;
+    y = y * layout.getLayoutHeight() / 100;
     return new Point(x, y);
   }
 
@@ -300,6 +295,9 @@ public class GamePieceLayout extends AbstractConfigurable implements Visualizabl
   protected void reBuildImage() {
     imageDefn = new GamePieceImage(this);
     buildImage(imageDefn);
+    for (Enumeration e = getComponents(GamePieceImage.class); e.hasMoreElements();) {
+      ((GamePieceImage)e.nextElement()).invalidate();
+    }
   }
 
   protected void buildImage(GamePieceImage defn) {

@@ -1,17 +1,17 @@
 /*
  * $Id$
- * 
+ *
  * Copyright (c) 2005 by Rodney Kinney, Brent Easton
- * 
+ *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Library General Public License (LGPL) as published by
  * the Free Software Foundation.
- * 
+ *
  * This library is distributed in the hope that it will be useful, but WITHOUT
  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
  * FOR A PARTICULAR PURPOSE. See the GNU Library General Public License for more
  * details.
- * 
+ *
  * You should have received a copy of the GNU Library General Public License
  * along with this library; if not, copies are available at
  * http://www.opensource.org.
@@ -73,20 +73,6 @@ public class TextItemInstance extends ItemInstance {
     decode(code);
   }
 
-  public ItemInstance statefulCopy() {
-    Item item = (TextItem) defn.getLayout().getItem(name);
-    if (item != null && item instanceof TextItem) {
-      boolean stateful = ((TextItem) item).textSource.equals(TextItem.SRC_COMMAND);
-      if (stateful) {
-        TextItemInstance newInstance = new TextItemInstance(this.encode(), defn);
-        ((TextItemInstance) newInstance).setValue(((TextItemInstance) this).val);
-        ((TextItemInstance) newInstance).setLocked(((TextItemInstance) this).isLocked());
-        return (ItemInstance) newInstance;
-      }
-    }
-    return this;
-  }
-
   public void setValue(String value) {
     this.val = value;
   }
@@ -102,7 +88,7 @@ public class TextItemInstance extends ItemInstance {
   public boolean isLocked() {
     return locked;
   }
-  
+
   public boolean isOutline() {
     TextItem item = (TextItem) getItem();
     return (item == null) ? false : item.isOutline();
@@ -111,11 +97,11 @@ public class TextItemInstance extends ItemInstance {
   public ColorSwatch getOutlineColor() {
     return outlineColor;
   }
-  
+
   public void setOutlineColor(ColorSwatch c) {
     outlineColor = c;
   }
-  
+
   public void setState(String newState) {
     getItem();
     if (item != null && ((TextItem) item).isChangeable()) {
@@ -139,9 +125,9 @@ public class TextItemInstance extends ItemInstance {
     else {
       return "";
     }
-      
+
   }
-  
+
   public String encode() {
     SequenceEncoder se = new SequenceEncoder(';');
     se.append(getType());
@@ -313,7 +299,7 @@ public class TextItemInstance extends ItemInstance {
       return new ColorSwatchConfigurer(key, name, ((ItemInstance) c).getFgColor());
     }
   }
-  
+
   public static class OutlineColorSwatchConfig implements ConfigurerFactory {
     public Configurer getConfigurer(AutoConfigurable c, String key, String name) {
       return new ColorSwatchConfigurer(key, name, ((TextItemInstance) c).getOutlineColor());
@@ -328,6 +314,6 @@ public class TextItemInstance extends ItemInstance {
      }
      return null;
   }
-  
+
 
 }

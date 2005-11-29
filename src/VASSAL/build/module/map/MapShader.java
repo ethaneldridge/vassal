@@ -33,6 +33,7 @@ import VASSAL.counters.GamePiece;
 import VASSAL.counters.Stack;
 import VASSAL.counters.Decorator;
 import VASSAL.tools.LaunchButton;
+import VASSAL.tools.UniqueIdManager;
 
 import javax.swing.*;
 import java.awt.*;
@@ -52,7 +53,7 @@ import java.net.MalformedURLException;
  * @author Brent Easton
  *
  */
-public class MapShader extends AbstractConfigurable implements GameComponent, Drawable {
+public class MapShader extends AbstractConfigurable implements GameComponent, Drawable, UniqueIdManager.Identifyable {
 
   public static final String NAME = "name";
   public static final String ALWAYS_ON = "alwaysOn";
@@ -67,6 +68,8 @@ public class MapShader extends AbstractConfigurable implements GameComponent, Dr
   public static final String EXC_BOARDS = "No, exclude Boards in list";
   public static final String INC_BOARDS = "No, only shade Boards in List";
 
+  protected static UniqueIdManager idMgr = new UniqueIdManager("MapShader");
+
   protected LaunchButton launch;
   protected boolean alwaysOn = false;
   protected boolean startsOn = false;
@@ -74,6 +77,7 @@ public class MapShader extends AbstractConfigurable implements GameComponent, Dr
   protected String[] boardList = new String[0];
   protected boolean shadingVisible;
   protected Map map;
+  protected String id;
 
   protected Area boardClip = null;
 
@@ -678,6 +682,7 @@ public class MapShader extends AbstractConfigurable implements GameComponent, Dr
     GameModule.getGameModule().getToolBar().remove(launch);
     GameModule.getGameModule().getGameState().removeGameComponent(this);
     map.removeDrawComponent(this);
+    idMgr.remove(this);
   }
 
   public HelpFile getHelpFile() {
@@ -697,6 +702,16 @@ public class MapShader extends AbstractConfigurable implements GameComponent, Dr
     GameModule.getGameModule().getGameState().addGameComponent(this);
     map = (Map) parent;
     map.addDrawComponent(this);
+    idMgr.add(this);
+    validator = idMgr;
+  }
+
+  public String getId() {
+    return id;
+  }
+
+  public void setId(String id) {
+    this.id = id;
   }
 
   /**

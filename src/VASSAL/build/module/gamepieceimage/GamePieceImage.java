@@ -28,6 +28,7 @@ import javax.swing.KeyStroke;
 import VASSAL.build.AbstractConfigurable;
 import VASSAL.build.AutoConfigurable;
 import VASSAL.build.Buildable;
+import VASSAL.build.GameModule;
 import VASSAL.build.module.documentation.HelpFile;
 import VASSAL.configure.Configurer;
 import VASSAL.configure.ConfigurerFactory;
@@ -36,11 +37,13 @@ import VASSAL.configure.VisibilityCondition;
 import VASSAL.counters.GamePiece;
 import VASSAL.counters.KeyCommand;
 import VASSAL.tools.SequenceEncoder;
+import VASSAL.tools.ImageSource;
+import VASSAL.tools.UniqueIdManager;
 
 /**
- *  
+ *
  */
-public class GamePieceImage extends AbstractConfigurable implements Visualizable, Cloneable {
+public class GamePieceImage extends AbstractConfigurable implements Visualizable, Cloneable, ImageSource, UniqueIdManager.Identifyable {
 
   protected static final String NAME = "name";
   protected static final String PROPS = "props";
@@ -51,12 +54,15 @@ public class GamePieceImage extends AbstractConfigurable implements Visualizable
 
   public static final String BG_COLOR = "bgColor";
   public static final String BORDER_COLOR = "borderColor";
-  
+
   protected ArrayList instances = new ArrayList(5);
   protected InstanceConfigurer defnConfig = null;
   protected GamePieceLayout layout;
   protected ColorSwatch bgColor = ColorSwatch.getWhite();
   protected ColorSwatch borderColor = ColorSwatch.getBlack();
+  protected String id;
+
+  protected static UniqueIdManager idMgr = new UniqueIdManager("GamePieceImage");
 
   public GamePieceImage() {
     super();
@@ -72,7 +78,7 @@ public class GamePieceImage extends AbstractConfigurable implements Visualizable
     layout = l;
     rebuildInstances();
   }
-  
+
   public GamePieceImage(GamePieceImage defn) {
     this();
     this.setConfigureName(defn.getConfigureName());
@@ -81,21 +87,20 @@ public class GamePieceImage extends AbstractConfigurable implements Visualizable
     this.borderColor = defn.getBorderColor();
     Iterator i = defn.getInstances().iterator();
     while (i.hasNext()) {
-      ItemInstance instance = (ItemInstance) i.next();
-      this.instances.add(instance.statefulCopy());
+      this.instances.add(i.next());
     }
   }
   /*
-   * The Generic trait needs a deep copy of the Imgae Definition
+   * The Generic trait needs a deep copy of the Image Definition
    */
   public Object clone() {
     return new GamePieceImage(this);
   }
-  
+
   public ArrayList getInstances() {
     return instances;
   }
-  
+
   public String[] getAttributeDescriptions() {
     return new String[] { "Name:  ", "Background Color:  ", "Border Color:  ", "" };
   }
@@ -109,13 +114,13 @@ public class GamePieceImage extends AbstractConfigurable implements Visualizable
       return new ColorSwatchConfigurer(key, name, ((GamePieceImage) c).getBgColor());
     }
   }
-  
+
   public static class BorderColorSwatchConfig implements ConfigurerFactory {
     public Configurer getConfigurer(AutoConfigurable c, String key, String name) {
       return new ColorSwatchConfigurer(key, name, ((GamePieceImage) c).getBorderColor());
     }
   }
-  
+
   public static class DefnConfig implements ConfigurerFactory {
     static GamePieceImage id;
     public Configurer getConfigurer(AutoConfigurable c, String key, String name) {
@@ -142,10 +147,14 @@ public class GamePieceImage extends AbstractConfigurable implements Visualizable
   public ColorSwatch getBorderColor() {
     return borderColor;
   }
-  
+
   public void setAttribute(String key, Object value) {
     if (NAME.equals(key)) {
+      if (getConfigureName() != null) {
+        GameModule.getGameModule().getDataArchive().removeImageSource(getConfigureName());
+      }
       setConfigureName((String) value);
+      GameModule.getGameModule().getDataArchive().addImageSource(getConfigureName(),this);
     }
     else if (BG_COLOR.equals(key)) {
       if (value instanceof String) {
@@ -196,7 +205,7 @@ public class GamePieceImage extends AbstractConfigurable implements Visualizable
     else
       return null;
   }
-  
+
 
   public VisibilityCondition getAttributeVisibility(String name) {
     if (BORDER_COLOR.equals(name)) {
@@ -206,7 +215,7 @@ public class GamePieceImage extends AbstractConfigurable implements Visualizable
       return super.getAttributeVisibility(name);
     }
   }
-  
+
   private VisibilityCondition borderCond = new VisibilityCondition() {
     public boolean shouldBeVisible() {
       if (getLayout() == null) {
@@ -219,7 +228,8 @@ public class GamePieceImage extends AbstractConfigurable implements Visualizable
   };
 
   public void removeFrom(Buildable parent) {
-
+    GameModule.getGameModule().getDataArchive().removeImageSource(getConfigureName());
+    idMgr.remove(this);
   }
 
   public HelpFile getHelpFile() {
@@ -233,19 +243,29 @@ public class GamePieceImage extends AbstractConfigurable implements Visualizable
   public void addTo(Buildable parent) {
     layout = (GamePieceLayout) parent;
     rebuildInstances();
+    idMgr.add(this);
+    validator = idMgr;
+  }
+
+  public String getId() {
+    return id;
+  }
+
+  public void setId(String id) {
+    this.id = id;
   }
 
   public static String getConfigureTypeName() {
     return "Game Piece Image";
   }
-  
+
   public void refreshConfig() {
 //    if (defnConfig != null) {
 //      defnConfig.refresh();
 //    }
     rebuildVisualizerImage();
   }
-  
+
 //  public ColorScheme getColorScheme() {
 //    return scheme;
 //  }
@@ -267,8 +287,16 @@ public class GamePieceImage extends AbstractConfigurable implements Visualizable
     return getLayout().getVisualizerImage(this);
   }
 
+  public Image getImage() {
+    return getVisualizerImage();
+  }
+
   public void rebuildVisualizerImage() {
     getLayout().rebuildVisualizerImage(this);
+  }
+
+  public void invalidate() {
+    GameModule.getGameModule().getDataArchive().unCacheImage(getConfigureName());
   }
 
   public ItemInstance getInstance(String name) {
@@ -281,7 +309,7 @@ public class GamePieceImage extends AbstractConfigurable implements Visualizable
     }
     return null;
   }
-  
+
   public TextItemInstance getTextInstance(String name) {
     Iterator i = instances.iterator();
     while (i.hasNext()) {
@@ -307,7 +335,7 @@ public class GamePieceImage extends AbstractConfigurable implements Visualizable
     }
     return null;
   }
-  
+
   public ShapeItemInstance getShapeInstance(String name) {
     Iterator i = instances.iterator();
     while (i.hasNext()) {
@@ -320,7 +348,7 @@ public class GamePieceImage extends AbstractConfigurable implements Visualizable
     }
     return null;
   }
-  
+
   public ImageItemInstance getImageInstance(String name) {
     Iterator i = instances.iterator();
     while (i.hasNext()) {
@@ -333,7 +361,7 @@ public class GamePieceImage extends AbstractConfigurable implements Visualizable
     }
     return null;
   }
-  
+
   /*
    * Reconcile our current elements with the elements in the owning scheme.
    */
@@ -350,7 +378,7 @@ public class GamePieceImage extends AbstractConfigurable implements Visualizable
         newInstances.add(prop);
       }
     }
-    
+
     Iterator i = layout.getItems().iterator();
       while (i.hasNext()) {
         Item item = (Item) i.next();
@@ -358,7 +386,7 @@ public class GamePieceImage extends AbstractConfigurable implements Visualizable
         String type = item.getType();
         String location = item.getLocation();
 
-//        if (type.equals(SymbolItem.TYPE) || type.equals(TextItem.TYPE) || 
+//        if (type.equals(SymbolItem.TYPE) || type.equals(TextItem.TYPE) ||
 //            type.equals(ShapeItem.TYPE) || type.equals(ImageItem.TYPE)) {
           boolean found = false;
           e = instances.iterator();
@@ -366,7 +394,7 @@ public class GamePieceImage extends AbstractConfigurable implements Visualizable
             ItemInstance prop = (ItemInstance) e.next();
             found = name.equals(prop.getName());
           }
-  
+
           if (!found) {
             ItemInstance instance = ItemInstance.newDefaultInstance(name, type, location);
             instance.addTo(this);
@@ -374,30 +402,30 @@ public class GamePieceImage extends AbstractConfigurable implements Visualizable
           }
         }
 //      }
-  
+
       instances = newInstances;
       if (defnConfig != null) {
         defnConfig.setValue(instances);
       }
   }
-  
+
   public KeyCommand[] getKeyCommands(GamePiece target) {
     int count = 0;
     Iterator i = instances.iterator();
     while (i.hasNext()) {
       count += ((ItemInstance) i.next()).getKeyCommandCount();
     }
-    
+
     KeyCommand commands[] = new KeyCommand[count];
     count = 0;
-    
+
     i = instances.iterator();
     while (i.hasNext()) {
       KeyCommand[] c = ((ItemInstance) i.next()).getKeyCommands(target);
       System.arraycopy(c, 0, commands, count, c.length);
       count += c.length;
     }
-    
+
     return commands;
   }
 
@@ -449,10 +477,10 @@ public class GamePieceImage extends AbstractConfigurable implements Visualizable
    * Append any required labels to the name
    */
   public String getName(String n) {
-    
+
     String name = n + "";
     Iterator i = instances.iterator();
-    
+
     while (i.hasNext()) {
       ItemInstance instance = (ItemInstance) i.next();
       name = instance.formatName(name);
