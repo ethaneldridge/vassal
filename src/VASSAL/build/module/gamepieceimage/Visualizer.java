@@ -49,7 +49,6 @@ public class Visualizer extends JPanel {
     visPanel = new JPanel() {
       public void paint(Graphics g) {
         g.clearRect(0, 0, observer.getVisualizerWidth(), observer.getVisualizerHeight());
-        BufferedImage bi = (BufferedImage) observer.getVisualizerImage();
         g.drawImage(observer.getVisualizerImage(), 0, 0, this);
       }
     };

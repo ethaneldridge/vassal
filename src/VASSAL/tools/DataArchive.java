@@ -336,8 +336,10 @@ public class DataArchive extends SecureClassLoader {
   }
 
   public void addImageSource(String name, ImageSource src) {
-    imageSources.put(name,src);
-    imageNames = null;
+    if (!imageSources.containsKey(name)) {
+      imageSources.put(name,src);
+      imageNames = null;
+    }
   }
 
   public void removeImageSource(String name) {

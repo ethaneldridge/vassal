@@ -18,10 +18,7 @@
  */
 package VASSAL.build.module.gamepieceimage;
 
-import java.awt.Graphics;
-import java.awt.Graphics2D;
-import java.awt.Point;
-import java.awt.RenderingHints;
+import java.awt.*;
 
 import VASSAL.build.AbstractConfigurable;
 import VASSAL.build.AutoConfigurable;
@@ -204,6 +201,7 @@ public abstract class Item extends AbstractConfigurable {
    */
   public abstract void draw(Graphics g, GamePieceImage defn);
   public abstract String getType();
+  public abstract Dimension getSize();
 
   public String getLocation() {
     return location;
@@ -224,13 +222,7 @@ public abstract class Item extends AbstractConfigurable {
   public boolean isAntialias() {
     return antialias;
   }
-  
-  protected Point getOrigin() {
-    Point p = GamePieceLayout.getPosition(getLocation(), layout);
-    p.translate(getXoffset(), getYoffset());
-    return p;
-  }
-  
+
   protected GamePieceLayout getLayout() {
     return layout;
   }

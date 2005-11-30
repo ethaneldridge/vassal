@@ -1,17 +1,17 @@
 /*
  * $Id$
- * 
+ *
  * Copyright (c) 2005 by Rodney Kinney, Brent Easton
- * 
+ *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Library General Public License (LGPL) as published by
  * the Free Software Foundation.
- * 
+ *
  * This library is distributed in the hope that it will be useful, but WITHOUT
  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
  * FOR A PARTICULAR PURPOSE. See the GNU Library General Public License for more
  * details.
- * 
+ *
  * You should have received a copy of the GNU Library General Public License
  * along with this library; if not, copies are available at
  * http://www.opensource.org.
@@ -63,43 +63,83 @@ public class GamePieceLayout extends AbstractConfigurable implements Visualizabl
   protected static final String BORDER_3D = "3D";
   protected static final String BORDER_NONE = "None";
 
-  public static final String[] LOCATIONS = new String[] { CENTER, N, S, E, W, NE, NW, SE, SW };
-  public static final int[] X_POS = new int[] { POS_C, POS_C, POS_C, POS_R, POS_L, POS_R, POS_L, POS_R, POS_L };
-  public static final int[] Y_POS = new int[] { POS_C, POS_T, POS_B, POS_C, POS_C, POS_T, POS_T, POS_B, POS_B };
+  public static final String[] LOCATIONS = new String[]{CENTER, N, S, E, W, NE, NW, SE, SW};
+  public static final int[] X_POS = new int[]{POS_C, POS_C, POS_C, POS_R, POS_L, POS_R, POS_L, POS_R, POS_L};
+  public static final int[] Y_POS = new int[]{POS_C, POS_T, POS_B, POS_C, POS_C, POS_T, POS_T, POS_B, POS_B};
 
-  public static Point getPosition(String s, GamePieceLayout layout) {
-    int x = X_POS[0];
-    int y = Y_POS[0];
+  public Point getPosition(Item item) {
+    String s = item.getLocation();
 
-    for (int i = 0; i < LOCATIONS.length; i++) {
-      if (s.equals(LOCATIONS[i])) {
-        x = X_POS[i];
-        y = Y_POS[i];
+    int index = -1;
+    while (++index < LOCATIONS.length) {
+      if (s.equals(LOCATIONS[index])) {
+        break;
       }
     }
-    x = x * layout.getLayoutWidth() / 100;
-    y = y * layout.getLayoutHeight() / 100;
-    return new Point(x, y);
+    int x,y;
+    Dimension d = item.getSize();
+    switch (index) {
+      case 1:
+        x = getLayoutWidth() / 2 - d.width / 2;
+        y = 0;
+        break;
+      case 2:
+        x = getLayoutWidth() / 2 - d.width / 2;
+        y = getLayoutHeight() - d.height;
+        break;
+      case 3:
+        x = getLayoutWidth() - d.width;
+        y = getLayoutHeight() / 2 - d.height / 2;
+        break;
+      case 4:
+        x = 0;
+        y = getLayoutHeight() / 2 - d.height / 2;
+        break;
+      case 5:
+        x = getLayoutWidth() - d.width;
+        y = 0;
+        break;
+      case 6:
+        x = 0;
+        y = 0;
+        break;
+      case 7:
+        x = getLayoutWidth() - d.width;
+        y = getLayoutHeight() - d.height;
+        break;
+      case 8:
+        x = 0;
+        y = getLayoutHeight() - d.height;
+        break;
+      case 0:
+      default:
+        x = getLayoutWidth() / 2 - d.width / 2;
+        y = getLayoutHeight() / 2 - d.height / 2;
+        break;
+    }
+    Point p = new Point(x, y);
+    p.translate(item.getXoffset(), item.getYoffset());
+    return p;
   }
 
   protected int width = 54;
   protected int height = 54;
   protected String border = BORDER_3D;
-  protected BufferedImage image;
   protected GamePieceImage imageDefn;
   protected ArrayList items = new ArrayList();
 
   public GamePieceLayout() {
     super();
     name = "";
+    imageDefn = new GamePieceImage(this);
   }
 
   public String[] getAttributeDescriptions() {
-    return new String[] { "Name:  ", "Counter Width:  ", "Counter Height:  ", "Border Style:  ", "" };
+    return new String[]{"Name:  ", "Counter Width:  ", "Counter Height:  ", "Border Style:  ", ""};
   }
 
   public Class[] getAttributeTypes() {
-    return new Class[] { String.class, Integer.class, Integer.class, BorderConfig.class, LayoutConfig.class };
+    return new Class[]{String.class, Integer.class, Integer.class, BorderConfig.class, LayoutConfig.class};
   }
 
   public static class LayoutConfig implements ConfigurerFactory {
@@ -119,16 +159,16 @@ public class GamePieceLayout extends AbstractConfigurable implements Visualizabl
 
   public static class BorderConfig extends StringEnum {
     public String[] getValidValues(AutoConfigurable target) {
-      return new String[] { BORDER_PLAIN, BORDER_FANCY, BORDER_3D, BORDER_NONE };
+      return new String[]{BORDER_PLAIN, BORDER_FANCY, BORDER_3D, BORDER_NONE};
     }
   }
 
   public boolean isColoredBorder() {
     return border.equals(BORDER_PLAIN) || border.equals(BORDER_FANCY);
   }
-  
+
   public String[] getAttributeNames() {
-    return new String[] { NAME, WIDTH, HEIGHT, BORDER, ITEMS };
+    return new String[]{NAME, WIDTH, HEIGHT, BORDER, ITEMS};
   }
 
   public void setAttribute(String key, Object value) {
@@ -153,7 +193,7 @@ public class GamePieceLayout extends AbstractConfigurable implements Visualizabl
     else if (ITEMS.equals(key)) {
       decodeItemList((String) value);
     }
-    reBuildImage();
+    invalidate();
     LayoutConfig.refresh();
   }
 
@@ -186,15 +226,10 @@ public class GamePieceLayout extends AbstractConfigurable implements Visualizabl
   }
 
   public Class[] getAllowableConfigureComponents() {
-    return new Class[] { GamePieceImage.class };
+    return new Class[]{GamePieceImage.class};
   }
 
   public void addTo(Buildable parent) {
-
-  }
-
-  public Configurer getConfigurer() {
-    return super.getConfigurer();
   }
 
   public static String getConfigureTypeName() {
@@ -257,7 +292,7 @@ public class GamePieceLayout extends AbstractConfigurable implements Visualizabl
     items.set(to, items.get(from));
     items.set(from, temp);
   }
-  
+
   public void add(Buildable b) {
     super.add(b);
   }
@@ -267,45 +302,12 @@ public class GamePieceLayout extends AbstractConfigurable implements Visualizabl
   }
 
   public Image getVisualizerImage() {
-    if (imageDefn == null) {
-      imageDefn = new GamePieceImage(this);
-    }
-    return getVisualizerImage(imageDefn);
+    return imageDefn.getVisualizerImage();
   }
 
-  public Image getVisualizerImage(GamePieceImage defn) {
-    if (image == null) {
-      buildImage(defn);
-    }
-    return image;
-  }
-
-  public void refresh() {
-    buildImage();
-    LayoutConfig.refresh();
-  }
-
-  protected void buildImage() {
-    if (imageDefn == null) {
-      imageDefn = new GamePieceImage(this);
-    }
-    buildImage(imageDefn);
-  }
-  
-  protected void reBuildImage() {
-    imageDefn = new GamePieceImage(this);
-    buildImage(imageDefn);
-    for (Enumeration e = getComponents(GamePieceImage.class); e.hasMoreElements();) {
-      ((GamePieceImage)e.nextElement()).invalidate();
-    }
-  }
-
-  protected void buildImage(GamePieceImage defn) {
-
-    imageDefn = defn;
-
+  public Image buildImage(GamePieceImage defn) {
     // Create our base image
-    image = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
+    Image image = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
     Graphics g = image.getGraphics();
 
     // Fill in the sample Background color
@@ -328,7 +330,7 @@ public class GamePieceLayout extends AbstractConfigurable implements Visualizabl
         if (getBorder().equals(BORDER_FANCY)) {
           Color lt = new Color(bg.getRed() / 2, bg.getGreen() / 2, bg.getBlue() / 2);
           Color dk = new Color(bg.getRed() + (255 - bg.getRed()) / 2, bg.getGreen()
-              + (255 - bg.getGreen()) / 2, bg.getBlue() + (255 - bg.getBlue()) / 2);
+                                                                      + (255 - bg.getGreen()) / 2, bg.getBlue() + (255 - bg.getBlue()) / 2);
           g.setColor(dk);
           g.drawLine(1, 1, width - 3, 1);
           g.drawLine(1, 2, 1, height - 3);
@@ -347,7 +349,19 @@ public class GamePieceLayout extends AbstractConfigurable implements Visualizabl
         item.draw(g, defn);
       }
     }
+    return image;
+  }
 
+  public void refresh() {
+    invalidate();
+    LayoutConfig.refresh();
+  }
+
+  protected void invalidate() {
+    imageDefn.invalidate();
+    for (Enumeration e = getComponents(GamePieceImage.class); e.hasMoreElements();) {
+      ((GamePieceImage) e.nextElement()).invalidate();
+    }
   }
 
   protected void decodeItemList(String string) {
@@ -384,25 +398,103 @@ public class GamePieceLayout extends AbstractConfigurable implements Visualizabl
   }
 
   public void rebuildVisualizerImage(GamePieceImage defn) {
-    buildImage(defn);
+    // Create our base image
+    Image image = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
+    Graphics g = image.getGraphics();
+
+    // Fill in the sample Background color
+    Color bgColor = imageDefn.getBgColor().getColor();
+    g.setColor(bgColor);
+
+    if (getBorder().equals(BORDER_3D)) {
+      g.fill3DRect(0, 0, width, height, true);
+    }
+    else {
+
+      g.fillRect(0, 0, width, height);
+
+      // Add Border
+      if (getBorder().equals(BORDER_PLAIN) || getBorder().equals(BORDER_FANCY)) {
+        Color bg = bgColor == null ? Color.WHITE : bgColor;
+        g.setColor(imageDefn.getBorderColor().getColor());
+        ((Graphics2D) g).setStroke(new BasicStroke(1.0f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
+        g.drawRect(0, 0, width - 1, height - 1);
+        if (getBorder().equals(BORDER_FANCY)) {
+          Color lt = new Color(bg.getRed() / 2, bg.getGreen() / 2, bg.getBlue() / 2);
+          Color dk = new Color(bg.getRed() + (255 - bg.getRed()) / 2, bg.getGreen()
+                                                                      + (255 - bg.getGreen()) / 2, bg.getBlue() + (255 - bg.getBlue()) / 2);
+          g.setColor(dk);
+          g.drawLine(1, 1, width - 3, 1);
+          g.drawLine(1, 2, 1, height - 3);
+          g.setColor(lt);
+          g.drawLine(width - 2, 2, width - 2, height - 2);
+          g.drawLine(2, height - 2, width - 3, height - 2);
+        }
+      }
+    }
+
+    // layer each item over the top
+    Iterator i = items.iterator();
+    while (i.hasNext()) {
+      Item item = (Item) i.next();
+      if (item != null) {
+        item.draw(g, defn);
+      }
+    }
   }
 
   public void rebuildVisualizerImage() {
     if (imageDefn == null) {
       imageDefn = new GamePieceImage(this);
     }
-    buildImage(imageDefn);
+    // Create our base image
+    Image image = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
+    Graphics g = image.getGraphics();
+
+    // Fill in the sample Background color
+    Color bgColor = imageDefn.getBgColor().getColor();
+    g.setColor(bgColor);
+
+    if (getBorder().equals(BORDER_3D)) {
+      g.fill3DRect(0, 0, width, height, true);
+    }
+    else {
+
+      g.fillRect(0, 0, width, height);
+
+      // Add Border
+      if (getBorder().equals(BORDER_PLAIN) || getBorder().equals(BORDER_FANCY)) {
+        Color bg = bgColor == null ? Color.WHITE : bgColor;
+        g.setColor(imageDefn.getBorderColor().getColor());
+        ((Graphics2D) g).setStroke(new BasicStroke(1.0f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
+        g.drawRect(0, 0, width - 1, height - 1);
+        if (getBorder().equals(BORDER_FANCY)) {
+          Color lt = new Color(bg.getRed() / 2, bg.getGreen() / 2, bg.getBlue() / 2);
+          Color dk = new Color(bg.getRed() + (255 - bg.getRed()) / 2, bg.getGreen()
+                                                                      + (255 - bg.getGreen()) / 2, bg.getBlue() + (255 - bg.getBlue()) / 2);
+          g.setColor(dk);
+          g.drawLine(1, 1, width - 3, 1);
+          g.drawLine(1, 2, 1, height - 3);
+          g.setColor(lt);
+          g.drawLine(width - 2, 2, width - 2, height - 2);
+          g.drawLine(2, height - 2, width - 3, height - 2);
+        }
+      }
+    }
+
+    // layer each item over the top
+    Iterator i = items.iterator();
+    while (i.hasNext()) {
+      Item item = (Item) i.next();
+      if (item != null) {
+        item.draw(g, imageDefn);
+      }
+    }
   }
 
   public void setImageDefn(GamePieceImage d) {
     imageDefn = d;
   }
-
-  //  public void highlightItem(int itemNo) {
-  //    if (itemNo >= 0 && itemNo < items.size()) {
-  //      ((Item) items.get(itemNo)).s
-  //    }
-  //  }
 
   public GamePieceImage getGenericDefn(String defnName) {
     GamePieceImage defn = null;

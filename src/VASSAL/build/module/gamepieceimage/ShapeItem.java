@@ -19,12 +19,7 @@
 
 package VASSAL.build.module.gamepieceimage;
 
-import java.awt.Color;
-import java.awt.Graphics;
-import java.awt.Graphics2D;
-import java.awt.Point;
-import java.awt.Rectangle;
-import java.awt.RenderingHints;
+import java.awt.*;
 
 import VASSAL.build.AutoConfigurable;
 import VASSAL.configure.StringEnum;
@@ -193,9 +188,8 @@ public class ShapeItem extends Item {
     
     Color fg = si.getFgColor().getColor();
     Color bg = si.getBorderColor().getColor();
-    
-    Point origin = getOrigin();
-    origin.translate(-getWidth() / 2, -getHeight() / 2);    
+
+    Point origin = layout.getPosition(this);
     Rectangle r = new Rectangle(origin.x, origin.y, getWidth(), getHeight());
 
     if (isAntialias()) {    
@@ -235,8 +229,12 @@ public class ShapeItem extends Item {
   public String getType() {
     return TYPE;
   }
- 
-  
+
+  public Dimension getSize() {
+    return new Dimension(getWidth(),getHeight());
+  }
+
+
   public static Item decode(GamePieceLayout l, String s) {
     
     SequenceEncoder.Decoder sd = new SequenceEncoder.Decoder(s, ';');

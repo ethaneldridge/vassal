@@ -19,13 +19,7 @@
 
 package VASSAL.build.module.gamepieceimage;
 
-import java.awt.Color;
-import java.awt.Graphics;
-import java.awt.Graphics2D;
-import java.awt.Image;
-import java.awt.Point;
-import java.awt.Rectangle;
-import java.awt.RenderingHints;
+import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
@@ -169,8 +163,8 @@ public class ImageItem extends Item {
 
 //    Color fg = defn.getFgColor().getColor();
 //    Color bg = se.getBgColor().getColor();
-    
-    Point origin = getOrigin();
+
+    Point origin = layout.getPosition(this);
     
     if (isAntialias()) {    
       ((Graphics2D) g).setRenderingHint(RenderingHints.KEY_ANTIALIASING,RenderingHints.VALUE_ANTIALIAS_ON);
@@ -180,14 +174,18 @@ public class ImageItem extends Item {
     }
     loadImage(defn);
     if (image != null) {
-      g.drawImage(image, origin.x + imageBounds.x, origin.y + imageBounds.y, null);
+      g.drawImage(image, origin.x, origin.y, null);
     }
   }
   
   public String getType() {
     return TYPE;
   }
-  
+
+  public Dimension getSize() {
+    return imageBounds.getSize();
+  }
+
   public boolean isFixed() {
     return imageSource.equals(SRC_FIXED);
   }

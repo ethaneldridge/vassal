@@ -100,21 +100,7 @@ public class BasicPiece implements EditablePiece, StateMergeable {
     deleteKey = st.nextChar('\0');
     imageName = st.nextToken();
     commonName = st.nextToken();
-
-    if (imageName.trim().length() > 0) {
-      try {
-        image = GameModule.getGameModule().getDataArchive().getCachedImage(imageName);
-        imageBounds = DataArchive.getImageBounds(image);
-      }
-      catch (IOException e) {
-        System.err.println("Unable to locate image " + imageName);
-        imageBounds = new Rectangle();
-      }
-    }
-    else {
-      image = null;
-      imageBounds = new Rectangle();
-    }
+    initImage();
     commands = null;
   }
 
@@ -193,6 +179,8 @@ public class BasicPiece implements EditablePiece, StateMergeable {
   }
 
   public void draw(Graphics g, int x, int y, Component obs, double zoom) {
+    initImage();
+
     if (image != null) {
       if (zoom == 1.0) {
         g.drawImage(image, x + imageBounds.x, y + imageBounds.y, obs);
@@ -204,6 +192,22 @@ public class BasicPiece implements EditablePiece, StateMergeable {
                     y + (int) (zoom * imageBounds.y),
                     obs);
       }
+    }
+  }
+
+  private void initImage() {
+    if (imageName.trim().length() > 0) {
+      try {
+        image = GameModule.getGameModule().getDataArchive().getCachedImage(imageName);
+        imageBounds = DataArchive.getImageBounds(image);
+      }
+      catch (IOException e) {
+        imageBounds = new Rectangle();
+      }
+    }
+    else {
+      image = null;
+      imageBounds = new Rectangle();
     }
   }
 

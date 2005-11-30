@@ -297,19 +297,6 @@ public class LayoutConfigurer extends Configurer {
     }
     
     protected void rebuildViz() {
-      
-//      SchemeElement se;
-//      ColorScheme cs;
-//      
-//      int row = table.getSelectedRow();
-//      if (row >= 0) {       
-//        Item item = layout.getItem(row);
-//        se = new SchemeElement(item.getConfigureName(), ColorSwatch.getRed(), ColorSwatch.getClear()); 
-//        cs = new ColorScheme(se);
-//      }
-//      else {
-//        cs = new ColorScheme();
-//      }
       layout.setImageDefn(new GamePieceImage(layout));
       visualizer.rebuild();
     }

@@ -20,6 +20,7 @@
 package VASSAL.build.module.gamepieceimage;
 
 import java.awt.Image;
+import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 import java.util.Iterator;
 
@@ -61,6 +62,7 @@ public class GamePieceImage extends AbstractConfigurable implements Visualizable
   protected ColorSwatch bgColor = ColorSwatch.getWhite();
   protected ColorSwatch borderColor = ColorSwatch.getBlack();
   protected String id;
+  protected Image image;
 
   protected static UniqueIdManager idMgr = new UniqueIdManager("GamePieceImage");
 
@@ -90,6 +92,7 @@ public class GamePieceImage extends AbstractConfigurable implements Visualizable
       this.instances.add(i.next());
     }
   }
+
   /*
    * The Generic trait needs a deep copy of the Image Definition
    */
@@ -102,11 +105,11 @@ public class GamePieceImage extends AbstractConfigurable implements Visualizable
   }
 
   public String[] getAttributeDescriptions() {
-    return new String[] { "Name:  ", "Background Color:  ", "Border Color:  ", "" };
+    return new String[]{"Name:  ", "Background Color:  ", "Border Color:  ", ""};
   }
 
   public Class[] getAttributeTypes() {
-    return new Class[] { String.class, BgColorSwatchConfig.class, BorderColorSwatchConfig.class, DefnConfig.class };
+    return new Class[]{String.class, BgColorSwatchConfig.class, BorderColorSwatchConfig.class, DefnConfig.class};
   }
 
   public static class BgColorSwatchConfig implements ConfigurerFactory {
@@ -123,11 +126,13 @@ public class GamePieceImage extends AbstractConfigurable implements Visualizable
 
   public static class DefnConfig implements ConfigurerFactory {
     static GamePieceImage id;
+
     public Configurer getConfigurer(AutoConfigurable c, String key, String name) {
       id = (GamePieceImage) c;
       id.defnConfig = new InstanceConfigurer(key, name, id);
       return id.defnConfig;
     }
+
     public static void refresh() {
       if (id.defnConfig != null) {
         id.defnConfig.repack();
@@ -136,7 +141,7 @@ public class GamePieceImage extends AbstractConfigurable implements Visualizable
   }
 
   public String[] getAttributeNames() {
-    return new String[] { NAME, BG_COLOR, BORDER_COLOR, PROPS };
+    return new String[]{NAME, BG_COLOR, BORDER_COLOR, PROPS};
   }
 
 
@@ -154,7 +159,7 @@ public class GamePieceImage extends AbstractConfigurable implements Visualizable
         GameModule.getGameModule().getDataArchive().removeImageSource(getConfigureName());
       }
       setConfigureName((String) value);
-      GameModule.getGameModule().getDataArchive().addImageSource(getConfigureName(),this);
+      GameModule.getGameModule().getDataArchive().addImageSource(getConfigureName(), this);
     }
     else if (BG_COLOR.equals(key)) {
       if (value instanceof String) {
@@ -173,8 +178,8 @@ public class GamePieceImage extends AbstractConfigurable implements Visualizable
       borderColor = (ColorSwatch) value;
       if (defnConfig != null) {
 //      rebuildElements();
-      defnConfig.visualizer.rebuild();
-    }
+        defnConfig.visualizer.rebuild();
+      }
     }
     else if (PROPS.equals(key)) {
       if (value instanceof String) {
@@ -260,15 +265,8 @@ public class GamePieceImage extends AbstractConfigurable implements Visualizable
   }
 
   public void refreshConfig() {
-//    if (defnConfig != null) {
-//      defnConfig.refresh();
-//    }
     rebuildVisualizerImage();
   }
-
-//  public ColorScheme getColorScheme() {
-//    return scheme;
-//  }
 
   public GamePieceLayout getLayout() {
     return layout;
@@ -283,20 +281,23 @@ public class GamePieceImage extends AbstractConfigurable implements Visualizable
   }
 
   public Image getVisualizerImage() {
-    rebuildVisualizerImage();
-    return getLayout().getVisualizerImage(this);
+    return getImage();
   }
 
   public Image getImage() {
-    return getVisualizerImage();
+    if (image == null) {
+      image = layout.buildImage(this);
+    }
+    return image;
   }
 
   public void rebuildVisualizerImage() {
-    getLayout().rebuildVisualizerImage(this);
+    image = null;
+    GameModule.getGameModule().getDataArchive().unCacheImage(getConfigureName());
   }
 
   public void invalidate() {
-    GameModule.getGameModule().getDataArchive().unCacheImage(getConfigureName());
+    rebuildVisualizerImage();
   }
 
   public ItemInstance getInstance(String name) {
@@ -380,33 +381,31 @@ public class GamePieceImage extends AbstractConfigurable implements Visualizable
     }
 
     Iterator i = layout.getItems().iterator();
-      while (i.hasNext()) {
-        Item item = (Item) i.next();
-        String name = item.getConfigureName();
-        String type = item.getType();
-        String location = item.getLocation();
+    while (i.hasNext()) {
+      Item item = (Item) i.next();
+      String name = item.getConfigureName();
+      String type = item.getType();
+      String location = item.getLocation();
 
-//        if (type.equals(SymbolItem.TYPE) || type.equals(TextItem.TYPE) ||
-//            type.equals(ShapeItem.TYPE) || type.equals(ImageItem.TYPE)) {
-          boolean found = false;
-          e = instances.iterator();
-          while (e.hasNext() && !found) {
-            ItemInstance prop = (ItemInstance) e.next();
-            found = name.equals(prop.getName());
-          }
-
-          if (!found) {
-            ItemInstance instance = ItemInstance.newDefaultInstance(name, type, location);
-            instance.addTo(this);
-            newInstances.add(instance);
-          }
-        }
-//      }
-
-      instances = newInstances;
-      if (defnConfig != null) {
-        defnConfig.setValue(instances);
+      boolean found = false;
+      e = instances.iterator();
+      while (e.hasNext() && !found) {
+        ItemInstance prop = (ItemInstance) e.next();
+        found = name.equals(prop.getName());
       }
+
+      if (!found) {
+        ItemInstance instance = ItemInstance.newDefaultInstance(name, type, location);
+        instance.addTo(this);
+        newInstances.add(instance);
+      }
+    }
+
+    instances = newInstances;
+    if (defnConfig != null) {
+      defnConfig.setValue(instances);
+    }
+    rebuildVisualizerImage();
   }
 
   public KeyCommand[] getKeyCommands(GamePiece target) {
@@ -454,7 +453,7 @@ public class GamePieceImage extends AbstractConfigurable implements Visualizable
     while (i.hasNext()) {
       ItemInstance instance = (ItemInstance) i.next();
       String s = instance.getState();
-      if (s != null &&  s.length() > 0 )
+      if (s != null && s.length() > 0)
         se.append(s);
     }
     return se.getValue();

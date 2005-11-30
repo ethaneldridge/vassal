@@ -19,12 +19,7 @@
 
 package VASSAL.build.module.gamepieceimage;
 
-import java.awt.Color;
-import java.awt.Font;
-import java.awt.Graphics;
-import java.awt.Graphics2D;
-import java.awt.Point;
-import java.awt.RenderingHints;
+import java.awt.*;
 import java.awt.geom.AffineTransform;
 
 import javax.swing.KeyStroke;
@@ -44,7 +39,8 @@ public class TextItem extends Item {
   public static final String TYPE = "Text";
 
   protected static final String FONT = "font";
-  protected static final String ALIGN = "align";
+  protected static final String H_ALIGN = "hAlign";
+  protected static final String V_ALIGN = "vAlign";
   protected static final String SOURCE = "source";
   protected static final String TEXT = "text";
   protected static final String CHANGE_CMD = "changeCmd";
@@ -57,6 +53,8 @@ public class TextItem extends Item {
   protected static final String LEFT = "left";
   protected static final String CENTER = "center";
   protected static final String RIGHT = "right";
+  protected static final String TOP = "top";
+  protected static final String BOTTOM = "bottom";
 
   public static final String SRC_VARIABLE = "Variable";
   public static final String SRC_FIXED = "Fixed";
@@ -73,7 +71,8 @@ public class TextItem extends Item {
   public static final int AL_BOTTOM = 4;
   
   protected FontStyle fontStyle = new FontStyle();
-  protected String alignment = CENTER;
+  protected String hAlignment = CENTER;
+  protected String vAlignment = CENTER;
   protected String textSource = SRC_VARIABLE;
   protected String text = "";
 
@@ -99,7 +98,7 @@ public class TextItem extends Item {
   }
 
   public String[] getAttributeDescriptions() {
-    String a[] = new String[] { "Font style:  ", "Alignment:  ", "Label Source:  ", "Label:  ",
+    String a[] = new String[] { "Font style:  ", "Horizontal Alignment:  ", "Vertical Alignment:  ", "Label Source:  ", "Label:  ",
         "Change Label Command Name:  ", "Change Label Keyboard Command:  ", "Lockable?", "Lock Label Command Name:  ",
         "Lock Label Keyboard Command:  ", "Counter Name Format:  " };
     String b[] = super.getAttributeDescriptions();
@@ -111,7 +110,7 @@ public class TextItem extends Item {
   }
 
   public Class[] getAttributeTypes() {
-    Class a[] = new Class[] { FontStyleConfig.class, AlignConfig.class, TextSource.class, String.class, 
+    Class a[] = new Class[] { FontStyleConfig.class, HorizontalAlignConfig.class, VerticalAlignConfig.class, TextSource.class, String.class,
         String.class, KeyStroke.class, Boolean.class, String.class, KeyStroke.class, NameFormatConfig.class };
     Class b[] = super.getAttributeTypes();
     Class c[] = new Class[a.length + b.length];
@@ -122,7 +121,7 @@ public class TextItem extends Item {
   }
 
   public String[] getAttributeNames() {
-    String a[] = new String[] { FONT, ALIGN, SOURCE, TEXT, CHANGE_CMD, CHANGE_KEY, LOCKABLE, LOCK_CMD, LOCK_KEY, NAME_FORMAT };
+    String a[] = new String[] { FONT, H_ALIGN, V_ALIGN, SOURCE, TEXT, CHANGE_CMD, CHANGE_KEY, LOCKABLE, LOCK_CMD, LOCK_KEY, NAME_FORMAT };
     String b[] = super.getAttributeNames();
     String c[] = new String[a.length + b.length];
     System.arraycopy(b, 0, c, 0, 2);
@@ -137,9 +136,15 @@ public class TextItem extends Item {
     }
   }
 
-  public static class AlignConfig extends StringEnum {
+  public static class HorizontalAlignConfig extends StringEnum {
     public String[] getValidValues(AutoConfigurable target) {
       return new String[] { LEFT, CENTER, RIGHT };
+    }
+  }
+
+  public static class VerticalAlignConfig extends StringEnum {
+    public String[] getValidValues(AutoConfigurable target) {
+      return new String[] { TOP, CENTER, BOTTOM };
     }
   }
 
@@ -150,8 +155,11 @@ public class TextItem extends Item {
       }
       fontStyle = (FontStyle) o;
     }
-    else if (ALIGN.equals(key)) {
-      alignment = (String) o;
+    else if (H_ALIGN.equals(key)) {
+      hAlignment = (String) o;
+    }
+    else if (V_ALIGN.equals(key)) {
+      vAlignment = (String) o;
     }
     else if (SOURCE.equals(key)) {
       textSource = (String) o;
@@ -201,8 +209,11 @@ public class TextItem extends Item {
     if (FONT.equals(key)) {
       return fontStyle.getConfigureName();
     }
-    else if (ALIGN.equals(key)) {
-      return alignment;
+    else if (H_ALIGN.equals(key)) {
+      return hAlignment;
+    }
+    else if (V_ALIGN.equals(key)) {
+      return vAlignment;
     }
     else if (SOURCE.equals(key)) {
       return textSource + "";
@@ -293,15 +304,22 @@ public class TextItem extends Item {
     boolean outline = ti.isOutline();
     Color ol = ti.getOutlineColor().getColor();
 
-    int align = AL_CENTER;
-    if (alignment.equals(LEFT)) {
-      align = AL_LEFT;
+    int hAlign = AL_CENTER;
+    if (hAlignment.equals(LEFT)) {
+      hAlign = AL_LEFT;
     }
-    else if (alignment.equals(RIGHT)) {
-      align = AL_RIGHT;
+    else if (hAlignment.equals(RIGHT)) {
+      hAlign = AL_RIGHT;
+    }
+    int vAlign = AL_CENTER;
+    if (vAlignment.equals(TOP)) {
+      vAlign = AL_TOP;
+    }
+    else if (vAlignment.equals(BOTTOM)) {
+      vAlign = AL_BOTTOM;
     }
 
-    Point origin = getOrigin();
+    Point origin = layout.getPosition(this);
     String s = null;
     if (textSource.equals(SRC_FIXED)) {
       s = text;
@@ -321,11 +339,15 @@ public class TextItem extends Item {
       ((Graphics2D) g).setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING,RenderingHints.VALUE_TEXT_ANTIALIAS_OFF);
     }
 
-    drawLabel(g, s, origin.x, origin.y, f, align, AL_CENTER, fg, bg, null, getRotation(), outline, ol);
+    drawLabel(g, s, origin.x, origin.y, f, hAlign, vAlign, fg, bg, null, getRotation(), outline, ol);
   }
 
   public String getType() {
     return TYPE;
+  }
+
+  public Dimension getSize() {
+    return new Dimension(0,0);
   }
 
   public static Item decode(GamePieceLayout l, String s) {
@@ -336,7 +358,7 @@ public class TextItem extends Item {
 
     sd.nextToken();
     item.fontStyle = FontManager.getFontManager().getFontStyle(sd.nextToken(FontManager.DEFAULT));
-    item.alignment = sd.nextToken(CENTER);
+    item.hAlignment = sd.nextToken(CENTER);
     item.textSource = sd.nextToken(SRC_VARIABLE);
     item.text = sd.nextToken("");
     item.changeCmd = sd.nextToken("");
@@ -354,7 +376,7 @@ public class TextItem extends Item {
     SequenceEncoder se1 = new SequenceEncoder(TYPE, ';');
 
     se1.append(fontStyle.getConfigureName());
-    se1.append(alignment);
+    se1.append(hAlignment);
     se1.append(textSource);
     se1.append(text);
     se1.append(changeCmd);

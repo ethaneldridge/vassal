@@ -19,11 +19,7 @@
 
 package VASSAL.build.module.gamepieceimage;
 
-import java.awt.Graphics;
-import java.awt.Graphics2D;
-import java.awt.Point;
-import java.awt.Rectangle;
-import java.awt.RenderingHints;
+import java.awt.*;
 import java.awt.geom.AffineTransform;
 
 import VASSAL.build.AutoConfigurable;
@@ -173,14 +169,13 @@ public class SymbolItem extends Item {
       symbol = new Symbol(Symbol.NATO, si.getSymbol1(), si.getSymbol2(), si.getSize());
     }
 
-    Point origin = getOrigin();
-    origin.translate(-getWidth() / 2, -getHeight() / 2);    
+    Point origin = layout.getPosition(this);
     Rectangle r = new Rectangle(origin.x, origin.y, getWidth(), getHeight());
     
     if (getRotation() != 0) {
       Graphics2D g2d = (Graphics2D) g;
-        AffineTransform newXForm =
-          AffineTransform.getRotateInstance(Math.toRadians(getRotation()), getOrigin().x, getOrigin().y);
+      AffineTransform newXForm =
+          AffineTransform.getRotateInstance(Math.toRadians(getRotation()), layout.getPosition(this).x, layout.getPosition(this).y);
         g2d.transform(newXForm);
     }
     
@@ -198,7 +193,11 @@ public class SymbolItem extends Item {
   public String getType() {
     return TYPE;
   }
-  
+
+  public Dimension getSize() {
+    return new Dimension(getWidth(),getHeight());
+  }
+
   public static Item decode(GamePieceLayout l, String s) {
     
     SequenceEncoder.Decoder sd = new SequenceEncoder.Decoder(s, ';');
