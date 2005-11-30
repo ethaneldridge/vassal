@@ -30,9 +30,7 @@ import VASSAL.tools.SequenceEncoder;
 
 import java.awt.*;
 import java.awt.image.BufferedImage;
-import java.util.ArrayList;
-import java.util.Enumeration;
-import java.util.Iterator;
+import java.util.*;
 
 public class GamePieceLayout extends AbstractConfigurable implements Visualizable {
 
@@ -66,19 +64,50 @@ public class GamePieceLayout extends AbstractConfigurable implements Visualizabl
   public static final String[] LOCATIONS = new String[]{CENTER, N, S, E, W, NE, NW, SE, SW};
   public static final int[] X_POS = new int[]{POS_C, POS_C, POS_C, POS_R, POS_L, POS_R, POS_L, POS_R, POS_L};
   public static final int[] Y_POS = new int[]{POS_C, POS_T, POS_B, POS_C, POS_C, POS_T, POS_T, POS_B, POS_B};
+  protected static Map compass = new HashMap();
+  static {
+    compass.put(N,"N");
+    compass.put(S,"S");
+    compass.put(E,"E");
+    compass.put(W,"W");
+    compass.put(NE,"NE");
+    compass.put(NW,"NW");
+    compass.put(SE,"SE");
+    compass.put(SW,"SW");
+    compass.put(CENTER,"CENTER");
+  }
+
+  public static String getCompassPoint(String location) {
+    return (String) compass.get(location);
+  }
 
   public Point getPosition(Item item) {
-    String s = item.getLocation();
+    String s = getCompassPoint(item.getLocation());
 
-    int index = -1;
-    while (++index < LOCATIONS.length) {
-      if (s.equals(LOCATIONS[index])) {
-        break;
-      }
-    }
     int x,y;
     Dimension d = item.getSize();
-    switch (index) {
+    switch (s.charAt(s.length() - 1)) {
+      case 'E':
+        x = getLayoutWidth() - d.width;
+        break;
+      case 'W':
+        x = 0;
+        break;
+      default:
+        x = getLayoutWidth() / 2 - d.width / 2;
+    }
+    switch (s.charAt(0)) {
+      case 'N':
+        y = 0;
+        break;
+      case 'S':
+        y = getLayoutHeight() - d.height;
+        break;
+      default:
+        y = getLayoutHeight() / 2 - d.height / 2;
+    }
+/*
+    switch (0) {
       case 1:
         x = getLayoutWidth() / 2 - d.width / 2;
         y = 0;
@@ -117,6 +146,7 @@ public class GamePieceLayout extends AbstractConfigurable implements Visualizabl
         y = getLayoutHeight() / 2 - d.height / 2;
         break;
     }
+*/
     Point p = new Point(x, y);
     p.translate(item.getXoffset(), item.getYoffset());
     return p;

@@ -1,17 +1,17 @@
 /*
  * $Id$
- * 
+ *
  * Copyright (c) 2005 by Rodney Kinney, Brent Easton
- * 
+ *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Library General Public License (LGPL) as published by
  * the Free Software Foundation.
- * 
+ *
  * This library is distributed in the hope that it will be useful, but WITHOUT
  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
  * FOR A PARTICULAR PURPOSE. See the GNU Library General Public License for more
  * details.
- * 
+ *
  * You should have received a copy of the GNU Library General Public License
  * along with this library; if not, copies are available at
  * http://www.opensource.org.
@@ -63,13 +63,13 @@ public class TextItem extends Item {
   protected static final String PIECE_NAME = "pieceName";
   protected static final String LABEL = "label";
   protected static final String DEFAULT_FORMAT = "$"+PIECE_NAME+"$";
-  
+
   public static final int AL_CENTER = 0;
   public static final int AL_RIGHT = 1;
   public static final int AL_LEFT = 2;
   public static final int AL_TOP = 3;
   public static final int AL_BOTTOM = 4;
-  
+
   protected FontStyle fontStyle = new FontStyle();
   protected String hAlignment = CENTER;
   protected String vAlignment = CENTER;
@@ -81,7 +81,7 @@ public class TextItem extends Item {
   protected boolean lockable = false;
   protected String lockCmd = "";
   protected KeyStroke lockKey;
-  
+
   protected FormattedString nameFormat = new FormattedString(DEFAULT_FORMAT);
 
   public TextItem() {
@@ -91,14 +91,14 @@ public class TextItem extends Item {
   public TextItem(GamePieceLayout l) {
     super(l);
   }
-  
+
   public TextItem(GamePieceLayout l, String nam) {
     this(l);
     setConfigureName(nam);
   }
 
   public String[] getAttributeDescriptions() {
-    String a[] = new String[] { "Font style:  ", "Horizontal Alignment:  ", "Vertical Alignment:  ", "Label Source:  ", "Label:  ",
+    String a[] = new String[] { "Font style:  ", "Label Source:  ", "Label:  ",
         "Change Label Command Name:  ", "Change Label Keyboard Command:  ", "Lockable?", "Lock Label Command Name:  ",
         "Lock Label Keyboard Command:  ", "Counter Name Format:  " };
     String b[] = super.getAttributeDescriptions();
@@ -110,7 +110,7 @@ public class TextItem extends Item {
   }
 
   public Class[] getAttributeTypes() {
-    Class a[] = new Class[] { FontStyleConfig.class, HorizontalAlignConfig.class, VerticalAlignConfig.class, TextSource.class, String.class,
+    Class a[] = new Class[] { FontStyleConfig.class, TextSource.class, String.class,
         String.class, KeyStroke.class, Boolean.class, String.class, KeyStroke.class, NameFormatConfig.class };
     Class b[] = super.getAttributeTypes();
     Class c[] = new Class[a.length + b.length];
@@ -121,7 +121,7 @@ public class TextItem extends Item {
   }
 
   public String[] getAttributeNames() {
-    String a[] = new String[] { FONT, H_ALIGN, V_ALIGN, SOURCE, TEXT, CHANGE_CMD, CHANGE_KEY, LOCKABLE, LOCK_CMD, LOCK_KEY, NAME_FORMAT };
+    String a[] = new String[] { FONT, SOURCE, TEXT, CHANGE_CMD, CHANGE_KEY, LOCKABLE, LOCK_CMD, LOCK_KEY, NAME_FORMAT };
     String b[] = super.getAttributeNames();
     String c[] = new String[a.length + b.length];
     System.arraycopy(b, 0, c, 0, 2);
@@ -133,18 +133,6 @@ public class TextItem extends Item {
   public static class FontStyleConfig implements ConfigurerFactory {
     public Configurer getConfigurer(AutoConfigurable c, String key, String name) {
       return new FontStyleConfigurer(key, name, ((TextItem) c).fontStyle);
-    }
-  }
-
-  public static class HorizontalAlignConfig extends StringEnum {
-    public String[] getValidValues(AutoConfigurable target) {
-      return new String[] { LEFT, CENTER, RIGHT };
-    }
-  }
-
-  public static class VerticalAlignConfig extends StringEnum {
-    public String[] getValidValues(AutoConfigurable target) {
-      return new String[] { TOP, CENTER, BOTTOM };
     }
   }
 
@@ -276,7 +264,7 @@ public class TextItem extends Item {
       return textSource.equals(SRC_COMMAND) && lockable;
     }
   };
-  
+
   public void draw(Graphics g, GamePieceImage defn) {
 
     TextItemInstance ti = null;
@@ -284,7 +272,7 @@ public class TextItem extends Item {
     if (fontStyle == null) {
       return;
     }
-    
+
     Font f = fontStyle.getFont();
 
     if (defn != null) {
@@ -304,19 +292,22 @@ public class TextItem extends Item {
     boolean outline = ti.isOutline();
     Color ol = ti.getOutlineColor().getColor();
 
+    String compass = GamePieceLayout.getCompassPoint(getLocation());
     int hAlign = AL_CENTER;
-    if (hAlignment.equals(LEFT)) {
-      hAlign = AL_LEFT;
-    }
-    else if (hAlignment.equals(RIGHT)) {
-      hAlign = AL_RIGHT;
+    switch (compass.charAt(compass.length()-1)) {
+      case 'W':
+        hAlign = AL_LEFT;
+        break;
+        case 'E':
+        hAlign = AL_RIGHT;
     }
     int vAlign = AL_CENTER;
-    if (vAlignment.equals(TOP)) {
-      vAlign = AL_TOP;
-    }
-    else if (vAlignment.equals(BOTTOM)) {
-      vAlign = AL_BOTTOM;
+    switch (compass.charAt(0)) {
+      case 'N':
+        vAlign = AL_TOP;
+        break;
+        case 'S':
+        vAlign = AL_BOTTOM;
     }
 
     Point origin = layout.getPosition(this);
@@ -332,9 +323,9 @@ public class TextItem extends Item {
       }
     }
 
-    if (isAntialias()) {    
+    if (isAntialias()) {
       ((Graphics2D) g).setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING,RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
-    } 
+    }
     else {
       ((Graphics2D) g).setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING,RenderingHints.VALUE_TEXT_ANTIALIAS_OFF);
     }
@@ -395,7 +386,7 @@ public class TextItem extends Item {
   public boolean isOutline() {
     return fontStyle.isOutline();
   }
-  
+
   public boolean isFixed() {
     return textSource.equals(SRC_FIXED);
   }
@@ -403,21 +394,21 @@ public class TextItem extends Item {
   public boolean isLockable() {
     return textSource.equals(SRC_COMMAND) && lockable &&  lockKey != null;
   }
-  
+
   public boolean isChangeable() {
     return textSource.equals(SRC_COMMAND) && changeKey != null;
   }
-  
+
   public FormattedString getNameFormat() {
     return nameFormat;
   }
-  
+
   public static class TextSource extends StringEnum {
     public String[] getValidValues(AutoConfigurable target) {
       return new String[] { SRC_VARIABLE, SRC_FIXED, SRC_COMMAND };
     }
   }
-  
+
   public static class NameFormatConfig implements ConfigurerFactory {
     public Configurer getConfigurer(AutoConfigurable c, String key, String name) {
       return new FormattedStringConfigurer(key, name, new String[]{PIECE_NAME, LABEL});
@@ -446,17 +437,17 @@ public class TextItem extends Item {
         y0 = y - height;
         break;
     }
-    
+
     AffineTransform saveXForm = null;
     Graphics2D g2d = (Graphics2D) g;
-    
+
     if (rotateDegrees != 0) {
-      saveXForm = g2d.getTransform(); 
+      saveXForm = g2d.getTransform();
       AffineTransform newXForm =
         AffineTransform.getRotateInstance(Math.toRadians(rotateDegrees), x, y);
       g2d.transform(newXForm);
     }
-    
+
     if (bgColor != null) {
       g.setColor(bgColor);
       g.fillRect(x0, y0, width, height);
@@ -468,7 +459,7 @@ public class TextItem extends Item {
 
     int y1 = y0 + g.getFontMetrics().getHeight() - g.getFontMetrics().getDescent();
     String theText = " " + text + " ";
-    
+
     if (outline && outlineColor != null) {
       g.setColor(outlineColor);
       g.drawString(theText, x0-1, y1-1);
@@ -476,12 +467,12 @@ public class TextItem extends Item {
       g.drawString(theText, x0+1, y1-1);
       g.drawString(theText, x0+1, y1+1);
     }
-    
+
     g.setColor(fgColor);
     g.drawString(theText, x0, y1);
-    
+
     if (rotateDegrees != 0) {
-      g2d.setTransform(saveXForm); 
+      g2d.setTransform(saveXForm);
     }
   }
 }
