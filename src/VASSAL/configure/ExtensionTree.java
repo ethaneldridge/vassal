@@ -109,6 +109,49 @@ public class ExtensionTree extends ConfigureTree {
     return action;
   }
 
+  protected Action buildImportAction(final Configurable target) {
+    Action a = new AbstractAction("Add Imported Class") {
+      public void actionPerformed(ActionEvent evt) {
+        final Configurable child = importConfigurable();
+        if (child != null) {
+          try {
+            child.build(null);
+            final Configurable c = target;
+            if (child.getConfigurer() != null) {
+              PropertiesWindow w = new PropertiesWindow((Frame) SwingUtilities.getAncestorOfClass(Frame.class, ExtensionTree.this), false, child, helpWindow) {
+                public void save() {
+                  super.save();
+                  insert(c, child, getTreeNode(c).getChildCount());
+                  if (!isEditable(target)) {
+                    ExtensionElement el = new ExtensionElement(child, getPath(getTreeNode(target)));
+                    extension.add(el);
+                  }
+                }
+
+                public void cancel() {
+                  dispose();
+                }
+              };
+              w.setVisible(true);
+            }
+            else {
+              insert(c, child, getTreeNode(c).getChildCount());
+            }
+          }
+          catch (Exception ex) {
+            JOptionPane.showMessageDialog
+                (getTopLevelAncestor(),
+                 "Error adding " + getConfigureName(child) +
+                 " to " + getConfigureName(target) + "\n" + ex.getMessage(),
+                 "Illegal configuration",
+                 JOptionPane.ERROR_MESSAGE);
+          }
+        }
+      }
+    };
+    return a;
+  }
+
   private boolean isEditable(final Configurable target) {
     return isEditable(getTreeNode(target));
   }
