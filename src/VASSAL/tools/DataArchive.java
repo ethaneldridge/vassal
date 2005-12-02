@@ -335,11 +335,13 @@ public class DataArchive extends SecureClassLoader {
     return Toolkit.getDefaultToolkit().createImage(getBytes(in));
   }
 
-  public void addImageSource(String name, ImageSource src) {
+  public boolean addImageSource(String name, ImageSource src) {
     if (!imageSources.containsKey(name)) {
       imageSources.put(name,src);
       imageNames = null;
+      return true;
     }
+    return false;
   }
 
   public void removeImageSource(String name) {

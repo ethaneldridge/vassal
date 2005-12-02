@@ -1,13 +1,5 @@
 package VASSAL.build.module.gamepieceimage;
 
-import java.awt.Font;
-import java.beans.PropertyChangeEvent;
-import java.beans.PropertyChangeListener;
-import java.util.HashMap;
-import java.util.Iterator;
-
-import org.w3c.dom.Element;
-
 import VASSAL.build.AbstractConfigurable;
 import VASSAL.build.Buildable;
 import VASSAL.build.Configurable;
@@ -15,6 +7,13 @@ import VASSAL.build.GameModule;
 import VASSAL.build.module.documentation.HelpFile;
 import VASSAL.configure.Configurer;
 import VASSAL.configure.SingleChildInstance;
+import org.w3c.dom.Element;
+
+import java.awt.*;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
+import java.util.HashMap;
+import java.util.Iterator;
 
 /*
  * $Id$
@@ -56,11 +55,11 @@ public class FontManager extends AbstractConfigurable {
   
   public static final String DEFAULT = "Default";
   public static final OutlineFont DEFAULT_FONT = new OutlineFont(DIALOG, Font.PLAIN, 12, false);
+  public static final FontStyle DEFAULT_STYLE = new FontStyle();
 
   public static final String[] ALLOWABLE_FONTS = new String[] { DIALOG, DIALOG_INPUT, MONOSPACED, SANS_SERIF, SERIF };
   
   public FontManager() {
-    instance = this;
   }
   
   public void build(Element e) {
@@ -77,7 +76,8 @@ public class FontManager extends AbstractConfigurable {
   }
 
   protected FontStyle getFontStyle(String name) {
-    return (FontStyle) fontStyles.get(name);
+    FontStyle fs = (FontStyle) fontStyles.get(name);
+    return fs == null ? DEFAULT_STYLE : fs;
   }
 
   public String[] getAttributeDescriptions() {
@@ -105,6 +105,7 @@ public class FontManager extends AbstractConfigurable {
 
   public void addTo(Buildable parent) {
     validator = new SingleChildInstance(GameModule.getGameModule(), getClass());
+    instance = this;
   }
 
   public Class[] getAllowableConfigureComponents() {

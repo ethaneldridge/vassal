@@ -1,15 +1,14 @@
 package VASSAL.build.module.gamepieceimage;
 
-import java.awt.Color;
-
-import org.w3c.dom.Element;
-
 import VASSAL.build.AbstractConfigurable;
 import VASSAL.build.Buildable;
 import VASSAL.build.GameModule;
 import VASSAL.build.module.documentation.HelpFile;
 import VASSAL.configure.Configurer;
 import VASSAL.configure.SingleChildInstance;
+import org.w3c.dom.Element;
+
+import java.awt.*;
 
 /*
  * $Id$

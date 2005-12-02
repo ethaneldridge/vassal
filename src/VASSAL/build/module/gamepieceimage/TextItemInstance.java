@@ -19,18 +19,10 @@
 
 package VASSAL.build.module.gamepieceimage;
 
-import javax.swing.JOptionPane;
-import javax.swing.KeyStroke;
-
 import VASSAL.build.AutoConfigurable;
-import VASSAL.command.Command;
-import VASSAL.command.NullCommand;
 import VASSAL.configure.Configurer;
 import VASSAL.configure.ConfigurerFactory;
 import VASSAL.configure.VisibilityCondition;
-import VASSAL.counters.GamePiece;
-import VASSAL.counters.KeyCommand;
-import VASSAL.tools.FormattedString;
 import VASSAL.tools.SequenceEncoder;
 
 public class TextItemInstance extends ItemInstance {
@@ -40,7 +32,6 @@ public class TextItemInstance extends ItemInstance {
 
   protected String val = "";
   protected ColorSwatch outlineColor = ColorSwatch.getRed();
-  private boolean locked = false;
 
   public TextItemInstance() {
     super();
@@ -81,14 +72,6 @@ public class TextItemInstance extends ItemInstance {
     return val;
   }
 
-  public void setLocked(boolean locked) {
-    this.locked = locked;
-  }
-
-  public boolean isLocked() {
-    return locked;
-  }
-
   public boolean isOutline() {
     TextItem item = (TextItem) getItem();
     return (item == null) ? false : item.isOutline();
@@ -100,32 +83,6 @@ public class TextItemInstance extends ItemInstance {
 
   public void setOutlineColor(ColorSwatch c) {
     outlineColor = c;
-  }
-
-  public void setState(String newState) {
-    getItem();
-    if (item != null && ((TextItem) item).isChangeable()) {
-      SequenceEncoder.Decoder sd = new SequenceEncoder.Decoder(newState, ';');
-      sd.nextToken();
-      locked = sd.nextBoolean(false);
-      val = sd.nextToken("");
-    }
-  }
-
-  public String getState() {
-
-    getItem();
-    if (item != null && ((TextItem) item).isChangeable()) {
-      SequenceEncoder se = new SequenceEncoder(';');
-      se.append(getName());
-      se.append(locked);
-      se.append(val);
-      return (se.getValue());
-    }
-    else {
-      return "";
-    }
-
   }
 
   public String encode() {
@@ -209,13 +166,6 @@ public class TextItemInstance extends ItemInstance {
       return null;
   }
 
-  public String formatName(String name) {
-    FormattedString s = ((TextItem) getItem()).getNameFormat();
-    s.setProperty(TextItem.PIECE_NAME, name);
-    s.setProperty(TextItem.LABEL, val);
-    return s.getText();
-  }
-
   public VisibilityCondition getAttributeVisibility(String name) {
     if (VALUE.equals(name)) {
       return valueCond;
@@ -229,57 +179,6 @@ public class TextItemInstance extends ItemInstance {
     else {
       return super.getAttributeVisibility(name);
     }
-  }
-
-  public int getKeyCommandCount() {
-    TextItem item = (TextItem) getItem();
-    int count = 0;
-
-    if (item.isChangeable() && !isLocked()) {
-      count++;
-    }
-    if (item.isLockable() && !isLocked()) {
-      count++;
-    }
-    return count;
-  }
-
-  public KeyCommand[] getKeyCommands(GamePiece target) {
-
-    TextItem item = (TextItem) getItem();
-
-    KeyCommand[] commands = new KeyCommand[getKeyCommandCount()];
-    int count = 0;
-    if (item.isChangeable() && !isLocked()) {
-      commands[count++] = new KeyCommand(item.changeCmd, item.changeKey, target);
-    }
-    if (item.isLockable() && !isLocked()) {
-      commands[count++] = new KeyCommand(item.lockCmd, item.lockKey, target);
-    }
-
-    return commands;
-  }
-
-  public void keyEvent(KeyStroke stroke) {
-    if (isLocked()) {
-      return;
-    }
-
-    TextItem item = (TextItem) getItem();
-    Command command = new NullCommand();
-
-    if (item.lockKey != null && stroke.equals(item.lockKey)) {
-      locked = !locked;
-    }
-
-    if (item.changeKey != null && stroke.equals(item.changeKey)) {
-      String s = (String) JOptionPane.showInputDialog(null, item.changeCmd, null, JOptionPane.QUESTION_MESSAGE, null,
-          null, val);
-      if (s != null) {
-        val = s;
-      }
-    }
-    return;
   }
 
   private VisibilityCondition valueCond = new VisibilityCondition() {

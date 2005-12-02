@@ -16,21 +16,15 @@
  * along with this library; if not, copies are available at
  * http://www.opensource.org.
  */
-// TODO
 package VASSAL.build.module.gamepieceimage;
-
-import java.awt.Font;
-import java.awt.event.ItemEvent;
-import java.awt.event.ItemListener;
-
-import javax.swing.Box;
-import javax.swing.BoxLayout;
-import javax.swing.JComboBox;
-import javax.swing.JLabel;
-import javax.swing.JPanel;
 
 import VASSAL.configure.Configurer;
 import VASSAL.tools.SequenceEncoder;
+
+import javax.swing.*;
+import java.awt.*;
+import java.awt.event.ItemEvent;
+import java.awt.event.ItemListener;
 
 public class FontStyleConfigurer extends Configurer {
 

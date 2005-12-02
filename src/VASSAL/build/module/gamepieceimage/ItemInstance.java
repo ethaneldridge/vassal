@@ -19,13 +19,9 @@
 
 package VASSAL.build.module.gamepieceimage;
 
-import javax.swing.KeyStroke;
-
 import VASSAL.build.AbstractConfigurable;
 import VASSAL.build.Buildable;
 import VASSAL.build.module.documentation.HelpFile;
-import VASSAL.counters.GamePiece;
-import VASSAL.counters.KeyCommand;
 
 public abstract class ItemInstance extends AbstractConfigurable {
 
@@ -141,14 +137,6 @@ public abstract class ItemInstance extends AbstractConfigurable {
     return fgColor;
   }
 
-  public void setState(String state) {
-    return;
-  }
-
-  public String getState() {
-    return "";
-  }
-
   public String[] getAttributeDescriptions() {
     return new String[0];
   }
@@ -185,19 +173,6 @@ public abstract class ItemInstance extends AbstractConfigurable {
     if (parent instanceof GamePieceImage) {
       defn = (GamePieceImage) parent;
     }
-  }
-
-  public int getKeyCommandCount() {
-    return 0;
-
-  }
-
-  public KeyCommand[] getKeyCommands(GamePiece target) {
-    return new KeyCommand[getKeyCommandCount()];
-  }
-
-  public void keyEvent(KeyStroke stroke) {
-    return;
   }
 
   public String getSuffix() {

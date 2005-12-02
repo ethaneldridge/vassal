@@ -19,11 +19,6 @@
 
 package VASSAL.build.module.gamepieceimage;
 
-import java.awt.*;
-import java.awt.image.BufferedImage;
-import java.io.File;
-import java.io.IOException;
-
 import VASSAL.build.AutoConfigurable;
 import VASSAL.build.GameModule;
 import VASSAL.configure.StringEnum;
@@ -31,12 +26,17 @@ import VASSAL.configure.VisibilityCondition;
 import VASSAL.tools.DataArchive;
 import VASSAL.tools.SequenceEncoder;
 
+import java.awt.*;
+import java.awt.image.BufferedImage;
+import java.io.File;
+import java.io.IOException;
+
 public class ImageItem extends Item {
 
   public static final String TYPE = "Image";
   
-  public static final String SRC_VARIABLE = "Variable";
-  public static final String SRC_FIXED = "Fixed";  
+  public static final String SRC_VARIABLE = "Specified in individual images";
+  public static final String SRC_FIXED = "Fixed for this layout";
   
   protected static final String IMAGE = "image";
   public static final String SOURCE = "source";
@@ -61,7 +61,7 @@ public class ImageItem extends Item {
   }
   
   public String[] getAttributeDescriptions() {
-    String a[] = new String[] { "Image:  ", "Image Source:  " };
+    String a[] = new String[] { "Image:  ", "Image is:  " };
     String b[] = super.getAttributeDescriptions();
     String c[] = new String[a.length + b.length];
     System.arraycopy(b, 0, c, 0, 2);

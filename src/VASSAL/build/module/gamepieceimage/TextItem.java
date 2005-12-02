@@ -19,36 +19,21 @@
 
 package VASSAL.build.module.gamepieceimage;
 
+import VASSAL.build.AutoConfigurable;
+import VASSAL.configure.*;
+import VASSAL.tools.SequenceEncoder;
+
+import javax.swing.*;
 import java.awt.*;
 import java.awt.geom.AffineTransform;
-
-import javax.swing.KeyStroke;
-
-import VASSAL.build.AutoConfigurable;
-import VASSAL.configure.Configurer;
-import VASSAL.configure.ConfigurerFactory;
-import VASSAL.configure.FormattedStringConfigurer;
-import VASSAL.configure.HotKeyConfigurer;
-import VASSAL.configure.StringEnum;
-import VASSAL.configure.VisibilityCondition;
-import VASSAL.tools.FormattedString;
-import VASSAL.tools.SequenceEncoder;
 
 public class TextItem extends Item {
 
   public static final String TYPE = "Text";
 
   protected static final String FONT = "font";
-  protected static final String H_ALIGN = "hAlign";
-  protected static final String V_ALIGN = "vAlign";
   protected static final String SOURCE = "source";
   protected static final String TEXT = "text";
-  protected static final String CHANGE_CMD = "changeCmd";
-  protected static final String CHANGE_KEY = "changeKey";
-  protected static final String LOCKABLE = "lockable";
-  protected static final String LOCK_CMD = "lockCmd";
-  protected static final String LOCK_KEY = "lockKey";
-  protected static final String NAME_FORMAT = "nameFormat";
 
   protected static final String LEFT = "left";
   protected static final String CENTER = "center";
@@ -56,9 +41,8 @@ public class TextItem extends Item {
   protected static final String TOP = "top";
   protected static final String BOTTOM = "bottom";
 
-  public static final String SRC_VARIABLE = "Variable";
-  public static final String SRC_FIXED = "Fixed";
-  public static final String SRC_COMMAND = "Command";
+  public static final String SRC_VARIABLE = "Specified in individual images";
+  public static final String SRC_FIXED = "Fixed for this layout";
 
   protected static final String PIECE_NAME = "pieceName";
   protected static final String LABEL = "label";
@@ -70,9 +54,7 @@ public class TextItem extends Item {
   public static final int AL_TOP = 3;
   public static final int AL_BOTTOM = 4;
 
-  protected FontStyle fontStyle = new FontStyle();
-  protected String hAlignment = CENTER;
-  protected String vAlignment = CENTER;
+  protected String fontStyleName;
   protected String textSource = SRC_VARIABLE;
   protected String text = "";
 
@@ -81,8 +63,6 @@ public class TextItem extends Item {
   protected boolean lockable = false;
   protected String lockCmd = "";
   protected KeyStroke lockKey;
-
-  protected FormattedString nameFormat = new FormattedString(DEFAULT_FORMAT);
 
   public TextItem() {
     super();
@@ -98,9 +78,7 @@ public class TextItem extends Item {
   }
 
   public String[] getAttributeDescriptions() {
-    String a[] = new String[] { "Font style:  ", "Label Source:  ", "Label:  ",
-        "Change Label Command Name:  ", "Change Label Keyboard Command:  ", "Lockable?", "Lock Label Command Name:  ",
-        "Lock Label Keyboard Command:  ", "Counter Name Format:  " };
+    String a[] = new String[] { "Font style:  ", "Text is:  ", "Text:  "};
     String b[] = super.getAttributeDescriptions();
     String c[] = new String[a.length + b.length];
     System.arraycopy(b, 0, c, 0, 2);
@@ -110,8 +88,7 @@ public class TextItem extends Item {
   }
 
   public Class[] getAttributeTypes() {
-    Class a[] = new Class[] { FontStyleConfig.class, TextSource.class, String.class,
-        String.class, KeyStroke.class, Boolean.class, String.class, KeyStroke.class, NameFormatConfig.class };
+    Class a[] = new Class[] { FontStyleConfig.class, TextSource.class, String.class };
     Class b[] = super.getAttributeTypes();
     Class c[] = new Class[a.length + b.length];
     System.arraycopy(b, 0, c, 0, 2);
@@ -121,7 +98,7 @@ public class TextItem extends Item {
   }
 
   public String[] getAttributeNames() {
-    String a[] = new String[] { FONT, SOURCE, TEXT, CHANGE_CMD, CHANGE_KEY, LOCKABLE, LOCK_CMD, LOCK_KEY, NAME_FORMAT };
+    String a[] = new String[] { FONT, SOURCE, TEXT };
     String b[] = super.getAttributeNames();
     String c[] = new String[a.length + b.length];
     System.arraycopy(b, 0, c, 0, 2);
@@ -132,55 +109,19 @@ public class TextItem extends Item {
 
   public static class FontStyleConfig implements ConfigurerFactory {
     public Configurer getConfigurer(AutoConfigurable c, String key, String name) {
-      return new FontStyleConfigurer(key, name, ((TextItem) c).fontStyle);
+      return new StringEnumConfigurer(key, name, FontManager.getFontManager().getFontNames());
     }
   }
 
   public void setAttribute(String key, Object o) {
     if (FONT.equals(key)) {
-      if (o instanceof String) {
-        o = FontManager.getFontManager().getFontStyle((String) o);
-      }
-      fontStyle = (FontStyle) o;
-    }
-    else if (H_ALIGN.equals(key)) {
-      hAlignment = (String) o;
-    }
-    else if (V_ALIGN.equals(key)) {
-      vAlignment = (String) o;
+      fontStyleName = (String)o;
     }
     else if (SOURCE.equals(key)) {
       textSource = (String) o;
     }
     else if (TEXT.equals(key)) {
       text = (String) o;
-    }
-    else if (CHANGE_CMD.equals(key)) {
-      changeCmd = (String) o;
-    }
-    else if (CHANGE_KEY.equals(key)) {
-      if (o instanceof String) {
-        o = HotKeyConfigurer.decode((String) o);
-      }
-      changeKey = (KeyStroke) o;
-    }
-    else if (LOCKABLE.equals(key)) {
-      if (o instanceof String) {
-        o = new Boolean((String) o);
-      }
-      lockable = ((Boolean) o).booleanValue();
-    }
-    else if (LOCK_CMD.equals(key)) {
-      lockCmd = (String) o;
-    }
-    else if (LOCK_KEY.equals(key)) {
-      if (o instanceof String) {
-        o = HotKeyConfigurer.decode((String) o);
-      }
-      lockKey = (KeyStroke) o;
-    }
-    else if (NAME_FORMAT.equals(key)) {
-      nameFormat.setFormat((String) o);
     }
     else {
       super.setAttribute(key, o);
@@ -195,37 +136,13 @@ public class TextItem extends Item {
   public String getAttributeValueString(String key) {
 
     if (FONT.equals(key)) {
-      return fontStyle.getConfigureName();
-    }
-    else if (H_ALIGN.equals(key)) {
-      return hAlignment;
-    }
-    else if (V_ALIGN.equals(key)) {
-      return vAlignment;
+      return fontStyleName;
     }
     else if (SOURCE.equals(key)) {
       return textSource + "";
     }
     else if (TEXT.equals(key)) {
       return text;
-    }
-    else if (CHANGE_CMD.equals(key)) {
-      return changeCmd + "";
-    }
-    else if (CHANGE_KEY.equals(key)) {
-      return HotKeyConfigurer.encode(changeKey);
-    }
-    else if (LOCKABLE.equals(key)) {
-      return lockable + "";
-    }
-    else if (LOCK_CMD.equals(key)) {
-      return lockCmd;
-    }
-    else if (LOCK_KEY.equals(key)) {
-      return HotKeyConfigurer.encode(lockKey);
-    }
-    else if (NAME_FORMAT.equals(key)) {
-      return nameFormat.getFormat();
     }
     else {
       return super.getAttributeValueString(key);
@@ -235,12 +152,6 @@ public class TextItem extends Item {
   public VisibilityCondition getAttributeVisibility(String name) {
     if (TEXT.equals(name)) {
       return fixedCond;
-    }
-    else if (CHANGE_CMD.equals(name) || CHANGE_KEY.equals(name) || LOCKABLE.equals(name)) {
-      return commandCond;
-    }
-    else if (LOCK_CMD.equals(name) || LOCK_KEY.equals(name)) {
-      return lockCond;
     }
     else {
       return super.getAttributeVisibility(name);
@@ -253,27 +164,12 @@ public class TextItem extends Item {
     }
   };
 
-  private VisibilityCondition commandCond = new VisibilityCondition() {
-    public boolean shouldBeVisible() {
-      return textSource.equals(SRC_COMMAND);
-    }
-  };
-
-  private VisibilityCondition lockCond = new VisibilityCondition() {
-    public boolean shouldBeVisible() {
-      return textSource.equals(SRC_COMMAND) && lockable;
-    }
-  };
-
   public void draw(Graphics g, GamePieceImage defn) {
 
     TextItemInstance ti = null;
 
-    if (fontStyle == null) {
-      return;
-    }
-
-    Font f = fontStyle.getFont();
+    FontStyle fs = FontManager.getFontManager().getFontStyle(fontStyleName);
+    Font f = fs.getFont();
 
     if (defn != null) {
       ti = defn.getTextInstance(name);
@@ -348,15 +244,13 @@ public class TextItem extends Item {
     TextItem item = new TextItem(l);
 
     sd.nextToken();
-    item.fontStyle = FontManager.getFontManager().getFontStyle(sd.nextToken(FontManager.DEFAULT));
-    item.hAlignment = sd.nextToken(CENTER);
+    item.fontStyleName = sd.nextToken(FontManager.DEFAULT);
     item.textSource = sd.nextToken(SRC_VARIABLE);
     item.text = sd.nextToken("");
     item.changeCmd = sd.nextToken("");
     item.changeKey = sd.nextKeyStroke(null);
     item.lockCmd = sd.nextToken("");
     item.lockKey = sd.nextKeyStroke(null);
-    item.nameFormat.setFormat(sd.nextToken(DEFAULT_FORMAT));
     item.lockable = sd.nextBoolean(false);
 
     return item;
@@ -366,15 +260,13 @@ public class TextItem extends Item {
 
     SequenceEncoder se1 = new SequenceEncoder(TYPE, ';');
 
-    se1.append(fontStyle.getConfigureName());
-    se1.append(hAlignment);
+    se1.append(fontStyleName);
     se1.append(textSource);
     se1.append(text);
     se1.append(changeCmd);
     se1.append(changeKey);
     se1.append(lockCmd);
     se1.append(lockKey);
-    se1.append(nameFormat.getFormat());
     se1.append(lockable);
 
     SequenceEncoder se2 = new SequenceEncoder(se1.getValue(), '|');
@@ -384,28 +276,16 @@ public class TextItem extends Item {
   }
 
   public boolean isOutline() {
-    return fontStyle.isOutline();
+    return FontManager.getFontManager().getFontStyle(fontStyleName).isOutline();
   }
 
   public boolean isFixed() {
     return textSource.equals(SRC_FIXED);
   }
 
-  public boolean isLockable() {
-    return textSource.equals(SRC_COMMAND) && lockable &&  lockKey != null;
-  }
-
-  public boolean isChangeable() {
-    return textSource.equals(SRC_COMMAND) && changeKey != null;
-  }
-
-  public FormattedString getNameFormat() {
-    return nameFormat;
-  }
-
   public static class TextSource extends StringEnum {
     public String[] getValidValues(AutoConfigurable target) {
-      return new String[] { SRC_VARIABLE, SRC_FIXED, SRC_COMMAND };
+      return new String[] { SRC_VARIABLE, SRC_FIXED };
     }
   }
 

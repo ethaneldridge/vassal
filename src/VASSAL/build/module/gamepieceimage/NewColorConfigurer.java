@@ -18,14 +18,13 @@
  */
 package VASSAL.build.module.gamepieceimage;
 
-import java.awt.Color;
-import java.beans.PropertyChangeEvent;
-import java.beans.PropertyChangeListener;
-
-import javax.swing.*;
-
 import VASSAL.configure.BooleanConfigurer;
 import VASSAL.configure.Configurer;
+
+import javax.swing.*;
+import java.awt.*;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 
 /**
  * Configurer for {@link Color} values

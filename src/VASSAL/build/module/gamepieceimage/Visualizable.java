@@ -19,7 +19,7 @@
  
 package VASSAL.build.module.gamepieceimage;
 
-import java.awt.Image;
+import java.awt.*;
 
 public interface Visualizable {
   public int getVisualizerHeight();

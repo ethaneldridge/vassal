@@ -341,7 +341,7 @@ public class GamePieceLayout extends AbstractConfigurable implements Visualizabl
     Graphics g = image.getGraphics();
 
     // Fill in the sample Background color
-    Color bgColor = imageDefn.getBgColor().getColor();
+    Color bgColor = defn.getBgColor().getColor();
     g.setColor(bgColor);
 
     if (getBorder().equals(BORDER_3D)) {
@@ -354,7 +354,7 @@ public class GamePieceLayout extends AbstractConfigurable implements Visualizabl
       // Add Border
       if (getBorder().equals(BORDER_PLAIN) || getBorder().equals(BORDER_FANCY)) {
         Color bg = bgColor == null ? Color.WHITE : bgColor;
-        g.setColor(imageDefn.getBorderColor().getColor());
+        g.setColor(defn.getBorderColor().getColor());
         ((Graphics2D) g).setStroke(new BasicStroke(1.0f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
         g.drawRect(0, 0, width - 1, height - 1);
         if (getBorder().equals(BORDER_FANCY)) {

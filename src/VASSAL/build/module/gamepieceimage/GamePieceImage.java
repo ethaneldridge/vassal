@@ -19,13 +19,6 @@
 
 package VASSAL.build.module.gamepieceimage;
 
-import java.awt.Image;
-import java.awt.image.BufferedImage;
-import java.util.ArrayList;
-import java.util.Iterator;
-
-import javax.swing.KeyStroke;
-
 import VASSAL.build.AbstractConfigurable;
 import VASSAL.build.AutoConfigurable;
 import VASSAL.build.Buildable;
@@ -33,13 +26,13 @@ import VASSAL.build.GameModule;
 import VASSAL.build.module.documentation.HelpFile;
 import VASSAL.configure.Configurer;
 import VASSAL.configure.ConfigurerFactory;
-import VASSAL.configure.StringArrayConfigurer;
 import VASSAL.configure.VisibilityCondition;
-import VASSAL.counters.GamePiece;
-import VASSAL.counters.KeyCommand;
-import VASSAL.tools.SequenceEncoder;
 import VASSAL.tools.ImageSource;
 import VASSAL.tools.UniqueIdManager;
+
+import java.awt.*;
+import java.util.ArrayList;
+import java.util.Iterator;
 
 /**
  *
@@ -65,6 +58,7 @@ public class GamePieceImage extends AbstractConfigurable implements Visualizable
   protected Image image;
 
   protected static UniqueIdManager idMgr = new UniqueIdManager("GamePieceImage");
+  protected boolean addedToArchive;
 
   public GamePieceImage() {
     super();
@@ -155,11 +149,12 @@ public class GamePieceImage extends AbstractConfigurable implements Visualizable
 
   public void setAttribute(String key, Object value) {
     if (NAME.equals(key)) {
-      if (getConfigureName() != null) {
+      if (getConfigureName() != null
+        && addedToArchive) {
         GameModule.getGameModule().getDataArchive().removeImageSource(getConfigureName());
       }
       setConfigureName((String) value);
-      GameModule.getGameModule().getDataArchive().addImageSource(getConfigureName(), this);
+      addedToArchive = GameModule.getGameModule().getDataArchive().addImageSource(getConfigureName(), this);
     }
     else if (BG_COLOR.equals(key)) {
       if (value instanceof String) {
@@ -408,96 +403,4 @@ public class GamePieceImage extends AbstractConfigurable implements Visualizable
     rebuildVisualizerImage();
   }
 
-  public KeyCommand[] getKeyCommands(GamePiece target) {
-    int count = 0;
-    Iterator i = instances.iterator();
-    while (i.hasNext()) {
-      count += ((ItemInstance) i.next()).getKeyCommandCount();
-    }
-
-    KeyCommand commands[] = new KeyCommand[count];
-    count = 0;
-
-    i = instances.iterator();
-    while (i.hasNext()) {
-      KeyCommand[] c = ((ItemInstance) i.next()).getKeyCommands(target);
-      System.arraycopy(c, 0, commands, count, c.length);
-      count += c.length;
-    }
-
-    return commands;
-  }
-
-  /**
-   * @param newState
-   */
-  public void setState(String newState) {
-    String[] s = StringArrayConfigurer.stringToArray(newState);
-    for (int i = 0; i < s.length; i++) {
-      SequenceEncoder.Decoder sd = new SequenceEncoder.Decoder(s[i], ';');
-      String name = sd.nextToken();
-      ItemInstance instance = getInstance(name);
-      if (instance != null) {
-        instance.setState(s[i]);
-      }
-    }
-  }
-
-  /**
-   * @return
-   */
-  public String getState() {
-    String state = "";
-    SequenceEncoder se = new SequenceEncoder(state, ',');
-    Iterator i = instances.iterator();
-    while (i.hasNext()) {
-      ItemInstance instance = (ItemInstance) i.next();
-      String s = instance.getState();
-      if (s != null && s.length() > 0)
-        se.append(s);
-    }
-    return se.getValue();
-  }
-
-  /**
-   * Process Key events from a Generic trait. The Generic piece
-   * is handling command generation via a ChangeTracker
-   */
-  public void keyEvent(KeyStroke stroke) {
-    Iterator i = instances.iterator();
-    while (i.hasNext()) {
-      ItemInstance instance = (ItemInstance) i.next();
-      instance.keyEvent(stroke);
-    }
-    return;
-  }
-
-  /*
-   * Append any required labels to the name
-   */
-  public String getName(String n) {
-
-    String name = n + "";
-    Iterator i = instances.iterator();
-
-    while (i.hasNext()) {
-      ItemInstance instance = (ItemInstance) i.next();
-      name = instance.formatName(name);
-    }
-    return name;
-  }
-
-  /**
-   * @param key
-   * @return
-   */
-  public Object getProperty(Object key) {
-    Object result = null;
-    Iterator i = instances.iterator();
-    while (i.hasNext() && result == null) {
-      ItemInstance instance = (ItemInstance) i.next();
-      result = instance.getProperty(key);
-    }
-    return result;
-  }
 }

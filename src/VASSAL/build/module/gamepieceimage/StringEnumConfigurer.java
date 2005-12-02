@@ -26,15 +26,14 @@
  */
 package VASSAL.build.module.gamepieceimage;
 
-import javax.swing.*;
-
 import VASSAL.configure.Configurer;
 
+import javax.swing.*;
 import java.awt.*;
-import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
-import java.beans.PropertyChangeListener;
+import java.awt.event.ActionListener;
 import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 
 /**
  * A Configurer that returns a String from among a list of possible values

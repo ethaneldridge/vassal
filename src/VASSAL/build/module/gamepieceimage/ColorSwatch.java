@@ -23,13 +23,13 @@
 
 package VASSAL.build.module.gamepieceimage;
 
-import java.awt.Color;
-
 import VASSAL.build.AbstractConfigurable;
 import VASSAL.build.Buildable;
 import VASSAL.build.module.documentation.HelpFile;
 import VASSAL.configure.ColorConfigurer;
 import VASSAL.tools.SequenceEncoder;
+
+import java.awt.*;
 
 public class ColorSwatch extends AbstractConfigurable implements Comparable {
 

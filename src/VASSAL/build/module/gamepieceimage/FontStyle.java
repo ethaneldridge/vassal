@@ -23,14 +23,14 @@
 
 package VASSAL.build.module.gamepieceimage;
 
-import java.awt.Font;
-
 import VASSAL.build.AbstractConfigurable;
 import VASSAL.build.AutoConfigurable;
 import VASSAL.build.Buildable;
 import VASSAL.build.module.documentation.HelpFile;
 import VASSAL.configure.Configurer;
 import VASSAL.configure.ConfigurerFactory;
+
+import java.awt.*;
 
 public class FontStyle extends AbstractConfigurable {
 
