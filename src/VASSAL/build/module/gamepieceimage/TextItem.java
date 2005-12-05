@@ -219,14 +219,25 @@ public class TextItem extends Item {
       }
     }
 
+    Graphics2D g2d = ((Graphics2D) g);
     if (isAntialias()) {
-      ((Graphics2D) g).setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING,RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
+      g2d.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING,RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
     }
     else {
-      ((Graphics2D) g).setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING,RenderingHints.VALUE_TEXT_ANTIALIAS_OFF);
+      g2d.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING,RenderingHints.VALUE_TEXT_ANTIALIAS_OFF);
+    }
+    AffineTransform saveXForm = null;
+    if (getRotation() != 0) {
+      saveXForm = g2d.getTransform();
+      AffineTransform newXForm =
+        AffineTransform.getRotateInstance(Math.toRadians(getRotation()), getLayout().getVisualizerWidth()/2, getLayout().getVisualizerHeight()/2);
+      g2d.transform(newXForm);
     }
 
-    drawLabel(g, s, origin.x, origin.y, f, hAlign, vAlign, fg, bg, null, getRotation(), outline, ol);
+    drawLabel(g, s, origin.x, origin.y, f, hAlign, vAlign, fg, bg, null, outline, ol);
+    if (saveXForm != null) {
+      g2d.setTransform(saveXForm);
+    }
   }
 
   public String getType() {
@@ -295,7 +306,7 @@ public class TextItem extends Item {
     }
   }
 
-  public static void drawLabel(Graphics g, String text, int x, int y, Font f, int hAlign, int vAlign, Color fgColor, Color bgColor, Color borderColor, int rotateDegrees, boolean outline, Color outlineColor) {
+  public static void drawLabel(Graphics g, String text, int x, int y, Font f, int hAlign, int vAlign, Color fgColor, Color bgColor, Color borderColor, boolean outline, Color outlineColor) {
     g.setFont(f);
     int width = g.getFontMetrics().stringWidth(text + "  ");
     int height = g.getFontMetrics().getHeight();
@@ -316,16 +327,6 @@ public class TextItem extends Item {
       case AL_BOTTOM:
         y0 = y - height;
         break;
-    }
-
-    AffineTransform saveXForm = null;
-    Graphics2D g2d = (Graphics2D) g;
-
-    if (rotateDegrees != 0) {
-      saveXForm = g2d.getTransform();
-      AffineTransform newXForm =
-        AffineTransform.getRotateInstance(Math.toRadians(rotateDegrees), x, y);
-      g2d.transform(newXForm);
     }
 
     if (bgColor != null) {
@@ -351,8 +352,5 @@ public class TextItem extends Item {
     g.setColor(fgColor);
     g.drawString(theText, x0, y1);
 
-    if (rotateDegrees != 0) {
-      g2d.setTransform(saveXForm);
-    }
   }
 }
