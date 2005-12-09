@@ -31,6 +31,8 @@ import VASSAL.tools.SequenceEncoder;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.util.*;
+import java.io.File;
+import java.net.MalformedURLException;
 
 public class GamePieceLayout extends AbstractConfigurable implements Visualizable {
 
@@ -252,7 +254,14 @@ public class GamePieceLayout extends AbstractConfigurable implements Visualizabl
   }
 
   public HelpFile getHelpFile() {
-    return null;
+    File dir = VASSAL.build.module.Documentation.getDocumentationBaseDir();
+    dir = new File(dir, "ReferenceManual");
+    try {
+      return new HelpFile(null, new File(dir, "GamePieceLayout.htm"));
+    }
+    catch (MalformedURLException ex) {
+      return null;
+    }
   }
 
   public Class[] getAllowableConfigureComponents() {

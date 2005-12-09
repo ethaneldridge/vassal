@@ -33,6 +33,8 @@ import VASSAL.tools.UniqueIdManager;
 import java.awt.*;
 import java.util.ArrayList;
 import java.util.Iterator;
+import java.io.File;
+import java.net.MalformedURLException;
 
 /**
  *
@@ -233,7 +235,14 @@ public class GamePieceImage extends AbstractConfigurable implements Visualizable
   }
 
   public HelpFile getHelpFile() {
-    return null;
+    File dir = VASSAL.build.module.Documentation.getDocumentationBaseDir();
+    dir = new File(dir, "ReferenceManual");
+    try {
+      return new HelpFile(null, new File(dir, "GamePieceImage.htm"));
+    }
+    catch (MalformedURLException ex) {
+      return null;
+    }
   }
 
   public Class[] getAllowableConfigureComponents() {

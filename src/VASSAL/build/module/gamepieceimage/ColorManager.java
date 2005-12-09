@@ -16,6 +16,8 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.io.File;
+import java.net.MalformedURLException;
 
 /*
  * $Id$
@@ -226,7 +228,14 @@ public class ColorManager extends AbstractConfigurable {
   }
 
   public HelpFile getHelpFile() {
-    return null;
+    File dir = VASSAL.build.module.Documentation.getDocumentationBaseDir();
+    dir = new File(dir, "ReferenceManual");
+    try {
+      return new HelpFile(null, new File(dir, "GamePieceLayout.htm"),"#NamedColors");
+    }
+    catch (MalformedURLException ex) {
+      return null;
+    }
   }
 
   public void removeFrom(Buildable parent) {

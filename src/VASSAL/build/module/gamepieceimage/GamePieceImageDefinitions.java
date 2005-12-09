@@ -9,6 +9,8 @@ import VASSAL.configure.SingleChildInstance;
 import org.w3c.dom.Element;
 
 import java.awt.*;
+import java.io.File;
+import java.net.MalformedURLException;
 
 /*
  * $Id$
@@ -31,7 +33,7 @@ import java.awt.*;
 
 /**
  * Container for definitions of Generic Counter Definitions.
- * Actual definition is in inner class {@link VASSAL.build.module.Layout}
+ * Actual definition is in inner class {@link GamePieceLayout}
  */
 public class GamePieceImageDefinitions extends AbstractConfigurable {
   
@@ -135,10 +137,14 @@ public class GamePieceImageDefinitions extends AbstractConfigurable {
   }
   
   public HelpFile getHelpFile() {
-//    HelpFile help = new HelpFile();
-//    help.setAttribute(HelpFile.FILE, "AutoImage/help/AutoImages.html");
-//    return help;
-    return null;
+    File dir = VASSAL.build.module.Documentation.getDocumentationBaseDir();
+    dir = new File(dir, "ReferenceManual");
+    try {
+      return new HelpFile(null, new File(dir, "GamePieceImageDefinitions.htm"));
+    }
+    catch (MalformedURLException ex) {
+      return null;
+    }
   }
 
   public void removeFrom(Buildable parent) {

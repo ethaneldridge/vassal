@@ -31,6 +31,8 @@ import VASSAL.configure.Configurer;
 import VASSAL.configure.ConfigurerFactory;
 
 import java.awt.*;
+import java.io.File;
+import java.net.MalformedURLException;
 
 public class FontStyle extends AbstractConfigurable {
 
@@ -111,7 +113,14 @@ public class FontStyle extends AbstractConfigurable {
   }
 
   public HelpFile getHelpFile() {
-    return null;
+    File dir = VASSAL.build.module.Documentation.getDocumentationBaseDir();
+    dir = new File(dir, "ReferenceManual");
+    try {
+      return new HelpFile(null, new File(dir, "GamePieceLayout.htm"),"#NamedColors");
+    }
+    catch (MalformedURLException ex) {
+      return null;
+    }
   }
 
   public Class[] getAllowableConfigureComponents() {
