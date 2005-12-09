@@ -78,7 +78,7 @@ public class Obscurable extends Decorator implements EditablePiece {
     st.nextToken();
     keyCommand = st.nextKeyStroke(null);
     imageName = st.nextToken();
-    obscuredToMeView = new BasicPiece(BasicPiece.ID + ";;" + imageName + ";;");
+    obscuredToMeView = GameModule.getGameModule().createPiece(BasicPiece.ID + ";;" + imageName + ";;");
     if (st.hasMoreTokens()) {
       hideCommand = st.nextToken();
     }
@@ -104,7 +104,7 @@ public class Obscurable extends Decorator implements EditablePiece {
         case IMAGE:
           if (s.length() > 1) {
             obscuredToOthersImage = s.substring(1);
-            obscuredToOthersView = new BasicPiece(BasicPiece.ID + ";;" + obscuredToOthersImage + ";;");
+            obscuredToOthersView = GameModule.getGameModule().createPiece(BasicPiece.ID + ";;" + obscuredToOthersImage + ";;");
             obscuredToMeView.setPosition(new Point());
           }
       }

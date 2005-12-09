@@ -27,6 +27,7 @@ import VASSAL.command.Logger;
 import VASSAL.configure.CompoundValidityChecker;
 import VASSAL.configure.DirectoryConfigurer;
 import VASSAL.configure.MandatoryComponent;
+import VASSAL.counters.GamePiece;
 import VASSAL.preferences.Prefs;
 import VASSAL.tools.ArchiveWriter;
 import VASSAL.tools.DataArchive;
@@ -324,6 +325,36 @@ public abstract class GameModule extends AbstractConfigurable implements Command
     }
   }
 
+  /**
+   * Central location to create any type of GamePiece from within VASSAL
+   * 
+   * @param type
+   * @return
+   */
+  public GamePiece createPiece(String type) {
+    for (int i = 0; i < commandEncoders.length; ++i) {
+      if (commandEncoders[i] instanceof BasicCommandEncoder) {
+        GamePiece p = ((BasicCommandEncoder) commandEncoders[i]).createPiece(type);
+        if (p != null) {
+          return p;
+        }
+      }
+    }
+    return null;
+  }
+  
+  public GamePiece createPiece(String type, GamePiece inner) {
+    for (int i = 0; i < commandEncoders.length; ++i) {
+      if (commandEncoders[i] instanceof BasicCommandEncoder) {
+        GamePiece p = ((BasicCommandEncoder) commandEncoders[i]).createDecorator(type, inner);
+        if (p != null) {
+          return p;
+        }
+      }
+    }
+    return null;
+  }
+  
   /**
    * Display the given text in the control window's status line
    */

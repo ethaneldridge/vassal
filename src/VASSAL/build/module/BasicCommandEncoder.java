@@ -47,7 +47,7 @@ public class BasicCommandEncoder implements CommandEncoder, Buildable {
    *
    * @param inner the inner piece of the Decorator @see Decorator
    */
-  protected Decorator createDecorator(String type, GamePiece inner) {
+  public Decorator createDecorator(String type, GamePiece inner) {
     if (type.startsWith(Immobilized.ID)) {
       return new Immobilized(inner, type);
     }
@@ -158,7 +158,7 @@ public class BasicCommandEncoder implements CommandEncoder, Buildable {
    *     #createBasic}.  This method should generally not need to be
    *     overridden.  Instead, override createDecorator or
    *     createBasic  */
-  protected GamePiece createPiece(String type) {
+  public GamePiece createPiece(String type) {
     SequenceEncoder.Decoder st = new SequenceEncoder.Decoder(type, '\t');
     type = st.nextToken();
     String innerType = st.hasMoreTokens() ? st.nextToken() : null;

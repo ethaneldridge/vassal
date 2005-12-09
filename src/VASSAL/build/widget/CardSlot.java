@@ -18,6 +18,7 @@
  */
 package VASSAL.build.widget;
 
+import VASSAL.build.GameModule;
 import VASSAL.counters.*;
 import VASSAL.configure.Configurer;
 
@@ -35,8 +36,8 @@ public class CardSlot extends PieceSlot {
 
   public Configurer getConfigurer() {
     if (getPiece() == null) {
-      GamePiece theCard = new BasicPiece(BasicPiece.ID + ";;;;");
-      theCard = new Obscurable(Obscurable.ID + "F;;Face down;B", theCard);
+      GamePiece theCard = GameModule.getGameModule().createPiece(BasicPiece.ID + ";;;;");
+      theCard = GameModule.getGameModule().createPiece(Obscurable.ID + "F;;Face down;B", theCard);
       setPiece(theCard);
     }
     return super.getConfigurer();

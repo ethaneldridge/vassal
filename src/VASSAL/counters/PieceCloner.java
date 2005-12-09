@@ -46,7 +46,7 @@ public class PieceCloner {
   public GamePiece clonePiece(GamePiece piece) {
     GamePiece clone = null;
     if (piece instanceof BasicPiece) {
-      clone = new BasicPiece(piece.getType());
+      clone = GameModule.getGameModule().createPiece(piece.getType());
       Map m = piece.getMap();
       piece.setMap(null); // Temporarily set map to null so that clone won't be added to map
       clone.setState(piece.getState());
