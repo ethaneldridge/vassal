@@ -82,6 +82,10 @@ public class HindranceKeeper extends AbstractBuildable implements Drawable, KeyL
     }
   }
 
+  public boolean drawAboveCounters() {
+    return true;
+  }
+
   public boolean accept(GamePiece piece) {
     return isVisibleHindrance(piece);
   }
