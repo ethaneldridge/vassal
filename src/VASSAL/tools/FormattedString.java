@@ -59,25 +59,35 @@ public class FormattedString {
   public String getText(GamePiece piece) {
     StringBuffer buffer = new StringBuffer();
     SequenceEncoder.Decoder st = new SequenceEncoder.Decoder(formatString, '$');
+    boolean isProperty = true;
     while (st.hasMoreTokens()) {
       String token = st.nextToken();
-      if (props.containsKey(token)) {
-        String value = (String) props.get(token);
-        if (value != null) {
-          buffer.append(value);
+      isProperty = !isProperty;
+      if (token.length() > 0) {
+        /*
+         * Only even numbered tokens with at least one token after them are valid $propertName$ strings.
+         */
+        if (!isProperty || ! st.hasMoreTokens()) {
+          buffer.append(token);
         }
-      }
-      else if (piece != null) {
-        Object value = piece.getProperty(token);
-        if (value != null) {
-          buffer.append(value.toString());
+        else if (props.containsKey(token)) {
+          String value = (String) props.get(token);
+          if (value != null) {
+            buffer.append(value);
+          }
+        }
+        else if (piece != null) {
+          Object value = piece.getProperty(token);
+          if (value != null) {
+            buffer.append(value.toString());
+          }
+          else {
+            buffer.append(token);
+          } 
         }
         else {
           buffer.append(token);
         }
-      }
-      else {
-        buffer.append(token);
       }
     }
 
