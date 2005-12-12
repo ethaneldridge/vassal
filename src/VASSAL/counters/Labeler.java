@@ -90,7 +90,7 @@ public class Labeler extends Decorator implements EditablePiece {
     menuCommand = st.nextToken("Change Label");
     int fontSize = st.nextInt(10);
     textBg = st.nextColor(null);
-    textFg = st.nextColor(null);
+    textFg = st.nextColor(Color.black);
     verticalPos = st.nextChar('t');
     verticalOffset = st.nextInt(0);
     horizontalPos = st.nextChar('c');

@@ -18,7 +18,7 @@
  */
 package VASSAL.configure;
 
-import java.awt.Color;
+import java.awt.*;
 
 import javax.swing.*;
 
@@ -26,6 +26,7 @@ import javax.swing.*;
  * Configurer for {@link Color} values
  */
 public class ColorConfigurer extends Configurer {
+  private static Font FONT = new Font("Dialog", 0, 10);
   private JPanel p;
   private Panel cp;
 
@@ -89,6 +90,9 @@ public class ColorConfigurer extends Configurer {
       }
       else {
         g.clearRect(0, 0, getSize().width, getSize().height);
+        g.setFont(FONT);
+        g.drawString(" nil ", getSize().width / 2
+                              - g.getFontMetrics(g.getFont()).stringWidth(" nil ") / 2, getSize().height / 2);
       }
     }
   }
