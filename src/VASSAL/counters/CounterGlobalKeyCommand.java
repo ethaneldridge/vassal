@@ -52,6 +52,7 @@ public class CounterGlobalKeyCommand extends Decorator implements EditablePiece 
   protected String propertiesFilter;
   protected boolean restrictRange;
   protected int range;
+  private KeyCommand myCommand;
 
   public CounterGlobalKeyCommand() {
     this(ID, null);
@@ -90,8 +91,9 @@ public class CounterGlobalKeyCommand extends Decorator implements EditablePiece 
 
   protected KeyCommand[] myGetKeyCommands() {
     if (command == null) {
+      myCommand = new KeyCommand(commandName, key, Decorator.getOutermost(this));
       if (commandName.length() > 0 && key != null) {
-        command = new KeyCommand[]{new KeyCommand(commandName, key, Decorator.getOutermost(this))};
+        command = new KeyCommand[]{ myCommand };
       }
       else {
         command = new KeyCommand[0];
@@ -110,7 +112,7 @@ public class CounterGlobalKeyCommand extends Decorator implements EditablePiece 
   public Command myKeyEvent(KeyStroke stroke) {
     Command c = null;
     myGetKeyCommands();
-    if (command[0].matches(stroke)) {
+    if (myCommand.matches(stroke)) {
       apply();
     }
     return c;

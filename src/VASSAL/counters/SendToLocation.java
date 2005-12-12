@@ -42,13 +42,14 @@ import java.net.MalformedURLException;
  */
 public class SendToLocation extends Decorator implements EditablePiece {
   public static final String ID = "sendto;";
-  private KeyCommand[] command;
-  private String commandName;
-  private KeyStroke key;
-  private String mapId;
-  private String boardName;
-  private int x;
-  private int y;
+  protected KeyCommand[] command;
+  protected String commandName;
+  protected KeyStroke key;
+  protected String mapId;
+  protected String boardName;
+  protected int x;
+  protected int y;
+  protected KeyCommand sendCommand;
 
   public SendToLocation() {
     this(ID + ";;;;0;0", null);
@@ -83,9 +84,10 @@ public class SendToLocation extends Decorator implements EditablePiece {
 
   protected KeyCommand[] myGetKeyCommands() {
     if (command == null) {
+      sendCommand = new KeyCommand(commandName, key, Decorator.getOutermost(this));
       if (commandName.length() > 0
           && key != null) {
-        command = new KeyCommand[]{new KeyCommand(commandName, key, Decorator.getOutermost(this))};
+        command = new KeyCommand[]{sendCommand};
       }
       else {
         command = new KeyCommand[0];
@@ -104,7 +106,7 @@ public class SendToLocation extends Decorator implements EditablePiece {
   public Command myKeyEvent(KeyStroke stroke) {
     Command c = null;
     myGetKeyCommands();
-    if (command[0].matches(stroke)) {
+    if (sendCommand.matches(stroke)) {
       Map m = Map.getMapById(mapId);
       if (m == null) {
         m = getMap();

@@ -39,13 +39,14 @@ public class Hideable extends Decorator implements EditablePiece {
   public static final String ID = "hide;";
   public static final String HIDDEN_BY = "hiddenBy";
 
-  private String hiddenBy;
-  private KeyStroke hideKey;
-  private String command = "Invisible";
+  protected String hiddenBy;
+  protected KeyStroke hideKey;
+  protected String command = "Invisible";
 
-  private Color bgColor;
+  protected Color bgColor;
 
-  private KeyCommand[] commands;
+  protected KeyCommand[] commands;
+  protected KeyCommand hideCommand;
 
   public void setProperty(Object key, Object val) {
     if (HIDDEN_BY.equals(key)) {
@@ -183,15 +184,20 @@ public class Hideable extends Decorator implements EditablePiece {
 
   public KeyCommand[] myGetKeyCommands() {
     if (commands == null) {
-      commands = new KeyCommand[1];
-      commands[0] = new KeyCommand(command,hideKey, Decorator.getOutermost(this));
-    }
+      hideCommand = new KeyCommand(command,hideKey, Decorator.getOutermost(this));
+      if (command.length() > 0 && hideKey != null) {
+        commands =
+            new KeyCommand[]{hideCommand};
+      }
+      else {
+        commands = new KeyCommand[0];
+      }   }
     return commands;
   }
 
   public Command myKeyEvent(KeyStroke stroke) {
     myGetKeyCommands();
-    if (commands[0].matches(stroke)) {
+    if (hideCommand.matches(stroke)) {
       ChangeTracker tracker = new ChangeTracker(this);
       if (invisibleToOthers()) {
         hiddenBy = null;

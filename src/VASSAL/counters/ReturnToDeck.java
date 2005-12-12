@@ -38,12 +38,13 @@ import java.net.MalformedURLException;
  */
 public class ReturnToDeck extends Decorator implements EditablePiece {
   public static final String ID = "return;";
-  private String deckId;
-  private String returnCommand;
-  private KeyStroke returnKey;
-  private DrawPile deck;
+  protected String deckId;
+  protected String returnCommand;
+  protected KeyStroke returnKey;
+  protected DrawPile deck;
 
-  private KeyCommand[] commands;
+  protected KeyCommand[] commands;
+  protected KeyCommand myCommand;
 
   public ReturnToDeck() {
     this(ID + "Return to Deck;R;null", null);
@@ -56,7 +57,14 @@ public class ReturnToDeck extends Decorator implements EditablePiece {
 
   protected KeyCommand[] myGetKeyCommands() {
     if (commands == null) {
-      commands = new KeyCommand[]{new KeyCommand(returnCommand, returnKey, Decorator.getOutermost(this))};
+      myCommand = new KeyCommand(returnCommand, returnKey, Decorator.getOutermost(this));
+      if (returnCommand.length() > 0 && returnKey != null) {
+        commands =
+            new KeyCommand[]{myCommand};
+      }
+      else {
+        commands = new KeyCommand[0];
+      }
     }
     return commands;
   }
@@ -81,7 +89,7 @@ public class ReturnToDeck extends Decorator implements EditablePiece {
   public Command myKeyEvent(KeyStroke stroke) {
     myGetKeyCommands();
     Command comm = null;
-    if (commands[0].matches(stroke)) {
+    if (myCommand.matches(stroke)) {
       if (deck == null) {
         findDeck();
       }
