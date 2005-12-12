@@ -417,7 +417,9 @@ public class PropertySheet extends Decorator implements EditablePiece {
               break;
             case LABEL_ONLY:
             default :
+              stateDecoder.nextToken();
               field = null;
+              m_fields.add(field);
               break;
           }
           c.gridwidth = type == TEXT_AREA || type == LABEL_ONLY ? 2 : 1;
