@@ -54,6 +54,7 @@ public class AddPiece extends Command {
           && GlobalOptions.getInstance().centerOnOpponentsMove()
           && !Boolean.TRUE.equals(target.getProperty(Properties.INVISIBLE_TO_ME))) {
         target.getMap().ensureVisible(target.getMap().selectionBoundsOf(target));
+        target.getMap().setLastMoved(target);
         target.getMap().repaint();
       }
     }

@@ -134,6 +134,10 @@ public class MovePiece extends Command {
         }
       }
       bounds.addPiece(piece);
+      
+      // Highlight the stack the piece was moved to
+      newMap.setLastMoved(piece);
+      
       bounds.repaint();
       if (piece.getMap() != null
           && GlobalOptions.getInstance().centerOnOpponentsMove()

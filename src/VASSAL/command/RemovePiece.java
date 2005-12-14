@@ -49,11 +49,15 @@ public class RemovePiece extends Command {
       target = GameModule.getGameModule().getGameState().getPieceForId(id);
     }
     if (target != null) {
-      undo = new AddPiece(target, target.getState());
+    	undo = new AddPiece(target, target.getState());
       java.awt.Rectangle r = null;
       Map m = target.getMap();
       Stack parent = target.getParent();
       m.getIdentifier();
+      
+      // Highlight the stack the piece was removed from - Ben
+     	m.setLastMoved(target);
+      
       if (m != null) {
         r = parent == null ?
           m.boundingBoxOf(target) : m.boundingBoxOf(parent);
@@ -67,7 +71,7 @@ public class RemovePiece extends Command {
         target.setParent(null);
       }
       if (m != null) {
-        m.repaint(r);
+      	m.repaint(r);
       }
       GameModule.getGameModule().getGameState().removePiece(target.getId());
       KeyBuffer.getBuffer().remove(target);
