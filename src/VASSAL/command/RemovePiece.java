@@ -13,13 +13,14 @@
  * Library General Public License for more details.
  *
  * You should have received a copy of the GNU Library General Public
- * License along with this library; if not, copies are available 
+ * License along with this library; if not, copies are available
  * at http://www.opensource.org.
  */
 package VASSAL.command;
 
 import VASSAL.build.GameModule;
 import VASSAL.build.module.Map;
+import VASSAL.build.module.map.HighlightLastMoved;
 import VASSAL.counters.GamePiece;
 import VASSAL.counters.KeyBuffer;
 import VASSAL.counters.Stack;
@@ -54,10 +55,10 @@ public class RemovePiece extends Command {
       Map m = target.getMap();
       Stack parent = target.getParent();
       m.getIdentifier();
-      
+
       // Highlight the stack the piece was removed from - Ben
-     	m.setLastMoved(target);
-      
+      HighlightLastMoved.setLastMoved(target, target.getMap());
+
       if (m != null) {
         r = parent == null ?
           m.boundingBoxOf(target) : m.boundingBoxOf(parent);

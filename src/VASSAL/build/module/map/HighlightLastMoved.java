@@ -23,15 +23,23 @@ import VASSAL.build.Buildable;
 import VASSAL.build.module.documentation.HelpFile;
 import VASSAL.build.module.Map;
 import VASSAL.counters.ColoredBorder;
+import VASSAL.counters.GamePiece;
+import VASSAL.counters.Stack;
 import VASSAL.configure.ColorConfigurer;
 import VASSAL.configure.SingleChildInstance;
 
 import java.awt.*;
+import java.awt.event.MouseListener;
+import java.awt.event.MouseEvent;
+import java.util.HashMap;
 
-public class HighlightLastMoved extends AbstractConfigurable {
+public class HighlightLastMoved extends AbstractConfigurable implements Drawable, MouseListener {
   public static final String COLOR = "color";
   public static final String THICKNESS = "thickness";
-  private ColoredBorder highlighter = new ColoredBorder();
+
+  protected ColoredBorder highlighter = new ColoredBorder();
+  protected GamePiece lastMoved;
+  protected static java.util.Map instances = new HashMap();
 
   public String[] getAttributeDescriptions() {
     return new String[]{"Color", "Thickness"};
@@ -73,12 +81,60 @@ public class HighlightLastMoved extends AbstractConfigurable {
   }
 
   public void addTo(Buildable parent) {
-    ((Map) parent).setLastMovedHighlighter(highlighter);
-    validator = new SingleChildInstance((Map) parent, getClass());
+    Map map = (Map) parent;
+    map.addDrawComponent(this);
+    map.addLocalMouseListener(this);
+    instances.put(map, this);
+    validator = new SingleChildInstance(map, getClass());
   }
 
   public void removeFrom(Buildable parent) {
-    ((Map) parent).setLastMovedHighlighter(null);
+    Map map = (Map) parent;
+    map.removeDrawComponent(this);
+    map.removeLocalMouseListener(this);
+    instances.remove(map);
+  }
+
+  public void draw(Graphics g, Map map) {
+    if (lastMoved != null) {
+      highlighter.draw(lastMoved, g, lastMoved.getPosition().x, lastMoved.getPosition().y, map.getView(), map.getZoom());
+    }
+  }
+
+  public static void setLastMoved(GamePiece p, Map m) {
+    HighlightLastMoved h = (HighlightLastMoved) instances.get(m);
+    if (h != null) {
+      h.setLastMoved(p);
+    }
+  }
+
+  public void setLastMoved(GamePiece p) {
+    if (p.getParent() instanceof Stack) {
+      lastMoved = p.getParent();
+    }
+    else {
+      lastMoved = p;
+    }
+  }
+
+  public boolean drawAboveCounters() {
+    return true;
+  }
+
+  public void mouseClicked(MouseEvent e) {
+  }
+
+  public void mousePressed(MouseEvent e) {
+  }
+
+  public void mouseReleased(MouseEvent e) {
+    lastMoved = null;
+  }
+
+  public void mouseEntered(MouseEvent e) {
+  }
+
+  public void mouseExited(MouseEvent e) {
   }
 
   public HelpFile getHelpFile() {

@@ -106,8 +106,6 @@ public class Map extends AbstractConfigurable implements GameComponent,
   private String moveToFormat;
   private String createFormat;
   private String changeFormat = "$" + MESSAGE + "$";
-  private GamePiece lastMoved = null;
-  private Highlighter lastMovedHighlighter = new LastMovedHighlighter();
 
   public Map() {
     getView();
@@ -875,7 +873,6 @@ public class Map extends AbstractConfigurable implements GameComponent,
       e.translatePoint(p.x - e.getX(), p.y - e.getY());
       multicaster.mousePressed(e);
     }
-    lastMoved = null;
   }
 
   /**
@@ -1046,10 +1043,6 @@ public class Map extends AbstractConfigurable implements GameComponent,
                 (stack[i], g, pt.x, pt.y, theMap, getZoom());
           }
         }
-      }
-      if (lastMoved != null
-          && lastMovedHighlighter != null) {
-        lastMovedHighlighter.draw(lastMoved, g, lastMoved.getPosition().x, lastMoved.getPosition().y, theMap, getZoom());
       }
       g2d.setComposite(oldComposite);
     }
@@ -1922,26 +1915,5 @@ public class Map extends AbstractConfigurable implements GameComponent,
     public Map getMap() {
       return map;
     }
-  }
-
-  public GamePiece getLastMoved() {
-    return lastMoved;
-  }
-
-  public void setLastMoved(GamePiece p) {
-    if (p.getParent() instanceof Stack) {
-      lastMoved = p.getParent();
-    }
-    else {
-      lastMoved = p;
-    }
-  }
-
-  public Highlighter getLastMovedHighlighter() {
-    return lastMovedHighlighter;
-  }
-
-  public void setLastMovedHighlighter(Highlighter h) {
-    this.lastMovedHighlighter = h;
   }
 }

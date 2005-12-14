@@ -4,6 +4,7 @@ import VASSAL.counters.*;
 import VASSAL.build.GameModule;
 import VASSAL.build.module.Map;
 import VASSAL.build.module.GlobalOptions;
+import VASSAL.build.module.map.HighlightLastMoved;
 
 import java.awt.*;
 
@@ -134,10 +135,10 @@ public class MovePiece extends Command {
         }
       }
       bounds.addPiece(piece);
-      
+
       // Highlight the stack the piece was moved to
-      newMap.setLastMoved(piece);
-      
+      HighlightLastMoved.setLastMoved(piece, piece.getMap());
+
       bounds.repaint();
       if (piece.getMap() != null
           && GlobalOptions.getInstance().centerOnOpponentsMove()
