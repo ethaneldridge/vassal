@@ -14,6 +14,8 @@ import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.io.File;
+import java.net.MalformedURLException;
 
 /*
  * $Id$
@@ -140,7 +142,14 @@ public class FontManager extends AbstractConfigurable {
   }
 
   public HelpFile getHelpFile() {
-    return null;
+    File dir = VASSAL.build.module.Documentation.getDocumentationBaseDir();
+    dir = new File(dir, "ReferenceManual");
+    try {
+      return new HelpFile(null, new File(dir, "GamePieceImageDefinitions.htm"),"#FontStyles");
+    }
+    catch (MalformedURLException ex) {
+      return null;
+    }
   }
 
   public void removeFrom(Buildable parent) {

@@ -257,7 +257,7 @@ public class GamePieceLayout extends AbstractConfigurable implements Visualizabl
     File dir = VASSAL.build.module.Documentation.getDocumentationBaseDir();
     dir = new File(dir, "ReferenceManual");
     try {
-      return new HelpFile(null, new File(dir, "GamePieceLayout.htm"));
+      return new HelpFile(null, new File(dir, "GamePieceLayouts.htm"));
     }
     catch (MalformedURLException ex) {
       return null;

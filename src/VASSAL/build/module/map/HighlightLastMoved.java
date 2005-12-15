@@ -32,6 +32,8 @@ import java.awt.*;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseEvent;
 import java.util.HashMap;
+import java.io.File;
+import java.net.MalformedURLException;
 
 public class HighlightLastMoved extends AbstractConfigurable implements Drawable, MouseListener {
   public static final String COLOR = "color";
@@ -138,7 +140,14 @@ public class HighlightLastMoved extends AbstractConfigurable implements Drawable
   }
 
   public HelpFile getHelpFile() {
-    return null;
+    File dir = VASSAL.build.module.Documentation.getDocumentationBaseDir();
+    dir = new File(dir, "ReferenceManual");
+    try {
+      return new HelpFile(null, new File(dir, "Map.htm"),"#LastMoveHighlighter");
+    }
+    catch (MalformedURLException ex) {
+      return null;
+    }
   }
 
   public static String getConfigureTypeName() {

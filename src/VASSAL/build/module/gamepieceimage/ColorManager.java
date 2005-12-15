@@ -231,7 +231,7 @@ public class ColorManager extends AbstractConfigurable {
     File dir = VASSAL.build.module.Documentation.getDocumentationBaseDir();
     dir = new File(dir, "ReferenceManual");
     try {
-      return new HelpFile(null, new File(dir, "GamePieceLayout.htm"),"#NamedColors");
+      return new HelpFile(null, new File(dir, "GamePieceImageDefinitions.htm"),"#NamedColors");
     }
     catch (MalformedURLException ex) {
       return null;
