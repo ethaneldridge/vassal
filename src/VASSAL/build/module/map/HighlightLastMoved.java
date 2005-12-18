@@ -99,7 +99,12 @@ public class HighlightLastMoved extends AbstractConfigurable implements Drawable
 
   public void draw(Graphics g, Map map) {
     if (lastMoved != null) {
-      highlighter.draw(lastMoved, g, lastMoved.getPosition().x, lastMoved.getPosition().y, map.getView(), map.getZoom());
+      if (lastMoved.getMap() == map) {
+        highlighter.draw(lastMoved, g, lastMoved.getPosition().x, lastMoved.getPosition().y, map.getView(), map.getZoom());
+      }
+      else {
+        lastMoved = null;
+      }
     }
   }
 
@@ -116,6 +121,9 @@ public class HighlightLastMoved extends AbstractConfigurable implements Drawable
     }
     else {
       lastMoved = p;
+    }
+    if (lastMoved.getMap() != null) {
+      lastMoved.getMap().getPieceCollection().moveToFront(lastMoved);
     }
   }
 

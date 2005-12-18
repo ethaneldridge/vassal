@@ -104,18 +104,31 @@ public class Translate extends Decorator implements EditablePiece {
     return ID + se.getValue();
   }
 
+  public Command keyEvent(KeyStroke stroke) {
+    myGetKeyCommands();
+    if (moveCommand.matches(stroke)) {
+      // Delay the execution of the inner piece's key event until this piece has moved
+      return myKeyEvent(stroke);
+    }
+    else {
+      return super.keyEvent(stroke);
+    }
+  }
+
   public Command myKeyEvent(KeyStroke stroke) {
     myGetKeyCommands();
     Command c = null;
     if (moveCommand.matches(stroke)) {
       if (mover == null) {
         mover = new MoveExecuter();
+        mover.setKeyEvent(stroke);
         SwingUtilities.invokeLater(mover);
       }
       GamePiece target = findTarget(stroke);
       if (target != null) {
         c = moveTarget(target);
       }
+      mover.addKeyEventTarget(piece);
     }
     return c;
   }
@@ -234,12 +247,20 @@ public class Translate extends Decorator implements EditablePiece {
   public static class MoveExecuter implements Runnable {
     private java.util.List moves = new ArrayList();
     private Set pieces = new HashSet();
+    private KeyStroke stroke;
+    private java.util.List innerPieces = new ArrayList();
 
     public void run() {
       Command comm = new NullCommand();
       for (Iterator it = moves.iterator(); it.hasNext();) {
         final Move move = (Move) it.next();
         final Map.Merger merger = new Map.Merger(move.map, move.pos, move.piece);
+        if (move.piece instanceof Stack) {
+          ((Stack)move.piece).setPropertyOnContents(Properties.MOVED,Boolean.TRUE);
+        }
+        else {
+          move.piece.setProperty(Properties.MOVED,Boolean.TRUE);
+        }
         DeckVisitor v = new DeckVisitor() {
           public Object visitDeck(Deck d) {
             return merger.visitDeck(d);
@@ -283,6 +304,12 @@ public class Translate extends Decorator implements EditablePiece {
       }
       comm.append(reportCommand);
       comm.append(r.markMovedPieces());
+      if (stroke != null) {
+        for (Iterator it = innerPieces.iterator(); it.hasNext();) {
+          GamePiece gamePiece = (GamePiece) it.next();
+          comm.append(gamePiece.keyEvent(stroke));
+        }
+      }
       GameModule.getGameModule().sendAndLog(comm);
       mover = null;
     }
@@ -290,6 +317,14 @@ public class Translate extends Decorator implements EditablePiece {
     public void add(Map map, GamePiece piece, Point pos) {
       moves.add(new Move(map, piece, pos));
       pieces.add(piece);
+    }
+
+    public void addKeyEventTarget(GamePiece piece) {
+      innerPieces.add(piece);
+    }
+
+    public void setKeyEvent(KeyStroke stroke) {
+      this.stroke = stroke;
     }
 
     private static class Move {

@@ -134,10 +134,12 @@ public class SequenceEncoder {
   public static class Decoder {
     private String val;
     private char delimit;
+    private StringBuffer buffer;
 
     public Decoder(String value, char delimiter) {
       val = value;
       delimit = delimiter;
+      buffer = new StringBuffer(val.length());
     }
 
     public boolean hasMoreTokens() {
@@ -155,12 +157,12 @@ public class SequenceEncoder {
         val = null;
       }
       else {
-        value = "";
+        buffer.delete(0,buffer.length());
         int begin = 0;
         int end = i;
         while (begin < end) {
           if (val.charAt(end - 1) == '\\') {
-            value += val.substring(begin, end - 1);
+            buffer.append(val.substring(begin, end - 1));
             begin = end;
             end = val.indexOf(delimit, end + 1);
           }
@@ -169,13 +171,14 @@ public class SequenceEncoder {
           }
         }
         if (end < 0) {
-          value += val.substring(begin);
+          buffer.append(val.substring(begin));
           val = null;
         }
         else {
-          value += val.substring(begin, end);
+          buffer.append(val.substring(begin, end));
           val = end >= val.length() - 1 ? "" : val.substring(end + 1);
         }
+        value = buffer.toString();
       }
       if (value.startsWith("'")
           && value.endsWith("'")) {

@@ -334,7 +334,7 @@ public class PieceMover extends AbstractBuildable implements
     return e.isShiftDown();
   }
 
-  /** Invoked after a piece has been moved */
+  /** Invoked just before a piece is moved */
   protected Command movedPiece(GamePiece p, Point loc) {
     Command c = null;
     if (!loc.equals(p.getPosition())) {

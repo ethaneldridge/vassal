@@ -71,6 +71,7 @@ public class Labeler extends Decorator implements EditablePiece {
   private int horizontalOffset = 0;
   protected int rotateDegrees;
   protected String propertyName;
+  protected KeyCommand menuKeyCommand;
 
   public Labeler() {
     this(ID, null);
@@ -346,12 +347,14 @@ public class Labeler extends Decorator implements EditablePiece {
 
   public KeyCommand[] myGetKeyCommands() {
     if (commands == null) {
-      if (labelKey == null) {
+      menuKeyCommand = new KeyCommand(menuCommand, labelKey, Decorator.getOutermost(this));
+      if (labelKey == null
+        || menuCommand == null
+        || menuCommand.length() == 0) {
         commands = new KeyCommand[0];
       }
       else {
-        commands = new KeyCommand[1];
-        commands[0] = new KeyCommand(menuCommand, labelKey, Decorator.getOutermost(this));
+        commands = new KeyCommand[]{menuKeyCommand};
       }
     }
     return commands;
@@ -360,12 +363,11 @@ public class Labeler extends Decorator implements EditablePiece {
   public Command myKeyEvent(KeyStroke stroke) {
     myGetKeyCommands();
     Command c = null;
-    if (commands.length > 0
-        && commands[0].matches(stroke)) {
+    if (menuKeyCommand.matches(stroke)) {
       ChangeTracker tracker = new ChangeTracker(this);
       String s = (String) JOptionPane.showInputDialog
           (getMap() == null ? null : getMap().getView().getTopLevelAncestor(),
-           commands[0].getName(),
+           menuKeyCommand.getName(),
            null,
            JOptionPane.QUESTION_MESSAGE,
            null,

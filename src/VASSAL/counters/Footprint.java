@@ -376,7 +376,8 @@ public class Footprint extends MovementMarkable {
       Point p = (Point) e.nextElement();
       elementCount++;
 
-      if (circleRect.contains(p)) {
+      if (circleRect.contains(p)
+        && !p.equals(here)) {
 
         drawPoint(g, p, zoom, elementCount);
 

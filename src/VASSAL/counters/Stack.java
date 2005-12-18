@@ -469,6 +469,17 @@ public class Stack implements GamePiece, StateMergeable {
   public void setProperty(Object key, Object val) {
   }
 
+  /**
+   * Calls setProperty() on each piece in this stack
+   * @param key
+   * @param val
+   */
+  public void setPropertyOnContents(Object key, Object val) {
+    for (Enumeration e = getPieces();e.hasMoreElements();) {
+      ((GamePiece)e.nextElement()).setProperty(key,val);
+    }
+  }
+
   public Object getProperty(Object key) {
     return null;
   }

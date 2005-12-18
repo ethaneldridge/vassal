@@ -230,9 +230,19 @@ public class AreaOfEffect extends Decorator implements EditablePiece, MapShader.
 
   public Area getArea(MapShader shader) {
     Area a = null;
+    MapShader.ShadedPiece shaded = (MapShader.ShadedPiece) Decorator.getDecorator(piece,MapShader.ShadedPiece.class);
+    if (shaded != null) {
+      a = shaded.getArea(shader);
+    }
     if (alwaysActive || active) {
       if (shader.getConfigureName().equals(mapShaderName)) {
-        a = getArea();
+        Area myArea = getArea();
+        if (a == null) {
+          a = myArea;
+        }
+        else {
+          a.add(myArea);
+        }
       }
     }
     return a;
@@ -259,6 +269,7 @@ public class AreaOfEffect extends Decorator implements EditablePiece, MapShader.
       panel.add(new JLabel(" "));
 
       useMapShader = new BooleanConfigurer(null, "Use Map Shading", trait.mapShaderName != null);
+      mapShaderId = trait.mapShaderName;
       panel.add(useMapShader.getControls());
       selectShader = Box.createHorizontalBox();
 
