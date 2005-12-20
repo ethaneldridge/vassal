@@ -20,6 +20,7 @@ package VASSAL.counters;
 
 import VASSAL.build.module.documentation.HelpFile;
 import VASSAL.command.Command;
+import VASSAL.tools.SequenceEncoder;
 
 import javax.swing.*;
 import java.awt.*;
@@ -30,18 +31,34 @@ import java.net.MalformedURLException;
 public class Immobilized extends Decorator implements EditablePiece {
 
   public static final String ID = "immob;";
-  private boolean useShift = false;
+  private boolean shiftToSelect = false;
   private boolean ignoreGrid = false;
   private boolean neverSelect = false;
-  private EventFilter filter;
+  private boolean neverMove = false;
+  private boolean moveIfSelected = false;
+  private EventFilter selectFilter;
+  private EventFilter moveFilter;
 
-  private class UseShiftFilter implements EventFilter {
+  protected static final char MOVE_SELECTED = 'I';
+  protected static final char MOVE_NORMAL = 'N';
+  protected static final char NEVER_MOVE = 'V';
+  protected static final char IGNORE_GRID = 'g';
+  protected static final char SHIFT_SELECT = 'i';
+  protected static final char NEVER_SELECT = 'n';
+
+  private static EventFilter USE_SHIFT = new EventFilter() {
     public boolean rejectEvent(InputEvent evt) {
-      return !evt.isShiftDown() && !Boolean.TRUE.equals(getProperty(Properties.SELECTED));
+      return !evt.isShiftDown();
     }
   };
 
-  private static EventFilter NEVER_SELECT = new EventFilter() {
+  private class MoveIfSelected implements EventFilter {
+    public boolean rejectEvent(InputEvent evt) {
+      return !Boolean.TRUE.equals(getProperty(Properties.SELECTED));
+    }
+  }
+
+  private static EventFilter NEVER = new EventFilter() {
     public boolean rejectEvent(InputEvent evt) {
       return true;
     }
@@ -57,18 +74,58 @@ public class Immobilized extends Decorator implements EditablePiece {
   }
 
   public void mySetType(String type) {
-    useShift = false;
-    if (type.length() > ID.length()) {
-      type = type.substring(ID.length());
-      useShift = type.indexOf('i') >= 0;
-      ignoreGrid = type.indexOf('g') >= 0;
-      neverSelect = type.indexOf('n') >= 0;
+    shiftToSelect = false;
+    neverSelect = false;
+    ignoreGrid = false;
+    neverMove = false;
+    moveIfSelected = false;
+    SequenceEncoder.Decoder st = new SequenceEncoder.Decoder(type, ';');
+    st.nextToken();
+    String selectionOptions = st.nextToken("");
+    String movementOptions = st.nextToken("");
+    if (selectionOptions.indexOf(SHIFT_SELECT) >= 0) {
+      shiftToSelect = true;
+      moveIfSelected = true;
+    }
+    if (selectionOptions.indexOf(NEVER_SELECT) >= 0) {
+      neverSelect = true;
+      neverMove = true;
+    }
+    if (selectionOptions.indexOf(IGNORE_GRID) >= 0) {
+      ignoreGrid = true;
+    }
+    if (movementOptions.length() > 0) {
+      switch (movementOptions.charAt(0)) {
+        case NEVER_MOVE:
+          neverMove = true;
+          moveIfSelected = false;
+          break;
+        case MOVE_SELECTED:
+          neverMove = false;
+          moveIfSelected = true;
+          break;
+        default :
+          neverMove = false;
+          moveIfSelected = false;
+      }
     }
     if (neverSelect) {
-      filter = NEVER_SELECT;
+      selectFilter = NEVER;
     }
-    else if (useShift) {
-      filter = new UseShiftFilter();
+    else if (shiftToSelect) {
+      selectFilter = USE_SHIFT;
+    }
+    else {
+      selectFilter = null;
+    }
+    if (neverMove) {
+      moveFilter = NEVER;
+    }
+    else if (moveIfSelected) {
+      moveFilter = new MoveIfSelected();
+    }
+    else {
+      moveFilter = null;
     }
   }
 
@@ -89,13 +146,16 @@ public class Immobilized extends Decorator implements EditablePiece {
       return Boolean.TRUE;
     }
     else if (Properties.TERRAIN.equals(key)) {
-      return new Boolean(useShift || neverSelect);
+      return new Boolean(neverSelect || shiftToSelect || moveIfSelected || neverMove);
     }
     else if (Properties.IGNORE_GRID.equals(key)) {
       return new Boolean(ignoreGrid);
     }
-    else if (Properties.EVENT_FILTER.equals(key)) {
-      return filter;
+    else if (Properties.SELECT_EVENT_FILTER.equals(key)) {
+      return selectFilter;
+    }
+    else if (Properties.MOVE_EVENT_FILTER.equals(key)) {
+      return moveFilter;
     }
     else {
       return super.getProperty(key);
@@ -115,17 +175,27 @@ public class Immobilized extends Decorator implements EditablePiece {
   }
 
   public String myGetType() {
-    String s = ID;
+    StringBuffer buffer = new StringBuffer(ID);
     if (neverSelect) {
-      s += 'n';
+      buffer.append(NEVER_SELECT);
     }
-    else if (useShift) {
-      s += 'i';
+    else if (shiftToSelect) {
+      buffer.append(SHIFT_SELECT);
     }
     if (ignoreGrid) {
-      s += 'g';
+      buffer.append(IGNORE_GRID);
     }
-    return s;
+    buffer.append(';');
+    if (neverMove) {
+      buffer.append(NEVER_MOVE);
+    }
+    else if (moveIfSelected) {
+      buffer.append(MOVE_SELECTED);
+    }
+    else {
+      buffer.append(MOVE_NORMAL);
+    }
+    return buffer.toString();
   }
 
   public String myGetState() {
@@ -156,6 +226,7 @@ public class Immobilized extends Decorator implements EditablePiece {
 
   private static class Ed implements PieceEditor {
     private JComboBox selectionOption;
+    private JComboBox movementOption;
     private JCheckBox ignoreGridBox;
     private Box controls;
 
@@ -167,7 +238,7 @@ public class Immobilized extends Decorator implements EditablePiece {
       if (p.neverSelect) {
         selectionOption.setSelectedIndex(2);
       }
-      else if (p.useShift) {
+      else if (p.shiftToSelect) {
         selectionOption.setSelectedIndex(1);
       }
       else {
@@ -177,8 +248,26 @@ public class Immobilized extends Decorator implements EditablePiece {
       ignoreGridBox.setSelected(p.ignoreGrid);
       controls = Box.createVerticalBox();
       Box b = Box.createHorizontalBox();
-      b.add(new JLabel("Select piece"));
+      b.add(new JLabel("Select piece  "));
       b.add(selectionOption);
+      controls.add(b);
+
+      movementOption = new JComboBox();
+      movementOption.addItem("normally");
+      movementOption.addItem("when already selected");
+      movementOption.addItem("never");
+      if (p.neverMove) {
+        movementOption.setSelectedIndex(2);
+      }
+      else if (p.moveIfSelected) {
+        movementOption.setSelectedIndex(1);
+      }
+      else {
+        movementOption.setSelectedIndex(0);
+      }
+      b = Box.createHorizontalBox();
+      b.add(new JLabel("Move piece  "));
+      b.add(movementOption);
       controls.add(b);
       controls.add(ignoreGridBox);
     }
@@ -191,13 +280,25 @@ public class Immobilized extends Decorator implements EditablePiece {
       String s = ID;
       switch (selectionOption.getSelectedIndex()) {
         case 1:
-          s += 'i';
+          s += SHIFT_SELECT;
           break;
         case 2:
-          s += 'n';
+          s += NEVER_SELECT;
       }
       if (ignoreGridBox.isSelected()) {
-        s += 'g';
+        s += IGNORE_GRID;
+      }
+      s += ';';
+      switch (movementOption.getSelectedIndex()) {
+        case 0:
+          s += MOVE_NORMAL;
+          break;
+        case 1:
+          s += MOVE_SELECTED;
+          break;
+        case 2:
+          s += NEVER_MOVE;
+          break;
       }
       return s;
     }

@@ -46,10 +46,15 @@ public interface Properties {
 
   /**
    * If non-null, then return an instance of {@link EventFilter}.
-   * The piece will not respond to events if the filter rejects them
+   * The piece will not respond to selection events if the filter rejects them
    */
-  public static final String EVENT_FILTER = "eventFilter";
+  public static final String SELECT_EVENT_FILTER = "selectEventFilter";
 
+  /**
+   * If non-null, then return an instance of {@link EventFilter}.
+   * The piece will not respond to move events if the filter rejects them
+   */
+  public static final String MOVE_EVENT_FILTER = "moveEventFilter";
   /**
    * If a piece is hidden to other players, return a STring
    * identifying the player who hit it

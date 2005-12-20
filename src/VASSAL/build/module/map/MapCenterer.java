@@ -70,7 +70,7 @@ public class MapCenterer extends AbstractBuildable implements MouseListener {
     if (e.isMetaDown()) {
       GamePiece found = map.findPiece(e.getPoint(), finder);
       if (found != null) {
-        EventFilter filter = (EventFilter) found.getProperty(Properties.EVENT_FILTER);
+        EventFilter filter = (EventFilter) found.getProperty(Properties.SELECT_EVENT_FILTER);
         if (filter != null
             && filter.rejectEvent(e)) {
           found = null;

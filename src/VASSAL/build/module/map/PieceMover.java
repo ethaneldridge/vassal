@@ -481,7 +481,7 @@ public class PieceMover extends AbstractBuildable implements
     dragBegin = e.getPoint();
 
     if (p != null) {
-      EventFilter filter = (EventFilter) p.getProperty(Properties.EVENT_FILTER);
+      EventFilter filter = (EventFilter) p.getProperty(Properties.MOVE_EVENT_FILTER);
       if (filter == null
           || !filter.rejectEvent(e)) {
         selectionProcessor.accept(p);

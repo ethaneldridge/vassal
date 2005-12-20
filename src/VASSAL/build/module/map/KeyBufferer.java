@@ -68,7 +68,7 @@ public class KeyBufferer extends MouseAdapter implements Buildable, MouseMotionL
     // Because selecting a piece affects its visibility
     EventFilter filter = null;
     if (p != null) {
-      filter = (EventFilter) p.getProperty(Properties.EVENT_FILTER);
+      filter = (EventFilter) p.getProperty(Properties.SELECT_EVENT_FILTER);
     }
     boolean ignoreEvent = filter != null && filter.rejectEvent(e);
     if (p != null && !ignoreEvent) {
@@ -102,44 +102,53 @@ public class KeyBufferer extends MouseAdapter implements Buildable, MouseMotionL
       selection.setLocation(map.mapCoordinates(selection.getLocation()));
       selection.width /= map.getZoom();
       selection.height /= map.getZoom();
-      PieceVisitorDispatcher d = new PieceVisitorDispatcher(new DeckVisitor() {
-        public Object visitDeck(Deck d) {
-          return null;
-        }
-
-        public Object visitStack(Stack s) {
-          if (s.topPiece() != null) {
-            if (s.isExpanded()) {
-              Point[] pos = new Point[s.getPieceCount()];
-              map.getStackMetrics().getContents(s, pos, null, null, s.getPosition().x, s.getPosition().y);
-              for (int i = 0; i < pos.length; ++i) {
-                if (selection.contains(pos[i])) {
-                  KeyBuffer.getBuffer().add(s.getPieceAt(i));
-                }
-              }
-            }
-            else if (selection.contains(s.getPosition())) {
-              for (int i = 0,n = s.getPieceCount(); i < n; ++i) {
-                KeyBuffer.getBuffer().add(s.getPieceAt(i));
-              }
-            }
-          }
-          return null;
-        }
-
-        public Object visitDefault(GamePiece p) {
-          if (!Boolean.TRUE.equals(p.getProperty(Properties.TERRAIN))
-              && selection.contains(p.getPosition())
-              && !Boolean.TRUE.equals(p.getProperty(Properties.INVISIBLE_TO_ME))) {
-            KeyBuffer.getBuffer().add(p);
-          }
-          return null;
-        }
-      });
+      PieceVisitorDispatcher d = createDragSelector();
       KeyBuffer.getBuffer().clear();
       map.apply(d);
     }
     selection = null;
+  }
+
+  /**
+   * This PieceVisitorDispatcher determines what to do with pieces on the map
+   * when the player finished dragging a rectangle to select pieces
+   * @return
+   */
+  protected PieceVisitorDispatcher createDragSelector() {
+    return new PieceVisitorDispatcher(new DeckVisitor() {
+      public Object visitDeck(Deck d) {
+        return null;
+      }
+
+      public Object visitStack(Stack s) {
+        if (s.topPiece() != null) {
+          if (s.isExpanded()) {
+            Point[] pos = new Point[s.getPieceCount()];
+            map.getStackMetrics().getContents(s, pos, null, null, s.getPosition().x, s.getPosition().y);
+            for (int i = 0; i < pos.length; ++i) {
+              if (selection.contains(pos[i])) {
+                KeyBuffer.getBuffer().add(s.getPieceAt(i));
+              }
+            }
+          }
+          else if (selection.contains(s.getPosition())) {
+            for (int i = 0,n = s.getPieceCount(); i < n; ++i) {
+              KeyBuffer.getBuffer().add(s.getPieceAt(i));
+            }
+          }
+        }
+        return null;
+      }
+
+      public Object visitDefault(GamePiece p) {
+        if (!Boolean.TRUE.equals(p.getProperty(Properties.TERRAIN))
+            && selection.contains(p.getPosition())
+            && !Boolean.TRUE.equals(p.getProperty(Properties.INVISIBLE_TO_ME))) {
+          KeyBuffer.getBuffer().add(p);
+        }
+        return null;
+      }
+    });
   }
 
   public void mouseDragged(MouseEvent e) {

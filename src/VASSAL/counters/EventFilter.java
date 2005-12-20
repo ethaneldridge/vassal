@@ -23,7 +23,7 @@ import java.awt.event.InputEvent;
 
 /**
  * Gives information about what kinds of events a {@link GamePiece} will respond to
- * @see Properties#EVENT_FILTER
+ * @see Properties#SELECT_EVENT_FILTER
  */
 public interface EventFilter {
   boolean rejectEvent(InputEvent evt);
