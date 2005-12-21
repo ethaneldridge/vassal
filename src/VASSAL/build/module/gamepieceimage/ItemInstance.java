@@ -183,8 +183,4 @@ public abstract class ItemInstance extends AbstractConfigurable {
     return name;
   }
 
-  public Object getProperty(Object key) {
-    return null;
-  }
-
 }
