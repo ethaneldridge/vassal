@@ -57,7 +57,7 @@ public class RemovePiece extends Command {
       m.getIdentifier();
 
       // Highlight the stack the piece was removed from - Ben
-      HighlightLastMoved.setLastMoved(target, target.getMap());
+      HighlightLastMoved.setLastMoved(target);
 
       if (m != null) {
         r = parent == null ?

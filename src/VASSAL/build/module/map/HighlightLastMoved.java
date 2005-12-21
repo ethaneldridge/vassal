@@ -20,13 +20,16 @@ package VASSAL.build.module.map;
 
 import VASSAL.build.AbstractConfigurable;
 import VASSAL.build.Buildable;
+import VASSAL.build.GameModule;
 import VASSAL.build.module.documentation.HelpFile;
 import VASSAL.build.module.Map;
+import VASSAL.build.module.GameComponent;
 import VASSAL.counters.ColoredBorder;
 import VASSAL.counters.GamePiece;
 import VASSAL.counters.Stack;
 import VASSAL.configure.ColorConfigurer;
 import VASSAL.configure.SingleChildInstance;
+import VASSAL.command.Command;
 
 import java.awt.*;
 import java.awt.event.MouseListener;
@@ -35,13 +38,14 @@ import java.util.HashMap;
 import java.io.File;
 import java.net.MalformedURLException;
 
-public class HighlightLastMoved extends AbstractConfigurable implements Drawable, MouseListener {
+public class HighlightLastMoved extends AbstractConfigurable implements Drawable, MouseListener, GameComponent {
   public static final String COLOR = "color";
   public static final String THICKNESS = "thickness";
 
-  protected ColoredBorder highlighter = new ColoredBorder();
+  protected ColoredBorder highlighter = new ColoredBorder(Color.RED, 2);
   protected GamePiece lastMoved;
   protected static java.util.Map instances = new HashMap();
+  private boolean enabled;
 
   public String[] getAttributeDescriptions() {
     return new String[]{"Color", "Thickness"};
@@ -86,6 +90,7 @@ public class HighlightLastMoved extends AbstractConfigurable implements Drawable
     Map map = (Map) parent;
     map.addDrawComponent(this);
     map.addLocalMouseListener(this);
+    GameModule.getGameModule().getGameState().addGameComponent(this);
     instances.put(map, this);
     validator = new SingleChildInstance(map, getClass());
   }
@@ -94,6 +99,7 @@ public class HighlightLastMoved extends AbstractConfigurable implements Drawable
     Map map = (Map) parent;
     map.removeDrawComponent(this);
     map.removeLocalMouseListener(this);
+    GameModule.getGameModule().getGameState().removeGameComponent(this);
     instances.remove(map);
   }
 
@@ -108,22 +114,33 @@ public class HighlightLastMoved extends AbstractConfigurable implements Drawable
     }
   }
 
-  public static void setLastMoved(GamePiece p, Map m) {
-    HighlightLastMoved h = (HighlightLastMoved) instances.get(m);
+  public void setup(boolean gameStarting) {
+    enabled = gameStarting;
+    lastMoved = null;
+  }
+
+  public Command getRestoreCommand() {
+    return null;
+  }
+
+  public static void setLastMoved(GamePiece p) {
+    HighlightLastMoved h = (HighlightLastMoved) instances.get(p.getMap());
     if (h != null) {
-      h.setLastMoved(p);
+      h.setLastMovedPiece(p);
     }
   }
 
-  public void setLastMoved(GamePiece p) {
-    if (p.getParent() instanceof Stack) {
-      lastMoved = p.getParent();
-    }
-    else {
-      lastMoved = p;
-    }
-    if (lastMoved.getMap() != null) {
-      lastMoved.getMap().getPieceCollection().moveToFront(lastMoved);
+  public void setLastMovedPiece(GamePiece p) {
+    if (enabled) {
+      if (p.getParent() instanceof Stack) {
+        lastMoved = p.getParent();
+      }
+      else {
+        lastMoved = p;
+      }
+      if (lastMoved.getMap() != null) {
+        lastMoved.getMap().getPieceCollection().moveToFront(lastMoved);
+      }
     }
   }
 
@@ -151,7 +168,7 @@ public class HighlightLastMoved extends AbstractConfigurable implements Drawable
     File dir = VASSAL.build.module.Documentation.getDocumentationBaseDir();
     dir = new File(dir, "ReferenceManual");
     try {
-      return new HelpFile(null, new File(dir, "Map.htm"),"#LastMoveHighlighter");
+      return new HelpFile(null, new File(dir, "Map.htm"), "#LastMoveHighlighter");
     }
     catch (MalformedURLException ex) {
       return null;

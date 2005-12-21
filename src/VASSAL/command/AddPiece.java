@@ -52,7 +52,7 @@ public class AddPiece extends Command {
       GameModule.getGameModule().getGameState().addPiece(target);
       target.setState(state);
       if (target.getMap() != null) {
-        HighlightLastMoved.setLastMoved(target, target.getMap());
+        HighlightLastMoved.setLastMoved(target);
         if (GlobalOptions.getInstance().centerOnOpponentsMove()
             && !Boolean.TRUE.equals(target.getProperty(Properties.INVISIBLE_TO_ME))) {
           target.getMap().ensureVisible(target.getMap().selectionBoundsOf(target));

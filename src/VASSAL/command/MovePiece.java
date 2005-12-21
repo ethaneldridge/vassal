@@ -137,7 +137,7 @@ public class MovePiece extends Command {
       bounds.addPiece(piece);
 
       // Highlight the stack the piece was moved to
-      HighlightLastMoved.setLastMoved(piece, piece.getMap());
+      HighlightLastMoved.setLastMoved(piece);
 
       bounds.repaint();
       if (piece.getMap() != null
