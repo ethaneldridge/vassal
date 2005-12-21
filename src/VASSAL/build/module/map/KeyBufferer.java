@@ -141,7 +141,7 @@ public class KeyBufferer extends MouseAdapter implements Buildable, MouseMotionL
       }
 
       public Object visitDefault(GamePiece p) {
-        if (!Boolean.TRUE.equals(p.getProperty(Properties.TERRAIN))
+        if (p.getProperty(Properties.SELECT_EVENT_FILTER) == null
             && selection.contains(p.getPosition())
             && !Boolean.TRUE.equals(p.getProperty(Properties.INVISIBLE_TO_ME))) {
           KeyBuffer.getBuffer().add(p);

@@ -46,9 +46,9 @@ public class Immobilized extends Decorator implements EditablePiece {
   protected static final char SHIFT_SELECT = 'i';
   protected static final char NEVER_SELECT = 'n';
 
-  private static EventFilter USE_SHIFT = new EventFilter() {
+  private class UseShift implements EventFilter {
     public boolean rejectEvent(InputEvent evt) {
-      return !evt.isShiftDown();
+      return !evt.isShiftDown() && !Boolean.TRUE.equals(getProperty(Properties.SELECTED));
     }
   };
 
@@ -113,7 +113,7 @@ public class Immobilized extends Decorator implements EditablePiece {
       selectFilter = NEVER;
     }
     else if (shiftToSelect) {
-      selectFilter = USE_SHIFT;
+      selectFilter = new UseShift();
     }
     else {
       selectFilter = null;
@@ -146,7 +146,7 @@ public class Immobilized extends Decorator implements EditablePiece {
       return Boolean.TRUE;
     }
     else if (Properties.TERRAIN.equals(key)) {
-      return new Boolean(neverSelect || shiftToSelect || moveIfSelected || neverMove);
+      return new Boolean(moveIfSelected || neverMove);
     }
     else if (Properties.IGNORE_GRID.equals(key)) {
       return new Boolean(ignoreGrid);
@@ -254,7 +254,7 @@ public class Immobilized extends Decorator implements EditablePiece {
 
       movementOption = new JComboBox();
       movementOption.addItem("normally");
-      movementOption.addItem("when already selected");
+      movementOption.addItem("only if selected");
       movementOption.addItem("never");
       if (p.neverMove) {
         movementOption.setSelectedIndex(2);

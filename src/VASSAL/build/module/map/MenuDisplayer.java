@@ -77,7 +77,7 @@ public class MenuDisplayer extends MouseAdapter implements Buildable {
   }
 
   public static JPopupMenu createPopup(GamePiece target) {
-    return createPopup(target,false);
+    return createPopup(target, false);
   }
 
   /**
@@ -161,11 +161,12 @@ public class MenuDisplayer extends MouseAdapter implements Buildable {
   public void mouseReleased(MouseEvent e) {
     if (e.isMetaDown()) {
       final GamePiece p = map.findPiece(e.getPoint(), targetSelector);
+      System.err.println("selected "+p.getProperty(Properties.SELECTED)+": "+p.getName());
       if (p != null) {
         EventFilter filter = (EventFilter) p.getProperty(Properties.SELECT_EVENT_FILTER);
         if (filter == null
             || !filter.rejectEvent(e)) {
-          JPopupMenu popup = createPopup(p,true);
+          JPopupMenu popup = createPopup(p, true);
           Point pt = map.componentCoordinates(e.getPoint());
           popup.addPopupMenuListener(new javax.swing.event.PopupMenuListener() {
             public void popupMenuCanceled
