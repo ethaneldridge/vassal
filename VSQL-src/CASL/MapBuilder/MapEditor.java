@@ -37,6 +37,8 @@ import java.awt.event.MouseMotionListener;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Ellipse2D;
 import java.awt.image.BufferedImage;
+import java.awt.image.ColorModel;
+import java.awt.image.PixelGrabber;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileOutputStream;
@@ -48,6 +50,7 @@ import java.util.LinkedList;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
+import javax.swing.ImageIcon;
 import javax.swing.JComponent;
 import javax.swing.JOptionPane;
 import javax.swing.JPopupMenu;
@@ -83,6 +86,9 @@ public class 	MapEditor
 				KeyListener
 	{
 
+	public static final int VASL_MAP_HEIGHT = 645;
+	public static final int VASL_MAP_WIDTH = 1799;
+	  
 	// synthetic field used to access text files in jar
     static Class thisClass;
 
@@ -488,9 +494,10 @@ public class 	MapEditor
 
 		// set up the image archive
 		try {
-		    String s = CASLProperties.getCASLHome() + "/CASLData.zip";
-		    s = "D:/VASSAL/CASL/CASLData.zip";
-			archive = new ZipFile(new File(s));
+//		    String s = CASLProperties.getCASLHome() + "/CASLData.zip";
+//		    s = "D:/VASSAL/CASL/CASLData.zip";
+//			archive = new ZipFile(new File(s));
+			archive = new ZipFile(CASLProperties.getCASLHome() + System.getProperty("file.separator","\\") + "CASLData.zip");
 
 		} catch (IOException e) {
 
@@ -2891,6 +2898,34 @@ public class 	MapEditor
 			mapChanged	= true;
 			frame.setStatusBarText("");
 		}
+	}
+	
+	public void importTerrain(ImageIcon img, int level) {
+	  PixelGrabber grabber = null;
+	  ColorModel model = null;
+	  int[] pixels = null;
+       
+	  for (int h = 0; h < VASL_MAP_HEIGHT; h++) {
+	    grabber = new PixelGrabber(img.getImage(), 0, h, VASL_MAP_WIDTH, 1, true);
+		  try {
+	        grabber.grabPixels();
+	      }
+	      catch (InterruptedException e) {
+	        return;
+	      }
+	      
+	      model = grabber.getColorModel();
+	      pixels = (int[]) grabber.getPixels();
+	      
+	    for (int w = 0; w < VASL_MAP_WIDTH; w++) {
+	      int pixel = pixels[w];
+	      int alpha = model.getAlpha(pixel);
+	      int red = model.getRed(pixel);
+	      int green = model.getGreen(pixel);
+	      int blue = model.getBlue(pixel); 
+	      int i = 0;
+	    }
+	  }
 	}
 }
 

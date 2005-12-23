@@ -1466,6 +1466,15 @@ public class Terrain
 		}
 		return null;
 	}
+	
+	/**
+	 * Return the first Terrain object matching the specified color.
+	 * @param color
+	 * @return
+	 */
+	public static Terrain getTerrain(Color color) {
+	  return null;
+	}
 
 	public  boolean isInherentTerrain(){
 		if (type == CRAGS					||

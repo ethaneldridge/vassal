@@ -61,7 +61,7 @@ import CASL.MapBuilder.Utility.CASLProperties;
 public class MapEditFrame extends JFrame  {
 
 	// message frame
-	private MessageFrame messageFrame;
+    private MessageFrame messageFrame;
 
 	// directories
 	private String	homeDirectory;
@@ -94,6 +94,7 @@ public class MapEditFrame extends JFrame  {
 	private JMenuItem menuFileImportAll = new JMenuItem();
 	private JMenuItem menuFileExport = new JMenuItem();
 	private JMenuItem menuFileVASLConvert = new JMenuItem();
+	private JMenuItem menuFileImportTerrain = new JMenuItem();
 
 	private JMenu menuEdit = new JMenu();
 	private JMenuItem menuEditFlip = new JMenuItem();
@@ -390,6 +391,17 @@ public class MapEditFrame extends JFrame  {
 			}
 		});
 
+		menuFileImportTerrain.setPreferredSize(new Dimension(100, 20));
+		menuFileImportTerrain.setEnabled(false);
+		menuFileImportTerrain.setMnemonic('0');
+		menuFileImportTerrain.setText("Import Terrain grid...");
+		menuFileImportTerrain.addActionListener(new java.awt.event.ActionListener() {
+
+			public void actionPerformed(ActionEvent e) {
+				importTerrain();
+			}
+		});
+		
 		menuEditInsert.setPreferredSize(new Dimension(100, 20));
 		menuEditInsert.setMnemonic('1');
 		menuEditInsert.setText("Insert...");
@@ -666,6 +678,7 @@ public class MapEditFrame extends JFrame  {
 		menuFile.add(menuFileExport);
 		menuFile.addSeparator();
 		menuFile.add(menuFileVASLConvert);
+		menuFile.add(menuFileImportTerrain);
 		menuFile.addSeparator();
 		menuFile.add(menuFilePrint);
 		menuFile.addSeparator();
@@ -1056,6 +1069,7 @@ public class MapEditFrame extends JFrame  {
 				menuFileSaveAs.setEnabled(true);
 				menuFileExport.setEnabled(true);
 				menuFileVASLConvert.setEnabled(true);
+				menuFileImportTerrain.setEnabled(true);
 				menuEdit.setEnabled(true);
 
 				// set function
@@ -1094,6 +1108,7 @@ public class MapEditFrame extends JFrame  {
 			menuFileSaveAs.setEnabled(true);
 			menuFileExport.setEnabled(true);
 			menuFileVASLConvert.setEnabled(true);
+			menuFileImportTerrain.setEnabled(true);
 			menuEdit.setEnabled(true);
 
 			// set function
@@ -1145,6 +1160,58 @@ public class MapEditFrame extends JFrame  {
 		}
 	}
 
+	public void importTerrain() {
+
+		// create the file filter
+		MapFileFilter filter = new MapFileFilter(new String[]{"gif", "png"}, "Terrain image files");
+
+		// show the file chooser
+		JFileChooser fileChooser = new JFileChooser(mapDirectory);
+		fileChooser.setFileFilter(filter);
+ 		int selected = fileChooser.showOpenDialog(this);
+
+		if(selected == JFileChooser.APPROVE_OPTION){
+
+			String fileName = fileChooser.getCurrentDirectory().getPath() + System.getProperty("file.separator","\\") + fileChooser.getSelectedFile().getName();
+
+			// trap errors
+			try{
+				setStatusBarText("Opening image...");
+				ImageIcon img = new ImageIcon(fileName);
+				int h = img.getIconHeight();
+				int w = img.getIconWidth();
+				if (h != MapEditor.VASL_MAP_HEIGHT && w != MapEditor.VASL_MAP_WIDTH) {
+					JOptionPane.showMessageDialog(null, "Imported Image must be "+MapEditor.VASL_MAP_HEIGHT+"x"+MapEditor.VASL_MAP_WIDTH+". "+fileName +" is "+h+"x"+w, "", JOptionPane.ERROR_MESSAGE);
+					return;
+				}
+
+				// Get the level
+				Object[] levels = {"0", "1", "2", "3"};
+				String s = (String) JOptionPane.showInputDialog(
+				    				null,
+				                    "Terrain in image will be imported on to Level?",
+				    				"Select Terrain Level",
+				                    JOptionPane.PLAIN_MESSAGE,
+				                    null,
+				                    levels,
+				                    "0");
+				if (s != null) {
+				  try {
+				    MapEditor1.importTerrain (img, Integer.parseInt(s));
+				  }
+				  catch (Exception e) {
+				    return;
+				  }
+				}
+
+			} catch (Exception e){
+
+				JOptionPane.showMessageDialog(null, "Cannot open the image file: " + fileName, e.getMessage(), JOptionPane.ERROR_MESSAGE);
+				return;
+			}
+		}
+	}
+	
 	public void insertMap(GameMap insertMap, String upperLeft) {
 
 		MapEditor1.insertGEOMap(insertMap, upperLeft);
@@ -1163,6 +1230,7 @@ public class MapEditFrame extends JFrame  {
 		menuFileSaveAs.setEnabled(false);
 		menuFileExport.setEnabled(false);
 		menuFileVASLConvert.setEnabled(false);
+		menuFileImportTerrain.setEnabled(false);
 		menuEdit.setEnabled(false);
 
 		//close the map
@@ -1198,6 +1266,8 @@ public class MapEditFrame extends JFrame  {
 		}
 		return false;
 	}
+	
+	
 
 	void setStatusBarText(String s){
 
@@ -1336,6 +1406,7 @@ public class MapEditFrame extends JFrame  {
 		menuFileImport.setEnabled(true);
 		menuFileExport.setEnabled(true);
 		menuFileVASLConvert.setEnabled(true);
+		menuFileImportTerrain.setEnabled(true);
 		menuFileSaveAs.setEnabled(true);
 		menuEdit.setEnabled(true);
 		testButton.setEnabled(true);
@@ -1876,6 +1947,7 @@ public class MapEditFrame extends JFrame  {
 				menuFileSaveAs.setEnabled(true);
 				menuFileExport.setEnabled(true);
 				menuFileVASLConvert.setEnabled(true);
+				menuFileImportTerrain.setEnabled(true);
 				menuEdit.setEnabled(true);
 				testButton.setEnabled(true);
 
@@ -1985,7 +2057,7 @@ public class MapEditFrame extends JFrame  {
 		dialog.show();
 
 	}
-
+	
 	public void convertVASLImage(int board){
 
 		if (!MapEditor1.isMapOpen()) return;
