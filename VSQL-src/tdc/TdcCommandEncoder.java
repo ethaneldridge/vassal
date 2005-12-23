@@ -24,7 +24,7 @@ import VASSAL.counters.GamePiece;
 
 public class TdcCommandEncoder extends BasicCommandEncoder {
 
-  protected Decorator createDecorator(String type, GamePiece inner) {
+  public Decorator createDecorator(String type, GamePiece inner) {
     if (type.startsWith(Macro.ID)) {     
       return new Macro(type, inner);
     }

@@ -24,7 +24,7 @@ import VASSAL.counters.GamePiece;
 
 public class RFTCommandEncoder extends AutoImage.CommandEncoder {
 
-  protected Decorator createDecorator(String type, GamePiece inner) {
+  public Decorator createDecorator(String type, GamePiece inner) {
     if (type.startsWith(InvEmbellishment.ID)) {
       return new InvEmbellishment(type, inner);
     }

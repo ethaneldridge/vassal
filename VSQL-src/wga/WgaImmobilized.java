@@ -121,7 +121,7 @@ public class WgaImmobilized extends Decorator implements EditablePiece {
     else if (Properties.IGNORE_GRID.equals(key)) {
       return new Boolean(ignoreGrid);
     }
-    else if (Properties.EVENT_FILTER.equals(key)) {
+    else if (Properties.SELECT_EVENT_FILTER.equals(key)) {
       return filter;
     }
     else {

@@ -71,7 +71,7 @@ public class PBCommandEncoder extends VASSAL.build.module.BasicCommandEncoder im
     return c;
   }
 
-  protected Decorator createDecorator(String type, GamePiece inner) {
+  public Decorator createDecorator(String type, GamePiece inner) {
     if (type.startsWith(ColoredBox.ID)) {
       return new ColoredBox(type, inner);
     }

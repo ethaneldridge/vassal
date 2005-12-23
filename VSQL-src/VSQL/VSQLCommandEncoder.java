@@ -46,7 +46,7 @@ public class VSQLCommandEncoder extends ASLCommandEncoder {
   * Primary Command Encoder for VSQL. MarkMoved decorators are intercepted
   * and created as VSQLMarkMoved instead.
   */
-  protected Decorator createDecorator(String type, GamePiece inner) {
+  public Decorator createDecorator(String type, GamePiece inner) {
     if (type.startsWith(VSQLFootprint.ID)) {
       return new VSQLFootprint(type, inner);
     }

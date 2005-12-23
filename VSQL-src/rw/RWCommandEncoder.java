@@ -24,7 +24,7 @@ import VASSAL.counters.GamePiece;
 
 public class RWCommandEncoder extends BasicCommandEncoder {
 
-  protected Decorator createDecorator(String type, GamePiece inner) {
+  public Decorator createDecorator(String type, GamePiece inner) {
     if (type.startsWith(StatusPad.ID)) {
       return new StatusPad(type, inner);
     }

@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <classpath>
 	<classpathentry kind="src" path=""/>
-	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
 	<classpathentry kind="src" path="/CASL"/>
 	<classpathentry kind="src" path="/VASSAL"/>
-	<classpathentry kind="lib" path="C:/Program Files/ejp/lib/tracerapi.jar"/>
-	<classpathentry kind="lib" path="C:/eclipse/libraries/jep-2.3.0.jar"/>
 	<classpathentry kind="src" path="/jep"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
+	<classpathentry kind="lib" path="D:/eclipse/libraries/jep-2.3.0.jar"/>
+	<classpathentry kind="lib" path="D:/eclipse/libraries/jep-2.3.0/lib/junit.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

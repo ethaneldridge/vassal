@@ -26,7 +26,7 @@ import VASSAL.counters.GamePiece;
 
 public class InvCommandEncoder extends BasicCommandEncoder {
 
-  protected Decorator createDecorator(String type, GamePiece inner) {
+  public Decorator createDecorator(String type, GamePiece inner) {
     if (type.startsWith(InvEmbellishment.ID) || type.startsWith(Embellishment.ID)) {     
       return new InvEmbellishment(type, inner);
     }

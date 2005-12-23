@@ -26,7 +26,7 @@ import VASSAL.counters.GamePiece;
 
 public class CommandEncoder extends BasicCommandEncoder {
 
-  protected Decorator createDecorator(String type, GamePiece inner) {
+  public Decorator createDecorator(String type, GamePiece inner) {
     if (type.startsWith(AutoImage.ID)) {
       return new AutoImage(type, inner);
     }

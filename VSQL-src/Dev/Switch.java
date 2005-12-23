@@ -40,7 +40,6 @@ import VASSAL.command.Command;
 import VASSAL.configure.StringConfigurer;
 import VASSAL.counters.Decorator;
 import VASSAL.counters.EditablePiece;
-import VASSAL.counters.ExpressionEvaluator;
 import VASSAL.counters.GamePiece;
 import VASSAL.counters.KeyCommand;
 import VASSAL.counters.PieceEditor;

@@ -426,7 +426,7 @@ public class MapShader extends AbstractConfigurable implements GameComponent {
   }
 
   public void removeFrom(Buildable parent) {
-    ((ShadeableMap) parent).removeShader(this);
+    //((ShadeableMap) parent).removeShader(this);
     GameModule.getGameModule().getToolBar().remove(launch);
     GameModule.getGameModule().getGameState().removeGameComponent(this);
 
@@ -441,7 +441,7 @@ public class MapShader extends AbstractConfigurable implements GameComponent {
   }
 
   public void addTo(Buildable parent) {
-    ((ShadeableMap) parent).addShader(this);
+    //((ShadeableMap) parent).addShader(this);
     GameModule.getGameModule().getToolBar().add(launch);
     launch.setAlignmentY(0.0F);
     GameModule.getGameModule().getGameState().addGameComponent(this);

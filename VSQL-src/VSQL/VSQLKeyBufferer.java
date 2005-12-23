@@ -69,7 +69,7 @@ public class VSQLKeyBufferer extends MouseAdapter implements Buildable, MouseMot
     // Because selecting a piece affects its visibility
     EventFilter filter = null;
     if (p != null) {
-      filter = (EventFilter) p.getProperty(Properties.EVENT_FILTER);
+      filter = (EventFilter) p.getProperty(Properties.SELECT_EVENT_FILTER);
     }
     boolean ignoreEvent = filter != null && filter.rejectEvent(e);
     if (!e.isShiftDown()

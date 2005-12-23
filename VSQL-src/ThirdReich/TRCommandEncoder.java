@@ -24,7 +24,7 @@ import VASSAL.counters.GamePiece;
 
 public class TRCommandEncoder extends BasicCommandEncoder {
 
-  protected Decorator createDecorator(String type, GamePiece inner) {
+  public Decorator createDecorator(String type, GamePiece inner) {
     if (type.startsWith(TREmbellishment.ID)) {
       return new TREmbellishment(type, inner);
     }
