@@ -133,6 +133,10 @@ public class GameMap extends Map implements Serializable {
     return (int) elevationGrid[x][y];
   }
 
+  public void setGridGroundLevel(int x, int y, byte level) {
+    elevationGrid[x][y] = level;
+  }
+  
   /**
    * Reads the map from disk. File must be in the CASL/Maps directory.
    * 

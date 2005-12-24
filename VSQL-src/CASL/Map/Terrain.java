@@ -1473,6 +1473,64 @@ public class Terrain
 	 * @return
 	 */
 	public static Terrain getTerrain(Color color) {
+	  // load terrain list if necessary
+	  if (terrainList == null){
+		terrainList = getTerrainList();
+      }
+	  
+	  Terrain terrain = terrainList[0];
+	  
+	  if (color.equals(OPEN_GROUND_COLOR)) {
+	    return terrain;
+	  } 
+	  else if (color.equals(LEVEL1_COLOR)) {
+	    terrain.height = 1;
+	    return terrain;
+	  } 
+	  else if (color.equals(LEVEL2_COLOR)) {
+	    terrain.height = 2;
+	    return terrain;
+	  } 
+	  else if (color.equals(LEVEL3_COLOR)) {
+	    terrain.height = 3;
+	    return terrain;
+	  } 
+	  else if (color.equals(LEVEL4_COLOR)) {
+	    terrain.height = 4;
+	    return terrain;
+	  } 
+	  else if (color.equals(LEVEL5_COLOR)) {
+	    terrain.height = 5;
+	    return terrain;
+	  } 
+	  else if (color.equals(LEVEL6_COLOR)) {
+	    terrain.height = 6;
+	    return terrain;
+	  } 
+	  else if (color.equals(LEVEL7_COLOR)) {
+	    terrain.height = 7;
+	    return terrain;
+	  } 
+	  else if (color.equals(LEVEL8_COLOR)) {
+	    terrain.height = 8;
+	    return terrain;
+	  } 
+	  else if (color.equals(LEVEL9_COLOR)) {
+	    terrain.height = 9;
+	    return terrain;
+	  } 
+	  else if (color.equals(LEVEL10_COLOR)) {
+	    terrain.height = 10;
+	    return terrain;
+	  } 
+	    
+	  for (int i = 0; i < terrainList.length; i++) {
+	    if (terrainList[i] != null) {
+	      if (terrainList[i].getMapColor().equals(color)) {
+	        return terrainList[i];
+	      }
+	    }
+	  }
 	  return null;
 	}
 

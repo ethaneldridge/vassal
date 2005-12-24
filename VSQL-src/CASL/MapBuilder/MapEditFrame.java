@@ -18,6 +18,7 @@ package CASL.MapBuilder;
 
 import java.awt.AWTEvent;
 import java.awt.BorderLayout;
+import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.Insets;
@@ -29,6 +30,8 @@ import java.awt.event.ItemEvent;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
 import java.awt.event.WindowEvent;
+import java.awt.image.ColorModel;
+import java.awt.image.PixelGrabber;
 import java.io.File;
 
 import javax.swing.BorderFactory;
@@ -50,6 +53,7 @@ import javax.swing.JToolBar;
 import javax.swing.event.ChangeEvent;
 
 import CASL.Map.GameMap;
+import CASL.Map.Terrain;
 import CASL.MapBuilder.Utility.CASLProperties;
 
 /**
@@ -60,6 +64,9 @@ import CASL.MapBuilder.Utility.CASLProperties;
  */
 public class MapEditFrame extends JFrame  {
 
+	public static final int VASL_MAP_HEIGHT = 645;
+	public static final int VASL_MAP_WIDTH = 1799;
+	
 	// message frame
     private MessageFrame messageFrame;
 
@@ -1180,8 +1187,8 @@ public class MapEditFrame extends JFrame  {
 				ImageIcon img = new ImageIcon(fileName);
 				int h = img.getIconHeight();
 				int w = img.getIconWidth();
-				if (h != MapEditor.VASL_MAP_HEIGHT && w != MapEditor.VASL_MAP_WIDTH) {
-					JOptionPane.showMessageDialog(null, "Imported Image must be "+MapEditor.VASL_MAP_HEIGHT+"x"+MapEditor.VASL_MAP_WIDTH+". "+fileName +" is "+h+"x"+w, "", JOptionPane.ERROR_MESSAGE);
+				if (h != VASL_MAP_HEIGHT && w != VASL_MAP_WIDTH) {
+					JOptionPane.showMessageDialog(null, "Imported Image must be "+VASL_MAP_HEIGHT+"x"+VASL_MAP_WIDTH+". "+fileName +" is "+h+"x"+w, "", JOptionPane.ERROR_MESSAGE);
 					return;
 				}
 
@@ -1197,7 +1204,7 @@ public class MapEditFrame extends JFrame  {
 				                    "0");
 				if (s != null) {
 				  try {
-				    MapEditor1.importTerrain (img, Integer.parseInt(s));
+				    importTerrain (img, Integer.parseInt(s));
 				  }
 				  catch (Exception e) {
 				    return;
@@ -1210,6 +1217,47 @@ public class MapEditFrame extends JFrame  {
 				return;
 			}
 		}
+	}
+	
+	public void importTerrain(ImageIcon img, int level) {
+	  PixelGrabber grabber = null;
+	  ColorModel model = null;
+	  int[] pixels = null;
+	  messageFrame.addMessage("Starting Terrain Grid Import");
+	  MapEditor1.repaint();
+       
+	  for (int h = 0; h < VASL_MAP_HEIGHT; h++) {
+	    grabber = new PixelGrabber(img.getImage(), 0, h, VASL_MAP_WIDTH, 1, true);
+		  try {
+	        grabber.grabPixels();
+	      }
+	      catch (InterruptedException e) {
+	        return;
+	      }
+	      
+	      model = grabber.getColorModel();
+	      pixels = (int[]) grabber.getPixels();
+	      
+	    for (int w = 0; w < VASL_MAP_WIDTH; w++) {
+	      int pixel = pixels[w];
+	      int alpha = model.getAlpha(pixel);
+	      if (alpha > 0) {
+	        int red = model.getRed(pixel);
+	        int green = model.getGreen(pixel);
+	        int blue = model.getBlue(pixel); 
+	        Color c = new Color(red, green, blue);
+	        Terrain terrain = Terrain.getTerrain(c);
+	        if (terrain == null) {
+	          messageFrame.addMessage("\nUnkown Color "+c.toString()+"("+h+","+w+")");
+	          MapEditor1.repaint();
+	        } 
+	        else {
+	          MapEditor1.map.setRawTerrain(w, h, terrain.getType());
+	          MapEditor1.map.setGridGroundLevel(w, h, (byte) (level + terrain.getHeight()));
+	        }
+	      }
+	    }
+	  }
 	}
 	
 	public void insertMap(GameMap insertMap, String upperLeft) {

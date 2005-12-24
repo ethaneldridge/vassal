@@ -85,9 +85,6 @@ public class 	MapEditor
 				Scrollable,
 				KeyListener
 	{
-
-	public static final int VASL_MAP_HEIGHT = 645;
-	public static final int VASL_MAP_WIDTH = 1799;
 	  
 	// synthetic field used to access text files in jar
     static Class thisClass;
@@ -2900,32 +2897,5 @@ public class 	MapEditor
 		}
 	}
 	
-	public void importTerrain(ImageIcon img, int level) {
-	  PixelGrabber grabber = null;
-	  ColorModel model = null;
-	  int[] pixels = null;
-       
-	  for (int h = 0; h < VASL_MAP_HEIGHT; h++) {
-	    grabber = new PixelGrabber(img.getImage(), 0, h, VASL_MAP_WIDTH, 1, true);
-		  try {
-	        grabber.grabPixels();
-	      }
-	      catch (InterruptedException e) {
-	        return;
-	      }
-	      
-	      model = grabber.getColorModel();
-	      pixels = (int[]) grabber.getPixels();
-	      
-	    for (int w = 0; w < VASL_MAP_WIDTH; w++) {
-	      int pixel = pixels[w];
-	      int alpha = model.getAlpha(pixel);
-	      int red = model.getRed(pixel);
-	      int green = model.getGreen(pixel);
-	      int blue = model.getBlue(pixel); 
-	      int i = 0;
-	    }
-	  }
-	}
 }
 
