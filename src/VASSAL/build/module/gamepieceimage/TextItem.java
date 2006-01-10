@@ -185,6 +185,10 @@ public class TextItem extends Item {
 
     Color fg = ti.getFgColor().getColor();
     Color bg = ti.getBgColor().getColor();
+    if (fg == null && bg == null) {
+      return;
+    }
+    
     boolean outline = ti.isOutline();
     Color ol = ti.getOutlineColor().getColor();
 
@@ -256,6 +260,9 @@ public class TextItem extends Item {
 
     sd.nextToken();
     item.fontStyleName = sd.nextToken(FontManager.DEFAULT);
+    if (item.fontStyleName.length() == 0) {
+    	item.fontStyleName = FontManager.DEFAULT;
+    }
     item.textSource = sd.nextToken(SRC_VARIABLE);
     item.text = sd.nextToken("");
     item.changeCmd = sd.nextToken("");
@@ -271,7 +278,7 @@ public class TextItem extends Item {
 
     SequenceEncoder se1 = new SequenceEncoder(TYPE, ';');
 
-    se1.append(fontStyleName);
+    se1.append(fontStyleName == null ? "" : fontStyleName);
     se1.append(textSource);
     se1.append(text);
     se1.append(changeCmd);

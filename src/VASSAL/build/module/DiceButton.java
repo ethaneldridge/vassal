@@ -75,12 +75,17 @@ public class DiceButton extends AbstractConfigurable {
           ac.getConfigurer(ICON).getControls().setVisible(false);
           ac.getConfigurer(HOTKEY).getControls().setVisible(false);
           ac.getConfigurer(PROMPT_ALWAYS).getControls().setVisible(false);
+          ac.getConfigurer(REPORT_FORMAT).getControls().setVisible(false);
+          ac.getConfigurer(REPORT_TOTAL).getControls().setVisible(false);
+          w.pack();
           w.setVisible(true);
           ac.getConfigurer(NAME).getControls().setVisible(true);
           ac.getConfigurer(BUTTON_TEXT).getControls().setVisible(true);
           ac.getConfigurer(ICON).getControls().setVisible(true);
           ac.getConfigurer(HOTKEY).getControls().setVisible(true);
           ac.getConfigurer(PROMPT_ALWAYS).getControls().setVisible(true);
+          ac.getConfigurer(REPORT_FORMAT).getControls().setVisible(true);
+          ac.getConfigurer(REPORT_TOTAL).getControls().setVisible(true);
           DR();
           promptAlways = true;
         }

@@ -51,7 +51,9 @@ public class CounterGlobalKeyCommand extends Decorator implements EditablePiece 
   protected GlobalCommand globalCommand = new GlobalCommand();
   protected String propertiesFilter;
   protected boolean restrictRange;
+  protected boolean fixedRange = true;
   protected int range;
+  protected String rangeProperty = "";
   private KeyCommand myCommand;
 
   public CounterGlobalKeyCommand() {
@@ -74,6 +76,8 @@ public class CounterGlobalKeyCommand extends Decorator implements EditablePiece 
     range = st.nextInt(1);
     globalCommand.setReportSingle(st.nextBoolean(true));
     globalCommand.setKeyStroke(globalKey);
+    fixedRange = st.nextBoolean(true);
+    rangeProperty = st.nextToken("");
     command = null;
   }
 
@@ -85,7 +89,9 @@ public class CounterGlobalKeyCommand extends Decorator implements EditablePiece 
         .append(propertiesFilter)
         .append(restrictRange)
         .append(range)
-        .append(globalCommand.isReportSingle());
+        .append(globalCommand.isReportSingle())
+    	.append(fixedRange)
+    	.append(rangeProperty);
     return ID + se.getValue();
   }
 
@@ -160,7 +166,16 @@ public class CounterGlobalKeyCommand extends Decorator implements EditablePiece 
     PieceFilter filter = PropertiesPieceFilter.parse(new FormattedString(propertiesFilter).getText(Decorator.getOutermost(this)));
     Command c = new NullCommand();
     if (restrictRange) {
-      filter = new BooleanAndPieceFilter(filter,new RangeFilter(getMap(), getPosition(),range));
+      int r = range;
+      if (!fixedRange) {
+        try {
+          r = Integer.parseInt((String) Decorator.getOutermost(this).getProperty(rangeProperty));
+        }
+        catch (Exception e) {
+          
+        }
+      }
+      filter = new BooleanAndPieceFilter(filter,new RangeFilter(getMap(), getPosition(), r));
     }
     for (Enumeration e = GameModule.getGameModule().getComponents(Map.class); e.hasMoreElements();) {
       Map m = (Map) e.nextElement();
@@ -176,10 +191,30 @@ public class CounterGlobalKeyCommand extends Decorator implements EditablePiece 
     protected StringConfigurer propertyMatch;
     protected BooleanConfigurer suppress;
     protected BooleanConfigurer restrictRange;
+    protected BooleanConfigurer fixedRange;
     protected IntConfigurer range;
+    protected StringConfigurer rangeProperty;
     protected JPanel controls;
 
     public Ed(CounterGlobalKeyCommand p) {
+      
+      PropertyChangeListener pl = new PropertyChangeListener() {
+        public void propertyChange(PropertyChangeEvent evt) {
+          
+          boolean isRange = Boolean.TRUE.equals(restrictRange.getValue());
+          boolean isFixed = Boolean.TRUE.equals(fixedRange.getValue());
+          
+          range.getControls().setVisible(isRange && isFixed);
+          fixedRange.getControls().setVisible(isRange);
+          rangeProperty.getControls().setVisible(isRange && !isFixed);
+          
+          Window w = SwingUtilities.getWindowAncestor(range.getControls());
+          if (w != null) {
+            w.pack();
+          }
+        }
+      };
+      
       controls = new JPanel();
       controls.setLayout(new BoxLayout(controls, BoxLayout.Y_AXIS));
 
@@ -195,25 +230,24 @@ public class CounterGlobalKeyCommand extends Decorator implements EditablePiece 
       propertyMatch = new StringConfigurer(null, "Matching Properties:  ", p.propertiesFilter);
       controls.add(propertyMatch.getControls());
 
-      restrictRange = new BooleanConfigurer(null, "Restrict Range", p.restrictRange);
+      restrictRange = new BooleanConfigurer(null, "Restrict Range?", p.restrictRange);
       controls.add(restrictRange.getControls());
-
+      restrictRange.addPropertyChangeListener(pl);
+      
+      fixedRange = new BooleanConfigurer(null, "Fixed Range?", p.fixedRange);
+      controls.add(fixedRange.getControls());
+      fixedRange.addPropertyChangeListener(pl);
+      
       range = new IntConfigurer(null, "Range:  ", new Integer(p.range));
       controls.add(range.getControls());
-      PropertyChangeListener l = new PropertyChangeListener() {
-        public void propertyChange(PropertyChangeEvent evt) {
-          range.getControls().setVisible(Boolean.TRUE.equals(restrictRange.getValue()));
-          Window w = SwingUtilities.getWindowAncestor(range.getControls());
-          if (w != null) {
-            w.pack();
-          }
-        }
-      };
-      restrictRange.addPropertyChangeListener(l);
-      l.propertyChange(null);
 
+      rangeProperty = new StringConfigurer(null, "Range Property:  ", p.rangeProperty);
+      controls.add(rangeProperty.getControls());
+            
       suppress = new BooleanConfigurer(null, "Suppress individual reports", p.globalCommand.isReportSingle());
       controls.add(suppress.getControls());
+      
+      pl.propertyChange(null);
     }
 
     public Component getControls() {
@@ -228,7 +262,9 @@ public class CounterGlobalKeyCommand extends Decorator implements EditablePiece 
           .append(propertyMatch.getValueString())
           .append(restrictRange.getValueString())
           .append(range.getValueString())
-          .append(suppress.booleanValue().booleanValue());
+          .append(suppress.booleanValue().booleanValue())
+    	  .append(fixedRange.booleanValue().booleanValue())
+    	  .append(rangeProperty.getValueString());
       return ID + se.getValue();
     }
 

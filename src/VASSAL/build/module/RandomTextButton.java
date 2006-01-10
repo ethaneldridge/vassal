@@ -23,11 +23,17 @@ import VASSAL.build.GameModule;
 import VASSAL.build.module.documentation.HelpFile;
 import VASSAL.configure.*;
 import VASSAL.tools.FormattedString;
+import VASSAL.tools.LaunchButton;
 
+import java.awt.Window;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.io.File;
 import java.net.MalformedURLException;
 import java.util.ArrayList;
 import java.util.Arrays;
+
+import javax.swing.SwingUtilities;
 
 /**
  * @author Michael Blumoehr
@@ -42,6 +48,46 @@ public class RandomTextButton extends DiceButton {
   public static final String FACES = "faces";
   public static final String NUMERIC = "numeric";
 
+  public RandomTextButton() {
+    super();
+    ActionListener ranAction = new ActionListener() {
+      public void actionPerformed(ActionEvent e) {
+        if (promptAlways) {
+          promptAlways = false; // Show the usu
+          // Remove label, hotkey, and prompt controls
+          AutoConfigurer ac = (AutoConfigurer) getConfigurer();
+          ConfigurerWindow w = new ConfigurerWindow(ac, true);
+          ac.getConfigurer(NAME).getControls().setVisible(false);
+          ac.getConfigurer(BUTTON_TEXT).getControls().setVisible(false);
+          ac.getConfigurer(ICON).getControls().setVisible(false);
+          ac.getConfigurer(HOTKEY).getControls().setVisible(false);
+          ac.getConfigurer(PROMPT_ALWAYS).getControls().setVisible(false);
+          ac.getConfigurer(REPORT_FORMAT).getControls().setVisible(false);
+          ac.getConfigurer(REPORT_TOTAL).getControls().setVisible(false);
+          ac.getConfigurer(FACES).getControls().setVisible(false);
+          ac.getConfigurer(NUMERIC).getControls().setVisible(false);
+          w.pack();
+          w.setVisible(true);
+          ac.getConfigurer(NAME).getControls().setVisible(true);
+          ac.getConfigurer(BUTTON_TEXT).getControls().setVisible(true);
+          ac.getConfigurer(ICON).getControls().setVisible(true);
+          ac.getConfigurer(HOTKEY).getControls().setVisible(true);
+          ac.getConfigurer(PROMPT_ALWAYS).getControls().setVisible(true);
+          ac.getConfigurer(REPORT_FORMAT).getControls().setVisible(true);
+          ac.getConfigurer(REPORT_TOTAL).getControls().setVisible(true);
+          ac.getConfigurer(FACES).getControls().setVisible(true);
+          ac.getConfigurer(NUMERIC).getControls().setVisible(true);
+          DR();
+          promptAlways = true;
+        }
+        else {
+          DR();
+        }
+      }
+    };
+    launch = new LaunchButton(null, BUTTON_TEXT, HOTKEY, ICON, ranAction);
+  }
+  
   public static String getConfigureTypeName() {
     return "Random Text Button";
   }
