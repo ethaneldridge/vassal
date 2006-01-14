@@ -21,6 +21,10 @@ package VASSAL.build.module.documentation;
 import javax.swing.*;
 import javax.swing.event.HyperlinkEvent;
 import javax.swing.event.HyperlinkListener;
+
+import VASSAL.build.widget.HtmlChart;
+import VASSAL.build.widget.HtmlChart.XTMLEditorKit;
+
 import java.awt.*;
 import java.io.File;
 import java.io.IOException;
@@ -38,6 +42,15 @@ public class HelpWindow extends JFrame implements HyperlinkListener {
     pane = new JEditorPane();
     pane.setEditable(false);
     pane.addHyperlinkListener(this);
+    
+    /*
+     * Allow <src> tag to display images from the module DataArchive 
+     * where no pathname included in the image name.
+     */
+    pane.setContentType("text/html");
+    XTMLEditorKit myHTMLEditorKit = (new HtmlChart()).new XTMLEditorKit();
+    pane.setEditorKit(myHTMLEditorKit);
+    
     JScrollPane scroll = new JScrollPane(pane);
     getContentPane().add(scroll);
     update(contents);

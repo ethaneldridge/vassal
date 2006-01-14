@@ -91,9 +91,12 @@ public class Symbol {
     protected static final String ARTILLERY = "Artillery";
     //    protected static final String BRIDGING = "Bridging";
     //    protected static final String COMBAT_SERVICE_SUPPORT = "";
+    protected static final String COMMANDO = "Commando";
     //    protected static final String ELECTRONIC_RANGING = "";
     //    protected static final String ELECTRONIC_WARFARE = "";
     protected static final String ENGINEERS = "Engineers";
+    protected static final String GLIDER = "Glider-Borne";
+    protected static final String GUERILLA = "Guerilla";
     //    protected static final String HEADQUARTERS_SUPPORT = "";
     protected static final String INFANTRY = "Infantry";
     //    protected static final String LABOR_RESOURCES = "";
@@ -145,6 +148,9 @@ public class Symbol {
           AIR_FORCE,
           ANTI_TANK,
           ARMY_AVIATION,
+          COMMANDO,
+          GLIDER,
+          GUERILLA,
           //MARINES,
           MOUNTAIN,
           NAVY
@@ -291,6 +297,26 @@ public class Symbol {
         g.fillOval(x_center - radius, y_center - radius + yoff, radius * 2, radius * 2);
       }
 
+      else if (name.equals(COMMANDO)) {
+        
+        g.drawLine(x_left, y_top, x_right, y_bottom);
+        g.drawLine(x_left, y_bottom, x_right, y_top);
+        int x1 = (int) (bounds.width / 2.5);
+        int y1 = (int) (bounds.height / 2.5);
+        
+        GeneralPath p = new GeneralPath();
+        p.moveTo(x_left, y_top);
+        p.lineTo(x_left+x1, y_top);
+        p.lineTo(x_left+x1, y_top + y1);
+        p.lineTo(x_left, y_top);
+        p.moveTo(x_right, y_top);
+        p.lineTo(x_right-x1, y_top);
+        p.lineTo(x_right-x1, y_top + y1);
+        p.lineTo(x_right, y_top);
+        g2.fill(p);
+        
+      }
+      
       else if (name.equals(ENGINEERS)) {
         BasicStroke oldStroke = (BasicStroke) g2.getStroke();
         BasicStroke estroke = new BasicStroke(oldStroke.getLineWidth() * 1.2f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND);
@@ -311,6 +337,23 @@ public class Symbol {
         g2.draw(p);
       }
 
+      else if (name.equals(GLIDER)) {
+        
+        g.drawLine(x_left+(x_center-x_left)/3, y_center, x_right-(x_center-x_left)/3,y_center);
+      }
+      
+      else if (name.equals(GUERILLA)) {
+        
+        GeneralPath p = new GeneralPath();
+        p.moveTo(x_left, y_top);
+        p.lineTo(x_right, y_bottom);
+        p.lineTo(x_right, y_top);
+        p.lineTo(x_left, y_bottom);
+        p.lineTo(x_left, y_top);
+        g2.fill(p);
+        
+      }
+      
       else if (name.equals(INFANTRY)) {
         
         g.drawLine(x_left, y_top, x_right, y_bottom);
