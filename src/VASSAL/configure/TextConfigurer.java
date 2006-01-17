@@ -18,13 +18,15 @@
  */
 package VASSAL.configure;
 
-import VASSAL.tools.*;
+import java.util.StringTokenizer;
 
-import java.util.*;
-import javax.swing.*;
+import javax.swing.BoxLayout;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JTextArea;
 import javax.swing.border.TitledBorder;
-import java.awt.event.*;
-import javax.swing.event.*;
+
+import VASSAL.tools.SequenceEncoder;
 
 /**
  * A Configurer that allows multi-line string input via a JTextArea

@@ -18,8 +18,6 @@
  */
 package VASSAL.build.module;
 
-import VASSAL.build.*;
-
 import VASSAL.command.Command;
 
 /**

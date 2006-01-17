@@ -20,8 +20,6 @@ package VASSAL.command;
 
 import VASSAL.build.GameModule;
 
-import java.util.Vector;
-
 /**
  * Command is an abstract class that does something.  Any action that
  * takes place during a game should be encapsulated in a Command

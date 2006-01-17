@@ -25,7 +25,7 @@ import java.util.Iterator;
  * An iterator for GamePieces.  Takes an optional PieceFilter to extract GamePiece instances from an Enumeration
  */
 public class PieceIterator {
-  private Enumeration enum;
+  private Enumeration e;
   private PieceFilter filter;
   private GamePiece next;
 
@@ -35,7 +35,7 @@ public class PieceIterator {
 
   public PieceIterator(Enumeration e, PieceFilter f) {
     this(f);
-    enum = e;
+    this.e = e;
     next = next();
   }
 
@@ -56,8 +56,8 @@ public class PieceIterator {
   }
 
   private GamePiece next() {
-    while (enum.hasMoreElements()) {
-      Object o = enum.nextElement();
+    while (e.hasMoreElements()) {
+      Object o = e.nextElement();
       if (o instanceof GamePiece
         && (filter == null
         || filter.accept((GamePiece) o))) {

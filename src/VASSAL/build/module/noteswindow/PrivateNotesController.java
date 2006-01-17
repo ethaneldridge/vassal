@@ -18,19 +18,19 @@
  */
 package VASSAL.build.module.noteswindow;
 
+import java.awt.Component;
+import java.util.HashSet;
+import java.util.Iterator;
+
+import javax.swing.Box;
+import javax.swing.JLabel;
+
 import VASSAL.build.GameModule;
 import VASSAL.build.module.GameComponent;
 import VASSAL.command.Command;
 import VASSAL.command.CommandEncoder;
 import VASSAL.configure.TextConfigurer;
 import VASSAL.tools.SequenceEncoder;
-
-import javax.swing.*;
-import java.awt.*;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.Set;
 
 /**
  * Holds {@link PrivateText} objects, only displaying the one owned by the current user

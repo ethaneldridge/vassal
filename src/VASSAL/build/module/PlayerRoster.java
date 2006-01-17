@@ -214,7 +214,7 @@ public class PlayerRoster implements Configurable, CommandEncoder, GameComponent
   public void setup(boolean gameStarting) {
     if (gameStarting) {
       GameModule gm = GameModule.getGameModule();
-      Entry me = new Entry(gm.getUserId(), GlobalOptions.getInstance().getPlayerId(), null);
+      Entry me = new Entry(GameModule.getUserId(), GlobalOptions.getInstance().getPlayerId(), null);
       if (players.contains(me)) {
         Entry saved = (Entry) players.elementAt(players.indexOf(me));
         saved.playerName = me.playerName;

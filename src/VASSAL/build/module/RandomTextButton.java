@@ -18,14 +18,6 @@
  */
 package VASSAL.build.module;
 
-import VASSAL.build.AutoConfigurable;
-import VASSAL.build.GameModule;
-import VASSAL.build.module.documentation.HelpFile;
-import VASSAL.configure.*;
-import VASSAL.tools.FormattedString;
-import VASSAL.tools.LaunchButton;
-
-import java.awt.Window;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
@@ -33,7 +25,13 @@ import java.net.MalformedURLException;
 import java.util.ArrayList;
 import java.util.Arrays;
 
-import javax.swing.SwingUtilities;
+import VASSAL.build.GameModule;
+import VASSAL.build.module.documentation.HelpFile;
+import VASSAL.configure.AutoConfigurer;
+import VASSAL.configure.ConfigurerWindow;
+import VASSAL.configure.StringArrayConfigurer;
+import VASSAL.configure.VisibilityCondition;
+import VASSAL.tools.LaunchButton;
 
 /**
  * @author Michael Blumoehr

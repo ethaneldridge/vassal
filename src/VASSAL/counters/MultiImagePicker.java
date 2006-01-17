@@ -27,7 +27,6 @@ import java.util.Enumeration;
 import java.util.Vector;
 
 public class MultiImagePicker extends JPanel {
-  private Vector picker = new Vector();
   private JList imageList;
   private DefaultListModel imageListElements = new DefaultListModel();
   private CardLayout cl = new CardLayout();

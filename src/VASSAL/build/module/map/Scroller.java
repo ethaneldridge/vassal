@@ -18,12 +18,14 @@
  */
 package VASSAL.build.module.map;
 
-import VASSAL.build.module.Map;
-import VASSAL.build.*;
-import VASSAL.configure.BooleanConfigurer;
-import VASSAL.counters.KeyBuffer;
+import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
 
-import java.awt.event.*;
+import VASSAL.build.AbstractBuildable;
+import VASSAL.build.Buildable;
+import VASSAL.build.GameModule;
+import VASSAL.build.module.Map;
+import VASSAL.configure.BooleanConfigurer;
 
 /**
  * This component listens to key events on a Map window and

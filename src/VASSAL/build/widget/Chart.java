@@ -18,23 +18,22 @@
  */
 package VASSAL.build.widget;
 
-import VASSAL.build.module.documentation.HelpFile;
-import VASSAL.build.module.ChartWindow;
-import VASSAL.build.*;
-
-import VASSAL.configure.*;
-import VASSAL.tools.*;
-import VASSAL.build.module.documentation.HelpFile;
-
-import java.awt.*;
-import javax.swing.*;
-import java.awt.event.*;
-import java.util.*;
-import java.io.*;
-import java.net.URL;
+import java.awt.Component;
+import java.awt.Dimension;
+import java.awt.Image;
+import java.io.File;
+import java.io.IOException;
 import java.net.MalformedURLException;
 
-import org.w3c.dom.*;
+import javax.swing.ImageIcon;
+import javax.swing.JLabel;
+import javax.swing.JScrollPane;
+
+import VASSAL.build.Buildable;
+import VASSAL.build.GameModule;
+import VASSAL.build.Widget;
+import VASSAL.build.module.documentation.HelpFile;
+import VASSAL.tools.DataArchive;
 
 /**
  * A Chart is used for displaying charts and tables for the module.  The

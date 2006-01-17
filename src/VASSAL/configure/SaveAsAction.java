@@ -18,11 +18,11 @@
  */
 package VASSAL.configure;
 
-import VASSAL.build.GameModule;
-
-import javax.swing.*;
-import java.awt.event.ActionEvent;
 import java.net.URL;
+
+import javax.swing.AbstractAction;
+import javax.swing.Action;
+import javax.swing.ImageIcon;
 
 /**
  * General-purpose "Save As" action

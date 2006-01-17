@@ -18,18 +18,16 @@
  */
 package VASSAL.build.module;
 
+import java.io.File;
+import java.net.MalformedURLException;
+
 import VASSAL.build.AbstractConfigurable;
 import VASSAL.build.AutoConfigurable;
 import VASSAL.build.Buildable;
-import VASSAL.build.GameModule;
 import VASSAL.build.module.documentation.HelpFile;
 import VASSAL.configure.Configurer;
 import VASSAL.configure.ConfigurerFactory;
 import VASSAL.configure.IconConfigurer;
-
-import java.io.File;
-import java.net.MalformedURLException;
-import java.awt.*;
 
 public class SpecialDieFace extends AbstractConfigurable {
 

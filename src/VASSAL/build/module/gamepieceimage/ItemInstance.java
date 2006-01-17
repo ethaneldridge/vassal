@@ -34,8 +34,6 @@ public abstract class ItemInstance extends AbstractConfigurable {
   protected ColorSwatch fgColor = ColorSwatch.getBlack();
   protected GamePieceImage defn;
   protected Item item;
-  private String state = "";
-
   protected InstanceConfigurer myConfig = null;
 
   public ItemInstance(String nam, String typ, String loc) {

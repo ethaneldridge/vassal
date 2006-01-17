@@ -20,8 +20,6 @@ package VASSAL.build.module.map;
 
 import VASSAL.counters.GamePiece;
 import VASSAL.counters.Properties;
-import VASSAL.counters.Deck;
-import VASSAL.counters.Stack;
 
 /**
  * Default implementation of {@link PieceCollection} separates pieces into

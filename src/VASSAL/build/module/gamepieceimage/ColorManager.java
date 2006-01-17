@@ -1,5 +1,15 @@
 package VASSAL.build.module.gamepieceimage;
 
+import java.awt.Color;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
+import java.io.File;
+import java.net.MalformedURLException;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Iterator;
+
 import VASSAL.build.AbstractConfigurable;
 import VASSAL.build.Buildable;
 import VASSAL.build.Configurable;
@@ -7,17 +17,6 @@ import VASSAL.build.GameModule;
 import VASSAL.build.module.documentation.HelpFile;
 import VASSAL.configure.Configurer;
 import VASSAL.configure.SingleChildInstance;
-import org.w3c.dom.Element;
-
-import java.awt.*;
-import java.beans.PropertyChangeEvent;
-import java.beans.PropertyChangeListener;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.io.File;
-import java.net.MalformedURLException;
 
 /*
  * $Id$
@@ -116,21 +115,6 @@ public class ColorManager extends AbstractConfigurable {
     instance = this;
   }
   
-  public void build(Element e) {
-    super.build(e);
-//
-//    if (userColors.get(ColorSwatch.BLACK) == null) addChild(new ColorSwatch(ColorSwatch.BLACK, Color.BLACK));
-//
-//    if (userColors.get(ColorSwatch.WHITE) == null) addChild(new ColorSwatch(ColorSwatch.WHITE, Color.WHITE));
-//    
-//    if (userColors.get(ColorSwatch.CLEAR) == null) addChild(new ColorSwatch(ColorSwatch.CLEAR, null));
-  }
-
-  private void addChild(Buildable b) {
-    add(b);
-    b.addTo(this);
-  }
-
   public ColorSwatch getColorSwatch(String name) {
     ColorSwatch c = (ColorSwatch) userColors.get(name);
     if (c == null) {

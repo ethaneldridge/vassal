@@ -38,12 +38,6 @@ public class Sort {
         v.setElementAt(tmp, j);
     }
 
-    private static void swap(Object arr[], int i, int j) {
-        Object tmp = arr[i];
-        arr[i] = arr[j];
-        arr[j] = tmp;
-    }
-
     //------------------------------------------------------------------
     /*
     * quicksort a vector of objects.

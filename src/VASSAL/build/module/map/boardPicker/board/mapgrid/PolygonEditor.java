@@ -137,16 +137,6 @@ public class PolygonEditor extends JPanel {
     super.paint(g);
   }
 
-  private String shapeToString() {
-    StringBuffer buffer = new StringBuffer();
-    buffer.append("[ ");
-    for (int i = 0; i < polygon.npoints; ++i) {
-      buffer.append("(").append(polygon.xpoints[i]).append(",").append(polygon.ypoints[i]).append(") ");
-    }
-    buffer.append("]");
-    return buffer.toString();
-  }
-
   private class ModifyPolygon extends MouseInputAdapter {
     // implements java.awt.event.MouseMotionListener
     public void mouseDragged(MouseEvent e) {

@@ -18,8 +18,10 @@
  */
 package VASSAL.configure;
 
-import javax.swing.*;
-import javax.swing.event.*;
+import javax.swing.BoxLayout;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.JTextField;
 
 /**
  * A Configurer for String values

@@ -1,27 +1,31 @@
 package VASSAL.build.module.map;
 
-import VASSAL.build.*;
+import java.awt.Point;
+import java.awt.Rectangle;
+import java.io.File;
+import java.net.MalformedURLException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Enumeration;
+
+import VASSAL.build.AbstractConfigurable;
+import VASSAL.build.AutoConfigurable;
+import VASSAL.build.Buildable;
+import VASSAL.build.Configurable;
+import VASSAL.build.GameModule;
 import VASSAL.build.module.GameComponent;
 import VASSAL.build.module.Map;
 import VASSAL.build.module.NewGameIndicator;
 import VASSAL.build.module.documentation.HelpFile;
 import VASSAL.build.widget.PieceSlot;
 import VASSAL.command.Command;
-import VASSAL.command.CommandEncoder;
 import VASSAL.configure.Configurer;
 import VASSAL.configure.StringEnum;
 import VASSAL.counters.GamePiece;
 import VASSAL.counters.PieceCloner;
-import VASSAL.counters.Stack;
 import VASSAL.counters.Properties;
+import VASSAL.counters.Stack;
 import VASSAL.tools.UniqueIdManager;
-
-import java.awt.*;
-import java.io.File;
-import java.net.MalformedURLException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Enumeration;
 
 /*
  * $Id$

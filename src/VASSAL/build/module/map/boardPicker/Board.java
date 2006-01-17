@@ -30,6 +30,7 @@ import VASSAL.command.Command;
 import VASSAL.configure.ColorConfigurer;
 import VASSAL.configure.SingleChildInstance;
 import VASSAL.configure.VisibilityCondition;
+import VASSAL.tools.DataArchive;
 
 import javax.swing.*;
 import java.awt.*;
@@ -304,7 +305,7 @@ public class Board extends AbstractConfigurable implements GridContainer {
       return;
     try {
       try {
-        boardImage = GameModule.getGameModule().getDataArchive().getImage
+        boardImage = DataArchive.getImage
             (GameModule.getGameModule().getDataArchive().getFileStream
              ("images/" + imageFile));
       }

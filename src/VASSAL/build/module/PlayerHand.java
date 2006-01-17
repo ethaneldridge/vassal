@@ -26,19 +26,18 @@
  */
 package VASSAL.build.module;
 
-import VASSAL.build.Buildable;
+import java.awt.Dimension;
+import java.awt.Rectangle;
+import java.io.File;
+import java.net.MalformedURLException;
+import java.util.Enumeration;
+
 import VASSAL.build.module.documentation.HelpFile;
 import VASSAL.build.module.map.CounterDetailViewer;
 import VASSAL.build.module.map.HandMetrics;
 import VASSAL.build.module.map.StackExpander;
 import VASSAL.build.module.map.StackMetrics;
-import VASSAL.configure.ValidationReport;
 import VASSAL.counters.GamePiece;
-
-import java.awt.*;
-import java.io.File;
-import java.net.MalformedURLException;
-import java.util.Enumeration;
 
 public class PlayerHand extends PrivateMap {
   public void build(org.w3c.dom.Element el) {

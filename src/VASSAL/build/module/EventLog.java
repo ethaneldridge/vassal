@@ -18,13 +18,16 @@
  */
 package VASSAL.build.module;
 
-import VASSAL.build.*;
-import VASSAL.build.module.*;
-import VASSAL.command.*;
-import VASSAL.configure.*;
-import VASSAL.tools.*;
+import java.util.Enumeration;
+import java.util.Vector;
 
-import java.util.*;
+import VASSAL.build.AbstractBuildable;
+import VASSAL.build.Buildable;
+import VASSAL.build.GameModule;
+import VASSAL.command.Command;
+import VASSAL.command.CommandEncoder;
+import VASSAL.configure.StringConfigurer;
+import VASSAL.tools.SequenceEncoder;
 
 public class EventLog extends AbstractBuildable implements CommandEncoder, GameComponent {
   public static final String EVENT_LIST = "Events";

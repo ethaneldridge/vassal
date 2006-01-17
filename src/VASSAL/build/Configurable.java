@@ -19,9 +19,7 @@
 package VASSAL.build;
 
 import VASSAL.build.module.documentation.HelpFile;
-import VASSAL.build.Buildable;
 import VASSAL.configure.Configurer;
-import VASSAL.build.module.documentation.HelpFile;
 
 /**
  * An object that implements the Configurable interface can, in

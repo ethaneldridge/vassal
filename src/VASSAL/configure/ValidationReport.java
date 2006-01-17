@@ -18,10 +18,9 @@
  */
 package VASSAL.configure;
 
-import java.util.List;
-import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.AbstractList;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Summarizes error/warning messages about invalid module configuration

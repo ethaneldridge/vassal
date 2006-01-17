@@ -18,15 +18,19 @@
  */
 package VASSAL.build.widget;
 
+import java.awt.Component;
+import java.awt.Container;
+import java.awt.GridLayout;
+import java.awt.LayoutManager;
+import java.util.Vector;
+
+import javax.swing.BoxLayout;
+import javax.swing.JComponent;
+import javax.swing.JPanel;
+
 import VASSAL.build.Buildable;
 import VASSAL.build.Widget;
-import VASSAL.configure.AutoConfigurer;
-import VASSAL.configure.Configurer;
 import VASSAL.configure.VisibilityCondition;
-
-import javax.swing.*;
-import java.awt.*;
-import java.util.Vector;
 
 /**
  * A Widget that corresponds to a JPanel with a

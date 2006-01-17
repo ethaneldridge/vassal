@@ -175,7 +175,6 @@ public class RotateFilter extends ImageFilter {
     outPixels = new int[outwidth * outheight];
     outx = rotatedSpace.x;
     outy = rotatedSpace.y;
-    double end[] = new double[2];
     int index = 0;
     for (int y = 0; y < outheight; y++) {
       for (int x = 0; x < outwidth; x++) {
