@@ -29,9 +29,8 @@ import java.awt.*;
 
 /**
  * 
- * The base portion of a Counter Layout component.
+ * The base portion of a Counter Layout component.  Contains the draw() method, but may override specific values from an associated (via the name attribute) {@link ItemInstance} 
  */
-
 public abstract class Item extends AbstractConfigurable {
 
   public static final String TYPE = "";

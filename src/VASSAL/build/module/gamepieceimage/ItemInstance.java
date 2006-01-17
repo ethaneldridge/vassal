@@ -23,6 +23,10 @@ import VASSAL.build.AbstractConfigurable;
 import VASSAL.build.Buildable;
 import VASSAL.build.module.documentation.HelpFile;
 
+/**
+ * Individual override parameters for an instance of an {@link Item}. The XXXItemInstance classes ({@link TextItemInstance},{@link ImageItemInstance},
+ * etc.) draw themselves optionally using values for color, text value, etc., from the corresponding XXXItem classes ({@link TextItem},{@link ImageItem}, etc.) can make use of when drawing themselves
+ */
 public abstract class ItemInstance extends AbstractConfigurable {
 
   public static final String FG_COLOR = "fgColor";
@@ -77,10 +81,12 @@ public abstract class ItemInstance extends AbstractConfigurable {
 
   public abstract String encode();
 
-  public static ItemInstance newDefaultInstance(String name, String type, String location) {
+  public static ItemInstance newDefaultInstance(String name, String type,
+      String location) {
 
     if (type.equals(SymbolItem.TYPE)) {
-      return new SymbolItemInstance(name, type, location, Symbol.NatoUnitSymbolSet.SZ_DIVISION,
+      return new SymbolItemInstance(name, type, location,
+          Symbol.NatoUnitSymbolSet.SZ_DIVISION,
           Symbol.NatoUnitSymbolSet.INFANTRY, Symbol.NatoUnitSymbolSet.NONE);
     }
     else if (type.equals(TextItem.TYPE)) {

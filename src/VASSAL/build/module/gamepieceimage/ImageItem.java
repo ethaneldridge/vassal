@@ -160,10 +160,7 @@ public class ImageItem extends Item {
     }
   }
   public void draw(Graphics g, GamePieceImage defn) {
-
-//    Color fg = defn.getFgColor().getColor();
-//    Color bg = se.getBgColor().getColor();
-
+    loadImage(defn);
     Point origin = layout.getPosition(this);
     
     if (isAntialias()) {    
@@ -172,7 +169,6 @@ public class ImageItem extends Item {
     else {
       ((Graphics2D) g).setRenderingHint(RenderingHints.KEY_ANTIALIASING,RenderingHints.VALUE_ANTIALIAS_OFF);
     }
-    loadImage(defn);
     if (image != null) {
       g.drawImage(image, origin.x, origin.y, null);
     }
