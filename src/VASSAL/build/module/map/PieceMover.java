@@ -23,6 +23,47 @@
  */
 package VASSAL.build.module.map;
 
+import java.awt.Component;
+import java.awt.Cursor;
+import java.awt.Graphics2D;
+import java.awt.Point;
+import java.awt.Rectangle;
+import java.awt.datatransfer.StringSelection;
+import java.awt.dnd.DragGestureEvent;
+import java.awt.dnd.DragGestureListener;
+import java.awt.dnd.DragSourceDragEvent;
+import java.awt.dnd.DragSourceDropEvent;
+import java.awt.dnd.DragSourceEvent;
+import java.awt.dnd.DragSourceListener;
+import java.awt.dnd.DragSourceMotionListener;
+import java.awt.dnd.DropTarget;
+import java.awt.dnd.DropTargetDragEvent;
+import java.awt.dnd.DropTargetDropEvent;
+import java.awt.dnd.DropTargetEvent;
+import java.awt.dnd.DropTargetListener;
+import java.awt.dnd.InvalidDnDOperationException;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
+import java.awt.image.BufferedImage;
+import java.awt.image.WritableRaster;
+import java.io.IOException;
+import java.net.URL;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.Enumeration;
+import java.util.HashMap;
+import java.util.List;
+
+import javax.swing.Icon;
+import javax.swing.ImageIcon;
+import javax.swing.JButton;
+import javax.swing.JLabel;
+import javax.swing.JLayeredPane;
+import javax.swing.JRootPane;
+import javax.swing.SwingUtilities;
+
 import VASSAL.Info;
 import VASSAL.build.AbstractBuildable;
 import VASSAL.build.Buildable;
@@ -35,25 +76,19 @@ import VASSAL.command.ChangeTracker;
 import VASSAL.command.Command;
 import VASSAL.command.NullCommand;
 import VASSAL.configure.BooleanConfigurer;
-import VASSAL.counters.*;
+import VASSAL.counters.Deck;
+import VASSAL.counters.DeckVisitor;
+import VASSAL.counters.DeckVisitorDispatcher;
+import VASSAL.counters.DragBuffer;
+import VASSAL.counters.EventFilter;
+import VASSAL.counters.GamePiece;
+import VASSAL.counters.KeyBuffer;
+import VASSAL.counters.PieceFinder;
+import VASSAL.counters.PieceIterator;
+import VASSAL.counters.PieceSorter;
+import VASSAL.counters.PieceVisitorDispatcher;
 import VASSAL.counters.Properties;
 import VASSAL.counters.Stack;
-import VASSAL.tools.Sort;
-
-import javax.swing.*;
-import java.awt.*;
-import java.awt.datatransfer.StringSelection;
-import java.awt.dnd.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.awt.event.MouseEvent;
-import java.awt.event.MouseListener;
-import java.awt.image.BufferedImage;
-import java.awt.image.WritableRaster;
-import java.io.IOException;
-import java.net.URL;
-import java.util.*;
-import java.util.List;
 
 
 /**
@@ -202,8 +237,9 @@ public class PieceMover extends AbstractBuildable implements
         if (KeyBuffer.getBuffer().contains(selected)) {
           // If clicking on a selected piece, put all selected pieces into the drag buffer
           KeyBuffer.getBuffer().sort(PieceMover.this);
-          for (Enumeration enum = KeyBuffer.getBuffer().getPieces(); enum.hasMoreElements();) {
-            GamePiece piece = (GamePiece) enum.nextElement();
+          for (Enumeration e = KeyBuffer.getBuffer().getPieces(); e.hasMoreElements();) {
+            GamePiece piece = (GamePiece) e.nextElement();
+            System.err.println("Adding "+piece.getName()+" from "+piece.getMap());
             DragBuffer.getBuffer().add(piece);
           }
         }

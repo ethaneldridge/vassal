@@ -18,16 +18,26 @@
  */
 package VASSAL.counters;
 
-import VASSAL.build.GameModule;
-
-import javax.swing.*;
-import java.awt.*;
+import java.awt.Font;
+import java.awt.Image;
+import java.awt.Window;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 
+import javax.swing.BoxLayout;
+import javax.swing.DefaultComboBoxModel;
+import javax.swing.ImageIcon;
+import javax.swing.JComboBox;
+import javax.swing.JLabel;
+import javax.swing.JTextArea;
+import javax.swing.SwingUtilities;
+
+import VASSAL.build.GameModule;
+
 public class ImagePicker extends javax.swing.JPanel implements MouseListener, ItemListener {
+  private static final long serialVersionUID = 1L;
   private String imageName = " ";
   protected static Font FONT = new Font("Dialog", 0, 11);
   private JTextArea noImage;
@@ -60,7 +70,7 @@ public class ImagePicker extends javax.swing.JPanel implements MouseListener, It
   public void setImageName(String name) {
     imageName = name;
     remove(0);
-    if (name == null) {
+    if (name == null || name.length() == 0) {
       add(noImage,0);
     }
     else {

@@ -161,7 +161,6 @@ public class MenuDisplayer extends MouseAdapter implements Buildable {
   public void mouseReleased(MouseEvent e) {
     if (e.isMetaDown()) {
       final GamePiece p = map.findPiece(e.getPoint(), targetSelector);
-      System.err.println("selected "+p.getProperty(Properties.SELECTED)+": "+p.getName());
       if (p != null) {
         EventFilter filter = (EventFilter) p.getProperty(Properties.SELECT_EVENT_FILTER);
         if (filter == null
