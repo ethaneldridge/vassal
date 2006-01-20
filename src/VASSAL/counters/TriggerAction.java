@@ -88,7 +88,7 @@ public class TriggerAction extends Decorator implements EditablePiece {
 
   protected KeyCommand[] myGetKeyCommands() {
     if (command.length() > 0 && key != null) {
-      return new KeyCommand[] {new KeyCommand(command, key, Decorator.getOutermost(this))};
+      return new KeyCommand[] {new KeyCommand(command, key, Decorator.getOutermost(this), matchesFilter())};
     }
     else {
       return new KeyCommand[0];
@@ -158,20 +158,29 @@ public class TriggerAction extends Decorator implements EditablePiece {
     }
 
     // 2. Check the Property Filter if it exists.
-    GamePiece outer = Decorator.getOutermost(this);
-    if (propertyMatch != null && propertyMatch.length() > 0) {
-      PieceFilter filter = PropertiesPieceFilter.parse(new FormattedString(propertyMatch).getText(outer));
-      if (!filter.accept(outer)) {
-        return null;
-      }
+    if (! matchesFilter()) {
+      return null;
     }
 
+
     // 3. Issue the outgoing keystrokes
+    GamePiece outer = Decorator.getOutermost(this);
     Command c = new NullCommand();
     for (int i = 0; i < actionKeys.length; i++) {
       c.append(outer.keyEvent(actionKeys[i]));
     }
     return c;
+  }
+  
+  protected boolean matchesFilter() {
+    GamePiece outer = Decorator.getOutermost(this);
+    if (propertyMatch != null && propertyMatch.length() > 0) {
+      PieceFilter filter = PropertiesPieceFilter.parse(new FormattedString(propertyMatch).getText(outer));
+      if (!filter.accept(outer)) {
+        return false;
+      }
+    }
+    return true;
   }
 
   public void mySetState(String newState) {

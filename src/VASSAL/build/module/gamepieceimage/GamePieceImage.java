@@ -328,6 +328,19 @@ public class GamePieceImage extends AbstractConfigurable implements Visualizable
     return null;
   }
 
+  public TextBoxItemInstance getTextBoxInstance(String name) {
+    Iterator i = instances.iterator();
+    while (i.hasNext()) {
+      ItemInstance instance = (ItemInstance) i.next();
+      if (instance instanceof TextBoxItemInstance) {
+        if (name.equals(instance.getName())) {
+          return (TextBoxItemInstance) instance;
+        }
+      }
+    }
+    return null;
+  }
+  
   public SymbolItemInstance getSymbolInstance(String name) {
     Iterator i = instances.iterator();
     while (i.hasNext()) {

@@ -29,6 +29,8 @@ public class KeyCommand extends AbstractAction {
   private KeyStroke stroke;
   private GamePiece target;
   private boolean global;
+  private boolean enabled = true;
+
 
   public KeyCommand(String name, KeyStroke key, GamePiece target) {
     super(key == null ? name : name + "  " + HotKeyConfigurer.getString(key));
@@ -37,6 +39,11 @@ public class KeyCommand extends AbstractAction {
     this.stroke = key;
   }
 
+  public KeyCommand(String name, KeyStroke key, GamePiece target, boolean enabled) {
+    this(name, key, target);
+    setEnabled(enabled);
+  }
+  
   public String getName() {
     return name;
   }
@@ -53,6 +60,14 @@ public class KeyCommand extends AbstractAction {
     return target;
   }
 
+  public boolean isEnabled() {
+    return enabled;
+  }
+  
+  public void setEnabled(boolean b) {
+    enabled = b;
+  }
+  
   /**
    * If true, then this action will apply to all selected pieces
    * @return

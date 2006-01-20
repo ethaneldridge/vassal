@@ -116,6 +116,9 @@ public class InstanceConfigurer extends Configurer {
       if (p[i].startsWith(SymbolItem.TYPE)) {
         props.add(new SymbolItemInstance(p[i], defn));
       }
+      else if (p[i].startsWith(TextBoxItem.TYPE)) {
+        props.add(new TextBoxItemInstance(p[i], defn));
+      }
       else if (p[i].startsWith(TextItem.TYPE)) {
         props.add(new TextItemInstance(p[i], defn));
       }

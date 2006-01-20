@@ -54,7 +54,7 @@ public class TextItem extends Item {
   public static final int AL_TOP = 3;
   public static final int AL_BOTTOM = 4;
 
-  protected String fontStyleName;
+  protected String fontStyleName = "Default";
   protected String textSource = SRC_VARIABLE;
   protected String text = "";
 
@@ -254,9 +254,13 @@ public class TextItem extends Item {
 
   public static Item decode(GamePieceLayout l, String s) {
 
-    SequenceEncoder.Decoder sd = new SequenceEncoder.Decoder(s, ';');
-
     TextItem item = new TextItem(l);
+    decode(item, s);
+    return item;
+  }
+  
+  public static void decode(TextItem item, String s) {
+    SequenceEncoder.Decoder sd = new SequenceEncoder.Decoder(s, ';');
 
     sd.nextToken();
     item.fontStyleName = sd.nextToken(FontManager.DEFAULT);
@@ -271,12 +275,11 @@ public class TextItem extends Item {
     item.lockKey = sd.nextKeyStroke(null);
     item.lockable = sd.nextBoolean(false);
 
-    return item;
   }
 
   public String encode() {
 
-    SequenceEncoder se1 = new SequenceEncoder(TYPE, ';');
+    SequenceEncoder se1 = new SequenceEncoder(TextItem.TYPE, ';');
 
     se1.append(fontStyleName == null ? "" : fontStyleName);
     se1.append(textSource);

@@ -232,6 +232,9 @@ public abstract class Item extends AbstractConfigurable {
     if (t1.startsWith(SymbolItem.TYPE)) {
       item = SymbolItem.decode(layout, t1);
     }
+    else if (t1.startsWith(TextBoxItem.TYPE)) {
+      item = TextBoxItem.decode(layout, t1);
+    }
     else if (t1.startsWith(TextItem.TYPE)) {
       item = TextItem.decode(layout, t1);
     }

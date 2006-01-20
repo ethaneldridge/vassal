@@ -35,11 +35,12 @@ public class LayoutConfigurer extends Configurer {
 
   protected static final String ADD_SYMBOL = "Symbol";
   protected static final String ADD_IMAGE = "Image";
-  protected static final String ADD_TEXT = "Text";
+  protected static final String ADD_TEXT = "Label";
+  protected static final String ADD_TEXTBOX = "Text Box";
   protected static final String ADD_SHAPE = "Shape";
   protected static final String REMOVE = "Remove";
   protected static final String UP = "Up";
-  protected static final String DOWN = "Dn";
+  protected static final String DOWN = "Downn";
   protected static final int NO_CURRENT_ITEM = -1;
 
   protected JPanel panel;
@@ -138,7 +139,7 @@ public class LayoutConfigurer extends Configurer {
     protected JTable table;
     protected AbstractTableModel model;
     protected JScrollPane scrollPane;
-    protected JButton addSymbolBtn, addTextBtn, addImageBtn, addShapeBtn, remBtn, upBtn, dnBtn;
+    protected JButton addSymbolBtn, addTextBtn, addTextBoxBtn, addImageBtn, addShapeBtn, remBtn, upBtn, dnBtn;
     protected JPanel mainPanel;
 
     public ItemPanel() {
@@ -187,6 +188,10 @@ public class LayoutConfigurer extends Configurer {
       addTextBtn.setToolTipText("Add Text to the Layout");
       addTextBtn.addActionListener(this);
       box.add(addTextBtn);
+      addTextBoxBtn = new JButton(ADD_TEXTBOX);
+      addTextBoxBtn.setToolTipText("Add Text Box to the Layout");
+      addTextBoxBtn.addActionListener(this);
+      box.add(addTextBoxBtn);
       addImageBtn = new JButton(ADD_IMAGE);
       addImageBtn.setToolTipText("Add an Image to the Layout");
       addImageBtn.addActionListener(this);
@@ -195,6 +200,9 @@ public class LayoutConfigurer extends Configurer {
       addShapeBtn.setToolTipText("Add a Colored Shape to the Layout");
       addShapeBtn.addActionListener(this);
       box.add(addShapeBtn);
+      mainPanel.add(box);
+      
+      box = Box.createHorizontalBox();
       remBtn = new JButton(REMOVE);
       remBtn.setToolTipText("Remove the selected Item");
       remBtn.addActionListener(this);
@@ -232,6 +240,10 @@ public class LayoutConfigurer extends Configurer {
       }
       else if (action.equals(ADD_TEXT)) {
         TextItem item = new TextItem(layout, "Text"+pos);
+        addItem(item);
+      }
+      else if (action.equals(ADD_TEXTBOX)) {
+        TextBoxItem item = new TextBoxItem(layout, "TextBox"+pos);
         addItem(item);
       }
       else if (action.equals(ADD_IMAGE)) {

@@ -92,6 +92,9 @@ public abstract class ItemInstance extends AbstractConfigurable {
     else if (type.equals(TextItem.TYPE)) {
       return new TextItemInstance(name, type, location, null);
     }
+    else if (type.equals(TextBoxItem.TYPE)) {
+      return new TextBoxItemInstance(name, type, location);
+    }
     else if (type.equals(ShapeItem.TYPE)) {
       return new ShapeItemInstance(name, type, location);
     }

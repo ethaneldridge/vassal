@@ -26,5 +26,6 @@ import java.awt.*;
  * @see DataArchive#addImageSource
  */
 public interface ImageSource {
+  /** The lazy creation of the image */
   Image getImage();
 }

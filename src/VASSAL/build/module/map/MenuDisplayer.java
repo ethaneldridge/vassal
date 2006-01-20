@@ -114,6 +114,7 @@ public class MenuDisplayer extends MouseAdapter implements Buildable {
                 || commandName.length() < c[i].getName().length()) {
               item = new JMenuItem(c[i]);
               item.setFont(POPUP_MENU_FONT);
+              item.setEnabled(c[i].isEnabled());
               commands.set(strokes.indexOf(stroke), item);
             }
           }
@@ -121,6 +122,7 @@ public class MenuDisplayer extends MouseAdapter implements Buildable {
             strokes.add(stroke != null ? stroke : KeyStroke.getKeyStroke('\0'));
             item = new JMenuItem(c[i]);
             item.setFont(POPUP_MENU_FONT);
+            item.setEnabled(c[i].isEnabled());
             commands.add(item);
           }
         }
