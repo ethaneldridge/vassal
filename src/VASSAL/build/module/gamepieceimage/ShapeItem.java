@@ -229,6 +229,10 @@ public class ShapeItem extends Item {
   public String getType() {
     return TYPE;
   }
+  
+  public String getDisplayName() {
+    return "Shape";
+  }
 
   public Dimension getSize() {
     return new Dimension(getWidth(),getHeight());

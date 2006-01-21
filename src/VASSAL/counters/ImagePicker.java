@@ -85,7 +85,11 @@ public class ImagePicker extends javax.swing.JPanel implements MouseListener, It
       }
     }
     select.removeItemListener(this);
-    select.setSelectedItem(name == null ? null : ((name.indexOf('.') > 0) ? name : name + ".gif"));
+    select.setSelectedItem(name);
+    if (name != null
+        && !name.equals(select.getSelectedItem())) {
+      select.setSelectedItem(name+".gif");
+    }
     select.addItemListener(this);
     revalidate();
     Window w = (Window) SwingUtilities.getAncestorOfClass(Window.class,this);

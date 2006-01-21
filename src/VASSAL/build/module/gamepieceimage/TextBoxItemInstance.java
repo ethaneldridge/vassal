@@ -19,19 +19,25 @@
 
 package VASSAL.build.module.gamepieceimage;
 
+import javax.swing.BoxLayout;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JTextArea;
+
 import VASSAL.build.AutoConfigurable;
 import VASSAL.configure.Configurer;
 import VASSAL.configure.ConfigurerFactory;
+import VASSAL.configure.TextConfigurer;
 import VASSAL.configure.VisibilityCondition;
 import VASSAL.tools.SequenceEncoder;
 
 public class TextBoxItemInstance extends ItemInstance {
 
   protected static final String VALUE = "value";
-  protected static final String BORDER_COLOR = "borderColor";
+  protected static final String BG_COLOR = "borderColor";
   
   protected String val = "";
-  private ColorSwatch borderColor = ColorSwatch.getBlack();
   
   public TextBoxItemInstance() {
     super();
@@ -62,7 +68,7 @@ public class TextBoxItemInstance extends ItemInstance {
     se.append(getName());
     se.append(getLocation());
     se.append(getFgColor().encode());
-    se.append(getBorderColor().encode());
+    se.append(getBgColor().encode());
     se.append(getValue());
     return se.getValue();
   }
@@ -73,28 +79,20 @@ public class TextBoxItemInstance extends ItemInstance {
     setName(sd.nextToken(""));
     setLocation(sd.nextToken(""));
     setFgColor(new ColorSwatch(sd.nextToken("")));
-    setBorderColor(new ColorSwatch(sd.nextToken("")));
+    setBgColor(new ColorSwatch(sd.nextToken("")));
     setValue(sd.nextToken(""));
   }
 
-  protected void setBorderColor(ColorSwatch borderColor) {
-    this.borderColor = borderColor;
-  }
-
-  protected ColorSwatch getBorderColor() {
-    return borderColor;
-  }
-
   public String[] getAttributeDescriptions() {
-    return new String[] { "Value:  ", "Foreground Color:  ", "Border Color:  " };
+    return new String[] { "Value:  ","Text Color:  ", "Background Color:  "};
   }
 
   public Class[] getAttributeTypes() {
-    return new Class[] { String.class, FgColorSwatchConfig.class, BorderColorSwatchConfig.class, };
+    return new Class[] { TextConfigurer.class, FgColorSwatchConfig.class, BgColorSwatchConfig.class, };
   }
 
   public String[] getAttributeNames() {
-    return new String[] { VALUE, FG_COLOR, BORDER_COLOR };
+    return new String[] { VALUE, FG_COLOR, BG_COLOR };
   }
 
   public void setAttribute(String key, Object o) {
@@ -108,11 +106,11 @@ public class TextBoxItemInstance extends ItemInstance {
       }
       fgColor = (ColorSwatch) o;
     }
-    else if (BORDER_COLOR.equals(key)) {
+    else if (BG_COLOR.equals(key)) {
       if (o instanceof String) {
         o = new ColorSwatch((String) o);
       }
-      setBorderColor((ColorSwatch) o);
+      bgColor = (ColorSwatch)o;
     }
     if (myConfig != null) {
       myConfig.rebuildViz();
@@ -127,8 +125,8 @@ public class TextBoxItemInstance extends ItemInstance {
     else if (FG_COLOR.equals(key)) {
       return fgColor.encode();
     }
-    else if (BORDER_COLOR.equals(key)) {
-      return getBorderColor().encode();
+    else if (BG_COLOR.equals(key)) {
+      return bgColor.encode();
     }
     else
       return null;
@@ -149,16 +147,15 @@ public class TextBoxItemInstance extends ItemInstance {
     }
   };
   
-  public static class BorderColorSwatchConfig implements ConfigurerFactory {
-    public Configurer getConfigurer(AutoConfigurable c, String key, String name) {
-      return new ColorSwatchConfigurer(key, name, ((ItemInstance) c).getBgColor());
-    }
-  }
-
   public static class FgColorSwatchConfig implements ConfigurerFactory {
     public Configurer getConfigurer(AutoConfigurable c, String key, String name) {
       return new ColorSwatchConfigurer(key, name, ((ItemInstance) c).getFgColor());
     }
   }
 
+  public static class BgColorSwatchConfig implements ConfigurerFactory {
+    public Configurer getConfigurer(AutoConfigurable c, String key, String name) {
+      return new ColorSwatchConfigurer(key, name, ((ItemInstance) c).getBgColor());
+    }
+  }
 }

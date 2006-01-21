@@ -247,6 +247,10 @@ public class TextItem extends Item {
   public String getType() {
     return TYPE;
   }
+  
+  public String getDisplayName() {
+    return "Label";
+  }
 
   public Dimension getSize() {
     return new Dimension(0,0);

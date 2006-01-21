@@ -26,21 +26,32 @@ import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 import javax.swing.border.TitledBorder;
 
+import VASSAL.build.AutoConfigurable;
 import VASSAL.tools.SequenceEncoder;
 
 /**
  * A Configurer that allows multi-line string input via a JTextArea
  */
-public class TextConfigurer extends Configurer {
+public class TextConfigurer extends Configurer implements ConfigurerFactory {
   private JTextArea textArea;
   private JPanel p;
 
+  public TextConfigurer() {
+    this(null,null,null);
+  }
+  
   public TextConfigurer(String key, String name) {
     this(key, name, "");
   }
 
   public TextConfigurer(String key, String name, String val) {
     super(key, name, val);
+  }
+  
+  public Configurer getConfigurer(AutoConfigurable c, String key, String name) {
+    this.key = key;
+    this.name = name;
+    return this;
   }
 
   public String getValueString() {

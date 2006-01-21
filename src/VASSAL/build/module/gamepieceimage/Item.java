@@ -198,6 +198,10 @@ public abstract class Item extends AbstractConfigurable {
   public abstract String getType();
   public abstract Dimension getSize();
 
+  public String getDisplayName() {
+    return getType();
+  }
+
   public String getLocation() {
     return location;
   }

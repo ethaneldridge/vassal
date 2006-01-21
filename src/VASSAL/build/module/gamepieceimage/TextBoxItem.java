@@ -19,14 +19,22 @@
 
 package VASSAL.build.module.gamepieceimage;
 
-import VASSAL.build.AutoConfigurable;
-import VASSAL.configure.StringEnum;
-import VASSAL.tools.SequenceEncoder;
-
-import java.awt.*;
+import java.awt.Color;
+import java.awt.Dimension;
+import java.awt.Font;
+import java.awt.Graphics;
+import java.awt.Graphics2D;
+import java.awt.Point;
+import java.awt.Rectangle;
+import java.awt.RenderingHints;
 import java.awt.image.BufferedImage;
 
 import javax.swing.JLabel;
+
+import VASSAL.build.AutoConfigurable;
+import VASSAL.configure.StringEnum;
+import VASSAL.configure.TextConfigurer;
+import VASSAL.tools.SequenceEncoder;
 
 public class TextBoxItem extends TextItem {
 
@@ -72,6 +80,14 @@ public class TextBoxItem extends TextItem {
     System.arraycopy(b, 0, c, 0, 2);
     System.arraycopy(a, 0, c, 2, a.length);
     System.arraycopy(b, 2, c, a.length+2, b.length-2);
+    String[] names = getAttributeNames();
+    // Change the type of the "Text" attribute to multi-line text
+    for (int i = 0; i < names.length; i++) {
+      if (TEXT.equals(names[i])) {
+        c[i] = TextConfigurer.class;
+        break;
+      }
+    }
     return c;
   }
 
@@ -152,26 +168,22 @@ public class TextBoxItem extends TextItem {
     }
     
     Color fg = tbi.getFgColor().getColor();
-    Color bg = tbi.getBorderColor().getColor();
+    Color bg = tbi.getBgColor().getColor();
 
     Point origin = layout.getPosition(this);
     Rectangle r = new Rectangle(origin.x, origin.y, getWidth(), getHeight());
     String s = null;
     if (textSource.equals(SRC_FIXED)) {
-      s = text;
+      s = toHtml(text);
     }
     else {
       if (defn != null) {
         if (tbi != null) {
-          s = tbi.getValue();
+          s = toHtml(tbi.getValue());
         }
       }
     }
 
-//    if (s.length() < 7 || ! s.substring(1,6).toLowerCase().equals("<html>")) {
-//      s = "<html>" + s;
-//    }
-    
     if (isAntialias()) {    
       ((Graphics2D) g).setRenderingHint(RenderingHints.KEY_ANTIALIASING,RenderingHints.VALUE_ANTIALIAS_ON);
     } 
@@ -179,20 +191,15 @@ public class TextBoxItem extends TextItem {
       ((Graphics2D) g).setRenderingHint(RenderingHints.KEY_ANTIALIASING,RenderingHints.VALUE_ANTIALIAS_OFF);
     }
     
-    if (fg != null) {
-      g.setColor(fg);
+    if (bg != null) {
+      g.setColor(bg);
       g.fillRect(r.x, r.y, r.width, r.height);
     }
  
-    if (bg != null) {
-      g.setColor(bg);
-      g.drawRect(r.x, r.y, r.width, r.height);
-    }
-    
     JLabel l = new JLabel(s);
     l.setSize(width-2, height-2);
-    if (fg != null) l.setBackground(fg);
-    if (bg != null) l.setForeground(bg);
+    if (fg != null) l.setBackground(bg);
+    if (bg != null) l.setForeground(fg);
     FontStyle fs = FontManager.getFontManager().getFontStyle(fontStyleName);
     Font f = fs.getFont();
     l.setFont(f);
@@ -206,7 +213,6 @@ public class TextBoxItem extends TextItem {
     else if (alignment.equals(RIGHT)) {
       l.setHorizontalAlignment(JLabel.RIGHT);
     }
-    
     BufferedImage bi = new BufferedImage(Math.max(l.getWidth(), 1), Math.max(l.getHeight(), 1), BufferedImage.TYPE_4BYTE_ABGR);
     Graphics big = bi.getGraphics();
     l.paint(big);
@@ -215,6 +221,14 @@ public class TextBoxItem extends TextItem {
   
   public String getType() {
     return TextBoxItem.TYPE;
+  }
+  
+  public String toHtml(String s) {
+    return "<html>"+s.replaceAll("\n","<br>")+"</html>";
+  }
+  
+  public String getDisplayName() {
+    return "Text Box";
   }
 
   public Dimension getSize() {

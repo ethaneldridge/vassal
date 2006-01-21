@@ -279,7 +279,7 @@ public class InstanceConfigurer extends Configurer {
           return ((ItemInstance) getValueArrayList().get(row)).getName();
         }
         else if (col == TYPE_COL) {
-          return ((ItemInstance) getValueArrayList().get(row)).getType();
+          return ((ItemInstance) getValueArrayList().get(row)).getItem().getDisplayName();
         }
         else if (col == LOC_COL) {
           return ((ItemInstance) getValueArrayList().get(row)).getLocation();

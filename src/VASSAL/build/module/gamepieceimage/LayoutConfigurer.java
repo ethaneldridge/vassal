@@ -347,7 +347,7 @@ public class LayoutConfigurer extends Configurer {
           return (layout.getItem(row)).getConfigureName();
         }
         else if (col == 1) {
-          return (layout.getItem(row)).getType();
+          return (layout.getItem(row)).getDisplayName();
         }
         else if (col == 2) {
           return (layout.getItem(row)).getLocation();
