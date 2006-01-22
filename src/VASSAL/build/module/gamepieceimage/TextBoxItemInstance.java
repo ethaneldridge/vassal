@@ -19,12 +19,6 @@
 
 package VASSAL.build.module.gamepieceimage;
 
-import javax.swing.BoxLayout;
-import javax.swing.JLabel;
-import javax.swing.JPanel;
-import javax.swing.JScrollPane;
-import javax.swing.JTextArea;
-
 import VASSAL.build.AutoConfigurable;
 import VASSAL.configure.Configurer;
 import VASSAL.configure.ConfigurerFactory;

@@ -24,6 +24,7 @@ import javax.swing.BoxLayout;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
+import javax.swing.SwingUtilities;
 import javax.swing.border.TitledBorder;
 
 import VASSAL.build.AutoConfigurable;
@@ -37,9 +38,9 @@ public class TextConfigurer extends Configurer implements ConfigurerFactory {
   private JPanel p;
 
   public TextConfigurer() {
-    this(null,null,null);
+    this(null, null, null);
   }
-  
+
   public TextConfigurer(String key, String name) {
     this(key, name, "");
   }
@@ -47,7 +48,7 @@ public class TextConfigurer extends Configurer implements ConfigurerFactory {
   public TextConfigurer(String key, String name, String val) {
     super(key, name, val);
   }
-  
+
   public Configurer getConfigurer(AutoConfigurable c, String key, String name) {
     this.key = key;
     this.name = name;
@@ -60,6 +61,7 @@ public class TextConfigurer extends Configurer implements ConfigurerFactory {
 
   /**
    * Encodes a string by replacing newlines with '|' characters
+   * 
    * @param s
    * @return
    */
@@ -70,17 +72,17 @@ public class TextConfigurer extends Configurer implements ConfigurerFactory {
     while (st.hasMoreTokens()) {
       String token = st.nextToken();
       switch (token.charAt(0)) {
-        case '\n':
-          if (wasNewLine) {
-            se.append("");
-          }
-          wasNewLine = true;
-          break;
-        case '\r':
-          break;
-        default:
-          se.append(token);
-          wasNewLine = false;
+      case '\n':
+        if (wasNewLine) {
+          se.append("");
+        }
+        wasNewLine = true;
+        break;
+      case '\r':
+        break;
+      default:
+        se.append(token);
+        wasNewLine = false;
       }
     }
     return se.getValue() == null ? "" : se.getValue();
@@ -100,6 +102,7 @@ public class TextConfigurer extends Configurer implements ConfigurerFactory {
 
   /**
    * Restores a string by replacing '|' with newlines
+   * 
    * @param s
    * @return
    */
@@ -122,9 +125,7 @@ public class TextConfigurer extends Configurer implements ConfigurerFactory {
       textArea = new JTextArea(6, 20);
       textArea.addKeyListener(new java.awt.event.KeyAdapter() {
         public void keyReleased(java.awt.event.KeyEvent evt) {
-          noUpdate = true;
-          setValue((Object) textArea.getText());
-          noUpdate = false;
+          queueForUpdate(textArea.getText());
         }
       });
       textArea.setText((String) getValue());
@@ -135,5 +136,40 @@ public class TextConfigurer extends Configurer implements ConfigurerFactory {
       p.add(scroll);
     }
     return p;
+  }
+
+  private long lastUpdate = System.currentTimeMillis();
+  private String updatedValue;
+  private long updateFrequencey = 1000L;
+
+  private void queueForUpdate(final String s) {
+    updatedValue = s;
+    if (System.currentTimeMillis() > lastUpdate + updateFrequencey) {
+      executeUpdate();
+    }
+    else {
+      Runnable delayedUpdate = new Runnable() {
+        public void run() {
+          try {
+            Thread.sleep(updateFrequencey);
+          }
+          catch (InterruptedException e) {
+          }
+          SwingUtilities.invokeLater(new Runnable() {
+            public void run() {
+              executeUpdate();
+            }
+          });
+        }
+      };
+      new Thread(delayedUpdate).start();
+    }
+  }
+
+  private void executeUpdate() {
+    noUpdate = true;
+    setValue((Object) updatedValue);
+    lastUpdate = System.currentTimeMillis();
+    noUpdate = false;
   }
 }

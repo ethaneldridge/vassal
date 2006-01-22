@@ -95,7 +95,7 @@ public class LayoutConfigurer extends Configurer {
       visBox = Box.createHorizontalBox();
       visBox.setAlignmentX(Box.CENTER_ALIGNMENT);
       visualizer = new Visualizer(layout);
-      visBox.add(visualizer);
+      visBox.add(new JScrollPane(visualizer));
       panel.add(visBox);
 
       filler = Box.createHorizontalBox();
@@ -224,7 +224,7 @@ public class LayoutConfigurer extends Configurer {
 
       itemConfigPanel = new JPanel();
       itemConfigPanel.setBorder(BorderFactory.createLineBorder(Color.black));
-      add(itemConfigPanel);
+      add(new JScrollPane(itemConfigPanel));
 
       showItem(0);
 

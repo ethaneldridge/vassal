@@ -305,7 +305,7 @@ public class GamePieceLayout extends AbstractConfigurable implements Visualizabl
 
   public Image buildImage(GamePieceImage defn) {
     // Create our base image
-    Image image = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
+    Image image = new BufferedImage(Math.max(width,1), Math.max(height,1), BufferedImage.TYPE_INT_RGB);
     Graphics g = image.getGraphics();
 
     // Fill in the sample Background color
@@ -446,7 +446,7 @@ public class GamePieceLayout extends AbstractConfigurable implements Visualizabl
       imageDefn = new GamePieceImage(this);
     }
     // Create our base image
-    Image image = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
+    Image image = new BufferedImage(Math.max(width,1), Math.max(height,1), BufferedImage.TYPE_INT_RGB);
     Graphics g = image.getGraphics();
 
     // Fill in the sample Background color

@@ -29,11 +29,10 @@ import java.awt.Rectangle;
 import java.awt.RenderingHints;
 import java.awt.image.BufferedImage;
 
-import javax.swing.JLabel;
+import javax.swing.JTextPane;
 
-import VASSAL.build.AutoConfigurable;
-import VASSAL.configure.StringEnum;
 import VASSAL.configure.TextConfigurer;
+import VASSAL.configure.VisibilityCondition;
 import VASSAL.tools.SequenceEncoder;
 
 public class TextBoxItem extends TextItem {
@@ -42,12 +41,10 @@ public class TextBoxItem extends TextItem {
   
   protected static final String WIDTH = "width";
   protected static final String HEIGHT = "height";
-  protected static final String ALIGN = "align";
-  protected static final String[] ALIGNMENTS = new String[] { LEFT, CENTER, RIGHT };
+  protected static final String USE_HTML = "use_html";
   
   protected int height = 30;
   protected int width = 40;
-  protected String alignment = CENTER;
   protected boolean isHTML = false;
 
   public TextBoxItem() {
@@ -64,7 +61,7 @@ public class TextBoxItem extends TextItem {
   }
   
   public String[] getAttributeDescriptions() {
-    String a[] = new String[] { "Width:  ", "Height:  ", "Text Alignment:  " };
+    String a[] = new String[] { "Width:  ", "Height:  ", "Use HTML:  " };
     String b[] = super.getAttributeDescriptions();
     String c[] = new String[a.length + b.length];
     System.arraycopy(b, 0, c, 0, 2);
@@ -74,7 +71,7 @@ public class TextBoxItem extends TextItem {
   }
 
   public Class[] getAttributeTypes() {
-    Class a[] = new Class[] { Integer.class, Integer.class, AlignConfig.class };
+    Class a[] = new Class[] { Integer.class, Integer.class, Boolean.class };
     Class b[] = super.getAttributeTypes();
     Class c[] = new Class[a.length + b.length];
     System.arraycopy(b, 0, c, 0, 2);
@@ -91,14 +88,21 @@ public class TextBoxItem extends TextItem {
     return c;
   }
 
-  public static class AlignConfig extends StringEnum {
-    public String[] getValidValues(AutoConfigurable target) {
-      return ALIGNMENTS;
+  public VisibilityCondition getAttributeVisibility(String name) {
+    if (FONT.equals(name)) {
+      return new VisibilityCondition() {
+        public boolean shouldBeVisible() {
+          return !isHTML;
+        }
+      };
+    }
+    else {
+      return super.getAttributeVisibility(name);
     }
   }
-  
+
   public String[] getAttributeNames() {
-    String a[] = new String[] { WIDTH, HEIGHT, ALIGN };
+    String a[] = new String[] { WIDTH, HEIGHT, USE_HTML };
     String b[] = super.getAttributeNames();
     String c[] = new String[a.length + b.length];
     System.arraycopy(b, 0, c, 0, 2);
@@ -120,8 +124,11 @@ public class TextBoxItem extends TextItem {
       }
       height = ((Integer) o).intValue();
     }   
-    else if (ALIGN.equals(key)) {
-      alignment = (String) o;
+    else if (USE_HTML.equals(key)) {
+      if (o instanceof String) {
+        o = Boolean.valueOf((String)o);
+      }
+      isHTML = Boolean.TRUE.equals(o);
     }
     else {
       super.setAttribute(key, o);
@@ -136,13 +143,13 @@ public class TextBoxItem extends TextItem {
   public String getAttributeValueString(String key) {
     
     if (WIDTH.equals(key)) {
-      return width + "";
+      return String.valueOf(width);
     }
     else if (HEIGHT.equals(key)) {
-      return height + "";
+      return String.valueOf(height);
     } 
-    else if (ALIGN.equals(key)) {
-      return alignment;
+    else if (USE_HTML.equals(key)) {
+      return String.valueOf(isHTML);
     }
     else {
       return super.getAttributeValueString(key);
@@ -174,12 +181,12 @@ public class TextBoxItem extends TextItem {
     Rectangle r = new Rectangle(origin.x, origin.y, getWidth(), getHeight());
     String s = null;
     if (textSource.equals(SRC_FIXED)) {
-      s = toHtml(text);
+      s = text;
     }
     else {
       if (defn != null) {
         if (tbi != null) {
-          s = toHtml(tbi.getValue());
+          s = tbi.getValue();
         }
       }
     }
@@ -196,23 +203,15 @@ public class TextBoxItem extends TextItem {
       g.fillRect(r.x, r.y, r.width, r.height);
     }
  
-    JLabel l = new JLabel(s);
+    JTextPane l = new JTextPane();
+    if (isHTML) l.setContentType("text/html");
+    l.setText(s);
     l.setSize(width-2, height-2);
-    if (fg != null) l.setBackground(bg);
-    if (bg != null) l.setForeground(fg);
+    if (bg != null) l.setBackground(bg);
+    if (fg != null) l.setForeground(fg);
     FontStyle fs = FontManager.getFontManager().getFontStyle(fontStyleName);
     Font f = fs.getFont();
     l.setFont(f);
-    l.setVerticalAlignment(JLabel.TOP);
-    if (alignment.equals(LEFT)) {
-      l.setHorizontalAlignment(JLabel.LEFT);
-    }
-    else if (alignment.equals(CENTER)) {
-      l.setHorizontalAlignment(JLabel.CENTER);
-    }
-    else if (alignment.equals(RIGHT)) {
-      l.setHorizontalAlignment(JLabel.RIGHT);
-    }
     BufferedImage bi = new BufferedImage(Math.max(l.getWidth(), 1), Math.max(l.getHeight(), 1), BufferedImage.TYPE_4BYTE_ABGR);
     Graphics big = bi.getGraphics();
     l.paint(big);
@@ -221,10 +220,6 @@ public class TextBoxItem extends TextItem {
   
   public String getType() {
     return TextBoxItem.TYPE;
-  }
-  
-  public String toHtml(String s) {
-    return "<html>"+s.replaceAll("\n","<br>")+"</html>";
   }
   
   public String getDisplayName() {
@@ -247,6 +242,7 @@ public class TextBoxItem extends TextItem {
     sd.nextToken();
     item.width = sd.nextInt(30);
     item.height = sd.nextInt(40);
+    item.isHTML = sd.nextBoolean(false);
     
     TextItem.decode(item, sd1.nextToken(""));
         
@@ -259,6 +255,7 @@ public class TextBoxItem extends TextItem {
     
     se1.append(width);
     se1.append(height);
+    se1.append(isHTML);
    
     SequenceEncoder se2 = new SequenceEncoder(se1.getValue(), ',');
     se2.append(super.encode());

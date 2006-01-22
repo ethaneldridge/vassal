@@ -31,7 +31,7 @@ import java.util.ArrayList;
 import java.util.Iterator;
 
 /**
- *  
+ * Controls for configuring an individual ItemInstance  
  */
 public class InstanceConfigurer extends Configurer {
 
@@ -83,7 +83,7 @@ public class InstanceConfigurer extends Configurer {
       visBox = Box.createHorizontalBox();
       visBox.setAlignmentX(Box.CENTER_ALIGNMENT);
       visualizer = new Visualizer(defn);
-      visBox.add(visualizer);
+      visBox.add(new JScrollPane(visualizer));
       panel.add(visBox);
 
       filler = Box.createHorizontalBox();
@@ -189,22 +189,12 @@ public class InstanceConfigurer extends Configurer {
         }
       });
       
-//      for (int col = 0; col < MAX_COL; col++) {
-//        TableColumn column = table.getColumnModel().getColumn(col);
-//        if ((col == TYPE_COL || col == LOC_COL)) {
-//          column.setPreferredWidth(50);
-//        }
-//        else {
-//          column.setPreferredWidth(100);
-//        }
-//      }
-      
       scrollPane = new JScrollPane(table);
       table.setPreferredScrollableViewportSize(new Dimension(300, 100));
       mainPanel.add(scrollPane);
       
       detailPanel = new JPanel();
-      mainPanel.add(detailPanel);
+      mainPanel.add(new JScrollPane(detailPanel));
 
       add(mainPanel);
       
