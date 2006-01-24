@@ -140,14 +140,16 @@ public class TextConfigurer extends Configurer implements ConfigurerFactory {
 
   private long lastUpdate = System.currentTimeMillis();
   private String updatedValue;
+  private boolean updateQueued=false;
   private long updateFrequencey = 1000L;
 
-  private void queueForUpdate(final String s) {
+  private void queueForUpdate(String s) {
     updatedValue = s;
     if (System.currentTimeMillis() > lastUpdate + updateFrequencey) {
       executeUpdate();
     }
-    else {
+    else if (!updateQueued) {
+      updateQueued = true;
       Runnable delayedUpdate = new Runnable() {
         public void run() {
           try {
@@ -170,6 +172,7 @@ public class TextConfigurer extends Configurer implements ConfigurerFactory {
     noUpdate = true;
     setValue((Object) updatedValue);
     lastUpdate = System.currentTimeMillis();
+    updateQueued = false;
     noUpdate = false;
   }
 }

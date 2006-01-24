@@ -40,7 +40,7 @@ public class LayoutConfigurer extends Configurer {
   protected static final String ADD_SHAPE = "Shape";
   protected static final String REMOVE = "Remove";
   protected static final String UP = "Up";
-  protected static final String DOWN = "Downn";
+  protected static final String DOWN = "Down";
   protected static final int NO_CURRENT_ITEM = -1;
 
   protected JPanel panel;

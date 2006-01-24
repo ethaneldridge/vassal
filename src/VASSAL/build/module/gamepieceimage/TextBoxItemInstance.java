@@ -35,7 +35,8 @@ public class TextBoxItemInstance extends ItemInstance {
   
   public TextBoxItemInstance() {
     super();
-    setFgColor(ColorSwatch.getClear());
+    setFgColor(ColorSwatch.getBlack());
+    setBgColor(ColorSwatch.getClear());
   }
 
   public TextBoxItemInstance(String code, GamePieceImage defn) {
@@ -45,7 +46,8 @@ public class TextBoxItemInstance extends ItemInstance {
 
   public TextBoxItemInstance(String name, String type, String location) {
     super(name, type, location);
-    setFgColor(ColorSwatch.getClear());
+    setFgColor(ColorSwatch.getBlack());
+    setBgColor(ColorSwatch.getClear());
   }
 
   public void setValue(String value) {
