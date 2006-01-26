@@ -305,7 +305,7 @@ public class GamePieceLayout extends AbstractConfigurable implements Visualizabl
 
   public Image buildImage(GamePieceImage defn) {
     // Create our base image
-    Image image = new BufferedImage(Math.max(width,1), Math.max(height,1), BufferedImage.TYPE_INT_RGB);
+    Image image = new BufferedImage(Math.max(width,1), Math.max(height,1), BufferedImage.TYPE_INT_ARGB);
     Graphics g = image.getGraphics();
 
     // Fill in the sample Background color
@@ -313,11 +313,10 @@ public class GamePieceLayout extends AbstractConfigurable implements Visualizabl
     g.setColor(bgColor);
 
     if (getBorder().equals(BORDER_3D)) {
-      g.fill3DRect(0, 0, width, height, true);
+      if (bgColor != null) g.fill3DRect(0, 0, width, height, true);
     }
     else {
-
-      g.fillRect(0, 0, width, height);
+      if (bgColor != null) g.fillRect(0, 0, width, height);
 
       // Add Border
       if (getBorder().equals(BORDER_PLAIN) || getBorder().equals(BORDER_FANCY)) {

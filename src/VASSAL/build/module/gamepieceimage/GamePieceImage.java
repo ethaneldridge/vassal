@@ -36,8 +36,10 @@ import java.util.Iterator;
 import java.io.File;
 import java.net.MalformedURLException;
 
+import com.keypoint.PngEncoder;
+
 /**
- *
+ * 
  */
 public class GamePieceImage extends AbstractConfigurable implements Visualizable, Cloneable, ImageSource, UniqueIdManager.Identifyable {
 
@@ -58,6 +60,7 @@ public class GamePieceImage extends AbstractConfigurable implements Visualizable
   protected ColorSwatch borderColor = ColorSwatch.getBlack();
   protected String id;
   protected Image image;
+  protected byte[] imageBytes;
 
   protected static UniqueIdManager idMgr = new UniqueIdManager("GamePieceImage");
   protected boolean addedToArchive;
@@ -101,11 +104,11 @@ public class GamePieceImage extends AbstractConfigurable implements Visualizable
   }
 
   public String[] getAttributeDescriptions() {
-    return new String[]{"Name:  ", "Background Color:  ", "Border Color:  ", ""};
+    return new String[] {"Name:  ", "Background Color:  ", "Border Color:  ", ""};
   }
 
   public Class[] getAttributeTypes() {
-    return new Class[]{String.class, BgColorSwatchConfig.class, BorderColorSwatchConfig.class, DefnConfig.class};
+    return new Class[] {String.class, BgColorSwatchConfig.class, BorderColorSwatchConfig.class, DefnConfig.class};
   }
 
   public static class BgColorSwatchConfig implements ConfigurerFactory {
@@ -137,9 +140,8 @@ public class GamePieceImage extends AbstractConfigurable implements Visualizable
   }
 
   public String[] getAttributeNames() {
-    return new String[]{NAME, BG_COLOR, BORDER_COLOR, PROPS};
+    return new String[] {NAME, BG_COLOR, BORDER_COLOR, PROPS};
   }
-
 
   public ColorSwatch getBgColor() {
     return bgColor;
@@ -151,12 +153,14 @@ public class GamePieceImage extends AbstractConfigurable implements Visualizable
 
   public void setAttribute(String key, Object value) {
     if (NAME.equals(key)) {
-      if (getConfigureName() != null
-        && addedToArchive) {
-        GameModule.getGameModule().getDataArchive().removeImageSource(getConfigureName());
+      String newName = (String)value;
+      if (addedToArchive) {
+        GameModule.getGameModule().getArchiveWriter().removeImage(getConfigureName());
+        if (!GameModule.getGameModule().getArchiveWriter().isImageAdded(newName)) {
+          GameModule.getGameModule().getArchiveWriter().addImage(newName, getEncodedImage());
+        }
       }
-      setConfigureName((String) value);
-      addedToArchive = GameModule.getGameModule().getDataArchive().addImageSource(getConfigureName(), this);
+      setConfigureName(newName);
     }
     else if (BG_COLOR.equals(key)) {
       if (value instanceof String) {
@@ -164,7 +168,6 @@ public class GamePieceImage extends AbstractConfigurable implements Visualizable
       }
       bgColor = (ColorSwatch) value;
       if (defnConfig != null) {
-//        rebuildElements();
         defnConfig.visualizer.rebuild();
       }
     }
@@ -174,7 +177,6 @@ public class GamePieceImage extends AbstractConfigurable implements Visualizable
       }
       borderColor = (ColorSwatch) value;
       if (defnConfig != null) {
-//      rebuildElements();
         defnConfig.visualizer.rebuild();
       }
     }
@@ -207,7 +209,6 @@ public class GamePieceImage extends AbstractConfigurable implements Visualizable
     else
       return null;
   }
-
 
   public VisibilityCondition getAttributeVisibility(String name) {
     if (BORDER_COLOR.equals(name)) {
@@ -296,8 +297,21 @@ public class GamePieceImage extends AbstractConfigurable implements Visualizable
   }
 
   public void rebuildVisualizerImage() {
-    image = null;
-    GameModule.getGameModule().getDataArchive().unCacheImage(getConfigureName());
+    if (GameModule.getGameModule().getArchiveWriter() != null && getConfigureName() != null && getConfigureName().length() > 0) {
+      image = null;
+      imageBytes = null;
+      GameModule.getGameModule().getArchiveWriter().addImage(getConfigureName(), getEncodedImage());
+      addedToArchive = true;
+    }
+  }
+
+  public byte[] getEncodedImage() {
+    if (imageBytes == null) {
+      PngEncoder encoder = new PngEncoder(layout.buildImage(this), true);
+      encoder.setCompressionLevel(1);
+      imageBytes = encoder.pngEncode();
+    }
+    return imageBytes;
   }
 
   public void invalidate() {
@@ -340,7 +354,7 @@ public class GamePieceImage extends AbstractConfigurable implements Visualizable
     }
     return null;
   }
-  
+
   public SymbolItemInstance getSymbolInstance(String name) {
     Iterator i = instances.iterator();
     while (i.hasNext()) {

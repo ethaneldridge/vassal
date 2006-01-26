@@ -19,6 +19,8 @@
 
 package VASSAL.build.module.gamepieceimage;
 
+import java.awt.Color;
+
 import VASSAL.build.AutoConfigurable;
 import VASSAL.configure.Configurer;
 import VASSAL.configure.ConfigurerFactory;
@@ -36,7 +38,7 @@ public class TextBoxItemInstance extends ItemInstance {
   public TextBoxItemInstance() {
     super();
     setFgColor(ColorSwatch.getBlack());
-    setBgColor(ColorSwatch.getClear());
+    setBgColor(ColorManager.getColorManager().getColorSwatch(Color.LIGHT_GRAY));
   }
 
   public TextBoxItemInstance(String code, GamePieceImage defn) {
@@ -47,7 +49,7 @@ public class TextBoxItemInstance extends ItemInstance {
   public TextBoxItemInstance(String name, String type, String location) {
     super(name, type, location);
     setFgColor(ColorSwatch.getBlack());
-    setBgColor(ColorSwatch.getClear());
+    setBgColor(ColorManager.getColorManager().getColorSwatch(Color.LIGHT_GRAY));
   }
 
   public void setValue(String value) {
@@ -84,7 +86,13 @@ public class TextBoxItemInstance extends ItemInstance {
   }
 
   public Class[] getAttributeTypes() {
-    return new Class[] { TextConfigurer.class, FgColorSwatchConfig.class, BgColorSwatchConfig.class, };
+    return new Class[] { WrappingTextConfigurer.class, FgColorSwatchConfig.class, BgColorSwatchConfig.class, };
+  }
+  
+  public static class WrappingTextConfigurer implements ConfigurerFactory {
+    public Configurer getConfigurer(AutoConfigurable c, String key, String name) {
+      return new TextConfigurer(key, name, ((TextBoxItemInstance) c).val, true);
+    }
   }
 
   public String[] getAttributeNames() {

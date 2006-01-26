@@ -207,8 +207,8 @@ public class TextBoxItem extends TextItem {
     if (isHTML) l.setContentType("text/html");
     l.setText(s);
     l.setSize(width-2, height-2);
-    if (bg != null) l.setBackground(bg);
-    if (fg != null) l.setForeground(fg);
+    l.setBackground(bg != null ? bg : new Color(0,true));
+    l.setForeground(fg != null ? fg : new Color(0,true));
     FontStyle fs = FontManager.getFontManager().getFontStyle(fontStyleName);
     Font f = fs.getFont();
     l.setFont(f);

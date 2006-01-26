@@ -36,6 +36,7 @@ import VASSAL.tools.SequenceEncoder;
 public class TextConfigurer extends Configurer implements ConfigurerFactory {
   private JTextArea textArea;
   private JPanel p;
+  private boolean wordWrap;
 
   public TextConfigurer() {
     this(null, null, null);
@@ -49,6 +50,11 @@ public class TextConfigurer extends Configurer implements ConfigurerFactory {
     super(key, name, val);
   }
 
+  public TextConfigurer(String key, String name, String val, boolean wrap) {
+    this(key, name, val);
+    setWordWrap(wrap);
+  }
+  
   public Configurer getConfigurer(AutoConfigurable c, String key, String name) {
     this.key = key;
     this.name = name;
@@ -59,6 +65,10 @@ public class TextConfigurer extends Configurer implements ConfigurerFactory {
     return escapeNewlines((String) getValue());
   }
 
+  public void setWordWrap(boolean b) {
+    wordWrap = b;
+  }
+  
   /**
    * Encodes a string by replacing newlines with '|' characters
    * 
@@ -123,6 +133,10 @@ public class TextConfigurer extends Configurer implements ConfigurerFactory {
       p = new JPanel();
       p.setLayout(new BoxLayout(p, BoxLayout.Y_AXIS));
       textArea = new JTextArea(6, 20);
+      if (wordWrap) {
+        textArea.setLineWrap(true);
+        textArea.setWrapStyleWord(true);
+      }
       textArea.addKeyListener(new java.awt.event.KeyAdapter() {
         public void keyReleased(java.awt.event.KeyEvent evt) {
           queueForUpdate(textArea.getText());

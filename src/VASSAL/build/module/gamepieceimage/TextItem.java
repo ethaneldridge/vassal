@@ -322,7 +322,8 @@ public class TextItem extends Item {
 
   public static void drawLabel(Graphics g, String text, int x, int y, Font f, int hAlign, int vAlign, Color fgColor, Color bgColor, Color borderColor, boolean outline, Color outlineColor) {
     g.setFont(f);
-    int width = g.getFontMetrics().stringWidth(text + "  ");
+    int buffer = g.getFontMetrics().getLeading();
+    int width = g.getFontMetrics().stringWidth(text)+2*buffer;
     int height = g.getFontMetrics().getHeight();
     int x0 = x;
     int y0 = y;
@@ -353,18 +354,17 @@ public class TextItem extends Item {
     }
 
     int y1 = y0 + g.getFontMetrics().getHeight() - g.getFontMetrics().getDescent();
-    String theText = " " + text + " ";
-
+    int x1 = x0 + buffer;
     if (outline && outlineColor != null) {
       g.setColor(outlineColor);
-      g.drawString(theText, x0-1, y1-1);
-      g.drawString(theText, x0-1, y1+1);
-      g.drawString(theText, x0+1, y1-1);
-      g.drawString(theText, x0+1, y1+1);
+      g.drawString(text, x1-1, y1-1);
+      g.drawString(text, x1-1, y1+1);
+      g.drawString(text, x1+1, y1-1);
+      g.drawString(text, x1+1, y1+1);
     }
 
     g.setColor(fgColor);
-    g.drawString(theText, x0, y1);
+    g.drawString(text, x1, y1);
 
   }
 }

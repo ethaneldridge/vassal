@@ -19,13 +19,23 @@
 package VASSAL.tools;
 
 
-import VASSAL.build.module.Documentation;
-
-import java.io.*;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.Collection;
 import java.util.Enumeration;
 import java.util.Hashtable;
-import java.util.Vector;
-import java.util.zip.*;
+import java.util.zip.CRC32;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipFile;
+import java.util.zip.ZipInputStream;
+import java.util.zip.ZipOutputStream;
+
+import VASSAL.build.module.Documentation;
 
 /**
  * An ArchiveWriter is a writeable DataArchive.  New files may be added with the {@link #addFile} and {@link #addImage} methods.
@@ -73,6 +83,21 @@ public class ArchiveWriter extends DataArchive {
     images.put(IMAGE_DIR + name, path);
     imageNames = null;
   }
+  
+  public void addImage(String name, byte[] contents) {
+    unCacheImage(name);
+    images.put(IMAGE_DIR+name,contents);
+    imageNames = null;
+  }
+  
+  public boolean isImageAdded(String name) {
+    return images.containsKey(name);
+  }
+  
+  public void removeImage(String name) {
+    unCacheImage(name);
+    images.remove(name);
+  }
 
   /**
    * Copy a file from the user's filesystem to the archive.
@@ -96,6 +121,10 @@ public class ArchiveWriter extends DataArchive {
       ex.printStackTrace();
     }
   }
+  
+  public void addFile(String name, byte[] content) {
+    files.put(name, content);
+  }
 
   /**
    * Overrides {@link DataArchive#getFileStream} to return streams
@@ -104,6 +133,9 @@ public class ArchiveWriter extends DataArchive {
     Object file = images.get(name);
     if (file instanceof String) {
       return new FileInputStream((String) file);
+    }
+    else if (file instanceof byte[]) {
+      return new ByteArrayInputStream((byte[])file);
     }
     file = files.get(name);
     if (file instanceof String) {
@@ -235,13 +267,14 @@ public class ArchiveWriter extends DataArchive {
     }
   }
 
-  protected void listImageNames(Vector v) {
+  protected void listImageNames(Collection v) {
     super.listImageNames(v);
     for (Enumeration e = images.keys(); e.hasMoreElements();) {
       String name = (String) e.nextElement();
       if (name.startsWith(IMAGE_DIR)) {
-        v.addElement(name.substring(IMAGE_DIR.length()));
+        v.add(name.substring(IMAGE_DIR.length()));
       }
     }
   }
+
 }

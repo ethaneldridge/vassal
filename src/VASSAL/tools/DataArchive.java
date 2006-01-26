@@ -517,8 +517,9 @@ public class DataArchive extends SecureClassLoader {
 
   public String[] getImageNames() {
     if (isNameCacheStale()) {
-      List l = new ArrayList();
-      listImageNames(l);
+      Collection allNames = new HashSet(); 
+      listImageNames(allNames);
+      List l = new ArrayList(allNames);
       Collections.sort(l,String.CASE_INSENSITIVE_ORDER);
       imageNames = (String[]) l.toArray(new String[l.size()]);
     }
@@ -534,10 +535,10 @@ public class DataArchive extends SecureClassLoader {
   }
 
   /**
-   * Place the names of the image files stored in this DataArchive into the argument Vector
+   * Place the names of the image files stored in this DataArchive into the argument Collection
    * @param l
    */
-  protected void listImageNames(List l) {
+  protected void listImageNames(Collection l) {
     for (Iterator it = imageSources.keySet().iterator(); it.hasNext();) {
       l.add(it.next());
     }

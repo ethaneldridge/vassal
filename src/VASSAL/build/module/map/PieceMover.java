@@ -239,7 +239,6 @@ public class PieceMover extends AbstractBuildable implements
           KeyBuffer.getBuffer().sort(PieceMover.this);
           for (Enumeration e = KeyBuffer.getBuffer().getPieces(); e.hasMoreElements();) {
             GamePiece piece = (GamePiece) e.nextElement();
-            System.err.println("Adding "+piece.getName()+" from "+piece.getMap());
             DragBuffer.getBuffer().add(piece);
           }
         }
