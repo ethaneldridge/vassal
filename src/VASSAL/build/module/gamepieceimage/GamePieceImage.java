@@ -31,12 +31,14 @@ import VASSAL.tools.ImageSource;
 import VASSAL.tools.UniqueIdManager;
 
 import java.awt.*;
+import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.io.File;
 import java.net.MalformedURLException;
 
 import com.keypoint.PngEncoder;
+import com.keypoint.PngEncoderB;
 
 /**
  * 
@@ -306,9 +308,17 @@ public class GamePieceImage extends AbstractConfigurable implements Visualizable
   }
 
   public byte[] getEncodedImage() {
+    PngEncoder encoder = null;
+  
     if (imageBytes == null) {
-      PngEncoder encoder = new PngEncoder(layout.buildImage(this), true);
-      encoder.setCompressionLevel(1);
+      if (layout.isIndexedColor()) {
+        MedianCut m = new MedianCut((BufferedImage) layout.buildImage(this));
+        encoder = new PngEncoderB(m.convert(256), true);      
+      }
+      else {
+        encoder = new PngEncoder(layout.buildImage(this), true);
+      }
+      encoder.setCompressionLevel(9);
       imageBytes = encoder.pngEncode();
     }
     return imageBytes;
