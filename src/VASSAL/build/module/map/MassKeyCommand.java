@@ -74,7 +74,7 @@ public class MassKeyCommand extends AbstractConfigurable {
   protected String propertiesFilter;
   protected PieceFilter filter;
   private Map map;
-  private GlobalCommand globalCommand = new GlobalCommand();
+  protected GlobalCommand globalCommand = new GlobalCommand();
   protected FormattedString reportFormat = new PlayerIdFormattedString("");
 
   public MassKeyCommand() {
@@ -297,6 +297,7 @@ public class MassKeyCommand extends AbstractConfigurable {
     }
     else if (REPORT_FORMAT.equals(key)) {
       reportFormat.setFormat((String) value);
+      globalCommand.setReportFormat((String) value);
     }
     else {
       launch.setAttribute(key, value);

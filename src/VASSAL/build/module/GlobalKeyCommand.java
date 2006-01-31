@@ -18,11 +18,13 @@
  */
 package VASSAL.build.module;
 
+import java.util.List;
+import java.util.ArrayList;
+import java.util.Enumeration;
+
 import VASSAL.build.Buildable;
 import VASSAL.build.GameModule;
 import VASSAL.build.module.map.MassKeyCommand;
-
-import java.util.Enumeration;
 
 /**
  * This version of {@link MassKeyCommand} is added directly to a {@link VASSAL.build.GameModule}
@@ -38,9 +40,11 @@ public class GlobalKeyCommand extends MassKeyCommand {
   }
 
   public void apply() {
+    List l = new ArrayList();
     for (Enumeration e = GameModule.getGameModule().getComponents(Map.class); e.hasMoreElements();) {
       Map m = (Map) e.nextElement();
-      apply(m);
+      l.add(m);
     }
+    GameModule.getGameModule().sendAndLog(globalCommand.apply((Map[]) l.toArray(new Map[l.size()]),filter));
   }
 }

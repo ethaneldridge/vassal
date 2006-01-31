@@ -715,155 +715,6 @@ public class DieManager extends AbstractConfigurable {
 
   }
 
-  /*
-    *
-    * Vassal In-built random number generator
-    *
-    */
-  private class InbuiltDieServer extends DieServer {
-
-    public InbuiltDieServer() {
-
-      name = "inbuilt";
-      description = "Inbuilt Random Number Generator";
-    }
-
-    public String[] buildInternetRollString(RollSet mr) {
-      return null;
-    }
-
-    public void parseInternetRollString(RollSet rollSet, Vector results) {
-    }
-
-    public void roll(RollSet mr, FormattedString format) {
-      super.doInbuiltRoll(mr);
-    }
-
-  }
-
-  /*
-   *
-   * Internet Games Dice Server
-   * www.internetgames.org
-   *
-   */
-  private class InternetGamesDieServer extends DieServer {
-
-    public InternetGamesDieServer() {
-
-      name = "igames";
-      description = "Internet Games Dice Server";
-      emailOnly = true;
-      maxRolls = 0;
-      maxEmails = 0;
-      serverURL = "http://www.internetgames.org/diceserver/dice1.asp";
-      passwdRequired = true;
-      // password = "IG42506";
-    }
-
-    public String[] buildInternetRollString(RollSet toss) {
-      String s = "";
-      for (int i = 0; i < toss.getDieRolls().length; i++) {
-        if (!s.equals("")) {
-          s += "&";
-        }
-        s += "number" + (i + 1) + "=" + toss.dieRolls[i].getNumDice();
-        s += "&type" + (i + 1) + "=" + toss.dieRolls[i].getNumSides();
-      }
-      s += "&emails=";
-      s += "&email=" + getPrimaryEmail();
-      s += "&password=" + getPasswd();
-      s += "&Submit=Throw+Dice";
-
-      return new String[]{s};
-    }
-
-    public void parseInternetRollString(RollSet rollSet, Vector results) {
-
-      Enumeration e = results.elements();
-
-      // Initialise and search for start line
-      String line = (String) e.nextElement();
-      while (e.hasMoreElements() && !line.startsWith("<table bgcolor='F0F0FF'><tr>"))
-        line = (String) e.nextElement();
-
-      // And process the results, 1 per roll in the multiroll
-      DieRoll[] rolls = rollSet.getDieRolls();
-      for (int i = 0; i < rolls.length; i++) {
-
-        //					Find next roll
-        int pos = line.indexOf("throws:&nbsp;");
-        line = line.substring(pos);
-        StringTokenizer st = new StringTokenizer(line, "&;");
-
-        for (int j = 0; j < rollSet.dieRolls[i].getNumDice(); j++) {
-          st.nextToken();
-          st.nextToken();
-          st.nextToken();
-        }
-      }
-    }
-
-    public void roll(RollSet mr, FormattedString format) {
-      super.doInternetRoll(mr, format);
-    }
-
-    /*
-     * Internet Games only supports specific nSides
-     */
-    public int[] getnSideList() {
-      return new int[]{2, 4, 6, 8, 10, 12, 20, 30, 100};
-    }
-  }
-
-  /**
-   *
-   * Irony Games Dice Server
-   *
-   */
-  private class IronyDieServer extends DieServer {
-
-    public IronyDieServer() {
-
-      name = "Irony";
-      description = "Irony Games Dice Server";
-      emailOnly = true;
-      maxRolls = 0;
-      maxEmails = 2;
-      serverURL = "http://www.irony.com/cgi-bin/mroll-query";
-      passwdRequired = false;
-
-    }
-
-    public String[] buildInternetRollString(RollSet mr) {
-      String s;
-
-      //numdice=2&numsides=6&modroll=No&numroll=3&subject=test+Roll&roller=b.easton@uws.edu.au&gm=
-
-      s = "numdice=" + mr.getDieRolls().length;
-      //s += "&numsides=" + mr.getFirstNSides();
-      return new String[]{s};
-    }
-
-    public void parseInternetRollString(RollSet toss, Vector results) {
-    }
-
-    public void roll(RollSet mr, FormattedString format) {
-      super.doInternetRoll(mr, format);
-    }
-
-    /*
-     * Irony only supports specific dice combinations
-     */
-    public int[] getnDiceList() {
-      return new int[]{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 20};
-    }
-
-    public int[] getnSideList() {
-      return new int[]{2, 3, 4, 5, 6, 7, 8, 9, 10, 12, 13, 18, 20, 25, 30, 100, 1000};
-    }
-  }
-
   /**
    *
    * ShadowDice Dice Server
@@ -889,7 +740,7 @@ public class DieManager extends AbstractConfigurable {
       final String LSQUARE = "%5B"; // '['
       final String RSQUARE = "%5D"; // ']'
       final String HASH = "%23";
-      final String PLUS = "%2B";
+//      final String PLUS = "%2B";
 
       String desc, s, pEmail = "", sEmail = "";
 
@@ -915,7 +766,7 @@ public class DieManager extends AbstractConfigurable {
         s += ' ' + HASH;
         int nd = rolls[i].getNumDice();
         int ns = rolls[i].getNumSides();
-        int p = rolls[i].getPlus();
+//        int p = rolls[i].getPlus();
         for (int j = 0; j < nd; j++) {
           s += LSQUARE + "1d" + ns + RSQUARE;
         }

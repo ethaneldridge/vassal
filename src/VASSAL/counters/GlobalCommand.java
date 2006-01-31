@@ -61,41 +61,50 @@ public class GlobalCommand {
     this.reportSingle = reportSingle;
   }
 
+  public Command apply(Map m, PieceFilter filter) {
+    return apply(new Map[]{m},filter);
+  }
   /**
-   * Apply the key command to all pieces on the map that pass the given filter
+   * Apply the key command to all pieces that pass the given filter on all the given maps
+   * 
    * @param m
    * @param filter
    * @return a the corresponding {@link Command}
    */
-  public Command apply(Map m, PieceFilter filter) {
-    String mapFormat = m.getChangeFormat();
-    if (reportSingle) {
-      m.setAttribute(Map.CHANGE_FORMAT, "");
-    }
+  public Command apply(Map[] m, PieceFilter filter) {
     String reportText = reportFormat.getText();
-    Command keyCommand;
+    Command c;
     if (reportText.length() > 0) {
-      keyCommand = new Chatter.DisplayText(GameModule.getGameModule().getChatter(), "*" + reportText);
-      keyCommand.execute();
+      c = new Chatter.DisplayText(GameModule.getGameModule().getChatter(), "*" + reportText);
+      c.execute();
     }
     else {
-      keyCommand = new NullCommand();
+      c = new NullCommand();
     }
-    Visitor visitor = new Visitor(keyCommand, filter, keyStroke);
-    PieceVisitorDispatcher dispatcher = new PieceVisitorDispatcher(visitor);
-    GamePiece[] p = m.getPieces();
-    for (int i = 0; i < p.length; ++i) {
-      dispatcher.accept(p[i]);
+    for (int mapI = 0; mapI < m.length; ++mapI) {
+      String mapFormat = m[mapI].getChangeFormat();
+      if (reportSingle) {
+        m[mapI].setAttribute(Map.CHANGE_FORMAT, "");
+      }
+      Visitor visitor = new Visitor(c, filter, keyStroke);
+      PieceVisitorDispatcher dispatcher = new PieceVisitorDispatcher(visitor);
+      GamePiece[] p = m[mapI].getPieces();
+      for (int i = 0; i < p.length; ++i) {
+        dispatcher.accept(p[i]);
+      }
+      visitor.getTracker().repaint();
+      if (reportSingle) {
+        m[mapI].setAttribute(Map.CHANGE_FORMAT, mapFormat);
+      }
+      c = visitor.getCommand();
     }
-    visitor.getTracker().repaint();
-    if (reportSingle) {
-      m.setAttribute(Map.CHANGE_FORMAT, mapFormat);
-    }
-    return visitor.getCommand();
+    return c;
   }
 
-  /* We don't treat {@link Deck}s any differently than {@link Stack}s, so
-  no need to implement {@link DeckVisitor */
+  /*
+   * We don't treat {@link Deck}s any differently than {@link Stack}s, so no
+   * need to implement {@link DeckVisitor 
+   */
   private static class Visitor implements PieceVisitor {
     private Command command;
     private BoundsTracker tracker;
