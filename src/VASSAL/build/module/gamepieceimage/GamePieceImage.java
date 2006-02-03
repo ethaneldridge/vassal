@@ -35,6 +35,7 @@ import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.io.File;
+import java.io.IOException;
 import java.net.MalformedURLException;
 
 import com.keypoint.PngEncoder;
@@ -61,11 +62,9 @@ public class GamePieceImage extends AbstractConfigurable implements Visualizable
   protected ColorSwatch bgColor = ColorSwatch.getWhite();
   protected ColorSwatch borderColor = ColorSwatch.getBlack();
   protected String id;
-  protected Image image;
-  protected byte[] imageBytes;
 
   protected static UniqueIdManager idMgr = new UniqueIdManager("GamePieceImage");
-  protected boolean addedToArchive;
+  protected String nameInUse;
 
   public GamePieceImage() {
     super();
@@ -155,13 +154,7 @@ public class GamePieceImage extends AbstractConfigurable implements Visualizable
 
   public void setAttribute(String key, Object value) {
     if (NAME.equals(key)) {
-      String newName = (String)value;
-      if (addedToArchive) {
-        GameModule.getGameModule().getArchiveWriter().removeImage(getConfigureName());
-        if (!GameModule.getGameModule().getArchiveWriter().isImageAdded(newName)) {
-          GameModule.getGameModule().getArchiveWriter().addImage(newName, getEncodedImage());
-        }
-      }
+      String newName = (String) value;
       setConfigureName(newName);
     }
     else if (BG_COLOR.equals(key)) {
@@ -193,6 +186,7 @@ public class GamePieceImage extends AbstractConfigurable implements Visualizable
         defnConfig.repack();
       }
     }
+    rebuildVisualizerImage();
   }
 
   public String getAttributeValueString(String key) {
@@ -254,9 +248,9 @@ public class GamePieceImage extends AbstractConfigurable implements Visualizable
 
   public void addTo(Buildable parent) {
     layout = (GamePieceLayout) parent;
-    rebuildInstances();
     idMgr.add(this);
     validator = idMgr;
+    rebuildInstances();
   }
 
   public String getId() {
@@ -287,45 +281,56 @@ public class GamePieceImage extends AbstractConfigurable implements Visualizable
     return getLayout().getVisualizerWidth();
   }
 
+
+  // Let the DataArchive cache the image
   public Image getVisualizerImage() {
-    return getImage();
+    try {
+      return GameModule.getGameModule().getDataArchive().getCachedImage(getConfigureName());
+    }
+    catch (IOException e) {
+      e.printStackTrace();
+      return null;
+    }
   }
 
+  // Called by the DataArchive only when the image is needed
+  // This only happens in edit mode, so we add the image data to the archive here
   public Image getImage() {
-    if (image == null) {
-      image = layout.buildImage(this);
-    }
-    return image;
+    Image i = layout.buildImage(this);
+    GameModule.getGameModule().getArchiveWriter().addImage(getConfigureName(), getEncodedImage((BufferedImage) i));
+    return i;
   }
 
+  // Invalidate the image data in the Data Archive
+  // If we've changed names, remove the data under the old name
+  // This only happens in edit mode
   public void rebuildVisualizerImage() {
-    if (GameModule.getGameModule().getArchiveWriter() != null && getConfigureName() != null && getConfigureName().length() > 0) {
-      image = null;
-      imageBytes = null;
-      GameModule.getGameModule().getArchiveWriter().addImage(getConfigureName(), getEncodedImage());
-      addedToArchive = true;
+    if (GameModule.getGameModule().getArchiveWriter() != null) {
+      if (nameInUse != null) {
+        GameModule.getGameModule().getDataArchive().unCacheImage(nameInUse);
+        if (!nameInUse.equals(getConfigureName())) {
+          GameModule.getGameModule().getDataArchive().removeImageSource(nameInUse);
+          GameModule.getGameModule().getArchiveWriter().removeImage(nameInUse);
+          nameInUse = null;
+        }
+      }
+      if (nameInUse == null && GameModule.getGameModule().getDataArchive().addImageSource(getConfigureName(), this)) {
+        nameInUse = getConfigureName();
+      }
     }
   }
 
-  public byte[] getEncodedImage() {
+  public byte[] getEncodedImage(BufferedImage bufferedImage) {
     PngEncoder encoder = null;
-  
-    if (imageBytes == null) {
-      if (layout.isIndexedColor()) {
-        MedianCut m = new MedianCut((BufferedImage) layout.buildImage(this));
-        encoder = new PngEncoderB(m.convert(256), true);      
-      }
-      else {
-        encoder = new PngEncoder(layout.buildImage(this), true);
-      }
-      encoder.setCompressionLevel(9);
-      imageBytes = encoder.pngEncode();
+    if (layout.isIndexedColor()) {
+      MedianCut m = new MedianCut(bufferedImage);
+      encoder = new PngEncoderB(m.convert(256), true);
     }
-    return imageBytes;
-  }
-
-  public void invalidate() {
-    rebuildVisualizerImage();
+    else {
+      encoder = new PngEncoder(layout.buildImage(this), true);
+    }
+    encoder.setCompressionLevel(9);
+    return encoder.pngEncode();
   }
 
   public ItemInstance getInstance(String name) {

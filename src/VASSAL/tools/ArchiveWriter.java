@@ -96,7 +96,7 @@ public class ArchiveWriter extends DataArchive {
   
   public void removeImage(String name) {
     unCacheImage(name);
-    images.remove(name);
+    images.remove(IMAGE_DIR+name);
   }
 
   /**

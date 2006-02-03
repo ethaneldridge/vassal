@@ -370,9 +370,9 @@ public class GamePieceLayout extends AbstractConfigurable implements Visualizabl
   }
 
   protected void invalidate() {
-    imageDefn.invalidate();
+    imageDefn.rebuildVisualizerImage();
     for (Enumeration e = getComponents(GamePieceImage.class); e.hasMoreElements();) {
-      ((GamePieceImage) e.nextElement()).invalidate();
+      ((GamePieceImage) e.nextElement()).rebuildVisualizerImage();
     }
   }
 
