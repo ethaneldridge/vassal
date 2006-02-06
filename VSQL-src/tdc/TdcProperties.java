@@ -38,7 +38,9 @@ public interface TdcProperties {
 
   public static final String ARMY = "Army";           // Owning Army Marker
   public static final String FORMATION = "Formation"; // Owning Formation Marker
+  public static final String FORMATION2 = "Formation2"; // Secondary command Formation Marker
   public static final String DIVISION = "Division";   // Owning Division Marker
+  public static final String DIVISION2 = "Division2";   // Secondary command Division Marker
 
   public static final String TYPE = "Type";         // Unit Type Marker
   public static final String BRIDGE = "Bridge";     // Bridge Type

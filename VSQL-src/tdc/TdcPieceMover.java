@@ -37,7 +37,7 @@ import VASSAL.counters.Stack;
  * 
  * @author Brent Easton
  *
- * Activate units when they move
+ * Mark units done when they move, If they are Active and not yet marked.
  */
 public class TdcPieceMover extends PieceMover {
 
@@ -61,10 +61,11 @@ public class TdcPieceMover extends PieceMover {
   }
   
   protected Command activatePiece(GamePiece p) {
-    String s = (String) p.getProperty("Active_Level");
-    if (s != null && s.equals("1")) {
+    String markLevel = (String) p.getProperty("Mark_Level") + "";
+    String activeLevel = (String) p.getProperty("Active_Level") + "";
+    if (markLevel != null && markLevel.equals("1") && activeLevel.equals("2")) {
       p.setProperty(Properties.SNAPSHOT, PieceCloner.getInstance().clonePiece(p));
-      return p.keyEvent(KeyStroke.getKeyStroke('A', InputEvent.CTRL_MASK));
+      return p.keyEvent(KeyStroke.getKeyStroke('K', InputEvent.CTRL_MASK));
     }
     else {
       return new NullCommand();

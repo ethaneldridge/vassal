@@ -16,16 +16,17 @@
  * along with this library; if not, copies are available at
  * http://www.opensource.org.
  */
-package Dev;
+package dynamic;
 
+import VASSAL.build.module.BasicCommandEncoder;
 import VASSAL.counters.Decorator;
 import VASSAL.counters.GamePiece;
 
-public class DevCommandEncoder extends AutoImage.CommandEncoder {
+public class DynamicCommandEncoder extends BasicCommandEncoder {
 
   public Decorator createDecorator(String type, GamePiece inner) {
-    if (type.startsWith(Switch.ID)) {     
-      return new Switch(type, inner);
+    if (type.startsWith(CounterDynamicProperty.ID)) {     
+      return new CounterDynamicProperty(type, inner);
     }
     return super.createDecorator(type, inner);
   }

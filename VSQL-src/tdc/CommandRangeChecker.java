@@ -29,6 +29,7 @@ import VASSAL.counters.GamePiece;
 import VASSAL.counters.PieceFilter;
 import VASSAL.counters.PieceVisitor;
 import VASSAL.counters.PieceVisitorDispatcher;
+import VASSAL.counters.Properties;
 import VASSAL.counters.PropertiesPieceFilter;
 import VASSAL.counters.Stack;
 
@@ -43,8 +44,9 @@ public class CommandRangeChecker {
   GamePiece piece;
   boolean isUnitIndependent = false;	// Unit is part of an Independent Formation
   boolean canBeActivated;				// Game Piece can be activated (i.e. is a combat unit)
-  String leaderFormationType;
-  String leaderFormationValue;
+  String leaderFormationType = "";
+  String leaderFormationValue = "";
+  String leaderFormation2Value = "";
 
   public CommandRangeChecker() {
     this(null);
@@ -58,11 +60,15 @@ public class CommandRangeChecker {
   /**
    * Determine the Markers to be matched to find the leader for this unit. Units
    * of Independent formations need any leader of their Division. Other units
-   * need a leader of their particular Formation.
-   *  
+   * need a leader of their particular Formation. Units that are Hidden or
+   * Obscured to me must be skipped
+   *   
    */
   protected void setLeaderAttributes() {
-    canBeActivated = Boolean.valueOf((String) piece.getProperty(TdcProperties.ACTIVE)).booleanValue();
+    canBeActivated = Boolean.valueOf((String) piece.getProperty(TdcProperties.ACTIVE)).booleanValue() &&
+    	! Boolean.TRUE.equals(piece.getProperty(Properties.INVISIBLE_TO_ME)) &&
+    	! Boolean.TRUE.equals(piece.getProperty(Properties.OBSCURED_TO_ME)) &&
+    	! "Leader".equals(piece.getProperty("Type"));
     if (canBeActivated) {
       String unitClass = (String) piece.getProperty(TdcProperties.CLASS);
       if (unitClass != null) {
@@ -70,11 +76,13 @@ public class CommandRangeChecker {
             || unitClass.equals(TdcProperties.GUN)) {
           leaderFormationType = TdcProperties.FORMATION;
           leaderFormationValue = (String) piece.getProperty(leaderFormationType) + "";
+          leaderFormation2Value = (String) piece.getProperty(TdcProperties.FORMATION2) + "";
           isUnitIndependent = Boolean.valueOf((String) piece.getProperty(TdcProperties.IS_INDEPENDENT)).booleanValue();
           if (leaderFormationValue != null) {
             if (isUnitIndependent) {
               leaderFormationType = TdcProperties.DIVISION;
               leaderFormationValue = (String) piece.getProperty(leaderFormationType) + "";
+              leaderFormation2Value = (String) piece.getProperty(TdcProperties.DIVISION2) + "";
             }
           }
         }
@@ -92,8 +100,15 @@ public class CommandRangeChecker {
     }
     
     if (leaderFormationValue != null && leaderFormationValue.length() > 0 && piece.getMap() != null) {
-      PieceFilter filter = PropertiesPieceFilter.parse(TdcProperties.CLASS + "=" + TdcProperties.LEADER + " && "
-          + leaderFormationType + " = " + leaderFormationValue);
+      String s = TdcProperties.CLASS + "=" + TdcProperties.LEADER + " && "  + leaderFormationType;
+      if (leaderFormation2Value.length() > 0) {
+        s += " =~ " + leaderFormationValue + "|" + leaderFormation2Value;
+      }
+      else {
+        s += " = " + leaderFormationValue;
+      }
+      
+      PieceFilter filter = PropertiesPieceFilter.parse(s);
       LeaderVisitor visitor = new LeaderVisitor(filter, piece);
       PieceVisitorDispatcher dispatcher = new PieceVisitorDispatcher(visitor);
       GamePiece[] p = piece.getMap().getPieces();
