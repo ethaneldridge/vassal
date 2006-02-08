@@ -4,7 +4,7 @@
 	<classpathentry kind="src" path="/CASL"/>
 	<classpathentry kind="src" path="/VASSAL"/>
 	<classpathentry kind="src" path="/jep"/>
-	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/j2re1.4.2_08"/>
 	<classpathentry kind="lib" path="D:/eclipse/libraries/jep-2.3.0.jar"/>
 	<classpathentry kind="lib" path="D:/eclipse/libraries/jep-2.3.0/lib/junit.jar"/>
 	<classpathentry kind="output" path="bin"/>

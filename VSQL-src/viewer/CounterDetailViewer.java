@@ -34,7 +34,6 @@ import java.io.File;
 import java.net.MalformedURLException;
 import java.util.ArrayList;
 import java.util.Enumeration;
-import java.util.Vector;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -62,13 +61,14 @@ import VASSAL.configure.StringEnum;
 import VASSAL.configure.VisibilityCondition;
 import VASSAL.counters.BasicPiece;
 import VASSAL.counters.ColoredBorder;
+import VASSAL.counters.Deck;
+import VASSAL.counters.DeckVisitor;
+import VASSAL.counters.DeckVisitorDispatcher;
 import VASSAL.counters.GamePiece;
 import VASSAL.counters.Labeler;
 import VASSAL.counters.PieceFilter;
 import VASSAL.counters.PieceFinder;
 import VASSAL.counters.PieceIterator;
-import VASSAL.counters.PieceVisitor;
-import VASSAL.counters.PieceVisitorDispatcher;
 import VASSAL.counters.Properties;
 import VASSAL.counters.PropertiesPieceFilter;
 import VASSAL.counters.Stack;
@@ -81,10 +81,11 @@ import VASSAL.tools.FormattedString;
  * @author David Sullivan
  * @version 1.0
  */
-public class CounterDetailViewer extends AbstractConfigurable implements Drawable, MouseMotionListener, MouseListener, Runnable,
-    KeyListener {
+public class CounterDetailViewer extends AbstractConfigurable implements Drawable, MouseMotionListener, MouseListener,
+    Runnable, KeyListener {
 
   public static final String VIEWER_VERSION = "2";
+  public static final String MINI_VERSION = "2.3";
   public static final String USE_KEYBOARD = "ShowCounterDetails";
 
   public static final String DELAY = "delay";
@@ -100,6 +101,7 @@ public class CounterDetailViewer extends AbstractConfigurable implements Drawabl
   public static final String GRAPHICS_ZOOM_LEVEL = "graphicsZoom";
   public static final String BORDER_WIDTH = "borderWidth";
   public static final String SHOW_NOSTACK = "showNoStack";
+  public static final String SHOW_DECK = "showDeck";
   public static final String DISPLAY = "display";
   public static final String LAYER_LIST = "layerList";
   public static final String SUMMARY_REPORT_FORMAT = "summaryReportFormat";
@@ -142,18 +144,20 @@ public class CounterDetailViewer extends AbstractConfigurable implements Drawabl
   protected boolean showText = false;
   protected boolean showTextSingle = false;
   protected boolean showRef = false;
+  protected boolean showDeck = false;
   protected double zoomLevel = 1.0;
   protected double graphicsZoomLevel = 1.0;
   protected int borderWidth = 0;
   protected boolean showNoStack = false;
   protected String displayWhat = TOP_LAYER;
   protected String[] displayLayers = new String[0];
-  protected SummingFormattedString summaryReportFormat = new SummingFormattedString("$" + BasicPiece.LOCATION_NAME + "$");
+  protected SummingFormattedString summaryReportFormat = new SummingFormattedString("$" + BasicPiece.LOCATION_NAME
+      + "$");
   protected FormattedString counterReportFormat = new FormattedString("");
   protected FormattedString emptyHexReportFormat = new FormattedString("$" + BasicPiece.LOCATION_NAME + "$");
   protected String version = "";
-  protected Color fgColor = Color.BLACK;
-  protected Color bgColor = Color.WHITE;
+  protected Color fgColor = Color.black;
+  protected Color bgColor = Color.white;
   protected int fontSize = 9;
   protected String propertyFilterString = "";
   protected PieceFilter propertyFilter = null;
@@ -162,7 +166,8 @@ public class CounterDetailViewer extends AbstractConfigurable implements Drawabl
   protected boolean mouseInView = true;
   protected int[] sumPropertyTotals = new int[0];
   protected ArrayList displayablePieces = null;
-  
+  protected boolean emptyHex = false;
+
   public CounterDetailViewer() {
   }
 
@@ -172,15 +177,15 @@ public class CounterDetailViewer extends AbstractConfigurable implements Drawabl
     map.addDrawComponent(this);
     GameModule.getGameModule().getPrefs().addOption("General",
         new BooleanConfigurer(USE_KEYBOARD, "Use CTRL-space to view stack details", Boolean.FALSE));
-    
+
     map.getView().addMouseMotionListener(this);
     map.getView().addMouseListener(this);
     map.getView().addKeyListener(this);
   }
 
   public void draw(Graphics g, Map map) {
-    if (currentLocation != null && map.getView().getVisibleRect().contains(currentLocation)) {
-      draw(g, currentLocation, map.getView());
+    if (currentMouseLocation != null && map.getView().getVisibleRect().contains(map.componentCoordinates(currentLocation))) {
+      draw(g, currentMouseLocation, map.getView());
     }
   }
 
@@ -193,8 +198,8 @@ public class CounterDetailViewer extends AbstractConfigurable implements Drawabl
     if (!graphicsVisible && !textVisible) {
       return;
     }
-    
-    bounds = new Rectangle(pt.x, pt.y, 0, 0);
+
+    bounds = new Rectangle((int) (pt.x * map.getZoom()), (int) (pt.y * map.getZoom()), 0, 0);
 
     if (graphicsVisible) {
       drawGraphics(g, pt, comp, displayablePieces);
@@ -205,195 +210,6 @@ public class CounterDetailViewer extends AbstractConfigurable implements Drawabl
     }
   }
 
-  /*
-   * Build an ArrayList of pieces to be displayed in order from bottom up, based
-   * on selection criteria setup in config.
-   */
-  protected ArrayList getDisplayablePieces() {
-    
-    GamePiece[] allPieces = map.getPieces(); // All pieces from bottom up
-    
-    PieceFilter filter = new Filter();
-    Visitor visitor = new Visitor(filter, summaryReportFormat.getSummingPropertyNames());
-    PieceVisitorDispatcher dispatcher = new PieceVisitorDispatcher(visitor);
-    
-    /*
-     * Process pieces from the top down to make it easier to check for top layer only.
-     */
-    for (int i = allPieces.length-1; i >= 0; i--) {
-      dispatcher.accept(allPieces[i]);
-    }
-    
-    sumPropertyTotals = visitor.getPropertyTotals();
-    
-    return visitor.getPieces();
-  }
-  
-  /*
-   * Utility class to select the pieces we wish to view.
-   */
-  protected class Filter implements PieceFilter {
-
-    protected PieceCollection collection;
-    protected int topLayer;
-    
-    public Filter () {
-      collection = map.getPieceCollection();
-      topLayer = -1;
-    }
-    
-    public boolean accept(GamePiece piece) {
-      
-      /*
-       * Is this piece in the same location as the piece we found under the cursor?
-       */
-      if (!currentLocation.equals(piece.getPosition())) {
-        return false;
-      }
-      
-      /*
-       * Is it visible to us?
-       */
-      if (Boolean.TRUE.equals(piece.getProperty(Properties.INVISIBLE_TO_ME))) {
-        return false;
-      }
-      
-      /*
-       * If it Does Not Stack, do we want to see it?
-       */
-      if (Boolean.TRUE.equals(piece.getProperty(Properties.NO_STACK))) {
-        return showNoStack;
-      }
-
-      /*
-       * Select by property filter
-       */
-      if (displayWhat.equals(FILTER)) {
-        return propertyFilter.accept(piece);
-      }
-      /*
-       * Looking at All Layers accepts anything.
-       */
-      else if (displayWhat.equals(ALL_LAYERS)) { 
-        return true;
-      }
-      else {
-        
-        int layer = 0;
-        String layerName = "";
-        if (collection instanceof CompoundPieceCollection) {
-          layer = ((CompoundPieceCollection) collection).getLayerForPiece(piece);
-          layerName = ((CompoundPieceCollection) collection).getLayerNameForPiece(piece); 
-        }
-        
-        if (topLayer < 0) {
-          topLayer = layer;
-        }
-        
-        /*
-         * Pieces are passed to us top down, so only display the top-most layer 
-         */
-        if (displayWhat.equals(TOP_LAYER)) {
-          return layer == topLayer;
-        }
-        
-        /*
-         * Include pieces on named layers only
-         */
-        else if (displayWhat.equals(INC_LAYERS)) { 
-          for (int i = 0; i < displayLayers.length; i++) {
-            if (layerName.equals(displayLayers[i])) {
-              return true;
-            }
-          }
-        }
-        
-        /*
-         * Exclude pieces from named layers.
-         */
-        else if (displayWhat.equals(EXC_LAYERS)) { 
-          for (int i = 0; i < displayLayers.length; i++) {
-            if (layerName.equals(displayLayers[i])) {
-              return false;
-            }
-          }
-          return true;
-        }
-      }
-      
-      /*
-       * Ignore anything else
-       */
-      return false;
-    }
-    
-  }
-  
-  /*
-   * Utility class to visit Map pieces, apply the filter and return a list
-   * of pieces we are interested in. 
-   */
-  protected static class Visitor implements PieceVisitor {
-    protected ArrayList pieces;
-    protected PieceFilter filter = null;
-    protected String[] sumPropertyNames;
-    protected int[] sumPropertyTotals;
-
-    public Visitor(PieceFilter filter, String[] propertyNames) {
-      pieces = new ArrayList();
-      this.filter = filter;
-      if (propertyNames == null) {
-        sumPropertyNames = new String[0];
-        sumPropertyTotals = new int[0];
-      }
-      else {
-        sumPropertyNames = propertyNames;
-        sumPropertyTotals = new int[propertyNames.length];
-        for (int i = 0; i < sumPropertyTotals.length; i++) {
-          sumPropertyTotals[i] = 0;
-        }
-      }
-    }
-
-    public Object visitStack(Stack s) {
-      for (Enumeration e = s.getPieces(); e.hasMoreElements();) {
-        apply((GamePiece) e.nextElement());
-      }
-      return null;
-    }
-
-    public Object visitDefault(GamePiece p) {
-      apply(p);
-      return null;
-    }
-
-    /*
-     * Insert accepted pieces into the start of the array since we are being passed 
-     * pieces from the top down. Sum any required property values as we go.
-     */
-    protected void apply(GamePiece p) {
-      if (filter == null || filter.accept(p)) {
-        pieces.add(0, p);
-        for (int i = 0; i < sumPropertyNames.length; i++) {
-          try {
-            sumPropertyTotals[i] += Integer.parseInt((String) p.getProperty(sumPropertyNames[i]));
-          }
-          catch (Exception ex) {            
-          }
-        }
-      }   
-    }
-
-    public ArrayList getPieces() {
-      return pieces;
-    }
-    
-    public int[] getPropertyTotals() {
-      return sumPropertyTotals;
-    }
-
-  }
-
   // Required for backward compatibility
   protected void drawGraphics(Graphics g, Point pt, JComponent comp, PieceIterator pi) {
     ArrayList a = new ArrayList();
@@ -402,25 +218,26 @@ public class CounterDetailViewer extends AbstractConfigurable implements Drawabl
     }
     drawGraphics(g, pt, comp, pi);
   }
-  
-  protected void drawGraphics(Graphics g, Point pt, JComponent comp, ArrayList pieces) {
 
-    Vector v = new Vector();
+  protected void drawGraphics(Graphics g, Point pt, JComponent comp, ArrayList pieces) {
 
     for (int i = 0; i < pieces.size(); i++) {
       GamePiece piece = (GamePiece) pieces.get(i);
       Rectangle pieceBounds = piece.getShape().getBounds();
-      bounds.width += (int) (pieceBounds.width * graphicsZoomLevel);
+      bounds.width += (int) (pieceBounds.width * graphicsZoomLevel) + borderWidth;
       bounds.height = Math.max(bounds.height, (int) (pieceBounds.height * graphicsZoomLevel) + borderWidth * 2);
     }
-    bounds.width += (v.size() + 1) * borderWidth;
+    bounds.width += borderWidth;
     bounds.y -= bounds.height;
 
     if (bounds.width > 0) {
 
       Rectangle visibleRect = comp.getVisibleRect();
       bounds.x = Math.min(bounds.x, visibleRect.x + visibleRect.width - bounds.width);
+      if (bounds.x < visibleRect.x) bounds.x = visibleRect.x;
       bounds.y = Math.min(bounds.y, visibleRect.y + visibleRect.height - bounds.height);
+      int minY = visibleRect.y + (textVisible ? g.getFontMetrics().getHeight()+6 : 0); 
+      if (bounds.y < minY) bounds.y = minY;
 
       g.setColor(bgColor);
       g.fillRect(bounds.x - 1, bounds.y - 1, bounds.width + 2, bounds.height + 2);
@@ -428,8 +245,7 @@ public class CounterDetailViewer extends AbstractConfigurable implements Drawabl
       g.drawRect(bounds.x - 2, bounds.y - 2, bounds.width + 3, bounds.height + 3);
       g.drawRect(bounds.x - 3, bounds.y - 3, bounds.width + 5, bounds.height + 5);
       //Shape oldClip = g.getClip();
-      //g.setClip(bounds.x - 3, bounds.y - 3, bounds.width + 5, bounds.height +
-      // 5);
+
       int borderOffset = borderWidth;
       double graphicsZoom = graphicsZoomLevel;
       for (int i = 0; i < pieces.size(); i++) {
@@ -437,21 +253,23 @@ public class CounterDetailViewer extends AbstractConfigurable implements Drawabl
         // pt is the location of the left edge of the piece
         GamePiece piece = (GamePiece) pieces.get(i);
         Rectangle pieceBounds = piece.getShape().getBounds();
+        //g.setClip(bounds.x - 3, bounds.y - 3, bounds.width + 5, bounds.height + 5);
         piece.draw(g, bounds.x - (int) (pieceBounds.x * graphicsZoom) + borderOffset, bounds.y
             - (int) (pieceBounds.y * graphicsZoom) + borderWidth, comp, graphicsZoom);
+        //g.setClip(oldClip);
 
         if (textVisible && counterReportFormat.getFormat().length() > 0) {
           String text = counterReportFormat.getText(piece);
           int textWidth = g.getFontMetrics().stringWidth(text);
           int x = bounds.x - (int) (pieceBounds.x * graphicsZoom) + borderOffset;
-          int y = pt.y + 10;
+          int y = bounds.y + bounds.height + 10;
           drawLabel(g, new Point(x, y), text, Labeler.CENTER, Labeler.CENTER);
         }
 
         bounds.translate((int) (pieceBounds.width * graphicsZoom), 0);
         borderOffset += borderWidth;
       }
-      //g.setClip(oldClip);
+      //
     }
   }
 
@@ -463,7 +281,7 @@ public class CounterDetailViewer extends AbstractConfigurable implements Drawabl
     }
     drawText(g, pt, comp, pi);
   }
-  
+
   protected void drawText(Graphics g, Point pt, JComponent comp, ArrayList pieces) {
     /*
      * Label with the location If the counter viewer is being displayed, then
@@ -472,8 +290,10 @@ public class CounterDetailViewer extends AbstractConfigurable implements Drawabl
      * location name above the centre of the first piece in the stack.
      */
     String report = "";
+    int x = (int) ((bounds.x - bounds.width) * map.getZoom());
+    int y = (int) (bounds.y * map.getZoom()) - 5;
 
-    if (currentPiece == null) {
+    if (currentPiece == null || displayablePieces.size() == 0 || emptyHex) {
       Point mapPt = map.mapCoordinates(currentMousePosition.getPoint());
       Point snapPt = map.snapTo(mapPt);
       String locationName = map.locationName(snapPt);
@@ -486,21 +306,23 @@ public class CounterDetailViewer extends AbstractConfigurable implements Drawabl
       String zone = (z == null) ? "" : z.getName();
       emptyHexReportFormat.setProperty(BasicPiece.CURRENT_ZONE, zone);
       report = emptyHexReportFormat.getText();
+      x -= g.getFontMetrics().stringWidth(report) / 2;
     }
     else {
       report = summaryReportFormat.getText(topPiece, sumPropertyTotals);
     }
-
-    drawLabel(g, new Point(pt.x, pt.y - bounds.height - 5), report, Labeler.RIGHT, Labeler.BOTTOM);
+    
+    drawLabel(g, new Point(x, y), report,
+        Labeler.RIGHT, Labeler.BOTTOM);
   }
 
   // Required for backward compatibility
   protected void drawLabel(Graphics g, Point pt, String label) {
     drawLabel(g, pt, label, Labeler.RIGHT, Labeler.BOTTOM);
   }
-  
-  protected void drawLabel(Graphics g, Point pt, String label, int hAlign, int vAlign) {
 
+  protected void drawLabel(Graphics g, Point pt, String label, int hAlign, int vAlign) {
+    
     if (label != null) {
       Graphics2D g2d = ((Graphics2D) g);
       int textWidth = g.getFontMetrics().stringWidth(label);
@@ -536,51 +358,297 @@ public class CounterDetailViewer extends AbstractConfigurable implements Drawabl
 
     currentPiece = findPieceAtMousePosition();
     topPiece = (currentPiece instanceof Stack) ? ((Stack) currentPiece).topPiece() : currentPiece;
-    currentLocation = topPiece==null ? currentMousePosition.getPoint() : topPiece.getPosition();
-    displayablePieces = getDisplayablePieces();
-
+    currentMouseLocation = map.mapCoordinates(currentMousePosition.getPoint());
     
+    if (topPiece == null) {
+      currentLocation = currentMousePosition.getPoint();
+    }
+    else {
+      currentLocation = topPiece.getPosition();
+    }
+    displayablePieces = getDisplayablePieces();
+    emptyHex = false;
+
     /*
      * Visibility Rules: Stack - Depends on setting of showGraphics/showText
      * Single Unit - Depends on setting of showGraphics/showText and
      * showGraphicsSingle/showTextSingle and stack must not be expanded. Empty
      * space - Depends on setting of
      */
-    if (currentPiece == null) {
-      textVisible = (!graphicsOptions.equals(NEVER) && (showRef) && emptyHexReportFormat.getFormat().length() > 0);
+
+    if (currentPiece == null || displayablePieces.size() == 0 ||
+        graphicsOptions.equals(NEVER) ||
+        (displayablePieces.size() == 1 && graphicsOptions.equals(COUNTER2))) {
+      textVisible = (showRef && emptyHexReportFormat.getFormat().length() > 0);
       graphicsVisible = false;
+      emptyHex = true;
     }
     else {
-      boolean hasReport = summaryReportFormat.getFormat().length() > 0 ||
-                     counterReportFormat.getFormat().length() > 0;
-      
+      boolean hasReport = summaryReportFormat.getFormat().length() > 0 || counterReportFormat.getFormat().length() > 0;
+
       if (map.getZoom() < zoomLevel) {
         boolean isNotTerrain = !Boolean.TRUE.equals(topPiece.getProperty(Properties.TERRAIN));
         graphicsVisible = (!graphicsOptions.equals(NEVER) && isNotTerrain);
       }
-      else if (currentPiece instanceof Stack) {
-        Stack s = (Stack) currentPiece;
+      else  {
         if (displayablePieces.size() == 1) {
           graphicsVisible = (graphicsOptions.equals(COUNTER1));
         }
         else {
-          graphicsVisible = (!graphicsOptions.equals(NEVER) && !s.isExpanded());
+          if (currentPiece instanceof Stack) {
+            Stack s = (Stack) currentPiece;
+            graphicsVisible = (!graphicsOptions.equals(NEVER) && !((Stack) currentPiece).isExpanded());
+          }
+          else {
+            graphicsVisible = showNoStack;
+          }
         }
       }
-      textVisible = graphicsVisible && hasReport;
+      if (graphicsVisible) {
+        textVisible = hasReport;
+      }
+      else {
+        emptyHex = !graphicsVisible;
+        textVisible = true;
+      }
     }
 
     map.repaint();
   }
+
+  /*
+   * Build an ArrayList of pieces to be displayed in order from bottom up, based
+   * on selection criteria setup in config.
+   */
+  protected ArrayList getDisplayablePieces() {
+
+    GamePiece[] allPieces = map.getPieces(); // All pieces from bottom up
+
+    Visitor visitor = new Visitor(new Filter(), summaryReportFormat.getSummingPropertyNames(), map);
+    DeckVisitorDispatcher dispatcher = new DeckVisitorDispatcher(visitor);
+
+    /*
+     * Process pieces from the top down to make it easier to check for top layer
+     * only.
+     */
+    for (int i = allPieces.length - 1; i >= 0; i--) {
+      dispatcher.accept(allPieces[i]);
+    }
+
+    sumPropertyTotals = visitor.getPropertyTotals();
+
+    return visitor.getPieces();
+  }
+
+  /*
+   * Utility class to select the pieces we wish to view.
+   */
+  protected class Filter implements PieceFilter {
+
+    protected int topLayer;
+
+    public Filter() {
+      topLayer = -1;
+    }
+
+    public boolean accept(GamePiece piece) {
+      return accept(piece, 0, "");
+    }
+
+    public boolean accept(GamePiece piece, int layer, String layerName) {
+
+      // Is this piece in the same location as the piece we found under the cursor?
+      if (!currentLocation.equals(piece.getPosition())) {
+        return false;
+      }
+
+      // Is it visible to us?
+      if (Boolean.TRUE.equals(piece.getProperty(Properties.INVISIBLE_TO_ME))) {
+        return false;
+      }
+
+      // If it Does Not Stack, do we want to see it?
+      if (Boolean.TRUE.equals(piece.getProperty(Properties.NO_STACK))) {
+        return showNoStack;
+      }
+
+      // Deck?
+      if (piece.getParent() instanceof Deck && !showDeck) {
+        return false;
+      }
+      
+      // Select by property filter
+      if (displayWhat.equals(FILTER)) {
+        return propertyFilter.accept(piece);
+      }
+
+      // Looking at All Layers accepts anything.
+      else if (displayWhat.equals(ALL_LAYERS)) {
+        return true;
+      }
+      else {
+
+        if (topLayer < 0) {
+          topLayer = layer;
+        }
+
+        // Pieces are passed to us top down, so only display the top-most layer
+        if (displayWhat.equals(TOP_LAYER)) {
+          return layer == topLayer;
+        }
+
+        // Include pieces on named layers only
+        else if (displayWhat.equals(INC_LAYERS)) {
+          for (int i = 0; i < displayLayers.length; i++) {
+            if (layerName.equals(displayLayers[i])) {
+              return true;
+            }
+          }
+        }
+
+        // Exclude pieces from named layers.
+        else if (displayWhat.equals(EXC_LAYERS)) {
+          for (int i = 0; i < displayLayers.length; i++) {
+            if (layerName.equals(displayLayers[i])) {
+              return false;
+            }
+          }
+          return true;
+        }
+      }
+
+      // Ignore anything else
+      return false;
+    }
+
+  }
+
+  /*
+   * Utility class to visit Map pieces, apply the filter and return a list of
+   * pieces we are interested in.
+   */
+  protected static class Visitor implements DeckVisitor {
+    protected ArrayList pieces;
+    protected Filter filter = null;
+    protected String[] sumPropertyNames;
+    protected int[] sumPropertyTotals;
+    protected PieceCollection collection;
+    protected int lastLayer = -1;
+    protected int insertPos = 0;
+
+    public Visitor(Filter filter, String[] propertyNames, Map map) {
+      collection = map.getPieceCollection();
+      pieces = new ArrayList();
+      this.filter = filter;
+      if (propertyNames == null) {
+        sumPropertyNames = new String[0];
+        sumPropertyTotals = new int[0];
+      }
+      else {
+        sumPropertyNames = propertyNames;
+        sumPropertyTotals = new int[propertyNames.length];
+        for (int i = 0; i < sumPropertyTotals.length; i++) {
+          sumPropertyTotals[i] = 0;
+        }
+      }
+    }
+
+    public Object visitDeck(Deck d) {
+      GamePiece top = d.topPiece();
+      if (top != null) {
+        if (!Boolean.TRUE.equals(top.getProperty(Properties.OBSCURED_TO_ME)) &&
+             !Boolean.TRUE.equals(top.getProperty(Properties.INVISIBLE_TO_ME))) {
+          visitDefault(top);
+        }     
+      }
+      return null;
+    }
+    
+    public Object visitStack(Stack s) {
+      for (Enumeration e = s.getPieces(); e.hasMoreElements();) {
+        apply((GamePiece) e.nextElement());
+      }
+      return null;
+    }
+
+    public Object visitDefault(GamePiece p) {
+      apply(p);
+      return null;
+    }
+
+    /*
+     * Insert accepted pieces into the start of the array since we are being
+     * passed pieces from the top down. Sum any required property values as we
+     * go.
+     */
+    protected void apply(GamePiece p) {
+
+      int layer = 0;
+      String layerName = "";
+
+//      if (collection instanceof CompoundPieceCollection) {
+//        layer = ((CompoundPieceCollection) collection).getLayerForPiece(p);
+//        layerName = ((CompoundPieceCollection) collection).getLayerNameForPiece(p);
+//      }
+
+      if (filter == null || filter.accept(p, layer, layerName)) {
+
+        if (layer != lastLayer) {
+          insertPos = 0;
+          lastLayer = layer;
+        }
+
+        pieces.add(insertPos++, p);
+        for (int i = 0; i < sumPropertyNames.length; i++) {
+          try {
+            sumPropertyTotals[i] += Integer.parseInt((String) p.getProperty(sumPropertyNames[i]));
+          }
+          catch (Exception ex) {
+          }
+        }
+      }
+    }
+
+    public ArrayList getPieces() {
+      return pieces;
+    }
+
+    public int[] getPropertyTotals() {
+      return sumPropertyTotals;
+    }
+
+  }
   
   protected GamePiece findPieceAtMousePosition() {
-    GamePiece p = map.findPiece(map.mapCoordinates(currentMousePosition.getPoint()), PieceFinder.MOVABLE);
+    GamePiece p = map.findPiece(map.mapCoordinates(currentMousePosition.getPoint()), deckPieceFinder);
     if (p != null && p.getParent() != null) {
       p = p.getParent();
     }
     return p;
   }
 
+  /*
+   * Define a PieceFinder that will also find the top face up piece
+   * in a stack
+   */
+  public static final DeckPiece deckPieceFinder = new DeckPiece();
+  
+  public static class DeckPiece extends PieceFinder.Movable {
+    public Object visitDeck(Deck d) {
+      GamePiece top = d.topPiece();
+      if (top != null &&
+          !Boolean.TRUE.equals(top.getProperty(Properties.OBSCURED_TO_ME))
+          && !Boolean.TRUE.equals(top.getProperty(Properties.INVISIBLE_TO_ME))) {
+        Rectangle r = (Rectangle) d.getShape();
+        r.x += d.getPosition().x;
+        r.y += d.getPosition().y;
+        if (r.contains(pt)) {
+          return top;
+        }
+      }
+      return null;
+    }
+  }
   
   public void mouseMoved(MouseEvent e) {
 
@@ -595,7 +663,8 @@ public class CounterDetailViewer extends AbstractConfigurable implements Drawabl
       currentMousePosition = e;
       // quit if not active
       if (Boolean.FALSE.equals(GameModule.getGameModule().getPrefs().getValue(USE_KEYBOARD))) {
-        expirationTime = System.currentTimeMillis() + delay; // Reset thread timer
+        expirationTime = System.currentTimeMillis() + delay; // Reset thread
+        // timer
         if (delayThread == null || !delayThread.isAlive()) {
           delayThread = new Thread(this);
           delayThread.start();
@@ -622,10 +691,10 @@ public class CounterDetailViewer extends AbstractConfigurable implements Drawabl
   public void mousePressed(MouseEvent e) {
   }
 
-  public void mouseReleased(MouseEvent e) { 
+  public void mouseReleased(MouseEvent e) {
     mouseInView = true;
   }
-  
+
   public void keyTyped(KeyEvent e) {
   }
 
@@ -649,8 +718,8 @@ public class CounterDetailViewer extends AbstractConfigurable implements Drawabl
    * vassal, convert the old-style options to new and update the version.
    */
   public Configurer getConfigurer() {
-    
-    // New version 2 viewer being created 
+
+    // New version 2 viewer being created
     if (map == null) {
       version = VIEWER_VERSION;
     }
@@ -658,7 +727,7 @@ public class CounterDetailViewer extends AbstractConfigurable implements Drawabl
     else if (!version.equals(VIEWER_VERSION)) {
       upgrade();
     }
-  return super.getConfigurer();
+    return super.getConfigurer();
   }
 
   protected void upgrade() {
@@ -675,61 +744,93 @@ public class CounterDetailViewer extends AbstractConfigurable implements Drawabl
 
     fgColor = map.getHighlighter() instanceof ColoredBorder ? ((ColoredBorder) map.getHighlighter()).getColor()
         : Color.black;
-    
+
     bgColor = new Color(255 - fgColor.getRed(), 255 - fgColor.getGreen(), 255 - fgColor.getBlue());
 
     version = VIEWER_VERSION;
   }
-  
+
   public String[] getAttributeNames() {
-    return new String[] { VERSION, 
-        DELAY, GRAPHICS_ZOOM_LEVEL, ZOOM_LEVEL, FG_COLOR, BG_COLOR, 
-        GRAPHICS_DISPLAY, SHOW_GRAPH,
-        SHOW_GRAPH_SINGLE, BORDER_WIDTH, 
-        
-        SHOW_TEXT, SHOW_TEXT_SINGLE, FONT_SIZE, 
-        SUMMARY_REPORT_FORMAT, COUNTER_REPORT_FORMAT,  
-        SHOW_NOSTACK, DISPLAY, LAYER_LIST, PROPERTY_FILTER,  
-        SHOW_REF, EMPTY_HEX_REPORT_FORMAT };
+    return new String[] {
+        VERSION,
+        DELAY,
+        GRAPHICS_ZOOM_LEVEL,
+        ZOOM_LEVEL,
+        FG_COLOR,
+        BG_COLOR,
+        GRAPHICS_DISPLAY,
+        SHOW_GRAPH,
+        SHOW_GRAPH_SINGLE,
+        BORDER_WIDTH,
+        SHOW_TEXT,
+        SHOW_TEXT_SINGLE,
+        FONT_SIZE,
+        SUMMARY_REPORT_FORMAT,
+        COUNTER_REPORT_FORMAT,
+        SHOW_NOSTACK,
+        SHOW_DECK,
+        DISPLAY,
+        LAYER_LIST,
+        PROPERTY_FILTER,
+        SHOW_REF,
+        EMPTY_HEX_REPORT_FORMAT };
   }
 
   public String[] getAttributeDescriptions() {
-    return new String[] { 
+    return new String[] {
         "Version", // Not displayed
-        "Delay before display (ms):  ", 
+        "Delay before display (ms):  ",
         "Zoom level for piece display:  ",
         "Always display when zoom level less than:  ",
-        "Borders and font color:  ", 
-        "Background color:  ", 
+        "Borders and font color:  ",
+        "Background color:  ",
 
-        "Display stack viewer:  ", 
-        "Display piece images?", 
+        "Display stack viewer:  ",
+        "Display piece images?",
         "Display unit graphics for single counter?", // Obsolete
-        "Width of border around each displayed piece:  ", 
+        "Width of border around each displayed piece:  ",
 
-        "Display text?", 
+        "Display text?",
         "Display text report for single counter?",// Obsolete
         "Font size:  ",
         "Summary text above pieces:  ",
-        "Text below each piece:  " ,
-        
+        "Text below each piece:  ",
+
         "Include non-stacking pieces in display?",
-        "Select pieces to display:  ", 
-        "Listed layers", 
+        "Include top face-up piece in Deck in display?",
+        "Select pieces to display:  ",
+        "Listed layers",
         "Piece selection property filter:  ",
-        
+
         "Display a message when no pieces under mouse?",
         "Format of 'no pieces' message:  ", };
 
   }
 
   public Class[] getAttributeTypes() {
-    return new Class[] { String.class, Integer.class, Double.class, Double.class, Color.class, Color.class, 
-        TextConfig.class, Boolean.class, Boolean.class, Integer.class,  
-        Boolean.class, Boolean.class, Integer.class,
-        ReportFormatConfig.class,  CounterFormatConfig.class,
-        Boolean.class, DisplayConfig.class, String[].class,  String.class, 
-        Boolean.class, EmptyFormatConfig.class,};
+    return new Class[] {
+        String.class,
+        Integer.class,
+        Double.class,
+        Double.class,
+        Color.class,
+        Color.class,
+        TextConfig.class,
+        Boolean.class,
+        Boolean.class,
+        Integer.class,
+        Boolean.class,
+        Boolean.class,
+        Integer.class,
+        ReportFormatConfig.class,
+        CounterFormatConfig.class,
+        Boolean.class,
+        Boolean.class,
+        DisplayConfig.class,
+        String[].class,
+        String.class,
+        Boolean.class,
+        EmptyFormatConfig.class, };
   }
 
   public static class DisplayConfig extends StringEnum {
@@ -746,15 +847,22 @@ public class CounterDetailViewer extends AbstractConfigurable implements Drawabl
 
   public static class EmptyFormatConfig implements ConfigurerFactory {
     public Configurer getConfigurer(AutoConfigurable c, String key, String name) {
-      return new FormattedStringConfigurer(key, name, new String[] { BasicPiece.LOCATION_NAME, BasicPiece.CURRENT_MAP,
-          BasicPiece.CURRENT_BOARD, BasicPiece.CURRENT_ZONE });
+      return new FormattedStringConfigurer(key, name, new String[] {
+          BasicPiece.LOCATION_NAME,
+          BasicPiece.CURRENT_MAP,
+          BasicPiece.CURRENT_BOARD,
+          BasicPiece.CURRENT_ZONE });
     }
   }
 
   public static class ReportFormatConfig implements ConfigurerFactory {
     public Configurer getConfigurer(AutoConfigurable c, String key, String name) {
-      return new FormattedStringConfigurer(key, name, new String[] { BasicPiece.LOCATION_NAME, BasicPiece.CURRENT_MAP,
-          BasicPiece.CURRENT_BOARD, BasicPiece.CURRENT_ZONE, SUM });
+      return new FormattedStringConfigurer(key, name, new String[] {
+          BasicPiece.LOCATION_NAME,
+          BasicPiece.CURRENT_MAP,
+          BasicPiece.CURRENT_BOARD,
+          BasicPiece.CURRENT_ZONE,
+          SUM });
     }
   }
 
@@ -860,6 +968,14 @@ public class CounterDetailViewer extends AbstractConfigurable implements Drawabl
         showNoStack = "true".equals(value);
       }
     }
+    else if (SHOW_DECK.equals(name)) {
+      if (value instanceof Boolean) {
+        showDeck = ((Boolean) value).booleanValue();
+      }
+      else if (value instanceof String) {
+        showDeck = "true".equals(value);
+      }
+    }
     else if (DISPLAY.equals(name)) {
       displayWhat = (String) value;
     }
@@ -916,34 +1032,37 @@ public class CounterDetailViewer extends AbstractConfigurable implements Drawabl
 
   public String getAttributeValueString(String name) {
     if (DELAY.equals(name)) {
-      return "" + delay;
+      return String.valueOf(delay);
     }
     else if (SHOW_GRAPH.equals(name)) {
-      return "" + showGraph;
+      return String.valueOf(showGraph);
     }
     else if (SHOW_GRAPH_SINGLE.equals(name)) {
-      return "" + showGraphSingle;
+      return String.valueOf(showGraphSingle);
     }
     else if (SHOW_TEXT.equals(name)) {
-      return "" + showText;
+      return String.valueOf(showText);
     }
     else if (SHOW_TEXT_SINGLE.equals(name)) {
-      return "" + showTextSingle;
+      return String.valueOf(showTextSingle);
     }
     else if (SHOW_REF.equals(name)) {
-      return "" + showRef;
+      return String.valueOf(showRef);
     }
     else if (ZOOM_LEVEL.equals(name)) {
-      return "" + zoomLevel;
+      return String.valueOf(zoomLevel);
     }
     else if (GRAPHICS_ZOOM_LEVEL.equals(name)) {
-      return "" + graphicsZoomLevel;
+      return String.valueOf(graphicsZoomLevel);
     }
     else if (BORDER_WIDTH.equals(name)) {
-      return "" + borderWidth;
+      return String.valueOf(borderWidth);
     }
     else if (SHOW_NOSTACK.equals(name)) {
-      return "" + showNoStack;
+      return String.valueOf(showNoStack);
+    }
+    else if (SHOW_DECK.equals(name)) {
+      return String.valueOf(showDeck);
     }
     else if (DISPLAY.equals(name)) {
       return displayWhat;
@@ -983,7 +1102,7 @@ public class CounterDetailViewer extends AbstractConfigurable implements Drawabl
   }
 
   public static String getConfigureTypeName() {
-    return "Mouse-over Stack Viewer";
+    return "Mouse-over Stack Viewer v"+MINI_VERSION;
   }
 
   public VisibilityCondition getAttributeVisibility(String name) {
@@ -995,16 +1114,14 @@ public class CounterDetailViewer extends AbstractConfigurable implements Drawabl
         }
       };
     }
-    else if (FONT_SIZE.equals(name) || SUMMARY_REPORT_FORMAT.equals(name) ||
-        COUNTER_REPORT_FORMAT.equals(name)) {
+    else if (FONT_SIZE.equals(name) || SUMMARY_REPORT_FORMAT.equals(name) || COUNTER_REPORT_FORMAT.equals(name)) {
       return new VisibilityCondition() {
         public boolean shouldBeVisible() {
           return !graphicsOptions.equals(NEVER) & showText;
         }
       };
     }
-    else if (SHOW_GRAPH.equals(name) || SHOW_TEXT.equals(name) || 
-        SHOW_NOSTACK.equals(name) || DISPLAY.equals(name)) {
+    else if (SHOW_GRAPH.equals(name) || SHOW_TEXT.equals(name) || SHOW_NOSTACK.equals(name) || SHOW_DECK.equals(name) || DISPLAY.equals(name)) {
       return new VisibilityCondition() {
         public boolean shouldBeVisible() {
           return !graphicsOptions.equals(NEVER);
@@ -1036,8 +1153,7 @@ public class CounterDetailViewer extends AbstractConfigurable implements Drawabl
      * The following fields are not to be displayed. They are either obsolete
      * and maintained for backward compatibility
      */
-    else if (VERSION.equals(name) || SHOW_TEXT_SINGLE.equals(name)
-        || SHOW_GRAPH_SINGLE.equals(name)) {
+    else if (VERSION.equals(name) || SHOW_TEXT_SINGLE.equals(name) || SHOW_GRAPH_SINGLE.equals(name)) {
       return new VisibilityCondition() {
         public boolean shouldBeVisible() {
           return false;
@@ -1048,31 +1164,31 @@ public class CounterDetailViewer extends AbstractConfigurable implements Drawabl
   }
 
   /*
-   * Enhanced FormattedString class to support summing properties accross
-   * a number of counters using format $sum(property_name)$ 
+   * Enhanced FormattedString class to support summing properties accross a
+   * number of counters using format $sum(property_name)$
    */
   protected class SummingFormattedString extends FormattedString {
 
     protected String[] summingPropertyNames;
     protected int[] summingTotals;
-    
+
     public SummingFormattedString(String format) {
       setFormat(format);
     }
-    
+
     public void setFormat(String format) {
       ArrayList names = new ArrayList();
-      
+
       Pattern pattern = Pattern.compile("\\$sum\\(.*?\\)\\$");
       Matcher matcher = pattern.matcher(format);
 
-      while(matcher.find()) {
+      while (matcher.find()) {
         int start = matcher.start();
         int end = matcher.end();
         String sum = format.substring(start, end);
-        names.add(sum.substring(5, sum.length()-2));
+        names.add(sum.substring(5, sum.length() - 2));
       }
-      
+
       if (names.size() == 0) {
         summingPropertyNames = new String[0];
         summingTotals = new int[0];
@@ -1081,29 +1197,29 @@ public class CounterDetailViewer extends AbstractConfigurable implements Drawabl
         summingPropertyNames = (String[]) names.toArray(summingPropertyNames);
         summingTotals = new int[names.size()];
       }
-      
+
       super.setFormat(format);
     }
-    
+
     public String getText(GamePiece piece, int[] totals) {
       String format = getFormat();
       String origFormat = format;
-      
+
       for (int i = 0; i < summingPropertyNames.length; i++) {
-        format = format.replaceAll("\\$sum\\("+summingPropertyNames[i]+"\\)\\$", String.valueOf(totals[i]));
+        format = format.replaceAll("\\$sum\\(" + summingPropertyNames[i] + "\\)\\$", String.valueOf(totals[i]));
       }
       setFormat(format);
-      
-      String result =  super.getText(piece);
-      
+
+      String result = super.getText(piece);
+
       setFormat(origFormat);
       return result;
     }
-    
+
     public String[] getSummingPropertyNames() {
       return summingPropertyNames;
     }
-    
+
   }
-  
+
 }
