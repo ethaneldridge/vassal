@@ -134,12 +134,10 @@ public class SequenceEncoder {
   public static class Decoder {
     private String val;
     private char delimit;
-    private StringBuffer buffer;
 
     public Decoder(String value, char delimiter) {
       val = value;
       delimit = delimiter;
-      buffer = new StringBuffer(val.length());
     }
 
     public boolean hasMoreTokens() {
@@ -157,7 +155,7 @@ public class SequenceEncoder {
         val = null;
       }
       else {
-        buffer.delete(0,buffer.length());
+        StringBuffer buffer = new StringBuffer();
         int begin = 0;
         int end = i;
         while (begin < end) {

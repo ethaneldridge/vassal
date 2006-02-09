@@ -41,6 +41,9 @@ public abstract class BackgroundTask {
                 try {
                     doFirst();
                 }
+                catch (Throwable t) {
+                  t.printStackTrace();
+                }
                 finally {
                     SwingUtilities.invokeLater(later);
                 }
