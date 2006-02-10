@@ -30,7 +30,7 @@ public class DefaultPieceCollection extends CompoundPieceCollection {
     super(2);
   }
 
-  protected int getLayerForPiece(GamePiece p) {
+  public int getLayerForPiece(GamePiece p) {
     return Boolean.TRUE.equals(p.getProperty(Properties.NO_STACK)) ? 0 : 1;
   }
 }

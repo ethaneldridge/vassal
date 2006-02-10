@@ -192,17 +192,7 @@ public class DataArchive extends SecureClassLoader {
     ScaledCacheKey key = new ScaledCacheKey(base, d, reversed);
     Image scaled = (Image) scaledImageCache.get(key);
     if (scaled == null) {
-//      Object o = base.getProperty("comment", null);
-//      if (o instanceof URI) {
-//        if (svgManager == null) {
-//          svgManager = new SVGManager();
-//        }
-//        scaled = svgManager.createScaledInstance(base, d, reversed, (URI) o);
-//      }
-//      else {
       scaled = createScaledInstance(base, d, reversed, forceSmoothing);
-//      }
-
       new ImageIcon(scaled); // Wait for the image to load
       scaledImageCache.put(key, scaled);
     }
@@ -229,7 +219,7 @@ public class DataArchive extends SecureClassLoader {
       }
       smoothPrefs.addPropertyChangeListener(new PropertyChangeListener() {
         public void propertyChange(PropertyChangeEvent evt) {
-          scaledImageCache.clear();
+          clearScaledImageCache();
         }
       });
     }
@@ -328,6 +318,14 @@ public class DataArchive extends SecureClassLoader {
     for (Iterator iterator = toClear.iterator(); iterator.hasNext();) {
       ScaledCacheKey scaledCacheKey = (ScaledCacheKey) iterator.next();
       scaledImageCache.remove(scaledCacheKey);
+    }
+  }
+  
+  public void clearScaledImageCache() {
+    scaledImageCache.clear();
+    for (Iterator iter = extensions.iterator(); iter.hasNext();) {
+      DataArchive ext = (DataArchive) iter.next();
+      ext.clearScaledImageCache();
     }
   }
 

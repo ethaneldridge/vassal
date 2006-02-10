@@ -46,7 +46,13 @@ public abstract class CompoundPieceCollection implements PieceCollection {
     }
   }
 
-  protected abstract int getLayerForPiece(GamePiece p);
+  public int getLayerForPiece(GamePiece p) {
+    return 0;
+  }
+  
+  public String getLayerNameForPiece(GamePiece p) {
+    return "";
+  }
 
   protected PieceCollection getCollectionForPiece(GamePiece p) {
     return layers[getLayerForPiece(p)];

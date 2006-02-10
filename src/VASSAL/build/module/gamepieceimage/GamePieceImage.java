@@ -65,6 +65,8 @@ public class GamePieceImage extends AbstractConfigurable implements Visualizable
 
   protected static UniqueIdManager idMgr = new UniqueIdManager("GamePieceImage");
   protected String nameInUse;
+  
+  protected static Image NULL_IMAGE = new BufferedImage(1, 1, BufferedImage.TYPE_4BYTE_ABGR); // empty image for images scaled to zero size
 
   public GamePieceImage() {
     super();
@@ -77,6 +79,7 @@ public class GamePieceImage extends AbstractConfigurable implements Visualizable
 
   public GamePieceImage(GamePieceLayout l) {
     this();
+    setConfigureName(l.getConfigureName());
     layout = l;
     rebuildInstances();
   }
@@ -281,20 +284,19 @@ public class GamePieceImage extends AbstractConfigurable implements Visualizable
     return getLayout().getVisualizerWidth();
   }
 
-
   // Let the DataArchive cache the image
   public Image getVisualizerImage() {
     try {
       return GameModule.getGameModule().getDataArchive().getCachedImage(getConfigureName());
     }
     catch (IOException e) {
-      e.printStackTrace();
-      return null;
+      return NULL_IMAGE;
     }
   }
 
   // Called by the DataArchive only when the image is needed
-  // This only happens in edit mode, so we add the image data to the archive here
+  // This only happens in edit mode, so we add the image data to the archive
+  // here
   public Image getImage() {
     Image i = layout.buildImage(this);
     GameModule.getGameModule().getArchiveWriter().addImage(getConfigureName(), getEncodedImage((BufferedImage) i));
@@ -314,7 +316,8 @@ public class GamePieceImage extends AbstractConfigurable implements Visualizable
           nameInUse = null;
         }
       }
-      if (nameInUse == null && GameModule.getGameModule().getDataArchive().addImageSource(getConfigureName(), this)) {
+      if (nameInUse == null && getConfigureName() != null && getConfigureName().length() > 0
+          && GameModule.getGameModule().getDataArchive().addImageSource(getConfigureName(), this)) {
         nameInUse = getConfigureName();
       }
     }

@@ -151,6 +151,7 @@ public abstract class GameState {
     else {
       loadGame.setText("Load Game");
       GameModule.getGameModule().appendToTitle(null);
+      GameModule.getGameModule().getDataArchive().clearScaledImageCache();
     }
 
     gameStarted = gameStarted && this.gameStarting;

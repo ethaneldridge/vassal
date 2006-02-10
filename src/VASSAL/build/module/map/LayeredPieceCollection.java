@@ -134,8 +134,13 @@ public class LayeredPieceCollection extends AbstractConfigurable {
       this.propertyName = propertyName;
     }
 
-    protected int getLayerForPiece(GamePiece p) {
+    public int getLayerForPiece(GamePiece p) {
       return ((Integer)dispatcher.accept(p)).intValue();
+    }
+    
+    public String getLayerNameForPiece(GamePiece p) {
+      int layer = getLayerForPiece(p);
+      return layer >= layerOrder.length ? "" : layerOrder[layer];
     }
 
     protected boolean canPiecesMerge(GamePiece p1, GamePiece p2) {
