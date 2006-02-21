@@ -29,6 +29,7 @@ import java.awt.Graphics2D;
 import java.awt.Image;
 import java.awt.Point;
 import java.awt.Rectangle;
+import java.awt.RenderingHints;
 import java.awt.Shape;
 import java.awt.event.InputEvent;
 import java.util.Enumeration;
@@ -340,6 +341,7 @@ public class VSQLFootprint extends MarkMoved {
       }
       g2d.setStroke(new BasicStroke(lineWidth));
       g2d.setColor(LINE_COLOR);
+      g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
       Enumeration e = getPointList();
       Point lastP = null;
       Point here = getPosition();

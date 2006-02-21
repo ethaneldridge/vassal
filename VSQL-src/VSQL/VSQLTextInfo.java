@@ -23,6 +23,10 @@ import VASL.counters.TextInfo;
 import VASSAL.counters.GamePiece;
 import VASSAL.counters.Properties;
 
+/*
+ * Turn off the TextInfo display automatically when the piece
+ * is unselected. 
+ */
 public class VSQLTextInfo extends TextInfo {
   
   public VSQLTextInfo() {
