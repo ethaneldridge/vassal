@@ -25,6 +25,9 @@ import VASSAL.counters.GamePiece;
 public class TdcCommandEncoder extends BasicCommandEncoder {
 
   public Decorator createDecorator(String type, GamePiece inner) {
+    if (type.startsWith(PeekAtLayer.ID)) {
+      return new PeekAtLayer(type, inner);
+    }
     return super.createDecorator(type, inner);
   }
 }
