@@ -151,7 +151,6 @@ public abstract class GameState {
     else {
       loadGame.setText("Load Game");
       GameModule.getGameModule().appendToTitle(null);
-      GameModule.getGameModule().getDataArchive().clearScaledImageCache();
     }
 
     gameStarted = gameStarted && this.gameStarting;
@@ -159,6 +158,9 @@ public abstract class GameState {
          e.hasMoreElements();) {
       GameComponent sub = (GameComponent) e.nextElement();
       sub.setup(this.gameStarting);
+    }
+    if (gameStarting) {
+      GameModule.getGameModule().getDataArchive().clearScaledImageCache();
     }
     gameStarted = gameStarted || this.gameStarting;
     lastSave = gameStarting ? saveString() : null;

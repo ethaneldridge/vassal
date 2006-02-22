@@ -288,6 +288,10 @@ public class Footprint extends MovementMarkable {
     if (this.getMap() != null) {
       mapZoom = this.getMap().getZoom();
     }
+    
+    if (zoom != mapZoom) {
+      return;
+    }
 
     currentMap = getMap().getId();
     Graphics2D g2d = (Graphics2D) g;
