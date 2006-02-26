@@ -16,7 +16,7 @@
  * License along with this library; if not, copies are available
  * at http://www.opensource.org.
  */
- 
+
 package vip;
 
 import java.io.IOException;
@@ -33,21 +33,21 @@ import VASSAL.tools.FormattedString;
 
 /**
  * @author Brent Easton
- *
- * TODO To change the template for this generated type comment go to
- * Window - Preferences - Java - Code Style - Code Templates
+ * 
+ * TODO To change the template for this generated type comment go to Window -
+ * Preferences - Java - Code Style - Code Templates
  */
 public class VIPDieManager extends DieManager {
 
   public static final String MAIL_SERVER = "mailServer";
   protected VIPDieServer server;
-  
+
   public VIPDieManager() {
     server = new VIPDieServer();
   }
-  
+
   public void roll(int nDice, int nSides, int plus, boolean reportTotal, String description, FormattedString format) {
-   
+
     VIPMultiRoll mroll = getMyMultiRoll(1, 0);
 
     RollSet rollSet;
@@ -57,7 +57,8 @@ public class VIPDieManager extends DieManager {
       mroll.setDescription(desc);
     }
 
-    // Do we want full multi-roll capabilities? If required, pop-up the multi-roll
+    // Do we want full multi-roll capabilities? If required, pop-up the
+    // multi-roll
     // cofigurer to get the details
     mroll.setVisible(true);
 
@@ -69,26 +70,21 @@ public class VIPDieManager extends DieManager {
 
     // Multi Roll preference not selected, so build a dummy MultiRoll object
 
-
-    Command chatCommand = new Chatter.DisplayText(GameModule.getGameModule().getChatter(),
-                                                  " - Roll sent to VIP Server");
+    Command chatCommand = new Chatter.DisplayText(GameModule.getGameModule().getChatter(), " - Roll sent to VIP Server");
 
     if (desc == null || desc.length() == 0) {
       desc = GameModule.getGameModule().getChatter().getInputField().getText();
     }
-    
+
     String secondaryEmail = GameModule.getGameModule().getPrefs().getStoredValue(SECONDARY_EMAIL);
-    
+
     if (server.getUseEmail()) {
       if (desc == null || desc.length() == 0) {
-        chatCommand.append(new Chatter.DisplayText(GameModule.getGameModule().getChatter(),
-                                                   " - Emailing " + secondaryEmail + " (no subject line)"));
-        chatCommand.append(new Chatter.DisplayText(GameModule.getGameModule().getChatter(),
-                                                   " - Leave text in the chat input area to provide a subject line"));
+        chatCommand.append(new Chatter.DisplayText(GameModule.getGameModule().getChatter(), " - Emailing " + secondaryEmail + " (no subject line)"));
+        chatCommand.append(new Chatter.DisplayText(GameModule.getGameModule().getChatter(), " - Leave text in the chat input area to provide a subject line"));
       }
       else {
-        chatCommand.append(new Chatter.DisplayText(GameModule.getGameModule().getChatter(),
-                                                   " - Emailing " + secondaryEmail + " (Subject:  " + desc + ")"));
+        chatCommand.append(new Chatter.DisplayText(GameModule.getGameModule().getChatter(), " - Emailing " + secondaryEmail + " (Subject:  " + desc + ")"));
       }
     }
     chatCommand.execute();
@@ -96,24 +92,25 @@ public class VIPDieManager extends DieManager {
 
     GameModule.getGameModule().getChatter().getInputField().setText("");
     rollSet.setDescription(desc);
-    
+
     String[] rollString = server.buildInternetRollString(rollSet);
 
     //server.roll(rollSet, format);
-    
+
     String from = (String) GameModule.getGameModule().getPrefs().getValue(PRIMARY_EMAIL);
     String to = (String) GameModule.getGameModule().getPrefs().getValue(SECONDARY_EMAIL);
     String mailServer = (String) GameModule.getGameModule().getPrefs().getValue(MAIL_SERVER);
-    
+
     try {
-      SmtpClient smtp = new SmtpClient(mailServer);  // assume localhost
+      SmtpClient smtp = new SmtpClient(mailServer); // assume localhost
       smtp.from(from);
       smtp.to(to);
       PrintStream msg = smtp.startMessage();
 
-      msg.println("To: " + server.getServerURL());  // so mailers will display the To: address
+      msg.println("To: " + server.getServerURL()); // so mailers will display
+                                                   // the To: address
       msg.println("Subject: " + desc);
-      msg.println("Cc: " + from);
+      msg.println("From: " + from);
       msg.println("Cc: " + to);
       msg.println();
 
@@ -134,9 +131,9 @@ public class VIPDieManager extends DieManager {
     }
 
   }
-  
+
   protected VIPMultiRoll myMultiRoll;
-  
+
   public VIPMultiRoll getMyMultiRoll(int nDice, int nSides) {
     String serverName = getServer().getName();
     if (myMultiRoll == null) {
@@ -161,11 +158,11 @@ public class VIPDieManager extends DieManager {
     }
 
     public String[] buildInternetRollString(RollSet mr) {
-      String[] lines = new String[mr.getDieRolls().length*3+1];
+      String[] lines = new String[mr.getDieRolls().length * 3 + 1];
       int idx = 0;
       lines[idx++] = mr.getDescription();
-      
-      for (int i=0; i < mr.getDieRolls().length; i++) {
+
+      for (int i = 0; i < mr.getDieRolls().length; i++) {
         DieRoll roll = mr.getDieRolls()[i];
         lines[idx++] = "";
         lines[idx++] = roll.getDescription() + "";
@@ -183,12 +180,12 @@ public class VIPDieManager extends DieManager {
     }
 
     public void roll(RollSet mr, FormattedString format) {
-      super.doInternetRoll(mr, format);     
+      super.doInternetRoll(mr, format);
     }
-    
+
     public String getServerURL() {
       return serverURL;
     }
   }
-  
+
 }
