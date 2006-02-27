@@ -22,10 +22,10 @@ import javax.swing.KeyStroke;
 
 import VASSAL.build.AbstractConfigurable;
 import VASSAL.build.Buildable;
-import VASSAL.build.GameModule;
 import VASSAL.build.module.documentation.HelpFile;
 import VASSAL.configure.StringArrayConfigurer;
 import VASSAL.tools.LaunchButton;
+import VASSAL.tools.ToolBarComponent;
 
 /**
  * Takes buttons from the toolbar of a Map or the main module and places them
@@ -94,11 +94,8 @@ public class ToolbarMenu extends AbstractConfigurable implements ContainerListen
   }
 
   public void addTo(Buildable parent) {
-    if (parent instanceof Map) {
-      toolbar = ((Map) parent).getToolBar();
-    }
-    else if (parent instanceof GameModule) {
-      toolbar = ((GameModule) parent).getToolBar();
+    if (parent instanceof ToolBarComponent) {
+      toolbar = ((ToolBarComponent) parent).getToolBar();
     }
     toolbar.add(launch);
     toolbar.addContainerListener(this);

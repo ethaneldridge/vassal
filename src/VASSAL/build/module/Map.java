@@ -18,10 +18,91 @@
  */
 package VASSAL.build.module;
 
+import java.awt.AWTEventMulticaster;
+import java.awt.AlphaComposite;
+import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Component;
+import java.awt.Composite;
+import java.awt.Container;
+import java.awt.Dimension;
+import java.awt.Graphics;
+import java.awt.Graphics2D;
+import java.awt.Point;
+import java.awt.Rectangle;
+import java.awt.Window;
+import java.awt.dnd.DnDConstants;
+import java.awt.dnd.DragGestureEvent;
+import java.awt.dnd.DragGestureListener;
+import java.awt.dnd.DragSource;
+import java.awt.dnd.DropTargetDragEvent;
+import java.awt.dnd.DropTargetDropEvent;
+import java.awt.dnd.DropTargetEvent;
+import java.awt.dnd.DropTargetListener;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.FocusEvent;
+import java.awt.event.FocusListener;
+import java.awt.event.KeyEvent;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
+import java.awt.event.MouseMotionListener;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
+import java.io.File;
+import java.net.MalformedURLException;
+import java.util.ArrayList;
+import java.util.Enumeration;
+import java.util.Iterator;
+import java.util.Vector;
+
+import javax.swing.JComponent;
+import javax.swing.JDialog;
+import javax.swing.JFrame;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JToolBar;
+import javax.swing.KeyStroke;
+import javax.swing.RootPaneContainer;
+import javax.swing.SwingUtilities;
+import javax.swing.WindowConstants;
+
+import org.w3c.dom.Element;
+
 import VASSAL.Info;
-import VASSAL.build.*;
+import VASSAL.build.AbstractConfigurable;
+import VASSAL.build.AutoConfigurable;
+import VASSAL.build.Buildable;
+import VASSAL.build.Configurable;
+import VASSAL.build.GameModule;
 import VASSAL.build.module.documentation.HelpFile;
-import VASSAL.build.module.map.*;
+import VASSAL.build.module.map.BoardPicker;
+import VASSAL.build.module.map.CounterDetailViewer;
+import VASSAL.build.module.map.DefaultPieceCollection;
+import VASSAL.build.module.map.DrawPile;
+import VASSAL.build.module.map.Drawable;
+import VASSAL.build.module.map.ForwardToChatter;
+import VASSAL.build.module.map.ForwardToKeyBuffer;
+import VASSAL.build.module.map.GlobalMap;
+import VASSAL.build.module.map.HidePiecesButton;
+import VASSAL.build.module.map.HighlightLastMoved;
+import VASSAL.build.module.map.ImageSaver;
+import VASSAL.build.module.map.KeyBufferer;
+import VASSAL.build.module.map.LOS_Thread;
+import VASSAL.build.module.map.LayeredPieceCollection;
+import VASSAL.build.module.map.MapCenterer;
+import VASSAL.build.module.map.MapShader;
+import VASSAL.build.module.map.MassKeyCommand;
+import VASSAL.build.module.map.MenuDisplayer;
+import VASSAL.build.module.map.PieceCollection;
+import VASSAL.build.module.map.PieceMover;
+import VASSAL.build.module.map.PieceRecenterer;
+import VASSAL.build.module.map.Scroller;
+import VASSAL.build.module.map.SetupStack;
+import VASSAL.build.module.map.StackExpander;
+import VASSAL.build.module.map.StackMetrics;
+import VASSAL.build.module.map.TextSaver;
+import VASSAL.build.module.map.Zoomer;
 import VASSAL.build.module.map.boardPicker.Board;
 import VASSAL.build.module.map.boardPicker.board.MapGrid;
 import VASSAL.build.module.map.boardPicker.board.ZonedGrid;
@@ -29,25 +110,34 @@ import VASSAL.build.module.map.boardPicker.board.mapgrid.Zone;
 import VASSAL.command.AddPiece;
 import VASSAL.command.Command;
 import VASSAL.command.MoveTracker;
-import VASSAL.configure.*;
-import VASSAL.counters.*;
+import VASSAL.configure.ColorConfigurer;
+import VASSAL.configure.CompoundValidityChecker;
+import VASSAL.configure.Configurer;
+import VASSAL.configure.ConfigurerFactory;
+import VASSAL.configure.IconConfigurer;
+import VASSAL.configure.IntConfigurer;
+import VASSAL.configure.MandatoryComponent;
+import VASSAL.configure.PlayerIdFormattedStringConfigurer;
+import VASSAL.configure.VisibilityCondition;
+import VASSAL.counters.ColoredBorder;
+import VASSAL.counters.Deck;
+import VASSAL.counters.DeckVisitor;
+import VASSAL.counters.DeckVisitorDispatcher;
+import VASSAL.counters.DragBuffer;
+import VASSAL.counters.GamePiece;
+import VASSAL.counters.Highlighter;
+import VASSAL.counters.KeyBuffer;
+import VASSAL.counters.PieceFinder;
+import VASSAL.counters.PieceVisitorDispatcher;
+import VASSAL.counters.Properties;
+import VASSAL.counters.ReportState;
+import VASSAL.counters.Stack;
 import VASSAL.preferences.PositionOption;
 import VASSAL.tools.ComponentSplitter;
 import VASSAL.tools.KeyStrokeSource;
 import VASSAL.tools.LaunchButton;
+import VASSAL.tools.ToolBarComponent;
 import VASSAL.tools.UniqueIdManager;
-import org.w3c.dom.Element;
-
-import javax.swing.*;
-import java.awt.*;
-import java.awt.dnd.*;
-import java.awt.event.*;
-import java.io.File;
-import java.net.MalformedURLException;
-import java.util.Enumeration;
-import java.util.Vector;
-import java.util.ArrayList;
-import java.util.Iterator;
 
 /**
  * The Map is the main component for displaying and containing {@link
@@ -61,7 +151,7 @@ import java.util.Iterator;
  * <code>VASSAL.build.module.map</code> package */
 public class Map extends AbstractConfigurable implements GameComponent,
     FocusListener, MouseListener, MouseMotionListener, DropTargetListener,
-    Configurable, UniqueIdManager.Identifyable {
+    Configurable, UniqueIdManager.Identifyable, ToolBarComponent {
 
   private String mapID = "";
   private String mapName = "";
@@ -1761,7 +1851,7 @@ public class Map extends AbstractConfigurable implements GameComponent,
   }
 
   public Class[] getAllowableConfigureComponents() {
-    Class[] c = {GlobalMap.class, LOS_Thread.class, HidePiecesButton.class,
+    Class[] c = {GlobalMap.class, LOS_Thread.class, ToolbarMenu.class, HidePiecesButton.class,
                  Zoomer.class, CounterDetailViewer.class, HighlightLastMoved.class, LayeredPieceCollection.class, ImageSaver.class,
                  TextSaver.class, DrawPile.class, SetupStack.class, MassKeyCommand.class, MapShader.class, PieceRecenterer.class};
     return c;

@@ -18,8 +18,50 @@
  */
 package VASSAL.build;
 
+import java.awt.BorderLayout;
+import java.awt.FileDialog;
+import java.awt.FlowLayout;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
+import java.io.File;
+import java.io.IOException;
+import java.net.MalformedURLException;
+import java.util.Enumeration;
+import java.util.Random;
+import java.util.Vector;
+
+import javax.swing.JComponent;
+import javax.swing.JFileChooser;
+import javax.swing.JFrame;
+import javax.swing.JMenu;
+import javax.swing.JMenuBar;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JToolBar;
+import javax.swing.WindowConstants;
+
 import VASSAL.Info;
-import VASSAL.build.module.*;
+import VASSAL.build.module.BasicCommandEncoder;
+import VASSAL.build.module.ChartWindow;
+import VASSAL.build.module.Chatter;
+import VASSAL.build.module.DiceButton;
+import VASSAL.build.module.Documentation;
+import VASSAL.build.module.GameState;
+import VASSAL.build.module.GlobalKeyCommand;
+import VASSAL.build.module.GlobalOptions;
+import VASSAL.build.module.InternetDiceButton;
+import VASSAL.build.module.Map;
+import VASSAL.build.module.ModuleExtension;
+import VASSAL.build.module.NotesWindow;
+import VASSAL.build.module.PieceWindow;
+import VASSAL.build.module.PlayerHand;
+import VASSAL.build.module.PredefinedSetup;
+import VASSAL.build.module.PrivateMap;
+import VASSAL.build.module.PrototypesContainer;
+import VASSAL.build.module.RandomTextButton;
+import VASSAL.build.module.ServerConnection;
+import VASSAL.build.module.SpecialDiceButton;
+import VASSAL.build.module.ToolbarMenu;
 import VASSAL.build.module.documentation.HelpFile;
 import VASSAL.command.Command;
 import VASSAL.command.CommandEncoder;
@@ -33,17 +75,7 @@ import VASSAL.tools.ArchiveWriter;
 import VASSAL.tools.DataArchive;
 import VASSAL.tools.KeyStrokeListener;
 import VASSAL.tools.KeyStrokeSource;
-
-import javax.swing.*;
-import java.awt.*;
-import java.awt.event.WindowAdapter;
-import java.awt.event.WindowEvent;
-import java.io.File;
-import java.io.IOException;
-import java.net.MalformedURLException;
-import java.util.Enumeration;
-import java.util.Random;
-import java.util.Vector;
+import VASSAL.tools.ToolBarComponent;
 
 /**
  * The GameModule class is the base class for a VASSAL module.  It is
@@ -54,7 +86,7 @@ import java.util.Vector;
  * It is a singleton, and contains access points for many other classes,
  * such as {@link DataArchive}, {@link ServerConnection}, {@link Logger},
  * and {@link Prefs} */
-public abstract class GameModule extends AbstractConfigurable implements CommandEncoder {
+public abstract class GameModule extends AbstractConfigurable implements CommandEncoder, ToolBarComponent {
   protected static final String DEFAULT_NAME = "Unnamed module";
   public static final String MODULE_NAME = "name";
   public static final String MODULE_VERSION = "version";
@@ -221,7 +253,7 @@ public abstract class GameModule extends AbstractConfigurable implements Command
   }
 
   public Class[] getAllowableConfigureComponents() {
-    Class[] c = {Map.class, PieceWindow.class, PrototypesContainer.class, GlobalKeyCommand.class, DiceButton.class, InternetDiceButton.class,
+    Class[] c = {Map.class, PieceWindow.class, PrototypesContainer.class, ToolbarMenu.class, GlobalKeyCommand.class, DiceButton.class, InternetDiceButton.class,
                  RandomTextButton.class, SpecialDiceButton.class, PredefinedSetup.class, ChartWindow.class, PrivateMap.class, PlayerHand.class, NotesWindow.class};
     return c;
   }

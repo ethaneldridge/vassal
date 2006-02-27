@@ -38,22 +38,22 @@ public class LaunchButton extends JButton {
   private KeyStrokeListener keyListener;
   private Configurer nameConfig, keyConfig;
 
-  public LaunchButton(String name, String nameAttribute,
+  public LaunchButton(String text, String textAttribute,
                       String hotkeyAttribute, ActionListener al) {
-                      this(name,nameAttribute,hotkeyAttribute,null,al);
+                      this(text,textAttribute,hotkeyAttribute,null,al);
   }
 
-  public LaunchButton(String name, String nameAttribute,
+  public LaunchButton(String text, String textAttribute,
                       String hotkeyAttribute, String iconAttribute, final ActionListener al) {
-    super(name);
-    nameAtt = nameAttribute;
+    super(text);
+    nameAtt = textAttribute;
     keyAtt = hotkeyAttribute;
     iconAtt = iconAttribute;
     iconConfig = new IconConfigurer(iconAtt,null,null);
     setAlignmentY(0.0F);
     keyListener = new KeyStrokeListener(new ActionListener() {
       public void actionPerformed(ActionEvent e) {
-        if (isEnabled() && isShowing()) {
+        if (isEnabled() && getParent() != null && getParent().isShowing()) {
           al.actionPerformed(e);
         }
       }

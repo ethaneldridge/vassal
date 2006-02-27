@@ -53,7 +53,7 @@ public class IconConfigurer extends Configurer {
         icon = new ImageIcon(imageURL);
       }
     }
-    else {
+    else if (imageName.length() > 0) {
       try {
         icon = new ImageIcon(GameModule.getGameModule().getDataArchive().getCachedImage(imageName));
       }
