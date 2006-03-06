@@ -1,5 +1,6 @@
 package VASSAL.build.module;
 
+import java.awt.Component;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ContainerEvent;
@@ -15,6 +16,7 @@ import java.util.List;
 import javax.swing.AbstractButton;
 import javax.swing.Icon;
 import javax.swing.JButton;
+import javax.swing.JMenu;
 import javax.swing.JMenuItem;
 import javax.swing.JPopupMenu;
 import javax.swing.JToolBar;
@@ -39,6 +41,8 @@ public class ToolbarMenu extends AbstractConfigurable implements ContainerListen
   public static final String BUTTON_ICON = "icon";
   public static final String BUTTON_HOTKEY = "hotkey";
   public static final String MENU_ITEMS = "menuItems";
+  /** Buttons where this property contains a JPopupMenu will turn into sub-menus */
+  public static final String MENU_PROPERTY = "ToolbarMenu.popup";
   protected List menuItems = new ArrayList();
   protected java.util.Map buttonsToMenuMap = new HashMap();
   protected LaunchButton launch;
@@ -51,6 +55,8 @@ public class ToolbarMenu extends AbstractConfigurable implements ContainerListen
         launch();
       }
     });
+    menu = new JPopupMenu();
+    launch.putClientProperty(MENU_PROPERTY, menu);
   }
 
   public void launch() {
@@ -115,16 +121,18 @@ public class ToolbarMenu extends AbstractConfigurable implements ContainerListen
   }
 
   public void removeFrom(Buildable parent) {
+    toolbar.remove(launch);
+    toolbar.removeContainerListener(this);
   }
 
   protected void buildMenu() {
     for (Iterator iter = buttonsToMenuMap.keySet().iterator(); iter.hasNext();) {
-      JButton b = (JButton) iter.next();
+      AbstractButton b = (AbstractButton) iter.next();
       b.setVisible(true);
       b.removePropertyChangeListener(this);
     }
     buttonsToMenuMap.clear();
-    menu = new JPopupMenu();
+    menu.removeAll();
     java.util.Map m = new HashMap();
     if (toolbar != null) {
       for (int i = 0, n = toolbar.getComponentCount(); i < n; ++i) {
@@ -138,17 +146,40 @@ public class ToolbarMenu extends AbstractConfigurable implements ContainerListen
       String item = (String) it.next();
       final JButton b = (JButton) m.get(item);
       if (b != null) {
+        Object property = b.getClientProperty(MENU_PROPERTY);
         b.addPropertyChangeListener(this);
         b.setVisible(false);
-        JMenuItem mi = new JMenuItem(b.getText(), b.getIcon());
-        mi.setEnabled(b.isEnabled());
-        mi.addActionListener(new ActionListener() {
-          public void actionPerformed(ActionEvent e) {
-            b.doClick();
+        if (property instanceof JPopupMenu) {
+          // This button corresponds to another ToolbarMenu button.  Turn it into a submenu
+          JPopupMenu toolbarMenu = (JPopupMenu) property;
+          toolbarMenu.addContainerListener(this);
+          JMenu subMenu = new JMenu(b.getText());
+          Component[] items = toolbarMenu.getComponents();
+          for (int i = 0; i < items.length; i++) {
+            final JMenuItem otherItem = (JMenuItem) items[i];
+            JMenuItem myItem = new JMenuItem(otherItem.getText(),otherItem.getIcon());
+            myItem.addActionListener(new ActionListener() {
+              public void actionPerformed(ActionEvent e) {
+                otherItem.doClick();
+              }
+            });
+            subMenu.add(myItem);
+            buttonsToMenuMap.put(otherItem,myItem);
           }
-        });
-        buttonsToMenuMap.put(b, mi);
-        menu.add(mi);
+          buttonsToMenuMap.put(b,subMenu);
+          menu.add(subMenu);
+        }
+        else {
+          JMenuItem mi = new JMenuItem(b.getText(), b.getIcon());
+          mi.setEnabled(b.isEnabled());
+          mi.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+              b.doClick();
+            }
+          });
+          buttonsToMenuMap.put(b, mi);
+          menu.add(mi);
+        }
       }
     }
   }
@@ -166,7 +197,7 @@ public class ToolbarMenu extends AbstractConfigurable implements ContainerListen
     JMenuItem mi = (JMenuItem) buttonsToMenuMap.get(b);
     if (mi != null) {
       if (AbstractButton.TEXT_CHANGED_PROPERTY.equals(evt.getPropertyName())) {
-        mi.setText(b.getText());
+        buildMenu();
       }
       else if ("enabled".equals(evt.getPropertyName())) {
         mi.setEnabled(b.isEnabled());
