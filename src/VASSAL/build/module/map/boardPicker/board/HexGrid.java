@@ -18,6 +18,26 @@
  */
 package VASSAL.build.module.map.boardPicker.board;
 
+import java.awt.Color;
+import java.awt.Container;
+import java.awt.Graphics;
+import java.awt.Graphics2D;
+import java.awt.Point;
+import java.awt.Polygon;
+import java.awt.Rectangle;
+import java.awt.RenderingHints;
+import java.awt.Shape;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.geom.AffineTransform;
+import java.awt.geom.Area;
+import java.io.File;
+import java.net.MalformedURLException;
+import java.util.HashMap;
+import java.util.Map;
+
+import javax.swing.JButton;
+
 import VASSAL.build.AbstractConfigurable;
 import VASSAL.build.Buildable;
 import VASSAL.build.module.documentation.HelpFile;
@@ -29,18 +49,10 @@ import VASSAL.configure.ColorConfigurer;
 import VASSAL.configure.Configurer;
 import VASSAL.configure.VisibilityCondition;
 
-import java.awt.*;
-import java.awt.geom.Area;
-import java.awt.geom.AffineTransform;
-import java.io.File;
-import java.net.MalformedURLException;
-import java.util.Map;
-import java.util.HashMap;
-
 /**
  * A Hexgrid is a map grid composed of hexes.
  */
-public class HexGrid extends AbstractConfigurable implements GeometricGrid {
+public class HexGrid extends AbstractConfigurable implements GeometricGrid, GridEditor.EditableGrid {
   protected Point origin = new Point(0, 32);
 
   protected double dx;
@@ -57,6 +69,7 @@ public class HexGrid extends AbstractConfigurable implements GeometricGrid {
   protected Color color = Color.black;
   protected boolean sideways = false;
   protected Map shapeCache = new HashMap();
+  protected HexGridEditor gridEditor;
 
   public static final String X0 = "x0";
   public static final String Y0 = "y0";
@@ -114,19 +127,30 @@ public class HexGrid extends AbstractConfigurable implements GeometricGrid {
   }
 
   public Configurer getConfigurer() {
+    
+    boolean buttonExists = config != null;
+    
     AutoConfigurer c = (AutoConfigurer) super.getConfigurer();
     final Configurer dxConfig = c.getConfigurer(DX);
-    c.getConfigurer(DY).addPropertyChangeListener
-        (new java.beans.PropertyChangeListener() {
-          public void propertyChange(java.beans.PropertyChangeEvent evt) {
-            if (evt.getNewValue() != null) {
-              double hgt = ((Double) evt.getNewValue()).doubleValue();
-              dxConfig.setValue(new Double(Math.sqrt(3) * hgt / 2.).toString());
-            }
-          }
+    c.getConfigurer(DY).addPropertyChangeListener(new java.beans.PropertyChangeListener() {
+      public void propertyChange(java.beans.PropertyChangeEvent evt) {
+        if (evt.getNewValue() != null) {
+          double hgt = ((Double) evt.getNewValue()).doubleValue();
+          dxConfig.setValue(new Double(Math.sqrt(3) * hgt / 2.).toString());
         }
-        );
+      }
+    });
 
+    if (!buttonExists) {
+      JButton b = new JButton("Edit Grid");
+      b.addActionListener(new ActionListener() {
+        public void actionPerformed(ActionEvent e) {
+          editGrid();
+        }
+      });
+      ((Container) c.getControls()).add(b);
+    }
+    
     return config;
   }
 
@@ -170,6 +194,10 @@ public class HexGrid extends AbstractConfigurable implements GeometricGrid {
   public boolean isSideways() {
     return sideways;
   }
+  
+  public void setSideways(boolean b) {
+    sideways = b;
+  }
 
   public void setCornersLegal(boolean legal) {
     cornersLegal = legal;
@@ -192,6 +220,22 @@ public class HexGrid extends AbstractConfigurable implements GeometricGrid {
   public void setHexWidth(double w) {
     dx = w;
   }
+  
+  public double getDx() {
+    return getHexWidth();
+  }
+  
+  public void setDx(double d) {
+    setHexWidth(d);
+  }
+  
+  public double getDy() {
+    return getHexSize();
+  }
+  
+  public void setDy(double d) {
+    dy = d; // DO NOT call setHexSize() so that dx is not reset
+  }
 
   public GridContainer getContainer() {
     return container;
@@ -208,6 +252,10 @@ public class HexGrid extends AbstractConfigurable implements GeometricGrid {
 
   public static String getConfigureTypeName() {
     return "Hex Grid";
+  }
+  
+  public String getGridName() {
+    return getConfigureTypeName();
   }
 
   public String getConfigureName() {
@@ -704,11 +752,6 @@ public class HexGrid extends AbstractConfigurable implements GeometricGrid {
     g.setClip(oldClip);
   }
 
-  public javax.swing.JPanel configurePanel() {
-    return new ConfigureHexGrid();
-  }
-
-
   public void setGridNumbering(GridNumbering numbering) {
     this.numbering = numbering;
   }
@@ -722,127 +765,132 @@ public class HexGrid extends AbstractConfigurable implements GeometricGrid {
   public Point getOrigin() {
     return new Point(origin);
   }
+  
+  public void setOrigin(Point p) {
+    origin.x = p.x;
+    origin.y = p.y;
+  }
+  
+  public void editGrid() {
+  	gridEditor = new HexGridEditor((GridEditor.EditableGrid) this);
+  	gridEditor.setVisible(true);
+  	// Local variables may have been updated by GridEditor so refresh
+  	// configurers. Setting the Dy configurer will auto-recalculate dx
+ 	double origDx = dx;
+  	AutoConfigurer cfg = (AutoConfigurer) getConfigurer();
+  	cfg.getConfigurer(DY).setValue(String.valueOf(dy));
+  	dx = origDx;
+  	cfg.getConfigurer(DX).setValue(String.valueOf(dx));
+  	cfg.getConfigurer(X0).setValue(String.valueOf(origin.x));
+  	cfg.getConfigurer(Y0).setValue(String.valueOf(origin.y));
+  	cfg.getConfigurer(SIDEWAYS).setValue(String.valueOf(sideways));
+  }
+  
+  public class HexGridEditor extends GridEditor {
 
-
-  private class ConfigureHexGrid extends javax.swing.JPanel {
-    /** Initializes the Form */
-    public ConfigureHexGrid() {
-      initComponents();
+    public HexGridEditor(EditableGrid grid) {
+      super(grid);
     }
 
-    /** This method is called from within the constructor to
-     * initialize the form.
-     * WARNING: Do NOT modify this code. The content of this method is
-     * always regenerated by the FormEditor.
+    /*
+     * Calculate approximate grid metrics based on the three adjacent points
+     * picked out by the user.
      */
-    private void initComponents() {//GEN-BEGIN:initComponents
-      setLayout(new javax.swing.BoxLayout(this, javax.swing.BoxLayout.X_AXIS));
-
-      javax.swing.Box numbers = javax.swing.Box.createVerticalBox();
-
-      jPanel1 = new javax.swing.JPanel();
-      jPanel1.setLayout(new java.awt.FlowLayout());
-
-      jLabel1 = new javax.swing.JLabel();
-      jLabel1.setText("Hex height");
-      jPanel1.add(jLabel1);
-
-      dyInput = new javax.swing.JTextField();
-      dyInput.setText("" + dy);
-      jPanel1.add(dyInput);
-      numbers.add(jPanel1);
-
-      jPanel2 = new javax.swing.JPanel();
-      jPanel2.setLayout(new java.awt.FlowLayout());
-
-      jLabel2 = new javax.swing.JLabel();
-      jLabel2.setText("Offset");
-      jPanel2.add(jLabel2);
-      x0Input = new javax.swing.JTextField(3);
-      x0Input.setText("" + origin.x);
-      jPanel2.add(x0Input);
-      jPanel2.add(new javax.swing.JLabel(","));
-      y0Input = new javax.swing.JTextField(3);
-      y0Input.setText("" + origin.y);
-      jPanel2.add(y0Input);
-      numbers.add(jPanel2);
-
-      javax.swing.Box boxes = javax.swing.Box.createVerticalBox();
-
-      visibleBox = new javax.swing.JCheckBox("Draw Grid");
-      visibleBox.setSelected(HexGrid.this.visible);
-      boxes.add(visibleBox);
-      edgeBox = new javax.swing.JCheckBox("Edges Legal");
-      edgeBox.setSelected(edgesLegal);
-      boxes.add(edgeBox);
-      cornerBox = new javax.swing.JCheckBox("Corners Legal");
-      cornerBox.setSelected(cornersLegal);
-      boxes.add(cornerBox);
-
-      add(numbers);
-      add(boxes);
-
-      java.awt.event.FocusListener fl =
-          new java.awt.event.FocusAdapter() {
-            public void focusLost(java.awt.event.FocusEvent e) {
-              setValues();
-            }
-          };
-      dyInput.addFocusListener(fl);
-      x0Input.addFocusListener(fl);
-      y0Input.addFocusListener(fl);
-
-      java.awt.event.ActionListener al =
-          new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent e) {
-              setValues();
-            }
-          };
-      dyInput.addActionListener(al);
-      x0Input.addActionListener(al);
-      y0Input.addActionListener(al);
-      visibleBox.addActionListener(al);
-      edgeBox.addActionListener(al);
-      cornerBox.addActionListener(al);
-    }//GEN-END:initComponents
-
-    private void setValues() {
-      HexGrid.this.visible = visibleBox.isSelected();
-      edgesLegal = edgeBox.isSelected();
-      cornersLegal = cornerBox.isSelected();
-      try {
-        setHexSize(Double.valueOf(dyInput.getText()).doubleValue());
+    public void calculate() {
+      
+      /*
+       * Two of the points must lie on the same horizontal or vertical line (be perpendicular to). 
+       * The third point must not be perpendicular to either of the first two. First step is to work out
+       * which is which as we can't be sure what order they picked out the points in.
+       */
+      
+      if (isPerpendicular(hp1, hp2)) {
+        calculate_step2(hp1, hp2, hp3);
       }
-      catch (NumberFormatException NANdy) {
-        setHexSize(64.);
-        dyInput.setText("64");
+      else if (isPerpendicular(hp1, hp3)) {
+        calculate_step2(hp1, hp3, hp2);
       }
-      try {
-        origin.x = Integer.parseInt(x0Input.getText());
+      else if (isPerpendicular(hp2, hp3)) {
+        calculate_step2(hp2, hp3, hp1);
       }
-      catch (NumberFormatException NANx0) {
-        origin.x = 0;
-        x0Input.setText("0");
+      else {
+        reportShapeError();
       }
-      try {
-        origin.y = Integer.parseInt(y0Input.getText());
+    }
+    
+    /*
+     * Step 2. Check third point is not perpendicular to either of
+     * the first two, then call appropriate calculation routine 
+     * depending on location relative to the first two.
+     */
+    protected void calculate_step2(Point p1, Point p2, Point p3) {
+      if (!isPerpendicular(p1, p3) && !isPerpendicular(p2, p3)) {
+        if (isHorizontal(p1, p2)) {
+          if ((p3.x < p1.x && p3.x < p2.x) ||(p3.x > p1.x && p3.x > p2.x)) {
+            check(false, p1, p2, p3);
+          }
+          else {
+            checkEnd(true, p1, p2, p3);
+          }
+        }
+        else {
+          if ((p3.y < p1.y && p3.y < p2.y) ||(p3.y > p1.y && p3.y > p2.y)) {
+            check(true, reverse(p1), reverse(p2), reverse(p3));
+          }
+          else {
+            checkEnd(false, reverse(p1), reverse(p2), reverse(p3));
+          }
+        }
       }
-      catch (NumberFormatException NANy0) {
-        origin.y = 0;
-        y0Input.setText("0");
+      else {
+        reportShapeError();
       }
     }
 
-    private javax.swing.JCheckBox visibleBox;
-    private javax.swing.JCheckBox edgeBox;
-    private javax.swing.JCheckBox cornerBox;
-    private javax.swing.JPanel jPanel1;
-    private javax.swing.JPanel jPanel2;
-    private javax.swing.JLabel jLabel1;
-    private javax.swing.JLabel jLabel2;
-    private javax.swing.JTextField dyInput;
-    private javax.swing.JTextField x0Input;
-    private javax.swing.JTextField y0Input;
+    protected Point reverse (Point p) {
+      return new Point(p.y, p.x);
+    }
+
+    protected void check (boolean sideways, Point p1, Point p2, Point p3) {
+      
+      int r = Math.abs(p1.x - p2.x);
+      int width = r * 3 / 2;
+      int height = Math.abs(p3.y - p2.y) * 2;
+      
+      int Xoff = (Math.min(p1.x, p2.x)) % width + (int) (r/2);
+      int col = (int) (Math.min(p1.x, p2.x) / width);
+      int Yoff = Math.min(p1.y, p2.y) % height - ((col % 2 == 1) ? 0 : (int) (height / 2));
+      if (Yoff < 0) Yoff += height;
+
+      setMetrics(width, height, Xoff, Yoff, sideways);
+    }
+    
+    protected void checkEnd (boolean sideways, Point p1, Point p2, Point p3) {
+      if (Math.abs((p1.x + p2.x) / 2 - p3.x) > ERROR_MARGIN) {
+        reportShapeError();
+        return;
+      }
+      
+      int r = Math.abs(p3.y - p1.y) * 2;
+      int width = r * 3 / 2;
+      int height = Math.abs(p3.x - p2.x) * 2;
+      
+      int xOrigin = p1.y - (p3.y < p1.y ? 0 : r);
+      int Xoff = xOrigin % width + (int) (r/2);
+      int col = (int) (xOrigin / width);
+      int Yoff = Math.min(p1.x, p2.x) % height - ((col % 2 == 1) ? 0 : (int) (height / 2));
+      
+      setMetrics(width, height, Xoff, Yoff, sideways);
+    }
+    
+    protected void setMetrics(int width, int height, int xoff, int yoff, boolean b) {
+      
+      grid.setDx(width);
+      grid.setDy(height);
+      grid.setOrigin(new Point(xoff, yoff));
+      grid.setSideways(b);
+
+    }
+    
   }
 }
-

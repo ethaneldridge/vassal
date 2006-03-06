@@ -83,6 +83,8 @@ public class Embellishment extends Decorator implements EditablePiece {
   protected String name = "";
 
   protected KeyCommand[] commands;
+  protected KeyCommand up = null;
+  protected KeyCommand down = null;
 
   public Embellishment() {
     this(ID + "Activate", null);
@@ -339,20 +341,23 @@ public class Embellishment extends Decorator implements EditablePiece {
     if (commands == null) {
       List l = new ArrayList();
       GamePiece outer = Decorator.getOutermost(this);
-      if (activateKey.length() > 0) {
+      if (activateCommand.length() > 0 && activateKey.length() > 0) {
         l.add(new KeyCommand(activateCommand,
                              KeyStroke.getKeyStroke(activateKey.charAt(0), activateModifiers),
                              outer));
       }
       if (upCommand.length() > 0 && upKey.length() > 0 && nValues > 1) {
-        l.add(new KeyCommand(upCommand,
+        
+        up = new KeyCommand(upCommand,
                              KeyStroke.getKeyStroke(upKey.charAt(0), upModifiers),
-                             outer));
+                             outer);
+        l.add(up);
       }
       if (downCommand.length() > 0 && downKey.length() > 0 && nValues > 1) {
-        l.add(new KeyCommand(downCommand,
+        down = new KeyCommand(downCommand,
                              KeyStroke.getKeyStroke(downKey.charAt(0), downModifiers),
-                             outer));
+                             outer);
+        l.add(down);
       }
       if (resetKey != null && resetCommand.length() > 0) {
         l.add(new KeyCommand(resetCommand, resetKey, outer));
@@ -363,6 +368,12 @@ public class Embellishment extends Decorator implements EditablePiece {
       }
       // end random layers
       commands = (KeyCommand[]) l.toArray(new KeyCommand[l.size()]);
+    }
+    if (up != null) {
+     up.setEnabled(loopLevels || Math.abs(value) < imageName.length);
+    }
+    if (down != null) {
+      down.setEnabled(loopLevels || Math.abs(value) > 1);
     }
     return commands;
   }

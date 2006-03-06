@@ -62,6 +62,7 @@ import javax.swing.JButton;
 import javax.swing.JLabel;
 import javax.swing.JLayeredPane;
 import javax.swing.JRootPane;
+import javax.swing.KeyStroke;
 import javax.swing.SwingUtilities;
 
 import VASSAL.Info;
@@ -83,6 +84,7 @@ import VASSAL.counters.DragBuffer;
 import VASSAL.counters.EventFilter;
 import VASSAL.counters.GamePiece;
 import VASSAL.counters.KeyBuffer;
+import VASSAL.counters.PieceCloner;
 import VASSAL.counters.PieceFinder;
 import VASSAL.counters.PieceIterator;
 import VASSAL.counters.PieceSorter;
@@ -487,6 +489,9 @@ public class PieceMover extends AbstractBuildable implements
         comm = comm.append(map.getStackMetrics().merge(mergeWith, dragging));
       }
     }
+    if (map.getMoveKey() != null) {
+      applyKeyAfterMove(dragging, comm, map.getMoveKey());
+    }
     if (GlobalOptions.getInstance().autoReportEnabled()) {
       Command report = createMovementReporter(comm).getReportCommand();
       report.execute();
@@ -495,6 +500,20 @@ public class PieceMover extends AbstractBuildable implements
     return comm;
   }
 
+  protected void applyKeyAfterMove(GamePiece piece, Command comm, KeyStroke key) {
+    if (piece instanceof Stack) {
+      for (int i = 0; i < ((Stack) piece).getPieceCount(); i++) {
+        applyKeyAfterMove(((Stack) piece).getPieceAt(i), comm, key);
+      }
+    }
+    else {
+      if (piece.getProperty(Properties.SNAPSHOT) == null) {
+        piece.setProperty(Properties.SNAPSHOT, PieceCloner.getInstance().clonePiece(piece));
+      }
+      comm.append(piece.keyEvent(key));
+    }
+  }
+  
   /**
    * This listener is used for faking drag-and-drop on Java 1.1 systems
    * @param e

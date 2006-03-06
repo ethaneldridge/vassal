@@ -62,7 +62,9 @@ public class AreaOfEffect extends Decorator implements EditablePiece, MapShader.
   protected KeyCommand[] commands;
   protected String mapShaderName;
   protected MapShader shader;
-  private KeyCommand keyCommand;
+  protected KeyCommand keyCommand;
+  protected boolean fixedRadius = true;
+  protected String radiusMarker = "";
 
   public AreaOfEffect() {
     this(ID + ColorConfigurer.colorToString(defaultTransparencyColor), null);
@@ -86,6 +88,8 @@ public class AreaOfEffect extends Decorator implements EditablePiece, MapShader.
     se.append(activateCommand);
     se.append(activateKey);
     se.append(mapShaderName == null ? "" : mapShaderName);
+    se.append(fixedRadius);
+    se.append(radiusMarker);
 
     return ID + se.getValue();
   }
@@ -104,6 +108,8 @@ public class AreaOfEffect extends Decorator implements EditablePiece, MapShader.
     if (mapShaderName.length() == 0) {
       mapShaderName = null;
     }
+    fixedRadius = st.nextBoolean(true);
+    radiusMarker = st.nextToken("");
     shader = null;
     commands = null;
   }
@@ -176,17 +182,33 @@ public class AreaOfEffect extends Decorator implements EditablePiece, MapShader.
     Point position = getPosition();
     Board board = map.findBoard(position);
     MapGrid grid = board == null ? null : board.getGrid();
+    int myRadius = getRadius();
 
     if (grid instanceof GeometricGrid) {
       GeometricGrid gGrid = (GeometricGrid) grid;
-      a = gGrid.getGridShape(position, radius);
+      a = gGrid.getGridShape(position, myRadius);
     }
     else {
-      a = new Area(new Ellipse2D.Double(position.x - radius, position.y - radius, radius * 2, radius * 2));
+      a = new Area(new Ellipse2D.Double(position.x - myRadius, position.y - myRadius, myRadius * 2, myRadius * 2));
     }
     return a;
   }
 
+  protected int getRadius() {
+    if (fixedRadius) {
+      return radius;
+    }
+    else {
+      try {
+        String r = (String) Decorator.getOutermost(this).getProperty(radiusMarker);
+        return Integer.parseInt(r);
+      }
+      catch (Exception e) {
+        return 0;
+      }
+    }
+  }
+  
   // No hot-keys
   protected KeyCommand[] myGetKeyCommands() {
     if (commands == null) {
@@ -257,6 +279,8 @@ public class AreaOfEffect extends Decorator implements EditablePiece, MapShader.
     protected StringConfigurer activateCommand;
     protected HotKeyConfigurer activateKey;
     protected BooleanConfigurer useMapShader;
+    protected BooleanConfigurer fixedRadius;
+    protected StringConfigurer radiusMarker;
     protected Box selectShader;
     protected String mapShaderId;
 
@@ -301,13 +325,27 @@ public class AreaOfEffect extends Decorator implements EditablePiece, MapShader.
       panel.add(transparencyColorValue.getControls());
       transparencyValue = new IntConfigurer(null, "Opacity (%): ", new Integer((int) (trait.transparencyLevel * 100)));
       panel.add(transparencyValue.getControls());
+      
+      fixedRadius = new BooleanConfigurer(null, "Fixed Radius?", new Boolean(trait.fixedRadius));
+      fixedRadius.addPropertyChangeListener(new PropertyChangeListener() {
+        public void propertyChange(PropertyChangeEvent evt) {
+          updateRangeVisibility();
+        }
+      });
+      panel.add(fixedRadius.getControls());
+      
       radiusValue = new IntConfigurer(null, "Radius: ", new Integer(trait.radius));
       panel.add(radiusValue.getControls());
+      
+      radiusMarker = new StringConfigurer(null, "Radius Marker: ", trait.radiusMarker);
+      panel.add(radiusMarker.getControls());
 
       alwaysActive = new BooleanConfigurer(null, "Always visible", trait.alwaysActive ? Boolean.TRUE : Boolean.FALSE);
       activateCommand = new StringConfigurer(null, "Toggle visible command: ", trait.activateCommand);
       activateKey = new HotKeyConfigurer(null, "Toggle visible keyboard shortcut: ", trait.activateKey);
 
+      updateRangeVisibility();
+      
       alwaysActive.addPropertyChangeListener(new PropertyChangeListener() {
         public void propertyChange(PropertyChangeEvent evt) {
           updateCommandVisibility();
@@ -335,6 +373,13 @@ public class AreaOfEffect extends Decorator implements EditablePiece, MapShader.
       repack();
     }
 
+    protected void updateRangeVisibility() {
+      boolean fixedRange = fixedRadius.booleanValue().booleanValue();
+      radiusValue.getControls().setVisible(fixedRange);
+      radiusMarker.getControls().setVisible(!fixedRange);
+      repack();
+    }
+    
     protected void updateCommandVisibility() {
       boolean alwaysActiveSelected = Boolean.TRUE.equals(alwaysActive.getValue());
       activateCommand.getControls().setVisible(!alwaysActiveSelected);
@@ -372,6 +417,8 @@ public class AreaOfEffect extends Decorator implements EditablePiece, MapShader.
       else {
         se.append("");
       }
+      se.append(fixedRadius.getValueString());
+      se.append(radiusMarker.getValueString());
 
       return AreaOfEffect.ID + se.getValue();
     }

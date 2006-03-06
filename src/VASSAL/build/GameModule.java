@@ -26,7 +26,9 @@ import java.awt.event.WindowEvent;
 import java.io.File;
 import java.io.IOException;
 import java.net.MalformedURLException;
+import java.util.ArrayList;
 import java.util.Enumeration;
+import java.util.Iterator;
 import java.util.Random;
 import java.util.Vector;
 
@@ -121,6 +123,7 @@ public abstract class GameModule extends AbstractConfigurable implements Command
   protected Vector keyStrokeSources = new Vector();
   protected Vector keyStrokeListeners = new Vector();
   protected CommandEncoder[] commandEncoders = new CommandEncoder[0];
+  protected ArrayList propertyProducers = new ArrayList();
 
   /**
    * @return the top-level frame of the controls window
@@ -718,4 +721,26 @@ public abstract class GameModule extends AbstractConfigurable implements Command
     return Builder.toString(doc);
   }
 
+  /**
+   * Return values of Global properties
+   */
+  public Object getProperty(Object key) {
+    
+    Iterator i = propertyProducers.iterator();
+    while (i.hasNext()) {
+      Object val = ((PropertyProducer) i.next()).getProperty(key);
+      if (val != null) {
+        return val;
+      }
+    }
+    return null;
+  }
+  
+  public void addPropertyProducer(PropertyProducer p) {
+    propertyProducers.add(p);
+  }
+
+  public void removePropertyProducer(PropertyProducer p) {
+    propertyProducers.remove(p);
+  }
 }

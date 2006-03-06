@@ -24,10 +24,14 @@ import VASSAL.build.module.documentation.HelpFile;
 import VASSAL.build.module.map.boardPicker.board.mapgrid.GridContainer;
 import VASSAL.build.module.map.boardPicker.board.mapgrid.GridNumbering;
 import VASSAL.build.module.map.boardPicker.board.mapgrid.SquareGridNumbering;
+import VASSAL.configure.AutoConfigurer;
 import VASSAL.configure.ColorConfigurer;
+import VASSAL.configure.Configurer;
 import VASSAL.configure.VisibilityCondition;
 
 import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.geom.Area;
 import java.awt.geom.AffineTransform;
 import java.io.File;
@@ -35,7 +39,9 @@ import java.net.MalformedURLException;
 import java.util.HashMap;
 import java.util.Map;
 
-public class SquareGrid extends AbstractConfigurable implements GeometricGrid {
+import javax.swing.JButton;
+
+public class SquareGrid extends AbstractConfigurable implements GeometricGrid, GridEditor.EditableGrid {
   private double dx = 48.0;
   private double dy = 48.0;
   private Point origin = new Point(24, 24);
@@ -46,6 +52,7 @@ public class SquareGrid extends AbstractConfigurable implements GeometricGrid {
   private Color color;
   protected GridContainer container;
   protected Map shapeCache = new HashMap();
+  protected SquareGridEditor gridEditor;
 
   private GridNumbering gridNumbering;
 
@@ -62,16 +69,37 @@ public class SquareGrid extends AbstractConfigurable implements GeometricGrid {
   public double getDx() {
     return dx;
   }
+  
+  public void setDx(double d) {
+    dx = d;
+  }
 
 
   public double getDy() {
     return dy;
   }
+  
+  public void setDy(double d) {
+    dy = d;
+  }
 
   public Point getOrigin() {
     return new Point(origin);
   }
+  
+  public void setOrigin(Point p) {
+    origin.x = p.x;
+    origin.y = p.y;
+  }
 
+  public boolean isSideways() {
+    return false;
+  }
+  
+  public void setSideways(boolean b) {
+    return;
+  }
+  
   public GridContainer getContainer() {
     return container;
   }
@@ -141,6 +169,10 @@ public class SquareGrid extends AbstractConfigurable implements GeometricGrid {
     return "Rectangular Grid";
   }
 
+  public String getGridName() {
+    return getConfigureTypeName();
+  }
+  
   public String getConfigureName() {
     return null;
   }
@@ -350,6 +382,10 @@ public class SquareGrid extends AbstractConfigurable implements GeometricGrid {
     return visible;
   }
 
+  public void setVisible(boolean b) {
+    visible = true;
+  }
+  
   protected void reverse(Point p, Rectangle bounds) {
     p.x = bounds.x + bounds.width - (p.x - bounds.x);
     p.y = bounds.y + bounds.height - (p.y - bounds.y);
@@ -419,5 +455,61 @@ public class SquareGrid extends AbstractConfigurable implements GeometricGrid {
       }
     }
     g.setClip(oldClip);
+  }
+  
+  public Configurer getConfigurer() {
+    boolean buttonExists = config != null;
+    Configurer c = super.getConfigurer();
+    if (!buttonExists) {
+      JButton b = new JButton("Edit Grid");
+      b.addActionListener(new ActionListener() {
+        public void actionPerformed(ActionEvent e) {
+          editGrid();
+        }
+      });
+      ((Container) c.getControls()).add(b);
+    }
+    return c;
+  }
+  
+  public void editGrid() {
+  	gridEditor = new SquareGridEditor((GridEditor.EditableGrid) this);
+  	gridEditor.setVisible(true);
+  	// Local variables may have been updated by GridEditor so refresh
+  	// configurers.
+  	AutoConfigurer cfg = (AutoConfigurer) getConfigurer();
+  	cfg.getConfigurer(DX).setValue(String.valueOf(dx));
+  	cfg.getConfigurer(DY).setValue(String.valueOf(dy));
+  	cfg.getConfigurer(X0).setValue(String.valueOf(origin.x));
+  	cfg.getConfigurer(Y0).setValue(String.valueOf(origin.y));
+  }
+  
+  public class SquareGridEditor extends GridEditor {
+
+    public SquareGridEditor(EditableGrid grid) {
+      super(grid);
+    }
+
+    /* 
+     * Calculate Grid metrics based on three selected points
+     */
+    public void calculate() {
+      if ((isPerpendicular(hp1, hp2) && isPerpendicular(hp1, hp3) && !isPerpendicular(hp2, hp3)) ||
+          (isPerpendicular(hp2, hp1) && isPerpendicular(hp2, hp3) && !isPerpendicular(hp1, hp3)) ||
+          (isPerpendicular(hp3, hp1) && isPerpendicular(hp3, hp2) && !isPerpendicular(hp1, hp2))) {
+        int height = Math.max(Math.abs(hp1.y-hp2.y), Math.abs(hp1.y-hp3.y));
+        int width = Math.max(Math.abs(hp1.x-hp2.x), Math.abs(hp1.x-hp3.x));
+        int top = Math.min(hp1.y, Math.min(hp2.y, hp3.y));
+        int left = Math.min(hp1.x, Math.min(hp2.x, hp3.x));
+        grid.setDx(width);
+        grid.setDy(height);
+        setNewOrigin(new Point(left+width/2, top+height/2));
+      }
+      else {
+        reportShapeError();
+      }
+      
+    }
+    
   }
 }

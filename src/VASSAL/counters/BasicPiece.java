@@ -159,7 +159,18 @@ public class BasicPiece implements EditablePiece, StateMergeable {
       }
       return "";
     }
-    return props == null ? null : props.get(key);
+    Object prop = props == null ? null : props.get(key);
+    if (prop == null) {
+      Map map = getMap();
+      if (map != null) {
+        prop = map.getProperty(key);
+      }
+      else {
+        prop = GameModule.getGameModule().getProperty(key);
+      }
+    }
+    
+    return prop;
   }
 
   public void setProperty(Object key, Object val) {

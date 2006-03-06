@@ -61,9 +61,10 @@ public class PlaceMarker extends Decorator implements EditablePiece {
   protected int yOffset=0;
   protected boolean matchRotation=false;
   protected KeyCommand[] commands;
+  protected KeyStroke afterBurnerKey;
 
   public PlaceMarker() {
-    this(ID + "Place Marker;M;null;null", null);
+    this(ID + "Place Marker;M;null;null;null", null);
   }
 
   public PlaceMarker(String type, GamePiece inner) {
@@ -101,6 +102,7 @@ public class PlaceMarker extends Decorator implements EditablePiece {
     se.append(markerText == null ? "null" : markerText);
     se.append(xOffset).append(yOffset);
     se.append(matchRotation);
+    se.append(afterBurnerKey);
     return ID + se.getValue();
   }
 
@@ -137,6 +139,10 @@ public class PlaceMarker extends Decorator implements EditablePiece {
         p = getMap().snapTo(p);
       }
       c = getMap().placeOrMerge(marker,p);
+      if (afterBurnerKey != null) {
+        marker.setProperty(Properties.SNAPSHOT, PieceCloner.getInstance().clonePiece(marker));
+        c.append(marker.keyEvent(afterBurnerKey));
+      }
       KeyBuffer.getBuffer().remove(outer);
       KeyBuffer.getBuffer().add(marker);
       if (markerText != null && getMap() != null) {
@@ -242,6 +248,7 @@ public class PlaceMarker extends Decorator implements EditablePiece {
     xOffset = st.nextInt(0);
     yOffset = st.nextInt(0);
     matchRotation = st.nextBoolean(false);
+    afterBurnerKey = st.nextKeyStroke(null);
   }
 
   public PieceEditor getEditor() {
@@ -259,10 +266,12 @@ public class PlaceMarker extends Decorator implements EditablePiece {
     protected IntConfigurer xOffsetConfig = new IntConfigurer(null,"Horizontal offset");
     protected IntConfigurer yOffsetConfig = new IntConfigurer(null,"Vertical offset");
     protected BooleanConfigurer matchRotationConfig;
+    protected HotKeyConfigurer afterBurner;
 
     protected Ed(PlaceMarker piece) {
       matchRotationConfig = createMatchRotationConfig();
       keyInput = new HotKeyConfigurer(null,"Keyboard Command:  ",piece.key);
+      afterBurner = new HotKeyConfigurer(null, "Keystroke to apply after placement", piece.afterBurnerKey);
       commandInput = new StringConfigurer(null, "Command: ", piece.command.getName());
       GamePiece marker = piece.createBaseMarker();
       pieceInput = new PieceSlot(marker);
@@ -305,6 +314,7 @@ public class PlaceMarker extends Decorator implements EditablePiece {
       p.add(yOffsetConfig.getControls());
       matchRotationConfig.setValue(new Boolean(piece.matchRotation));
       p.add(matchRotationConfig.getControls());
+      p.add(afterBurner.getControls());
     }
 
     protected BooleanConfigurer createMatchRotationConfig() {
@@ -337,6 +347,7 @@ public class PlaceMarker extends Decorator implements EditablePiece {
       se.append(xOffsetConfig.getValueString());
       se.append(yOffsetConfig.getValueString());
       se.append(matchRotationConfig.getValueString());
+      se.append((KeyStroke)afterBurner.getValue());
       return ID + se.getValue();
     }
 

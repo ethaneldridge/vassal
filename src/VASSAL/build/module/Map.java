@@ -75,6 +75,7 @@ import VASSAL.build.AutoConfigurable;
 import VASSAL.build.Buildable;
 import VASSAL.build.Configurable;
 import VASSAL.build.GameModule;
+import VASSAL.build.PropertyProducer;
 import VASSAL.build.module.documentation.HelpFile;
 import VASSAL.build.module.map.BoardPicker;
 import VASSAL.build.module.map.CounterDetailViewer;
@@ -114,6 +115,7 @@ import VASSAL.configure.ColorConfigurer;
 import VASSAL.configure.CompoundValidityChecker;
 import VASSAL.configure.Configurer;
 import VASSAL.configure.ConfigurerFactory;
+import VASSAL.configure.HotKeyConfigurer;
 import VASSAL.configure.IconConfigurer;
 import VASSAL.configure.IntConfigurer;
 import VASSAL.configure.MandatoryComponent;
@@ -196,6 +198,11 @@ public class Map extends AbstractConfigurable implements GameComponent,
   private String moveToFormat;
   private String createFormat;
   private String changeFormat = "$" + MESSAGE + "$";
+  
+  protected KeyStroke moveKey;
+  protected ArrayList propertyProducers = new ArrayList();
+  
+  protected JPanel root;
 
   public Map() {
     getView();
@@ -222,6 +229,7 @@ public class Map extends AbstractConfigurable implements GameComponent,
   public static final String MOVE_TO_FORMAT = "moveToFormat";
   public static final String CREATE_FORMAT = "createFormat";
   public static final String CHANGE_FORMAT = "changeFormat";
+  public static final String MOVE_KEY = "moveKey";
 
   public void setAttribute(String key, Object value) {
     if (NAME.equals(key)) {
@@ -313,6 +321,12 @@ public class Map extends AbstractConfigurable implements GameComponent,
     else if (CHANGE_FORMAT.equals(key)) {
       changeFormat = (String) value;
     }
+    else if (MOVE_KEY.equals(key)) {
+      if (value instanceof String) {
+        value = HotKeyConfigurer.decode((String) value);
+      }
+      moveKey = (KeyStroke) value;
+    }
     else {
       launchButton.setAttribute(key, value);
     }
@@ -368,6 +382,9 @@ public class Map extends AbstractConfigurable implements GameComponent,
     else if (CHANGE_FORMAT.equals(key)) {
       return getChangeFormat();
     }
+    else if (MOVE_KEY.equals(key)) {
+      return HotKeyConfigurer.encode(moveKey);
+    }   
     else {
       return launchButton.getAttributeValueString(key);
     }
@@ -553,7 +570,7 @@ public class Map extends AbstractConfigurable implements GameComponent,
     if (shouldDockIntoMainWindow()) {
       IntConfigurer config = new IntConfigurer(MAIN_WINDOW_HEIGHT, null, new Integer(-1));
       GameModule.getGameModule().getGlobalPrefs().addOption(null, config);
-      JPanel root = new JPanel(new BorderLayout());
+      root = new JPanel(new BorderLayout());
       root.add(scroll, BorderLayout.CENTER);
       ComponentSplitter splitter = new ComponentSplitter();
       mainWindowDock = splitter.splitBottom(splitter.getSplitAncestor(GameModule.getGameModule().getControlPanel(), -1), root, true);
@@ -1371,6 +1388,29 @@ public class Map extends AbstractConfigurable implements GameComponent,
     this.pieceOpacity = pieceOpacity;
   }
 
+  public Object getProperty(Object key) {
+    Iterator i = propertyProducers.iterator();
+    while (i.hasNext()) {
+      Object val = ((PropertyProducer) i.next()).getProperty(key);
+      if (val != null) {
+        return val;
+      }
+    }
+    return GameModule.getGameModule().getProperty(key);
+  }
+  
+  public KeyStroke getMoveKey() {
+    return moveKey;
+  }
+  
+  public void addPropertyProducer(PropertyProducer p) {
+    propertyProducers.add(p);
+  }
+
+  public void removePropertyProducer(PropertyProducer p) {
+    propertyProducers.remove(p);
+  }
+
   /**
    * @return the top-level window containing this map
    */
@@ -1697,7 +1737,8 @@ public class Map extends AbstractConfigurable implements GameComponent,
                         "Auto-report format for movement within this map",
                         "Auto-report format for movement to this map",
                         "Auto-report format for units created in this map",
-                        "Auto-report format for units modified on this map"};
+                        "Auto-report format for units modified on this map",
+                        "Key Command to apply to all units ending movement on this map"};
   }
 
   public String[] getAttributeNames() {
@@ -1717,7 +1758,8 @@ public class Map extends AbstractConfigurable implements GameComponent,
                         MOVE_TO_FORMAT,
                         CREATE_FORMAT,
                         CHANGE_FORMAT,
-                        SUPPRESS_AUTO};
+                        SUPPRESS_AUTO,
+                        MOVE_KEY};
   }
 
   public Class[] getAttributeTypes() {
@@ -1736,7 +1778,8 @@ public class Map extends AbstractConfigurable implements GameComponent,
                        MoveWithinFormatConfig.class,
                        MoveToFormatConfig.class,
                        CreateFormatConfig.class,
-                       ChangeFormatConfig.class};
+                       ChangeFormatConfig.class,
+                       KeyStroke.class};
   }
 
   public static final String LOCATION = "location";

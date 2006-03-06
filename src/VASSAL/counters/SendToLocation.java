@@ -16,6 +16,8 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
 import java.net.MalformedURLException;
+import java.util.ArrayList;
+import java.util.List;
 
 /*
  * $Id$
@@ -42,17 +44,22 @@ import java.net.MalformedURLException;
  */
 public class SendToLocation extends Decorator implements EditablePiece {
   public static final String ID = "sendto;";
+  public static final String BACK_MAP = "backMap";
+  public static final String BACK_POINT = "backPoint";
   protected KeyCommand[] command;
   protected String commandName;
+  protected String backCommandName;
   protected KeyStroke key;
+  protected KeyStroke backKey;
   protected String mapId;
   protected String boardName;
   protected int x;
   protected int y;
   protected KeyCommand sendCommand;
+  protected KeyCommand backCommand;
 
   public SendToLocation() {
-    this(ID + ";;;;0;0", null);
+    this(ID + ";;;;0;0;;", null);
   }
 
   public SendToLocation(String type, GamePiece inner) {
@@ -69,6 +76,8 @@ public class SendToLocation extends Decorator implements EditablePiece {
     boardName = st.nextToken();
     x = st.nextInt(0);
     y = st.nextInt(0);
+    backCommandName = st.nextToken("");
+    backKey = st.nextKeyStroke(null);
   }
 
   public String myGetType() {
@@ -78,23 +87,32 @@ public class SendToLocation extends Decorator implements EditablePiece {
         .append(mapId)
         .append(boardName)
         .append(x + "")
-        .append(y + "");
+        .append(y + "")
+        .append(backCommandName)
+        .append(backKey);
     return ID + se.getValue();
   }
 
   protected KeyCommand[] myGetKeyCommands() {
     if (command == null) {
       sendCommand = new KeyCommand(commandName, key, Decorator.getOutermost(this));
-      if (commandName.length() > 0
-          && key != null) {
-        command = new KeyCommand[]{sendCommand};
+      backCommand = new KeyCommand(backCommandName, backKey, Decorator.getOutermost(this));
+      List l = new ArrayList();
+      if (commandName.length() > 0 && key != null) {
+        l.add(sendCommand);
+      }
+      if (backCommandName.length() > 0 && backKey != null) {
+        l.add(backCommand);
+      }
+      command = (KeyCommand[]) l.toArray(new KeyCommand[l.size()]);
+    }
+    for (int i = 0; i < command.length; i++) {
+      if (command[i].getName().equals(backCommandName)) {
+        command[i].setEnabled(getMap() != null && getProperty(BACK_MAP) != null && getProperty(BACK_POINT) != null);
       }
       else {
-        command = new KeyCommand[0];
+        command[i].setEnabled(getMap() != null);
       }
-    }
-    if (command.length > 0) {
-      command[0].setEnabled(getMap() != null);
     }
     return command;
   }
@@ -117,8 +135,20 @@ public class SendToLocation extends Decorator implements EditablePiece {
         if (b != null) {
           dest.translate(b.bounds().x, b.bounds().y);
         }
+        setProperty(BACK_MAP, getMap());
+        setProperty(BACK_POINT, getPosition());
         c = m.placeOrMerge(Decorator.getOutermost(this), dest);
       }
+    }
+    else if(backCommand.matches(stroke)) {
+      Map backMap = (Map) getProperty(BACK_MAP);
+      Point backPoint = (Point) getProperty(BACK_POINT);
+      if (backMap != null && backPoint != null) {
+         c = backMap.placeOrMerge(Decorator.getOutermost(this), backPoint);
+      }
+      setProperty(BACK_MAP, null);
+      setProperty(BACK_POINT, null);
+      
     }
     return c;
   }
@@ -163,7 +193,9 @@ public class SendToLocation extends Decorator implements EditablePiece {
 
   public static class Ed implements PieceEditor {
     private StringConfigurer nameInput;
+    private StringConfigurer backNameInput;
     private HotKeyConfigurer keyInput;
+    private HotKeyConfigurer backKeyInput;
     private JTextField mapIdInput;
     private JTextField boardNameInput;
     private IntConfigurer xInput;
@@ -181,6 +213,12 @@ public class SendToLocation extends Decorator implements EditablePiece {
       keyInput = new HotKeyConfigurer(null,"Keyboard Command:  ",p.key);
       controls.add(keyInput.getControls());
 
+      backNameInput = new StringConfigurer(null, "Send Back Command name:  ", p.backCommandName);
+      controls.add(backNameInput.getControls());
+
+      backKeyInput = new HotKeyConfigurer(null,"Send Back Keyboard Command:  ",p.backKey);
+      controls.add(backKeyInput.getControls());
+      
       Box b = Box.createHorizontalBox();
       mapIdInput = new JTextField(12);
       map = Map.getMapById(p.mapId);
@@ -232,6 +270,7 @@ public class SendToLocation extends Decorator implements EditablePiece {
 
       yInput = new IntConfigurer(null, "Y Position:  ", new Integer(p.y));
       controls.add(yInput.getControls());
+      
     }
 
     private void clearBoard() {
@@ -272,7 +311,9 @@ public class SendToLocation extends Decorator implements EditablePiece {
           .append(map == null ? "" : map.getIdentifier())
           .append(boardNameInput.getText())
           .append(xInput.getValueString())
-          .append(yInput.getValueString());
+          .append(yInput.getValueString())
+          .append(backNameInput.getValueString())
+          .append((KeyStroke)backKeyInput.getValue());
       return ID + se.getValue();
     }
 

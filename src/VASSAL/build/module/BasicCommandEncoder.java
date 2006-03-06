@@ -130,6 +130,9 @@ public class BasicCommandEncoder implements CommandEncoder, Buildable {
     else if (type.startsWith(TriggerAction.ID)) {
       return new TriggerAction(type,inner);
     }
+    else if (type.startsWith(CounterDynamicProperty.ID)) {
+      return new CounterDynamicProperty(type,inner);
+    }
 
     return null;
   }

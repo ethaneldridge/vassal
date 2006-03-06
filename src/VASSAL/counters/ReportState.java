@@ -54,12 +54,13 @@ import java.net.MalformedURLException;
  */
 public class ReportState extends Decorator implements EditablePiece {
   public static final String ID = "report;";
-  private KeyStroke[] keys;
-  private FormattedString format = new PlayerIdFormattedString();
-  private String reportFormat;
-  private String[] cycleReportFormat;
-  private KeyStroke[] cycleDownKeys;
-  private int cycleIndex = -1;
+  protected KeyStroke[] keys;
+  protected FormattedString format = new PlayerIdFormattedString();
+  protected String reportFormat;
+  protected String[] cycleReportFormat;
+  protected KeyStroke[] cycleDownKeys;
+  protected int cycleIndex = -1;
+  protected Map oldMap;
 
   public ReportState() {
     this(ID, null);
@@ -98,6 +99,7 @@ public class ReportState extends Decorator implements EditablePiece {
 
   // We perform the inner commands first so that their effects will be reported
   public Command keyEvent(KeyStroke stroke) {
+    oldMap = getMap();
     format.clearProperties();
     format.setProperty(OLD_MAP_NAME, getMap() == null ? null : getMap().getConfigureName());
     format.setProperty(OLD_LOCATION_NAME, getMap() == null ? null : getMap().locationName(getPosition()) );
@@ -176,9 +178,15 @@ public class ReportState extends Decorator implements EditablePiece {
 
           if (getMap() != null) {
             format.setFormat(getMap().getChangeFormat());
-            format.setProperty(Map.MESSAGE, reportText);
-            reportText = format.getText(outer);
           }
+          else if (oldMap != null) {
+            format.setFormat(oldMap.getChangeFormat());
+          }
+          else {
+            format.setFormat("");
+          }
+          format.setProperty(Map.MESSAGE, reportText);
+          reportText = format.getText(outer);
 
           if (reportText.length() > 0) {
             Command display = new Chatter.DisplayText(GameModule.getGameModule().getChatter(), "* " + reportText);
