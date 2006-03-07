@@ -324,7 +324,7 @@ public class PieceMover extends AbstractBuildable implements
         markUnmovedButton.setToolTipText("Mark all pieces on this map as not moved");
         markUnmovedButton.addActionListener(new ActionListener() {
           public void actionPerformed(ActionEvent e) {
-            GamePiece[] p = map.getPieces();
+            GamePiece[] p = map.getAllPieces();
             Command c = new NullCommand();
             for (int i = 0; i < p.length; ++i) {
               c.append(markMoved(p[i], false));
@@ -459,7 +459,7 @@ public class PieceMover extends AbstractBuildable implements
       }
       // Now look for an already-existing piece at the destination point
       if (mergeWith == null) {
-        mergeWith = map.findPiece(p, dropTargetSelector);
+        mergeWith = map.findAnyPiece(p, dropTargetSelector);
         if (offset == null) {
           if (mergeWith == null
               && !Boolean.TRUE.equals(dragging.getProperty(Properties.IGNORE_GRID))) {

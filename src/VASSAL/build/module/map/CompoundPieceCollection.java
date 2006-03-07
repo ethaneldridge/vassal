@@ -34,6 +34,8 @@ import java.util.List;
  */
 public abstract class CompoundPieceCollection implements PieceCollection {
   protected SimplePieceCollection[] layers;
+  protected int bottomLayer = 0;
+  protected boolean[] enabled;
 
   protected CompoundPieceCollection(int layerCount) {
     initLayers(layerCount);
@@ -41,8 +43,10 @@ public abstract class CompoundPieceCollection implements PieceCollection {
 
   protected void initLayers(int layerCount) {
     layers = new SimplePieceCollection[layerCount];
+    enabled = new boolean[layerCount];
     for (int i=0;i<layers.length;++i) {
       layers[i] = new SimplePieceCollection();
+      enabled[i] = true;
     }
   }
 
@@ -54,6 +58,10 @@ public abstract class CompoundPieceCollection implements PieceCollection {
     return "";
   }
 
+  public int getLayerForName(String layerName) {
+    return -1;
+  }
+  
   protected PieceCollection getCollectionForPiece(GamePiece p) {
     return layers[getLayerForPiece(p)];
   }
@@ -68,14 +76,34 @@ public abstract class CompoundPieceCollection implements PieceCollection {
     }
   }
 
+  /*
+   * Return pieces in layer order from the bottom up. Take into account
+   * layer rotation and enabled state.
+   */
   public GamePiece[] getPieces() {
+    return getPieces(false);
+  }
+  
+  protected GamePiece[] getPieces(boolean includeDisabled) {
     List l = new ArrayList();
+    int layer = bottomLayer;
     for (int i=0;i<layers.length;++i) {
-      l.addAll(Arrays.asList(layers[i].getPieces()));
+      if (includeDisabled || (!includeDisabled && enabled[layer])) {
+        l.addAll(Arrays.asList(layers[layer].getPieces()));
+      }
+      layer++;
+      if (layer >= layers.length) {
+        layer = 0;
+      }
     }
     return (GamePiece[]) l.toArray(new GamePiece[l.size()]);
   }
 
+  public GamePiece[] getAllPieces() {
+      return getPieces(true);
+  
+  }
+  
   public int indexOf(GamePiece p) {
     int layer = getLayerForPiece(p);
     int index = layers[layer].indexOf(p);
@@ -147,4 +175,91 @@ public abstract class CompoundPieceCollection implements PieceCollection {
     return canMerge;
   }
 
+  public int getLayerCount() {
+    return layers.length;
+  }
+  
+  /*
+   * Set a new bottom layer. Take care of wrapping around ends of layer list.
+   */
+  public void setBottomLayer(int layer) {
+    bottomLayer = layer;
+    if (bottomLayer < 0) bottomLayer = getLayerCount() - 1;
+    if (bottomLayer >= getLayerCount()) bottomLayer = 0;
+  }
+  
+  public int getBottomLayer() {
+    return bottomLayer;
+  }
+  
+  public int getTopLayer() {
+    int layer = bottomLayer - 1;
+    if (layer < 0) {
+      layer = getLayerCount() - 1;
+    }
+    return layer;
+  }
+  
+  /*
+   * Rotate layers up or down, optionally skipping top layers not containing
+   * counters.
+   */
+  public void rotate(boolean rotateUp, boolean skipNullLayers) {
+    if (skipNullLayers) {
+      for (int i = 0; i < layers.length; i++) {
+        rotate(rotateUp);
+        if (layers[getTopLayer()].getPieces().length > 0) {
+          return;
+        }
+      }
+    }
+    else {
+      rotate(rotateUp);
+    }
+  }
+  
+  /*
+   * Rotate Layers up or down by 1 layer
+   */
+  public void rotate(boolean rotateUp) {
+    if (rotateUp) {
+      setBottomLayer(bottomLayer-1);
+    }
+    else {
+      setBottomLayer(bottomLayer + 1);
+    }
+  }
+  
+  /*
+   * Enable/Disable layers
+   */
+  public void setLayerEnabled(int layer, boolean b) {
+    if (layer >= 0 && layer < layers.length) {
+      enabled[layer] = b;
+    }
+  }
+  
+  public void toggleLayerEnabled(int layer) {
+    if (layer >= 0 && layer < layers.length) {
+      enabled[layer] = !enabled[layer];
+    }
+  }
+  
+  public void setLayerEnabled(String layer, boolean b) {
+    setLayerEnabled(getLayerForName(layer), b);
+  }
+  
+  public void toggleLayerEnabled(String layer) {
+    toggleLayerEnabled(getLayerForName(layer));
+  }
+  
+  /* 
+   * Reset Layers to original state
+   */
+  public void reset() {
+    setBottomLayer(0);
+    for (int i = 0; i < layers.length; i++) {
+      enabled[i] = true;
+    }
+  }
 }

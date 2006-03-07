@@ -63,6 +63,10 @@ public class SimplePieceCollection implements PieceCollection {
     System.arraycopy(pieces, 0, p, 0, pieceCount);
     return p;
   }
+  
+  public GamePiece[] getAllPieces() {
+    return getPieces();
+  }
 
   private void removePieceAt(int gone) {
     if (gone >= 0) {

@@ -31,6 +31,8 @@ public interface PieceCollection {
   void moveToBack(GamePiece p);
   /** Return all pieces in the collection as a read-only array */
   GamePiece[] getPieces();
+  /** Return all pieces in the collection, regardless of visibility */
+  GamePiece[] getAllPieces();
   /** Return true if the two pieces can be merged into a single stack */
   boolean canMerge(GamePiece p1, GamePiece p2);
   /**

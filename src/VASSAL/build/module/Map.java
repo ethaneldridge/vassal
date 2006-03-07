@@ -1263,6 +1263,10 @@ public class Map extends AbstractConfigurable implements GameComponent,
     return pieces.getPieces();
   }
 
+  public GamePiece[] getAllPieces() {
+    return pieces.getAllPieces();
+  }
+  
   public void setPieceCollection(PieceCollection pieces) {
     this.pieces = pieces;
   }
@@ -1542,6 +1546,17 @@ public class Map extends AbstractConfigurable implements GameComponent,
 
   public GamePiece findPiece(Point pt, PieceFinder finder) {
     GamePiece[] stack = pieces.getPieces();
+    for (int i = stack.length - 1; i >= 0; --i) {
+      GamePiece p = finder.select(this, stack[i], pt);
+      if (p != null) {
+        return p;
+      }
+    }
+    return null;
+  }
+  
+  public GamePiece findAnyPiece(Point pt, PieceFinder finder) {
+    GamePiece[] stack = pieces.getAllPieces();
     for (int i = stack.length - 1; i >= 0; --i) {
       GamePiece p = finder.select(this, stack[i], pt);
       if (p != null) {

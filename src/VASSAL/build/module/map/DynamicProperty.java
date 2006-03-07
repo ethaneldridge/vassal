@@ -64,13 +64,13 @@ import VASSAL.tools.PlayerIdFormattedString;
 import VASSAL.tools.SequenceEncoder;
 
 /**
- * DynamicProperty exposes the value a single value via it's getProperty(name)
+ * DynamicProperty exposes the value a single value via its getProperty(name)
  * call, and supports an arbitrary list of commands to manipulate the value.
  * 
  * Current Key Command types supported are:
  * 
  *  Set - Set to a specified value. 
- *  Inccrease - Increment by the specified value. 
+ *  Increase - Increment by the specified value. 
  *  Decrease - Decrement by the specified value.
  * 
  * The value to Set/Increment/Decrement can be one of: 

@@ -28,6 +28,7 @@ import VASSAL.counters.*;
 
 import java.io.File;
 import java.net.MalformedURLException;
+import java.util.Enumeration;
 
 /**
  * Defines PieceCollection in which pieces are assigned to an arbitrary number of layers
@@ -36,8 +37,8 @@ import java.net.MalformedURLException;
 public class LayeredPieceCollection extends AbstractConfigurable {
   public static final String PROPERTY_NAME="property";
   public static final String LAYER_ORDER="layerOrder";
-  private Collection collection = new Collection("Layer", new String[0]);
-  private Map map;
+  protected Collection collection = new Collection("Layer", new String[0]);
+  protected Map map;
 
   public String[] getAttributeDescriptions() {
     return new String[]{"Property name for layer","Layer Order"};
@@ -76,14 +77,30 @@ public class LayeredPieceCollection extends AbstractConfigurable {
     }
   }
 
+  public void add(Buildable b) {
+    super.add(b);
+    if (map != null && b instanceof LayerControl) {
+      addControl((LayerControl) b);
+    }
+  }
+  
   public void addTo(Buildable parent) {
     map = (Map)parent;
     validator = new SingleChildInstance(map,getClass());
     map.setPieceCollection(collection);
+    Enumeration e = this.getComponents(LayerControl.class); 
+    while (e.hasMoreElements()) {
+      addControl((LayerControl) e.nextElement());
+    }
   }
 
+  protected void addControl(LayerControl lc) {
+    map.getToolBar().add(lc.getLaunchButton());
+    lc.setMap(map);
+  }
+  
   public Class[] getAllowableConfigureComponents() {
-    return new Class[0];
+    return new Class[] { LayerControl.class };
   }
 
   public HelpFile getHelpFile() {
@@ -103,6 +120,14 @@ public class LayeredPieceCollection extends AbstractConfigurable {
 
   public void removeFrom(Buildable parent) {
     map.setPieceCollection(new DefaultPieceCollection());
+    Enumeration e = this.getComponents(LayerControl.class); 
+    while (e.hasMoreElements()) {
+     ((LayerControl) e.nextElement()).removeFrom(this);
+    }
+  }
+  
+  public Map getMap() {
+    return map;
   }
 
   /** The PieceCollection class used by the map to which a LayeredPieceCollection has been added */
@@ -136,6 +161,15 @@ public class LayeredPieceCollection extends AbstractConfigurable {
 
     public int getLayerForPiece(GamePiece p) {
       return ((Integer)dispatcher.accept(p)).intValue();
+    }
+    
+    public int getLayerForName(String layer) {
+      for (int i=0; i < layerOrder.length; i++) {
+        if (layer.equals(layerOrder[i])) {
+          return i;
+        }
+      }
+      return -1;
     }
     
     public String getLayerNameForPiece(GamePiece p) {
