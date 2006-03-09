@@ -738,12 +738,11 @@ public class DynamicProperty extends AbstractConfigurable implements GameCompone
 
     public Object getProperty(Object key) {
       Map map = parent.getMap();
-      if (map == null) {
-        return GameModule.getGameModule().getProperty(key);
+      Object value = map != null ? map.getProperty(key) : null;
+      if (value== null) {
+        value = GameModule.getGameModule().getProperty(key);
       }
-      else {
-        return map.getProperty(key);
-      }
+      return value;
     }
 
   }
