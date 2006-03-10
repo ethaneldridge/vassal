@@ -17,8 +17,8 @@ public class NumericProperty extends Property {
   private boolean wrap;
   private int value;
 
-  public NumericProperty(String key, String value, String description) {
-    super(key, value, description);
+  public NumericProperty(String key, String value) {
+    super(key, value);
   }
 
   /**
@@ -52,11 +52,13 @@ public class NumericProperty extends Property {
   }
 
   public void setValue(String value) {
-    try {
-      this.value = Integer.parseInt(value.toString());
-    }
-    catch (NumberFormatException e) {
-      throw new IllegalArgumentException();
+    if (value != null) {
+      try {
+        this.value = Integer.parseInt(value.toString());
+      }
+      catch (NumberFormatException e) {
+        throw new IllegalArgumentException();
+      }
     }
   }
 
@@ -79,21 +81,14 @@ public class NumericProperty extends Property {
   }
 
   public void increment(int incr) {
-    if (value+incr > maximum && wrap) {
-      value = minimum + (value+incr-maximum-1);
+    if (value + incr > maximum && wrap) {
+      value = minimum + (value + incr - maximum - 1);
+    }
+    else if (value + incr < minimum && wrap) {
+      value = maximum + (value + incr - minimum + 1);
     }
     else {
-      value = Math.min(maximum, value+incr);
-    }
-
-  }
-
-  public void decrement(int incr) {
-    if (value-incr < minimum && wrap) {
-      value = maximum + (value-incr-minimum);
-    }
-    else {
-      value = Math.max(minimum, value-incr);
+      value = Math.min(maximum, value + incr);
     }
   }
 

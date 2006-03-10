@@ -18,11 +18,32 @@
  */
 package VASSAL.counters;
 
+import java.awt.Component;
+import java.awt.Font;
+import java.awt.Graphics;
+import java.awt.Image;
+import java.awt.Point;
+import java.awt.Rectangle;
+import java.awt.Shape;
+import java.awt.event.InputEvent;
+import java.io.File;
+import java.io.IOException;
+import java.net.MalformedURLException;
+import java.util.HashMap;
+import java.util.Vector;
+
+import javax.swing.Box;
+import javax.swing.BoxLayout;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.JPopupMenu;
+import javax.swing.JTextField;
+import javax.swing.KeyStroke;
+
 import VASSAL.build.GameModule;
 import VASSAL.build.module.Chatter;
 import VASSAL.build.module.GlobalOptions;
 import VASSAL.build.module.Map;
-import VASSAL.build.module.PlayerRoster;
 import VASSAL.build.module.documentation.HelpFile;
 import VASSAL.build.module.map.boardPicker.Board;
 import VASSAL.build.module.map.boardPicker.board.mapgrid.Zone;
@@ -32,15 +53,6 @@ import VASSAL.command.Command;
 import VASSAL.command.RemovePiece;
 import VASSAL.tools.DataArchive;
 import VASSAL.tools.SequenceEncoder;
-
-import javax.swing.*;
-import java.awt.*;
-import java.awt.event.InputEvent;
-import java.io.File;
-import java.io.IOException;
-import java.net.MalformedURLException;
-import java.util.HashMap;
-import java.util.Vector;
 
 /**
  * Basic class for representing a physical component of the game
@@ -67,7 +79,6 @@ public class BasicPiece implements EditablePiece, StateMergeable {
   public static final String CURRENT_ZONE = "CurrentZone";
   public static final String BASIC_NAME = "BasicName";
   public static final String PIECE_NAME = "PieceName";
-  public static final String PLAYER_SIDE = "PlayerSide";
 
   public static Font POPUP_MENU_FONT = new Font("Dialog", 0, 11);
   protected Image image;
@@ -133,10 +144,6 @@ public class BasicPiece implements EditablePiece, StateMergeable {
     }
     else if (BASIC_NAME.equals(key)) {
       return getName();
-    }
-    else if (PLAYER_SIDE.equals(key)) {
-      String mySide = PlayerRoster.getMySide();
-      return mySide == null ? "" : mySide;
     }
     else if (CURRENT_MAP.equals(key)) {
       return getMap() == null ? "" : getMap().getConfigureName();

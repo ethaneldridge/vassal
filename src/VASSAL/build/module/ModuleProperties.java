@@ -33,7 +33,6 @@ public class ModuleProperties extends MapProperties {
   public void addTo(Buildable parent) {
     GameModule module = (GameModule) parent;
     module.getToolBar().add(getLaunchButton());
-    module.addPropertyProducer(this);
   }
 
   public void removeFrom(Buildable parent) {

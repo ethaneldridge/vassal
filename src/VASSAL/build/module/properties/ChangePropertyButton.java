@@ -19,6 +19,11 @@ import VASSAL.configure.VisibilityCondition;
 import VASSAL.tools.FormattedString;
 import VASSAL.tools.LaunchButton;
 
+/**
+ * Adds a toolbar button that changes the value of a global property
+ * @author rkinney
+ *
+ */
 public class ChangePropertyButton extends AbstractConfigurable {
   public static final String BUTTON_TEXT = "text";
   public static final String BUTTON_ICON = "icon";
@@ -36,7 +41,7 @@ public class ChangePropertyButton extends AbstractConfigurable {
   private String promptText;
   private FormattedString report = new FormattedString();
   private String value;
-  private GlobalProperty property;
+  protected GlobalProperty property;
 
   public ChangePropertyButton() {
     launch = new LaunchButton("Change", BUTTON_TEXT, HOTKEY, BUTTON_ICON, new ActionListener() {
@@ -147,6 +152,10 @@ public class ChangePropertyButton extends AbstractConfigurable {
   public void addTo(Buildable parent) {
     property = (GlobalProperty) parent;
     property.getToolBar().add(launch);
+  }
+  
+  public static String getConfigureTypeName() {
+    return "Change-property Toolbar Button";
   }
 
 }

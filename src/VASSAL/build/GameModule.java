@@ -23,12 +23,13 @@ import java.awt.FileDialog;
 import java.awt.FlowLayout;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 import java.io.File;
 import java.io.IOException;
 import java.net.MalformedURLException;
-import java.util.ArrayList;
 import java.util.Enumeration;
-import java.util.Iterator;
+import java.util.HashMap;
 import java.util.Random;
 import java.util.Vector;
 
@@ -57,6 +58,7 @@ import VASSAL.build.module.ModuleExtension;
 import VASSAL.build.module.NotesWindow;
 import VASSAL.build.module.PieceWindow;
 import VASSAL.build.module.PlayerHand;
+import VASSAL.build.module.PlayerRoster;
 import VASSAL.build.module.PredefinedSetup;
 import VASSAL.build.module.PrivateMap;
 import VASSAL.build.module.PrototypesContainer;
@@ -65,6 +67,8 @@ import VASSAL.build.module.ServerConnection;
 import VASSAL.build.module.SpecialDiceButton;
 import VASSAL.build.module.ToolbarMenu;
 import VASSAL.build.module.documentation.HelpFile;
+import VASSAL.build.module.properties.GlobalPropertiesContainer;
+import VASSAL.build.module.properties.PropertySource;
 import VASSAL.command.Command;
 import VASSAL.command.CommandEncoder;
 import VASSAL.command.Logger;
@@ -88,7 +92,7 @@ import VASSAL.tools.ToolBarComponent;
  * It is a singleton, and contains access points for many other classes,
  * such as {@link DataArchive}, {@link ServerConnection}, {@link Logger},
  * and {@link Prefs} */
-public abstract class GameModule extends AbstractConfigurable implements CommandEncoder, ToolBarComponent {
+public abstract class GameModule extends AbstractConfigurable implements CommandEncoder, ToolBarComponent, PropertySource, GlobalPropertiesContainer {
   protected static final String DEFAULT_NAME = "Unnamed module";
   public static final String MODULE_NAME = "name";
   public static final String MODULE_VERSION = "version";
@@ -104,6 +108,7 @@ public abstract class GameModule extends AbstractConfigurable implements Command
   protected String lastSavedConfiguration;
   protected JFileChooser fileChooser;
   protected FileDialog fileDialog;
+  protected java.util.Map globalProperties = new HashMap();
 
   protected JPanel controlPanel = new JPanel();
 
@@ -123,7 +128,6 @@ public abstract class GameModule extends AbstractConfigurable implements Command
   protected Vector keyStrokeSources = new Vector();
   protected Vector keyStrokeListeners = new Vector();
   protected CommandEncoder[] commandEncoders = new CommandEncoder[0];
-  protected ArrayList propertyProducers = new ArrayList();
 
   /**
    * @return the top-level frame of the controls window
@@ -721,26 +725,29 @@ public abstract class GameModule extends AbstractConfigurable implements Command
     return Builder.toString(doc);
   }
 
+  public static final String PLAYER_SIDE = "PlayerSide";
   /**
    * Return values of Global properties
    */
   public Object getProperty(Object key) {
-    
-    Iterator i = propertyProducers.iterator();
-    while (i.hasNext()) {
-      Object val = ((PropertyProducer) i.next()).getProperty(key);
-      if (val != null) {
-        return val;
-      }
+    if (PLAYER_SIDE.equals(key)) {
+      String mySide = PlayerRoster.getMySide();
+      return mySide == null ? "" : mySide;
     }
-    return null;
+    return globalProperties.get(key);
   }
   
-  public void addPropertyProducer(PropertyProducer p) {
-    propertyProducers.add(p);
+  public PropertyChangeListener getPropertyListener() {
+    return new PropertyChangeListener() {
+      public void propertyChange(PropertyChangeEvent evt) {
+        globalProperties.put(evt.getPropertyName(),evt.getNewValue());
+        Enumeration maps = GameModule.getGameModule().getComponents(Map.class);
+        while (maps.hasMoreElements()) {
+          Map map = (Map) maps.nextElement();
+          map.repaint();
+        }
+      }
+    };
   }
-
-  public void removePropertyProducer(PropertyProducer p) {
-    propertyProducers.remove(p);
-  }
+  
 }

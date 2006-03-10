@@ -49,10 +49,13 @@ import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 import java.io.File;
 import java.net.MalformedURLException;
 import java.util.ArrayList;
 import java.util.Enumeration;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Vector;
 
@@ -108,6 +111,8 @@ import VASSAL.build.module.map.boardPicker.Board;
 import VASSAL.build.module.map.boardPicker.board.MapGrid;
 import VASSAL.build.module.map.boardPicker.board.ZonedGrid;
 import VASSAL.build.module.map.boardPicker.board.mapgrid.Zone;
+import VASSAL.build.module.properties.GlobalProperties;
+import VASSAL.build.module.properties.GlobalPropertiesContainer;
 import VASSAL.command.AddPiece;
 import VASSAL.command.Command;
 import VASSAL.command.MoveTracker;
@@ -153,7 +158,7 @@ import VASSAL.tools.UniqueIdManager;
  * <code>VASSAL.build.module.map</code> package */
 public class Map extends AbstractConfigurable implements GameComponent,
     FocusListener, MouseListener, MouseMotionListener, DropTargetListener,
-    Configurable, UniqueIdManager.Identifyable, ToolBarComponent {
+    Configurable, UniqueIdManager.Identifyable, ToolBarComponent, GlobalPropertiesContainer {
 
   private String mapID = "";
   private String mapName = "";
@@ -185,6 +190,8 @@ public class Map extends AbstractConfigurable implements GameComponent,
   private int[][] boardHeights; // Cache of board heights by row/column
 
   protected PieceCollection pieces = new DefaultPieceCollection();
+  
+  protected java.util.Map globalProperties = new HashMap();
 
   protected Highlighter highlighter = new ColoredBorder();
 
@@ -200,7 +207,6 @@ public class Map extends AbstractConfigurable implements GameComponent,
   private String changeFormat = "$" + MESSAGE + "$";
   
   protected KeyStroke moveKey;
-  protected ArrayList propertyProducers = new ArrayList();
   
   protected JPanel root;
 
@@ -423,6 +429,9 @@ public class Map extends AbstractConfigurable implements GameComponent,
       addChild(new CounterDetailViewer());
       setMapName("Main Map");
     }
+    if (!getComponents(GlobalProperties.class).hasMoreElements()) {
+      addChild(new GlobalProperties());
+    }
     setup(false);
   }
 
@@ -511,6 +520,15 @@ public class Map extends AbstractConfigurable implements GameComponent,
    */
   public JToolBar getToolBar() {
     return toolBar;
+  }
+  
+  public PropertyChangeListener getPropertyListener() {
+    return new PropertyChangeListener() {
+      public void propertyChange(PropertyChangeEvent evt) {
+        globalProperties.put(evt.getPropertyName(),evt.getNewValue());
+        repaint();
+      }
+    };
   }
 
   /**
@@ -1393,28 +1411,13 @@ public class Map extends AbstractConfigurable implements GameComponent,
   }
 
   public Object getProperty(Object key) {
-    Iterator i = propertyProducers.iterator();
-    while (i.hasNext()) {
-      Object val = ((PropertyProducer) i.next()).getProperty(key);
-      if (val != null) {
-        return val;
-      }
-    }
-    return GameModule.getGameModule().getProperty(key);
+    return globalProperties.get(key);
   }
   
   public KeyStroke getMoveKey() {
     return moveKey;
   }
   
-  public void addPropertyProducer(PropertyProducer p) {
-    propertyProducers.add(p);
-  }
-
-  public void removePropertyProducer(PropertyProducer p) {
-    propertyProducers.remove(p);
-  }
-
   /**
    * @return the top-level window containing this map
    */

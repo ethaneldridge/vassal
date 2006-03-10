@@ -18,19 +18,25 @@
  */
 package VASSAL.counters;
 
+import java.awt.Component;
+import java.awt.Graphics;
+import java.awt.Point;
+import java.awt.Rectangle;
+import java.awt.Shape;
+
+import javax.swing.KeyStroke;
+
 import VASSAL.build.module.BasicCommandEncoder;
 import VASSAL.build.module.GameState;
 import VASSAL.build.module.Map;
+import VASSAL.build.module.properties.PropertySource;
 import VASSAL.command.ChangePiece;
 import VASSAL.command.Command;
-
-import javax.swing.*;
-import java.awt.*;
 
 /**
  * Basic class for representing a physical component of the game
  */
-public interface GamePiece {
+public interface GamePiece extends PropertySource {
 
   /** Each GamePiece belongs to a single {@link Map} */
   public void setMap(Map map);

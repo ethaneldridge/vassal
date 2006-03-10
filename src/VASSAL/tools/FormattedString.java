@@ -7,9 +7,11 @@
 
 package VASSAL.tools;
 
-import VASSAL.counters.GamePiece;
-
 import java.util.HashMap;
+
+import VASSAL.build.GameModule;
+import VASSAL.build.module.properties.PropertySource;
+import VASSAL.counters.GamePiece;
 
 public class FormattedString {
 
@@ -45,9 +47,15 @@ public class FormattedString {
    * @return
    */
   public String getText() {
-    return getText(null);
+    return getText(GameModule.getGameModule());
   }
 
+  /**
+   * @deprecated use @link #getText(PropertySource)
+   */
+  public String getText(GamePiece piece) {
+    return getText((PropertySource)piece);
+  }
   /**
    * Return the resulting string after substituting properties
    * Also, if any property keys match a property in the given GamePiece,
@@ -56,7 +64,7 @@ public class FormattedString {
    * @param piece
    * @return
    */
-  public String getText(GamePiece piece) {
+  public String getText(PropertySource piece) {
     StringBuffer buffer = new StringBuffer();
     SequenceEncoder.Decoder st = new SequenceEncoder.Decoder(formatString, '$');
     boolean isProperty = true;

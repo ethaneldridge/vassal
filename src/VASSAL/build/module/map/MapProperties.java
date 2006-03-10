@@ -208,7 +208,6 @@ public class MapProperties extends AbstractConfigurable implements PropertyProdu
   public void addTo(Buildable parent) {
     map = (Map) parent;
     map.getToolBar().add(getLaunchButton());
-    map.addPropertyProducer(this);
   }
 
   public LaunchButton getLaunchButton() {

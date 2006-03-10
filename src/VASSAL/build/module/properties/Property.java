@@ -13,20 +13,10 @@ import javax.swing.JOptionPane;
 public class Property {
   private String key;
   private String value;
-  private String description;
 
-  public Property(String key, String value, String description) {
+  public Property(String key, String value) {
     this.key = key;
     this.value = value;
-    this.description = description;
-  }
-
-  public String getDescription() {
-    return description;
-  }
-
-  public void setDescription(String description) {
-    this.description = description;
   }
 
   public String getValue() {
@@ -34,10 +24,12 @@ public class Property {
   }
 
   public void setValue(String value) {
-    if (!isValidValue(value)) {
-      throw new IllegalArgumentException();
+    if (value != null) {
+      if (!isValidValue(value)) {
+        throw new IllegalArgumentException();
+      }
+      this.value = value;
     }
-    this.value = value;
   }
 
   public String getKey() {

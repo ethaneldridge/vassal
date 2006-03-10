@@ -14,8 +14,8 @@ import javax.swing.JOptionPane;
 public class EnumeratedProperty extends Property {
   private List validValues = new ArrayList();
 
-  public EnumeratedProperty(String key, String value, String description) {
-    super(key, value, description);
+  public EnumeratedProperty(String key, String value) {
+    super(key, value);
   }
 
   public List getValidValues() {

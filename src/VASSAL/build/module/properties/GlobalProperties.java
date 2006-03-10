@@ -10,6 +10,7 @@ import javax.swing.JToolBar;
 import VASSAL.build.AbstractConfigurable;
 import VASSAL.build.Buildable;
 import VASSAL.build.module.documentation.HelpFile;
+import VASSAL.configure.Configurer;
 import VASSAL.tools.ToolBarComponent;
 
 /**
@@ -34,6 +35,14 @@ public class GlobalProperties extends AbstractConfigurable implements GlobalProp
 
   public String[] getAttributeNames() {
     return new String[0];
+  }
+  
+  public Configurer getConfigurer() {
+    return null;
+  }
+  
+  public static String getConfigureTypeName() {
+    return "Global Properties";
   }
 
   public void setAttribute(String key, Object value) {

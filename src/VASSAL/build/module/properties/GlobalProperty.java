@@ -14,8 +14,13 @@ import VASSAL.command.CommandEncoder;
 import VASSAL.tools.SequenceEncoder;
 import VASSAL.tools.ToolBarComponent;
 
+/**
+ * Adds a global property to a Map or Module
+ * @author rkinney
+ *
+ */
 public class GlobalProperty extends AbstractConfigurable implements ToolBarComponent, GameComponent, CommandEncoder {
-  private PropertyChangeSupport propertyChangeSupport = new PropertyChangeSupport(this);
+  protected PropertyChangeSupport propertyChangeSupport = new PropertyChangeSupport(this);
 
   public static final String NAME = "name";
   public static final String INITIAL_VALUE = "initialValue";
@@ -23,7 +28,8 @@ public class GlobalProperty extends AbstractConfigurable implements ToolBarCompo
 
   private static final String COMMAND_PREFIX = "GlobalProperty\t";
   private ToolBarComponent toolbarComponent;
-  private Property property = new Property(null, null, null);
+  protected Property property = new Property(null, null);
+  protected String description;
   private String initialValue;
 
 
@@ -52,12 +58,12 @@ public class GlobalProperty extends AbstractConfigurable implements ToolBarCompo
       setPropertyValue(initialValue);
     }
     else if (DESCRIPTION.equals(key)) {
-      property.setDescription((String) value);
+      description = (String) value;
     }
   }
 
   protected Property createProperty(String key) {
-    return new Property(key, property.getValue(), property.getDescription());
+    return new Property(key, property.getValue());
   }
 
   public String getAttributeValueString(String key) {
@@ -68,7 +74,7 @@ public class GlobalProperty extends AbstractConfigurable implements ToolBarCompo
       return initialValue;
     }
     else if (DESCRIPTION.equals(key)) {
-      return property.getDescription();
+      return description;
     }
     return null;
   }

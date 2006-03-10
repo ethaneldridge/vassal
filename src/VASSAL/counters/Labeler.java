@@ -326,6 +326,9 @@ public class Labeler extends Decorator implements EditablePiece {
   }
 
   public Rectangle boundingBox() {
+    lastCachedLabel = getLabel();
+    lbl.setText(lastCachedLabel);
+    lbl.setSize(lbl.getPreferredSize());
     Rectangle r = piece.boundingBox();
     Rectangle r2 = piece.getShape().getBounds();
     Point p2 = getLabelPosition();
