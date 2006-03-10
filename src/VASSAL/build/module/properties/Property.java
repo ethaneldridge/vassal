@@ -48,11 +48,9 @@ public class Property {
     return true;
   }
 
-  public void prompt(Container dialogParent, String promptText) {
+  public String prompt(Container dialogParent, String promptText) {
     String s = (String) JOptionPane.showInputDialog(dialogParent, promptText, null, JOptionPane.QUESTION_MESSAGE, null, null, getValue());
-    if (s != null) {
-      setValue(s);
-    }
+    return s;
   }
 
 }

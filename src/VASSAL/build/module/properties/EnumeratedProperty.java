@@ -30,12 +30,10 @@ public class EnumeratedProperty extends Property {
     return validValues.contains(value);
   }
 
-  public void prompt(Container dialogParent, String promptText) {
+  public String prompt(Container dialogParent, String promptText) {
     Object[] values = validValues.toArray();
     String s = (String) JOptionPane.showInputDialog(dialogParent, promptText, null, JOptionPane.QUESTION_MESSAGE, null,values,getValue());
-    if (s != null) {
-      setValue(s);
-    }
+    return s;
   }
   
   

@@ -97,14 +97,12 @@ public class NumericProperty extends Property {
     }
   }
 
-  public void prompt(Container dialogParent, String promptText) {
+  public String prompt(Container dialogParent, String promptText) {
     String s = null;
     do {
       s = (String) JOptionPane.showInputDialog(dialogParent, promptText, null, JOptionPane.QUESTION_MESSAGE, null, null, getValue());
     } while (s != null && !isValidValue(s));
-    if (s != null) {
-      setValue(s);
-    }
+    return s;
   }
 
 }

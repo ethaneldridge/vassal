@@ -9,6 +9,8 @@ import javax.swing.KeyStroke;
 import VASSAL.build.AbstractConfigurable;
 import VASSAL.build.AutoConfigurable;
 import VASSAL.build.Buildable;
+import VASSAL.build.GameModule;
+import VASSAL.build.module.Chatter;
 import VASSAL.build.module.documentation.HelpFile;
 import VASSAL.configure.Configurer;
 import VASSAL.configure.ConfigurerFactory;
@@ -45,16 +47,16 @@ public class ChangePropertyButton extends AbstractConfigurable {
   }
 
   public void launch() {
-    String oldValue = (String) property.getProperty().getValue();
+    String oldValue = (String) property.getPropertyValue();
+    String newValue = value;
     if (prompt) {
-      property.getProperty().prompt(property.getToolbarComponent().getToolBar().getTopLevelAncestor(),promptText);
+      newValue = property.prompt(promptText);
     }
-    else {
-      property.getProperty().setValue(value);
-    }
+    property.setPropertyValue(newValue);
     if (report.getFormat().length() > 0) {
       report.setProperty(OLD_VALUE_FORMAT,oldValue);
-      report.setProperty(NEW_VALUE_FORMAT,property.getProperty().getValue());
+      report.setProperty(NEW_VALUE_FORMAT,property.getPropertyValue());
+      GameModule.getGameModule().sendAndLog(new Chatter.DisplayText(GameModule.getGameModule().getChatter(),report.getText()));
     }
   }
 
@@ -131,7 +133,7 @@ public class ChangePropertyButton extends AbstractConfigurable {
   }
 
   public void removeFrom(Buildable parent) {
-    property.getToolbarComponent().getToolBar().remove(launch);
+    property.getToolBar().remove(launch);
   }
 
   public HelpFile getHelpFile() {
@@ -144,7 +146,7 @@ public class ChangePropertyButton extends AbstractConfigurable {
 
   public void addTo(Buildable parent) {
     property = (GlobalProperty) parent;
-    property.getToolbarComponent().getToolBar().add(launch);
+    property.getToolBar().add(launch);
   }
 
 }
