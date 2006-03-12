@@ -61,7 +61,7 @@ public class GlobalProperties extends AbstractConfigurable implements GlobalProp
   }
 
   public Class[] getAllowableConfigureComponents() {
-    return new Class[] {GlobalProperty.class, GlobalNumericProperty.class, GlobalEnumeratedProperty.class};
+    return new Class[] {GlobalProperty.class};
   }
 
   public void addTo(Buildable parent) {

@@ -11,6 +11,7 @@ import VASSAL.build.module.GameComponent;
 import VASSAL.build.module.documentation.HelpFile;
 import VASSAL.command.Command;
 import VASSAL.command.CommandEncoder;
+import VASSAL.configure.VisibilityCondition;
 import VASSAL.tools.SequenceEncoder;
 import VASSAL.tools.ToolBarComponent;
 
@@ -25,33 +26,50 @@ public class GlobalProperty extends AbstractConfigurable implements ToolBarCompo
   public static final String NAME = "name";
   public static final String INITIAL_VALUE = "initialValue";
   public static final String DESCRIPTION = "description";
+  public static final String NUMERIC = "isNumeric";
+  public static final String MIN_VALUE = "min";
+  public static final String MAX_VALUE = "max";
+  public static final String WRAP = "wrap";
+  
 
-  private static final String COMMAND_PREFIX = "GlobalProperty\t";
-  private ToolBarComponent toolbarComponent;
-  protected Property property = new Property(null, null);
+  protected static final String COMMAND_PREFIX = "GlobalProperty\t";
+  protected ToolBarComponent toolbarComponent;
+  protected String propertyValue;
   protected String description;
-  private String initialValue;
+  protected String initialValue;
+  protected boolean numeric;
+  protected int minValue=0;
+  protected int maxValue=100;
+  protected boolean wrap;
+  protected VisibilityCondition numericVisibility;
+  
 
+  public GlobalProperty() {
+    numericVisibility = new VisibilityCondition() {
+      public boolean shouldBeVisible() {
+        return isNumeric();
+      }
+    };
+  }
 
   public String[] getAttributeDescriptions() {
-    return new String[] {"Name", "Initial value", "Description"};
+    return new String[] {"Name", "Initial value", "Description","Is Numeric","Minimum value","Maximum value","Wrap around"};
   }
 
   public Class[] getAttributeTypes() {
-    return new Class[] {String.class, String.class, String.class};
+    return new Class[] {String.class, String.class, String.class, Boolean.class, Integer.class,Integer.class, Boolean.class};
   }
 
   public String[] getAttributeNames() {
-    return new String[] {NAME, INITIAL_VALUE, DESCRIPTION};
+    return new String[] {NAME, INITIAL_VALUE, DESCRIPTION,NUMERIC,MIN_VALUE,MAX_VALUE,WRAP};
   }
 
   public void setAttribute(String key, Object value) {
     if (NAME.equals(key)) {
       String oldName = getConfigureName();
-      propertyChangeSupport.firePropertyChange(oldName,property.getValue(),null); // Clear the value under the old key
+      propertyChangeSupport.firePropertyChange(oldName,propertyValue,null); // Clear the value under the old key
       setConfigureName((String) value);
-      property = createProperty((String)value);
-      propertyChangeSupport.firePropertyChange(getConfigureName(),null,property.getValue());
+      propertyChangeSupport.firePropertyChange(getConfigureName(),null,propertyValue);
     }
     else if (INITIAL_VALUE.equals(key)) {
       initialValue = (String) value;
@@ -60,10 +78,24 @@ public class GlobalProperty extends AbstractConfigurable implements ToolBarCompo
     else if (DESCRIPTION.equals(key)) {
       description = (String) value;
     }
-  }
-
-  protected Property createProperty(String key) {
-    return new Property(key, property.getValue());
+    else if (NUMERIC.equals(key)) {
+      numeric = Boolean.TRUE.equals(value) || "true".equals(value);
+    }
+    else if (MIN_VALUE.equals(key)) {
+      if (value instanceof String) {
+        value = new Integer((String)value);
+      }
+      minValue = ((Integer)value).intValue();
+    }
+    else if (MAX_VALUE.equals(key)) {
+      if (value instanceof String) {
+        value = new Integer((String)value);
+      }
+      maxValue = ((Integer)value).intValue();
+    }
+    else if (WRAP.equals(key)) {
+      wrap = Boolean.TRUE.equals(value) || "true".equals(value);
+    }
   }
 
   public String getAttributeValueString(String key) {
@@ -76,7 +108,28 @@ public class GlobalProperty extends AbstractConfigurable implements ToolBarCompo
     else if (DESCRIPTION.equals(key)) {
       return description;
     }
+    else if (NUMERIC.equals(key)) {
+      return String.valueOf(numeric);
+    }
+    else if (MIN_VALUE.equals(key)) {
+      return String.valueOf(minValue);
+    }
+    else if (MAX_VALUE.equals(key)) {
+      return String.valueOf(maxValue);
+    }
+    else if (WRAP.equals(key)) {
+      return String.valueOf(wrap);
+    }
     return null;
+  }
+  
+  public VisibilityCondition getAttributeVisibility(String name) {
+    if (MIN_VALUE.equals(name) || MAX_VALUE.equals(name) || WRAP.equals(name)) {
+      return numericVisibility;
+    }
+    else {
+      return super.getAttributeVisibility(name);
+    }
   }
 
   public void removeFrom(Buildable parent) {
@@ -96,24 +149,20 @@ public class GlobalProperty extends AbstractConfigurable implements ToolBarCompo
   public void addTo(Buildable parent) {
     // Initialize property with current values
     propertyChangeSupport.addPropertyChangeListener(((GlobalPropertiesContainer)parent).getPropertyListener());
-    propertyChangeSupport.firePropertyChange(property.getKey(),null,property.getValue());
+    propertyChangeSupport.firePropertyChange(getConfigureName(),null,propertyValue);
     toolbarComponent = (ToolBarComponent)parent;
     GameModule.getGameModule().addCommandEncoder(this);
     GameModule.getGameModule().getGameState().addGameComponent(this);
   }
   
   public String getPropertyValue() {
-    return property.getValue();
+    return propertyValue;
   }
   
   public void setPropertyValue(String value) {
-    String oldValue = property.getValue();
-    property.setValue(value);
-    propertyChangeSupport.firePropertyChange(property.getKey(),oldValue,property.getValue());
-  }
-
-  public String prompt(String promptText) {
-    return property.prompt(getToolBar().getTopLevelAncestor(),promptText);
+    String oldValue = propertyValue;
+    propertyValue = value;
+    propertyChangeSupport.firePropertyChange(getConfigureName(),oldValue,propertyValue);
   }
 
   public JToolBar getToolBar() {
@@ -183,6 +232,21 @@ public class GlobalProperty extends AbstractConfigurable implements ToolBarCompo
     protected Command myUndoCommand() {
       return new SetGlobalProperty(target, newValue, oldValue);
     }
+  }
+  public int getMaxValue() {
+    return maxValue;
+  }
+
+  public int getMinValue() {
+    return minValue;
+  }
+
+  public boolean isNumeric() {
+    return numeric;
+  }
+
+  public boolean isWrap() {
+    return wrap;
   }
 
 
