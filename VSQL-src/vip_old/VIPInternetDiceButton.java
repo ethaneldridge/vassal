@@ -47,10 +47,10 @@ public class VIPInternetDiceButton extends InternetDiceButton {
   
   protected void initDieManager() {
     super.initDieManager();
-    dieManager.addDieServer(new VIPDieServer());
+ //   dieManager.addDieServer(new VIPDieServer());
     
-    final StringConfigurer mailServer = new StringConfigurer(DieManager.MAIL_SERVER, "Outgoing Mail Server");
-    GameModule.getGameModule().getPrefs().addOption(DieManager.DIE_MANAGER, mailServer);
+ //   final StringConfigurer mailServer = new StringConfigurer(DieManager.MAIL_SERVER, "Outgoing Mail Server");
+ //   GameModule.getGameModule().getPrefs().addOption(DieManager.DIE_MANAGER, mailServer);
   }
   
   protected class VIPDieServer extends DieServer {
