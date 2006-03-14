@@ -206,7 +206,7 @@ public class AutoConfigurer extends Configurer
     for (Enumeration e = configurers.elements();
          e.hasMoreElements();) {
       Configurer c = (Configurer) e.nextElement();
-      if (c.getKey().equals(attribute)) {
+      if (attribute.equals(c.getKey())) {
         return c;
       }
     }

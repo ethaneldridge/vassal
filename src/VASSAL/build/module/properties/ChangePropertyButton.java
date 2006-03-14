@@ -17,9 +17,6 @@ import VASSAL.command.Command;
 import VASSAL.configure.Configurer;
 import VASSAL.configure.ConfigurerFactory;
 import VASSAL.configure.PlayerIdFormattedStringConfigurer;
-import VASSAL.configure.StringArrayConfigurer;
-import VASSAL.configure.StringEnum;
-import VASSAL.configure.VisibilityCondition;
 import VASSAL.tools.FormattedString;
 import VASSAL.tools.LaunchButton;
 
@@ -29,34 +26,21 @@ import VASSAL.tools.LaunchButton;
  * @author rkinney
  * 
  */
-public class ChangePropertyButton extends AbstractConfigurable implements PropertyPrompt.DialogParent {
+public class ChangePropertyButton extends AbstractConfigurable implements PropertyChangerConfigurer.Constraints {
   public static final String BUTTON_TEXT = "text";
   public static final String BUTTON_ICON = "icon";
   public static final String HOTKEY = "hotkey";
-  public static final String PROMPT = "prompt";
-  public static final String PROMPT_TEXT = "promptText";
-  public static final String NEW_VALUE = "value";
+  public static final String PROPERTY_CHANGER = "propChanger";
 
   public static final String REPORT_FORMAT = "reportFormat";
   public static final String OLD_VALUE_FORMAT = "oldValue";
   public static final String NEW_VALUE_FORMAT = "newValue";
   public static final String DESCRIPTION_FORMAT = "description";
-  public static final String TYPE = "restriction";
-  public static final String VALID_VALUES = "validValues";
-
-  protected static final String PLAIN_TYPE = "Set value directly";
-  protected static final String INCREMENT_TYPE = "Increment numeric value";
-  protected static final String PROMPT_TYPE = "Prompt user";
-  protected static final String SELECT_TYPE = "Prompert user to select from list";
 
   protected LaunchButton launch;
-  protected PropertyChanger propChanger;
-  protected String promptText;
-  protected String type;
-  protected String[] validValues;
   protected FormattedString report = new FormattedString();
-  protected String value;
   protected GlobalProperty property;
+  protected PropertyChangerConfigurer propChangeConfig = new PropertyChangerConfigurer(null,null,this);
 
   public ChangePropertyButton() {
     launch = new LaunchButton("Change", BUTTON_TEXT, HOTKEY, BUTTON_ICON, new ActionListener() {
@@ -87,83 +71,44 @@ public class ChangePropertyButton extends AbstractConfigurable implements Proper
   }
 
   public PropertyChanger getPropertyChanger() {
-    if (propChanger == null) {
-      PropertyChanger pc = null;
-      if (PLAIN_TYPE.equals(type)) {
-        pc = new PropertyChanger(value);
-      }
-      else if (PROMPT_TYPE.equals(type)) {
-        if (property.isNumeric()) {
-          pc = new NumericPropertyPrompt(this, promptText, property.getMinValue(), property.getMaxValue());
-        }
-        else {
-          pc = new PropertyPrompt(this, promptText);
-        }
-      }
-      else if (INCREMENT_TYPE.equals(type)) {
-        try {
-          int value = Integer.parseInt(this.value);
-          pc = new IncrementProperty(value, property.getMinValue(), property.getMaxValue(), property.isWrap());
-        }
-        catch (NumberFormatException e) {
-          pc = new PropertyChanger(value);
-        }
-      }
-      propChanger = pc;
-    }
-    return propChanger;
+    return propChangeConfig.getPropertyChanger();
   }
 
   public String[] getAttributeDescriptions() {
-    return new String[] {"Button text", "Button icon", "Hotkey", "Report format", "Prompt text", "Restrictions", "Value", "Valid values"};
+    return new String[] {"Button text", "Button icon", "Hotkey", "Report format", "Options"};
   }
 
   public Class[] getAttributeTypes() {
-    return new Class[] {String.class, Icon.class, KeyStroke.class, ReportFormatConfig.class, String.class, Restrictions.class, String.class, String[].class};
+    return new Class[] {String.class, Icon.class, KeyStroke.class, ReportFormatConfig.class, PropChangerOptions.class};
   }
 
   public String[] getAttributeNames() {
-    return new String[] {BUTTON_TEXT, BUTTON_ICON, HOTKEY, REPORT_FORMAT, PROMPT_TEXT, TYPE, NEW_VALUE, VALID_VALUES};
+    return new String[] {BUTTON_TEXT, BUTTON_ICON, HOTKEY, REPORT_FORMAT, PROPERTY_CHANGER};
   }
 
   public static class ReportFormatConfig implements ConfigurerFactory {
     public Configurer getConfigurer(AutoConfigurable c, String key, String name) {
-      return new PlayerIdFormattedStringConfigurer(key, name, new String[] {OLD_VALUE_FORMAT, NEW_VALUE_FORMAT});
+      return new PlayerIdFormattedStringConfigurer(key, name, new String[] {OLD_VALUE_FORMAT, NEW_VALUE_FORMAT, DESCRIPTION_FORMAT});
     }
   }
 
-  public static class Restrictions extends StringEnum {
-    public String[] getValidValues(AutoConfigurable target) {
-      if (((ChangePropertyButton) target).property.isNumeric()) {
-        return new String[] {PLAIN_TYPE, INCREMENT_TYPE, PROMPT_TYPE, SELECT_TYPE};
-      }
-      else {
-        return new String[] {PLAIN_TYPE, PROMPT_TYPE, SELECT_TYPE};
-      }
+  public static class PropChangerOptions implements ConfigurerFactory {
+    public Configurer getConfigurer(AutoConfigurable c, String key, String name) {
+      return ((ChangePropertyButton)c).propChangeConfig;
     }
   }
 
   public void setAttribute(String key, Object value) {
-    if (PROMPT_TEXT.equals(key)) {
-      promptText = (String) value;
-    }
-    else if (NEW_VALUE.equals(key)) {
-      this.value = (String) value;
-      propChanger = null;
+    if (PROPERTY_CHANGER.equals(key)) {
+      if (value instanceof String) {
+        propChangeConfig.setValue((String)value);
+      }
+      else {
+        propChangeConfig.setValue(value);
+      }
     }
     else if (REPORT_FORMAT.equals(key)) {
       report.setFormat((String) value);
-    }
-    else if (TYPE.equals(key)) {
-      type = (String) value;
-      propChanger = null;
-    }
-    else if (VALID_VALUES.equals(key)) {
-      if (value instanceof String) {
-        value = StringArrayConfigurer.stringToArray((String) value);
-      }
-      validValues = (String[]) value;
-      propChanger = null;
     }
     else {
       launch.setAttribute(key, value);
@@ -171,42 +116,15 @@ public class ChangePropertyButton extends AbstractConfigurable implements Proper
   }
 
   public String getAttributeValueString(String key) {
-    if (PROMPT_TEXT.equals(key)) {
-      return promptText;
-    }
-    else if (NEW_VALUE.equals(key)) {
-      return this.value;
+    if (PROPERTY_CHANGER.equals(key)) {
+      return propChangeConfig.getValueString();
     }
     else if (REPORT_FORMAT.equals(key)) {
       return report.getFormat();
     }
-    else if (TYPE.equals(key)) {
-      return type;
-    }
-    else if (VALID_VALUES.equals(key)) {
-      return StringArrayConfigurer.arrayToString(validValues);
-    }
     else {
       return launch.getAttributeValueString(key);
     }
-  }
-
-  public VisibilityCondition getAttributeVisibility(String name) {
-    if (NEW_VALUE.equals(name)) {
-      return new VisibilityCondition() {
-        public boolean shouldBeVisible() {
-          return PLAIN_TYPE.equals(type) || INCREMENT_TYPE.equals(type);
-        }
-      };
-    }
-    if (PROMPT_TEXT.equals(name)) {
-      return new VisibilityCondition() {
-        public boolean shouldBeVisible() {
-          return PROMPT_TYPE.equals(type);
-        }
-      };
-    }
-    return null;
   }
 
   public void removeFrom(Buildable parent) {
@@ -231,7 +149,25 @@ public class ChangePropertyButton extends AbstractConfigurable implements Proper
   }
 
   public Component getComponent() {
-    return launch;
+    return launch.getTopLevelAncestor();
   }
+
+  public int getMaxValue() {
+    return property.getMaxValue();
+  }
+
+  public int getMinValue() {
+    return property.getMaxValue();
+  }
+
+  public boolean isNumeric() {
+    return property.isNumeric();
+  }
+
+  public boolean isWrap() {
+    return property.isWrap();
+  }
+  
+  
 
 }

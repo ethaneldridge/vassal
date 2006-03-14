@@ -95,20 +95,22 @@ public class LaunchButton extends JButton {
   }
 
   public void setAttribute(String key, Object value) {
-    if (key.equals(nameAtt)) {
-      setText((String) value);
-    }
-    else if (key.equals(keyAtt)) {
-      if (value instanceof String) {
-        value = HotKeyConfigurer.decode((String) value);
+    if (key != null) {
+      if (key.equals(nameAtt)) {
+        setText((String) value);
       }
-      keyListener.setKeyStroke((KeyStroke) value);
-      setToolTipText(toolTipText);
-    }
-    else if (key.equals(iconAtt)) {
-      if (value instanceof String) {
-        iconConfig.setValue((String)value);
-        setIcon(iconConfig.getIconValue());
+      else if (key.equals(keyAtt)) {
+        if (value instanceof String) {
+          value = HotKeyConfigurer.decode((String) value);
+        }
+        keyListener.setKeyStroke((KeyStroke) value);
+        setToolTipText(toolTipText);
+      }
+      else if (key.equals(iconAtt)) {
+        if (value instanceof String) {
+          iconConfig.setValue((String) value);
+          setIcon(iconConfig.getIconValue());
+        }
       }
     }
   }
