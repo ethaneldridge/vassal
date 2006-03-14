@@ -27,4 +27,8 @@ public class PropertyPrompt extends PropertyChanger {
     Component getComponent();
   }
 
+  public String getPrompt() {
+    return promptText;
+  }
+
 }

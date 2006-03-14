@@ -18,6 +18,10 @@ public class EnumeratedPropertyPrompt extends PropertyPrompt {
   public String getNewValue(String oldValue) {
     return (String) JOptionPane.showInputDialog(dialogParent.getComponent(), promptText, null, JOptionPane.QUESTION_MESSAGE, null,validValues,oldValue);
   }
+
+  public String[] getValidValues() {
+    return validValues;
+  }
   
   
   

@@ -2,8 +2,9 @@ package VASSAL.build.module.properties;
 
 /**
  * Increments a property by a given value
+ * 
  * @author rkinney
- *
+ * 
  */
 public class IncrementProperty extends PropertyChanger {
   private int incr;
@@ -18,8 +19,7 @@ public class IncrementProperty extends PropertyChanger {
     this.max = max;
     this.wrap = wrap;
   }
-  
-  
+
   public String getNewValue(String oldValue) {
     try {
       int value = Integer.parseInt(oldValue);
@@ -43,8 +43,8 @@ public class IncrementProperty extends PropertyChanger {
     }
   }
 
-
-  public void increment(int incr) {
+  public int getIncrement() {
+    return incr;
   }
 
 }

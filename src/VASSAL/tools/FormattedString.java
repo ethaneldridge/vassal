@@ -50,9 +50,6 @@ public class FormattedString {
     return getText(GameModule.getGameModule());
   }
 
-  /**
-   * @deprecated use @link #getText(PropertySource)
-   */
   public String getText(GamePiece piece) {
     return getText((PropertySource)piece);
   }

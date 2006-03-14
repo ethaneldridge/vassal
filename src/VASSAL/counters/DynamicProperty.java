@@ -2,6 +2,8 @@ package VASSAL.counters;
 
 import java.awt.Component;
 import java.awt.Shape;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 import java.io.File;
 import java.net.MalformedURLException;
 import java.util.ArrayList;
@@ -9,27 +11,38 @@ import java.util.ArrayList;
 import javax.swing.Box;
 import javax.swing.KeyStroke;
 
+import VASSAL.build.AutoConfigurable;
+import VASSAL.build.GameModule;
+import VASSAL.build.module.Map;
 import VASSAL.build.module.documentation.HelpFile;
-import VASSAL.build.module.map.CompoundPieceCollection;
-import VASSAL.build.module.map.PieceCollection;
+import VASSAL.build.module.properties.EnumeratedPropertyPrompt;
+import VASSAL.build.module.properties.IncrementProperty;
+import VASSAL.build.module.properties.NumericPropertyPrompt;
 import VASSAL.build.module.properties.PropertyChanger;
+import VASSAL.build.module.properties.PropertyPrompt;
 import VASSAL.command.ChangeTracker;
 import VASSAL.command.Command;
 import VASSAL.configure.AutoConfigurer;
+import VASSAL.configure.Configurer;
+import VASSAL.configure.HotKeyConfigurer;
+import VASSAL.configure.StringConfigurer;
+import VASSAL.configure.StringEnumConfigurer;
 import VASSAL.tools.SequenceEncoder;
 
-public class DynamicProperty extends Decorator {
+public class DynamicProperty extends Decorator implements PropertyPrompt.DialogParent {
 
   public static final String ID = "PROP;";
 
-  protected String reportFormat;
-
   protected String value;
 
-  private String key;
-  
+  protected String key;
+  protected boolean numeric;
+  protected int minValue;
+  protected int maxValue;
+  protected boolean wrap;
+
   private DynamicKeyCommand[] keyCommands;
-  
+
   public DynamicProperty() {
     this(ID, null);
   }
@@ -41,33 +54,44 @@ public class DynamicProperty extends Decorator {
 
   public void mySetType(String s) {
     SequenceEncoder.Decoder sd = new SequenceEncoder.Decoder(s, ';');
-    sd.nextToken(); //Skip over command prefix
+    sd.nextToken(); // Skip over command prefix
+    decodeConstraints(sd.nextToken(""));
     keyCommands = decodeKeyCommands(sd.nextToken(""));
-    reportFormat = sd.nextToken("");
+  }
+
+  protected void decodeConstraints(String s) {
+    SequenceEncoder.Decoder sd = new SequenceEncoder.Decoder(s, ',');
+    numeric = sd.nextBoolean(false);
+    minValue = sd.nextInt(0);
+    maxValue = sd.nextInt(100);
+    wrap = sd.nextBoolean(false);
+  }
+
+  protected String encodeConstraints() {
+    return new SequenceEncoder(',').append(numeric).append(minValue).append(maxValue).append(wrap).getValue();
   }
 
   protected DynamicKeyCommand[] decodeKeyCommands(String s) {
-  ArrayList a = new ArrayList();
-  SequenceEncoder.Decoder sd = new SequenceEncoder.Decoder(s, ',');
-  while (sd.hasMoreTokens()) {
-    a.add(DynamicKeyCommand.decode(sd.nextToken("")));
+    ArrayList a = new ArrayList();
+    SequenceEncoder.Decoder sd = new SequenceEncoder.Decoder(s, ',');
+    while (sd.hasMoreTokens()) {
+      a.add(DynamicKeyCommand.decode(sd.nextToken(""), this));
+    }
+    return (DynamicKeyCommand[]) a.toArray(new DynamicKeyCommand[a.size()]);
   }
-  return (DynamicKeyCommand[]) a.toArray(new DynamicKeyCommand[a.size()]);
-  }
-  
+
   protected String encodeKeyCommands(DynamicKeyCommand[] commands) {
     SequenceEncoder se = new SequenceEncoder(',');
     for (int i = 0; i < commands.length; i++) {
-      se.append(commands[i].getValueString());
+      se.append(commands[i].encode());
     }
     return se.getValue();
   }
 
-
   protected PropertyChanger decodeProperty(String string) {
     return null;
   }
-  
+
   protected String encodeProperty(PropertyChanger p) {
     return null;
   }
@@ -106,6 +130,10 @@ public class DynamicProperty extends Decorator {
     return getValue();
   }
 
+  public Component getComponent() {
+    return getMap() != null ? getMap().getView().getTopLevelAncestor() : GameModule.getGameModule().getFrame();
+  }
+
   public void mySetState(String state) {
     setValue(state);
   }
@@ -113,56 +141,47 @@ public class DynamicProperty extends Decorator {
   public String getKey() {
     return key;
   }
-  
+
   public String getValue() {
     return value;
   }
-  
+
   public void setValue(String value) {
-    saveCurrentLayer();
+    Stack parent = getParent();
+    Map map = getMap();
     this.value = value;
-    checkForLayerChange();
+    // If the property has changed the layer to which this piece belongs,
+    // re-insert it into the map
+    if (map != null) {
+      GamePiece outer = Decorator.getOutermost(this);
+      if (parent == null || !map.getPieceCollection().canMerge(parent, outer)) {
+        map.placeOrMerge(outer, getPosition());
+      }
+    }
   }
-  
+
   public String myGetType() {
     SequenceEncoder se = new SequenceEncoder(';');
     se.append(key);
+    se.append(encodeConstraints());
     se.append(encodeKeyCommands(keyCommands));
-    return ID+se.getValue();
+    return ID + se.getValue();
   }
 
   protected KeyCommand[] myGetKeyCommands() {
-    KeyCommand[] keys = new KeyCommand[keyCommands.length];
-    for (int i = 0; i < keyCommands.length; i++) {
-      DynamicKeyCommand command = keyCommands[i];
-      keys[i] = new KeyCommand(command.getCommand(), command.getKey(), Decorator.getOutermost(this));
-    }
-    return keys;
+    return keyCommands;
   }
 
   public Command myKeyEvent(KeyStroke stroke) {
-    saveCurrentLayer();
     ChangeTracker tracker = new ChangeTracker(this);
     for (int i = 0; i < keyCommands.length; i++) {
-      DynamicKeyCommand keyCommand = keyCommands[i];
-      if (keyCommand.getKey().equals(stroke)) {
-        apply(keyCommand);
+      if (keyCommands[i].matches(stroke)) {
+        setValue(keyCommands[i].propChanger.getNewValue(value));
       }
     }
     Command comm = tracker.getChangeCommand();
-    checkForLayerChange();
     return comm;
   }
-  
-  /**
-   * Apply a Dynamic Key Command to this Property
-   * 
-   * @param command
-   */
-  protected void apply(DynamicKeyCommand command) {
-    return;
-  }
-
 
   public String getDescription() {
     String s = "Dynamic Property";
@@ -170,37 +189,6 @@ public class DynamicProperty extends Decorator {
       s += " - " + getKey();
     }
     return s;
-  }
-
-  /*
-   * Changing the value of a DynamicProperty attached to a counter
-   * may cause the piece to change layers.
-   */
-  protected int initialLayer;
-  
-  protected void checkForLayerChange() {
-    if (getLayer() != initialLayer) {
-      if (getMap() != null) {
-        /*
-         * Re-stack piece if necessary!!!
-         */
-      }
-    }
-  }
-
-  protected void saveCurrentLayer() {
-    initialLayer = getLayer(); 
-  }
-  
-  protected int getLayer() {
-    int layer = 0;
-    if (getMap() != null) {
-      PieceCollection pc = getMap().getPieceCollection();
-      if (pc instanceof CompoundPieceCollection) {
-        layer = ((CompoundPieceCollection) pc).getLayerForPiece(Decorator.getOutermost(this));
-      }
-    }
-    return layer;
   }
 
   public VASSAL.build.module.documentation.HelpFile getHelpFile() {
@@ -214,110 +202,191 @@ public class DynamicProperty extends Decorator {
     }
   }
 
+  public int getMaxValue() {
+    return maxValue;
+  }
+
+  public int getMinValue() {
+    return minValue;
+  }
+
+  public boolean isNumeric() {
+    return numeric;
+  }
+
+  public boolean isWrap() {
+    return wrap;
+  }
+
   public PieceEditor getEditor() {
     return new Ed(this);
   }
 
   protected static class Ed implements PieceEditor {
 
-    VASSAL.build.module.map.DynamicProperty edit;
-    
     public Ed(DynamicProperty m) {
-      edit = new VASSAL.build.module.map.DynamicProperty(m.myGetType());
-      edit.setValue(m.getValue());
     }
-    
+
     public Component getControls() {
-      return new AutoConfigurer(edit).getControls();
+      throw new RuntimeException("not implemented");
     }
 
     public String getType() {
-      return edit.getType();
+      throw new RuntimeException("not implemented");
     }
 
     public String getState() {
-      return edit.getValue();
+      throw new RuntimeException("not implemented");
+    }
+
+  }
+
+  /**
+   * DynamicKeyCommand A class that represents an action to be performed on a
+   * Dynamic property
+   */
+  protected static class DynamicKeyCommand extends KeyCommand {
+    protected PropertyChanger propChanger = null;
+
+    public DynamicKeyCommand(String name, KeyStroke key, GamePiece target, PropertyChanger propChanger) {
+      super(name, key, target);
+      this.propChanger = propChanger;
+    }
+
+    protected static DynamicKeyCommand decode(String s, DynamicProperty target) {
+      SequenceEncoder.Decoder sd = new SequenceEncoder.Decoder(s, ',');
+      String name = sd.nextToken("Command");
+      KeyStroke stroke = sd.nextKeyStroke('C');
+      PropertyChanger p = null;
+      switch (sd.nextChar('P')) {
+      case 'R':
+        p = target.isNumeric() ? new NumericPropertyPrompt(target, sd.nextToken("Enter new value"), target.getMinValue(), target.getMaxValue())
+            : new PropertyPrompt(target, sd.nextToken("Enter new value"));
+        break;
+      case 'I':
+        p = new IncrementProperty(sd.nextInt(1), target.getMinValue(), target.getMaxValue(), target.isWrap());
+        break;
+      case 'E':
+        p = new EnumeratedPropertyPrompt(target,sd.nextToken("Select new value"),sd.nextStringArray(0));
+        break;
+      case 'P':
+      default:
+        p = new PropertyChanger(sd.nextToken("new value"));
+      }
+      return new DynamicKeyCommand(name, stroke, Decorator.getOutermost(target), p);
+    }
+
+    protected String encode() {
+      SequenceEncoder se = new SequenceEncoder(',');
+      se.append(getName()).append(getKeyStroke());
+      if (propChanger instanceof EnumeratedPropertyPrompt) {
+        se.append('E').append(((PropertyPrompt) propChanger).getPrompt()).append(((EnumeratedPropertyPrompt)propChanger).getValidValues());
+      }
+      else if (propChanger instanceof PropertyPrompt) {
+        se.append('R').append(((PropertyPrompt) propChanger).getPrompt());
+      }
+      else if (propChanger instanceof IncrementProperty) {
+        se.append('I').append(((IncrementProperty) propChanger).getIncrement());
+      }
+      else {
+        se.append('P').append(propChanger.getNewValue(null));
+      }
+      return se.getValue();
     }
 
   }
   
   /**
-   * DynamicKeyCommand A class that represents an action to be performed on a
-   * Dynamic property
+   * 
+   * Configure a single Dynamic Key Command line
    */
-  protected static class DynamicKeyCommand {
-    public static final String SET_TYPE = "Set";
-    public static final String INC_TYPE = "Increase";
-    public static final String DEC_TYPE = "Decrease";
+  protected static class DynamicKeyCommandConfigurer extends Configurer {
+    protected static final String PLAIN_TYPE = "Set value directly";
+    protected static final String INCREMENT_TYPE = "Increment numeric value";
+    protected static final String PROMPT_TYPE = "Prompt user";
+    protected static final String SELECT_TYPE = "Prompert user to select from list";
 
-    public static final String VALUE_TYPE = "Value";
-    public static final String ASK_TYPE = "Ask";
+    protected StringConfigurer commandConfig;
+    protected HotKeyConfigurer keyConfig;
+    protected StringEnumConfigurer typeConfig;
+    protected StringConfigurer valueConfig;
 
-
-    protected final char DELIM = '|';
-
-    protected String command = "";
-    protected KeyStroke key;
-    protected String type = SET_TYPE;
-    protected String valueType = VALUE_TYPE;
-    protected String value = "";
     protected Box controls = null;
+    
+    protected DynamicProperty target;
+    private static final String[] ALL_TYPES = new String[] { PLAIN_TYPE, INCREMENT_TYPE, PROMPT_TYPE, SELECT_TYPE};
+    private static final Class[] ALL_TYPE_CLASSES = new Class[]{PropertyChanger.class, IncrementProperty.class, PropertyPrompt.class, EnumeratedPropertyPrompt.class};
+    
 
-    public DynamicKeyCommand() {
-      this("Command", null, SET_TYPE, VALUE_TYPE, "");
-    }
-
-    public static DynamicKeyCommand decode(String string) {
-      // TODO Auto-generated method stub
-      return null;
-    }
-
-    public DynamicKeyCommand(String command, KeyStroke key, String type, String valueType, String value) {
-      this.command = command;
-      this.key = key;
-      this.type = type;
-      this.valueType = valueType;
-      this.value = value;
-    }
-
-    public DynamicKeyCommand(String line) {
-      SequenceEncoder.Decoder sd = new SequenceEncoder.Decoder(line, DELIM);
-      command = sd.nextToken("");
-      key = sd.nextKeyStroke('S');
-      type = sd.nextToken(SET_TYPE);
-      valueType = sd.nextToken(VALUE_TYPE);
-      value = sd.nextToken("");
+    public DynamicKeyCommandConfigurer(DynamicProperty target) {
+      super(target.getKey(), target.getName());
+      this.target = target;
     }
 
     public String getValueString() {
-      SequenceEncoder se = new SequenceEncoder(DELIM);
-      se.append(command);
-      se.append(key);
-      se.append(type);
-      se.append(valueType);
-      se.append(value);
-      return se.getValue();
+      return getKeyCommand().encode();
     }
 
-    public String getCommand() {
-      return command;
+    public DynamicKeyCommand getKeyCommand() {
+      return (DynamicKeyCommand) getValue();
     }
 
-    public KeyStroke getKey() {
-      return key;
+    public void setValue(String s) {
+      super.setValue(DynamicKeyCommand.decode(s,target));
     }
 
-    public String getCommandType() {
-      return type;
+    public Component getControls() {
+      if (controls == null) {
+        buildControls();
+      }
+      return controls;
     }
 
-    public String getValueType() {
-      return valueType;
+    protected void updateValue() {
+      setValue(new DynamicKeyCommand(commandConfig.getValueString(), (KeyStroke) keyConfig.getValue(), target, getPropertyChanger()));
+    }
+    
+    protected PropertyChanger getPropertyChanger() {
+      throw new RuntimeException("not implemented");
     }
 
-    public String getAdjustValue() {
-      return value;
+    protected void buildControls() {
+      DynamicKeyCommand dkc = getKeyCommand();
+      PropertyChangeListener pl = new PropertyChangeListener() {
+        public void propertyChange(PropertyChangeEvent e) {
+          updateValue();
+        }
+      };
+
+      controls = Box.createHorizontalBox();
+      commandConfig = new StringConfigurer(null, "Command: ", dkc.getName());
+      commandConfig.addPropertyChangeListener(pl);
+      controls.add(commandConfig.getControls());
+      keyConfig = new HotKeyConfigurer(null, " Key: ", dkc.getKeyStroke());
+      keyConfig.addPropertyChangeListener(pl);
+      controls.add(keyConfig.getControls());
+      typeConfig = new StringEnumConfigurer(null, " Type:  ", ALL_TYPES);
+      typeConfig.setValue(getType(dkc));
+      typeConfig.addPropertyChangeListener(pl);
+      controls.add(typeConfig.getControls());
+      valueConfig = new StringConfigurer(null, " Value: ", dkc.propChanger.getNewValue(null));
+      valueConfig.addPropertyChangeListener(pl);
+      controls.add(valueConfig.getControls());
     }
+    
+    protected String getType(DynamicKeyCommand c) {
+      for (int i = 0; i < ALL_TYPE_CLASSES.length; i++) {
+        if (c.getClass().equals(ALL_TYPE_CLASSES[i])) {
+          return ALL_TYPES[i];
+        }
+      }
+      return ALL_TYPES[0];
+    }
+    
+    
 
   }
+
+
+
 }

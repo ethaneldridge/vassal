@@ -40,10 +40,11 @@ public class ChangePropertyButton extends AbstractConfigurable implements Proper
   public static final String REPORT_FORMAT = "reportFormat";
   public static final String OLD_VALUE_FORMAT = "oldValue";
   public static final String NEW_VALUE_FORMAT = "newValue";
+  public static final String DESCRIPTION_FORMAT = "description";
   public static final String TYPE = "restriction";
   public static final String VALID_VALUES = "validValues";
-  
-  protected static final String PLAIN_TYPE = "plain";
+
+  protected static final String PLAIN_TYPE = "Set value directly";
   protected static final String INCREMENT_TYPE = "Increment numeric value";
   protected static final String PROMPT_TYPE = "Prompt user";
   protected static final String SELECT_TYPE = "Prompert user to select from list";
@@ -74,6 +75,7 @@ public class ChangePropertyButton extends AbstractConfigurable implements Proper
       if (report.getFormat().length() > 0) {
         report.setProperty(OLD_VALUE_FORMAT, oldValue);
         report.setProperty(NEW_VALUE_FORMAT, property.getPropertyValue());
+        report.setProperty(DESCRIPTION_FORMAT, property.getDescription());
         c.append(new Chatter.DisplayText(GameModule.getGameModule().getChatter(), report.getText()));
       }
       GameModule.getGameModule().sendAndLog(c);
@@ -81,47 +83,43 @@ public class ChangePropertyButton extends AbstractConfigurable implements Proper
   }
 
   protected String getNewValue() {
-    if (propChanger == null) {
-      propChanger = buildPropertyChanger();
-    }
-    return propChanger.getNewValue(property.getPropertyValue());
+    return getPropertyChanger().getNewValue(property.getPropertyValue());
   }
 
-  protected PropertyChanger buildPropertyChanger() {
-    PropertyChanger pc = null;
-    if (PLAIN_TYPE.equals(type)) {
-      pc = new PropertyChanger();
-      pc.setNewValue(value);
+  public PropertyChanger getPropertyChanger() {
+    if (propChanger == null) {
+      PropertyChanger pc = null;
+      if (PLAIN_TYPE.equals(type)) {
+        pc = new PropertyChanger(value);
+      }
+      else if (PROMPT_TYPE.equals(type)) {
+        if (property.isNumeric()) {
+          pc = new NumericPropertyPrompt(this, promptText, property.getMinValue(), property.getMaxValue());
+        }
+        else {
+          pc = new PropertyPrompt(this, promptText);
+        }
+      }
+      else if (INCREMENT_TYPE.equals(type)) {
+        try {
+          int value = Integer.parseInt(this.value);
+          pc = new IncrementProperty(value, property.getMinValue(), property.getMaxValue(), property.isWrap());
+        }
+        catch (NumberFormatException e) {
+          pc = new PropertyChanger(value);
+        }
+      }
+      propChanger = pc;
     }
-    else if (PROMPT_TYPE.equals(type)) {
-      if (property.isNumeric()) {
-        pc = new NumericPropertyPrompt(this,promptText, property.getMinValue(), property.getMaxValue());
-      }
-      else {
-        pc = new PropertyPrompt(this,promptText);
-      }
-    }
-    else if (INCREMENT_TYPE.equals(type)) {
-      try {
-        int value = Integer.parseInt(this.value);
-        pc = new IncrementProperty(value,property.getMinValue(), property.getMaxValue(), property.isWrap());
-      }
-      catch (NumberFormatException e) {
-        pc = new PropertyChanger();
-        pc.setNewValue(value);
-      }
-    }
-    return pc;
+    return propChanger;
   }
 
   public String[] getAttributeDescriptions() {
-    return new String[] {"Button text", "Button icon", "Hotkey", "Report format", "Prompt text", "Restrictions", "Value",
-        "Valid values"};
+    return new String[] {"Button text", "Button icon", "Hotkey", "Report format", "Prompt text", "Restrictions", "Value", "Valid values"};
   }
 
   public Class[] getAttributeTypes() {
-    return new Class[] {String.class, Icon.class, KeyStroke.class, ReportFormatConfig.class, String.class, Restrictions.class, String.class,
-        String[].class};
+    return new Class[] {String.class, Icon.class, KeyStroke.class, ReportFormatConfig.class, String.class, Restrictions.class, String.class, String[].class};
   }
 
   public String[] getAttributeNames() {
@@ -136,11 +134,11 @@ public class ChangePropertyButton extends AbstractConfigurable implements Proper
 
   public static class Restrictions extends StringEnum {
     public String[] getValidValues(AutoConfigurable target) {
-      if (((ChangePropertyButton)target).property.isNumeric()) {
-        return new String[]{PLAIN_TYPE,INCREMENT_TYPE,PROMPT_TYPE,SELECT_TYPE};
+      if (((ChangePropertyButton) target).property.isNumeric()) {
+        return new String[] {PLAIN_TYPE, INCREMENT_TYPE, PROMPT_TYPE, SELECT_TYPE};
       }
       else {
-        return new String[]{PLAIN_TYPE,PROMPT_TYPE,SELECT_TYPE};
+        return new String[] {PLAIN_TYPE, PROMPT_TYPE, SELECT_TYPE};
       }
     }
   }
@@ -157,14 +155,14 @@ public class ChangePropertyButton extends AbstractConfigurable implements Proper
       report.setFormat((String) value);
     }
     else if (TYPE.equals(key)) {
-      type = (String)value;
+      type = (String) value;
       propChanger = null;
     }
     else if (VALID_VALUES.equals(key)) {
       if (value instanceof String) {
-        value = StringArrayConfigurer.stringToArray((String)value);
+        value = StringArrayConfigurer.stringToArray((String) value);
       }
-      validValues = (String[])value;
+      validValues = (String[]) value;
       propChanger = null;
     }
     else {

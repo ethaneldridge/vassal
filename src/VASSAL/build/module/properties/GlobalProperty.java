@@ -249,5 +249,9 @@ public class GlobalProperty extends AbstractConfigurable implements ToolBarCompo
     return wrap;
   }
 
+  public String getDescription() {
+    return description;
+  }
+
 
 }
