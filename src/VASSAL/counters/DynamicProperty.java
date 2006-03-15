@@ -11,7 +11,6 @@ import java.util.ArrayList;
 import javax.swing.Box;
 import javax.swing.KeyStroke;
 
-import VASSAL.build.AutoConfigurable;
 import VASSAL.build.GameModule;
 import VASSAL.build.module.Map;
 import VASSAL.build.module.documentation.HelpFile;
@@ -20,9 +19,9 @@ import VASSAL.build.module.properties.IncrementProperty;
 import VASSAL.build.module.properties.NumericPropertyPrompt;
 import VASSAL.build.module.properties.PropertyChanger;
 import VASSAL.build.module.properties.PropertyPrompt;
+import VASSAL.build.module.properties.PropertySetter;
 import VASSAL.command.ChangeTracker;
 import VASSAL.command.Command;
-import VASSAL.configure.AutoConfigurer;
 import VASSAL.configure.Configurer;
 import VASSAL.configure.HotKeyConfigurer;
 import VASSAL.configure.StringConfigurer;
@@ -271,7 +270,7 @@ public class DynamicProperty extends Decorator implements PropertyPrompt.DialogP
         break;
       case 'P':
       default:
-        p = new PropertyChanger(sd.nextToken("new value"));
+        p = new PropertySetter(sd.nextToken("new value"));
       }
       return new DynamicKeyCommand(name, stroke, Decorator.getOutermost(target), p);
     }

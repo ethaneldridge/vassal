@@ -6,23 +6,6 @@ package VASSAL.build.module.properties;
  * @author rkinney
  * 
  */
-public class PropertyChanger {
-  private String newValue;
-
-  public PropertyChanger() {
-    this(null);
-  }
-
-  public PropertyChanger(String newValue) {
-    this.newValue = newValue;
-  }
-
-  public String getNewValue(String oldValue) {
-    return newValue;
-  }
-
-  public void setNewValue(String newValue) {
-    this.newValue = newValue;
-  }
-
+public interface PropertyChanger {
+  String getNewValue(String oldValue);
 }

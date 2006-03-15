@@ -13,6 +13,7 @@ import VASSAL.command.Command;
 import VASSAL.command.CommandEncoder;
 import VASSAL.configure.VisibilityCondition;
 import VASSAL.tools.SequenceEncoder;
+import VASSAL.tools.TemporaryToolBar;
 import VASSAL.tools.ToolBarComponent;
 
 /**
@@ -33,7 +34,7 @@ public class GlobalProperty extends AbstractConfigurable implements ToolBarCompo
   
 
   protected static final String COMMAND_PREFIX = "GlobalProperty\t";
-  protected ToolBarComponent toolbarComponent;
+  protected TemporaryToolBar tempToolbar = new TemporaryToolBar();
   protected String propertyValue;
   protected String description;
   protected String initialValue;
@@ -150,7 +151,7 @@ public class GlobalProperty extends AbstractConfigurable implements ToolBarCompo
     // Initialize property with current values
     propertyChangeSupport.addPropertyChangeListener(((GlobalPropertiesContainer)parent).getPropertyListener());
     propertyChangeSupport.firePropertyChange(getConfigureName(),null,propertyValue);
-    toolbarComponent = (ToolBarComponent)parent;
+    tempToolbar.setDelegate((ToolBarComponent)parent);
     GameModule.getGameModule().addCommandEncoder(this);
     GameModule.getGameModule().getGameState().addGameComponent(this);
   }
@@ -166,7 +167,7 @@ public class GlobalProperty extends AbstractConfigurable implements ToolBarCompo
   }
 
   public JToolBar getToolBar() {
-    return toolbarComponent.getToolBar();
+    return tempToolbar.getToolBar();
   }
   
   public void setup(boolean gameStarting) {

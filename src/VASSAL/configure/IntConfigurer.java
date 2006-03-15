@@ -45,6 +45,15 @@ public class IntConfigurer extends StringConfigurer {
       setValue(i);
     }
   }
+  
+  public int getIntValue(int defaultValue) {
+    if (getValue() instanceof Integer) {
+      return ((Integer)getValue()).intValue();
+    }
+    else {
+      return defaultValue;
+    }
+  }
 
   public void setValue(Object o) {
     if (!noUpdate && nameField != null && o != null) {

@@ -18,8 +18,15 @@
  */
 package VASSAL.configure;
 
-import javax.swing.*;
-import java.awt.event.*;
+import java.awt.Dimension;
+import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
+
+import javax.swing.BoxLayout;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.JTextField;
+import javax.swing.KeyStroke;
 
 /**
  * A Configurer for {@link KeyStroke} values
@@ -49,7 +56,6 @@ public class HotKeyConfigurer extends Configurer implements KeyListener {
   }
 
   public String getValueString() {
-//	return getString((KeyStroke)getValue());
     return encode((KeyStroke) getValue());
   }
 
@@ -62,6 +68,7 @@ public class HotKeyConfigurer extends Configurer implements KeyListener {
       p = new JPanel();
       p.setLayout(new BoxLayout(p, BoxLayout.X_AXIS));
       tf = new JTextField(8);
+      tf.setMaximumSize(new Dimension(tf.getMaximumSize().width,tf.getPreferredSize().height));
       tf.setText(keyToString());
       tf.addKeyListener(this);
       p.add(new JLabel(getName()));

@@ -9,7 +9,7 @@ import javax.swing.JOptionPane;
  * @author rkinney
  *
  */
-public class PropertyPrompt extends PropertyChanger {
+public class PropertyPrompt implements PropertyChanger {
   protected DialogParent dialogParent;
   protected String promptText;
   

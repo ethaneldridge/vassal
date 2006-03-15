@@ -6,7 +6,7 @@ package VASSAL.build.module.properties;
  * @author rkinney
  * 
  */
-public class IncrementProperty extends PropertyChanger {
+public class IncrementProperty implements PropertyChanger {
   private int incr;
   private int min;
   private int max;

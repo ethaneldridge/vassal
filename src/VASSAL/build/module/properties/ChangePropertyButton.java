@@ -60,7 +60,9 @@ public class ChangePropertyButton extends AbstractConfigurable implements Proper
         report.setProperty(OLD_VALUE_FORMAT, oldValue);
         report.setProperty(NEW_VALUE_FORMAT, property.getPropertyValue());
         report.setProperty(DESCRIPTION_FORMAT, property.getDescription());
-        c.append(new Chatter.DisplayText(GameModule.getGameModule().getChatter(), report.getText()));
+        Chatter.DisplayText chatCommand = new Chatter.DisplayText(GameModule.getGameModule().getChatter(), "* "+report.getText());
+        chatCommand.execute();
+        c.append(chatCommand);
       }
       GameModule.getGameModule().sendAndLog(c);
     }

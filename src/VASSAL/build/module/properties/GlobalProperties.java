@@ -1,6 +1,5 @@
 package VASSAL.build.module.properties;
 
-import java.awt.Component;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
@@ -11,6 +10,7 @@ import VASSAL.build.AbstractConfigurable;
 import VASSAL.build.Buildable;
 import VASSAL.build.module.documentation.HelpFile;
 import VASSAL.configure.Configurer;
+import VASSAL.tools.TemporaryToolBar;
 import VASSAL.tools.ToolBarComponent;
 
 /**
@@ -20,8 +20,7 @@ import VASSAL.tools.ToolBarComponent;
  * 
  */
 public class GlobalProperties extends AbstractConfigurable implements GlobalPropertiesContainer, ToolBarComponent {
-  private ToolBarComponent toolbarComponent;
-  private JToolBar tempToolBar = new JToolBar();
+  private TemporaryToolBar tempToolbar = new TemporaryToolBar();
   private PropertyChangeListener forwardPropertyChange;
   private PropertyChangeSupport propertyChangeSupport = new PropertyChangeSupport(this);
 
@@ -66,13 +65,7 @@ public class GlobalProperties extends AbstractConfigurable implements GlobalProp
 
   public void addTo(Buildable parent) {
     propertyChangeSupport.addPropertyChangeListener(((GlobalPropertiesContainer) parent).getPropertyListener());
-    toolbarComponent = (ToolBarComponent) parent;
-    while (tempToolBar.getComponentCount() > 0) {
-      Component c = tempToolBar.getComponent(0);
-      tempToolBar.remove(c);
-      toolbarComponent.getToolBar().add(c);
-    }
-    tempToolBar = null;
+    tempToolbar.setDelegate((ToolBarComponent) parent);
   }
 
   public PropertyChangeListener getPropertyListener() {
@@ -87,7 +80,7 @@ public class GlobalProperties extends AbstractConfigurable implements GlobalProp
   }
 
   public JToolBar getToolBar() {
-    return tempToolBar != null ? tempToolBar : toolbarComponent.getToolBar();
+    return tempToolbar.getToolBar();
   }
 
 }
