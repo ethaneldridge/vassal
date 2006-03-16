@@ -18,6 +18,9 @@
  */
 package VASSAL.configure;
 
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
+
 /**
  * A property editor class.  Wraps an Object value and provides
  * methods for saving and restoring the Object from a String.  Also
@@ -133,5 +136,9 @@ public abstract class Configurer {
    */
   public void addPropertyChangeListener(java.beans.PropertyChangeListener l) {
     changeSupport.addPropertyChangeListener(l);
+  }
+  
+  public void removePropertyChangeListener(PropertyChangeListener l) {
+    changeSupport.removePropertyChangeListener(l);
   }
 }

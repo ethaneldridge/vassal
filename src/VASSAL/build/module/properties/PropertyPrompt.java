@@ -17,7 +17,6 @@ public class PropertyPrompt implements PropertyChanger {
     return (String) JOptionPane.showInputDialog(dialogParent.getComponent(), promptText, null, JOptionPane.QUESTION_MESSAGE, null, null, oldValue);
   }
 
-
   public PropertyPrompt(DialogParent dialogParent, String prompt) {
     this.dialogParent = dialogParent;
     this.promptText = prompt;
