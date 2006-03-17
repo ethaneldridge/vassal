@@ -78,7 +78,6 @@ import VASSAL.build.AutoConfigurable;
 import VASSAL.build.Buildable;
 import VASSAL.build.Configurable;
 import VASSAL.build.GameModule;
-import VASSAL.build.PropertyProducer;
 import VASSAL.build.module.documentation.HelpFile;
 import VASSAL.build.module.map.BoardPicker;
 import VASSAL.build.module.map.CounterDetailViewer;
@@ -113,6 +112,7 @@ import VASSAL.build.module.map.boardPicker.board.ZonedGrid;
 import VASSAL.build.module.map.boardPicker.board.mapgrid.Zone;
 import VASSAL.build.module.properties.GlobalProperties;
 import VASSAL.build.module.properties.GlobalPropertiesContainer;
+import VASSAL.build.module.properties.PropertySource;
 import VASSAL.command.AddPiece;
 import VASSAL.command.Command;
 import VASSAL.command.MoveTracker;
@@ -158,7 +158,7 @@ import VASSAL.tools.UniqueIdManager;
  * <code>VASSAL.build.module.map</code> package */
 public class Map extends AbstractConfigurable implements GameComponent,
     FocusListener, MouseListener, MouseMotionListener, DropTargetListener,
-    Configurable, UniqueIdManager.Identifyable, ToolBarComponent, GlobalPropertiesContainer {
+    Configurable, UniqueIdManager.Identifyable, ToolBarComponent, GlobalPropertiesContainer, PropertySource  {
 
   private String mapID = "";
   private String mapName = "";

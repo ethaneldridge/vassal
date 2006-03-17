@@ -41,6 +41,7 @@ public class ChangePropertyButton extends AbstractConfigurable implements Proper
   protected FormattedString report = new FormattedString();
   protected GlobalProperty property;
   protected PropertyChangerConfigurer propChangeConfig = new PropertyChangerConfigurer(null,null,this);
+  protected FormattedString format = new FormattedString();
 
   public ChangePropertyButton() {
     launch = new LaunchButton("Change", BUTTON_TEXT, HOTKEY, BUTTON_ICON, new ActionListener() {
@@ -69,7 +70,10 @@ public class ChangePropertyButton extends AbstractConfigurable implements Proper
   }
 
   protected String getNewValue() {
-    return getPropertyChanger().getNewValue(property.getPropertyValue());
+    String newValue = getPropertyChanger().getNewValue(property.getPropertyValue());
+    format.setFormat(newValue);
+    newValue = format.getText(property);
+    return newValue;
   }
 
   public PropertyChanger getPropertyChanger() {
@@ -154,11 +158,11 @@ public class ChangePropertyButton extends AbstractConfigurable implements Proper
     return launch.getTopLevelAncestor();
   }
 
-  public int getMaxValue() {
+  public int getMaximumValue() {
     return property.getMaxValue();
   }
 
-  public int getMinValue() {
+  public int getMinimumValue() {
     return property.getMaxValue();
   }
 

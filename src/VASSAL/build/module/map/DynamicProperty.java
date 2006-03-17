@@ -69,9 +69,9 @@ import VASSAL.tools.SequenceEncoder;
  * 
  * Current Key Command types supported are:
  * 
- *  Set - Set to a specified value. 
- *  Increase - Increment by the specified value. 
- *  Decrease - Decrement by the specified value.
+ *  Set - Set to a specified value.
+ *  Prompt - Prompt user to enter value or select from list 
+ *  Increment - Increment by the specified value. 
  * 
  * The value to Set/Increment/Decrement can be one of: 
  *  - Fixed Value. 
@@ -88,10 +88,6 @@ import VASSAL.tools.SequenceEncoder;
  * Key Commands are exposed as right-click menu options for counter trait's, or
  * as sub-menus on a pop-up menu for launch button components.
  * 
- * ******* NOTE ********
- * If you add or remove an AbstractConfigurable attribute, you MUST also modify 
- * getType() and setType()
- * *********************
  *  
  */
 public class DynamicProperty extends AbstractConfigurable implements GameComponent, CommandEncoder, PropertyProducer,

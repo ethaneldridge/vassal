@@ -7,34 +7,30 @@ package VASSAL.build.module.properties;
  * 
  */
 public class IncrementProperty implements PropertyChanger {
-  private int incr;
-  private int min;
-  private int max;
-  private boolean wrap;
+  protected Constraints constraints;
+  protected int incr;
 
-  public IncrementProperty(int incr, int min, int max, boolean wrap) {
+  public IncrementProperty(int incr, Constraints constraints) {
     super();
+    this.constraints = constraints;
     this.incr = incr;
-    this.min = min;
-    this.max = max;
-    this.wrap = wrap;
   }
 
   public String getNewValue(String oldValue) {
     try {
       int value = Integer.parseInt(oldValue);
-      if (wrap) {
-        if (value + incr > max) {
-          value = min + (value + incr - max - 1);
+      if (constraints.isWrap()) {
+        if (value + incr > constraints.getMaximumValue()) {
+          value = constraints.getMinimumValue() + (value + incr - constraints.getMaximumValue() - 1);
         }
-        else if (value + incr < min) {
-          value = max + (value + incr - min + 1);
+        else if (value + incr < constraints.getMinimumValue()) {
+          value = constraints.getMaximumValue() + (value + incr - constraints.getMinimumValue() + 1);
         }
       }
       else {
         value += incr;
-        value = Math.min(max, value);
-        value = Math.max(min, value);
+        value = Math.min(constraints.getMaximumValue(), value);
+        value = Math.max(constraints.getMinimumValue(), value);
       }
       return String.valueOf(value);
     }
@@ -45,6 +41,12 @@ public class IncrementProperty implements PropertyChanger {
 
   public int getIncrement() {
     return incr;
+  }
+  
+  public static interface Constraints {
+    int getMinimumValue();
+    int getMaximumValue();
+    boolean isWrap();
   }
 
 }

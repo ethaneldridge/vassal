@@ -21,7 +21,7 @@ import VASSAL.tools.ToolBarComponent;
  * @author rkinney
  *
  */
-public class GlobalProperty extends AbstractConfigurable implements ToolBarComponent, GameComponent, CommandEncoder {
+public class GlobalProperty extends AbstractConfigurable implements ToolBarComponent, GameComponent, CommandEncoder, PropertySource {
   protected PropertyChangeSupport propertyChangeSupport = new PropertyChangeSupport(this);
 
   public static final String NAME = "name";
@@ -43,6 +43,8 @@ public class GlobalProperty extends AbstractConfigurable implements ToolBarCompo
   protected int maxValue=100;
   protected boolean wrap;
   protected VisibilityCondition numericVisibility;
+
+  protected PropertySource propertySource;
   
 
   public GlobalProperty() {
@@ -154,6 +156,7 @@ public class GlobalProperty extends AbstractConfigurable implements ToolBarCompo
     tempToolbar.setDelegate((ToolBarComponent)parent);
     GameModule.getGameModule().addCommandEncoder(this);
     GameModule.getGameModule().getGameState().addGameComponent(this);
+    propertySource = (PropertySource) parent;
   }
   
   public String getPropertyValue() {
@@ -252,6 +255,10 @@ public class GlobalProperty extends AbstractConfigurable implements ToolBarCompo
 
   public String getDescription() {
     return description;
+  }
+
+  public Object getProperty(Object key) {
+    return propertySource == null ? null : propertySource.getProperty(key);
   }
 
 

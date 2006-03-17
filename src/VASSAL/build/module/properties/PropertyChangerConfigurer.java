@@ -128,11 +128,10 @@ public class PropertyChangerConfigurer extends Configurer {
     PropertyChanger p;
     switch (((Character)descriptionToCode.get(typeConfig.getValueString())).charValue()) {
     case PROMPT_CODE:
-      p = constraints.isNumeric() ? new NumericPropertyPrompt(constraints, valueConfig.getValueString(), constraints.getMinValue(), constraints
-          .getMaxValue()) : new PropertyPrompt(constraints, promptConfig.getValueString());
+      p = new PropertyPrompt(constraints, promptConfig.getValueString());
       break;
     case INCR_CODE:
-      p = new IncrementProperty(incrConfig.getIntValue(0), constraints.getMinValue(), constraints.getMaxValue(), constraints.isWrap());
+      p = new IncrementProperty(incrConfig.getIntValue(0), constraints);
       break;
     case ENUM_CODE:
       p = new EnumeratedPropertyPrompt(constraints, promptConfig.getValueString(), validValuesConfig.getStringArray());
@@ -177,11 +176,10 @@ public class PropertyChangerConfigurer extends Configurer {
     SequenceEncoder.Decoder sd = new SequenceEncoder.Decoder(s, ',');
     switch (sd.nextChar(PLAIN_CODE)) {
     case PROMPT_CODE:
-      p = constraints.isNumeric() ? new NumericPropertyPrompt(constraints, sd.nextToken("Enter new value"), constraints.getMinValue(), constraints
-          .getMaxValue()) : new PropertyPrompt(constraints, sd.nextToken("Enter new value"));
+      p = new PropertyPrompt(constraints, sd.nextToken("Enter new value"));
       break;
     case INCR_CODE:
-      p = new IncrementProperty(sd.nextInt(1), constraints.getMinValue(), constraints.getMaxValue(), constraints.isWrap());
+      p = new IncrementProperty(sd.nextInt(1), constraints);
       break;
     case ENUM_CODE:
       p = new EnumeratedPropertyPrompt(constraints, sd.nextToken("Select new value"), sd.nextStringArray(0));
@@ -193,14 +191,7 @@ public class PropertyChangerConfigurer extends Configurer {
     setValue(p);
   }
 
-  public static interface Constraints extends PropertyPrompt.DialogParent {
-    boolean isNumeric();
-
-    int getMinValue();
-
-    int getMaxValue();
-
-    boolean isWrap();
+  public static interface Constraints extends PropertyPrompt.Constraints, IncrementProperty.Constraints {
   }
 
 }

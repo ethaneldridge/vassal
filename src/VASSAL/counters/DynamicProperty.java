@@ -24,8 +24,15 @@ import VASSAL.configure.HotKeyConfigurer;
 import VASSAL.configure.IntConfigurer;
 import VASSAL.configure.ListConfigurer;
 import VASSAL.configure.StringConfigurer;
+import VASSAL.tools.FormattedString;
 import VASSAL.tools.SequenceEncoder;
 
+/**
+ * Trait that contains a property accessible via getProperty() and 
+ * updateable dynamically via key commands
+ * @author rkinney
+ *
+ */
 public class DynamicProperty extends Decorator implements PropertyPrompt.DialogParent, PropertyChangerConfigurer.Constraints {
 
   public static final String ID = "PROP;";
@@ -37,6 +44,7 @@ public class DynamicProperty extends Decorator implements PropertyPrompt.DialogP
   protected int minValue;
   protected int maxValue;
   protected boolean wrap;
+  protected FormattedString format = new FormattedString();
 
   private DynamicKeyCommand[] keyCommands;
 
@@ -155,7 +163,10 @@ public class DynamicProperty extends Decorator implements PropertyPrompt.DialogP
     ChangeTracker tracker = new ChangeTracker(this);
     for (int i = 0; i < keyCommands.length; i++) {
       if (keyCommands[i].matches(stroke)) {
-        setValue(keyCommands[i].propChanger.getNewValue(value));
+        String newValue = keyCommands[i].propChanger.getNewValue(value);
+        format.setFormat(newValue);
+        newValue = format.getText(Decorator.getOutermost(this));
+        setValue(newValue);
       }
     }
     Command comm = tracker.getChangeCommand();
@@ -181,11 +192,11 @@ public class DynamicProperty extends Decorator implements PropertyPrompt.DialogP
     }
   }
 
-  public int getMaxValue() {
+  public int getMaximumValue() {
     return maxValue;
   }
 
-  public int getMinValue() {
+  public int getMinimumValue() {
     return minValue;
   }
 
@@ -229,9 +240,9 @@ public class DynamicProperty extends Decorator implements PropertyPrompt.DialogP
       controls.add(initialValueConfig.getControls());
       numericConfig = new BooleanConfigurer(null,"Is numeric: ",m.isNumeric());
       controls.add(numericConfig.getControls());
-      minConfig = new IntConfigurer(null,"Minimum value: ",new Integer(m.getMinValue()));
+      minConfig = new IntConfigurer(null,"Minimum value: ",new Integer(m.getMinimumValue()));
       controls.add(initialValueConfig.getControls());
-      maxConfig = new IntConfigurer(null,"Maximum value: ",new Integer(m.getMaxValue()));
+      maxConfig = new IntConfigurer(null,"Maximum value: ",new Integer(m.getMaximumValue()));
       controls.add(initialValueConfig.getControls());
       wrapConfig = new BooleanConfigurer(null,"Wrap ",m.isWrap());
       controls.add(wrapConfig.getControls());

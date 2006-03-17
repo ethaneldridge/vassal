@@ -34,5 +34,4 @@ public class NumericPropertyPrompt extends PropertyPrompt {
     }
   }
   
-
 }

@@ -8,11 +8,13 @@ import javax.swing.JOptionPane;
  *
  */
 public class EnumeratedPropertyPrompt extends PropertyPrompt {
-  private String[] validValues;
+  protected String[] validValues;
+  protected DialogParent dialogParent;
 
   public EnumeratedPropertyPrompt(DialogParent dialogParent, String prompt, String[] validValues) {
-    super(dialogParent, prompt);
+    super(null, prompt);
     this.validValues = validValues;
+    this.dialogParent = dialogParent;
   }
 
   public String getNewValue(String oldValue) {
