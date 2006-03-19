@@ -13,22 +13,15 @@ import javax.swing.JOptionPane;
 public class PropertyPrompt implements PropertyChanger {
   protected String promptText;
   protected Constraints constraints;
-  protected DialogParent dialogParent;
-
-  public PropertyPrompt(DialogParent dialogParent, String prompt) {
-    this.dialogParent = constraints;
-    this.promptText = prompt;
-
-  }
 
   public PropertyPrompt(Constraints constraints, String prompt) {
-    this((DialogParent) constraints, prompt);
     this.constraints = constraints;
+    this.promptText = prompt;
   }
 
   public String getNewValue(String oldValue) {
     if (constraints != null && constraints.isNumeric()) {
-      return new NumericPropertyPrompt(constraints, promptText, constraints.getMinimumValue(), constraints.getMaximumValue()).getNewValue(oldValue);
+      return new NumericPropertyPrompt(constraints.getComponent(), promptText, constraints.getMinimumValue(), constraints.getMaximumValue()).getNewValue(oldValue);
     }
     return (String) JOptionPane.showInputDialog(constraints.getComponent(), promptText, null, JOptionPane.QUESTION_MESSAGE, null, null, oldValue);
   }

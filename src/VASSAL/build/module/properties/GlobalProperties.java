@@ -3,6 +3,8 @@ package VASSAL.build.module.properties;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
+import java.util.HashMap;
+import java.util.Iterator;
 
 import javax.swing.JToolBar;
 
@@ -23,7 +25,8 @@ public class GlobalProperties extends AbstractConfigurable implements GlobalProp
   private TemporaryToolBar tempToolbar = new TemporaryToolBar();
   private PropertySource propertySource;
   private PropertyChangeListener forwardPropertyChange;
-  private PropertyChangeSupport propertyChangeSupport = new PropertyChangeSupport(this);
+  private PropertyChangeSupport propertyChangeSupport;
+  private HashMap initialValues = new HashMap();
 
   public String[] getAttributeDescriptions() {
     return new String[0];
@@ -65,7 +68,13 @@ public class GlobalProperties extends AbstractConfigurable implements GlobalProp
   }
 
   public void addTo(Buildable parent) {
+    propertyChangeSupport = new PropertyChangeSupport(this);
     propertyChangeSupport.addPropertyChangeListener(((GlobalPropertiesContainer) parent).getPropertyListener());
+    for (Iterator it = initialValues.keySet().iterator(); it.hasNext();) {
+      Object key = (Object) it.next();
+      Object value = initialValues.get(key);
+      propertyChangeSupport.firePropertyChange(key.toString(),null,value);
+    }
     tempToolbar.setDelegate((ToolBarComponent) parent);
     propertySource = (PropertySource) parent;
   }
@@ -74,7 +83,12 @@ public class GlobalProperties extends AbstractConfigurable implements GlobalProp
     if (forwardPropertyChange == null) {
       forwardPropertyChange = new PropertyChangeListener() {
         public void propertyChange(PropertyChangeEvent evt) {
-          propertyChangeSupport.firePropertyChange(evt);
+          if (propertyChangeSupport == null) {
+            initialValues.put(evt.getPropertyName(), evt.getNewValue());
+          }
+          else {
+            propertyChangeSupport.firePropertyChange(evt);
+          }
         }
       };
     }

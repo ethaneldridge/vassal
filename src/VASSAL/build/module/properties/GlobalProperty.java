@@ -12,6 +12,7 @@ import VASSAL.build.module.documentation.HelpFile;
 import VASSAL.command.Command;
 import VASSAL.command.CommandEncoder;
 import VASSAL.configure.VisibilityCondition;
+import VASSAL.tools.FormattedString;
 import VASSAL.tools.SequenceEncoder;
 import VASSAL.tools.TemporaryToolBar;
 import VASSAL.tools.ToolBarComponent;
@@ -39,10 +40,11 @@ public class GlobalProperty extends AbstractConfigurable implements ToolBarCompo
   protected String description;
   protected String initialValue;
   protected boolean numeric;
-  protected int minValue=0;
-  protected int maxValue=100;
+  protected String minValue;
+  protected String maxValue;
   protected boolean wrap;
   protected VisibilityCondition numericVisibility;
+  protected FormattedString format = new FormattedString();
 
   protected PropertySource propertySource;
   
@@ -60,7 +62,7 @@ public class GlobalProperty extends AbstractConfigurable implements ToolBarCompo
   }
 
   public Class[] getAttributeTypes() {
-    return new Class[] {String.class, String.class, String.class, Boolean.class, Integer.class,Integer.class, Boolean.class};
+    return new Class[] {String.class, String.class, String.class, Boolean.class, String.class,String.class, Boolean.class};
   }
 
   public String[] getAttributeNames() {
@@ -85,16 +87,10 @@ public class GlobalProperty extends AbstractConfigurable implements ToolBarCompo
       numeric = Boolean.TRUE.equals(value) || "true".equals(value);
     }
     else if (MIN_VALUE.equals(key)) {
-      if (value instanceof String) {
-        value = new Integer((String)value);
-      }
-      minValue = ((Integer)value).intValue();
+      minValue = (String)value;
     }
     else if (MAX_VALUE.equals(key)) {
-      if (value instanceof String) {
-        value = new Integer((String)value);
-      }
-      maxValue = ((Integer)value).intValue();
+      maxValue = (String)value;
     }
     else if (WRAP.equals(key)) {
       wrap = Boolean.TRUE.equals(value) || "true".equals(value);
@@ -238,11 +234,29 @@ public class GlobalProperty extends AbstractConfigurable implements ToolBarCompo
     }
   }
   public int getMaxValue() {
-    return maxValue;
+    int max = 100;
+    if (maxValue != null) {
+      format.setFormat(maxValue);
+      try {
+        max = Integer.parseInt(format.getText(this));
+      }
+      catch (NumberFormatException e) {
+      }
+    }
+    return max;
   }
 
   public int getMinValue() {
-    return minValue;
+    int min = 0;
+    if (minValue != null) {
+      format.setFormat(minValue);
+      try {
+        min = Integer.parseInt(format.getText(this));
+      }
+      catch (NumberFormatException e) {
+      }
+    }
+    return min;
   }
 
   public boolean isNumeric() {
@@ -259,6 +273,10 @@ public class GlobalProperty extends AbstractConfigurable implements ToolBarCompo
 
   public Object getProperty(Object key) {
     return propertySource == null ? null : propertySource.getProperty(key);
+  }
+
+  public static String getConfigureTypeName() {
+    return "Global Property";
   }
 
 

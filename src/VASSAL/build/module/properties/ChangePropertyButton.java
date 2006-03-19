@@ -117,6 +117,9 @@ public class ChangePropertyButton extends AbstractConfigurable implements Proper
       report.setFormat((String) value);
     }
     else {
+      if (BUTTON_TEXT.equals(key)) {
+        setConfigureName((String)value);
+      }
       launch.setAttribute(key, value);
     }
   }
@@ -163,7 +166,7 @@ public class ChangePropertyButton extends AbstractConfigurable implements Proper
   }
 
   public int getMinimumValue() {
-    return property.getMaxValue();
+    return property.getMinValue();
   }
 
   public boolean isNumeric() {
@@ -173,7 +176,8 @@ public class ChangePropertyButton extends AbstractConfigurable implements Proper
   public boolean isWrap() {
     return property.isWrap();
   }
-  
-  
 
+  public Object getProperty(Object key) {
+    return property.getProperty(key);
+  }
 }

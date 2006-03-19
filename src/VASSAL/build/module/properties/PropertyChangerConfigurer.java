@@ -11,7 +11,6 @@ import javax.swing.JPanel;
 
 import VASSAL.build.module.gamepieceimage.StringEnumConfigurer;
 import VASSAL.configure.Configurer;
-import VASSAL.configure.IntConfigurer;
 import VASSAL.configure.StringArrayConfigurer;
 import VASSAL.configure.StringConfigurer;
 import VASSAL.tools.SequenceEncoder;
@@ -52,13 +51,13 @@ public class PropertyChangerConfigurer extends Configurer {
   protected StringEnumConfigurer typeConfig;
   protected StringConfigurer valueConfig;
   protected StringConfigurer promptConfig;
-  protected IntConfigurer incrConfig;
+  protected StringConfigurer incrConfig;
   protected StringArrayConfigurer validValuesConfig;
 
   public PropertyChangerConfigurer(String key, String name, Constraints constraints) {
     super(key, name);
     this.constraints = constraints;
-    setValue(new PropertySetter(""));
+    setValue(new PropertySetter("", null));
   }
 
   public Component getControls() {
@@ -77,7 +76,7 @@ public class PropertyChangerConfigurer extends Configurer {
       valueConfig.addPropertyChangeListener(l);
       promptConfig = new StringConfigurer(null,"Prompt:  ");
       promptConfig.addPropertyChangeListener(l);
-      incrConfig = new IntConfigurer(null,"Increment by:  ");
+      incrConfig = new StringConfigurer(null,"Increment by:  ");
       incrConfig.addPropertyChangeListener(l);
       validValuesConfig = new StringArrayConfigurer(null,"Valid Values");
       validValuesConfig.addPropertyChangeListener(l);
@@ -131,14 +130,14 @@ public class PropertyChangerConfigurer extends Configurer {
       p = new PropertyPrompt(constraints, promptConfig.getValueString());
       break;
     case INCR_CODE:
-      p = new IncrementProperty(incrConfig.getIntValue(0), constraints);
+      p = new IncrementProperty(incrConfig.getValueString(), constraints);
       break;
     case ENUM_CODE:
       p = new EnumeratedPropertyPrompt(constraints, promptConfig.getValueString(), validValuesConfig.getStringArray());
       break;
     case PLAIN_CODE:
     default:
-      p = new PropertySetter(valueConfig.getValueString());
+      p = new PropertySetter(valueConfig.getValueString(), constraints);
     }
     setValue(p);
   }
@@ -179,19 +178,19 @@ public class PropertyChangerConfigurer extends Configurer {
       p = new PropertyPrompt(constraints, sd.nextToken("Enter new value"));
       break;
     case INCR_CODE:
-      p = new IncrementProperty(sd.nextInt(1), constraints);
+      p = new IncrementProperty(sd.nextToken("1"), constraints);
       break;
     case ENUM_CODE:
       p = new EnumeratedPropertyPrompt(constraints, sd.nextToken("Select new value"), sd.nextStringArray(0));
       break;
     case PLAIN_CODE:
     default:
-      p = new PropertySetter(sd.nextToken("new value"));
+      p = new PropertySetter(sd.nextToken("new value"), constraints);
     }
     setValue(p);
   }
 
-  public static interface Constraints extends PropertyPrompt.Constraints, IncrementProperty.Constraints {
+  public static interface Constraints extends PropertyPrompt.Constraints, IncrementProperty.Constraints, PropertySource {
   }
 
 }
