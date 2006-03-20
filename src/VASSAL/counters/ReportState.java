@@ -26,27 +26,37 @@
  */
 package VASSAL.counters;
 
-import VASSAL.build.GameModule;
-import VASSAL.build.module.Chatter;
-import VASSAL.build.module.Map;
-import VASSAL.build.module.documentation.HelpFile;
-import VASSAL.command.ChangeTracker;
-import VASSAL.command.Command;
-import VASSAL.configure.PlayerIdFormattedStringConfigurer;
-import VASSAL.configure.StringArrayConfigurer;
-import VASSAL.configure.StringConfigurer;
-import VASSAL.configure.KeyStrokeArrayConfigurer;
-import VASSAL.tools.FormattedString;
-import VASSAL.tools.PlayerIdFormattedString;
-import VASSAL.tools.SequenceEncoder;
-
-import javax.swing.*;
-import java.awt.*;
+import java.awt.Component;
+import java.awt.Graphics;
+import java.awt.Rectangle;
+import java.awt.Shape;
+import java.awt.Window;
 import java.awt.event.InputEvent;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.io.File;
 import java.net.MalformedURLException;
+
+import javax.swing.BoxLayout;
+import javax.swing.JCheckBox;
+import javax.swing.JPanel;
+import javax.swing.KeyStroke;
+import javax.swing.SwingUtilities;
+
+import VASSAL.build.GameModule;
+import VASSAL.build.module.Chatter;
+import VASSAL.build.module.Map;
+import VASSAL.build.module.documentation.HelpFile;
+import VASSAL.build.module.properties.PropertySource;
+import VASSAL.command.ChangeTracker;
+import VASSAL.command.Command;
+import VASSAL.configure.KeyStrokeArrayConfigurer;
+import VASSAL.configure.PlayerIdFormattedStringConfigurer;
+import VASSAL.configure.StringArrayConfigurer;
+import VASSAL.configure.StringConfigurer;
+import VASSAL.tools.FormattedString;
+import VASSAL.tools.PlayerIdFormattedString;
+import VASSAL.tools.SequenceEncoder;
 
 /**
  * A GamePiece with this trait will echo the piece's current name when any of a given key commands are pressed
@@ -186,7 +196,7 @@ public class ReportState extends Decorator implements EditablePiece {
             format.setFormat("");
           }
           format.setProperty(Map.MESSAGE, reportText);
-          reportText = format.getText(outer);
+          reportText = format.getText(new OldAndNewPieceProperties(oldPiece,outer));
 
           if (reportText.length() > 0) {
             Command display = new Chatter.DisplayText(GameModule.getGameModule().getChatter(), "* " + reportText);
@@ -348,5 +358,38 @@ public class ReportState extends Decorator implements EditablePiece {
       }
       return ID + se.getValue();
     }
+  }
+  
+  /**
+   * Looks in both the new and old piece for property values.
+   * Any properties with names of the format "oldXyz" are changed 
+   * to "xyz" and applied to the old piece.
+   * @author rkinney
+   *
+   */
+  private static class OldAndNewPieceProperties implements PropertySource {
+    private GamePiece oldPiece;
+    private GamePiece newPiece;
+    public OldAndNewPieceProperties(GamePiece oldPiece, GamePiece newPiece) {
+      super();
+      this.oldPiece = oldPiece;
+      this.newPiece = newPiece;
+    }
+    public Object getProperty(Object key) {
+      Object value = null;
+      if (key != null) {
+        String name = key.toString();
+        if (name.startsWith("old") && name.length() >= 4) {
+          name = name.substring(3);
+          name = Character.toLowerCase(name.charAt(0)) + name.substring(1);
+          value = oldPiece.getProperty(name);
+        }
+        else {
+          value = newPiece.getProperty(key);
+        }
+      }
+      return value;
+    }
+    
   }
 }

@@ -1411,7 +1411,12 @@ public class Map extends AbstractConfigurable implements GameComponent,
   }
 
   public Object getProperty(Object key) {
-    return globalProperties.get(key);
+    Object value = null;
+    value = globalProperties.get(key);
+    if (value == null) {
+      value = GameModule.getGameModule().getProperty(key);
+    }
+    return value;
   }
   
   public KeyStroke getMoveKey() {

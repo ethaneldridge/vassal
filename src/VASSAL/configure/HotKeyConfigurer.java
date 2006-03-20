@@ -144,7 +144,7 @@ public class HotKeyConfigurer extends Configurer implements KeyListener {
    * Encode a KeyStroke into a String
    */
   public static String encode(KeyStroke stroke) {
-    return stroke == null ? null : stroke.getKeyCode() + "," + stroke.getModifiers();
+    return stroke == null ? "" : stroke.getKeyCode() + "," + stroke.getModifiers();
   }
 
 }

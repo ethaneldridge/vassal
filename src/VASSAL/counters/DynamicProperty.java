@@ -1,7 +1,26 @@
+/*
+ * $Id$
+ *
+ * Copyright (c) 2000-2006 by Rodney Kinney, Brent Easton
+ *
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Library General Public
+ * License (LGPL) as published by the Free Software Foundation.
+ *
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Library General Public License for more details.
+ *
+ * You should have received a copy of the GNU Library General Public
+ * License along with this library; if not, copies are available
+ * at http://www.opensource.org.
+ */
 package VASSAL.counters;
 
 import java.awt.Component;
 import java.awt.Shape;
+import java.awt.event.InputEvent;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.io.File;
@@ -28,12 +47,13 @@ import VASSAL.tools.FormattedString;
 import VASSAL.tools.SequenceEncoder;
 
 /**
- * Trait that contains a property accessible via getProperty() and 
- * updateable dynamically via key commands
+ * Trait that contains a property accessible via getProperty() and updateable
+ * dynamically via key commands
+ * 
  * @author rkinney
- *
+ * 
  */
-public class DynamicProperty extends Decorator implements PropertyPrompt.DialogParent, PropertyChangerConfigurer.Constraints {
+public class DynamicProperty extends Decorator implements EditablePiece, PropertyPrompt.DialogParent, PropertyChangerConfigurer.Constraints {
 
   public static final String ID = "PROP;";
 
@@ -55,18 +75,19 @@ public class DynamicProperty extends Decorator implements PropertyPrompt.DialogP
   }
 
   public DynamicProperty(String type, GamePiece p) {
-    mySetType(type);
     setInner(p);
     keyCommandListConfig = new ListConfigurer(null, "Commands") {
       protected Configurer buildChildConfigurer() {
         return new DynamicKeyCommandConfigurer(DynamicProperty.this);
       }
     };
+    mySetType(type);
   }
 
   public void mySetType(String s) {
     SequenceEncoder.Decoder sd = new SequenceEncoder.Decoder(s, ';');
     sd.nextToken(); // Skip over command prefix
+    key = sd.nextToken("name");
     decodeConstraints(sd.nextToken(""));
     keyCommandListConfig.setValue(sd.nextToken(""));
     keyCommands = (DynamicKeyCommand[]) keyCommandListConfig.getListValue().toArray(new DynamicKeyCommand[keyCommandListConfig.getListValue().size()]);
@@ -150,6 +171,7 @@ public class DynamicProperty extends Decorator implements PropertyPrompt.DialogP
 
   public String myGetType() {
     SequenceEncoder se = new SequenceEncoder(';');
+    se.append(key);
     se.append(encodeConstraints());
     se.append(keyCommandListConfig.getValueString());
     return ID + se.getValue();
@@ -213,6 +235,7 @@ public class DynamicProperty extends Decorator implements PropertyPrompt.DialogP
   }
 
   protected static class Ed implements PieceEditor {
+    protected StringConfigurer nameConfig;
     protected StringConfigurer initialValueConfig;
     protected BooleanConfigurer numericConfig;
     protected IntConfigurer minConfig;
@@ -222,7 +245,7 @@ public class DynamicProperty extends Decorator implements PropertyPrompt.DialogP
     protected Box controls;
 
     public Ed(final DynamicProperty m) {
-      keyCommandListConfig = new ListConfigurer(null,"Commands") {
+      keyCommandListConfig = new ListConfigurer(null, "Key Commands") {
         protected Configurer buildChildConfigurer() {
           return new DynamicKeyCommandConfigurer(m);
         }
@@ -233,21 +256,24 @@ public class DynamicProperty extends Decorator implements PropertyPrompt.DialogP
           minConfig.getControls().setVisible(isNumeric);
           maxConfig.getControls().setVisible(isNumeric);
           wrapConfig.getControls().setVisible(isNumeric);
+          keyCommandListConfig.repack();
         }
       };
       controls = Box.createVerticalBox();
-      initialValueConfig = new StringConfigurer(null,"Value: ",m.getValue());
+      nameConfig = new StringConfigurer(null, "Name:  ", m.getKey());
+      controls.add(nameConfig.getControls());
+      initialValueConfig = new StringConfigurer(null, "Value: ", m.getValue());
       controls.add(initialValueConfig.getControls());
-      numericConfig = new BooleanConfigurer(null,"Is numeric: ",m.isNumeric());
+      numericConfig = new BooleanConfigurer(null, "Is numeric: ", m.isNumeric());
       controls.add(numericConfig.getControls());
-      minConfig = new IntConfigurer(null,"Minimum value: ",new Integer(m.getMinimumValue()));
-      controls.add(initialValueConfig.getControls());
-      maxConfig = new IntConfigurer(null,"Maximum value: ",new Integer(m.getMaximumValue()));
-      controls.add(initialValueConfig.getControls());
-      wrapConfig = new BooleanConfigurer(null,"Wrap ",m.isWrap());
+      minConfig = new IntConfigurer(null, "Minimum value: ", new Integer(m.getMinimumValue()));
+      controls.add(minConfig.getControls());
+      maxConfig = new IntConfigurer(null, "Maximum value: ", new Integer(m.getMaximumValue()));
+      controls.add(maxConfig.getControls());
+      wrapConfig = new BooleanConfigurer(null, "Wrap ", m.isWrap());
       controls.add(wrapConfig.getControls());
       controls.add(keyCommandListConfig.getControls());
-      
+
       numericConfig.addPropertyChangeListener(l);
       numericConfig.fireUpdate();
     }
@@ -263,6 +289,7 @@ public class DynamicProperty extends Decorator implements PropertyPrompt.DialogP
 
     public String getType() {
       SequenceEncoder se = new SequenceEncoder(';');
+      se.append(nameConfig.getValueString());
       se.append(encodeConstraints());
       se.append(keyCommandListConfig.getValueString());
       return ID + se.getValue();
@@ -301,12 +328,22 @@ public class DynamicProperty extends Decorator implements PropertyPrompt.DialogP
     protected DynamicProperty target;
 
     public DynamicKeyCommandConfigurer(DynamicProperty target) {
-      super(target.getKey(), target.getName());
-      commandConfig = new StringConfigurer(null, "Menu Command:  ");
-      keyConfig = new HotKeyConfigurer(null, "Key Command:  ");
-      propChangeConfig = new PropertyChangerConfigurer(null, null, target);
-      this.target = target;
+      super(target.getKey(), target.getKey(), new DynamicKeyCommand("Change value", KeyStroke.getKeyStroke('V',InputEvent.CTRL_MASK), target,
+          new PropertyPrompt(target, "Change value of " + target.getKey())));
+      commandConfig = new StringConfigurer(null, "Menu Command:  ","Change value");
+      keyConfig = new HotKeyConfigurer(null, "Key Command:  ",KeyStroke.getKeyStroke('V',InputEvent.CTRL_MASK));
       propChangeConfig = new PropertyChangerConfigurer(null, "Action:  ", target);
+      propChangeConfig.setValue(new PropertyPrompt(target, "Change value of " + target.getKey()));
+
+      PropertyChangeListener pl = new PropertyChangeListener() {
+        public void propertyChange(PropertyChangeEvent e) {
+          updateValue();
+        }
+      };
+      commandConfig.addPropertyChangeListener(pl);
+      keyConfig.addPropertyChangeListener(pl);
+      propChangeConfig.addPropertyChangeListener(pl);
+      this.target = target;
     }
 
     public String getValueString() {
@@ -340,21 +377,7 @@ public class DynamicProperty extends Decorator implements PropertyPrompt.DialogP
 
     protected void buildControls() {
       controls = Box.createHorizontalBox();
-      controls.add(keyConfig.getControls());
-      controls.add(propChangeConfig.getControls());
-      DynamicKeyCommand dkc = getKeyCommand();
-      PropertyChangeListener pl = new PropertyChangeListener() {
-        public void propertyChange(PropertyChangeEvent e) {
-          updateValue();
-        }
-      };
-
-      controls = Box.createHorizontalBox();
-      commandConfig = new StringConfigurer(null, "Command: ", dkc.getName());
-      commandConfig.addPropertyChangeListener(pl);
       controls.add(commandConfig.getControls());
-      keyConfig = new HotKeyConfigurer(null, " Key: ", dkc.getKeyStroke());
-      keyConfig.addPropertyChangeListener(pl);
       controls.add(keyConfig.getControls());
       controls.add(propChangeConfig.getControls());
     }

@@ -26,7 +26,7 @@ import VASSAL.tools.SequenceEncoder;
 public abstract class ListConfigurer extends Configurer implements PropertyChangeListener {
   protected Box controls;
   protected Box configControls;
-  private List configurers = new ArrayList();
+  protected List configurers = new ArrayList();
 
   public ListConfigurer(String key, String name) {
     super(key, name, new ArrayList());
@@ -37,21 +37,27 @@ public abstract class ListConfigurer extends Configurer implements PropertyChang
   }
 
   public String getValueString() {
+    if (getListValue().isEmpty()) {
+      return "";
+    }
+    Configurer c = buildChildConfigurer();
     SequenceEncoder se = new SequenceEncoder(',');
-    for (Iterator iter = configurers.iterator(); iter.hasNext();) {
-      Configurer c = (Configurer) iter.next();
+    for (Iterator iter = getListValue().iterator(); iter.hasNext();) {
+      c.setValue(iter.next());
       se.append(c.getValueString());
     }
     return se.getValue();
   }
 
   public void setValue(String s) {
-    configurers.clear();
-    SequenceEncoder.Decoder sd = new SequenceEncoder.Decoder(s, ',');
-    while (sd.hasMoreTokens()) {
+    getListValue().clear();
+    if (s.length() > 0) {
       Configurer c = buildChildConfigurer();
-      c.addPropertyChangeListener(this);
-      configurers.add(c);
+      SequenceEncoder.Decoder sd = new SequenceEncoder.Decoder(s, ',');
+      while (sd.hasMoreTokens()) {
+        c.setValue(sd.nextToken());
+        getListValue().add(c.getValue());
+      }
     }
     updateControls();
   }
@@ -66,13 +72,13 @@ public abstract class ListConfigurer extends Configurer implements PropertyChang
     setValue(newArray);
     noUpdate = false;
   }
-  
+
   public void setValue(Object o) {
     if (o == null) {
       o = new ArrayList();
     }
     super.setValue(o);
-    if (!noUpdate && controls != null) {
+    if (!noUpdate) {
       updateControls();
     }
   }
@@ -87,10 +93,8 @@ public abstract class ListConfigurer extends Configurer implements PropertyChang
       addButton.addActionListener(new ActionListener() {
         public void actionPerformed(ActionEvent e) {
           Configurer c = buildChildConfigurer();
-          c.addPropertyChangeListener(ListConfigurer.this);
-          configurers.add(c);
-          updateValue();
-          repack();
+          getListValue().add(c.getValue());
+          updateControls();
         }
       });
       controls.add(addButton);
@@ -115,35 +119,39 @@ public abstract class ListConfigurer extends Configurer implements PropertyChang
   }
 
   protected void updateControls() {
-    for (Iterator iter = configurers.iterator(); iter.hasNext();) {
-      Configurer c = (Configurer) iter.next();
-      c.removePropertyChangeListener(this);
-    }
-    configurers.clear();
-    configControls.removeAll();
+    if (controls != null) {
+      for (Iterator iter = configurers.iterator(); iter.hasNext();) {
+        Configurer c = (Configurer) iter.next();
+        c.removePropertyChangeListener(this);
+      }
+      configurers.clear();
+      configControls.removeAll();
 
-    for (Iterator iter = getListValue().iterator(); iter.hasNext();) {
-      Object value = (Object) iter.next();
-      final Configurer c = buildChildConfigurer();
-      c.addPropertyChangeListener(this);
-      c.setValue(value);
-      configurers.add(c);
-      final Box b = Box.createHorizontalBox();
-      JButton delButton = new JButton("Remove");
-      delButton.addActionListener(new ActionListener() {
-        public void actionPerformed(ActionEvent e) {
-          controls.remove(b);
-          configurers.remove(c);
-          updateValue();
-          repack();
-        }
-      });
-      b.add(c.getControls());
-      configControls.add(b);
+      for (Iterator iter = getListValue().iterator(); iter.hasNext();) {
+        Object value = (Object) iter.next();
+        final Configurer c = buildChildConfigurer();
+        c.addPropertyChangeListener(this);
+        c.setValue(value);
+        configurers.add(c);
+        final Box b = Box.createHorizontalBox();
+        JButton delButton = new JButton("Remove");
+        delButton.addActionListener(new ActionListener() {
+          public void actionPerformed(ActionEvent e) {
+            controls.remove(b);
+            configurers.remove(c);
+            updateValue();
+            repack();
+          }
+        });
+        b.add(delButton);
+        b.add(c.getControls());
+        configControls.add(b);
+      }
+      repack();
     }
   }
 
-  protected void repack() {
+  public void repack() {
     Window w = SwingUtilities.getWindowAncestor(controls);
     if (w != null) {
       w.pack();
