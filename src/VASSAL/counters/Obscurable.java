@@ -220,6 +220,9 @@ public class Obscurable extends Decorator implements EditablePiece {
     else if (ID.equals(key)) {
       return obscuredBy;
     }
+    else if (Properties.VISIBLE_STATE.equals(key)) {
+      return myGetState()+isPeeking()+piece.getProperty(key);
+    }
     else {
       return super.getProperty(key);
     }

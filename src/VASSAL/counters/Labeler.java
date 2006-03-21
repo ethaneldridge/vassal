@@ -112,6 +112,9 @@ public class Labeler extends Decorator implements EditablePiece {
     if (key.equals(propertyName)) {
       return getLabel();
     }
+    else if (Properties.VISIBLE_STATE.equals(key)) {
+      return getLabel()+piece.getProperty(key);
+    }
     else {
       return super.getProperty(key);
     }
@@ -198,14 +201,7 @@ public class Labeler extends Decorator implements EditablePiece {
   }
 
   public void draw(Graphics g, int x, int y, Component obs, double zoom) {
-    String label = getLabel();
-    if (label != null
-        && !label.equals(lastCachedLabel)) {
-      labelImage = null;
-    }
-    if (labelImage == null && label != null && label.length() > 0) {
-      labelImage = createImage(obs);
-    }
+    updateCachedImage();
     piece.draw(g, x, y, obs, zoom);
 
     if (labelImage != null) {
@@ -236,6 +232,17 @@ public class Labeler extends Decorator implements EditablePiece {
         g2d.setTransform(saveXForm);
       }
 
+    }
+  }
+
+  protected void updateCachedImage() {
+    String label = getLabel();
+    if (label != null
+        && !label.equals(lastCachedLabel)) {
+      labelImage = null;
+    }
+    if (labelImage == null && label != null && label.length() > 0) {
+      labelImage = createImage(null);
     }
   }
 
@@ -326,8 +333,7 @@ public class Labeler extends Decorator implements EditablePiece {
   }
 
   public Rectangle boundingBox() {
-    lastCachedLabel = getLabel();
-    lbl.setText(lastCachedLabel);
+    lbl.setText(getLabel());
     lbl.setSize(lbl.getPreferredSize());
     Rectangle r = piece.boundingBox();
     Rectangle r2 = piece.getShape().getBounds();

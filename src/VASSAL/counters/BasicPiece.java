@@ -166,6 +166,9 @@ public class BasicPiece implements EditablePiece, StateMergeable {
       }
       return "";
     }
+    else if (Properties.VISIBLE_STATE.equals(key)) {
+      return "";
+    }
     Object prop = props == null ? null : props.get(key);
     if (prop == null) {
       Map map = getMap();

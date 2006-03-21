@@ -35,7 +35,7 @@ public class PieceImage {
 
   public Image getImage(Component obs) {
     if (isChanged()) {
-      lastState = currentState();
+      lastState = String.valueOf(piece.getProperty(Properties.VISIBLE_STATE));
 
       Rectangle bbox = piece.boundingBox();
       im = new BufferedImage(bbox.width, bbox.height, BufferedImage.TYPE_4BYTE_ABGR);
@@ -47,20 +47,6 @@ public class PieceImage {
   }
 
   public boolean isChanged() {
-    return !currentState().equals(lastState);
-  }
-
-  private String currentState() {
-    StringBuffer buf = new StringBuffer();
-    for (GamePiece p = piece;
-         p instanceof Decorator;
-         p = ((Decorator) p).piece) {
-      buf.append(((Decorator) p).myGetState());
-      if (p instanceof Obscurable) {
-        buf.append(((Obscurable)p).isPeeking());
-      }
-    }
-    buf.append(piece.getProperty(Properties.SELECTED));
-    return buf.toString();
+    return !String.valueOf(piece.getProperty(Properties.VISIBLE_STATE)).equals(lastState);
   }
 }

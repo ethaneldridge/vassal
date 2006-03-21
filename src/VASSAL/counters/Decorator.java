@@ -77,6 +77,9 @@ public abstract class Decorator implements GamePiece, StateMergeable {
     else if (Properties.OUTER.equals(key)) {
       return dec;
     }
+    else if (Properties.VISIBLE_STATE.equals(key)) {
+      return myGetState()+piece.getProperty(key);
+    }
     else {
       return piece.getProperty(key);
     }

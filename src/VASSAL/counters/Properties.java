@@ -112,4 +112,10 @@ public interface Properties {
    * @see FreeRotator
    */
   public static final String USE_UNROTATED_SHAPE = "useUnrotatedShape";
+  
+  /**
+   * Return a String representing the visible features of the piece.
+   * If this String changes value, then the piece should be refreshed
+   */
+  public static final String VISIBLE_STATE = "visibleState";
 }

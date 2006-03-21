@@ -132,6 +132,7 @@ public class GlobalProperty extends AbstractConfigurable implements ToolBarCompo
   }
 
   public void removeFrom(Buildable parent) {
+    propertyChangeSupport.firePropertyChange(getConfigureName(),propertyValue,null);
     propertyChangeSupport.removePropertyChangeListener(((GlobalPropertiesContainer)parent).getPropertyListener());
     GameModule.getGameModule().removeCommandEncoder(this);
     GameModule.getGameModule().getGameState().removeGameComponent(this);
