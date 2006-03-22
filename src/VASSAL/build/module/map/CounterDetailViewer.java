@@ -261,7 +261,6 @@ public class CounterDetailViewer extends AbstractConfigurable implements Drawabl
 
         if (isTextUnderCounters()) {
           String text = counterReportFormat.getText(piece);
-          int textWidth = g.getFontMetrics().stringWidth(text);
           int x = bounds.x - (int) (pieceBounds.x * graphicsZoom) + borderOffset;
           int y = bounds.y + bounds.height + 10;
           drawLabel(g, new Point(x, y), text, Labeler.CENTER, Labeler.CENTER);
@@ -334,7 +333,6 @@ public class CounterDetailViewer extends AbstractConfigurable implements Drawabl
     
     if (label != null) {
       Graphics2D g2d = ((Graphics2D) g);
-      int textWidth = g.getFontMetrics().stringWidth(label);
       g2d.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_OFF);
       Labeler.drawLabel(g, label, pt.x, pt.y, new Font("Dialog", Font.PLAIN, fontSize), hAlign, vAlign, fgColor,
           bgColor, fgColor);
@@ -405,7 +403,6 @@ public class CounterDetailViewer extends AbstractConfigurable implements Drawabl
         }
         else {
           if (currentPiece instanceof Stack) {
-            Stack s = (Stack) currentPiece;
             graphicsVisible = (!graphicsOptions.equals(NEVER) && !((Stack) currentPiece).isExpanded());
           }
           else {
@@ -1131,7 +1128,6 @@ public class CounterDetailViewer extends AbstractConfigurable implements Drawabl
   }
 
   public VisibilityCondition getAttributeVisibility(String name) {
-    VisibilityCondition cond = null;
     if (BORDER_WIDTH.equals(name)) {
       return new VisibilityCondition() {
         public boolean shouldBeVisible() {

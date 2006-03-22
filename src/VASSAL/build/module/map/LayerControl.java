@@ -70,7 +70,7 @@ public class LayerControl extends AbstractConfigurable {
     else if (command.equals(CMD_ENABLE)) {
       for (int i = 0; i < layers.length; i++) {
         try {
-          int l = Integer.parseInt(layers[i]);
+          Integer.parseInt(layers[i]);
           collection.setLayerEnabled(i, true);
         }
         catch (Exception e) {
@@ -81,7 +81,7 @@ public class LayerControl extends AbstractConfigurable {
     else if (command.equals(CMD_DISABLE)) {
       for (int i = 0; i < layers.length; i++) {
         try {
-          int l = Integer.parseInt(layers[i]);
+          Integer.parseInt(layers[i]);
           collection.setLayerEnabled(i, false);
         }
         catch (Exception e) {
@@ -92,7 +92,7 @@ public class LayerControl extends AbstractConfigurable {
     else if (command.equals(CMD_TOGGLE)) {
       for (int i = 0; i < layers.length; i++) {
         try {
-          int l = Integer.parseInt(layers[i]);
+          Integer.parseInt(layers[i]);
           collection.toggleLayerEnabled(i);
         }
         catch (Exception e) {

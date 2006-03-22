@@ -96,7 +96,6 @@ public class MedianCut {
        int i, median, color;
        int count;
        int k, level, ncubes, splitpos;
-       int num, width;
        int longdim=0;  //longest dimension of cube
        Cube cube, cubeA, cubeB;
        

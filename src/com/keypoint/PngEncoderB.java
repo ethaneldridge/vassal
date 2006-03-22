@@ -148,7 +148,6 @@ public class PngEncoderB extends PngEncoder
     public byte[] pngEncode( boolean encodeAlpha )
     {
         byte[]  pngIdBytes = { -119, 80, 78, 71, 13, 10, 26, 10 };
-        int     i;
 
         if (image == null)
         {
@@ -157,7 +156,6 @@ public class PngEncoderB extends PngEncoder
         }
         width = image.getWidth( null );
         height = image.getHeight( null );
-        this.image = image;
 
         if (!establishStorageInfo())
         {
