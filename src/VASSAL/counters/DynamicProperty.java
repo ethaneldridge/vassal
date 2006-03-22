@@ -25,6 +25,7 @@ import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.io.File;
 import java.net.MalformedURLException;
+import java.util.Arrays;
 
 import javax.swing.Box;
 import javax.swing.KeyStroke;
@@ -250,6 +251,7 @@ public class DynamicProperty extends Decorator implements EditablePiece, Propert
           return new DynamicKeyCommandConfigurer(m);
         }
       };
+      keyCommandListConfig.setValue(Arrays.asList(m.keyCommands));
       PropertyChangeListener l = new PropertyChangeListener() {
         public void propertyChange(PropertyChangeEvent evt) {
           boolean isNumeric = numericConfig.booleanValue().booleanValue();
@@ -351,6 +353,18 @@ public class DynamicProperty extends Decorator implements EditablePiece, Propert
       se.append(commandConfig.getValueString()).append(keyConfig.getValueString()).append(propChangeConfig.getValueString());
       return se.getValue();
     }
+    
+    public void setValue(Object value) {
+      if (!noUpdate
+          && value instanceof DynamicKeyCommand
+          && commandConfig != null) {
+        DynamicKeyCommand dkc = (DynamicKeyCommand) value;
+        commandConfig.setValue(dkc.getName());
+        keyConfig.setValue(dkc.getKeyStroke());
+        propChangeConfig.setValue(dkc.propChanger);
+      }
+      super.setValue(value);
+    }
 
     public DynamicKeyCommand getKeyCommand() {
       return (DynamicKeyCommand) getValue();
@@ -372,7 +386,9 @@ public class DynamicProperty extends Decorator implements EditablePiece, Propert
     }
 
     protected void updateValue() {
+      noUpdate = true;
       setValue(new DynamicKeyCommand(commandConfig.getValueString(), (KeyStroke) keyConfig.getValue(), target, propChangeConfig.getPropertyChanger()));
+      noUpdate = false;
     }
 
     protected void buildControls() {

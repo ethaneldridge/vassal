@@ -184,7 +184,9 @@ public class ReportState extends Decorator implements EditablePiece {
           }
           format.setFormat(theFormat);
 
-          String reportText = format.getText(outer);
+          OldAndNewPieceProperties properties = new OldAndNewPieceProperties(oldPiece,outer);
+
+          String reportText = format.getText(properties);
 
           if (getMap() != null) {
             format.setFormat(getMap().getChangeFormat());
@@ -193,10 +195,10 @@ public class ReportState extends Decorator implements EditablePiece {
             format.setFormat(oldMap.getChangeFormat());
           }
           else {
-            format.setFormat("");
+            format.setFormat("$"+Map.MESSAGE+"$");
           }
           format.setProperty(Map.MESSAGE, reportText);
-          reportText = format.getText(new OldAndNewPieceProperties(oldPiece,outer));
+          reportText = format.getText(properties);
 
           if (reportText.length() > 0) {
             Command display = new Chatter.DisplayText(GameModule.getGameModule().getChatter(), "* " + reportText);
