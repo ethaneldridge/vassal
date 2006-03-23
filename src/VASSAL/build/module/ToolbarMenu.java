@@ -7,6 +7,8 @@ import java.awt.event.ContainerEvent;
 import java.awt.event.ContainerListener;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
+import java.io.File;
+import java.net.MalformedURLException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -113,7 +115,14 @@ public class ToolbarMenu extends AbstractConfigurable implements ContainerListen
   }
 
   public HelpFile getHelpFile() {
-    return null;
+    File dir = VASSAL.build.module.Documentation.getDocumentationBaseDir();
+    dir = new File(dir, "ReferenceManual");
+    try {
+      return new HelpFile(null, new File(dir, "ToolbarMenu.htm"));
+    }
+    catch (MalformedURLException ex) {
+      return null;
+    }
   }
 
   public static String getConfigureTypeName() {

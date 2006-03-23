@@ -3,6 +3,8 @@ package VASSAL.build.module.properties;
 import java.awt.Component;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.io.File;
+import java.net.MalformedURLException;
 
 import javax.swing.Icon;
 import javax.swing.KeyStroke;
@@ -141,7 +143,14 @@ public class ChangePropertyButton extends AbstractConfigurable implements Proper
   }
 
   public HelpFile getHelpFile() {
-    return null;
+    File dir = VASSAL.build.module.Documentation.getDocumentationBaseDir();
+    dir = new File(dir, "ReferenceManual");
+    try {
+      return new HelpFile(null, new File(dir, "GlobalProperties.htm"),"ChangePropertyToolbarButton");
+    }
+    catch (MalformedURLException ex) {
+      return null;
+    }
   }
 
   public Class[] getAllowableConfigureComponents() {
