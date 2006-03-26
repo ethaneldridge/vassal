@@ -1625,7 +1625,7 @@ public class Map extends AbstractConfigurable implements GameComponent,
    */
   public Command placeOrMerge(final GamePiece p, final Point pt) {
     Command c = apply(new DeckVisitorDispatcher(new Merger(this, pt, p)));
-    if (c == null) {
+    if (c == null || c.isNull()) {
       c = placeAt(p, pt);
     }
     return c;

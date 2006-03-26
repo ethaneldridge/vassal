@@ -77,6 +77,16 @@ public interface PieceFinder {
     protected Map map;
     protected Point pt;
     protected DeckVisitorDispatcher dispatcher = new DeckVisitorDispatcher(this);
+    
+    // This constructor is safe only if using the PieceFinder.select() method
+    public Movable() {
+      this(null,null);
+    }
+    
+    public Movable(Map map, Point pt) {
+      this.map = map;
+      this.pt = pt;
+    }
 
     public Object visitDeck(Deck d) {
       return null;

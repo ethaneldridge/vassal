@@ -29,7 +29,7 @@ public interface PieceCollection {
   void moveToFront(GamePiece p);
   /** Reposition a piece to the back of all others in the same layer*/
   void moveToBack(GamePiece p);
-  /** Return all pieces in the collection as a read-only array */
+  /** Return all currently-visible pieces in the collection as a read-only array */
   GamePiece[] getPieces();
   /** Return all pieces in the collection, regardless of visibility */
   GamePiece[] getAllPieces();

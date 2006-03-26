@@ -383,7 +383,6 @@ public class ReportState extends Decorator implements EditablePiece {
         String name = key.toString();
         if (name.startsWith("old") && name.length() >= 4) {
           name = name.substring(3);
-          name = Character.toLowerCase(name.charAt(0)) + name.substring(1);
           value = oldPiece.getProperty(name);
         }
         else {

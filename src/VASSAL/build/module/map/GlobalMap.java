@@ -36,6 +36,7 @@ import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.io.File;
 import java.net.MalformedURLException;
+import java.util.List;
 
 import javax.swing.BorderFactory;
 import javax.swing.JComponent;
@@ -440,19 +441,21 @@ public class GlobalMap extends JPanel implements AutoConfigurable, GameComponent
         this.draw(g, currentMousePosition.getPoint(), GlobalMap.this);
       }
     }
-
-    protected GamePiece findPieceAtMousePosition() {
+    
+    protected List getDisplayablePieces() {
       Point oldPoint = currentMousePosition.getPoint();
       Point mapPoint = GlobalMap.this.map.componentCoordinates(mapCoordinates(oldPoint));
 
       currentMousePosition.translatePoint(mapPoint.x - oldPoint.x, mapPoint.y - oldPoint.y);
-      GamePiece p = super.findPieceAtMousePosition();
+      List l = super.getDisplayablePieces();
       currentMousePosition.translatePoint(oldPoint.x - mapPoint.x, oldPoint.y - mapPoint.y);
-      return p;
-    }
+      return l;
+   }
 
-    protected boolean shouldBeVisible() {
-      return currentPiece != null && !Boolean.TRUE.equals(currentPiece.getProperty(Properties.TERRAIN));
+   protected boolean shouldBeVisible() {
+      // FIXME
+      return true;
+//      return currentPiece != null && !Boolean.TRUE.equals(currentPiece.getProperty(Properties.TERRAIN));
     }
   }
 

@@ -19,12 +19,14 @@
 package VASSAL.counters;
 
 import java.awt.Component;
+import java.awt.Point;
 import java.awt.Shape;
 import java.awt.event.InputEvent;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.io.File;
 import java.net.MalformedURLException;
+import java.util.ArrayList;
 import java.util.Arrays;
 
 import javax.swing.Box;
@@ -159,14 +161,37 @@ public class DynamicProperty extends Decorator implements EditablePiece, Propert
   public void setValue(String value) {
     Stack parent = getParent();
     Map map = getMap();
-    this.value = value;
     // If the property has changed the layer to which this piece belongs,
     // re-insert it into the map
     if (map != null) {
       GamePiece outer = Decorator.getOutermost(this);
-      if (parent == null || !map.getPieceCollection().canMerge(parent, outer)) {
-        map.placeOrMerge(outer, getPosition());
+      if (parent == null) {
+        Point pos = getPosition();
+        map.removePiece(outer);
+        this.value = value;
+        map.placeOrMerge(outer, pos);
       }
+      else {
+        GamePiece other = parent.getPieceBeneath(outer);
+        if (other == null) {
+          other = parent.getPieceAbove(outer);
+        }
+        if (other == null) {
+          Point pos = parent.getPosition();
+          map.removePiece(parent);
+          this.value = value;
+          map.placeOrMerge(parent,pos);
+        }
+        else {
+          this.value = value;
+          if (!map.getPieceCollection().canMerge(other, outer)) {
+            map.placeOrMerge(outer, parent.getPosition());
+          }
+        }
+      }
+    }
+    else {
+      this.value = value;
     }
   }
 
@@ -251,7 +276,7 @@ public class DynamicProperty extends Decorator implements EditablePiece, Propert
           return new DynamicKeyCommandConfigurer(m);
         }
       };
-      keyCommandListConfig.setValue(Arrays.asList(m.keyCommands));
+      keyCommandListConfig.setValue(new ArrayList(Arrays.asList(m.keyCommands)));
       PropertyChangeListener l = new PropertyChangeListener() {
         public void propertyChange(PropertyChangeEvent evt) {
           boolean isNumeric = numericConfig.booleanValue().booleanValue();
@@ -330,10 +355,10 @@ public class DynamicProperty extends Decorator implements EditablePiece, Propert
     protected DynamicProperty target;
 
     public DynamicKeyCommandConfigurer(DynamicProperty target) {
-      super(target.getKey(), target.getKey(), new DynamicKeyCommand("Change value", KeyStroke.getKeyStroke('V',InputEvent.CTRL_MASK), target,
+      super(target.getKey(), target.getKey(), new DynamicKeyCommand("Change value", KeyStroke.getKeyStroke('V', InputEvent.CTRL_MASK), target,
           new PropertyPrompt(target, "Change value of " + target.getKey())));
-      commandConfig = new StringConfigurer(null, "Menu Command:  ","Change value");
-      keyConfig = new HotKeyConfigurer(null, "Key Command:  ",KeyStroke.getKeyStroke('V',InputEvent.CTRL_MASK));
+      commandConfig = new StringConfigurer(null, "Menu Command:  ", "Change value");
+      keyConfig = new HotKeyConfigurer(null, "Key Command:  ", KeyStroke.getKeyStroke('V', InputEvent.CTRL_MASK));
       propChangeConfig = new PropertyChangerConfigurer(null, "Action:  ", target);
       propChangeConfig.setValue(new PropertyPrompt(target, "Change value of " + target.getKey()));
 
@@ -353,11 +378,9 @@ public class DynamicProperty extends Decorator implements EditablePiece, Propert
       se.append(commandConfig.getValueString()).append(keyConfig.getValueString()).append(propChangeConfig.getValueString());
       return se.getValue();
     }
-    
+
     public void setValue(Object value) {
-      if (!noUpdate
-          && value instanceof DynamicKeyCommand
-          && commandConfig != null) {
+      if (!noUpdate && value instanceof DynamicKeyCommand && commandConfig != null) {
         DynamicKeyCommand dkc = (DynamicKeyCommand) value;
         commandConfig.setValue(dkc.getName());
         keyConfig.setValue(dkc.getKeyStroke());

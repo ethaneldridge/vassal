@@ -137,9 +137,8 @@ public abstract class ListConfigurer extends Configurer implements PropertyChang
         JButton delButton = new JButton("Remove");
         delButton.addActionListener(new ActionListener() {
           public void actionPerformed(ActionEvent e) {
-            controls.remove(b);
-            configurers.remove(c);
-            updateValue();
+            getListValue().remove(c.getValue());
+            updateControls();
             repack();
           }
         });

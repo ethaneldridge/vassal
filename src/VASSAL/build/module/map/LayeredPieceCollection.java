@@ -18,17 +18,24 @@
  */
 package VASSAL.build.module.map;
 
+import java.io.File;
+import java.net.MalformedURLException;
+import java.util.Enumeration;
+
+import javax.swing.JToolBar;
+
 import VASSAL.build.AbstractConfigurable;
 import VASSAL.build.Buildable;
 import VASSAL.build.module.Map;
 import VASSAL.build.module.documentation.HelpFile;
 import VASSAL.configure.SingleChildInstance;
 import VASSAL.configure.StringArrayConfigurer;
-import VASSAL.counters.*;
-
-import java.io.File;
-import java.net.MalformedURLException;
-import java.util.Enumeration;
+import VASSAL.counters.Deck;
+import VASSAL.counters.DeckVisitor;
+import VASSAL.counters.DeckVisitorDispatcher;
+import VASSAL.counters.GamePiece;
+import VASSAL.counters.Stack;
+import VASSAL.tools.TemporaryToolBar;
 
 /**
  * Defines PieceCollection in which pieces are assigned to an arbitrary number of layers
@@ -39,6 +46,7 @@ public class LayeredPieceCollection extends AbstractConfigurable {
   public static final String LAYER_ORDER="layerOrder";
   protected Collection collection = new Collection("Layer", new String[0]);
   protected Map map;
+  protected TemporaryToolBar tempToolBar;
 
   public String[] getAttributeDescriptions() {
     return new String[]{"Property name for layer","Layer Order"};
@@ -77,28 +85,25 @@ public class LayeredPieceCollection extends AbstractConfigurable {
     }
   }
 
-  public void add(Buildable b) {
-    super.add(b);
-    if (map != null && b instanceof LayerControl) {
-      addControl((LayerControl) b);
-    }
-  }
-  
   public void addTo(Buildable parent) {
     map = (Map)parent;
     validator = new SingleChildInstance(map,getClass());
     map.setPieceCollection(collection);
-    Enumeration e = this.getComponents(LayerControl.class); 
-    while (e.hasMoreElements()) {
-      addControl((LayerControl) e.nextElement());
+    if (tempToolBar != null) {
+      tempToolBar.setDelegate(map);
     }
   }
-
-  protected void addControl(LayerControl lc) {
-    map.getToolBar().add(lc.getLaunchButton());
-    lc.setMap(map);
-  }
   
+  public JToolBar getToolBar() {
+    if (tempToolBar == null) {
+      tempToolBar = new TemporaryToolBar();
+      if (map != null) {
+        tempToolBar.setDelegate(map);
+      }
+    }
+    return tempToolBar.getToolBar();
+  }
+
   public Class[] getAllowableConfigureComponents() {
     return new Class[] { LayerControl.class };
   }
@@ -107,7 +112,7 @@ public class LayeredPieceCollection extends AbstractConfigurable {
     File dir = VASSAL.build.module.Documentation.getDocumentationBaseDir();
     dir = new File(dir, "ReferenceManual");
     try {
-      return new HelpFile(null, new File(dir, "Map.htm"), "#GamePieceLayers");
+      return new HelpFile(null, new File(dir, "GamePieceLayers.htm"));
     }
     catch (MalformedURLException ex) {
       return null;
@@ -128,6 +133,10 @@ public class LayeredPieceCollection extends AbstractConfigurable {
   
   public Map getMap() {
     return map;
+  }
+
+  public CompoundPieceCollection getPieceCollection() {
+    return collection;
   }
 
   /** The PieceCollection class used by the map to which a LayeredPieceCollection has been added */

@@ -2,6 +2,8 @@ package VASSAL.build.module.map;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.io.File;
+import java.net.MalformedURLException;
 
 import javax.swing.Icon;
 import javax.swing.KeyStroke;
@@ -34,7 +36,7 @@ public class LayerControl extends AbstractConfigurable {
   public static final String CMD_ROTATE_UP = "Rotate Layer Order Up";
   public static final String CMD_ROTATE_DN = "Rotate Layer Order Down";
   public static final String CMD_ENABLE = "Make Layer Active";
-  public static final String CMD_DISABLE = "Make Layer InActive";
+  public static final String CMD_DISABLE = "Make Layer Inactive";
   public static final String CMD_TOGGLE = "Switch Layer between Active and Inactive";
   public static final String CMD_RESET = "Reset All Layers";
 
@@ -42,8 +44,9 @@ public class LayerControl extends AbstractConfigurable {
   protected static final String[] COMMANDS = new String[] {CMD_ROTATE_UP, CMD_ROTATE_DN, CMD_RESET, CMD_ENABLE, CMD_DISABLE, CMD_TOGGLE};
   protected String command = CMD_RESET;
   protected boolean skip = true;
-  protected Map map;
   protected String[] layers = new String[0];
+  protected LayeredPieceCollection pieceLayers;
+  protected CompoundPieceCollection pieceCollection;
 
   public LayerControl() {
     launch = new LaunchButton("Reset Layers", BUTTON_TEXT, BUTTON_HOTKEY, BUTTON_ICON, new ActionListener() {
@@ -54,27 +57,23 @@ public class LayerControl extends AbstractConfigurable {
   }
 
   public void launch() {
-    if (map != null && ! (map.getPieceCollection() instanceof CompoundPieceCollection)) {
-      return;
-    }
-    CompoundPieceCollection collection = (CompoundPieceCollection) map.getPieceCollection();
     if (command.equals(CMD_RESET)) {
-      collection.reset();
+      pieceCollection.reset();
     }
     else if (command.equals(CMD_ROTATE_UP)) {
-      collection.rotate(true, skip);
+      pieceCollection.rotate(true, skip);
     }
     else if (command.equals(CMD_ROTATE_DN)) {
-      collection.rotate(false, skip); 
+      pieceCollection.rotate(false, skip); 
     }
     else if (command.equals(CMD_ENABLE)) {
       for (int i = 0; i < layers.length; i++) {
         try {
           Integer.parseInt(layers[i]);
-          collection.setLayerEnabled(i, true);
+          pieceCollection.setLayerEnabled(i, true);
         }
         catch (Exception e) {
-          collection.setLayerEnabled(layers[i], true);
+          pieceCollection.setLayerEnabled(layers[i], true);
         }
       }
     }
@@ -82,10 +81,10 @@ public class LayerControl extends AbstractConfigurable {
       for (int i = 0; i < layers.length; i++) {
         try {
           Integer.parseInt(layers[i]);
-          collection.setLayerEnabled(i, false);
+          pieceCollection.setLayerEnabled(i, false);
         }
         catch (Exception e) {
-          collection.setLayerEnabled(layers[i], false);
+          pieceCollection.setLayerEnabled(layers[i], false);
         }
       }
     }
@@ -93,27 +92,23 @@ public class LayerControl extends AbstractConfigurable {
       for (int i = 0; i < layers.length; i++) {
         try {
           Integer.parseInt(layers[i]);
-          collection.toggleLayerEnabled(i);
+          pieceCollection.toggleLayerEnabled(i);
         }
         catch (Exception e) {
-          collection.toggleLayerEnabled(layers[i]);
+          pieceCollection.toggleLayerEnabled(layers[i]);
         }
       }
     }
     else {
       return;
     }
-    map.repaint();
+    getMap().repaint();
   }
 
   public LaunchButton getLaunchButton() {
     return launch;
   }
 
-  public void setMap (Map m) {
-    map = m;
-  }
-  
   public String[] getAttributeDescriptions() {
     return new String[] {"Button text", "Button Icon", "Hotkey", "Action", "Skip layers with no counters?", "Affect which layers? (Use layer names or numbers)"};
   }
@@ -189,7 +184,13 @@ public class LayerControl extends AbstractConfigurable {
   }
   
   public void addTo(Buildable parent) {
+    pieceLayers = (LayeredPieceCollection) parent;
+    pieceLayers.getToolBar().add(launch);
+    pieceCollection = pieceLayers.getPieceCollection();
+  }
 
+  public Map getMap() {
+    return pieceLayers.getMap();
   }
 
   public Class[] getAllowableConfigureComponents() {
@@ -197,7 +198,14 @@ public class LayerControl extends AbstractConfigurable {
   }
 
   public HelpFile getHelpFile() {
-    return null;
+    File dir = VASSAL.build.module.Documentation.getDocumentationBaseDir();
+    dir = new File(dir, "ReferenceManual");
+    try {
+      return new HelpFile(null, new File(dir, "GamePieceLayers.htm"));
+    }
+    catch (MalformedURLException ex) {
+      return null;
+    }
   }
 
   public static String getConfigureTypeName() {
@@ -205,8 +213,8 @@ public class LayerControl extends AbstractConfigurable {
   }
 
   public void removeFrom(Buildable parent) {
-    if (map != null) {
-      map.getToolBar().remove(launch);
+    if (getMap() != null) {
+      getMap().getToolBar().remove(launch);
     }
   }
 
