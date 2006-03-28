@@ -37,8 +37,6 @@ import java.net.MalformedURLException;
 import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.List;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import javax.swing.JComponent;
 import javax.swing.KeyStroke;
@@ -51,6 +49,7 @@ import VASSAL.build.module.Map;
 import VASSAL.build.module.documentation.HelpFile;
 import VASSAL.build.module.map.boardPicker.Board;
 import VASSAL.build.module.map.boardPicker.board.mapgrid.Zone;
+import VASSAL.build.module.properties.SumProperties;
 import VASSAL.configure.BooleanConfigurer;
 import VASSAL.configure.ColorConfigurer;
 import VASSAL.configure.Configurer;
@@ -144,7 +143,7 @@ public class CounterDetailViewer extends AbstractConfigurable implements Drawabl
   protected boolean showNoStack = false;
   protected String displayWhat = TOP_LAYER;
   protected String[] displayLayers = new String[0];
-  protected SummingFormattedString summaryReportFormat = new SummingFormattedString("$" + BasicPiece.LOCATION_NAME + "$");
+  protected FormattedString summaryReportFormat = new FormattedString("$" + BasicPiece.LOCATION_NAME + "$");
   protected FormattedString counterReportFormat = new FormattedString("");
   protected FormattedString emptyHexReportFormat = new FormattedString("$" + BasicPiece.LOCATION_NAME + "$");
   protected String version = "";
@@ -156,9 +155,7 @@ public class CounterDetailViewer extends AbstractConfigurable implements Drawabl
 
   protected Rectangle bounds;
   protected boolean mouseInView = true;
-  protected int[] sumPropertyTotals = new int[0];
   protected List displayablePieces = null;
-  protected boolean emptyHex = false;
 
   public CounterDetailViewer() {
   }
@@ -236,10 +233,10 @@ public class CounterDetailViewer extends AbstractConfigurable implements Drawabl
         bounds.y = minY;
 
       g.setColor(bgColor);
-      g.fillRect(bounds.x - 1, bounds.y - 1, bounds.width + 2, bounds.height + 2);
+      g.fillRect(bounds.x, bounds.y, bounds.width, bounds.height);
       g.setColor(fgColor);
+      g.drawRect(bounds.x - 1, bounds.y - 1, bounds.width + 1, bounds.height + 1);
       g.drawRect(bounds.x - 2, bounds.y - 2, bounds.width + 3, bounds.height + 3);
-      g.drawRect(bounds.x - 3, bounds.y - 3, bounds.width + 5, bounds.height + 5);
       Shape oldClip = g.getClip();
 
       int borderOffset = borderWidth;
@@ -292,7 +289,7 @@ public class CounterDetailViewer extends AbstractConfigurable implements Drawabl
     int x = (int) ((bounds.x - bounds.width));
     int y = (int) (bounds.y) - 5;
 
-    if (emptyHex || displayablePieces.size() == 0) {
+    if (displayablePieces.size() == 0) {
       Point mapPt = map.mapCoordinates(currentMousePosition.getPoint());
       Point snapPt = map.snapTo(mapPt);
       String locationName = map.locationName(snapPt);
@@ -311,7 +308,7 @@ public class CounterDetailViewer extends AbstractConfigurable implements Drawabl
       GamePiece topPiece = (GamePiece) displayablePieces.get(0);
       String locationName = (String) topPiece.getProperty(BasicPiece.LOCATION_NAME);
       emptyHexReportFormat.setProperty(BasicPiece.LOCATION_NAME, locationName.equals("offboard") ? "" : locationName);
-      report = summaryReportFormat.getText(topPiece, sumPropertyTotals);
+      report = summaryReportFormat.getText(new SumProperties(displayablePieces));
       x += borderWidth * pieces.size() + 2;
     }
 
@@ -371,16 +368,13 @@ public class CounterDetailViewer extends AbstractConfigurable implements Drawabl
       if (displayablePieces.size() > 0) {
         graphicsVisible = map.getZoom() < zoomLevel;
         textVisible = map.getZoom() < zoomLevel && (summaryReportFormat.getFormat().length() > 0 || counterReportFormat.getFormat().length() > 0);
-        emptyHex = false;
       }
       else {
         textVisible = (minimumDisplayablePieces==0 && emptyHexReportFormat.getFormat().length() > 0);
         graphicsVisible = false;
-        emptyHex = true;
       }
     }
     else {
-      emptyHex = displayablePieces.size() == 0;
       graphicsVisible = drawPieces;
       textVisible = showText && (summaryReportFormat.getFormat().length() > 0 || counterReportFormat.getFormat().length() > 0);
     }
@@ -395,7 +389,7 @@ public class CounterDetailViewer extends AbstractConfigurable implements Drawabl
 
     GamePiece[] allPieces = map.getPieces(); // All pieces from bottom up
 
-    Visitor visitor = new Visitor(new Filter(), summaryReportFormat.getSummingPropertyNames(), map, map.mapCoordinates(currentMousePosition.getPoint()));
+    Visitor visitor = new Visitor(new Filter(), map, map.mapCoordinates(currentMousePosition.getPoint()));
     DeckVisitorDispatcher dispatcher = new DeckVisitorDispatcher(visitor);
 
     /*
@@ -405,8 +399,6 @@ public class CounterDetailViewer extends AbstractConfigurable implements Drawabl
     for (int i = allPieces.length - 1; i >= 0; i--) {
       dispatcher.accept(allPieces[i]);
     }
-
-    sumPropertyTotals = visitor.getPropertyTotals();
 
     return visitor.getPieces();
   }
@@ -500,28 +492,18 @@ public class CounterDetailViewer extends AbstractConfigurable implements Drawabl
   protected static class Visitor extends PieceFinder.Movable {
     protected ArrayList pieces;
     protected Filter filter = null;
-    protected String[] sumPropertyNames;
-    protected int[] sumPropertyTotals;
     protected CompoundPieceCollection collection;
     protected int lastLayer = -1;
     protected int insertPos = 0;
     protected Point foundPieceAt;
 
-    public Visitor(Filter filter, String[] propertyNames, Map map, Point pt) {
+    public Visitor(Filter filter, Map map, Point pt) {
       super(map,pt);
       if (map.getPieceCollection() instanceof CompoundPieceCollection) {
         collection = (CompoundPieceCollection) map.getPieceCollection();
       }
       pieces = new ArrayList();
       this.filter = filter;
-      if (propertyNames == null) {
-        sumPropertyNames = new String[0];
-        sumPropertyTotals = new int[0];
-      }
-      else {
-        sumPropertyNames = propertyNames;
-        sumPropertyTotals = new int[propertyNames.length];
-      }
     }
 
     public Object visitDeck(Deck d) {
@@ -558,8 +540,7 @@ public class CounterDetailViewer extends AbstractConfigurable implements Drawabl
 
     /*
      * Insert accepted pieces into the start of the array since we are being
-     * passed pieces from the top down. Sum any required property values as we
-     * go.
+     * passed pieces from the top down.
      */
     protected void apply(GamePiece p) {
 
@@ -581,25 +562,11 @@ public class CounterDetailViewer extends AbstractConfigurable implements Drawabl
         }
 
         pieces.add(insertPos++, p);
-        for (int i = 0; i < sumPropertyNames.length; i++) {
-          try {
-            String property = (String) p.getProperty(sumPropertyNames[i]);
-            if (property != null) {
-              sumPropertyTotals[i] += Integer.parseInt(property);
-            }
-          }
-          catch (NumberFormatException ex) {
-          }
-        }
       }
     }
 
     public List getPieces() {
       return pieces;
-    }
-
-    public int[] getPropertyTotals() {
-      return sumPropertyTotals;
     }
 
   }
@@ -735,14 +702,14 @@ public class CounterDetailViewer extends AbstractConfigurable implements Drawabl
 
         "Background color:  ","Border/text color:  ", 
 
-        "Display when at least this many pieces will be shown:  ", "Always display when zoom level less than:  ","Draw pieces?", "Draw pieces using zoom factor:  ","Display unit graphics for single counter?", // Obsolete
+        "Display when at least this many pieces will be included:  ", "Always display when zoom level less than:  ","Draw pieces?", "Draw pieces using zoom factor:  ","Display unit graphics for single counter?", // Obsolete
         "Width of gap between pieces:  ",
 
         "Display text?", "Display text report for single counter?",// Obsolete
         "Font size:  ", "Summary text above pieces:  ", "Text below each piece:  ","Text for empty location:  ",
 
-        "Display individual pieces:  ", "Listed layers",
-        "Piece selection property filter:  ","Display non-stacking pieces (if movable)?", "Display top piece in Deck?"};
+        "Include individual pieces:  ", "Listed layers",
+        "Piece selection property filter:  ","Include non-stacking pieces (if movable)?", "Include top piece in Deck?"};
 
   }
 
@@ -1082,65 +1049,6 @@ public class CounterDetailViewer extends AbstractConfigurable implements Drawabl
       };
     }
     return null;
-  }
-
-  /*
-   * Enhanced FormattedString class to support summing properties accross a
-   * number of counters using format $sum(property_name)$
-   */
-  protected class SummingFormattedString extends FormattedString {
-
-    protected String[] summingPropertyNames;
-    protected int[] summingTotals;
-
-    public SummingFormattedString(String format) {
-      setFormat(format);
-    }
-
-    public void setFormat(String format) {
-      ArrayList names = new ArrayList();
-
-      Pattern pattern = Pattern.compile("\\$sum\\(.*?\\)\\$");
-      Matcher matcher = pattern.matcher(format);
-
-      while (matcher.find()) {
-        int start = matcher.start();
-        int end = matcher.end();
-        String sum = format.substring(start, end);
-        names.add(sum.substring(5, sum.length() - 2));
-      }
-
-      if (names.size() == 0) {
-        summingPropertyNames = new String[0];
-        summingTotals = new int[0];
-      }
-      else {
-        summingPropertyNames = (String[]) names.toArray(summingPropertyNames);
-        summingTotals = new int[names.size()];
-      }
-
-      super.setFormat(format);
-    }
-
-    public String getText(GamePiece piece, int[] totals) {
-      String format = getFormat();
-      String origFormat = format;
-
-      for (int i = 0; i < summingPropertyNames.length; i++) {
-        format = format.replaceAll("\\$sum\\(" + summingPropertyNames[i] + "\\)\\$", String.valueOf(totals[i]));
-      }
-      setFormat(format);
-
-      String result = super.getText(piece);
-
-      setFormat(origFormat);
-      return result;
-    }
-
-    public String[] getSummingPropertyNames() {
-      return summingPropertyNames;
-    }
-
   }
 
 }
