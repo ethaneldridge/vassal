@@ -37,7 +37,6 @@ import javax.swing.JPanel;
 import javax.swing.JTextField;
 import javax.swing.KeyStroke;
 
-import VASSAL.Info;
 import VASSAL.build.GameModule;
 import VASSAL.build.module.PlayerRoster;
 import VASSAL.build.module.documentation.HelpFile;

@@ -29,7 +29,6 @@ import java.util.Enumeration;
 import java.util.Iterator;
 import java.util.List;
 
-import VASSAL.Info;
 import VASSAL.build.GameModule;
 import VASSAL.build.module.Map;
 import VASSAL.build.module.map.StackMetrics;

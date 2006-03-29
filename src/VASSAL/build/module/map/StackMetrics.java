@@ -35,7 +35,6 @@ import java.util.Iterator;
 
 import javax.swing.KeyStroke;
 
-import VASSAL.Info;
 import VASSAL.build.AbstractConfigurable;
 import VASSAL.build.Buildable;
 import VASSAL.build.GameModule;

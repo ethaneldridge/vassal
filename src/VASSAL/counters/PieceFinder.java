@@ -22,7 +22,6 @@ import java.awt.Point;
 import java.awt.Shape;
 import java.util.Enumeration;
 
-import VASSAL.Info;
 import VASSAL.build.module.Map;
 
 /**

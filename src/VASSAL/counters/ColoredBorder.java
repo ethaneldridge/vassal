@@ -28,8 +28,6 @@ import java.awt.Shape;
 import java.awt.Stroke;
 import java.awt.geom.AffineTransform;
 
-import VASSAL.Info;
-
 public class ColoredBorder implements Highlighter {
   private Color c;
   private int thickness;
