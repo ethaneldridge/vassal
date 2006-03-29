@@ -88,7 +88,6 @@ public class Hideable extends Decorator implements EditablePiece {
     }
   }
 
-
   public Hideable() {
     this(ID + "I", null);
   }
@@ -123,13 +122,10 @@ public class Hideable extends Decorator implements EditablePiece {
 
   public String myGetType() {
     SequenceEncoder se = new SequenceEncoder(';');
-    se.append(hideKey)
-        .append(command)
-        .append(bgColor)
-        .append(encodeAccess());
+    se.append(hideKey).append(command).append(bgColor).append(encodeAccess());
     return ID + se.getValue();
   }
-  
+
   protected String encodeAccess() {
     return access instanceof SideAccess ? SideAccess.ID : PlayerAccess.ID;
   }
@@ -139,13 +135,11 @@ public class Hideable extends Decorator implements EditablePiece {
   }
 
   public boolean invisibleToMe() {
-    return hiddenBy != null
-        && (allHidden || !hiddenBy.equals(access.getId()));
+    return hiddenBy != null && (allHidden || !hiddenBy.equals(access.getId()));
   }
 
   public boolean invisibleToOthers() {
-    return hiddenBy != null
-        && (allHidden || hiddenBy.equals(access.getId()));
+    return hiddenBy != null && (allHidden || hiddenBy.equals(access.getId()));
   }
 
   public Shape getShape() {
@@ -172,21 +166,11 @@ public class Hideable extends Decorator implements EditablePiece {
     }
     else if (invisibleToOthers()) {
       if (bgColor != null) {
-        if (Info.is2dEnabled()) {
-          Graphics2D g2d = (Graphics2D) g;
-          g.setColor(bgColor);
-          AffineTransform t = AffineTransform.getScaleInstance(zoom, zoom);
-          t.translate(x / zoom, y / zoom);
-          g2d.fill(t.createTransformedShape(piece.getShape()));
-        }
-        else {
-          Rectangle r = (Rectangle) piece.getShape();
-          g.setColor(bgColor);
-          g.fillRect(x + (int) (zoom * r.x),
-                     y + (int) (zoom * r.y),
-                     (int) (zoom * r.width),
-                     (int) (zoom * r.height));
-        }
+        Graphics2D g2d = (Graphics2D) g;
+        g.setColor(bgColor);
+        AffineTransform t = AffineTransform.getScaleInstance(zoom, zoom);
+        t.translate(x / zoom, y / zoom);
+        g2d.fill(t.createTransformedShape(piece.getShape()));
       }
       if (g instanceof Graphics2D) {
         Graphics2D g2d = (Graphics2D) g;
@@ -215,14 +199,14 @@ public class Hideable extends Decorator implements EditablePiece {
 
   public KeyCommand[] myGetKeyCommands() {
     if (commands == null) {
-      hideCommand = new KeyCommand(command,hideKey, Decorator.getOutermost(this));
+      hideCommand = new KeyCommand(command, hideKey, Decorator.getOutermost(this));
       if (command.length() > 0 && hideKey != null) {
-        commands =
-            new KeyCommand[]{hideCommand};
+        commands = new KeyCommand[] {hideCommand};
       }
       else {
         commands = new KeyCommand[0];
-      }   }
+      }
+    }
     return commands;
   }
 
@@ -263,6 +247,7 @@ public class Hideable extends Decorator implements EditablePiece {
   /**
    * If true, then all hidden pieces are considered invisible to all players.
    * Used to temporarily draw pieces as they appear to other players
+   * 
    * @param allHidden
    */
   public static void setAllHidden(boolean allHidden) {
@@ -295,8 +280,8 @@ public class Hideable extends Decorator implements EditablePiece {
 
       colorConfig = new ColorConfigurer(null, "Background color", p.bgColor);
       controls.add(colorConfig.getControls());
-      
-      accessConfig = new StringEnumConfigurer(null,"Piece is visible to ",new String[]{SIDE_ACCESS,PLAYER_ACCESS});
+
+      accessConfig = new StringEnumConfigurer(null, "Piece is visible to ", new String[] {SIDE_ACCESS, PLAYER_ACCESS});
       accessConfig.setValue(p.access instanceof PlayerAccess ? PLAYER_ACCESS : SIDE_ACCESS);
       controls.add(accessConfig.getControls());
     }
@@ -307,10 +292,9 @@ public class Hideable extends Decorator implements EditablePiece {
 
     public String getType() {
       SequenceEncoder se = new SequenceEncoder(';');
-      se.append((KeyStroke) hideKeyInput.getValue())
-          .append(hideCommandInput.getText())
-          .append(colorConfig.getValue() == null ? "" : colorConfig.getValueString())
-          .append(PLAYER_ACCESS.equals(accessConfig.getValue()) ? PlayerAccess.ID : SideAccess.ID);
+      se.append((KeyStroke) hideKeyInput.getValue()).append(hideCommandInput.getText()).append(
+          colorConfig.getValue() == null ? "" : colorConfig.getValueString()).append(
+          PLAYER_ACCESS.equals(accessConfig.getValue()) ? PlayerAccess.ID : SideAccess.ID);
       return ID + se.getValue();
     }
 
@@ -318,19 +302,21 @@ public class Hideable extends Decorator implements EditablePiece {
       return controls;
     }
   }
-  
+
   public static interface Access {
     // Return a String identifying the current player
     // Player can view the hidden piece if the id matches
     String getId();
   }
-  
+
   public static class PlayerAccess implements Access {
     public static String ID = "player";
     private static PlayerAccess instance;
+
     public String getId() {
       return GameModule.getUserId();
     }
+
     public static PlayerAccess getInstance() {
       if (instance == null) {
         instance = new PlayerAccess();
@@ -341,9 +327,11 @@ public class Hideable extends Decorator implements EditablePiece {
   public static class SideAccess implements Access {
     public static String ID = "side";
     private static SideAccess instance;
+
     public String getId() {
       return PlayerRoster.getMySide();
     }
+
     public static SideAccess getInstance() {
       if (instance == null) {
         instance = new SideAccess();

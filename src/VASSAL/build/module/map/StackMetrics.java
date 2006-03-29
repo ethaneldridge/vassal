@@ -349,7 +349,7 @@ public class StackMetrics extends AbstractConfigurable {
     if (blankColor == null) {
       p.draw(g, x, y, obs, zoom);
     }
-    else if (Info.is2dEnabled()) {
+    else {
       Graphics2D g2d = (Graphics2D) g;
       g.setColor(blankColor);
       Shape s = p.getShape();
@@ -359,15 +359,6 @@ public class StackMetrics extends AbstractConfigurable {
       g2d.fill(s);
       g.setColor(Color.black);
       g2d.draw(s);
-    }
-    else {
-      g.setColor(blankColor);
-      Rectangle r = p.getShape().getBounds();
-      r.setSize((int) (zoom * r.width), (int) (zoom * r.height));
-      r.setLocation(x - r.width / 2, y - r.height / 2);
-      g.fillRect(r.x, r.y, r.width, r.height);
-      g.setColor(Color.black);
-      g.drawRect(r.x, r.y, r.width, r.height);
     }
   }
 
@@ -443,14 +434,7 @@ public class StackMetrics extends AbstractConfigurable {
         }
         if (shapes != null) {
           Shape s = child.getShape();
-          if (Info.is2dEnabled()) {
-            s = AffineTransform.getTranslateInstance(nextPos.x,nextPos.y).createTransformedShape(s);
-          }
-          else {
-            Rectangle r = s.getBounds();
-            r.translate(nextPos.x,nextPos.y);
-            s = r;
-          }
+          s = AffineTransform.getTranslateInstance(nextPos.x,nextPos.y).createTransformedShape(s);
           shapes[index] = s;
         }
         currentPos = nextPos;

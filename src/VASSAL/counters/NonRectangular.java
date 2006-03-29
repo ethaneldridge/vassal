@@ -52,6 +52,7 @@ import VASSAL.command.Command;
 
 /**
  * A trait for assigning an arbitrary shape to a {@link GamePiece}
+ * 
  * @see GamePiece#getShape
  */
 public class NonRectangular extends Decorator implements EditablePiece {
@@ -110,10 +111,8 @@ public class NonRectangular extends Decorator implements EditablePiece {
 
   public void mySetType(String type) {
     this.type = type;
-    if (Info.is2dEnabled()) {
-      String shapeSpec = type.substring(ID.length());
-      shape = buildPath(shapeSpec);
-    }
+    String shapeSpec = type.substring(ID.length());
+    shape = buildPath(shapeSpec);
   }
 
   private GeneralPath buildPath(String spec) {
@@ -125,15 +124,15 @@ public class NonRectangular extends Decorator implements EditablePiece {
         while (st.hasMoreTokens()) {
           String token = st.nextToken();
           switch (token.charAt(0)) {
-            case 'c':
-              path.closePath();
-              break;
-            case 'm':
-              path.moveTo(Integer.parseInt(st.nextToken()), Integer.parseInt(st.nextToken()));
-              break;
-            case 'l':
-              path.lineTo(Integer.parseInt(st.nextToken()), Integer.parseInt(st.nextToken()));
-              break;
+          case 'c':
+            path.closePath();
+            break;
+          case 'm':
+            path.moveTo(Integer.parseInt(st.nextToken()), Integer.parseInt(st.nextToken()));
+            break;
+          case 'l':
+            path.lineTo(Integer.parseInt(st.nextToken()), Integer.parseInt(st.nextToken()));
+            break;
           }
         }
       }
@@ -147,7 +146,7 @@ public class NonRectangular extends Decorator implements EditablePiece {
   }
 
   public PieceEditor getEditor() {
-    return Info.is2dEnabled() ? new Ed(this) : super.getEditor();
+    return new Ed(this);
   }
 
   private class Ed implements PieceEditor {
@@ -236,17 +235,17 @@ public class NonRectangular extends Decorator implements EditablePiece {
         float[] pts = new float[6];
         while (!it.isDone()) {
           switch (it.currentSegment(pts)) {
-            case PathIterator.SEG_MOVETO:
-              buffer.append('m').append(',').append(Math.round(pts[0])).append(',').append(Math.round(pts[1]));
-              break;
-            case PathIterator.SEG_LINETO:
-            case PathIterator.SEG_CUBICTO:
-            case PathIterator.SEG_QUADTO:
-              buffer.append('l').append(',').append(Math.round(pts[0])).append(',').append(Math.round(pts[1]));
-              break;
-            case PathIterator.SEG_CLOSE:
-              buffer.append('c');
-              break;
+          case PathIterator.SEG_MOVETO:
+            buffer.append('m').append(',').append(Math.round(pts[0])).append(',').append(Math.round(pts[1]));
+            break;
+          case PathIterator.SEG_LINETO:
+          case PathIterator.SEG_CUBICTO:
+          case PathIterator.SEG_QUADTO:
+            buffer.append('l').append(',').append(Math.round(pts[0])).append(',').append(Math.round(pts[1]));
+            break;
+          case PathIterator.SEG_CLOSE:
+            buffer.append('c');
+            break;
           }
           it.next();
           if (!it.isDone()) {

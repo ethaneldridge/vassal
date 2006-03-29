@@ -66,9 +66,9 @@ public class Stack implements GamePiece, StateMergeable {
   }
 
   /**
-   * @return an Enumeration of the pieces in the stack, from the bottom up
-   * This is a clone of the contents so add/remove operations
-   * during read won't affect it.
+   * @return an Enumeration of the pieces in the stack, from the bottom up This
+   *         is a clone of the contents so add/remove operations during read
+   *         won't affect it.
    */
   public Enumeration getPieces() {
     return new AllPieceEnum();
@@ -76,6 +76,7 @@ public class Stack implements GamePiece, StateMergeable {
 
   /**
    * Return an enumeration of the pieces in the start, from the top down
+   * 
    * @return
    */
   public Enumeration getPiecesInReverseOrder() {
@@ -83,8 +84,10 @@ public class Stack implements GamePiece, StateMergeable {
   }
 
   /**
-   * Returns pieces in the order in which they are visible to the player -- topmost first
-   * In other words, selected pieces first, then unselected pieces from the top to the bottom */
+   * Returns pieces in the order in which they are visible to the player --
+   * topmost first In other words, selected pieces first, then unselected pieces
+   * from the top to the bottom
+   */
   public Enumeration getPiecesInVisibleOrder() {
     return new VisibleOrderEnum();
   }
@@ -140,8 +143,9 @@ public class Stack implements GamePiece, StateMergeable {
   }
 
   /**
-   * Adds a piece to the stack.  If the piece already exists in the stack,
-   * moves it to the top
+   * Adds a piece to the stack. If the piece already exists in the stack, moves
+   * it to the top
+   * 
    * @param c
    */
   public void add(GamePiece c) {
@@ -149,8 +153,10 @@ public class Stack implements GamePiece, StateMergeable {
   }
 
   /**
-   * Adds a GamePiece to this Stack.  Slightly more efficient than {@link #insert} because
-   * it assumes the piece does not already belong to this Stack.
+   * Adds a GamePiece to this Stack. Slightly more efficient than
+   * {@link #insert} because it assumes the piece does not already belong to
+   * this Stack.
+   * 
    * @param child
    * @param index
    */
@@ -162,7 +168,7 @@ public class Stack implements GamePiece, StateMergeable {
       child.getMap().removePiece(child);
     }
     child.setParent(this);
-    insertPieceAt(child,index);
+    insertPieceAt(child, index);
   }
 
   public int getPieceCount() {
@@ -170,9 +176,9 @@ public class Stack implements GamePiece, StateMergeable {
   }
 
   /**
-   * Inserts a child GamePiece at a given index.
-   * If the child piece already belongs to this Stack,
-   * it will be repositioned to the given index.
+   * Inserts a child GamePiece at a given index. If the child piece already
+   * belongs to this Stack, it will be repositioned to the given index.
+   * 
    * @param p
    * @param pos
    */
@@ -199,12 +205,13 @@ public class Stack implements GamePiece, StateMergeable {
   }
 
   /**
-   * If the <code>obs</code> parameter is a {@link Map}, delegate
-   * drawing of this Stack to the {@link StackMetrics} of that Map.
-   * If <code>obs</code> is not a Map, use the default StackMetrics
-   *
+   * If the <code>obs</code> parameter is a {@link Map}, delegate drawing of
+   * this Stack to the {@link StackMetrics} of that Map. If <code>obs</code>
+   * is not a Map, use the default StackMetrics
+   * 
    * @see StackMetrics#draw
-   * @see #getDefaultMetrics */
+   * @see #getDefaultMetrics
+   */
   public void draw(Graphics g, int x, int y, Component obs, double zoom) {
     if (obs instanceof Map.View) {
       ((Map.View) obs).getMap().getStackMetrics().draw(this, g, x, y, obs, zoom);
@@ -244,35 +251,21 @@ public class Stack implements GamePiece, StateMergeable {
   }
 
   public Shape getShape() {
-    if (Info.is2dEnabled()) {
-      Area a = new Area();
-      Shape[] childBounds = new Shape[getPieceCount()];
-      getMap().getStackMetrics().getContents(this, null, childBounds, null, 0, 0);
-      PieceIterator visibleFilter = PieceIterator.visible(getPieces());
-      while (visibleFilter.hasMoreElements()) {
-        GamePiece p = visibleFilter.nextPiece();
-        a.add(new Area(childBounds[indexOf(p)]));
-      }
-      return a;
+    Area a = new Area();
+    Shape[] childBounds = new Shape[getPieceCount()];
+    getMap().getStackMetrics().getContents(this, null, childBounds, null, 0, 0);
+    PieceIterator visibleFilter = PieceIterator.visible(getPieces());
+    while (visibleFilter.hasMoreElements()) {
+      GamePiece p = visibleFilter.nextPiece();
+      a.add(new Area(childBounds[indexOf(p)]));
     }
-    else {
-      Rectangle r = new Rectangle();
-      Shape[] childBounds = new Shape[getPieceCount()];
-      getMap().getStackMetrics().getContents(this, null, childBounds, null, 0, 0);
-      PieceIterator visibleFilter = PieceIterator.visible(getPieces());
-      while (visibleFilter.hasMoreElements()) {
-        GamePiece p = visibleFilter.nextPiece();
-        r = r.union(childBounds[indexOf(p)].getBounds());
-      }
-      return r;
-    }
+    return a;
   }
 
   public void selectNext(GamePiece c) {
     KeyBuffer.getBuffer().remove(c);
     if (pieceCount > 1 && indexOf(c) >= 0) {
-      int newSelectedIndex = indexOf(c) == pieceCount - 1 ?
-        pieceCount - 2 : indexOf(c) + 1;
+      int newSelectedIndex = indexOf(c) == pieceCount - 1 ? pieceCount - 2 : indexOf(c) + 1;
       for (int i = 0; i < pieceCount; ++i) {
         if (indexOf(contents[i]) == newSelectedIndex) {
           KeyBuffer.getBuffer().add(contents[i]);
@@ -304,7 +297,7 @@ public class Stack implements GamePiece, StateMergeable {
 
   /** @return the top visible piece in this stack */
   public GamePiece topPiece() {
-    for (int i=pieceCount-1;i>=0;--i) {
+    for (int i = pieceCount - 1; i >= 0; --i) {
       if (!Boolean.TRUE.equals(contents[i].getProperty(Properties.INVISIBLE_TO_ME))) {
         return contents[i];
       }
@@ -313,15 +306,15 @@ public class Stack implements GamePiece, StateMergeable {
   }
 
   /**
-   * @return the top piece in this stack that is visible to the player with the given id
+   * @return the top piece in this stack that is visible to the player with the
+   *         given id
    * @param playerId
    * @see GameModule#getUserId
    */
   public GamePiece topPiece(String playerId) {
-    for (int i=pieceCount-1;i>=0;--i) {
+    for (int i = pieceCount - 1; i >= 0; --i) {
       String hiddenBy = (String) contents[i].getProperty(Properties.HIDDEN_BY);
-      if (hiddenBy == null
-        || hiddenBy.equals(playerId)) {
+      if (hiddenBy == null || hiddenBy.equals(playerId)) {
         return contents[i];
       }
     }
@@ -329,15 +322,15 @@ public class Stack implements GamePiece, StateMergeable {
   }
 
   /**
-   * @return the bottom piece in this stack that is visible to the player with the given id
+   * @return the bottom piece in this stack that is visible to the player with
+   *         the given id
    * @param playerId
    * @see GameModule#getUserId
    */
   public GamePiece bottomPiece(String playerId) {
-    for (int i=0;i<pieceCount;++i) {
+    for (int i = 0; i < pieceCount; ++i) {
       String hiddenBy = (String) contents[i].getProperty(Properties.HIDDEN_BY);
-      if (hiddenBy == null
-        || hiddenBy.equals(playerId)) {
+      if (hiddenBy == null || hiddenBy.equals(playerId)) {
         return contents[i];
       }
     }
@@ -346,7 +339,7 @@ public class Stack implements GamePiece, StateMergeable {
 
   /** @return the bottom visible piece in this stack */
   public GamePiece bottomPiece() {
-    for (int i=0;i<pieceCount;++i) {
+    for (int i = 0; i < pieceCount; ++i) {
       if (!Boolean.TRUE.equals(contents[i].getProperty(Properties.INVISIBLE_TO_ME))) {
         return contents[i];
       }
@@ -387,9 +380,7 @@ public class Stack implements GamePiece, StateMergeable {
 
   public String getState() {
     SequenceEncoder se = new SequenceEncoder(';');
-    se.append(getMap() == null ? "null" : getMap().getIdentifier())
-      .append(getPosition().x)
-      .append(getPosition().y);
+    se.append(getMap() == null ? "null" : getMap().getIdentifier()).append(getPosition().x).append(getPosition().y);
     for (int i = 0; i < pieceCount; ++i) {
       se.append(contents[i].getId());
     }
@@ -399,7 +390,7 @@ public class Stack implements GamePiece, StateMergeable {
   public void setState(String s) {
     SequenceEncoder.Decoder st = new SequenceEncoder.Decoder(s, ';');
     String mapId = st.nextToken();
-    setPosition(new Point(st.nextInt(0),st.nextInt(0)));
+    setPosition(new Point(st.nextInt(0), st.nextInt(0)));
     pieceCount = 0;
     while (st.hasMoreTokens()) {
       GamePiece child = GameModule.getGameModule().getGameState().getPieceForId(st.nextToken());
@@ -425,8 +416,9 @@ public class Stack implements GamePiece, StateMergeable {
   }
 
   /**
-   * Compute the difference between <code>newState</code> and <code>oldState</code>
-   * and appy that difference to the current state
+   * Compute the difference between <code>newState</code> and
+   * <code>oldState</code> and appy that difference to the current state
+   * 
    * @param newState
    * @param oldState
    */
@@ -450,11 +442,10 @@ public class Stack implements GamePiece, StateMergeable {
       while (stOld.hasMoreTokens()) {
         oldContents.add(stOld.nextToken());
       }
-      for (int i = 0,j = getPieceCount(); i < j; ++i) {
+      for (int i = 0, j = getPieceCount(); i < j; ++i) {
         String id = getPieceAt(i).getId();
-        if (!newContents.contains(id)
-          && !oldContents.contains(id)) {
-          int index = i == 0 ? -1 : newContents.indexOf(getPieceAt(i-1).getId());
+        if (!newContents.contains(id) && !oldContents.contains(id)) {
+          int index = i == 0 ? -1 : newContents.indexOf(getPieceAt(i - 1).getId());
           newContents.add(index + 1, id);
         }
       }
@@ -475,12 +466,13 @@ public class Stack implements GamePiece, StateMergeable {
 
   /**
    * Calls setProperty() on each piece in this stack
+   * 
    * @param key
    * @param val
    */
   public void setPropertyOnContents(Object key, Object val) {
-    for (Enumeration e = getPieces();e.hasMoreElements();) {
-      ((GamePiece)e.nextElement()).setProperty(key,val);
+    for (Enumeration e = getPieces(); e.hasMoreElements();) {
+      ((GamePiece) e.nextElement()).setProperty(key, val);
     }
   }
 
@@ -540,7 +532,7 @@ public class Stack implements GamePiece, StateMergeable {
 
     public VisibleOrderEnum() {
       doingSelected = true;
-      index = pieceCount-1;
+      index = pieceCount - 1;
       next = findNext();
     }
 
@@ -577,7 +569,7 @@ public class Stack implements GamePiece, StateMergeable {
     private GamePiece[] p;
 
     public AllPieceEnum() {
-      index=0;
+      index = 0;
       p = new GamePiece[pieceCount];
       System.arraycopy(contents, 0, p, 0, pieceCount);
     }
@@ -598,7 +590,7 @@ public class Stack implements GamePiece, StateMergeable {
     public ReversePieceEnum() {
       clone = new GamePiece[pieceCount];
       System.arraycopy(contents, 0, clone, 0, pieceCount);
-      index = pieceCount-1;
+      index = pieceCount - 1;
     }
 
     public boolean hasMoreElements() {

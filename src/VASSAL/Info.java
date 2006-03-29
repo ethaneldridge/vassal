@@ -81,7 +81,7 @@ public final class Info {
   }
 
   /**
-   *
+   * @deprecated since Java 1.4 is now required
    * @return true if this platform supports Java2D
    */
   public static boolean is2dEnabled() {

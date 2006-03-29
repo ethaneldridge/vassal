@@ -113,7 +113,7 @@ public class GlobalOptions extends AbstractConfigurable {
   }
 
   public boolean isUseSingleWindow() {
-    return useSingleWindow && Info.is2dEnabled();
+    return useSingleWindow;
   }
 
   public boolean isAveragedScaling() {

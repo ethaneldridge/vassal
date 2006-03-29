@@ -46,12 +46,10 @@ import java.util.Random;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.JLabel;
-import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 import javax.swing.KeyStroke;
 
-import VASSAL.Info;
 import VASSAL.build.GameModule;
 import VASSAL.build.module.Map;
 import VASSAL.build.module.documentation.HelpFile;
@@ -89,7 +87,7 @@ public class FreeRotator extends Decorator implements EditablePiece, MouseListen
 
   private boolean useUnrotatedShape;
 
-  private double[] validAngles = new double[]{0.0};
+  private double[] validAngles = new double[] {0.0};
   private int angleIndex = 0;
 
   private java.util.Map images = new HashMap();
@@ -123,11 +121,8 @@ public class FreeRotator extends Decorator implements EditablePiece, MouseListen
     if (getAngle() == 0.0) {
       return piece.boundingBox();
     }
-    else if (Info.is2dEnabled()) {
-      return AffineTransform.getRotateInstance(-Math.PI * getAngle() / 180.0).createTransformedShape(piece.boundingBox()).getBounds();
-    }
     else {
-      return getRotatedBounds();
+      return AffineTransform.getRotateInstance(-Math.PI * getAngle() / 180.0).createTransformedShape(piece.boundingBox()).getBounds();
     }
   }
 
@@ -162,16 +157,10 @@ public class FreeRotator extends Decorator implements EditablePiece, MouseListen
   }
 
   public Shape getShape() {
-    if (getAngle() == 0.0
-        || useUnrotatedShape) {
+    if (getAngle() == 0.0 || useUnrotatedShape) {
       return piece.getShape();
     }
-    else if (Info.is2dEnabled()) {
-      return AffineTransform.getRotateInstance(getAngleInRadians()).createTransformedShape(piece.getShape());
-    }
-    else {
-      return getRotatedBounds();
-    }
+    return AffineTransform.getRotateInstance(getAngleInRadians()).createTransformedShape(piece.getShape());
   }
 
   public double getAngleInRadians() {
@@ -212,16 +201,12 @@ public class FreeRotator extends Decorator implements EditablePiece, MouseListen
       Image rotated = getRotatedImage(getAngle(), obs);
       Rectangle r = getRotatedBounds();
       Image zoomed = GameModule.getGameModule().getDataArchive().getScaledImage(rotated, zoom);
-      g.drawImage(zoomed,
-                  x + (int) (zoom * r.x),
-                  y + (int) (zoom * r.y), obs);
+      g.drawImage(zoomed, x + (int) (zoom * r.x), y + (int) (zoom * r.y), obs);
     }
   }
 
   public void draw(Graphics g, Map map) {
-    if (drawGhost
-        && Info.is2dEnabled()
-        && g instanceof Graphics2D) {
+    if (drawGhost && g instanceof Graphics2D) {
       Point p = map.componentCoordinates(getGhostPosition());
       Graphics2D g2d = (Graphics2D) g;
       AffineTransform t = g2d.getTransform();
@@ -253,10 +238,7 @@ public class FreeRotator extends Decorator implements EditablePiece, MouseListen
       se.append(setAngleText);
     }
     else {
-      se.append(rotateCWKey)
-          .append(rotateCCWKey)
-          .append(rotateCWText)
-          .append(rotateCCWText);
+      se.append(rotateCWKey).append(rotateCCWKey).append(rotateCWText).append(rotateCCWText);
     }
     // for random rotation
     se.append(rotateRNDKey);
@@ -307,8 +289,7 @@ public class FreeRotator extends Decorator implements EditablePiece, MouseListen
         rotateCCWCommand.setEnabled(false);
       }
       else {
-        if (rotateCWText.length() > 0
-            && rotateCCWText.length() > 0) {
+        if (rotateCWText.length() > 0 && rotateCCWText.length() > 0) {
           l.add(rotateCWCommand);
           l.add(rotateCCWCommand);
         }
@@ -337,21 +318,7 @@ public class FreeRotator extends Decorator implements EditablePiece, MouseListen
     myGetKeyCommands();
     Command c = null;
     if (setAngleCommand.matches(stroke)) {
-      if (Info.is2dEnabled()) {
-        beginInteractiveRotate();
-      }
-      else {
-        ChangeTracker tracker = new ChangeTracker(this);
-        String s = JOptionPane.showInputDialog(getMap().getView().getTopLevelAncestor(), setAngleText);
-        if (s != null) {
-          try {
-            setAngle(-Double.valueOf(s).doubleValue());
-            c = tracker.getChangeCommand();
-          }
-          catch (NumberFormatException ex) {
-          }
-        }
-      }
+      beginInteractiveRotate();
     }
     else if (rotateCWCommand.matches(stroke)) {
       ChangeTracker tracker = new ChangeTracker(this);
@@ -373,7 +340,8 @@ public class FreeRotator extends Decorator implements EditablePiece, MouseListen
         setAngle(rand.nextDouble() * 360);
       }
       else {
-        // we are set rotate, set angleIndex to a number between 0 and validAngles.lenth
+        // we are set rotate, set angleIndex to a number between 0 and
+        // validAngles.lenth
         angleIndex = (rand.nextInt(validAngles.length));
       }
       c = tracker.getChangeCommand();
@@ -466,7 +434,9 @@ public class FreeRotator extends Decorator implements EditablePiece, MouseListen
   }
 
   /**
-   * Return a full-scale cached image of this piece, rotated to the appropriate angle.
+   * Return a full-scale cached image of this piece, rotated to the appropriate
+   * angle.
+   * 
    * @param angle
    * @param obs
    * @return
@@ -479,31 +449,24 @@ public class FreeRotator extends Decorator implements EditablePiece, MouseListen
     }
     if (rotated == null) {
       Rectangle rotatedBounds;
-      if (Info.is2dEnabled()) {
-        Rectangle unrotatedBounds = piece.boundingBox();
-        rotatedBounds = boundingBox();
-        if (rotatedBounds.width > 0
-            && rotatedBounds.height > 0) {
-          rotated = new BufferedImage(rotatedBounds.width, rotatedBounds.height, BufferedImage.TYPE_4BYTE_ABGR);
-          ((BufferedImage) rotated).setRGB(0, 0, rotatedBounds.width, rotatedBounds.height, new int[rotatedBounds.width * rotatedBounds.height], 0, rotatedBounds.width);
-          Graphics2D g2d = ((BufferedImage) rotated).createGraphics();
-          g2d.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR);
-          AffineTransform t = AffineTransform.getTranslateInstance(-rotatedBounds.x, -rotatedBounds.y);
-          t.rotate(-Math.PI * angle / 180.0);
-          t.translate(unrotatedBounds.x, unrotatedBounds.y);
-          g2d.drawImage(unrotated.getImage(obs), t, obs);
-        }
-        else {
-          // If no visible area, create a dummy 1x1 transparent image
-          rotated = new BufferedImage(1, 1, BufferedImage.TYPE_4BYTE_ABGR);
-        }
+      Rectangle unrotatedBounds = piece.boundingBox();
+      rotatedBounds = boundingBox();
+      if (rotatedBounds.width > 0 && rotatedBounds.height > 0) {
+        rotated = new BufferedImage(rotatedBounds.width, rotatedBounds.height, BufferedImage.TYPE_4BYTE_ABGR);
+        ((BufferedImage) rotated).setRGB(0, 0, rotatedBounds.width, rotatedBounds.height, new int[rotatedBounds.width * rotatedBounds.height], 0,
+            rotatedBounds.width);
+        Graphics2D g2d = ((BufferedImage) rotated).createGraphics();
+        g2d.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR);
+        AffineTransform t = AffineTransform.getTranslateInstance(-rotatedBounds.x, -rotatedBounds.y);
+        t.rotate(-Math.PI * angle / 180.0);
+        t.translate(unrotatedBounds.x, unrotatedBounds.y);
+        g2d.drawImage(unrotated.getImage(obs), t, obs);
       }
       else {
         RotateFilter filter = new RotateFilter(angle);
         rotatedBounds = piece.boundingBox();
         filter.transformSpace(rotatedBounds);
-        ImageProducer producer = new FilteredImageSource
-            (unrotated.getImage(obs).getSource(), filter);
+        ImageProducer producer = new FilteredImageSource(unrotated.getImage(obs).getSource(), filter);
         rotated = obs.createImage(producer);
       }
       images.put(new Double(angle), rotated);
@@ -548,16 +511,15 @@ public class FreeRotator extends Decorator implements EditablePiece, MouseListen
     return new Ed(this);
   }
 
-  private static class Ed implements PieceEditor,
-      java.beans.PropertyChangeListener {
+  private static class Ed implements PieceEditor, java.beans.PropertyChangeListener {
     private BooleanConfigurer anyConfig;
     private HotKeyConfigurer anyKeyConfig;
     private IntConfigurer facingsConfig;
     private HotKeyConfigurer cwKeyConfig;
     private HotKeyConfigurer ccwKeyConfig;
-    //  random rotate
+    // random rotate
     private HotKeyConfigurer rndKeyConfig;
-    //  end random rotate
+    // end random rotate
     private JTextField anyCommand;
     private JTextField cwCommand;
     private JTextField ccwCommand;
@@ -575,13 +537,9 @@ public class FreeRotator extends Decorator implements EditablePiece, MouseListen
       // random rotate
       rndKeyConfig = new HotKeyConfigurer(null, "Command to rotate randomly:  ", p.rotateRNDKey);
       // end random rotate
-      anyConfig = new BooleanConfigurer
-          (null, "Allow arbitrary rotations",
-           new Boolean(p.validAngles.length == 1));
+      anyConfig = new BooleanConfigurer(null, "Allow arbitrary rotations", new Boolean(p.validAngles.length == 1));
       anyKeyConfig = new HotKeyConfigurer(null, "Command to rotate:  ", p.setAngleKey);
-      facingsConfig = new IntConfigurer
-          (null, "Number of allowed facings :",
-           new Integer(p.validAngles.length == 1 ? 6 : p.validAngles.length));
+      facingsConfig = new IntConfigurer(null, "Number of allowed facings :", new Integer(p.validAngles.length == 1 ? 6 : p.validAngles.length));
 
       panel = new JPanel();
       panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
@@ -615,7 +573,7 @@ public class FreeRotator extends Decorator implements EditablePiece, MouseListen
       anyControls.add(anyCommand);
       panel.add(anyControls);
 
-      //    random rotate
+      // random rotate
       rndControls = Box.createHorizontalBox();
       rndControls.add(rndKeyConfig.getControls());
       rndControls.add(new JLabel("Menu text:"));
@@ -624,7 +582,7 @@ public class FreeRotator extends Decorator implements EditablePiece, MouseListen
       rndCommand.setText(p.rotateRNDText);
       rndControls.add(rndCommand);
       panel.add(rndControls);
-      //    end random rotate
+      // end random rotate
 
       anyConfig.addPropertyChangeListener(this);
       propertyChange(null);
@@ -648,22 +606,18 @@ public class FreeRotator extends Decorator implements EditablePiece, MouseListen
       if (Boolean.TRUE.equals(anyConfig.getValue())) {
         se.append("1");
         se.append((KeyStroke) anyKeyConfig.getValue());
-        se.append(anyCommand.getText() == null ?
-                  "" : anyCommand.getText().trim());
+        se.append(anyCommand.getText() == null ? "" : anyCommand.getText().trim());
       }
       else {
         se.append(facingsConfig.getValueString());
         se.append((KeyStroke) cwKeyConfig.getValue());
         se.append((KeyStroke) ccwKeyConfig.getValue());
-        se.append(cwCommand.getText() == null ?
-                  "" : cwCommand.getText().trim());
-        se.append(ccwCommand.getText() == null ?
-                  "" : ccwCommand.getText().trim());
+        se.append(cwCommand.getText() == null ? "" : cwCommand.getText().trim());
+        se.append(ccwCommand.getText() == null ? "" : ccwCommand.getText().trim());
       }
       // random rotate
       se.append((KeyStroke) rndKeyConfig.getValue());
-      se.append(rndCommand.getText() == null ?
-                "" : rndCommand.getText().trim());
+      se.append(rndCommand.getText() == null ? "" : rndCommand.getText().trim());
       // end random rotate
       return ID + se.getValue();
     }
@@ -673,4 +627,3 @@ public class FreeRotator extends Decorator implements EditablePiece, MouseListen
     }
   }
 }
-

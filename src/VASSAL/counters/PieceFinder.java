@@ -98,7 +98,7 @@ public interface PieceFinder {
       Shape s = piece.getShape();
       Point pos = piece.getPosition();
       Point p = new Point(pt.x - pos.x, pt.y - pos.y);
-      if (Info.is2dEnabled() ? s.contains(p) : s.getBounds().contains(p)) {
+      if (s.contains(p)) {
         selected = piece;
       }
       return selected;
@@ -113,7 +113,7 @@ public interface PieceFinder {
       for (Enumeration e = s.getPiecesInVisibleOrder();
            e.hasMoreElements();) {
         GamePiece child = (GamePiece) e.nextElement();
-        if (Info.is2dEnabled() ? shapes[s.indexOf(child)].contains(pt) : shapes[s.indexOf(child)].getBounds().contains(pt)) {
+        if (shapes[s.indexOf(child)].contains(pt)) {
           selected = s.isExpanded() ? child : s;
           break;
         }

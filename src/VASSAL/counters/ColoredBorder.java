@@ -44,8 +44,7 @@ public class ColoredBorder implements Highlighter {
   }
 
   public void draw(GamePiece p, Graphics g, int x, int y, Component obs, double zoom) {
-    if (Info.is2dEnabled()
-        && g instanceof Graphics2D) {
+    if (g instanceof Graphics2D) {
       Graphics2D g2d = (Graphics2D) g;
       Shape s = p.getShape();
       Stroke str = g2d.getStroke();

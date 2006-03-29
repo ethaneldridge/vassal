@@ -115,24 +115,15 @@ public class GlobalMap extends JPanel implements AutoConfigurable, GameComponent
 
     scroll.setPreferredSize(getViewableSize());
     f.pack();
-    if (Info.is2dEnabled()) {
-      map.getView().addHierarchyBoundsListener(new HierarchyBoundsAdapter() {
-        public void ancestorMoved(HierarchyEvent e) {
-          adjustWindowLocation();
-        }
+    map.getView().addHierarchyBoundsListener(new HierarchyBoundsAdapter() {
+      public void ancestorMoved(HierarchyEvent e) {
+        adjustWindowLocation();
+      }
 
-        public void ancestorResized(HierarchyEvent e) {
-          adjustWindowLocation();
-        }
-      });
-    }
-    else {
-      map.getView().addComponentListener(new ComponentAdapter() {
-        public void componentMoved(ComponentEvent e) {
-          adjustWindowLocation();
-        }
-      });
-    }
+      public void ancestorResized(HierarchyEvent e) {
+        adjustWindowLocation();
+      }
+    });
   }
 
   /**
@@ -157,7 +148,7 @@ public class GlobalMap extends JPanel implements AutoConfigurable, GameComponent
     }
     else {
       f = new JWindow(); // Dummy window until the parent map is added to a
-                         // Window of its own
+      // Window of its own
       map.getView().addHierarchyListener(new HierarchyListener() {
         public void hierarchyChanged(HierarchyEvent e) {
           if (SwingUtilities.getWindowAncestor(map.getView()) != null) {
@@ -316,7 +307,8 @@ public class GlobalMap extends JPanel implements AutoConfigurable, GameComponent
       setScrollVisible(true);
     }
     else {
-      d.width += 1 - map.getBoardPicker().getColumnCount();;
+      d.width += 1 - map.getBoardPicker().getColumnCount();
+      ;
     }
 
     if (r.height > 0 && r.height < d.height) {
@@ -443,7 +435,7 @@ public class GlobalMap extends JPanel implements AutoConfigurable, GameComponent
         this.draw(g, currentMousePosition.getPoint(), GlobalMap.this);
       }
     }
-    
+
     protected List getDisplayablePieces() {
       Point oldPoint = currentMousePosition.getPoint();
       Point mapPoint = GlobalMap.this.map.componentCoordinates(mapCoordinates(oldPoint));
@@ -452,7 +444,7 @@ public class GlobalMap extends JPanel implements AutoConfigurable, GameComponent
       List l = super.getDisplayablePieces();
       currentMousePosition.translatePoint(oldPoint.x - mapPoint.x, oldPoint.y - mapPoint.y);
       return l;
-   }
+    }
 
     protected double getZoom() {
       return scale;
