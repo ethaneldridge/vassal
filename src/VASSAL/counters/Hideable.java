@@ -18,20 +18,35 @@
  */
 package VASSAL.counters;
 
+import java.awt.AlphaComposite;
+import java.awt.Color;
+import java.awt.Component;
+import java.awt.Composite;
+import java.awt.Graphics;
+import java.awt.Graphics2D;
+import java.awt.Rectangle;
+import java.awt.Shape;
+import java.awt.geom.AffineTransform;
+import java.io.File;
+import java.net.MalformedURLException;
+
+import javax.swing.Box;
+import javax.swing.BoxLayout;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.JTextField;
+import javax.swing.KeyStroke;
+
 import VASSAL.Info;
 import VASSAL.build.GameModule;
+import VASSAL.build.module.PlayerRoster;
 import VASSAL.build.module.documentation.HelpFile;
 import VASSAL.command.ChangeTracker;
 import VASSAL.command.Command;
 import VASSAL.configure.ColorConfigurer;
 import VASSAL.configure.HotKeyConfigurer;
+import VASSAL.configure.StringEnumConfigurer;
 import VASSAL.tools.SequenceEncoder;
-
-import javax.swing.*;
-import java.awt.*;
-import java.awt.geom.AffineTransform;
-import java.io.File;
-import java.net.MalformedURLException;
 
 public class Hideable extends Decorator implements EditablePiece {
 
@@ -42,6 +57,7 @@ public class Hideable extends Decorator implements EditablePiece {
   protected String hiddenBy;
   protected KeyStroke hideKey;
   protected String command = "Invisible";
+  protected Access access = SideAccess.getInstance();
 
   protected Color bgColor;
 
@@ -88,7 +104,17 @@ public class Hideable extends Decorator implements EditablePiece {
     hideKey = st.nextKeyStroke('I');
     command = st.nextToken("Invisible");
     bgColor = st.nextColor(null);
+    access = decodeAccess(st.nextToken(PlayerAccess.ID));
     commands = null;
+  }
+
+  protected Access decodeAccess(String string) {
+    if (SideAccess.ID.equals(string)) {
+      return SideAccess.getInstance();
+    }
+    else {
+      return PlayerAccess.getInstance();
+    }
   }
 
   public void mySetState(String in) {
@@ -99,8 +125,13 @@ public class Hideable extends Decorator implements EditablePiece {
     SequenceEncoder se = new SequenceEncoder(';');
     se.append(hideKey)
         .append(command)
-        .append(bgColor);
+        .append(bgColor)
+        .append(encodeAccess());
     return ID + se.getValue();
+  }
+  
+  protected String encodeAccess() {
+    return access instanceof SideAccess ? SideAccess.ID : PlayerAccess.ID;
   }
 
   public String myGetState() {
@@ -109,12 +140,12 @@ public class Hideable extends Decorator implements EditablePiece {
 
   public boolean invisibleToMe() {
     return hiddenBy != null
-        && (allHidden || !hiddenBy.equals(GameModule.getUserId()));
+        && (allHidden || !hiddenBy.equals(access.getId()));
   }
 
   public boolean invisibleToOthers() {
     return hiddenBy != null
-        && (allHidden || hiddenBy.equals(GameModule.getUserId()));
+        && (allHidden || hiddenBy.equals(access.getId()));
   }
 
   public Shape getShape() {
@@ -203,7 +234,7 @@ public class Hideable extends Decorator implements EditablePiece {
         hiddenBy = null;
       }
       else if (!invisibleToMe()) {
-        hiddenBy = GameModule.getUserId();
+        hiddenBy = access.getId();
       }
       return tracker.getChangeCommand();
     }
@@ -238,11 +269,14 @@ public class Hideable extends Decorator implements EditablePiece {
     Hideable.allHidden = allHidden;
   }
 
-  private static class Ed implements PieceEditor {
-    private HotKeyConfigurer hideKeyInput;
-    private JTextField hideCommandInput;
-    private ColorConfigurer colorConfig;
-    private JPanel controls;
+  protected static class Ed implements PieceEditor {
+    protected HotKeyConfigurer hideKeyInput;
+    protected JTextField hideCommandInput;
+    protected ColorConfigurer colorConfig;
+    protected StringEnumConfigurer accessConfig;
+    protected JPanel controls;
+    protected static final String PLAYER_ACCESS = "The player who hid it";
+    protected static final String SIDE_ACCESS = "The side who hid it";
 
     public Ed(Hideable p) {
       controls = new JPanel();
@@ -261,6 +295,10 @@ public class Hideable extends Decorator implements EditablePiece {
 
       colorConfig = new ColorConfigurer(null, "Background color", p.bgColor);
       controls.add(colorConfig.getControls());
+      
+      accessConfig = new StringEnumConfigurer(null,"Piece is visible to ",new String[]{SIDE_ACCESS,PLAYER_ACCESS});
+      accessConfig.setValue(p.access instanceof PlayerAccess ? PLAYER_ACCESS : SIDE_ACCESS);
+      controls.add(accessConfig.getControls());
     }
 
     public String getState() {
@@ -271,12 +309,46 @@ public class Hideable extends Decorator implements EditablePiece {
       SequenceEncoder se = new SequenceEncoder(';');
       se.append((KeyStroke) hideKeyInput.getValue())
           .append(hideCommandInput.getText())
-          .append(colorConfig.getValue() == null ? "" : colorConfig.getValueString());
+          .append(colorConfig.getValue() == null ? "" : colorConfig.getValueString())
+          .append(PLAYER_ACCESS.equals(accessConfig.getValue()) ? PlayerAccess.ID : SideAccess.ID);
       return ID + se.getValue();
     }
 
     public Component getControls() {
       return controls;
+    }
+  }
+  
+  public static interface Access {
+    // Return a String identifying the current player
+    // Player can view the hidden piece if the id matches
+    String getId();
+  }
+  
+  public static class PlayerAccess implements Access {
+    public static String ID = "player";
+    private static PlayerAccess instance;
+    public String getId() {
+      return GameModule.getUserId();
+    }
+    public static PlayerAccess getInstance() {
+      if (instance == null) {
+        instance = new PlayerAccess();
+      }
+      return instance;
+    }
+  }
+  public static class SideAccess implements Access {
+    public static String ID = "side";
+    private static SideAccess instance;
+    public String getId() {
+      return PlayerRoster.getMySide();
+    }
+    public static SideAccess getInstance() {
+      if (instance == null) {
+        instance = new SideAccess();
+      }
+      return instance;
     }
   }
 }
