@@ -93,8 +93,8 @@ public class GlobalMap extends JPanel implements AutoConfigurable, GameComponent
         setWindowVisible(!f.isVisible());
       }
     };
-    launch = new LaunchButton(null, null, HOTKEY, ICON_NAME, al);
-    launch.setToolTipText("Show/Hide overview window");
+    launch = new LaunchButton(null, TOOLTIP, BUTTON_TEXT, HOTKEY, ICON_NAME, al);
+    launch.setAttribute(TOOLTIP, "Show/Hide overview window");
     launch.setAttribute(HOTKEY, KeyStroke.getKeyStroke(KeyEvent.VK_O, KeyEvent.CTRL_MASK + KeyEvent.SHIFT_MASK));
 
     view = new View();
@@ -190,13 +190,16 @@ public class GlobalMap extends JPanel implements AutoConfigurable, GameComponent
     AutoConfigurable.Util.buildAttributes(e, this);
   }
 
-  private static final String SCALE = "scale";
-  private static final String COLOR = "color";
-  private static final String HOTKEY = "hotkey";
-  public static final String ICON_NAME = "icon";
+  protected static final String SCALE = "scale";
+  protected static final String COLOR = "color";
+  protected static final String HOTKEY = "hotkey";
+  protected static final String ICON_NAME = "icon";
+  protected static final String TOOLTIP = "tooltip";
+  protected static final String BUTTON_TEXT = "buttonText";
+  protected static final String DEFAULT_ICON = "/images/overview.gif";
 
   public String[] getAttributeNames() {
-    return new String[] {SCALE, COLOR, ICON_NAME, HOTKEY};
+    return new String[] {TOOLTIP, BUTTON_TEXT, ICON_NAME, HOTKEY, SCALE, COLOR};
   }
 
   public VisibilityCondition getAttributeVisibility(String name) {
@@ -234,16 +237,16 @@ public class GlobalMap extends JPanel implements AutoConfigurable, GameComponent
   }
 
   public String[] getAttributeDescriptions() {
-    return new String[] {"Scale factor", "Visible rectangle highlight color", "Toolbar button icon", "Hotkey to show/hide"};
+    return new String[] {"Tooltip text", "Button text", "Button icon", "Hotkey to show/hide", "Scale factor", "Visible rectangle highlight color"};
   }
 
   public Class[] getAttributeTypes() {
-    return new Class[] {Double.class, Color.class, IconConfig.class, KeyStroke.class};
+    return new Class[] {String.class, String.class, IconConfig.class, KeyStroke.class, Double.class, Color.class};
   }
 
   public static class IconConfig implements ConfigurerFactory {
     public Configurer getConfigurer(AutoConfigurable c, String key, String name) {
-      return new IconConfigurer(key, name, "/images/overview.gif");
+      return new IconConfigurer(key, name, DEFAULT_ICON);
     }
   }
 

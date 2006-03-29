@@ -25,6 +25,9 @@ import VASSAL.build.module.map.boardPicker.Board;
 import VASSAL.build.module.map.boardPicker.board.MapGrid;
 import VASSAL.configure.BooleanConfigurer;
 import VASSAL.configure.ColorConfigurer;
+import VASSAL.configure.Configurer;
+import VASSAL.configure.ConfigurerFactory;
+import VASSAL.configure.IconConfigurer;
 import VASSAL.configure.VisibilityCondition;
 import VASSAL.configure.StringEnum;
 import VASSAL.counters.GamePiece;
@@ -37,7 +40,6 @@ import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.io.File;
 import java.net.MalformedURLException;
-import java.net.URL;
 
 /**
  * A class that allows the user to draw a straight line on a Map (LOS
@@ -53,6 +55,8 @@ public class LOS_Thread extends AbstractConfigurable implements
   public static final String SNAP_LOS = "snapLOS";
   public static final String LOS_COLOR = "threadColor";
   public static final String HOTKEY = "hotkey";
+  public static final String TOOLTIP = "tooltip";
+  public static final String ICON_NAME = "iconName";
   public static final String LABEL = "label";
   public static final String DRAW_RANGE = "drawRange";
   public static final String HIDE_COUNTERS = "hideCounters";
@@ -65,6 +69,7 @@ public class LOS_Thread extends AbstractConfigurable implements
   public static final String ROUND_DOWN = "Down";
   public static final String ROUND_OFF = "Nearest whole number";
   public static Font RANGE_FONT = new Font("Dialog", 0, 11);
+  public static final String DEFAULT_ICON = "/images/thread.gif";
 
   protected boolean retainAfterRelease = false;
   protected long lastRelease = 0;
@@ -92,14 +97,9 @@ public class LOS_Thread extends AbstractConfigurable implements
         launch();
       }
     };
-    launch = new LaunchButton("Thread", LABEL, HOTKEY, al);
-    URL imageURL = getClass().getResource("/images/thread.gif");
-    if (imageURL != null) {
-      launch.setIcon(new ImageIcon(imageURL));
-    }
-    else {
-      launch.setText("overview");
-    }
+    launch = new LaunchButton("Thread", TOOLTIP, LABEL, HOTKEY, ICON_NAME, al);
+    launch.setAttribute(ICON_NAME, DEFAULT_ICON);
+    launch.setAttribute(TOOLTIP, "Show LOS Thread");
   }
 
   /**
@@ -162,7 +162,7 @@ public class LOS_Thread extends AbstractConfigurable implements
    * </pre>
    */
   public String[] getAttributeNames() {
-    return new String[]{HOTKEY, LABEL, DRAW_RANGE, RANGE_SCALE, RANGE_ROUNDING, HIDE_COUNTERS, HIDE_OPACITY, LOS_COLOR, RANGE_FOREGROUND, RANGE_BACKGROUND};
+    return new String[]{TOOLTIP, LABEL, ICON_NAME, HOTKEY, DRAW_RANGE, RANGE_SCALE, RANGE_ROUNDING, HIDE_COUNTERS, HIDE_OPACITY, LOS_COLOR, RANGE_FOREGROUND, RANGE_BACKGROUND};
   }
 
   public void setAttribute(String key, Object value) {
@@ -429,8 +429,10 @@ public class LOS_Thread extends AbstractConfigurable implements
   }
 
   public String[] getAttributeDescriptions() {
-    return new String[]{"Hotkey",
+    return new String[]{"Tooltip text",
                         "Button text",
+                        "Button Icon",
+                        "Hotkey",
                         "Draw Range",
                         "Pixels per range unit",
                         "Round fractions",
@@ -440,8 +442,10 @@ public class LOS_Thread extends AbstractConfigurable implements
   }
 
   public Class[] getAttributeTypes() {
-    return new Class[]{KeyStroke.class,
-                       String.class,
+    return new Class[]{String.class,
+        			   String.class,
+                       IconConfig.class,
+        			   KeyStroke.class,
                        Boolean.class,
                        Integer.class,
                        RoundingOptions.class,
@@ -450,6 +454,11 @@ public class LOS_Thread extends AbstractConfigurable implements
                        Color.class};
   }
 
+  public static class IconConfig implements ConfigurerFactory {
+    public Configurer getConfigurer(AutoConfigurable c, String key, String name) {
+      return new IconConfigurer(key, name, DEFAULT_ICON);
+    }
+  }
   public VisibilityCondition getAttributeVisibility(String name) {
     VisibilityCondition cond = null;
     if (RANGE_SCALE.equals(name)

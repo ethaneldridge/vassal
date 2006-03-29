@@ -61,6 +61,7 @@ public class MapShader extends AbstractConfigurable implements GameComponent, Dr
   public static final String HOT_KEY = "hotkey";
   public static final String ICON = "icon";
   public static final String BUTTON_TEXT = "buttonText";
+  public static final String TOOLTIP = "tooltip";
   public static final String BOARDS = "boards";
   public static final String BOARD_LIST = "boardList";
 
@@ -331,21 +332,21 @@ public class MapShader extends AbstractConfigurable implements GameComponent, Dr
   }
 
   public String[] getAttributeNames() {
-    return new String[]{NAME, ALWAYS_ON, STARTS_ON, BUTTON_TEXT, ICON, HOT_KEY,
+    return new String[]{NAME, ALWAYS_ON, STARTS_ON, TOOLTIP, BUTTON_TEXT, ICON, HOT_KEY,
                         BOARDS, BOARD_LIST, TYPE,
                         DRAW_OVER, PATTERN, COLOR, IMAGE, OPACITY,
                         BORDER, BORDER_COLOR, BORDER_WIDTH, BORDER_OPACITY};
   }
 
   public Class[] getAttributeTypes() {
-    return new Class[]{String.class, Boolean.class, Boolean.class, String.class, IconConfig.class, KeyStroke.class,
+    return new Class[]{String.class, Boolean.class, Boolean.class, String.class, String.class, IconConfig.class, KeyStroke.class,
                        BoardPrompt.class, String[].class, TypePrompt.class,
                        Boolean.class, PatternPrompt.class, Color.class, Image.class, Integer.class,
                        Boolean.class, Color.class, Integer.class, Integer.class};
   }
 
   public String[] getAttributeDescriptions() {
-    return new String[]{"Name:  ", "Shading Always On?  ", "Shading Starts turned on?  ", "Button text:  ", "Button Icon:  ", "Hotkey:  ",
+    return new String[]{"Name:  ", "Shading Always On?  ", "Shading Starts turned on?  ", "Tooltip Text:  ", "Button text:  ", "Button Icon:  ", "Hotkey:  ",
                         "All boards in map get Shaded?  ", "Board List:  ", "Type:  ",
                         "Draw Shade on top of Counters?  ", "Shade Pattern:  ", "Color:  ", "Image:  ", "Opacity(%)",
                         "Border?  ", "Border Color:  ", "Border Width:  ", "Border opacity(%)"};
@@ -381,7 +382,7 @@ public class MapShader extends AbstractConfigurable implements GameComponent, Dr
         toggleShading();
       }
     };
-    launch = new LaunchButton("Shade", BUTTON_TEXT, HOT_KEY, ICON, al);
+    launch = new LaunchButton("Shade", TOOLTIP, BUTTON_TEXT, HOT_KEY, ICON, al);
     launch.setEnabled(false);
     setLaunchButtonVisibility();
     setConfigureName("Shading");
@@ -477,7 +478,9 @@ public class MapShader extends AbstractConfigurable implements GameComponent, Dr
   public void setAttribute(String key, Object value) {
     if (NAME.equals(key)) {
       setConfigureName((String) value);
-      launch.setToolTipText((String) value);
+      if (launch.getAttributeValueString(TOOLTIP) == null) {
+        launch.setAttribute(TOOLTIP, (String) value);
+      }
     }
     else if (ALWAYS_ON.equals(key)) {
       if (value instanceof String) {
@@ -634,7 +637,7 @@ public class MapShader extends AbstractConfigurable implements GameComponent, Dr
   }
 
   public VisibilityCondition getAttributeVisibility(String name) {
-    if (ICON.equals(name) || HOT_KEY.equals(name) || BUTTON_TEXT.equals(name) || STARTS_ON.equals(name)) {
+    if (ICON.equals(name) || HOT_KEY.equals(name) || BUTTON_TEXT.equals(name) || STARTS_ON.equals(name) || TOOLTIP.equals(name)) {
       return new VisibilityCondition() {
         public boolean shouldBeVisible() {
           return !isAlwaysOn();

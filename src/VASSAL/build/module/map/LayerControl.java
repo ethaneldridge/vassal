@@ -26,6 +26,8 @@ import VASSAL.tools.LaunchButton;
  */
 public class LayerControl extends AbstractConfigurable {
 
+  public static final String NAME = "name";
+  public static final String TOOLTIP = "tooltip";
   public static final String BUTTON_TEXT = "text";
   public static final String BUTTON_ICON = "icon";
   public static final String BUTTON_HOTKEY = "hotkey";
@@ -49,7 +51,7 @@ public class LayerControl extends AbstractConfigurable {
   protected CompoundPieceCollection pieceCollection;
 
   public LayerControl() {
-    launch = new LaunchButton("Reset Layers", BUTTON_TEXT, BUTTON_HOTKEY, BUTTON_ICON, new ActionListener() {
+    launch = new LaunchButton("Reset Layers", TOOLTIP, BUTTON_TEXT, BUTTON_HOTKEY, BUTTON_ICON, new ActionListener() {
       public void actionPerformed(ActionEvent e) {
         launch();
       }
@@ -110,11 +112,11 @@ public class LayerControl extends AbstractConfigurable {
   }
 
   public String[] getAttributeDescriptions() {
-    return new String[] {"Button text", "Button Icon", "Hotkey", "Action", "Skip layers with no counters?", "Affect which layers? (Use layer names or numbers)"};
+    return new String[] {"Button text", "Button Icon", "Hotkey", "Tooltip text", "Action", "Skip layers with no counters?", "Affect which layers? (Use layer names or numbers)"};
   }
 
   public Class[] getAttributeTypes() {
-    return new Class[] {String.class, Icon.class, KeyStroke.class, CommandConfig.class, Boolean.class, String[].class};
+    return new Class[] {String.class, Icon.class, KeyStroke.class, String.class, CommandConfig.class, Boolean.class, String[].class};
   }
 
   public static class CommandConfig extends StringEnum {
@@ -124,11 +126,14 @@ public class LayerControl extends AbstractConfigurable {
   }
   
   public String[] getAttributeNames() {
-    return new String[] {BUTTON_TEXT, BUTTON_ICON, BUTTON_HOTKEY, COMMAND, SKIP, LAYERS};
+    return new String[] {BUTTON_TEXT, BUTTON_ICON, BUTTON_HOTKEY, TOOLTIP, COMMAND, SKIP, LAYERS};
   }
 
   public String getAttributeValueString(String key) {
-    if (COMMAND.equals(key)) {
+    if (NAME.equals(key)) {
+      return getConfigureName();
+    }
+    else if (COMMAND.equals(key)) {
       return command;
     }
     else if (SKIP.equals(key)) {
@@ -143,7 +148,13 @@ public class LayerControl extends AbstractConfigurable {
   }
 
   public void setAttribute(String key, Object value) {
-    if (COMMAND.equals(key)) {
+    if (NAME.equals(key)) {
+      setConfigureName((String)value);
+      if (launch.getAttributeValueString(TOOLTIP) == null) {
+        launch.setAttribute(TOOLTIP,(String)value);
+      }
+    }
+    else if (COMMAND.equals(key)) {
       command = (String) value;
     }
     else if (SKIP.equals(key)) {

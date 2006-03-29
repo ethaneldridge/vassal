@@ -51,6 +51,7 @@ public class MassKeyCommand extends AbstractConfigurable {
   public static final String DEPRECATED_NAME = "text";
   public static final String NAME = "name";
   public static final String ICON = "icon";
+  public static final String TOOLTIP = "tooltip";
   public static final String BUTTON_TEXT = "buttonText";
   public static final String HOTKEY = "buttonHotkey";
   public static final String KEY_COMMAND = "hotkey";
@@ -83,7 +84,7 @@ public class MassKeyCommand extends AbstractConfigurable {
         apply();
       }
     };
-    launch = new LaunchButton("CTRL", BUTTON_TEXT, HOTKEY, ICON, al);
+    launch = new LaunchButton("CTRL", TOOLTIP, BUTTON_TEXT, HOTKEY, ICON, al);
   }
 
   public void addTo(Buildable parent) {
@@ -105,18 +106,18 @@ public class MassKeyCommand extends AbstractConfigurable {
 
   public String[] getAttributeDescriptions() {
     if (condition == null) {
-      return new String[]{"Description", "Key Command", "Matching properties", "Button text", "Button Icon", "Hotkey",
+      return new String[]{"Description", "Key Command", "Matching properties", "Tooltip text", "Button text", "Button Icon", "Hotkey",
                           "Suppress individual reports", "Report Format"};
     }
     else {
-      return new String[]{"Description", "Key Command", "Matching properties", "Button text", "Button Icon", "Hotkey",
+      return new String[]{"Description", "Key Command", "Matching properties", "Tooltip text", "Button text", "Button Icon", "Hotkey",
                           "Suppress individual reports", "Report Format", "Apply Command"};
 
     }
   }
 
   public String[] getAttributeNames() {
-    return new String[]{NAME, KEY_COMMAND, PROPERTIES_FILTER, BUTTON_TEXT, ICON, HOTKEY,
+    return new String[]{NAME, KEY_COMMAND, PROPERTIES_FILTER, TOOLTIP, BUTTON_TEXT, ICON, HOTKEY,
                         REPORT_SINGLE, REPORT_FORMAT, CONDITION, CHECK_VALUE, CHECK_PROPERTY, AFFECTED_PIECE_NAMES};
   }
 
@@ -128,11 +129,11 @@ public class MassKeyCommand extends AbstractConfigurable {
 
   public Class[] getAttributeTypes() {
     if (condition == null) {
-      return new Class[]{String.class, KeyStroke.class, String.class, String.class, IconConfig.class, KeyStroke.class,
+      return new Class[]{String.class, KeyStroke.class, String.class, String.class, String.class, IconConfig.class, KeyStroke.class,
                          Boolean.class, ReportFormatConfig.class};
     }
     else {
-      return new Class[]{String.class, KeyStroke.class, String.class, String.class, IconConfig.class, KeyStroke.class,
+      return new Class[]{String.class, KeyStroke.class, String.class, String.class, String.class, IconConfig.class, KeyStroke.class,
                          Boolean.class, ReportFormatConfig.class, Prompt.class};
     }
   }
@@ -243,7 +244,9 @@ public class MassKeyCommand extends AbstractConfigurable {
     }
     else if (NAME.equals(key)) {
       setConfigureName((String) value);
-      launch.setToolTipText((String) value);
+      if (launch.getAttributeValueString(TOOLTIP) == null) {
+        launch.setAttribute(TOOLTIP, (String) value);
+      }
     }
     else if (KEY_COMMAND.equals(key)) {
       if (value instanceof String) {

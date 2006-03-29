@@ -42,18 +42,20 @@ import java.net.MalformedURLException;
  */
 public class HidePiecesButton extends JPanel implements MouseListener,
     AutoConfigurable, GameComponent, Drawable {
-  private boolean piecesVisible = false;
-  private Map map;
-  private LaunchButton launch;
-  private String showingIcon;
-  private String hiddenIcon;
+  protected boolean piecesVisible = false;
+  protected Map map;
+  protected LaunchButton launch;
+  protected String showingIcon;
+  protected String hiddenIcon;
   public static final String DEFAULT_SHOWING_ICON = "/images/globe_unselected.gif";
   public static final String DEFAULT_HIDDEN_ICON = "/images/globe_selected.gif";
 
-  private static final String HOTKEY = "hotkey";
+  public static final String HOTKEY = "hotkey";
   public static final String HIDDEN_ICON = "hiddenIcon";
   public static final String SHOWING_ICON = "showingIcon";
-  private static final String LAUNCH_ICON = "icon";
+  public static final String LAUNCH_ICON = "icon";
+  public static final String TOOLTIP = "tooltip";
+  public static final String BUTTON_TEXT = "buttonText";
 
 
   public HidePiecesButton() {
@@ -62,8 +64,8 @@ public class HidePiecesButton extends JPanel implements MouseListener,
         setPiecesVisible(!piecesVisible);
       }
     };
-    launch = new LaunchButton(null, null, HOTKEY, LAUNCH_ICON, al);
-    launch.setToolTipText("Hide all pieces on this map");
+    launch = new LaunchButton(null, TOOLTIP, BUTTON_TEXT, HOTKEY, LAUNCH_ICON, al);
+    launch.setAttribute(TOOLTIP, "Hide all pieces on this map");
     addMouseListener(this);
   }
 
@@ -117,7 +119,7 @@ public class HidePiecesButton extends JPanel implements MouseListener,
   }
 
   public String[] getAttributeNames() {
-    return new String[]{HOTKEY,SHOWING_ICON,HIDDEN_ICON};
+    return new String[]{TOOLTIP, BUTTON_TEXT, HOTKEY, SHOWING_ICON, HIDDEN_ICON};
   }
 
   public VisibilityCondition getAttributeVisibility(String name) {
@@ -139,11 +141,11 @@ public class HidePiecesButton extends JPanel implements MouseListener,
   }
 
   public String[] getAttributeDescriptions() {
-    return new String[]{"Hotkey","Icon when pieces are showing","Icon when pieces are hidden"};
+    return new String[]{"Tooltip text", "Button Text", "Hotkey","Icon when pieces are showing","Icon when pieces are hidden"};
   }
 
   public Class[] getAttributeTypes() {
-    return new Class[]{KeyStroke.class, ShowingIconConfig.class, HiddenIconConfig.class};
+    return new Class[]{String.class, String.class, KeyStroke.class, ShowingIconConfig.class, HiddenIconConfig.class};
   }
 
   public static class ShowingIconConfig implements ConfigurerFactory {

@@ -25,6 +25,9 @@ import VASSAL.build.module.map.boardPicker.Board;
 import VASSAL.build.module.documentation.HelpFile;
 import VASSAL.tools.LaunchButton;
 import VASSAL.tools.BackgroundTask;
+import VASSAL.configure.Configurer;
+import VASSAL.configure.ConfigurerFactory;
+import VASSAL.configure.IconConfigurer;
 import VASSAL.configure.SingleChildInstance;
 
 import javax.swing.*;
@@ -41,14 +44,14 @@ import java.util.Vector;
  * Controls the zooming in/out of a Map Window
  */
 public class Zoomer extends AbstractConfigurable implements GameComponent {
-  private Map map;
-  private double zoomStep = 1.5;
-  private int zoomLevel = 0;
-  private int zoomStart = 1;
-  private double[] zoomFactor;
-  private int maxZoom = 3;
-  private LaunchButton zoomInButton;
-  private LaunchButton zoomOutButton;
+  protected Map map;
+  protected double zoomStep = 1.5;
+  protected int zoomLevel = 0;
+  protected int zoomStart = 1;
+  protected double[] zoomFactor;
+  protected int maxZoom = 3;
+  protected LaunchButton zoomInButton;
+  protected LaunchButton zoomOutButton;
 
   public Zoomer() {
     ActionListener zoomIn = new ActionListener() {
@@ -100,11 +103,15 @@ public class Zoomer extends AbstractConfigurable implements GameComponent {
       }
     };
 
-    zoomInButton = new LaunchButton("Z", null, ZOOM_IN, zoomIn);
-    zoomInButton.setToolTipText("Zoom in");
+    //zoomInButton = new LaunchButton("Z", null, ZOOM_IN, zoomIn);
+    zoomInButton = new LaunchButton(null, IN_TOOLTIP, IN_BUTTON_TEXT, ZOOM_IN, IN_ICON_NAME, zoomIn);
+    zoomInButton.setAttribute(IN_TOOLTIP, "Zoom in");
+    zoomInButton.setAttribute(IN_ICON_NAME, IN_DEFAULT_ICON);
     //zoomInButton.setEnabled(false);
-    zoomOutButton = new LaunchButton("z", null, ZOOM_OUT, zoomOut);
-    zoomOutButton.setToolTipText("Zoom out");
+    //zoomOutButton = new LaunchButton("z", null, ZOOM_OUT, zoomOut);
+    zoomOutButton = new LaunchButton(null, OUT_TOOLTIP, OUT_BUTTON_TEXT, ZOOM_OUT, OUT_ICON_NAME, zoomOut);
+    zoomOutButton.setAttribute(OUT_TOOLTIP, "Zoom out");
+    zoomOutButton.setAttribute(OUT_ICON_NAME, OUT_DEFAULT_ICON);
 
     setConfigureName(null);
   }
@@ -114,14 +121,22 @@ public class Zoomer extends AbstractConfigurable implements GameComponent {
   }
 
   public String[] getAttributeNames() {
-    return new String[]{FACTOR, MAX, ZOOM_START, ZOOM_IN, ZOOM_OUT};
+    return new String[]{FACTOR, MAX, ZOOM_START, 
+        IN_TOOLTIP, IN_BUTTON_TEXT, IN_ICON_NAME, ZOOM_IN, 
+        OUT_TOOLTIP, OUT_BUTTON_TEXT, OUT_ICON_NAME, ZOOM_OUT};
   }
 
   public String[] getAttributeDescriptions() {
     return new String[]{"Magnification factor",
                         "Number of zoom levels",
                         "Starting zoom level",
+                        "Zoom in tooltip text",
+                        "Zoom in button text",
+                        "Zoom in Icon",
                         "Zoom in hotkey",
+                        "Zoom out tooltip text",
+                        "Zoom out button text",
+                        "Zoom out Icon",
                         "Zoom out hotkey"};
   }
 
@@ -129,16 +144,44 @@ public class Zoomer extends AbstractConfigurable implements GameComponent {
     return new Class[]{Double.class,
                        Integer.class,
                        Integer.class,
+                       String.class,
+                       String.class,
+                       InIconConfig.class,
                        KeyStroke.class,
+                       String.class,
+                       String.class,
+                       OutIconConfig.class,
                        KeyStroke.class};
   }
 
-  private static final String FACTOR = "factor";
-  private static final String MAX = "max";
-  private static final String ZOOM_START = "zoomStart";
-  private static final String ZOOM_IN = "zoomInKey";
-  private static final String ZOOM_OUT = "zoomOutKey";
-
+  public static class InIconConfig implements ConfigurerFactory {
+    public Configurer getConfigurer(AutoConfigurable c, String key, String name) {
+      return new IconConfigurer(key, name, IN_DEFAULT_ICON);
+    }
+  }
+  
+  public static class OutIconConfig implements ConfigurerFactory {
+    public Configurer getConfigurer(AutoConfigurable c, String key, String name) {
+      return new IconConfigurer(key, name, OUT_DEFAULT_ICON);
+    }
+  }
+  
+  protected static final String FACTOR = "factor";
+  protected static final String MAX = "max";
+  protected static final String ZOOM_START = "zoomStart";
+  
+  protected static final String ZOOM_IN = "zoomInKey";
+  protected static final String IN_TOOLTIP = "inTooltip";
+  protected static final String IN_BUTTON_TEXT = "inButtonText";
+  protected static final String IN_ICON_NAME = "inIconName";
+  protected static final String IN_DEFAULT_ICON = "/images/zoomIn.gif";
+  
+  protected static final String ZOOM_OUT = "zoomOutKey";
+  protected static final String OUT_TOOLTIP = "outTooltip";
+  protected static final String OUT_BUTTON_TEXT = "outButtonText";
+  protected static final String OUT_ICON_NAME = "outIconName";
+  protected static final String OUT_DEFAULT_ICON = "/images/zoomOut.gif";
+  
   public void addTo(Buildable b) {
     GameModule.getGameModule().getGameState().addGameComponent(this);
 
@@ -148,17 +191,17 @@ public class Zoomer extends AbstractConfigurable implements GameComponent {
 
     map.setZoomer(this);
     map.getToolBar().add(zoomInButton);
-    java.net.URL image = getClass().getResource("/images/zoomIn.gif");
-    if (image != null) {
-      zoomInButton.setIcon(new ImageIcon(image));
-      zoomInButton.setText("");
-    }
+//    java.net.URL image = getClass().getResource("/images/zoomIn.gif");
+//    if (image != null) {
+//      zoomInButton.setIcon(new ImageIcon(image));
+//      zoomInButton.setText("");
+//    }
     map.getToolBar().add(zoomOutButton);
-    image = getClass().getResource("/images/zoomOut.gif");
-    if (image != null) {
-      zoomOutButton.setIcon(new ImageIcon(image));
-      zoomOutButton.setText("");
-    }
+//    image = getClass().getResource("/images/zoomOut.gif");
+//    if (image != null) {
+//      zoomOutButton.setIcon(new ImageIcon(image));
+//      zoomOutButton.setText("");
+//    }
   }
 
   public String getAttributeValueString(String key) {

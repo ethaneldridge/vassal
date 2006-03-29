@@ -36,7 +36,6 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.net.MalformedURLException;
 
-import javax.swing.ImageIcon;
 import javax.swing.JFileChooser;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
@@ -47,10 +46,14 @@ import javax.swing.Timer;
 import javax.swing.border.BevelBorder;
 
 import VASSAL.build.AbstractConfigurable;
+import VASSAL.build.AutoConfigurable;
 import VASSAL.build.Buildable;
 import VASSAL.build.GameModule;
 import VASSAL.build.module.Map;
 import VASSAL.build.module.documentation.HelpFile;
+import VASSAL.configure.Configurer;
+import VASSAL.configure.ConfigurerFactory;
+import VASSAL.configure.IconConfigurer;
 import VASSAL.counters.GamePiece;
 import VASSAL.tools.BackgroundTask;
 import VASSAL.tools.LaunchButton;
@@ -61,9 +64,10 @@ import com.keypoint.PngEncoder;
  * This allows the user to capture a snapshot of the entire map into a PNG file
  */
 public class ImageSaver extends AbstractConfigurable {
-  private LaunchButton launch;
-  private Map map;
-  private boolean promptToSplit = false;
+  protected LaunchButton launch;
+  protected Map map;
+  protected boolean promptToSplit = false;
+  protected static final String DEFAULT_ICON = "/images/camera.gif";
 
   public ImageSaver() {
     ActionListener al = new ActionListener() {
@@ -71,8 +75,11 @@ public class ImageSaver extends AbstractConfigurable {
         writeMapAsImage();
       }
     };
-    launch = new LaunchButton("Capture image", null, HOTKEY, al);
-    launch.setToolTipText("Save Map as PNG file");
+    launch = new LaunchButton(null, TOOLTIP, BUTTON_TEXT, HOTKEY, ICON_NAME, al);
+    // Set defaults for backward compatibility
+    launch.setAttribute(TOOLTIP, "Save Map as PNG file");
+    launch.setAttribute(BUTTON_TEXT, "");
+    launch.setAttribute(ICON_NAME, DEFAULT_ICON);
   }
 
   public ImageSaver(Map m) {
@@ -85,11 +92,6 @@ public class ImageSaver extends AbstractConfigurable {
   public void addTo(Buildable b) {
     map = (Map) b;
     map.getToolBar().add(launch);
-    java.net.URL image = getClass().getResource("/images/camera.gif");
-    if (image != null) {
-      launch.setIcon(new ImageIcon(image));
-      launch.setText("");
-    }
   }
 
   public void removeFrom(Buildable b) {
@@ -98,20 +100,29 @@ public class ImageSaver extends AbstractConfigurable {
     map.getToolBar().revalidate();
   }
 
-  private static final String HOTKEY = "hotkey";
+  protected static final String HOTKEY = "hotkey";
+  protected static final String BUTTON_TEXT = "buttonText";
+  protected static final String TOOLTIP = "tooltip";
+  protected static final String ICON_NAME = "icon";
 
   public String[] getAttributeNames() {
-    return new String[]{launch.getHotkeyAttribute()};
+    return new String[] {TOOLTIP, BUTTON_TEXT, ICON_NAME, HOTKEY};
   }
 
   public String[] getAttributeDescriptions() {
-    return new String[]{"Hotkey"};
+    return new String[] {"Tooltip Text", "Button Text", "Toolbar button icon", "Hotkey"};
   }
 
   public Class[] getAttributeTypes() {
-    return new Class[]{KeyStroke.class};
+    return new Class[] {String.class, String.class, IconConfig.class, KeyStroke.class};
   }
 
+  public static class IconConfig implements ConfigurerFactory {
+    public Configurer getConfigurer(AutoConfigurable c, String key, String name) {
+      return new IconConfigurer(key, name, DEFAULT_ICON);
+    }
+  }
+  
   public void setAttribute(String key, Object value) {
     launch.setAttribute(key, value);
   }
@@ -342,10 +353,6 @@ public class ImageSaver extends AbstractConfigurable {
 
   public static String getConfigureTypeName() {
     return "Image Capture Tool";
-  }
-
-  public String getConfigureName() {
-    return null;
   }
 
   public Class[] getAllowableConfigureComponents() {

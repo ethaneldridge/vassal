@@ -30,19 +30,26 @@ import java.awt.event.*;
  * tooltip text, etc.
  */
 public class LaunchButton extends JButton {
-  private String nameAtt;
-  private String keyAtt;
-  private String iconAtt;
-  private IconConfigurer iconConfig;
-  private String toolTipText;
-  private KeyStrokeListener keyListener;
-  private Configurer nameConfig, keyConfig;
+  protected String tooltipAtt;
+  protected String nameAtt;
+  protected String keyAtt;
+  protected String iconAtt;
+  protected IconConfigurer iconConfig;
+  protected String toolTipText;
+  protected KeyStrokeListener keyListener;
+  protected Configurer nameConfig, keyConfig;
 
   public LaunchButton(String text, String textAttribute,
                       String hotkeyAttribute, ActionListener al) {
                       this(text,textAttribute,hotkeyAttribute,null,al);
   }
 
+  public LaunchButton(String text, String tooltipAttribute, String textAttribute,
+      String hotkeyAttribute, String iconAttribute, final ActionListener al) {
+    this(text, textAttribute, hotkeyAttribute, iconAttribute, al);
+    tooltipAtt = tooltipAttribute;
+  }
+  
   public LaunchButton(String text, String textAttribute,
                       String hotkeyAttribute, String iconAttribute, final ActionListener al) {
     super(text);
@@ -89,6 +96,9 @@ public class LaunchButton extends JButton {
     else if (key.equals(iconAtt)) {
       return iconConfig.getValueString();
     }
+    else if (key.equals(tooltipAtt)) {
+      return toolTipText;
+    }
     else {
       return null;
     }
@@ -104,6 +114,10 @@ public class LaunchButton extends JButton {
           value = HotKeyConfigurer.decode((String) value);
         }
         keyListener.setKeyStroke((KeyStroke) value);
+        setToolTipText(toolTipText);
+      }
+      else if (key.equals(tooltipAtt)) {
+        toolTipText  = (String)value;
         setToolTipText(toolTipText);
       }
       else if (key.equals(iconAtt)) {

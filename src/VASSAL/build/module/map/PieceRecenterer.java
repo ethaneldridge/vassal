@@ -47,10 +47,11 @@ public class PieceRecenterer extends AbstractConfigurable implements DeckVisitor
   public static final String BUTTON_TEXT="text";
   public static final String ICON="icon";
   public static final String HOTKEY="hotkey";
+  public static final String TOOLTIP = "tooltip";
 
-  private LaunchButton launch;
-  private Map map;
-  private DeckVisitorDispatcher dispatcher;
+  protected LaunchButton launch;
+  protected Map map;
+  protected DeckVisitorDispatcher dispatcher;
 
   public PieceRecenterer() {
     ActionListener al = new ActionListener() {
@@ -58,7 +59,7 @@ public class PieceRecenterer extends AbstractConfigurable implements DeckVisitor
         GameModule.getGameModule().sendAndLog(recenter(map));
       }
     };
-    launch = new LaunchButton("Recenter",BUTTON_TEXT,HOTKEY,ICON,al);
+    launch = new LaunchButton("Recenter",TOOLTIP,BUTTON_TEXT,HOTKEY,ICON,al);
     dispatcher = new DeckVisitorDispatcher(this);
   }
 
@@ -121,15 +122,15 @@ public class PieceRecenterer extends AbstractConfigurable implements DeckVisitor
   }
 
   public String[] getAttributeDescriptions() {
-    return new String[]{"Button text","Button icon","Hotkey"};
+    return new String[]{"Tooltip text","Button text","Button icon","Hotkey"};
   }
 
   public String[] getAttributeNames() {
-    return new String[]{BUTTON_TEXT,ICON,HOTKEY};
+    return new String[]{TOOLTIP,BUTTON_TEXT,ICON,HOTKEY};
   }
 
   public Class[] getAttributeTypes() {
-    return new Class[]{String.class,IconConfig.class,KeyStroke.class};
+    return new Class[]{String.class,String.class,IconConfig.class,KeyStroke.class};
   }
 
   public static class IconConfig implements ConfigurerFactory {

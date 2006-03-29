@@ -18,16 +18,20 @@
  */
 package VASSAL.build.module.map;
 
+import VASSAL.build.AbstractConfigurable;
+import VASSAL.build.AutoConfigurable;
 import VASSAL.build.Buildable;
-import VASSAL.build.Configurable;
 import VASSAL.build.GameModule;
 import VASSAL.build.module.Map;
 import VASSAL.build.module.documentation.HelpFile;
 import VASSAL.configure.Configurer;
+import VASSAL.configure.ConfigurerFactory;
+import VASSAL.configure.IconConfigurer;
 import VASSAL.counters.GamePiece;
-import org.w3c.dom.Element;
+import VASSAL.tools.LaunchButton;
 
 import javax.swing.*;
+
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
@@ -36,32 +40,65 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.net.MalformedURLException;
 
-public class TextSaver implements ActionListener, Configurable {
-  private javax.swing.JButton launch = new javax.swing.JButton("Save text");
-  private Map map;
+public class TextSaver extends AbstractConfigurable {
+  
+  protected static final String HOTKEY = "hotkey";
+  protected static final String BUTTON_TEXT = "buttonText";
+  protected static final String TOOLTIP = "tooltip";
+  protected static final String ICON_NAME = "icon";
+  
+  protected Map map;
+  protected LaunchButton launch;
 
+  public TextSaver() {
+    ActionListener al = new ActionListener() {
+      public void actionPerformed(ActionEvent e) {
+        apply();
+      }
+    };
+    launch = new LaunchButton("Save Text", TOOLTIP, BUTTON_TEXT, HOTKEY, ICON_NAME, al);
+    launch.setAttribute(TOOLTIP, "Save map contents as plain text file");
+  }
+  
+
+  public String[] getAttributeNames() {
+    return new String[] {TOOLTIP, BUTTON_TEXT, ICON_NAME, HOTKEY};
+  }
+
+  public String[] getAttributeDescriptions() {
+    return new String[] {"Tooltip Text", "Button Text", "Toolbar button icon", "Hotkey"};
+  }
+
+  public Class[] getAttributeTypes() {
+    return new Class[] {String.class, String.class, IconConfig.class, KeyStroke.class};
+  }
+
+  public static class IconConfig implements ConfigurerFactory {
+    public Configurer getConfigurer(AutoConfigurable c, String key, String name) {
+      return new IconConfigurer(key, name, ((TextSaver) c).launch.getAttributeValueString(ICON_NAME));
+    }
+  }
+  
+  public void setAttribute(String key, Object value) {
+    launch.setAttribute(key, value);
+  }
+
+  public String getAttributeValueString(String key) {
+    return launch.getAttributeValueString(key);
+  }
+  
   public void addTo(Buildable b) {
     map = (Map) b;
-    launch.setAlignmentY(0.0F);
     map.getToolBar().add(launch);
   }
 
   public void removeFrom(Buildable b) {
     map = (Map) b;
+    map.getToolBar().remove(launch);
+    map.getToolBar().revalidate();
   }
 
-  public void add(Buildable b) {
-  }
-
-  public void remove(Buildable b) {
-  }
-
-  public void build(Element e) {
-    launch.addActionListener(this);
-    launch.setToolTipText("Save map contents as plain text file");
-  }
-
-  public void actionPerformed(ActionEvent e) {
+  public void apply() {
 
     switch (JOptionPane.showConfirmDialog
         (null, "Write contents as seen by opponents?", "", JOptionPane.YES_NO_OPTION)) {
@@ -111,36 +148,8 @@ public class TextSaver implements ActionListener, Configurable {
     }
   }
 
-  public org.w3c.dom.Element getBuildElement(org.w3c.dom.Document doc) {
-    return doc.createElement(getClass().getName());
-  }
-
-  public Configurer getConfigurer() {
-    return null;
-  }
-
-  /** The name of this Configurable Object
-   */
-  public String getConfigureName() {
-    return null;
-  }
-
   public static String getConfigureTypeName() {
     return "Text Capture Tool";
-  }
-
-  /** @return an array of Configurer objects representing
-   * the attributes of this Configurable object
-   */
-  public Configurer[] getAttributeConfigurers() {
-    return new Configurer[0];
-  }
-
-  /** @return an array of Configurer objects representing
-   * the Buildable children of this Configurable object
-   */
-  public Configurable[] getConfigureComponents() {
-    return new Configurable[0];
   }
 
   /** @return an array of Configurer objects representing
@@ -150,6 +159,4 @@ public class TextSaver implements ActionListener, Configurable {
     return new Class[0];
   }
 
-  public void addPropertyChangeListener(java.beans.PropertyChangeListener l) {
-  }
 }
