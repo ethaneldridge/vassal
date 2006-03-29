@@ -92,6 +92,8 @@ public abstract class RegularGridNumbering extends AbstractConfigurable implemen
   public static final String V_DRAW_OFF = "vDrawOff";
   public static final String LOCATION_FORMAT = "locationFormat";
   public static final String GRID_LOCATION = "gridLocation";
+  public static final String ROW = "row";
+  public static final String COLUMN = "column";
 
   public String getAttributeValueString(String key) {
     if (FIRST.equals(key)) {
@@ -296,7 +298,7 @@ public abstract class RegularGridNumbering extends AbstractConfigurable implemen
 
   public static class LocationFormatConfig implements ConfigurerFactory {
     public Configurer getConfigurer(AutoConfigurable c, String key, String name) {
-      return new FormattedStringConfigurer(key, name, new String[]{GRID_LOCATION});
+      return new FormattedStringConfigurer(key, name, new String[]{GRID_LOCATION,ROW,COLUMN});
     }
   }
 
@@ -406,6 +408,8 @@ public abstract class RegularGridNumbering extends AbstractConfigurable implemen
     int col = getColumn(pt);
     format.setFormat(locationFormat);
     format.setProperty(GRID_LOCATION, getName(row, col));
+    format.setProperty(ROW, getName(row+vOff, vType, vLeading));
+    format.setProperty(ROW, getName(col+hOff, hType, hLeading));
     return format.getText();
   }
 
