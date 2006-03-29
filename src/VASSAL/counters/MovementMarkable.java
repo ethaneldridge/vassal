@@ -26,24 +26,34 @@
  */
 package VASSAL.counters;
 
+import java.awt.Component;
+import java.awt.Dimension;
+import java.awt.Graphics;
+import java.awt.Graphics2D;
+import java.awt.Rectangle;
+import java.awt.Shape;
+import java.awt.geom.AffineTransform;
+import java.io.File;
+import java.net.MalformedURLException;
+import java.util.Enumeration;
+
+import javax.swing.Box;
+import javax.swing.Icon;
+import javax.swing.JOptionPane;
+import javax.swing.KeyStroke;
+import javax.swing.SwingUtilities;
+
 import VASSAL.build.GameModule;
 import VASSAL.build.module.GlobalOptions;
 import VASSAL.build.module.Map;
 import VASSAL.build.module.documentation.HelpFile;
 import VASSAL.command.ChangeTracker;
 import VASSAL.command.Command;
+import VASSAL.configure.HotKeyConfigurer;
 import VASSAL.configure.IconConfigurer;
 import VASSAL.configure.IntConfigurer;
 import VASSAL.configure.StringConfigurer;
-import VASSAL.configure.HotKeyConfigurer;
 import VASSAL.tools.SequenceEncoder;
-
-import javax.swing.*;
-import java.awt.*;
-import java.awt.geom.AffineTransform;
-import java.io.File;
-import java.net.MalformedURLException;
-import java.util.Enumeration;
 
 /**
  * A GamePiece with this trait will automatically be marked whenever it is moved.  A marked piece is

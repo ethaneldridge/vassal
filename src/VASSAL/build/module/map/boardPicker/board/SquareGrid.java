@@ -18,6 +18,25 @@
  */
 package VASSAL.build.module.map.boardPicker.board;
 
+import java.awt.Color;
+import java.awt.Container;
+import java.awt.Graphics;
+import java.awt.Graphics2D;
+import java.awt.Point;
+import java.awt.Rectangle;
+import java.awt.RenderingHints;
+import java.awt.Shape;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.geom.AffineTransform;
+import java.awt.geom.Area;
+import java.io.File;
+import java.net.MalformedURLException;
+import java.util.HashMap;
+import java.util.Map;
+
+import javax.swing.JButton;
+
 import VASSAL.build.AbstractConfigurable;
 import VASSAL.build.Buildable;
 import VASSAL.build.module.documentation.HelpFile;
@@ -28,18 +47,6 @@ import VASSAL.configure.AutoConfigurer;
 import VASSAL.configure.ColorConfigurer;
 import VASSAL.configure.Configurer;
 import VASSAL.configure.VisibilityCondition;
-
-import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.awt.geom.Area;
-import java.awt.geom.AffineTransform;
-import java.io.File;
-import java.net.MalformedURLException;
-import java.util.HashMap;
-import java.util.Map;
-
-import javax.swing.JButton;
 
 public class SquareGrid extends AbstractConfigurable implements GeometricGrid, GridEditor.EditableGrid {
   private double dx = 48.0;

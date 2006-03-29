@@ -19,6 +19,33 @@
 package VASSAL.build.module.map;
 
 
+import java.awt.Component;
+import java.awt.Dimension;
+import java.awt.GridLayout;
+import java.awt.Point;
+import java.awt.Toolkit;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
+import java.util.Enumeration;
+import java.util.HashSet;
+import java.util.Set;
+import java.util.Vector;
+
+import javax.swing.BoxLayout;
+import javax.swing.JButton;
+import javax.swing.JDialog;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JTextField;
+import javax.swing.JToolBar;
+import javax.swing.WindowConstants;
+
+import org.w3c.dom.Element;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
+
 import VASSAL.build.Buildable;
 import VASSAL.build.Builder;
 import VASSAL.build.Configurable;
@@ -30,22 +57,14 @@ import VASSAL.build.module.map.boardPicker.Board;
 import VASSAL.build.module.map.boardPicker.BoardSlot;
 import VASSAL.command.Command;
 import VASSAL.command.CommandEncoder;
-import VASSAL.configure.*;
+import VASSAL.configure.ConfigureTree;
+import VASSAL.configure.Configurer;
+import VASSAL.configure.DoubleConfigurer;
+import VASSAL.configure.IntConfigurer;
+import VASSAL.configure.StringConfigurer;
+import VASSAL.configure.ValidationReport;
+import VASSAL.configure.ValidityChecker;
 import VASSAL.tools.SequenceEncoder;
-import org.w3c.dom.Element;
-import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
-
-import javax.swing.*;
-import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.util.Enumeration;
-import java.util.HashSet;
-import java.util.Set;
-import java.util.Vector;
-import java.beans.PropertyChangeListener;
-import java.beans.PropertyChangeEvent;
 
 /**
  * This class is responsible for maintaining the {@link Board}s on a

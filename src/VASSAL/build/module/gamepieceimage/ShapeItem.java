@@ -19,12 +19,18 @@
 
 package VASSAL.build.module.gamepieceimage;
 
+import java.awt.Color;
+import java.awt.Dimension;
+import java.awt.Graphics;
+import java.awt.Graphics2D;
+import java.awt.Point;
+import java.awt.Rectangle;
+import java.awt.RenderingHints;
+
 import VASSAL.build.AutoConfigurable;
 import VASSAL.configure.StringEnum;
 import VASSAL.configure.VisibilityCondition;
 import VASSAL.tools.SequenceEncoder;
-
-import java.awt.*;
 
 public class ShapeItem extends Item {
 

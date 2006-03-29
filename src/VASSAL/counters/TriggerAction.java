@@ -24,12 +24,16 @@ import java.awt.Graphics;
 import java.awt.Rectangle;
 import java.awt.Shape;
 import java.awt.event.InputEvent;
-import java.util.Set;
-import java.util.HashSet;
 import java.io.File;
 import java.net.MalformedURLException;
+import java.util.HashSet;
+import java.util.Set;
 
-import javax.swing.*;
+import javax.swing.Box;
+import javax.swing.BoxLayout;
+import javax.swing.JPanel;
+import javax.swing.KeyStroke;
+import javax.swing.SwingUtilities;
 
 import VASSAL.build.module.documentation.HelpFile;
 import VASSAL.command.Command;
@@ -37,13 +41,6 @@ import VASSAL.command.NullCommand;
 import VASSAL.configure.HotKeyConfigurer;
 import VASSAL.configure.KeyStrokeArrayConfigurer;
 import VASSAL.configure.StringConfigurer;
-import VASSAL.counters.Decorator;
-import VASSAL.counters.EditablePiece;
-import VASSAL.counters.GamePiece;
-import VASSAL.counters.KeyCommand;
-import VASSAL.counters.PieceEditor;
-import VASSAL.counters.PieceFilter;
-import VASSAL.counters.PropertiesPieceFilter;
 import VASSAL.tools.FormattedString;
 import VASSAL.tools.SequenceEncoder;
 

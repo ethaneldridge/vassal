@@ -26,16 +26,20 @@
  */
 package VASSAL.counters;
 
+import java.awt.Component;
+import java.awt.Graphics;
+import java.awt.Rectangle;
+import java.awt.Shape;
+import java.io.File;
+import java.net.MalformedURLException;
+
+import javax.swing.KeyStroke;
+
 import VASSAL.build.GameModule;
 import VASSAL.build.module.PlayerRoster;
 import VASSAL.build.module.documentation.HelpFile;
 import VASSAL.command.Command;
 import VASSAL.configure.StringArrayConfigurer;
-
-import javax.swing.*;
-import java.awt.*;
-import java.io.File;
-import java.net.MalformedURLException;
 
 /**
  * A GamePiece with the Restricted trait can only be manipulated by the player playing a specific side

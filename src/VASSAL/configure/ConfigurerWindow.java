@@ -18,9 +18,14 @@
  */
 package VASSAL.configure;
 
-import javax.swing.*;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
+
+import javax.swing.BoxLayout;
+import javax.swing.JButton;
+import javax.swing.JDialog;
+import javax.swing.JFrame;
+import javax.swing.WindowConstants;
 
 /**
  * A Window for displaying a {@link Configurer}.  The title of the window

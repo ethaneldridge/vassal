@@ -1,12 +1,19 @@
 package VASSAL.command;
 
-import VASSAL.counters.*;
-import VASSAL.build.GameModule;
-import VASSAL.build.module.Map;
-import VASSAL.build.module.GlobalOptions;
-import VASSAL.build.module.map.HighlightLastMoved;
+import java.awt.Point;
 
-import java.awt.*;
+import VASSAL.build.GameModule;
+import VASSAL.build.module.GlobalOptions;
+import VASSAL.build.module.Map;
+import VASSAL.build.module.map.HighlightLastMoved;
+import VASSAL.counters.BoundsTracker;
+import VASSAL.counters.Deck;
+import VASSAL.counters.DeckVisitor;
+import VASSAL.counters.DeckVisitorDispatcher;
+import VASSAL.counters.GamePiece;
+import VASSAL.counters.PieceVisitorDispatcher;
+import VASSAL.counters.Properties;
+import VASSAL.counters.Stack;
 
 /*
  * $Id$

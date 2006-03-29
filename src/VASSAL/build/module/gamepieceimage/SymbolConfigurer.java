@@ -19,10 +19,19 @@
 
 package VASSAL.build.module.gamepieceimage;
 
-import javax.swing.*;
-import java.awt.*;
+import java.awt.Color;
+import java.awt.Component;
+import java.awt.Graphics;
+import java.awt.Rectangle;
 import java.awt.event.ItemListener;
 import java.awt.image.BufferedImage;
+
+import javax.swing.ImageIcon;
+import javax.swing.JComboBox;
+import javax.swing.JLabel;
+import javax.swing.JList;
+import javax.swing.ListCellRenderer;
+import javax.swing.SwingConstants;
 
 public class SymbolConfigurer extends StringEnumConfigurer {
 

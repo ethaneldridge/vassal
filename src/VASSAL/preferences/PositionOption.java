@@ -18,9 +18,13 @@
  */
 package VASSAL.preferences;
 
-import java.awt.*;
-import java.awt.event.*;
-
+import java.awt.Dimension;
+import java.awt.Point;
+import java.awt.Rectangle;
+import java.awt.Toolkit;
+import java.awt.Window;
+import java.awt.event.ComponentEvent;
+import java.awt.event.ComponentListener;
 import java.util.StringTokenizer;
 
 public class PositionOption extends VASSAL.configure.Configurer

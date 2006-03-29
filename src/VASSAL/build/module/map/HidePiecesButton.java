@@ -18,23 +18,33 @@
  */
 package VASSAL.build.module.map;
 
-import VASSAL.build.*;
-import VASSAL.build.module.GameComponent;
-import VASSAL.build.module.Map;
-import VASSAL.build.module.documentation.HelpFile;
-import VASSAL.command.Command;
-import VASSAL.configure.*;
-import VASSAL.tools.LaunchButton;
-import org.w3c.dom.Element;
-
-import javax.swing.*;
-import java.awt.*;
+import java.awt.Graphics;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.io.File;
 import java.net.MalformedURLException;
+
+import javax.swing.JPanel;
+import javax.swing.KeyStroke;
+
+import org.w3c.dom.Element;
+
+import VASSAL.build.AutoConfigurable;
+import VASSAL.build.Buildable;
+import VASSAL.build.Configurable;
+import VASSAL.build.GameModule;
+import VASSAL.build.module.GameComponent;
+import VASSAL.build.module.Map;
+import VASSAL.build.module.documentation.HelpFile;
+import VASSAL.command.Command;
+import VASSAL.configure.AutoConfigurer;
+import VASSAL.configure.Configurer;
+import VASSAL.configure.ConfigurerFactory;
+import VASSAL.configure.IconConfigurer;
+import VASSAL.configure.VisibilityCondition;
+import VASSAL.tools.LaunchButton;
 
 /**
  * This removes all game pieces from the (@link Map)

@@ -18,22 +18,30 @@
  */
 package VASSAL.configure;
 
-import VASSAL.build.Configurable;
-import VASSAL.build.GameModule;
-import VASSAL.build.module.documentation.HelpWindow;
-import VASSAL.build.module.documentation.HelpFile;
-import VASSAL.configure.ConfigureTree;
-
-import javax.swing.*;
-import java.awt.*;
-import java.awt.event.WindowListener;
-import java.awt.event.WindowEvent;
+import java.awt.BorderLayout;
+import java.awt.Component;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.WindowEvent;
+import java.awt.event.WindowListener;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.io.File;
 import java.net.MalformedURLException;
+
+import javax.swing.Action;
+import javax.swing.JFrame;
+import javax.swing.JMenu;
+import javax.swing.JMenuBar;
+import javax.swing.JMenuItem;
+import javax.swing.JScrollPane;
+import javax.swing.JToolBar;
+import javax.swing.WindowConstants;
+
+import VASSAL.build.Configurable;
+import VASSAL.build.GameModule;
+import VASSAL.build.module.documentation.HelpFile;
+import VASSAL.build.module.documentation.HelpWindow;
 
 /**
  * The editing window for a module

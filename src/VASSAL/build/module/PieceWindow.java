@@ -18,25 +18,40 @@
  */
 package VASSAL.build.module;
 
-import VASSAL.build.*;
+import java.awt.BorderLayout;
+import java.awt.Window;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.io.File;
+import java.net.MalformedURLException;
+
+import javax.swing.JComponent;
+import javax.swing.JDialog;
+import javax.swing.JFrame;
+import javax.swing.JPanel;
+import javax.swing.KeyStroke;
+import javax.swing.WindowConstants;
+
+import VASSAL.build.AutoConfigurable;
+import VASSAL.build.Buildable;
+import VASSAL.build.Configurable;
+import VASSAL.build.GameModule;
+import VASSAL.build.Widget;
 import VASSAL.build.module.documentation.HelpFile;
-import VASSAL.build.widget.*;
+import VASSAL.build.widget.BoxWidget;
+import VASSAL.build.widget.ListWidget;
+import VASSAL.build.widget.PanelWidget;
+import VASSAL.build.widget.PieceSlot;
+import VASSAL.build.widget.TabWidget;
+import VASSAL.configure.Configurer;
+import VASSAL.configure.ConfigurerFactory;
+import VASSAL.configure.IconConfigurer;
 import VASSAL.counters.GamePiece;
 import VASSAL.preferences.PositionOption;
 import VASSAL.preferences.VisibilityOption;
 import VASSAL.tools.ComponentSplitter;
 import VASSAL.tools.LaunchButton;
 import VASSAL.tools.UniqueIdManager;
-import VASSAL.configure.ConfigurerFactory;
-import VASSAL.configure.Configurer;
-import VASSAL.configure.IconConfigurer;
-
-import javax.swing.*;
-import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.io.File;
-import java.net.MalformedURLException;
 
 /**
  * A window from which players can create new {@link GamePiece}s by

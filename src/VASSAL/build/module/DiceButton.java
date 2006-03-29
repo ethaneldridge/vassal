@@ -18,21 +18,29 @@
  */
 package VASSAL.build.module;
 
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.io.File;
+import java.net.MalformedURLException;
+
+import javax.swing.KeyStroke;
+
 import VASSAL.build.AbstractConfigurable;
 import VASSAL.build.AutoConfigurable;
 import VASSAL.build.Buildable;
 import VASSAL.build.GameModule;
 import VASSAL.build.module.documentation.HelpFile;
-import VASSAL.configure.*;
+import VASSAL.configure.AutoConfigurer;
+import VASSAL.configure.Configurer;
+import VASSAL.configure.ConfigurerFactory;
+import VASSAL.configure.ConfigurerWindow;
+import VASSAL.configure.IconConfigurer;
+import VASSAL.configure.PlayerIdFormattedStringConfigurer;
+import VASSAL.configure.VisibilityCondition;
 import VASSAL.tools.FormattedString;
+import VASSAL.tools.KeyStrokeListener;
 import VASSAL.tools.LaunchButton;
 import VASSAL.tools.PlayerIdFormattedString;
-
-import javax.swing.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.io.File;
-import java.net.MalformedURLException;
 
 /**
  * This component places a button into the controls window toolbar.

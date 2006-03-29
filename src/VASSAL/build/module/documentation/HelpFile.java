@@ -18,19 +18,21 @@
  */
 package VASSAL.build.module.documentation;
 
-import VASSAL.build.AbstractConfigurable;
-import VASSAL.build.Buildable;
-import VASSAL.build.GameModule;
-import VASSAL.build.module.Documentation;
-
-import javax.swing.*;
-import java.awt.*;
+import java.awt.Image;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
+
+import javax.swing.JMenuItem;
+
+import VASSAL.build.AbstractConfigurable;
+import VASSAL.build.Buildable;
+import VASSAL.build.GameModule;
+import VASSAL.build.module.Documentation;
+import VASSAL.tools.DataArchive;
 
 /**
  * Places an entry in the <code>Help</code> menu.  Selecting the entry

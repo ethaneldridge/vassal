@@ -18,17 +18,22 @@
  */
 package VASSAL.build.widget;
 
-import VASSAL.build.Buildable;
-import VASSAL.build.Configurable;
-import VASSAL.build.Widget;
-
-import javax.swing.*;
-import java.awt.*;
+import java.awt.CardLayout;
+import java.awt.Dimension;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.beans.PropertyChangeListener;
 import java.util.Hashtable;
 import java.util.Vector;
+
+import javax.swing.BoxLayout;
+import javax.swing.DefaultComboBoxModel;
+import javax.swing.JComboBox;
+import javax.swing.JPanel;
+
+import VASSAL.build.Buildable;
+import VASSAL.build.Configurable;
+import VASSAL.build.Widget;
 
 /**
  * A Widget that corresponds to a panel with a {@link JComboBox} above

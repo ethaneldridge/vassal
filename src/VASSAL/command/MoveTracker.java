@@ -1,9 +1,9 @@
 package VASSAL.command;
 
-import VASSAL.counters.GamePiece;
-import VASSAL.build.GameModule;
+import java.awt.Point;
 
-import java.awt.*;
+import VASSAL.build.GameModule;
+import VASSAL.counters.GamePiece;
 
 /*
  * $Id$

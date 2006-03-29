@@ -18,22 +18,44 @@
  */
 package VASSAL.counters;
 
-import VASSAL.build.GameModule;
-import VASSAL.build.module.documentation.HelpFile;
-import VASSAL.command.ChangeTracker;
-import VASSAL.command.Command;
-import VASSAL.configure.*;
-import VASSAL.tools.FormattedString;
-import VASSAL.tools.SequenceEncoder;
-
-import javax.swing.*;
-
-import java.awt.*;
+import java.awt.Color;
+import java.awt.Component;
+import java.awt.Font;
+import java.awt.Graphics;
+import java.awt.Graphics2D;
+import java.awt.Image;
+import java.awt.Point;
+import java.awt.Rectangle;
+import java.awt.Shape;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Area;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.net.MalformedURLException;
+
+import javax.swing.Box;
+import javax.swing.BoxLayout;
+import javax.swing.DefaultListCellRenderer;
+import javax.swing.JComboBox;
+import javax.swing.JLabel;
+import javax.swing.JList;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.KeyStroke;
+import javax.swing.ListCellRenderer;
+
+import VASSAL.build.GameModule;
+import VASSAL.build.module.documentation.HelpFile;
+import VASSAL.command.ChangeTracker;
+import VASSAL.command.Command;
+import VASSAL.configure.BooleanConfigurer;
+import VASSAL.configure.ColorConfigurer;
+import VASSAL.configure.FormattedStringConfigurer;
+import VASSAL.configure.HotKeyConfigurer;
+import VASSAL.configure.IntConfigurer;
+import VASSAL.configure.StringConfigurer;
+import VASSAL.tools.FormattedString;
+import VASSAL.tools.SequenceEncoder;
 
 /** * Displays a text label, with content specified by the user at runtime */
 public class Labeler extends Decorator implements EditablePiece {

@@ -18,26 +18,30 @@
  */
 package VASSAL.build.module;
 
+import java.awt.Container;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.io.File;
+import java.net.MalformedURLException;
+
+import javax.swing.JComponent;
+import javax.swing.JDialog;
+import javax.swing.JPanel;
+import javax.swing.KeyStroke;
+
+import VASSAL.build.AutoConfigurable;
 import VASSAL.build.Buildable;
 import VASSAL.build.GameModule;
 import VASSAL.build.Widget;
-import VASSAL.build.AutoConfigurable;
 import VASSAL.build.module.documentation.HelpFile;
 import VASSAL.build.widget.PanelWidget;
 import VASSAL.build.widget.TabWidget;
-import VASSAL.preferences.PositionOption;
-import VASSAL.tools.LaunchButton;
-import VASSAL.tools.KeyStrokeSource;
-import VASSAL.configure.ConfigurerFactory;
 import VASSAL.configure.Configurer;
+import VASSAL.configure.ConfigurerFactory;
 import VASSAL.configure.IconConfigurer;
-
-import javax.swing.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.awt.*;
-import java.io.File;
-import java.net.MalformedURLException;
+import VASSAL.preferences.PositionOption;
+import VASSAL.tools.KeyStrokeSource;
+import VASSAL.tools.LaunchButton;
 
 /**
  * A top-level Widget for displaying Charts

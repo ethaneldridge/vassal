@@ -18,14 +18,14 @@
  */
 package VASSAL.preferences;
 
-import VASSAL.configure.Configurer;
-
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Enumeration;
 import java.util.Hashtable;
 import java.util.Properties;
+
+import VASSAL.configure.Configurer;
 
 /**
  * A set of preferences.  Each set of preferences is identified by a name, and

@@ -1,12 +1,18 @@
 package VASSAL.build.module.map;
 
-import VASSAL.build.Buildable;
-import VASSAL.build.module.Map;
-import VASSAL.counters.*;
-
-import java.awt.*;
+import java.awt.Color;
+import java.awt.Graphics;
+import java.awt.Point;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseMotionListener;
+
+import VASSAL.build.Buildable;
+import VASSAL.build.module.Map;
+import VASSAL.counters.ColoredBorder;
+import VASSAL.counters.DragBuffer;
+import VASSAL.counters.GamePiece;
+import VASSAL.counters.PieceIterator;
+import VASSAL.counters.Transparent;
 
 /*
  * $Id$

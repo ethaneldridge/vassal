@@ -18,7 +18,7 @@
  */
 package VASSAL.tools;
 
-import javax.swing.*;
+import javax.swing.SwingUtilities;
 
 /**
  * Utility task for starting a thread that performs one task,

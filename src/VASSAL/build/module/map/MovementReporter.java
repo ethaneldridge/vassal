@@ -18,20 +18,29 @@
  */
 package VASSAL.build.module.map;
 
-import VASSAL.build.GameModule;
-import VASSAL.build.module.Chatter;
-import VASSAL.build.module.Map;
-import VASSAL.build.module.GlobalOptions;
-import VASSAL.command.*;
-import VASSAL.counters.*;
-import VASSAL.tools.FormattedString;
-import VASSAL.tools.PlayerIdFormattedString;
-
-import java.awt.*;
+import java.awt.Point;
 import java.util.ArrayList;
+import java.util.Enumeration;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Enumeration;
+
+import VASSAL.build.GameModule;
+import VASSAL.build.module.Chatter;
+import VASSAL.build.module.GlobalOptions;
+import VASSAL.build.module.Map;
+import VASSAL.command.AddPiece;
+import VASSAL.command.ChangeTracker;
+import VASSAL.command.Command;
+import VASSAL.command.MovePiece;
+import VASSAL.command.NullCommand;
+import VASSAL.counters.GamePiece;
+import VASSAL.counters.Hideable;
+import VASSAL.counters.MovementMarkable;
+import VASSAL.counters.Obscurable;
+import VASSAL.counters.Properties;
+import VASSAL.counters.Stack;
+import VASSAL.tools.FormattedString;
+import VASSAL.tools.PlayerIdFormattedString;
 
 /**
  * Builds an auto-report message for a collection of Move Commands

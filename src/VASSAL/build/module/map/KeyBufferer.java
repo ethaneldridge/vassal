@@ -18,16 +18,29 @@
  */
 package VASSAL.build.module.map;
 
-import VASSAL.build.Buildable;
-import VASSAL.build.module.Map;
-import VASSAL.counters.*;
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-
-import java.awt.*;
+import java.awt.Color;
+import java.awt.Graphics;
+import java.awt.Point;
+import java.awt.Rectangle;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseMotionListener;
+
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+
+import VASSAL.build.Buildable;
+import VASSAL.build.module.Map;
+import VASSAL.counters.ColoredBorder;
+import VASSAL.counters.Deck;
+import VASSAL.counters.DeckVisitor;
+import VASSAL.counters.EventFilter;
+import VASSAL.counters.GamePiece;
+import VASSAL.counters.KeyBuffer;
+import VASSAL.counters.PieceFinder;
+import VASSAL.counters.PieceVisitorDispatcher;
+import VASSAL.counters.Properties;
+import VASSAL.counters.Stack;
 
 /**
  * This component listens for mouse clicks on a map.

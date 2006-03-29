@@ -1,7 +1,7 @@
 package VASSAL.command;
 
-import VASSAL.counters.GamePiece;
 import VASSAL.counters.Decorator;
+import VASSAL.counters.GamePiece;
 
 /*
  * $Id$

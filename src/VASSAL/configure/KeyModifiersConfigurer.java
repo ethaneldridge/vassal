@@ -18,10 +18,14 @@
  */
 package VASSAL.configure;
 
-import javax.swing.*;
+import java.awt.Component;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
-import java.awt.*;
+
+import javax.swing.BoxLayout;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.JTextField;
 
 /**
  * Configurer for specifing key masks (CTRL, SHIFT, CTRL-ALT, etc.)

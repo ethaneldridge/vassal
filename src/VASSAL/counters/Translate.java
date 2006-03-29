@@ -18,6 +18,25 @@
  */
 package VASSAL.counters;
 
+import java.awt.Component;
+import java.awt.Graphics;
+import java.awt.Point;
+import java.awt.Rectangle;
+import java.awt.Shape;
+import java.awt.geom.AffineTransform;
+import java.awt.geom.Point2D;
+import java.io.File;
+import java.net.MalformedURLException;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.Set;
+
+import javax.swing.BoxLayout;
+import javax.swing.JPanel;
+import javax.swing.KeyStroke;
+import javax.swing.SwingUtilities;
+
 import VASSAL.build.GameModule;
 import VASSAL.build.module.Map;
 import VASSAL.build.module.documentation.HelpFile;
@@ -29,17 +48,6 @@ import VASSAL.configure.HotKeyConfigurer;
 import VASSAL.configure.IntConfigurer;
 import VASSAL.configure.StringConfigurer;
 import VASSAL.tools.SequenceEncoder;
-
-import javax.swing.*;
-import java.awt.*;
-import java.awt.geom.AffineTransform;
-import java.awt.geom.Point2D;
-import java.io.File;
-import java.net.MalformedURLException;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.Set;
 
 /**
  * Give a piece a command that moves it a fixed amount in a particular direction,

@@ -1,9 +1,9 @@
 package VASSAL.build.module.map.boardPicker.board.mapgrid;
 
-import VASSAL.build.module.map.boardPicker.board.MapGrid;
-import VASSAL.build.module.map.boardPicker.Board;
+import java.awt.Dimension;
 
-import java.awt.*;
+import VASSAL.build.module.map.boardPicker.Board;
+import VASSAL.build.module.map.boardPicker.board.MapGrid;
 
 /*
  * $Id$

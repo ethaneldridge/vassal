@@ -18,12 +18,7 @@
  */
 package VASSAL.build.module;
 
-import VASSAL.build.GameModule;
-import VASSAL.command.Command;
-import VASSAL.counters.GamePiece;
-
-import javax.swing.*;
-import java.awt.*;
+import java.awt.FileDialog;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
@@ -31,6 +26,13 @@ import java.io.IOException;
 import java.util.Enumeration;
 import java.util.Hashtable;
 import java.util.Vector;
+
+import javax.swing.JMenuItem;
+import javax.swing.JOptionPane;
+
+import VASSAL.build.GameModule;
+import VASSAL.command.Command;
+import VASSAL.counters.GamePiece;
 
 /**
  * The GameState represents the state of the game currently being played.  Only one game can be open at once.

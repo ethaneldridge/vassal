@@ -18,16 +18,16 @@
  */
 package VASSAL.configure;
 
-import VASSAL.build.Configurable;
-import VASSAL.build.module.documentation.HelpWindow;
-import VASSAL.configure.PropertiesWindow;
-
-import javax.swing.*;
-import java.awt.*;
+import java.awt.Frame;
 import java.awt.event.ActionEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.util.Hashtable;
+
+import javax.swing.AbstractAction;
+
+import VASSAL.build.Configurable;
+import VASSAL.build.module.documentation.HelpWindow;
 
 /**
  * Action to edit the Properties of a component

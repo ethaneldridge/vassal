@@ -19,17 +19,24 @@
 
 package VASSAL.build.module.gamepieceimage;
 
+import java.awt.Color;
+import java.awt.Dimension;
+import java.awt.Graphics;
+import java.awt.Graphics2D;
+import java.awt.Image;
+import java.awt.Point;
+import java.awt.Rectangle;
+import java.awt.RenderingHints;
+import java.awt.image.BufferedImage;
+import java.io.File;
+import java.io.IOException;
+
 import VASSAL.build.AutoConfigurable;
 import VASSAL.build.GameModule;
 import VASSAL.configure.StringEnum;
 import VASSAL.configure.VisibilityCondition;
 import VASSAL.tools.DataArchive;
 import VASSAL.tools.SequenceEncoder;
-
-import java.awt.*;
-import java.awt.image.BufferedImage;
-import java.io.File;
-import java.io.IOException;
 
 public class ImageItem extends Item {
 

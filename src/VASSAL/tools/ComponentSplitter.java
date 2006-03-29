@@ -18,16 +18,35 @@
  */
 package VASSAL.tools;
 
-import VASSAL.Info;
-
-import javax.swing.*;
-import javax.swing.plaf.basic.BasicSplitPaneUI;
-import java.awt.*;
+import java.awt.BorderLayout;
+import java.awt.Component;
+import java.awt.Container;
+import java.awt.Dimension;
+import java.awt.Rectangle;
 import java.awt.event.ActionEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.util.Enumeration;
 import java.util.Vector;
+
+import javax.swing.AbstractAction;
+import javax.swing.Box;
+import javax.swing.BoxLayout;
+import javax.swing.ImageIcon;
+import javax.swing.JComponent;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JSplitPane;
+import javax.swing.JTextArea;
+import javax.swing.JTextField;
+import javax.swing.JToolBar;
+import javax.swing.SwingUtilities;
+import javax.swing.WindowConstants;
+import javax.swing.plaf.basic.BasicSplitPaneUI;
+
+import VASSAL.Info;
 
 /**
  * Provides support for hidden panels.

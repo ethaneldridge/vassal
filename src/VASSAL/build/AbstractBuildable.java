@@ -18,14 +18,17 @@
  */
 package VASSAL.build;
 
+import java.util.ArrayList;
+import java.util.Enumeration;
+import java.util.Iterator;
+import java.util.List;
+
 import org.w3c.dom.Attr;
 import org.w3c.dom.Element;
 import org.w3c.dom.NamedNodeMap;
 
-import java.util.*;
-
-import VASSAL.configure.ValidityChecker;
 import VASSAL.configure.ValidationReport;
+import VASSAL.configure.ValidityChecker;
 
 /**
  * Abstract implementation of the Buildable interface

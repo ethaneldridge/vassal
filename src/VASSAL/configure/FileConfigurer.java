@@ -18,11 +18,18 @@
  */
 package VASSAL.configure;
 
-import VASSAL.tools.ArchiveWriter;
-import VASSAL.build.module.Documentation;
-
 import java.io.File;
-import javax.swing.*;
+
+import javax.swing.BoxLayout;
+import javax.swing.JButton;
+import javax.swing.JFileChooser;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.JTextField;
+
+import VASSAL.build.module.Documentation;
+import VASSAL.tools.ArchiveWriter;
 
 /**
  * A Configurer for java.io.File values

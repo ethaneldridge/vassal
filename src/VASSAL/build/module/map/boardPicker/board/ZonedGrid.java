@@ -18,23 +18,28 @@
  */
 package VASSAL.build.module.map.boardPicker.board;
 
+import java.awt.Dimension;
+import java.awt.Graphics;
+import java.awt.Graphics2D;
+import java.awt.Point;
+import java.awt.Rectangle;
+import java.awt.Shape;
+import java.awt.geom.AffineTransform;
+import java.awt.geom.Area;
+import java.awt.geom.Ellipse2D;
+import java.io.File;
+import java.net.MalformedURLException;
+import java.util.ArrayList;
+import java.util.Iterator;
+
 import VASSAL.build.AbstractConfigurable;
 import VASSAL.build.Buildable;
 import VASSAL.build.module.documentation.HelpFile;
+import VASSAL.build.module.map.boardPicker.Board;
 import VASSAL.build.module.map.boardPicker.board.mapgrid.GridContainer;
 import VASSAL.build.module.map.boardPicker.board.mapgrid.GridNumbering;
 import VASSAL.build.module.map.boardPicker.board.mapgrid.Zone;
-import VASSAL.build.module.map.boardPicker.Board;
 import VASSAL.configure.Configurer;
-
-import java.awt.*;
-import java.awt.geom.Area;
-import java.awt.geom.AffineTransform;
-import java.awt.geom.Ellipse2D;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.io.File;
-import java.net.MalformedURLException;
 
 /**
  * Map Grid that contains any number of {@link VASSAL.build.module.map.boardPicker.board.mapgrid.Zone}s against a background {@link MapGrid}

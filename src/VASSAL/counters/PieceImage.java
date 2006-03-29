@@ -18,7 +18,9 @@
  */
 package VASSAL.counters;
 
-import java.awt.*;
+import java.awt.Component;
+import java.awt.Image;
+import java.awt.Rectangle;
 import java.awt.image.BufferedImage;
 
 /**

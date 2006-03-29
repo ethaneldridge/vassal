@@ -18,14 +18,13 @@
  */
 package VASSAL.configure;
 
+import java.awt.event.ActionEvent;
+
+import javax.swing.AbstractAction;
+
 import VASSAL.build.Configurable;
 import VASSAL.build.module.documentation.HelpWindow;
-import VASSAL.configure.Configurer;
-import VASSAL.configure.ConfigurerWindow;
 import VASSAL.counters.MassPieceDefiner;
-
-import javax.swing.*;
-import java.awt.event.ActionEvent;
 
 /**
  * Action to edit all {@link VASSAL.counters.GamePiece}'s within a given component

@@ -19,7 +19,11 @@
 
 package VASSAL.build.module.gamepieceimage;
 
-import java.awt.*;
+import java.awt.BasicStroke;
+import java.awt.Color;
+import java.awt.Graphics;
+import java.awt.Graphics2D;
+import java.awt.Rectangle;
 import java.awt.geom.Arc2D;
 import java.awt.geom.GeneralPath;
 import java.awt.image.BufferedImage;

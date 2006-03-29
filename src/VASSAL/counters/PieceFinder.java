@@ -18,11 +18,12 @@
  */
 package VASSAL.counters;
 
-import VASSAL.build.module.Map;
-import VASSAL.Info;
-
-import java.awt.*;
+import java.awt.Point;
+import java.awt.Shape;
 import java.util.Enumeration;
+
+import VASSAL.Info;
+import VASSAL.build.module.Map;
 
 /**
  * This interface defines selection criteria for finding a GamePiece in a Map

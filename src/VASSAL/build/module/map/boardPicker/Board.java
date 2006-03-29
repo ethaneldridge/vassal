@@ -18,28 +18,41 @@
  */
 package VASSAL.build.module.map.boardPicker;
 
-import VASSAL.build.AbstractConfigurable;
-import VASSAL.build.Buildable;
-import VASSAL.build.GameModule;
-import VASSAL.build.module.GameComponent;
-import VASSAL.build.module.Map;
-import VASSAL.build.module.documentation.HelpFile;
-import VASSAL.build.module.map.boardPicker.board.*;
-import VASSAL.build.module.map.boardPicker.board.mapgrid.GridContainer;
-import VASSAL.command.Command;
-import VASSAL.configure.ColorConfigurer;
-import VASSAL.configure.SingleChildInstance;
-import VASSAL.configure.VisibilityCondition;
-import VASSAL.tools.DataArchive;
-
-import javax.swing.*;
-import java.awt.*;
+import java.awt.Color;
+import java.awt.Component;
+import java.awt.Dimension;
+import java.awt.Graphics;
+import java.awt.Image;
+import java.awt.Point;
+import java.awt.Rectangle;
 import java.io.File;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.Iterator;
+
+import javax.swing.Icon;
+import javax.swing.ImageIcon;
+import javax.swing.JOptionPane;
+
+import VASSAL.build.AbstractConfigurable;
+import VASSAL.build.Buildable;
+import VASSAL.build.GameModule;
+import VASSAL.build.module.GameComponent;
+import VASSAL.build.module.Map;
+import VASSAL.build.module.documentation.HelpFile;
+import VASSAL.build.module.map.boardPicker.board.HexGrid;
+import VASSAL.build.module.map.boardPicker.board.MapGrid;
+import VASSAL.build.module.map.boardPicker.board.RegionGrid;
+import VASSAL.build.module.map.boardPicker.board.SquareGrid;
+import VASSAL.build.module.map.boardPicker.board.ZonedGrid;
+import VASSAL.build.module.map.boardPicker.board.mapgrid.GridContainer;
+import VASSAL.command.Command;
+import VASSAL.configure.ColorConfigurer;
+import VASSAL.configure.SingleChildInstance;
+import VASSAL.configure.VisibilityCondition;
+import VASSAL.tools.DataArchive;
 
 public class Board extends AbstractConfigurable implements GridContainer {
   /**

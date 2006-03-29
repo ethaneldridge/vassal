@@ -18,13 +18,18 @@
  */
 package VASSAL.build.module.map;
 
-import VASSAL.build.*;
-import VASSAL.counters.*;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+
+import VASSAL.build.Buildable;
 import VASSAL.build.module.Map;
-
-import java.awt.event.*;
-
-import org.w3c.dom.*;
+import VASSAL.counters.GamePiece;
+import VASSAL.counters.KeyBuffer;
+import VASSAL.counters.PieceFinder;
+import VASSAL.counters.Stack;
 
 public class StackExpander extends MouseAdapter implements Buildable {
   protected Map map;

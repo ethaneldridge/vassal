@@ -18,15 +18,23 @@
  */
 package VASSAL.counters;
 
-import VASSAL.build.module.documentation.HelpFile;
-import VASSAL.command.Command;
-import VASSAL.tools.SequenceEncoder;
-
-import javax.swing.*;
-import java.awt.*;
+import java.awt.Component;
+import java.awt.Graphics;
+import java.awt.Rectangle;
+import java.awt.Shape;
 import java.awt.event.InputEvent;
 import java.io.File;
 import java.net.MalformedURLException;
+
+import javax.swing.Box;
+import javax.swing.JCheckBox;
+import javax.swing.JComboBox;
+import javax.swing.JLabel;
+import javax.swing.KeyStroke;
+
+import VASSAL.build.module.documentation.HelpFile;
+import VASSAL.command.Command;
+import VASSAL.tools.SequenceEncoder;
 
 public class Immobilized extends Decorator implements EditablePiece {
 

@@ -26,12 +26,18 @@
  */
 package VASSAL.configure;
 
-import javax.swing.*;
-import java.awt.*;
-import java.awt.event.ActionListener;
+import java.awt.Component;
+import java.awt.Dimension;
 import java.awt.event.ActionEvent;
-import java.beans.PropertyChangeListener;
+import java.awt.event.ActionListener;
 import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
+
+import javax.swing.Box;
+import javax.swing.DefaultComboBoxModel;
+import javax.swing.JComboBox;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
 
 /**
  * A Configurer that returns a String from among a list of possible values

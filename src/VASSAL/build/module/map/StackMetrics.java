@@ -18,6 +18,23 @@
  */
 package VASSAL.build.module.map;
 
+import java.awt.Color;
+import java.awt.Component;
+import java.awt.Graphics;
+import java.awt.Graphics2D;
+import java.awt.Point;
+import java.awt.Rectangle;
+import java.awt.Shape;
+import java.awt.event.KeyEvent;
+import java.awt.geom.AffineTransform;
+import java.io.File;
+import java.net.MalformedURLException;
+import java.util.ArrayList;
+import java.util.Enumeration;
+import java.util.Iterator;
+
+import javax.swing.KeyStroke;
+
 import VASSAL.Info;
 import VASSAL.build.AbstractConfigurable;
 import VASSAL.build.Buildable;
@@ -31,17 +48,13 @@ import VASSAL.command.NullCommand;
 import VASSAL.configure.ColorConfigurer;
 import VASSAL.configure.HotKeyConfigurer;
 import VASSAL.configure.VisibilityCondition;
-import VASSAL.counters.*;
-
-import javax.swing.*;
-import java.awt.*;
-import java.awt.event.KeyEvent;
-import java.awt.geom.AffineTransform;
-import java.io.File;
-import java.net.MalformedURLException;
-import java.util.ArrayList;
-import java.util.Enumeration;
-import java.util.Iterator;
+import VASSAL.counters.BasicPiece;
+import VASSAL.counters.GamePiece;
+import VASSAL.counters.Highlighter;
+import VASSAL.counters.PieceFilter;
+import VASSAL.counters.PieceIterator;
+import VASSAL.counters.Properties;
+import VASSAL.counters.Stack;
 
 /**
  * Encapsulates information on how to draw expanded and unexpanded

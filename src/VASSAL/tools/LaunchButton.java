@@ -18,11 +18,17 @@
  */
 package VASSAL.tools;
 
-import VASSAL.configure.*;
-import VASSAL.build.GameModule;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 
-import javax.swing.*;
-import java.awt.event.*;
+import javax.swing.JButton;
+import javax.swing.KeyStroke;
+
+import VASSAL.build.GameModule;
+import VASSAL.configure.Configurer;
+import VASSAL.configure.HotKeyConfigurer;
+import VASSAL.configure.IconConfigurer;
+import VASSAL.configure.StringConfigurer;
 
 /**
  * A JButton for placing into a VASSAL component's toolbar.

@@ -19,12 +19,15 @@
 
 package VASSAL.build.module.map;
 
-import VASSAL.counters.Stack;
-import VASSAL.counters.GamePiece;
+import java.awt.Component;
+import java.awt.Graphics;
+import java.awt.Point;
+import java.awt.Rectangle;
+
 import VASSAL.build.module.Map;
 import VASSAL.command.Command;
-
-import java.awt.*;
+import VASSAL.counters.GamePiece;
+import VASSAL.counters.Stack;
 
 /**
  * Handles the drawing of cards in a {@link VASSAL.build.module.PlayerHand}.

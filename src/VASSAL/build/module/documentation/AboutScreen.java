@@ -18,6 +18,25 @@
  */
 package VASSAL.build.module.documentation;
 
+import java.awt.Color;
+import java.awt.Dimension;
+import java.awt.Image;
+import java.awt.Toolkit;
+import java.awt.Window;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.io.File;
+import java.net.MalformedURLException;
+import java.util.Enumeration;
+
+import javax.swing.BoxLayout;
+import javax.swing.ImageIcon;
+import javax.swing.JLabel;
+import javax.swing.JMenuItem;
+import javax.swing.JWindow;
+
 import VASSAL.Info;
 import VASSAL.build.AbstractConfigurable;
 import VASSAL.build.Buildable;
@@ -26,16 +45,6 @@ import VASSAL.build.IllegalBuildException;
 import VASSAL.build.module.Documentation;
 import VASSAL.build.module.ModuleExtension;
 import VASSAL.tools.DataArchive;
-
-import javax.swing.*;
-import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
-import java.io.File;
-import java.net.MalformedURLException;
-import java.util.Enumeration;
 
 /**
  * Places an entry in the <code>Help</code> menu.  Selecting the entry

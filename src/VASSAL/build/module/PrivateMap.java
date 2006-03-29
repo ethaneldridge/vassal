@@ -26,17 +26,7 @@
  */
 package VASSAL.build.module;
 
-import VASSAL.Info;
-import VASSAL.build.Buildable;
-import VASSAL.build.GameModule;
-import VASSAL.build.module.documentation.HelpFile;
-import VASSAL.configure.ConfigureTree;
-import VASSAL.configure.StringArrayConfigurer;
-import VASSAL.configure.ValidationReport;
-import VASSAL.configure.ValidityChecker;
-
-import javax.swing.*;
-import java.awt.*;
+import java.awt.Window;
 import java.awt.dnd.DropTarget;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
@@ -46,6 +36,22 @@ import java.io.File;
 import java.net.MalformedURLException;
 import java.util.Enumeration;
 import java.util.Vector;
+
+import javax.swing.JComponent;
+import javax.swing.JDialog;
+import javax.swing.JFrame;
+import javax.swing.JScrollPane;
+import javax.swing.KeyStroke;
+import javax.swing.WindowConstants;
+
+import VASSAL.Info;
+import VASSAL.build.Buildable;
+import VASSAL.build.GameModule;
+import VASSAL.build.module.documentation.HelpFile;
+import VASSAL.configure.ConfigureTree;
+import VASSAL.configure.StringArrayConfigurer;
+import VASSAL.configure.ValidationReport;
+import VASSAL.configure.ValidityChecker;
 
 /**
  * A Map that may be configured to be visible only a particular side.

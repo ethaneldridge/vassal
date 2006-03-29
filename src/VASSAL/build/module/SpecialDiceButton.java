@@ -18,18 +18,10 @@
  */
 package VASSAL.build.module;
 
-import VASSAL.build.AbstractConfigurable;
-import VASSAL.build.AutoConfigurable;
-import VASSAL.build.Buildable;
-import VASSAL.build.GameModule;
-import VASSAL.build.module.documentation.HelpFile;
-import VASSAL.command.Command;
-import VASSAL.command.CommandEncoder;
-import VASSAL.configure.*;
-import VASSAL.tools.*;
-
-import javax.swing.*;
-import java.awt.*;
+import java.awt.Color;
+import java.awt.Component;
+import java.awt.Graphics;
+import java.awt.Image;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.HierarchyEvent;
@@ -41,6 +33,32 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Vector;
+
+import javax.swing.Icon;
+import javax.swing.ImageIcon;
+import javax.swing.JDialog;
+import javax.swing.JLabel;
+import javax.swing.KeyStroke;
+
+import VASSAL.build.AbstractConfigurable;
+import VASSAL.build.AutoConfigurable;
+import VASSAL.build.Buildable;
+import VASSAL.build.GameModule;
+import VASSAL.build.module.documentation.HelpFile;
+import VASSAL.command.Command;
+import VASSAL.command.CommandEncoder;
+import VASSAL.configure.ColorConfigurer;
+import VASSAL.configure.Configurer;
+import VASSAL.configure.ConfigurerFactory;
+import VASSAL.configure.IconConfigurer;
+import VASSAL.configure.PlayerIdFormattedStringConfigurer;
+import VASSAL.configure.VisibilityCondition;
+import VASSAL.tools.FormattedString;
+import VASSAL.tools.KeyStrokeListener;
+import VASSAL.tools.LaunchButton;
+import VASSAL.tools.PlayerIdFormattedString;
+import VASSAL.tools.SequenceEncoder;
+import VASSAL.tools.UniqueIdManager;
 
 
 /**

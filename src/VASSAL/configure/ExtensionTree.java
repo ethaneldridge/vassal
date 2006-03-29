@@ -18,21 +18,23 @@
  */
 package VASSAL.configure;
 
-import VASSAL.build.Configurable;
-import VASSAL.build.Builder;
-import VASSAL.build.module.ExtensionElement;
-import VASSAL.build.module.ModuleExtension;
-import VASSAL.build.module.documentation.HelpWindow;
-import VASSAL.configure.PropertiesWindow;
-import VASSAL.configure.ConfigureTree;
-
-import javax.swing.*;
-import javax.swing.tree.DefaultMutableTreeNode;
-import javax.swing.tree.TreePath;
-import java.awt.*;
+import java.awt.Frame;
 import java.awt.event.ActionEvent;
 import java.awt.event.MouseEvent;
 import java.util.Enumeration;
+
+import javax.swing.AbstractAction;
+import javax.swing.Action;
+import javax.swing.JOptionPane;
+import javax.swing.SwingUtilities;
+import javax.swing.tree.DefaultMutableTreeNode;
+import javax.swing.tree.TreePath;
+
+import VASSAL.build.Builder;
+import VASSAL.build.Configurable;
+import VASSAL.build.module.ExtensionElement;
+import VASSAL.build.module.ModuleExtension;
+import VASSAL.build.module.documentation.HelpWindow;
 
 /**
  * The configuration tree for editing a module extension

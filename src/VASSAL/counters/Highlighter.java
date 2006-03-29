@@ -18,7 +18,9 @@
  */
 package VASSAL.counters;
 
-import java.awt.*;
+import java.awt.Component;
+import java.awt.Graphics;
+import java.awt.Rectangle;
 
 /**
  * An interface that defines how to draw GamePieces that are selected

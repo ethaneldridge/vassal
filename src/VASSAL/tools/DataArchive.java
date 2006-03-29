@@ -18,13 +18,12 @@
  */
 package VASSAL.tools;
 
-import VASSAL.build.GameModule;
-import VASSAL.build.module.GlobalOptions;
-import VASSAL.build.module.documentation.HelpFile;
-import VASSAL.configure.BooleanConfigurer;
-
-import javax.swing.*;
-import java.awt.*;
+import java.awt.Dimension;
+import java.awt.Graphics2D;
+import java.awt.Image;
+import java.awt.Rectangle;
+import java.awt.RenderingHints;
+import java.awt.Toolkit;
 import java.awt.geom.AffineTransform;
 import java.awt.image.BufferedImage;
 import java.awt.image.FilteredImageSource;
@@ -32,17 +31,33 @@ import java.awt.image.ImageFilter;
 import java.awt.image.ImageProducer;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
-import java.io.*;
+import java.io.BufferedInputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.net.URL;
 import java.security.AllPermission;
 import java.security.CodeSource;
 import java.security.PermissionCollection;
 import java.security.SecureClassLoader;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 import java.util.zip.ZipInputStream;
+
+import javax.swing.ImageIcon;
+
+import VASSAL.build.GameModule;
+import VASSAL.build.module.GlobalOptions;
+import VASSAL.build.module.documentation.HelpFile;
+import VASSAL.configure.BooleanConfigurer;
 
 /**
  * Wrapper around a Zip archive with methods to cache images

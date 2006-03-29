@@ -18,14 +18,19 @@
  */
 package VASSAL.build.module.gamepieceimage;
 
+import java.awt.Dimension;
+import java.awt.Graphics;
+
 import VASSAL.build.AbstractConfigurable;
 import VASSAL.build.AutoConfigurable;
 import VASSAL.build.Buildable;
 import VASSAL.build.module.documentation.HelpFile;
-import VASSAL.configure.*;
+import VASSAL.configure.Configurer;
+import VASSAL.configure.ConfigurerFactory;
+import VASSAL.configure.IconConfigurer;
+import VASSAL.configure.StringEnum;
+import VASSAL.configure.VisibilityCondition;
 import VASSAL.tools.SequenceEncoder;
-
-import java.awt.*;
 
 /**
  * 

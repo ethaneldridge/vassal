@@ -26,23 +26,36 @@
  */
 package VASSAL.build.module.map;
 
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.io.File;
+import java.net.MalformedURLException;
+
+import javax.swing.KeyStroke;
+
 import VASSAL.build.AbstractConfigurable;
 import VASSAL.build.AutoConfigurable;
 import VASSAL.build.Buildable;
 import VASSAL.build.GameModule;
 import VASSAL.build.module.Map;
 import VASSAL.build.module.documentation.HelpFile;
-import VASSAL.configure.*;
-import VASSAL.counters.*;
+import VASSAL.configure.Configurer;
+import VASSAL.configure.ConfigurerFactory;
+import VASSAL.configure.HotKeyConfigurer;
+import VASSAL.configure.IconConfigurer;
+import VASSAL.configure.PlayerIdFormattedStringConfigurer;
+import VASSAL.configure.StringArrayConfigurer;
+import VASSAL.configure.StringEnum;
+import VASSAL.counters.BooleanAndPieceFilter;
+import VASSAL.counters.Decorator;
+import VASSAL.counters.Embellishment;
+import VASSAL.counters.GamePiece;
+import VASSAL.counters.GlobalCommand;
+import VASSAL.counters.PieceFilter;
+import VASSAL.counters.PropertiesPieceFilter;
 import VASSAL.tools.FormattedString;
 import VASSAL.tools.LaunchButton;
 import VASSAL.tools.PlayerIdFormattedString;
-
-import javax.swing.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.io.File;
-import java.net.MalformedURLException;
 
 /** Adds a button to a map window toolbar.  Hitting the button applies a particular key command to all pieces
  * on that map with a given name.

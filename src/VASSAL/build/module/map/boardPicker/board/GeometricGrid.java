@@ -1,7 +1,7 @@
 package VASSAL.build.module.map.boardPicker.board;
 
+import java.awt.Point;
 import java.awt.geom.Area;
-import java.awt.*;
 
 /*
  * $Id$

@@ -18,13 +18,17 @@
  */
 package VASSAL.build.module.map;
 
-import VASSAL.build.module.Map;
-import VASSAL.build.*;
-import VASSAL.counters.KeyBuffer;
-import VASSAL.command.Command;
+import java.awt.event.InputEvent;
+import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
 
-import java.awt.event.*;
 import javax.swing.KeyStroke;
+
+import VASSAL.build.Buildable;
+import VASSAL.build.GameModule;
+import VASSAL.build.module.Map;
+import VASSAL.command.Command;
+import VASSAL.counters.KeyBuffer;
 
 /**
  * This KeyListener forwards key event from a {@link Map} to the

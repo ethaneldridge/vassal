@@ -18,11 +18,15 @@
  */
 package VASSAL.counters;
 
-import javax.swing.*;
 import java.awt.event.ActionListener;
 import java.awt.event.FocusListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
+
+import javax.swing.BoxLayout;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.JTextField;
 
 public class KeySpecifier extends JPanel implements KeyListener {
   private JTextField tf = new JTextField(3);

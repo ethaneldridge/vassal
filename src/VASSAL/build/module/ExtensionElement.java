@@ -18,11 +18,16 @@
  */
 package VASSAL.build.module;
 
-import VASSAL.build.*;
-import VASSAL.tools.ComponentPathBuilder;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
+
+import VASSAL.build.Buildable;
+import VASSAL.build.Builder;
+import VASSAL.build.Configurable;
+import VASSAL.build.GameModule;
+import VASSAL.build.IllegalBuildException;
+import VASSAL.tools.ComponentPathBuilder;
 
 /**
  * An element of a {@link ModuleExtension} that extends an

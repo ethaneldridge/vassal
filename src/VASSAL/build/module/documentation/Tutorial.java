@@ -18,17 +18,26 @@
  */
 package VASSAL.build.module.documentation;
 
+import java.awt.event.ActionEvent;
+import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.net.MalformedURLException;
+
+import javax.swing.AbstractAction;
+import javax.swing.Action;
+import javax.swing.JMenuItem;
+import javax.swing.JOptionPane;
+import javax.swing.SwingUtilities;
+
 import VASSAL.build.AbstractConfigurable;
 import VASSAL.build.Buildable;
 import VASSAL.build.GameModule;
 import VASSAL.build.module.Documentation;
 import VASSAL.configure.BooleanConfigurer;
 import VASSAL.configure.VisibilityCondition;
-
-import javax.swing.*;
-import java.awt.event.ActionEvent;
-import java.io.*;
-import java.net.MalformedURLException;
 
 /**
  * Provides tutorial functionality by reading in a logfile

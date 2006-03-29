@@ -18,7 +18,8 @@
  */
 package VASSAL.tools;
 
-import java.awt.image.*;
+import java.awt.image.AreaAveragingScaleFilter;
+import java.awt.image.ColorModel;
 
 /**
  * Extension of java.awt.image.AreaAveragingScaleFilter.  Uses the 

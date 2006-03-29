@@ -18,7 +18,7 @@
  */
 package VASSAL.preferences;
 
-import java.awt.*;
+import java.awt.Window;
 import java.awt.event.ComponentEvent;
 import java.util.StringTokenizer;
 

@@ -18,16 +18,17 @@
  */
 package VASSAL.counters;
 
+import java.util.Enumeration;
+
+import javax.swing.KeyStroke;
+
+import VASSAL.build.GameModule;
+import VASSAL.build.module.Chatter;
+import VASSAL.build.module.Map;
+import VASSAL.command.Command;
+import VASSAL.command.NullCommand;
 import VASSAL.tools.FormattedString;
 import VASSAL.tools.PlayerIdFormattedString;
-import VASSAL.build.module.Map;
-import VASSAL.build.module.Chatter;
-import VASSAL.build.GameModule;
-import VASSAL.command.NullCommand;
-import VASSAL.command.Command;
-
-import javax.swing.*;
-import java.util.Enumeration;
 
 /**
  * Applies a given keyboard command to all counters on a map

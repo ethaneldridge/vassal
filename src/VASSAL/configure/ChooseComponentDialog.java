@@ -18,18 +18,23 @@
  */
 package VASSAL.configure;
 
+import java.awt.Frame;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.MouseEvent;
+
+import javax.swing.Box;
+import javax.swing.BoxLayout;
+import javax.swing.JButton;
+import javax.swing.JDialog;
+import javax.swing.JScrollPane;
+import javax.swing.event.TreeSelectionEvent;
+import javax.swing.event.TreeSelectionListener;
+import javax.swing.tree.DefaultMutableTreeNode;
+import javax.swing.tree.TreePath;
+
 import VASSAL.build.Configurable;
 import VASSAL.build.GameModule;
-
-import javax.swing.*;
-import javax.swing.tree.TreePath;
-import javax.swing.tree.DefaultMutableTreeNode;
-import javax.swing.event.TreeSelectionListener;
-import javax.swing.event.TreeSelectionEvent;
-import java.awt.*;
-import java.awt.event.MouseEvent;
-import java.awt.event.ActionListener;
-import java.awt.event.ActionEvent;
 
 /**
  * Dialog that prompts the user to select a component from the {@link ConfigureTree}

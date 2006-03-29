@@ -18,10 +18,15 @@
  */
 package VASSAL.counters;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.Enumeration;
+import java.util.Iterator;
+import java.util.List;
+
 import VASSAL.command.Command;
 import VASSAL.command.NullCommand;
-
-import java.util.*;
 
 
 public class KeyBuffer {

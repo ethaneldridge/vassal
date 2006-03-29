@@ -19,12 +19,17 @@
 
 package VASSAL.build.module.gamepieceimage;
 
+import java.awt.Dimension;
+import java.awt.Graphics;
+import java.awt.Graphics2D;
+import java.awt.Point;
+import java.awt.Rectangle;
+import java.awt.RenderingHints;
+import java.awt.geom.AffineTransform;
+
 import VASSAL.build.AutoConfigurable;
 import VASSAL.configure.StringEnum;
 import VASSAL.tools.SequenceEncoder;
-
-import java.awt.*;
-import java.awt.geom.AffineTransform;
 
 public class SymbolItem extends Item {  
 

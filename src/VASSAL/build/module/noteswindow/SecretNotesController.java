@@ -1,23 +1,8 @@
 package VASSAL.build.module.noteswindow;
 
-import VASSAL.build.GameModule;
-import VASSAL.build.module.GameComponent;
-import VASSAL.build.module.Chatter;
-import VASSAL.build.module.GlobalOptions;
-import VASSAL.command.Command;
-import VASSAL.command.CommandEncoder;
-import VASSAL.configure.StringConfigurer;
-import VASSAL.configure.TextConfigurer;
-import VASSAL.tools.SequenceEncoder;
-
-import javax.swing.*;
-import javax.swing.border.TitledBorder;
-import javax.swing.event.ListSelectionEvent;
-import javax.swing.event.ListSelectionListener;
-import javax.swing.table.AbstractTableModel;
-import javax.swing.table.TableColumn;
-
-import java.awt.*;
+import java.awt.Dialog;
+import java.awt.Dimension;
+import java.awt.Frame;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
@@ -31,6 +16,35 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.Locale;
+
+import javax.swing.Box;
+import javax.swing.BoxLayout;
+import javax.swing.JButton;
+import javax.swing.JComponent;
+import javax.swing.JDialog;
+import javax.swing.JLabel;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JTable;
+import javax.swing.JTextArea;
+import javax.swing.ListSelectionModel;
+import javax.swing.SwingUtilities;
+import javax.swing.border.TitledBorder;
+import javax.swing.event.ListSelectionEvent;
+import javax.swing.event.ListSelectionListener;
+import javax.swing.table.AbstractTableModel;
+import javax.swing.table.TableColumn;
+
+import VASSAL.build.GameModule;
+import VASSAL.build.module.Chatter;
+import VASSAL.build.module.GameComponent;
+import VASSAL.build.module.GlobalOptions;
+import VASSAL.command.Command;
+import VASSAL.command.CommandEncoder;
+import VASSAL.configure.StringConfigurer;
+import VASSAL.configure.TextConfigurer;
+import VASSAL.tools.SequenceEncoder;
 
 /*
  * $Id$

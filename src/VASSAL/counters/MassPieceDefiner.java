@@ -18,11 +18,11 @@
  */
 package VASSAL.counters;
 
-import VASSAL.build.Configurable;
-import VASSAL.build.widget.PieceSlot;
-
 import java.util.Enumeration;
 import java.util.Vector;
+
+import VASSAL.build.Configurable;
+import VASSAL.build.widget.PieceSlot;
 
 /**
  * Edits an entire set of GamePieces at once

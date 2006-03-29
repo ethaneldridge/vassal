@@ -18,20 +18,33 @@
  */
 package VASSAL.build.module.map;
 
-import VASSAL.build.Buildable;
-import VASSAL.build.module.Map;
-import VASSAL.counters.*;
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-
-import javax.swing.*;
-import java.awt.*;
+import java.awt.Font;
+import java.awt.Point;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+
+import javax.swing.Action;
+import javax.swing.JMenu;
+import javax.swing.JMenuItem;
+import javax.swing.JPopupMenu;
+import javax.swing.KeyStroke;
+
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+
+import VASSAL.build.Buildable;
+import VASSAL.build.module.Map;
+import VASSAL.counters.Deck;
+import VASSAL.counters.EventFilter;
+import VASSAL.counters.GamePiece;
+import VASSAL.counters.KeyCommand;
+import VASSAL.counters.KeyCommandSubMenu;
+import VASSAL.counters.PieceFinder;
+import VASSAL.counters.Properties;
 
 public class MenuDisplayer extends MouseAdapter implements Buildable {
   public static Font POPUP_MENU_FONT = new Font("Dialog", 0, 10);

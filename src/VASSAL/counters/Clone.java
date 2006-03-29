@@ -1,5 +1,16 @@
 package VASSAL.counters;
 
+import java.awt.Component;
+import java.awt.Graphics;
+import java.awt.Rectangle;
+import java.awt.Shape;
+import java.io.File;
+import java.net.MalformedURLException;
+
+import javax.swing.BoxLayout;
+import javax.swing.JPanel;
+import javax.swing.KeyStroke;
+
 import VASSAL.build.GameModule;
 import VASSAL.build.module.documentation.HelpFile;
 import VASSAL.command.AddPiece;
@@ -7,11 +18,6 @@ import VASSAL.command.Command;
 import VASSAL.configure.HotKeyConfigurer;
 import VASSAL.configure.StringConfigurer;
 import VASSAL.tools.SequenceEncoder;
-
-import javax.swing.*;
-import java.awt.*;
-import java.io.File;
-import java.net.MalformedURLException;
 
 /*
  * $Id$

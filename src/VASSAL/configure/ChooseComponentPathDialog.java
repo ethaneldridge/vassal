@@ -18,12 +18,13 @@
  */
 package VASSAL.configure;
 
-import VASSAL.build.Configurable;
+import java.awt.Frame;
 
 import javax.swing.event.TreeSelectionEvent;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.TreePath;
-import java.awt.*;
+
+import VASSAL.build.Configurable;
 
 /**
  * Widget for selecting the full path of a Component in the Buildable hierarchy

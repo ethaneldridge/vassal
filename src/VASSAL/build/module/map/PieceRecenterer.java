@@ -18,27 +18,33 @@
  */
 package VASSAL.build.module.map;
 
-import VASSAL.build.AbstractConfigurable;
-import VASSAL.build.GameModule;
-import VASSAL.build.Buildable;
-import VASSAL.build.AutoConfigurable;
-import VASSAL.build.module.Map;
-import VASSAL.build.module.documentation.HelpFile;
-import VASSAL.tools.LaunchButton;
-import VASSAL.command.Command;
-import VASSAL.command.NullCommand;
-import VASSAL.command.ChangeTracker;
-import VASSAL.counters.*;
-import VASSAL.configure.ConfigurerFactory;
-import VASSAL.configure.Configurer;
-import VASSAL.configure.IconConfigurer;
-
-import javax.swing.*;
-import java.awt.event.ActionListener;
+import java.awt.Point;
+import java.awt.Rectangle;
 import java.awt.event.ActionEvent;
-import java.awt.*;
+import java.awt.event.ActionListener;
 import java.io.File;
 import java.net.MalformedURLException;
+
+import javax.swing.KeyStroke;
+
+import VASSAL.build.AbstractConfigurable;
+import VASSAL.build.AutoConfigurable;
+import VASSAL.build.Buildable;
+import VASSAL.build.GameModule;
+import VASSAL.build.module.Map;
+import VASSAL.build.module.documentation.HelpFile;
+import VASSAL.command.ChangeTracker;
+import VASSAL.command.Command;
+import VASSAL.command.NullCommand;
+import VASSAL.configure.Configurer;
+import VASSAL.configure.ConfigurerFactory;
+import VASSAL.configure.IconConfigurer;
+import VASSAL.counters.Deck;
+import VASSAL.counters.DeckVisitor;
+import VASSAL.counters.DeckVisitorDispatcher;
+import VASSAL.counters.GamePiece;
+import VASSAL.counters.Stack;
+import VASSAL.tools.LaunchButton;
 
 /** Adds a button to a Maps toolbar that adjusts the positions of all pieces
  * so that their centroid is at the center of the map

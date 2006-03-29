@@ -18,7 +18,8 @@
  */
 package VASSAL.build.module;
 
-import VASSAL.build.*;
+import VASSAL.build.AbstractBuildable;
+import VASSAL.build.Buildable;
 
 /**
  * This is now a dummy class

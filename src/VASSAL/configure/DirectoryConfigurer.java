@@ -18,10 +18,11 @@
  */
 package VASSAL.configure;
 
-import VASSAL.build.module.Documentation;
-
 import java.io.File;
-import javax.swing.*;
+
+import javax.swing.JFileChooser;
+
+import VASSAL.build.module.Documentation;
 
 /**
  * A Configurer for picking file directories

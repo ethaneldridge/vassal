@@ -18,13 +18,20 @@
  */
 package VASSAL.configure;
 
-import VASSAL.build.GameModule;
-
-import javax.swing.*;
+import java.awt.BorderLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.*;
 import java.util.List;
+
+import javax.swing.Box;
+import javax.swing.JButton;
+import javax.swing.JDialog;
+import javax.swing.JLabel;
+import javax.swing.JList;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+
+import VASSAL.build.GameModule;
 
 /**
  * Dialog for reporting the results of validating a GameModule

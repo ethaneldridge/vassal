@@ -19,8 +19,10 @@
 package VASSAL.build.widget;
 
 import VASSAL.build.GameModule;
-import VASSAL.counters.*;
 import VASSAL.configure.Configurer;
+import VASSAL.counters.BasicPiece;
+import VASSAL.counters.GamePiece;
+import VASSAL.counters.Obscurable;
 
 /**
  * A CardSlot is identical to a PieceSlot except that it is initialized

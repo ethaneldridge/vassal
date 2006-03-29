@@ -18,8 +18,14 @@
  */
 package VASSAL.tools;
 
-import javax.swing.*;
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.util.Enumeration;
 import java.util.Properties;
 import java.util.jar.JarOutputStream;
@@ -27,6 +33,9 @@ import java.util.zip.CRC32;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 import java.util.zip.ZipOutputStream;
+
+import javax.swing.JOptionPane;
+import javax.swing.SwingUtilities;
 
 /**
  * Automatically builds a .jar file that will update a Zip archive.

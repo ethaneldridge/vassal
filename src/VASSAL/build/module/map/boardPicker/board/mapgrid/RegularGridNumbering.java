@@ -26,19 +26,28 @@
  */
 package VASSAL.build.module.map.boardPicker.board.mapgrid;
 
-import VASSAL.build.AbstractConfigurable;
-import VASSAL.build.AutoConfigurable;
-import VASSAL.build.module.documentation.HelpFile;
-import VASSAL.configure.*;
-import VASSAL.tools.FormattedString;
-
-import javax.swing.*;
-import java.awt.*;
+import java.awt.Color;
+import java.awt.Container;
+import java.awt.Point;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
 import java.io.File;
 import java.net.MalformedURLException;
+
+import javax.swing.JComponent;
+
+import VASSAL.build.AbstractConfigurable;
+import VASSAL.build.AutoConfigurable;
+import VASSAL.build.module.documentation.HelpFile;
+import VASSAL.configure.AutoConfigurer;
+import VASSAL.configure.ColorConfigurer;
+import VASSAL.configure.Configurer;
+import VASSAL.configure.ConfigurerFactory;
+import VASSAL.configure.FormattedStringConfigurer;
+import VASSAL.configure.StringEnum;
+import VASSAL.configure.VisibilityCondition;
+import VASSAL.tools.FormattedString;
 
 /**
  * Abstract base class for grid numbering classes for hexagonal and rectangular grids

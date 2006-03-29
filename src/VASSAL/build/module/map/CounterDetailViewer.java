@@ -363,11 +363,12 @@ public class CounterDetailViewer extends AbstractConfigurable implements Drawabl
      * showGraphicsSingle/showTextSingle and stack must not be expanded. Empty
      * space - Depends on setting of
      */
-
+    
+    double zoom = getZoom();
     if (displayablePieces.size() < minimumDisplayablePieces) {
       if (displayablePieces.size() > 0) {
-        graphicsVisible = map.getZoom() < zoomLevel;
-        textVisible = map.getZoom() < zoomLevel && (summaryReportFormat.getFormat().length() > 0 || counterReportFormat.getFormat().length() > 0);
+        graphicsVisible = zoom < zoomLevel;
+        textVisible = zoom < zoomLevel && (summaryReportFormat.getFormat().length() > 0 || counterReportFormat.getFormat().length() > 0);
       }
       else {
         textVisible = (minimumDisplayablePieces==0 && emptyHexReportFormat.getFormat().length() > 0);
@@ -379,6 +380,10 @@ public class CounterDetailViewer extends AbstractConfigurable implements Drawabl
       textVisible = showText && (summaryReportFormat.getFormat().length() > 0 || counterReportFormat.getFormat().length() > 0);
     }
     map.repaint();
+  }
+
+  protected double getZoom() {
+    return map.getZoom();
   }
 
   /*

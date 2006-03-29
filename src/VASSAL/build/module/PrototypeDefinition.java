@@ -1,5 +1,16 @@
 package VASSAL.build.module;
 
+import java.awt.Component;
+import java.beans.PropertyChangeListener;
+import java.beans.PropertyChangeSupport;
+import java.io.File;
+import java.net.MalformedURLException;
+
+import javax.swing.Box;
+
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+
 import VASSAL.build.Buildable;
 import VASSAL.build.Builder;
 import VASSAL.build.Configurable;
@@ -10,17 +21,13 @@ import VASSAL.configure.Configurer;
 import VASSAL.configure.StringConfigurer;
 import VASSAL.configure.ValidationReport;
 import VASSAL.configure.ValidityChecker;
-import VASSAL.counters.*;
+import VASSAL.counters.BasicPiece;
+import VASSAL.counters.Decorator;
+import VASSAL.counters.GamePiece;
+import VASSAL.counters.PieceDefiner;
+import VASSAL.counters.PieceEditor;
+import VASSAL.counters.Properties;
 import VASSAL.tools.UniqueIdManager;
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-
-import javax.swing.*;
-import java.awt.*;
-import java.beans.PropertyChangeListener;
-import java.beans.PropertyChangeSupport;
-import java.io.File;
-import java.net.MalformedURLException;
 
 /*
  * $Id$

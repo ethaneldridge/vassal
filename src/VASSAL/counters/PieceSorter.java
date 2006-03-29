@@ -18,9 +18,9 @@
  */
 package VASSAL.counters;
 
-import VASSAL.tools.Sort;
-
 import java.util.Comparator;
+
+import VASSAL.tools.Sort;
 
 /**
  * Sorts GamePieces according to their position:

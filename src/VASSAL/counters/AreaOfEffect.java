@@ -18,19 +18,17 @@
  */
 package VASSAL.counters;
 
-import VASSAL.build.module.Map;
-import VASSAL.build.module.documentation.HelpFile;
-import VASSAL.build.module.map.MapShader;
-import VASSAL.build.module.map.boardPicker.Board;
-import VASSAL.build.module.map.boardPicker.board.GeometricGrid;
-import VASSAL.build.module.map.boardPicker.board.MapGrid;
-import VASSAL.command.ChangeTracker;
-import VASSAL.command.Command;
-import VASSAL.configure.*;
-import VASSAL.tools.SequenceEncoder;
-
-import javax.swing.*;
-import java.awt.*;
+import java.awt.AlphaComposite;
+import java.awt.Color;
+import java.awt.Component;
+import java.awt.Composite;
+import java.awt.Frame;
+import java.awt.Graphics;
+import java.awt.Graphics2D;
+import java.awt.Point;
+import java.awt.Rectangle;
+import java.awt.Shape;
+import java.awt.Window;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.geom.AffineTransform;
@@ -40,6 +38,32 @@ import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.io.File;
 import java.net.MalformedURLException;
+
+import javax.swing.Box;
+import javax.swing.BoxLayout;
+import javax.swing.JButton;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.JSeparator;
+import javax.swing.JTextField;
+import javax.swing.KeyStroke;
+import javax.swing.SwingUtilities;
+
+import VASSAL.build.module.Map;
+import VASSAL.build.module.documentation.HelpFile;
+import VASSAL.build.module.map.MapShader;
+import VASSAL.build.module.map.boardPicker.Board;
+import VASSAL.build.module.map.boardPicker.board.GeometricGrid;
+import VASSAL.build.module.map.boardPicker.board.MapGrid;
+import VASSAL.command.ChangeTracker;
+import VASSAL.command.Command;
+import VASSAL.configure.BooleanConfigurer;
+import VASSAL.configure.ChooseComponentDialog;
+import VASSAL.configure.ColorConfigurer;
+import VASSAL.configure.HotKeyConfigurer;
+import VASSAL.configure.IntConfigurer;
+import VASSAL.configure.StringConfigurer;
+import VASSAL.tools.SequenceEncoder;
 
 /**
  * @author Scott Giese sgiese@sprintmail.com

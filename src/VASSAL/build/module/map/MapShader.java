@@ -19,6 +19,30 @@
 
 package VASSAL.build.module.map;
 
+import java.awt.AlphaComposite;
+import java.awt.BasicStroke;
+import java.awt.Color;
+import java.awt.Composite;
+import java.awt.Graphics;
+import java.awt.Graphics2D;
+import java.awt.Image;
+import java.awt.Paint;
+import java.awt.Rectangle;
+import java.awt.Stroke;
+import java.awt.TexturePaint;
+import java.awt.event.ActionListener;
+import java.awt.geom.AffineTransform;
+import java.awt.geom.Area;
+import java.awt.image.BufferedImage;
+import java.io.File;
+import java.io.IOException;
+import java.net.MalformedURLException;
+import java.util.Enumeration;
+
+import javax.swing.Icon;
+import javax.swing.ImageIcon;
+import javax.swing.KeyStroke;
+
 import VASSAL.build.AbstractConfigurable;
 import VASSAL.build.AutoConfigurable;
 import VASSAL.build.Buildable;
@@ -28,23 +52,18 @@ import VASSAL.build.module.Map;
 import VASSAL.build.module.documentation.HelpFile;
 import VASSAL.build.module.map.boardPicker.Board;
 import VASSAL.command.Command;
-import VASSAL.configure.*;
+import VASSAL.configure.ColorConfigurer;
+import VASSAL.configure.Configurer;
+import VASSAL.configure.ConfigurerFactory;
+import VASSAL.configure.IconConfigurer;
+import VASSAL.configure.StringArrayConfigurer;
+import VASSAL.configure.StringEnum;
+import VASSAL.configure.VisibilityCondition;
+import VASSAL.counters.Decorator;
 import VASSAL.counters.GamePiece;
 import VASSAL.counters.Stack;
-import VASSAL.counters.Decorator;
 import VASSAL.tools.LaunchButton;
 import VASSAL.tools.UniqueIdManager;
-
-import javax.swing.*;
-import java.awt.*;
-import java.awt.event.ActionListener;
-import java.awt.geom.Area;
-import java.awt.geom.AffineTransform;
-import java.awt.image.BufferedImage;
-import java.io.File;
-import java.io.IOException;
-import java.util.Enumeration;
-import java.net.MalformedURLException;
 
 /**
  *

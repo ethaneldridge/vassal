@@ -18,20 +18,43 @@
  */
 package VASSAL.counters;
 
+import java.awt.AlphaComposite;
+import java.awt.BasicStroke;
+import java.awt.Color;
+import java.awt.Component;
+import java.awt.Composite;
+import java.awt.Font;
+import java.awt.Graphics;
+import java.awt.Graphics2D;
+import java.awt.Image;
+import java.awt.Point;
+import java.awt.Rectangle;
+import java.awt.RenderingHints;
+import java.awt.Shape;
+import java.awt.Stroke;
+import java.io.File;
+import java.net.MalformedURLException;
+import java.util.Enumeration;
+import java.util.Vector;
+
+import javax.swing.Box;
+import javax.swing.BoxLayout;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.KeyStroke;
+
 import VASSAL.build.GameModule;
 import VASSAL.build.module.Map;
 import VASSAL.build.module.documentation.HelpFile;
 import VASSAL.command.ChangeTracker;
 import VASSAL.command.Command;
-import VASSAL.configure.*;
+import VASSAL.configure.BooleanConfigurer;
+import VASSAL.configure.ColorConfigurer;
+import VASSAL.configure.DoubleConfigurer;
+import VASSAL.configure.HotKeyConfigurer;
+import VASSAL.configure.IntConfigurer;
+import VASSAL.configure.StringConfigurer;
 import VASSAL.tools.SequenceEncoder;
-
-import javax.swing.*;
-import java.awt.*;
-import java.util.Enumeration;
-import java.util.Vector;
-import java.io.File;
-import java.net.MalformedURLException;
 
 /**
  * Displays a movement trail indicating where a piece has been moved

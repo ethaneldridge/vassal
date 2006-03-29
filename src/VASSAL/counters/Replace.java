@@ -18,14 +18,15 @@
  */
 package VASSAL.counters;
 
+import java.io.File;
+import java.net.MalformedURLException;
+
+import javax.swing.KeyStroke;
+
 import VASSAL.build.module.documentation.HelpFile;
 import VASSAL.command.Command;
 import VASSAL.command.RemovePiece;
 import VASSAL.configure.BooleanConfigurer;
-
-import javax.swing.*;
-import java.io.File;
-import java.net.MalformedURLException;
 
 /**
  * GamePiece trait that replaces a GamePiece with another one

@@ -18,17 +18,23 @@
  */
 package VASSAL.configure;
 
-import VASSAL.build.AutoConfigurable;
-import VASSAL.build.Configurable;
-import VASSAL.build.GameModule;
-
-import javax.swing.*;
-import java.awt.*;
+import java.awt.Color;
+import java.awt.Image;
+import java.awt.Window;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.util.Enumeration;
 import java.util.Hashtable;
 import java.util.Vector;
+
+import javax.swing.Box;
+import javax.swing.Icon;
+import javax.swing.JPanel;
+import javax.swing.KeyStroke;
+
+import VASSAL.build.AutoConfigurable;
+import VASSAL.build.Configurable;
+import VASSAL.build.GameModule;
 
 /**
  * A Configurer for configuring Configurable components

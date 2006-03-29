@@ -18,6 +18,24 @@
  */
 package VASSAL.counters;
 
+import java.awt.Component;
+import java.awt.Frame;
+import java.awt.Graphics;
+import java.awt.Rectangle;
+import java.awt.Shape;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.io.File;
+import java.net.MalformedURLException;
+
+import javax.swing.Box;
+import javax.swing.BoxLayout;
+import javax.swing.JButton;
+import javax.swing.JPanel;
+import javax.swing.JTextField;
+import javax.swing.KeyStroke;
+import javax.swing.SwingUtilities;
+
 import VASSAL.build.module.documentation.HelpFile;
 import VASSAL.build.module.map.DrawPile;
 import VASSAL.command.Command;
@@ -25,13 +43,6 @@ import VASSAL.configure.HotKeyConfigurer;
 import VASSAL.configure.StringConfigurer;
 import VASSAL.tools.SequenceEncoder;
 import VASSAL.tools.UniqueIdManager;
-
-import javax.swing.*;
-import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.io.File;
-import java.net.MalformedURLException;
 
 /**
  * GamePiece trait that returns a piece to a {@link DrawPile}

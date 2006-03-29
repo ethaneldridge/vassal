@@ -18,14 +18,18 @@
  */
 package VASSAL.build.module.map;
 
+import java.awt.Point;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
+
 import VASSAL.build.AbstractBuildable;
 import VASSAL.build.Buildable;
 import VASSAL.build.module.Map;
-import VASSAL.counters.*;
-
-import java.awt.event.MouseListener;
-import java.awt.event.MouseEvent;
-import java.awt.*;
+import VASSAL.counters.Deck;
+import VASSAL.counters.EventFilter;
+import VASSAL.counters.GamePiece;
+import VASSAL.counters.PieceFinder;
+import VASSAL.counters.Properties;
 
 /**
  * Centers the map when user right-clicks on an empty hex

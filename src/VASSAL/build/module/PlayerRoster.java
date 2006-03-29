@@ -18,6 +18,32 @@
  */
 package VASSAL.build.module;
 
+import java.awt.Component;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.beans.PropertyChangeListener;
+import java.io.File;
+import java.net.MalformedURLException;
+import java.util.Enumeration;
+import java.util.Vector;
+
+import javax.swing.Box;
+import javax.swing.BoxLayout;
+import javax.swing.DefaultListModel;
+import javax.swing.JButton;
+import javax.swing.JComboBox;
+import javax.swing.JDialog;
+import javax.swing.JLabel;
+import javax.swing.JList;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JTextField;
+
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.NodeList;
+
 import VASSAL.build.Buildable;
 import VASSAL.build.Builder;
 import VASSAL.build.Configurable;
@@ -27,19 +53,6 @@ import VASSAL.command.Command;
 import VASSAL.command.CommandEncoder;
 import VASSAL.configure.Configurer;
 import VASSAL.tools.SequenceEncoder;
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-import org.w3c.dom.NodeList;
-
-import javax.swing.*;
-import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.beans.PropertyChangeListener;
-import java.io.File;
-import java.net.MalformedURLException;
-import java.util.Enumeration;
-import java.util.Vector;
 
 /**
  * Maintains a list of players involved in the current game

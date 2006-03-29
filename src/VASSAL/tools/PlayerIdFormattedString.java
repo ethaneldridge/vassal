@@ -18,9 +18,9 @@
  */
 package VASSAL.tools;
 
+import VASSAL.build.GameModule;
 import VASSAL.build.module.GlobalOptions;
 import VASSAL.build.module.PlayerRoster;
-import VASSAL.build.GameModule;
 import VASSAL.counters.GamePiece;
 
 /** Utility subclass of {@link FormattedString} which automatically includes

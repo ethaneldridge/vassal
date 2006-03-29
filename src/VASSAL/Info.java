@@ -1,6 +1,10 @@
 package VASSAL;
 
-import java.awt.*;
+import java.awt.Component;
+import java.awt.GraphicsConfiguration;
+import java.awt.Insets;
+import java.awt.Rectangle;
+import java.awt.Toolkit;
 import java.util.StringTokenizer;
 
 /*

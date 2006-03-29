@@ -18,6 +18,39 @@
  */
 package VASSAL.build.module;
 
+import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Dimension;
+import java.awt.Font;
+import java.awt.Graphics;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.ComponentAdapter;
+import java.awt.event.ComponentEvent;
+import java.awt.event.InputEvent;
+import java.awt.event.KeyEvent;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
+
+import javax.swing.BoxLayout;
+import javax.swing.JFrame;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JTextArea;
+import javax.swing.JTextField;
+import javax.swing.KeyStroke;
+import javax.swing.plaf.basic.BasicTextAreaUI;
+import javax.swing.text.BadLocationException;
+import javax.swing.text.Document;
+import javax.swing.text.Element;
+import javax.swing.text.JTextComponent;
+import javax.swing.text.PlainView;
+import javax.swing.text.Segment;
+import javax.swing.text.TabExpander;
+import javax.swing.text.Utilities;
+import javax.swing.text.View;
+import javax.swing.text.WrappedPlainView;
+
 import VASSAL.build.Buildable;
 import VASSAL.build.GameModule;
 import VASSAL.command.Command;
@@ -25,14 +58,6 @@ import VASSAL.command.CommandEncoder;
 import VASSAL.configure.ColorConfigurer;
 import VASSAL.configure.FontConfigurer;
 import VASSAL.tools.KeyStrokeSource;
-
-import javax.swing.*;
-import javax.swing.plaf.basic.BasicTextAreaUI;
-import javax.swing.text.*;
-import java.awt.*;
-import java.awt.event.*;
-import java.beans.PropertyChangeEvent;
-import java.beans.PropertyChangeListener;
 
 /**
  * The chat window component.  Displays text messages and

@@ -18,22 +18,38 @@
  */
 package VASSAL.configure;
 
-import VASSAL.build.module.documentation.HelpWindow;
-import VASSAL.build.module.documentation.HelpFile;
-import VASSAL.build.GameModule;
-import VASSAL.tools.SavedGameUpdater;
-
-import javax.swing.*;
-import java.awt.*;
-import java.awt.event.ActionListener;
+import java.awt.Component;
+import java.awt.Dimension;
+import java.awt.Frame;
+import java.awt.HeadlessException;
 import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.IOException;
 import java.io.FileOutputStream;
+import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
 import java.net.MalformedURLException;
 import java.util.Properties;
-import java.lang.reflect.InvocationTargetException;
+
+import javax.swing.Box;
+import javax.swing.BoxLayout;
+import javax.swing.DefaultListCellRenderer;
+import javax.swing.DefaultListModel;
+import javax.swing.JButton;
+import javax.swing.JDialog;
+import javax.swing.JFileChooser;
+import javax.swing.JLabel;
+import javax.swing.JList;
+import javax.swing.JOptionPane;
+import javax.swing.JScrollPane;
+import javax.swing.JTextField;
+import javax.swing.SwingUtilities;
+
+import VASSAL.build.GameModule;
+import VASSAL.build.module.documentation.HelpFile;
+import VASSAL.build.module.documentation.HelpWindow;
+import VASSAL.tools.SavedGameUpdater;
 
 public class SavedGameUpdaterDialog extends JDialog {
   private HelpWindow helpWindow;

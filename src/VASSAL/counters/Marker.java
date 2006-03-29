@@ -18,16 +18,20 @@
  */
 package VASSAL.counters;
 
+import java.awt.Component;
+import java.awt.Shape;
+import java.io.File;
+import java.net.MalformedURLException;
+import java.util.ArrayList;
+
+import javax.swing.BoxLayout;
+import javax.swing.JPanel;
+import javax.swing.KeyStroke;
+
 import VASSAL.build.module.documentation.HelpFile;
 import VASSAL.command.Command;
 import VASSAL.configure.StringConfigurer;
 import VASSAL.tools.SequenceEncoder;
-
-import javax.swing.*;
-import java.awt.*;
-import java.io.File;
-import java.net.MalformedURLException;
-import java.util.ArrayList;
 
 /**
  * A generic Decorator that retains in its state the value of a

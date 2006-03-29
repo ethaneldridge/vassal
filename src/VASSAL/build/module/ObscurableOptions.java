@@ -26,17 +26,17 @@
  */
 package VASSAL.build.module;
 
-import VASSAL.command.CommandEncoder;
-import VASSAL.command.Command;
-import VASSAL.tools.SequenceEncoder;
-import VASSAL.configure.Configurer;
-import VASSAL.configure.BooleanConfigurer;
-import VASSAL.build.GameModule;
-
-import java.util.Vector;
-import java.util.Enumeration;
-import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
+import java.util.Enumeration;
+import java.util.Vector;
+
+import VASSAL.build.GameModule;
+import VASSAL.command.Command;
+import VASSAL.command.CommandEncoder;
+import VASSAL.configure.BooleanConfigurer;
+import VASSAL.configure.Configurer;
+import VASSAL.tools.SequenceEncoder;
 
 /**
  * Determines whether players are allowed to un-mask other players pieces.  The module designer may

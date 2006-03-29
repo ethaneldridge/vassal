@@ -18,22 +18,34 @@
  */
 package VASSAL.counters;
 
-import VASSAL.build.module.documentation.HelpFile;
-import VASSAL.build.module.map.MovementReporter;
-import VASSAL.command.ChangeTracker;
-import VASSAL.command.Command;
-import VASSAL.command.MoveTracker;
-import VASSAL.configure.*;
-import VASSAL.tools.SequenceEncoder;
-
-import javax.swing.*;
-import java.awt.*;
+import java.awt.Component;
+import java.awt.Graphics;
+import java.awt.Point;
+import java.awt.Rectangle;
+import java.awt.Shape;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.io.File;
 import java.net.MalformedURLException;
+
+import javax.swing.Box;
+import javax.swing.BoxLayout;
+import javax.swing.JPanel;
+import javax.swing.KeyStroke;
+
+import VASSAL.build.module.documentation.HelpFile;
+import VASSAL.build.module.map.MovementReporter;
+import VASSAL.command.ChangeTracker;
+import VASSAL.command.Command;
+import VASSAL.command.MoveTracker;
+import VASSAL.configure.BooleanConfigurer;
+import VASSAL.configure.DoubleConfigurer;
+import VASSAL.configure.HotKeyConfigurer;
+import VASSAL.configure.IntConfigurer;
+import VASSAL.configure.StringConfigurer;
+import VASSAL.tools.SequenceEncoder;
 
 /**
  * Provides commands to pivot a Game Piece around a given point

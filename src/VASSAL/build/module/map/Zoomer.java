@@ -18,27 +18,39 @@
  */
 package VASSAL.build.module.map;
 
-import VASSAL.build.*;
-import VASSAL.build.module.GameComponent;
-import VASSAL.build.module.Map;
-import VASSAL.build.module.map.boardPicker.Board;
-import VASSAL.build.module.documentation.HelpFile;
-import VASSAL.tools.LaunchButton;
-import VASSAL.tools.BackgroundTask;
-import VASSAL.configure.Configurer;
-import VASSAL.configure.ConfigurerFactory;
-import VASSAL.configure.IconConfigurer;
-import VASSAL.configure.SingleChildInstance;
-
-import javax.swing.*;
-import javax.swing.border.BevelBorder;
-import java.awt.*;
+import java.awt.Color;
+import java.awt.Dimension;
+import java.awt.Font;
+import java.awt.Point;
+import java.awt.Rectangle;
+import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
 import java.net.MalformedURLException;
 import java.util.Enumeration;
 import java.util.Vector;
+
+import javax.swing.JLabel;
+import javax.swing.JWindow;
+import javax.swing.KeyStroke;
+import javax.swing.SwingUtilities;
+import javax.swing.border.BevelBorder;
+
+import VASSAL.build.AbstractConfigurable;
+import VASSAL.build.AutoConfigurable;
+import VASSAL.build.Buildable;
+import VASSAL.build.GameModule;
+import VASSAL.build.module.GameComponent;
+import VASSAL.build.module.Map;
+import VASSAL.build.module.documentation.HelpFile;
+import VASSAL.build.module.map.boardPicker.Board;
+import VASSAL.configure.Configurer;
+import VASSAL.configure.ConfigurerFactory;
+import VASSAL.configure.IconConfigurer;
+import VASSAL.configure.SingleChildInstance;
+import VASSAL.tools.BackgroundTask;
+import VASSAL.tools.LaunchButton;
 
 /**
  * Controls the zooming in/out of a Map Window

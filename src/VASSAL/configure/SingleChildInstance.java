@@ -18,10 +18,10 @@
  */
 package VASSAL.configure;
 
+import java.util.Enumeration;
+
 import VASSAL.build.AbstractConfigurable;
 import VASSAL.build.Buildable;
-
-import java.util.Enumeration;
 
 /**
  * Ensures that at most a single instance of a given type

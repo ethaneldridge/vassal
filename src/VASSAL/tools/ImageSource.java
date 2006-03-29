@@ -1,6 +1,6 @@
 package VASSAL.tools;
 
-import java.awt.*;
+import java.awt.Image;
 
 /*
  * $Id$

@@ -18,13 +18,28 @@
  */
 package VASSAL.build;
 
-import VASSAL.tools.DataArchive;
-import org.w3c.dom.*;
+import java.io.IOException;
+import java.io.StringWriter;
+import java.io.Writer;
 
-import javax.xml.transform.*;
+import javax.xml.transform.OutputKeys;
+import javax.xml.transform.Result;
+import javax.xml.transform.Source;
+import javax.xml.transform.Transformer;
+import javax.xml.transform.TransformerException;
+import javax.xml.transform.TransformerFactory;
+import javax.xml.transform.TransformerFactoryConfigurationError;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
-import java.io.*;
+
+import org.w3c.dom.Attr;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.NamedNodeMap;
+import org.w3c.dom.Node;
+import org.w3c.dom.Text;
+
+import VASSAL.tools.DataArchive;
 
 /**
  * This class holds static convenience methods for building {@link Buildable}

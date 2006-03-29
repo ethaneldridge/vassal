@@ -18,25 +18,26 @@
  */
 package VASSAL.build.module.map;
 
+import java.awt.Color;
+import java.awt.Graphics;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
+import java.io.File;
+import java.net.MalformedURLException;
+import java.util.HashMap;
+
 import VASSAL.build.AbstractConfigurable;
 import VASSAL.build.Buildable;
 import VASSAL.build.GameModule;
-import VASSAL.build.module.documentation.HelpFile;
-import VASSAL.build.module.Map;
 import VASSAL.build.module.GameComponent;
+import VASSAL.build.module.Map;
+import VASSAL.build.module.documentation.HelpFile;
+import VASSAL.command.Command;
+import VASSAL.configure.ColorConfigurer;
+import VASSAL.configure.SingleChildInstance;
 import VASSAL.counters.ColoredBorder;
 import VASSAL.counters.GamePiece;
 import VASSAL.counters.Stack;
-import VASSAL.configure.ColorConfigurer;
-import VASSAL.configure.SingleChildInstance;
-import VASSAL.command.Command;
-
-import java.awt.*;
-import java.awt.event.MouseListener;
-import java.awt.event.MouseEvent;
-import java.util.HashMap;
-import java.io.File;
-import java.net.MalformedURLException;
 
 public class HighlightLastMoved extends AbstractConfigurable implements Drawable, MouseListener, GameComponent {
   public static final String COLOR = "color";

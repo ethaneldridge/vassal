@@ -18,14 +18,14 @@
  */
 package VASSAL.build.module.map;
 
-import VASSAL.counters.GamePiece;
-import VASSAL.counters.Deck;
-import VASSAL.counters.Stack;
-import VASSAL.counters.Properties;
-
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+
+import VASSAL.counters.Deck;
+import VASSAL.counters.GamePiece;
+import VASSAL.counters.Properties;
+import VASSAL.counters.Stack;
 
 /**
  * Base class for PieceCollection implementation that organize

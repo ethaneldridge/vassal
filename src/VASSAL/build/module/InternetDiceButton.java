@@ -26,6 +26,9 @@ package VASSAL.build.module;
  *
  */
 
+import java.io.File;
+import java.net.MalformedURLException;
+
 import VASSAL.build.AutoConfigurable;
 import VASSAL.build.Buildable;
 import VASSAL.build.GameModule;
@@ -34,9 +37,6 @@ import VASSAL.command.Command;
 import VASSAL.command.CommandEncoder;
 import VASSAL.configure.Configurer;
 import VASSAL.configure.FormattedStringConfigurer;
-
-import java.io.File;
-import java.net.MalformedURLException;
 
 /**
  * This component places a button into the controls window toolbar.

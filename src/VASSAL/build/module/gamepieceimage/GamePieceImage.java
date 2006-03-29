@@ -19,6 +19,14 @@
 
 package VASSAL.build.module.gamepieceimage;
 
+import java.awt.Image;
+import java.awt.image.BufferedImage;
+import java.io.File;
+import java.io.IOException;
+import java.net.MalformedURLException;
+import java.util.ArrayList;
+import java.util.Iterator;
+
 import VASSAL.build.AbstractConfigurable;
 import VASSAL.build.AutoConfigurable;
 import VASSAL.build.Buildable;
@@ -29,14 +37,6 @@ import VASSAL.configure.ConfigurerFactory;
 import VASSAL.configure.VisibilityCondition;
 import VASSAL.tools.ImageSource;
 import VASSAL.tools.UniqueIdManager;
-
-import java.awt.*;
-import java.awt.image.BufferedImage;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.io.File;
-import java.io.IOException;
-import java.net.MalformedURLException;
 
 import com.keypoint.PngEncoder;
 import com.keypoint.PngEncoderB;

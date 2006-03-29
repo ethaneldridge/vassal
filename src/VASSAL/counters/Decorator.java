@@ -18,12 +18,13 @@
  */
 package VASSAL.counters;
 
+import java.awt.Point;
+
+import javax.swing.KeyStroke;
+
 import VASSAL.build.module.Map;
 import VASSAL.command.Command;
 import VASSAL.tools.SequenceEncoder;
-
-import javax.swing.*;
-import java.awt.*;
 
 /**
  * The abstract class describing a generic 'trait' of a GamePiece.  Follows the Decorator design pattern

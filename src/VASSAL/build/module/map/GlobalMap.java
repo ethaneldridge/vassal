@@ -65,7 +65,6 @@ import VASSAL.configure.ConfigurerFactory;
 import VASSAL.configure.IconConfigurer;
 import VASSAL.configure.VisibilityCondition;
 import VASSAL.counters.GamePiece;
-import VASSAL.counters.Properties;
 import VASSAL.tools.KeyStrokeSource;
 import VASSAL.tools.LaunchButton;
 
@@ -455,11 +454,10 @@ public class GlobalMap extends JPanel implements AutoConfigurable, GameComponent
       return l;
    }
 
-   protected boolean shouldBeVisible() {
-      // FIXME
-      return true;
-//      return currentPiece != null && !Boolean.TRUE.equals(currentPiece.getProperty(Properties.TERRAIN));
+    protected double getZoom() {
+      return scale;
     }
+
   }
 
   /*

@@ -18,16 +18,19 @@
  */
 package VASSAL.counters;
 
-import VASSAL.build.module.Map;
-import VASSAL.tools.Sort;
-
-import javax.swing.*;
-import java.awt.*;
+import java.awt.Component;
+import java.awt.Cursor;
+import java.awt.Point;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.util.Enumeration;
 import java.util.Vector;
+
+import javax.swing.JFrame;
+
+import VASSAL.build.module.Map;
+import VASSAL.tools.Sort;
 
 public class DragBuffer {
   private static DragBuffer theBuffer;

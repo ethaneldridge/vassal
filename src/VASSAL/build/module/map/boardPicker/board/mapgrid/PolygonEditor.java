@@ -18,13 +18,26 @@
  */
 package VASSAL.build.module.map.boardPicker.board.mapgrid;
 
-import VASSAL.tools.SequenceEncoder;
-
-import javax.swing.*;
-import javax.swing.event.MouseInputAdapter;
-import java.awt.*;
+import java.awt.AlphaComposite;
+import java.awt.BasicStroke;
+import java.awt.Color;
+import java.awt.Graphics;
+import java.awt.Graphics2D;
+import java.awt.Polygon;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.KeyEvent;
+import java.awt.event.MouseEvent;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 import java.awt.geom.Point2D;
-import java.awt.event.*;
+
+import javax.swing.JFrame;
+import javax.swing.JPanel;
+import javax.swing.KeyStroke;
+import javax.swing.event.MouseInputAdapter;
+
+import VASSAL.tools.SequenceEncoder;
 
 public class PolygonEditor extends JPanel {
   private Polygon polygon;

@@ -35,10 +35,18 @@ import java.beans.PropertyChangeListener;
 import java.lang.reflect.Array;
 import java.util.ArrayList;
 
-import javax.swing.*;
+import javax.swing.Box;
+import javax.swing.BoxLayout;
+import javax.swing.DefaultListModel;
+import javax.swing.JButton;
+import javax.swing.JFrame;
+import javax.swing.JList;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JSplitPane;
+import javax.swing.JTextField;
 import javax.swing.border.TitledBorder;
 
-import VASSAL.configure.Configurer;
 import VASSAL.tools.SequenceEncoder;
 
 /**

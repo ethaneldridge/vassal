@@ -18,21 +18,7 @@
  */
 package VASSAL.build.widget;
 
-import VASSAL.build.Buildable;
-import VASSAL.build.GameModule;
-import VASSAL.build.Widget;
-import VASSAL.build.module.documentation.HelpFile;
-
-import javax.swing.*;
-import javax.swing.event.HyperlinkEvent;
-import javax.swing.event.HyperlinkListener;
-import javax.swing.text.ComponentView;
-import javax.swing.text.Element;
-import javax.swing.text.View;
-import javax.swing.text.ViewFactory;
-import javax.swing.text.html.HTML;
-import javax.swing.text.html.HTMLEditorKit;
-import java.awt.*;
+import java.awt.Component;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
@@ -41,6 +27,26 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.MalformedURLException;
+
+import javax.swing.ImageIcon;
+import javax.swing.JEditorPane;
+import javax.swing.JLabel;
+import javax.swing.JMenuItem;
+import javax.swing.JPopupMenu;
+import javax.swing.JScrollPane;
+import javax.swing.event.HyperlinkEvent;
+import javax.swing.event.HyperlinkListener;
+import javax.swing.text.ComponentView;
+import javax.swing.text.Element;
+import javax.swing.text.View;
+import javax.swing.text.ViewFactory;
+import javax.swing.text.html.HTML;
+import javax.swing.text.html.HTMLEditorKit;
+
+import VASSAL.build.Buildable;
+import VASSAL.build.GameModule;
+import VASSAL.build.Widget;
+import VASSAL.build.module.documentation.HelpFile;
 
 /**
  * An HtmlChart is used for displaying html information for the module. The

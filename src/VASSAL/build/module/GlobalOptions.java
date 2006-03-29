@@ -26,19 +26,37 @@
  */
 package VASSAL.build.module;
 
-import VASSAL.Info;
-import VASSAL.build.*;
-import VASSAL.build.module.documentation.HelpFile;
-import VASSAL.configure.*;
-import VASSAL.tools.FormattedString;
-
+import java.awt.Container;
 import java.io.File;
 import java.net.MalformedURLException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.List;
-import java.awt.*;
+import java.util.Properties;
 
-import org.w3c.dom.*;
+import org.w3c.dom.Attr;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.NamedNodeMap;
+import org.w3c.dom.NodeList;
+
+import VASSAL.Info;
+import VASSAL.build.AbstractConfigurable;
+import VASSAL.build.AutoConfigurable;
+import VASSAL.build.Buildable;
+import VASSAL.build.Builder;
+import VASSAL.build.GameModule;
+import VASSAL.build.module.documentation.HelpFile;
+import VASSAL.configure.BooleanConfigurer;
+import VASSAL.configure.Configurer;
+import VASSAL.configure.ConfigurerFactory;
+import VASSAL.configure.FormattedStringConfigurer;
+import VASSAL.configure.SingleChildInstance;
+import VASSAL.configure.StringEnum;
+import VASSAL.tools.FormattedString;
 
 public class GlobalOptions extends AbstractConfigurable {
   public static final String NON_OWNER_UNMASKABLE = "nonOwnerUnmaskable";

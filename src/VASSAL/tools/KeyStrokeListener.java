@@ -19,6 +19,7 @@
 package VASSAL.tools;
 
 import java.awt.event.ActionListener;
+
 import javax.swing.KeyStroke;
 
 /**

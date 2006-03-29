@@ -18,19 +18,23 @@
  */
 package VASSAL.counters;
 
+import java.awt.Component;
+import java.awt.Graphics;
+import java.awt.Point;
+import java.awt.Rectangle;
+import java.awt.Shape;
+import java.awt.geom.Area;
+import java.util.ArrayList;
+import java.util.Enumeration;
+import java.util.Iterator;
+import java.util.List;
+
 import VASSAL.Info;
 import VASSAL.build.GameModule;
 import VASSAL.build.module.Map;
 import VASSAL.build.module.map.StackMetrics;
 import VASSAL.command.Command;
 import VASSAL.tools.SequenceEncoder;
-
-import java.awt.*;
-import java.awt.geom.Area;
-import java.util.ArrayList;
-import java.util.Enumeration;
-import java.util.Iterator;
-import java.util.List;
 
 /**
  * A collection of GamePieces which can be moved as a single unit

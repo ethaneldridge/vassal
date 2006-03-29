@@ -18,14 +18,15 @@
  */
 package VASSAL.tools;
 
-import VASSAL.configure.HotKeyConfigurer;
-import VASSAL.configure.ColorConfigurer;
-import VASSAL.configure.StringArrayConfigurer;
-
-import javax.swing.*;
-import java.util.NoSuchElementException;
+import java.awt.Color;
 import java.awt.event.InputEvent;
-import java.awt.*;
+import java.util.NoSuchElementException;
+
+import javax.swing.KeyStroke;
+
+import VASSAL.configure.ColorConfigurer;
+import VASSAL.configure.HotKeyConfigurer;
+import VASSAL.configure.StringArrayConfigurer;
 
 /**
  * Encodes a sequence of Strings into a single String with a given delimiter.

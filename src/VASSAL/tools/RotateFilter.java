@@ -18,8 +18,16 @@
  */
 package VASSAL.tools;
 
-import java.awt.*;
-import java.awt.image.*;
+import java.awt.Color;
+import java.awt.Graphics;
+import java.awt.Image;
+import java.awt.Rectangle;
+import java.awt.Toolkit;
+import java.awt.image.ColorModel;
+import java.awt.image.FilteredImageSource;
+import java.awt.image.ImageConsumer;
+import java.awt.image.ImageFilter;
+import java.awt.image.ImageProducer;
 
 public class RotateFilter extends ImageFilter {
   private double angle;

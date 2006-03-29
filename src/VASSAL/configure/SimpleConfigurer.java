@@ -18,9 +18,9 @@
  */
 package VASSAL.configure;
 
-import VASSAL.build.*;
+import java.beans.PropertyChangeListener;
 
-import java.beans.*;
+import VASSAL.build.Configurable;
 
 /**
  * A {@link Configurer} for configuring {@link Configurable} components 

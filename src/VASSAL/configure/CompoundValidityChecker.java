@@ -18,11 +18,11 @@
  */
 package VASSAL.configure;
 
-import VASSAL.build.Buildable;
-
-import java.util.List;
-import java.util.Iterator;
 import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+
+import VASSAL.build.Buildable;
 
 /**
  * Combines multiple instances of ValidityChecker

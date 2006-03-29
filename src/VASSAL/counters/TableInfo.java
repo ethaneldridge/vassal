@@ -18,21 +18,28 @@
  */
 package VASSAL.counters;
 
-import VASSAL.build.GameModule;
-import VASSAL.build.module.documentation.HelpFile;
-import VASSAL.command.ChangePiece;
-import VASSAL.command.Command;
-import VASSAL.configure.IntConfigurer;
-import VASSAL.configure.StringConfigurer;
-import VASSAL.configure.HotKeyConfigurer;
-import VASSAL.tools.SequenceEncoder;
-
-import javax.swing.*;
-import java.awt.*;
+import java.awt.Point;
+import java.awt.Shape;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.io.File;
 import java.net.MalformedURLException;
+
+import javax.swing.BoxLayout;
+import javax.swing.JDialog;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JTable;
+import javax.swing.KeyStroke;
+
+import VASSAL.build.GameModule;
+import VASSAL.build.module.documentation.HelpFile;
+import VASSAL.command.ChangePiece;
+import VASSAL.command.Command;
+import VASSAL.configure.HotKeyConfigurer;
+import VASSAL.configure.IntConfigurer;
+import VASSAL.configure.StringConfigurer;
+import VASSAL.tools.SequenceEncoder;
 
 /**
  * A Decorator class that endows a GamePiece with an editable

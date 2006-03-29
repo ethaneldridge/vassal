@@ -18,7 +18,8 @@
  */
 package VASSAL.build.module.map;
 
-import java.awt.*;
+import java.awt.Graphics;
+import java.awt.List;
 
 public class SmallList extends List {
 /*

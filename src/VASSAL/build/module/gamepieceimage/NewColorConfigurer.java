@@ -18,13 +18,20 @@
  */
 package VASSAL.build.module.gamepieceimage;
 
-import VASSAL.configure.BooleanConfigurer;
-import VASSAL.configure.Configurer;
-
-import javax.swing.*;
-import java.awt.*;
+import java.awt.Color;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
+
+import javax.swing.Box;
+import javax.swing.BoxLayout;
+import javax.swing.JButton;
+import javax.swing.JColorChooser;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.SwingUtilities;
+
+import VASSAL.configure.BooleanConfigurer;
+import VASSAL.configure.Configurer;
 
 /**
  * Configurer for {@link Color} values

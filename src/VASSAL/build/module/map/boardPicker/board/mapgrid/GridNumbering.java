@@ -26,7 +26,7 @@
  */
 package VASSAL.build.module.map.boardPicker.board.mapgrid;
 
-import java.awt.*;
+import java.awt.Point;
 
 /**
  * Provides methods for assigning names to locations on a MapGrid, and drawing those locations when drawing a grid

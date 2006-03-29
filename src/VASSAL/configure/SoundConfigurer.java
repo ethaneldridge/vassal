@@ -18,19 +18,26 @@
  */
 package VASSAL.configure;
 
-import VASSAL.build.GameModule;
-import VASSAL.build.module.documentation.HelpFile;
-
-import javax.swing.*;
 import java.applet.Applet;
 import java.applet.AudioClip;
-import java.awt.*;
+import java.awt.Component;
+import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
 import java.io.IOException;
-import java.net.URL;
 import java.lang.reflect.Method;
+import java.net.URL;
+
+import javax.swing.BoxLayout;
+import javax.swing.JButton;
+import javax.swing.JFileChooser;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.JTextField;
+
+import VASSAL.build.GameModule;
+import VASSAL.build.module.documentation.HelpFile;
 
 /**
  * Configurer for specifying an AudioClip

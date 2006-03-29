@@ -18,9 +18,14 @@
  */
 package VASSAL.configure;
 
-import java.awt.*;
+import java.awt.Color;
+import java.awt.Font;
 
-import javax.swing.*;
+import javax.swing.BoxLayout;
+import javax.swing.JButton;
+import javax.swing.JColorChooser;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
 
 /**
  * Configurer for {@link Color} values

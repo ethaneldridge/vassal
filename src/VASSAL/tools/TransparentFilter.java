@@ -18,7 +18,8 @@
  */
 package VASSAL.tools;
 
-import java.awt.image.*;
+import java.awt.image.PixelGrabber;
+import java.awt.image.RGBImageFilter;
 
 /**
  * Sets the transparency of colors in an image

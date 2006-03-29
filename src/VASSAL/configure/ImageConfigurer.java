@@ -18,10 +18,10 @@
  */
 package VASSAL.configure;
 
-import VASSAL.tools.ArchiveWriter;
-import VASSAL.build.module.Documentation;
+import javax.swing.JFileChooser;
 
-import javax.swing.*;
+import VASSAL.build.module.Documentation;
+import VASSAL.tools.ArchiveWriter;
 
 /**
  * A Configurer for {@link java.awt.Image} values.  Allows the user to

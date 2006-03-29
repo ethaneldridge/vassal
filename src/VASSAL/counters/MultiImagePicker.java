@@ -18,13 +18,18 @@
  */
 package VASSAL.counters;
 
-import javax.swing.*;
-import javax.swing.event.ListSelectionListener;
-import java.awt.*;
+import java.awt.CardLayout;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.util.Enumeration;
 import java.util.Vector;
+
+import javax.swing.BoxLayout;
+import javax.swing.DefaultListModel;
+import javax.swing.JList;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.event.ListSelectionListener;
 
 public class MultiImagePicker extends JPanel {
   private JList imageList;

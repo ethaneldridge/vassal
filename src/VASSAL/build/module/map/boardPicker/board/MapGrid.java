@@ -18,9 +18,9 @@
  */
 package VASSAL.build.module.map.boardPicker.board;
 
-import VASSAL.build.module.map.boardPicker.board.mapgrid.GridNumbering;
+import java.awt.Point;
 
-import java.awt.*;
+import VASSAL.build.module.map.boardPicker.board.mapgrid.GridNumbering;
 
 /**
  * A MapGrid overlays a map board to constrain

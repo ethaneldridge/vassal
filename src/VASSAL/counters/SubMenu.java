@@ -18,18 +18,23 @@
  */
 package VASSAL.counters;
 
-import VASSAL.command.Command;
-import VASSAL.build.module.documentation.HelpFile;
-import VASSAL.tools.SequenceEncoder;
-import VASSAL.configure.StringArrayConfigurer;
-import VASSAL.configure.StringConfigurer;
-
-import javax.swing.*;
-import java.awt.*;
-import java.util.ArrayList;
-import java.util.Iterator;
+import java.awt.Component;
+import java.awt.Graphics;
+import java.awt.Rectangle;
+import java.awt.Shape;
 import java.io.File;
 import java.net.MalformedURLException;
+import java.util.ArrayList;
+import java.util.Iterator;
+
+import javax.swing.Box;
+import javax.swing.KeyStroke;
+
+import VASSAL.build.module.documentation.HelpFile;
+import VASSAL.command.Command;
+import VASSAL.configure.StringArrayConfigurer;
+import VASSAL.configure.StringConfigurer;
+import VASSAL.tools.SequenceEncoder;
 
 /** A trait that groups menu items of other traits into a sub-menu */
 public class SubMenu extends Decorator implements EditablePiece {

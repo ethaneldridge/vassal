@@ -18,12 +18,15 @@
  */
 package VASSAL.configure;
 
-import VASSAL.build.module.documentation.HelpWindow;
-import VASSAL.build.module.documentation.HelpFile;
-
-import javax.swing.*;
 import java.awt.event.ActionEvent;
 import java.net.URL;
+
+import javax.swing.AbstractAction;
+import javax.swing.Action;
+import javax.swing.ImageIcon;
+
+import VASSAL.build.module.documentation.HelpFile;
+import VASSAL.build.module.documentation.HelpWindow;
 
 /**
  * Action that displays a {@link HelpWindow}

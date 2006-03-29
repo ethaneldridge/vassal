@@ -19,7 +19,7 @@
  
 package VASSAL.build.module.gamepieceimage;
 
-import java.awt.*;
+import java.awt.Font;
 
 public class OutlineFont extends Font {
 

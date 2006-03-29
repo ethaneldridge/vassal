@@ -19,8 +19,8 @@
 package VASSAL.build.module;
 
 import VASSAL.build.GameModule;
-import VASSAL.command.CommandEncoder;
 import VASSAL.command.Command;
+import VASSAL.command.CommandEncoder;
 
 /**
  * Provides information about whether a game was started from File->New Game

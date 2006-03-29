@@ -18,25 +18,40 @@
  */
 package VASSAL.configure;
 
-import VASSAL.build.Builder;
-import VASSAL.build.Configurable;
-import VASSAL.build.GameModule;
-import VASSAL.build.IllegalBuildException;
-import VASSAL.build.module.documentation.HelpWindow;
-import VASSAL.configure.PropertiesWindow;
-
-import javax.swing.*;
-import javax.swing.tree.DefaultMutableTreeNode;
-import javax.swing.tree.DefaultTreeModel;
-import javax.swing.tree.TreePath;
-import javax.swing.tree.TreeNode;
-import java.awt.*;
-import java.awt.event.*;
+import java.awt.Frame;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
+import java.awt.event.MouseMotionListener;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.util.Enumeration;
 import java.util.Hashtable;
 import java.util.Vector;
+
+import javax.swing.AbstractAction;
+import javax.swing.Action;
+import javax.swing.Box;
+import javax.swing.BoxLayout;
+import javax.swing.JButton;
+import javax.swing.JComboBox;
+import javax.swing.JDialog;
+import javax.swing.JLabel;
+import javax.swing.JOptionPane;
+import javax.swing.JPopupMenu;
+import javax.swing.JTree;
+import javax.swing.SwingUtilities;
+import javax.swing.tree.DefaultMutableTreeNode;
+import javax.swing.tree.DefaultTreeModel;
+import javax.swing.tree.TreeNode;
+import javax.swing.tree.TreePath;
+
+import VASSAL.build.Builder;
+import VASSAL.build.Configurable;
+import VASSAL.build.GameModule;
+import VASSAL.build.IllegalBuildException;
+import VASSAL.build.module.documentation.HelpWindow;
 
 /**
  * This is the Configuration Tree that appears in the Configuration window when editing a VASSAL module.

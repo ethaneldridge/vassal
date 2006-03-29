@@ -18,12 +18,18 @@
  */
 package VASSAL.tools;
 
-import javax.swing.*;
-import java.awt.*;
+import java.awt.Dimension;
+import java.awt.Image;
+import java.awt.Toolkit;
+import java.awt.Window;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.ArrayList;
 import java.util.Iterator;
+
+import javax.swing.ImageIcon;
+import javax.swing.JLabel;
+import javax.swing.JWindow;
 
 /**
  * Displays an image centered on the screen

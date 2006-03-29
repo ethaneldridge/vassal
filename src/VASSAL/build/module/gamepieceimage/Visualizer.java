@@ -19,8 +19,15 @@
 
 package VASSAL.build.module.gamepieceimage;
 
-import javax.swing.*;
-import java.awt.*;
+import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Dimension;
+import java.awt.Graphics;
+import java.awt.Window;
+
+import javax.swing.BorderFactory;
+import javax.swing.JPanel;
+import javax.swing.SwingUtilities;
 
 
 public class Visualizer extends JPanel {

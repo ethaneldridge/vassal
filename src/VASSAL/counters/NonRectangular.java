@@ -1,21 +1,35 @@
 package VASSAL.counters;
 
-import VASSAL.command.Command;
-import VASSAL.build.module.documentation.HelpFile;
-import VASSAL.build.GameModule;
-import VASSAL.Info;
-
-import javax.swing.*;
-import javax.swing.border.TitledBorder;
-import java.awt.*;
-import java.awt.image.PixelGrabber;
-import java.awt.geom.GeneralPath;
-import java.awt.geom.PathIterator;
+import java.awt.Color;
+import java.awt.Component;
+import java.awt.Cursor;
+import java.awt.Dimension;
+import java.awt.Graphics;
+import java.awt.Graphics2D;
+import java.awt.Image;
+import java.awt.MediaTracker;
+import java.awt.Rectangle;
+import java.awt.Shape;
+import java.awt.Window;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Area;
-import java.util.StringTokenizer;
-import java.util.HashMap;
+import java.awt.geom.GeneralPath;
+import java.awt.geom.PathIterator;
+import java.awt.image.PixelGrabber;
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.StringTokenizer;
+
+import javax.swing.BoxLayout;
+import javax.swing.JPanel;
+import javax.swing.KeyStroke;
+import javax.swing.SwingUtilities;
+import javax.swing.border.TitledBorder;
+
+import VASSAL.Info;
+import VASSAL.build.GameModule;
+import VASSAL.build.module.documentation.HelpFile;
+import VASSAL.command.Command;
 
 /*
  * $Id$

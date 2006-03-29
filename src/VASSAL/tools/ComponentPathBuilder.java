@@ -18,12 +18,12 @@
  */
 package VASSAL.tools;
 
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+
 import VASSAL.build.Configurable;
 import VASSAL.build.GameModule;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Iterator;
 
 /**
  * Provides an XPath-like syntax for identifying configuration components

@@ -26,13 +26,21 @@
  */
 package VASSAL.build.module.map.boardPicker.board.mapgrid;
 
+import java.awt.Dimension;
+import java.awt.Font;
+import java.awt.Graphics;
+import java.awt.Graphics2D;
+import java.awt.Point;
+import java.awt.Rectangle;
+import java.awt.Shape;
+import java.awt.geom.Area;
+
+import javax.swing.JComponent;
+import javax.swing.JPanel;
+
 import VASSAL.build.Buildable;
 import VASSAL.build.module.map.boardPicker.board.SquareGrid;
 import VASSAL.counters.Labeler;
-
-import javax.swing.*;
-import java.awt.*;
-import java.awt.geom.Area;
 
 public class SquareGridNumbering extends RegularGridNumbering {
 

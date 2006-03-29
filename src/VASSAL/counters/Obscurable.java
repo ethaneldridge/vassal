@@ -18,24 +18,37 @@
  */
 package VASSAL.counters;
 
-import VASSAL.build.GameModule;
-import VASSAL.build.module.ObscurableOptions;
-import VASSAL.build.module.documentation.HelpFile;
-import VASSAL.command.Command;
-import VASSAL.command.ChangeTracker;
-import VASSAL.configure.StringConfigurer;
-import VASSAL.configure.StringEnumConfigurer;
-import VASSAL.configure.HotKeyConfigurer;
-import VASSAL.tools.SequenceEncoder;
-
-import javax.swing.*;
-import java.awt.*;
-import java.awt.geom.Area;
+import java.awt.Color;
+import java.awt.Component;
+import java.awt.Dimension;
+import java.awt.Graphics;
+import java.awt.Point;
+import java.awt.Rectangle;
+import java.awt.Shape;
+import java.awt.Window;
 import java.awt.event.InputEvent;
+import java.awt.geom.Area;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.io.File;
 import java.net.MalformedURLException;
+
+import javax.swing.Box;
+import javax.swing.BoxLayout;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.KeyStroke;
+import javax.swing.SwingUtilities;
+
+import VASSAL.build.GameModule;
+import VASSAL.build.module.ObscurableOptions;
+import VASSAL.build.module.documentation.HelpFile;
+import VASSAL.command.ChangeTracker;
+import VASSAL.command.Command;
+import VASSAL.configure.HotKeyConfigurer;
+import VASSAL.configure.StringConfigurer;
+import VASSAL.configure.StringEnumConfigurer;
+import VASSAL.tools.SequenceEncoder;
 
 public class Obscurable extends Decorator implements EditablePiece {
   public static final String ID = "obs;";

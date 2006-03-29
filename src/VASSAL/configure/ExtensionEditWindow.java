@@ -18,12 +18,17 @@
  */
 package VASSAL.configure;
 
+import java.awt.Component;
+import java.io.IOException;
+
+import javax.swing.JDialog;
+import javax.swing.JMenu;
+import javax.swing.JMenuItem;
+import javax.swing.JOptionPane;
+import javax.swing.JScrollPane;
+
 import VASSAL.build.GameModule;
 import VASSAL.build.module.ModuleExtension;
-
-import javax.swing.*;
-import java.awt.*;
-import java.io.IOException;
 
 /**
  * Editing window for a module extension

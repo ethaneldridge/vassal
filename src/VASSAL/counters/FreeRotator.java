@@ -18,21 +18,16 @@
  */
 package VASSAL.counters;
 
-import VASSAL.Info;
-import VASSAL.build.GameModule;
-import VASSAL.build.module.Map;
-import VASSAL.build.module.documentation.HelpFile;
-import VASSAL.build.module.map.Drawable;
-import VASSAL.command.ChangeTracker;
-import VASSAL.command.Command;
-import VASSAL.configure.BooleanConfigurer;
-import VASSAL.configure.IntConfigurer;
-import VASSAL.configure.HotKeyConfigurer;
-import VASSAL.tools.RotateFilter;
-import VASSAL.tools.SequenceEncoder;
-
-import javax.swing.*;
-import java.awt.*;
+import java.awt.AlphaComposite;
+import java.awt.Component;
+import java.awt.Cursor;
+import java.awt.Graphics;
+import java.awt.Graphics2D;
+import java.awt.Image;
+import java.awt.Point;
+import java.awt.Rectangle;
+import java.awt.RenderingHints;
+import java.awt.Shape;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
@@ -43,10 +38,31 @@ import java.awt.image.FilteredImageSource;
 import java.awt.image.ImageProducer;
 import java.io.File;
 import java.net.MalformedURLException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
-import java.util.ArrayList;
 import java.util.Random;
+
+import javax.swing.Box;
+import javax.swing.BoxLayout;
+import javax.swing.JLabel;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JTextField;
+import javax.swing.KeyStroke;
+
+import VASSAL.Info;
+import VASSAL.build.GameModule;
+import VASSAL.build.module.Map;
+import VASSAL.build.module.documentation.HelpFile;
+import VASSAL.build.module.map.Drawable;
+import VASSAL.command.ChangeTracker;
+import VASSAL.command.Command;
+import VASSAL.configure.BooleanConfigurer;
+import VASSAL.configure.HotKeyConfigurer;
+import VASSAL.configure.IntConfigurer;
+import VASSAL.tools.RotateFilter;
+import VASSAL.tools.SequenceEncoder;
 
 /**
  * A Decorator that rotates a GamePiece to an arbitrary angle

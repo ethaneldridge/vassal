@@ -18,14 +18,14 @@
  */
 package VASSAL.tools;
 
-import VASSAL.configure.ValidityChecker;
-import VASSAL.configure.ValidationReport;
-import VASSAL.configure.ConfigureTree;
-import VASSAL.build.Buildable;
-
-import java.util.List;
 import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.List;
+
+import VASSAL.build.Buildable;
+import VASSAL.configure.ConfigureTree;
+import VASSAL.configure.ValidationReport;
+import VASSAL.configure.ValidityChecker;
 
 /**
  * A class for assigning unique identifiers to objects.  Identifiers will be of

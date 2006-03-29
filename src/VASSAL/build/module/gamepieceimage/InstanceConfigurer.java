@@ -19,16 +19,29 @@
 
 package VASSAL.build.module.gamepieceimage;
 
-import VASSAL.configure.Configurer;
-import VASSAL.configure.StringArrayConfigurer;
+import java.awt.Color;
+import java.awt.Component;
+import java.awt.Dimension;
+import java.awt.Window;
+import java.util.ArrayList;
+import java.util.Iterator;
 
-import javax.swing.*;
+import javax.swing.BorderFactory;
+import javax.swing.Box;
+import javax.swing.BoxLayout;
+import javax.swing.JButton;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JTable;
+import javax.swing.ListSelectionModel;
+import javax.swing.SwingUtilities;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import javax.swing.table.AbstractTableModel;
-import java.awt.*;
-import java.util.ArrayList;
-import java.util.Iterator;
+
+import VASSAL.configure.Configurer;
+import VASSAL.configure.StringArrayConfigurer;
 
 /**
  * Controls for configuring an individual ItemInstance  

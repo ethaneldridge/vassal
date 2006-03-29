@@ -18,10 +18,14 @@
  */
 package VASSAL.build;
 
-import VASSAL.configure.*;
+import java.beans.PropertyChangeListener;
+import java.beans.PropertyChangeSupport;
+import java.util.Enumeration;
+import java.util.Vector;
 
-import java.beans.*;
-import java.util.*;
+import VASSAL.configure.AutoConfigurer;
+import VASSAL.configure.Configurer;
+import VASSAL.configure.VisibilityCondition;
 
 /**
  * An abstract implementation of the Configurable interface.  Takes care of

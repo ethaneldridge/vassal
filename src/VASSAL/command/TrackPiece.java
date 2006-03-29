@@ -18,7 +18,8 @@
  */
 package VASSAL.command;
 
-import VASSAL.counters.*;
+import VASSAL.counters.Decorator;
+import VASSAL.counters.GamePiece;
 
 /**
  * This class makes it more convenient to create a ChangePiece command.

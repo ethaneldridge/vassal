@@ -18,7 +18,28 @@
  */
 package VASSAL.build.module.map;
 
-import VASSAL.build.*;
+import java.awt.Color;
+import java.awt.Font;
+import java.awt.FontMetrics;
+import java.awt.Graphics;
+import java.awt.Point;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
+import java.awt.event.MouseMotionListener;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
+import java.io.File;
+import java.net.MalformedURLException;
+
+import javax.swing.KeyStroke;
+
+import VASSAL.build.AbstractConfigurable;
+import VASSAL.build.AutoConfigurable;
+import VASSAL.build.Buildable;
+import VASSAL.build.Configurable;
+import VASSAL.build.GameModule;
 import VASSAL.build.module.Map;
 import VASSAL.build.module.documentation.HelpFile;
 import VASSAL.build.module.map.boardPicker.Board;
@@ -28,18 +49,10 @@ import VASSAL.configure.ColorConfigurer;
 import VASSAL.configure.Configurer;
 import VASSAL.configure.ConfigurerFactory;
 import VASSAL.configure.IconConfigurer;
-import VASSAL.configure.VisibilityCondition;
 import VASSAL.configure.StringEnum;
+import VASSAL.configure.VisibilityCondition;
 import VASSAL.counters.GamePiece;
 import VASSAL.tools.LaunchButton;
-
-import javax.swing.*;
-import java.awt.*;
-import java.awt.event.*;
-import java.beans.PropertyChangeEvent;
-import java.beans.PropertyChangeListener;
-import java.io.File;
-import java.net.MalformedURLException;
 
 /**
  * A class that allows the user to draw a straight line on a Map (LOS

@@ -18,6 +18,13 @@
  */
 package VASSAL.tools;
 
+import java.io.File;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Enumeration;
+import java.util.List;
+import java.util.Properties;
+
 import VASSAL.build.Configurable;
 import VASSAL.build.GameModule;
 import VASSAL.build.widget.PieceSlot;
@@ -26,13 +33,6 @@ import VASSAL.counters.GamePiece;
 import VASSAL.counters.PieceCloner;
 import VASSAL.counters.Replace;
 import VASSAL.counters.Stack;
-
-import java.io.File;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Enumeration;
-import java.util.List;
-import java.util.Properties;
 
 public class SavedGameUpdater {
   /**

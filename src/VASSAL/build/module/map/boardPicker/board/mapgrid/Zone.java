@@ -18,23 +18,44 @@
  */
 package VASSAL.build.module.map.boardPicker.board.mapgrid;
 
-import VASSAL.build.AbstractConfigurable;
-import VASSAL.build.AutoConfigurable;
-import VASSAL.build.Buildable;
-import VASSAL.build.module.map.boardPicker.Board;
-import VASSAL.build.module.map.boardPicker.board.*;
-import VASSAL.configure.Configurer;
-import VASSAL.configure.ConfigurerFactory;
-import VASSAL.configure.FormattedStringConfigurer;
-import VASSAL.tools.FormattedString;
-
-import javax.swing.*;
-import java.awt.*;
+import java.awt.Component;
+import java.awt.Dimension;
+import java.awt.Frame;
+import java.awt.Graphics;
+import java.awt.Graphics2D;
+import java.awt.GridLayout;
+import java.awt.Point;
+import java.awt.Polygon;
+import java.awt.Rectangle;
+import java.awt.Shape;
+import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Area;
 import java.util.StringTokenizer;
+
+import javax.swing.BoxLayout;
+import javax.swing.JButton;
+import javax.swing.JDialog;
+import javax.swing.JLabel;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+
+import VASSAL.build.AbstractConfigurable;
+import VASSAL.build.AutoConfigurable;
+import VASSAL.build.Buildable;
+import VASSAL.build.module.map.boardPicker.Board;
+import VASSAL.build.module.map.boardPicker.board.HexGrid;
+import VASSAL.build.module.map.boardPicker.board.MapGrid;
+import VASSAL.build.module.map.boardPicker.board.RegionGrid;
+import VASSAL.build.module.map.boardPicker.board.SquareGrid;
+import VASSAL.build.module.map.boardPicker.board.ZonedGrid;
+import VASSAL.configure.Configurer;
+import VASSAL.configure.ConfigurerFactory;
+import VASSAL.configure.FormattedStringConfigurer;
+import VASSAL.tools.FormattedString;
 
 public class Zone extends AbstractConfigurable implements GridContainer {
   public static final String NAME = "name";

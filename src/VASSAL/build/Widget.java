@@ -18,11 +18,12 @@
  */
 package VASSAL.build;
 
-import VASSAL.build.module.documentation.HelpFile;
 import org.w3c.dom.Attr;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NamedNodeMap;
+
+import VASSAL.build.module.documentation.HelpFile;
 
 /**
  * A general-purpose configurable GUI container

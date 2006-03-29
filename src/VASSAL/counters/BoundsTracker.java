@@ -18,10 +18,10 @@
  */
 package VASSAL.counters;
 
-import VASSAL.build.module.Map;
-
 import java.util.HashSet;
 import java.util.Iterator;
+
+import VASSAL.build.module.Map;
 
 /**
  * Records the bounding boxes of GamePieces.  Use addPiece() to

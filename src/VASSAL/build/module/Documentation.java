@@ -18,17 +18,22 @@
  */
 package VASSAL.build.module;
 
+import java.io.File;
+import java.net.MalformedURLException;
+
+import org.w3c.dom.Element;
+
 import VASSAL.build.AbstractConfigurable;
 import VASSAL.build.Buildable;
 import VASSAL.build.GameModule;
 import VASSAL.build.module.documentation.AboutScreen;
 import VASSAL.build.module.documentation.HelpFile;
 import VASSAL.build.module.documentation.Tutorial;
-import VASSAL.configure.*;
-import org.w3c.dom.Element;
-
-import java.io.File;
-import java.net.MalformedURLException;
+import VASSAL.configure.CompoundValidityChecker;
+import VASSAL.configure.Configurer;
+import VASSAL.configure.DirectoryConfigurer;
+import VASSAL.configure.MandatoryComponent;
+import VASSAL.configure.SingleChildInstance;
 
 /**
  * Represents the <code>Help</code> menu of the controls window

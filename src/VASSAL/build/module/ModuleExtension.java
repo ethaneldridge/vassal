@@ -18,16 +18,6 @@
  */
 package VASSAL.build.module;
 
-import VASSAL.Info;
-import VASSAL.build.*;
-import VASSAL.build.module.documentation.HelpFile;
-import VASSAL.command.Command;
-import VASSAL.configure.StringConfigurer;
-import VASSAL.tools.ArchiveWriter;
-import VASSAL.tools.DataArchive;
-import org.w3c.dom.Document;
-
-import javax.swing.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
@@ -35,6 +25,29 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
 import java.util.Enumeration;
+
+import javax.swing.AbstractAction;
+import javax.swing.Action;
+import javax.swing.Box;
+import javax.swing.BoxLayout;
+import javax.swing.ImageIcon;
+import javax.swing.JButton;
+import javax.swing.JDialog;
+import javax.swing.JOptionPane;
+
+import org.w3c.dom.Document;
+
+import VASSAL.Info;
+import VASSAL.build.AbstractBuildable;
+import VASSAL.build.Buildable;
+import VASSAL.build.Builder;
+import VASSAL.build.GameModule;
+import VASSAL.build.IllegalBuildException;
+import VASSAL.build.module.documentation.HelpFile;
+import VASSAL.command.Command;
+import VASSAL.configure.StringConfigurer;
+import VASSAL.tools.ArchiveWriter;
+import VASSAL.tools.DataArchive;
 
 /**
  * An optional extension to a GameModule

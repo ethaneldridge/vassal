@@ -26,6 +26,26 @@
  */
 package VASSAL.counters;
 
+import java.awt.Component;
+import java.awt.Frame;
+import java.awt.Graphics;
+import java.awt.Point;
+import java.awt.Rectangle;
+import java.awt.Shape;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.geom.AffineTransform;
+import java.awt.geom.Point2D;
+import java.io.File;
+import java.net.MalformedURLException;
+
+import javax.swing.Box;
+import javax.swing.BoxLayout;
+import javax.swing.JButton;
+import javax.swing.JPanel;
+import javax.swing.KeyStroke;
+import javax.swing.SwingUtilities;
+
 import VASSAL.build.Configurable;
 import VASSAL.build.GameModule;
 import VASSAL.build.module.BasicCommandEncoder;
@@ -35,18 +55,14 @@ import VASSAL.build.widget.CardSlot;
 import VASSAL.build.widget.PieceSlot;
 import VASSAL.command.AddPiece;
 import VASSAL.command.Command;
-import VASSAL.configure.*;
+import VASSAL.configure.BooleanConfigurer;
+import VASSAL.configure.ChooseComponentPathDialog;
+import VASSAL.configure.ConfigurerWindow;
+import VASSAL.configure.HotKeyConfigurer;
+import VASSAL.configure.IntConfigurer;
+import VASSAL.configure.StringConfigurer;
 import VASSAL.tools.ComponentPathBuilder;
 import VASSAL.tools.SequenceEncoder;
-
-import javax.swing.*;
-import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.awt.geom.AffineTransform;
-import java.awt.geom.Point2D;
-import java.io.File;
-import java.net.MalformedURLException;
 
 /**
  * This Decorator defines a key command to places another counter on top of this one.

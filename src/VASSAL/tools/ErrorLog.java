@@ -18,11 +18,17 @@
  */
 package VASSAL.tools;
 
-import VASSAL.build.GameModule;
+import java.awt.Component;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 
-import javax.swing.*;
-import java.awt.event.*;
-import java.awt.*;
+import javax.swing.JButton;
+import javax.swing.JDialog;
+import javax.swing.JOptionPane;
+import javax.swing.SwingUtilities;
+import javax.swing.UIManager;
+
+import VASSAL.build.GameModule;
 
 /**
  * Warns the user when an uncaught Exception occurs

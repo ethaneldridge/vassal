@@ -20,7 +20,10 @@ package VASSAL.command;
 
 import VASSAL.build.GameModule;
 import VASSAL.build.module.GlobalOptions;
-import VASSAL.counters.*;
+import VASSAL.counters.BoundsTracker;
+import VASSAL.counters.GamePiece;
+import VASSAL.counters.Properties;
+import VASSAL.counters.StateMergeable;
 
 /**
  * This Command changes the state of a {@link GamePiece}.  Its undo

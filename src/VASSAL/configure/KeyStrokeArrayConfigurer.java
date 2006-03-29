@@ -18,15 +18,21 @@
  */
 package VASSAL.configure;
 
-import VASSAL.tools.SequenceEncoder;
-
-import javax.swing.*;
-import java.util.List;
+import java.awt.Component;
+import java.awt.Window;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.util.ArrayList;
 import java.util.Iterator;
-import java.awt.*;
-import java.awt.event.ActionListener;
-import java.awt.event.ActionEvent;
+import java.util.List;
+
+import javax.swing.Box;
+import javax.swing.JButton;
+import javax.swing.JLabel;
+import javax.swing.KeyStroke;
+import javax.swing.SwingUtilities;
+
+import VASSAL.tools.SequenceEncoder;
 
 /**
  * Configures an array of keystrokes

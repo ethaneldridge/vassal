@@ -18,6 +18,16 @@
  */
 package VASSAL.build.module.map;
 
+import java.awt.Color;
+import java.awt.Point;
+import java.awt.Rectangle;
+import java.io.File;
+import java.net.MalformedURLException;
+import java.util.ArrayList;
+import java.util.Enumeration;
+
+import javax.swing.JPopupMenu;
+
 import VASSAL.build.AutoConfigurable;
 import VASSAL.build.Buildable;
 import VASSAL.build.GameModule;
@@ -26,18 +36,16 @@ import VASSAL.build.module.documentation.HelpFile;
 import VASSAL.build.module.map.boardPicker.Board;
 import VASSAL.build.widget.CardSlot;
 import VASSAL.command.Command;
-import VASSAL.configure.*;
+import VASSAL.configure.ColorConfigurer;
+import VASSAL.configure.Configurer;
+import VASSAL.configure.ConfigurerFactory;
+import VASSAL.configure.PlayerIdFormattedStringConfigurer;
+import VASSAL.configure.StringEnum;
+import VASSAL.configure.VisibilityCondition;
 import VASSAL.counters.Deck;
 import VASSAL.counters.GamePiece;
 import VASSAL.counters.Stack;
 import VASSAL.tools.UniqueIdManager;
-
-import javax.swing.*;
-import java.awt.*;
-import java.io.File;
-import java.net.MalformedURLException;
-import java.util.ArrayList;
-import java.util.Enumeration;
 
 public class DrawPile extends SetupStack {
   protected Deck dummy = new Deck(); // Used for storing type information

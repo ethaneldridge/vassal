@@ -18,6 +18,22 @@
  */
 package VASSAL.build.module;
 
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
+import java.io.File;
+import java.net.MalformedURLException;
+
+import javax.swing.Box;
+import javax.swing.BoxLayout;
+import javax.swing.JButton;
+import javax.swing.JDialog;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.JTabbedPane;
+import javax.swing.KeyStroke;
+
 import VASSAL.build.AbstractConfigurable;
 import VASSAL.build.AutoConfigurable;
 import VASSAL.build.Buildable;
@@ -34,15 +50,6 @@ import VASSAL.configure.ConfigurerFactory;
 import VASSAL.configure.IconConfigurer;
 import VASSAL.configure.TextConfigurer;
 import VASSAL.tools.LaunchButton;
-
-import javax.swing.*;
-
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.awt.event.WindowAdapter;
-import java.awt.event.WindowEvent;
-import java.io.File;
-import java.net.MalformedURLException;
 
 /**
  * This is a {@link GameComponent} that allows players to type and

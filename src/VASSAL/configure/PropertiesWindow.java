@@ -18,19 +18,24 @@
  */
 package VASSAL.configure;
 
-import VASSAL.build.Builder;
-import VASSAL.build.Configurable;
-import VASSAL.build.module.documentation.HelpWindow;
-import VASSAL.build.module.documentation.HelpWindowExtension;
-import org.w3c.dom.Element;
-import org.w3c.dom.Node;
-
-import javax.swing.*;
-import java.awt.*;
+import java.awt.Frame;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
+
+import javax.swing.Box;
+import javax.swing.BoxLayout;
+import javax.swing.JButton;
+import javax.swing.JDialog;
+
+import org.w3c.dom.Element;
+import org.w3c.dom.Node;
+
+import VASSAL.build.Builder;
+import VASSAL.build.Configurable;
+import VASSAL.build.module.documentation.HelpWindow;
+import VASSAL.build.module.documentation.HelpWindowExtension;
 
 /**
  * Window for editing properties of a {@link Configurable} object
