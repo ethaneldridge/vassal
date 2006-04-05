@@ -1001,7 +1001,7 @@ public class PropertySheet extends Decorator implements EditablePiece {
       boolean changed = false;
 
       if (numTicks == 0 && maxTicks == 0 && num == 0 && max > 0) {
-        num = max;
+//        num = max;  // This causes a bug in which ticks set to zero go to max after save/reload of a game
         changed = true;
       }
       if (numTicks == 0 && maxTicks == 0 && max == 0 && num > 0) {

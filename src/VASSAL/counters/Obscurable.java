@@ -52,7 +52,6 @@ import VASSAL.tools.SequenceEncoder;
 
 public class Obscurable extends Decorator implements EditablePiece {
   public static final String ID = "obs;";
-  private static boolean allHidden;
   protected static final char INSET = 'I';
   protected static final char BACKGROUND = 'B';
   protected static final char PEEK = 'P';
@@ -197,12 +196,12 @@ public class Obscurable extends Decorator implements EditablePiece {
 
   public boolean obscuredToMe() {
     return obscuredBy != null
-        && (allHidden || !obscuredBy.equals(GameModule.getUserId()));
+        && (PieceAccess.GlobalAccess.isHideAll() || !obscuredBy.equals(GameModule.getUserId()));
   }
 
   public boolean obscuredToOthers() {
     return obscuredBy != null
-        && (allHidden || obscuredBy.equals(GameModule.getUserId()));
+        && (PieceAccess.GlobalAccess.isHideAll() || obscuredBy.equals(GameModule.getUserId()));
   }
 
   public void setProperty(Object key, Object val) {
@@ -434,9 +433,15 @@ public class Obscurable extends Decorator implements EditablePiece {
    * If true, then all masked pieces are considered masked to all players.
    * Used to temporarily draw pieces as they appear to other players
    * @param allHidden
+   * @deprecated
    */
   public static void setAllHidden(boolean allHidden) {
-    Obscurable.allHidden = allHidden;
+    if (allHidden) {
+      PieceAccess.GlobalAccess.hideAll();
+    }
+    else {
+      PieceAccess.GlobalAccess.revertAll();
+    }
   }
 
   private static class Ed implements PieceEditor {

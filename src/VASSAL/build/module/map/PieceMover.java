@@ -971,7 +971,7 @@ public class PieceMover extends AbstractBuildable implements MouseListener, Game
       if (!event.getLocation().equals(lastDragLocation)) {
         lastDragLocation = event.getLocation();
         moveDragCursor(event.getX(), event.getY());
-        if (!dragCursor.isVisible()) {
+        if (dragCursor != null && !dragCursor.isVisible()) {
           dragCursor.setVisible(true);
         }
       }

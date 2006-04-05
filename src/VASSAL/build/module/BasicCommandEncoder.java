@@ -264,6 +264,10 @@ public class BasicCommandEncoder implements CommandEncoder, Buildable {
     if (f != null) {
       d = f.createDecorator(type, inner);
     }
+    else {
+      System.err.println("Unknown type "+type);
+      d = new Marker(Marker.ID,inner);
+    }
     return d;
   }
 

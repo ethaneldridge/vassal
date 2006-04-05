@@ -134,14 +134,12 @@ public class ReportState extends Decorator implements EditablePiece {
     boolean wasVisible = !Boolean.TRUE.equals(oldPiece.getProperty(Properties.INVISIBLE_TO_OTHERS));
     boolean isVisible = !Boolean.TRUE.equals(outer.getProperty(Properties.INVISIBLE_TO_OTHERS));
 
-    Hideable.setAllHidden(true);
-    Obscurable.setAllHidden(true);
+    PieceAccess.GlobalAccess.hideAll();
     String oldUnitName = oldPiece.getName();
     format.setProperty(OLD_UNIT_NAME, oldUnitName);
     String newUnitName = outer.getName();
     format.setProperty(NEW_UNIT_NAME, newUnitName);
-    Hideable.setAllHidden(false);
-    Obscurable.setAllHidden(false);
+    PieceAccess.GlobalAccess.revertAll();
 
     // Only make a report if:
     //  1. It's not part of a global command with Single Reporting on
@@ -218,13 +216,11 @@ public class ReportState extends Decorator implements EditablePiece {
 
     String name = "";
 
-    Hideable.setAllHidden(true);
-    Obscurable.setAllHidden(true);
+    PieceAccess.GlobalAccess.hideAll();
 
     name = getOutermost(this).getName();
 
-    Hideable.setAllHidden(false);
-    Obscurable.setAllHidden(false);
+    PieceAccess.GlobalAccess.revertAll();
 
     return name;
   }

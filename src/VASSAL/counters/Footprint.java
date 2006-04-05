@@ -61,7 +61,7 @@ import VASSAL.tools.SequenceEncoder;
  */
 public class Footprint extends MovementMarkable {
 
-  public static final String ID = "footprint";
+  public static final String ID = "footprint;";
   private KeyCommand[] commands;
 
   // State Variables (Saved in logfile/sent to opponent)
@@ -180,8 +180,7 @@ public class Footprint extends MovementMarkable {
 
   public String myGetType() {
     SequenceEncoder se = new SequenceEncoder(';');
-    se.append(ID)
-        .append(trailKey)
+    se.append(trailKey)
         .append(menuCommand)
         .append(initiallyVisible)
         .append(globallyVisible)
@@ -193,7 +192,7 @@ public class Footprint extends MovementMarkable {
         .append(edgePointBuffer)
         .append(edgeDisplayBuffer)
         .append(lineWidth);
-    return se.getValue();
+    return ID+se.getValue();
   }
 
   public void setProperty(Object key, Object val) {

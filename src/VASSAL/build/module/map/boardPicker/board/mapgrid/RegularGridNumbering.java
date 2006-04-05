@@ -409,7 +409,7 @@ public abstract class RegularGridNumbering extends AbstractConfigurable implemen
     format.setFormat(locationFormat);
     format.setProperty(GRID_LOCATION, getName(row, col));
     format.setProperty(ROW, getName(row+vOff, vType, vLeading));
-    format.setProperty(ROW, getName(col+hOff, hType, hLeading));
+    format.setProperty(COLUMN, getName(col+hOff, hType, hLeading));
     return format.getText();
   }
 

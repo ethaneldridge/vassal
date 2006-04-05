@@ -37,6 +37,7 @@ import VASSAL.counters.GamePiece;
 import VASSAL.counters.Hideable;
 import VASSAL.counters.MovementMarkable;
 import VASSAL.counters.Obscurable;
+import VASSAL.counters.PieceAccess;
 import VASSAL.counters.Properties;
 import VASSAL.counters.Stack;
 import VASSAL.tools.FormattedString;
@@ -175,8 +176,7 @@ public class MovementReporter {
   }
 
   public Command getReportCommand() {
-    Hideable.setAllHidden(true);
-    Obscurable.setAllHidden(true);
+    PieceAccess.GlobalAccess.hideAll();
 
     Command c = new NullCommand();
     for (Iterator it = movesToReport.iterator(); it.hasNext();) {
@@ -210,8 +210,7 @@ public class MovementReporter {
         c = c.append(new Chatter.DisplayText(GameModule.getGameModule().getChatter(), "* " + moveText));
       }
     }
-    Hideable.setAllHidden(false);
-    Obscurable.setAllHidden(false);
+    PieceAccess.GlobalAccess.revertAll();
     return c;
   }
 

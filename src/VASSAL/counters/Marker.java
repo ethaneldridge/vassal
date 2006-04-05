@@ -117,7 +117,7 @@ public class Marker extends Decorator implements EditablePiece {
   public void mySetState(String state) {
     SequenceEncoder.Decoder st = new SequenceEncoder.Decoder(state, ',');
     int i = 0;
-    while (st.hasMoreTokens()) {
+    while (st.hasMoreTokens() && i < values.length) {
       values[i++] = st.nextToken();
     }
   }

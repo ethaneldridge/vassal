@@ -263,12 +263,6 @@ public class Translate extends Decorator implements EditablePiece {
       for (Iterator it = moves.iterator(); it.hasNext();) {
         final Move move = (Move) it.next();
         final Map.Merger merger = new Map.Merger(move.map, move.pos, move.piece);
-        if (move.piece instanceof Stack) {
-          ((Stack)move.piece).setPropertyOnContents(Properties.MOVED,Boolean.TRUE);
-        }
-        else {
-          move.piece.setProperty(Properties.MOVED,Boolean.TRUE);
-        }
         DeckVisitor v = new DeckVisitor() {
           public Object visitDeck(Deck d) {
             return merger.visitDeck(d);
