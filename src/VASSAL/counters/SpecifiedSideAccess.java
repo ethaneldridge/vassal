@@ -41,8 +41,8 @@ public class SpecifiedSideAccess implements PieceAccess {
     return PlayerRoster.getMySide();
   }
 
-  public boolean currentPlayerHasAccess(String id) {
-    return id == null || (!GlobalAccess.isHideAll() && sides.contains(id));
+  public boolean currentPlayerHasAccess(String ownerId) {
+    return ownerId == null || (!GlobalAccess.isHideAll() && sides.contains(getCurrentPlayerId()));
   }
   
   public List getSides() {

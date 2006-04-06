@@ -122,7 +122,7 @@ public class Obscurable extends Decorator implements EditablePiece {
       }
     }
     maskName = st.nextToken(maskName);
-    access = PieceAccessConfigurer.decode(null);
+    access = PieceAccessConfigurer.decode(st.nextToken(null));
     commands = null;
   }
 
@@ -195,7 +195,7 @@ public class Obscurable extends Decorator implements EditablePiece {
   }
 
   public boolean obscuredToMe() {
-    return access.currentPlayerHasAccess(obscuredBy);
+    return !access.currentPlayerHasAccess(obscuredBy);
   }
 
   public boolean obscuredToOthers() {
@@ -475,6 +475,7 @@ public class Obscurable extends Decorator implements EditablePiece {
       controls.add(box);
       
       accessConfig = new PieceAccessConfigurer(null,"Can be masked by:  ",p.access);
+      controls.add(accessConfig.getControls());
 
       box = Box.createHorizontalBox();
       box.add(new JLabel("View when masked: "));

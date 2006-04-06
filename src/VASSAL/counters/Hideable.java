@@ -114,7 +114,7 @@ public class Hideable extends Decorator implements EditablePiece {
   }
 
   public String myGetState() {
-    return hiddenBy;
+    return hiddenBy == null ? "null" : hiddenBy;
   }
 
   public boolean invisibleToMe() {
