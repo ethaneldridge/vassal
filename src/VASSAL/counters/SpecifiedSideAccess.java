@@ -49,7 +49,7 @@ public class SpecifiedSideAccess implements PieceAccess {
     return sides;
   }
 
-  public boolean canOwn(String id) {
+  public boolean currentPlayerCanModify(String ownerId) {
     return sides.contains(getCurrentPlayerId());
   }
 }

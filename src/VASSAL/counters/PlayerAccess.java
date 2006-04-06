@@ -44,7 +44,7 @@ public class PlayerAccess implements PieceAccess {
     return id == null || (!GlobalAccess.isHideAll() && id.equals(getCurrentPlayerId()));
   }
 
-  public boolean canOwn(String id) {
-    return true;
+  public boolean currentPlayerCanModify(String ownerId) {
+    return ownerId == null || ownerId.equals(getCurrentPlayerId());
   }
 }

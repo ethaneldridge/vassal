@@ -46,6 +46,7 @@ import VASSAL.build.module.documentation.HelpFile;
 import VASSAL.command.ChangeTracker;
 import VASSAL.command.Command;
 import VASSAL.configure.HotKeyConfigurer;
+import VASSAL.configure.PieceAccessConfigurer;
 import VASSAL.configure.StringConfigurer;
 import VASSAL.configure.StringEnumConfigurer;
 import VASSAL.tools.SequenceEncoder;
@@ -69,6 +70,7 @@ public class Obscurable extends Decorator implements EditablePiece {
   protected boolean peeking;
   protected char displayStyle = INSET; // I = inset, B = background
   protected String maskName = "?";
+  protected PieceAccess access = PlayerAccess.getInstance();
 
   protected KeyCommand[] commands;
 
@@ -91,11 +93,9 @@ public class Obscurable extends Decorator implements EditablePiece {
     keyCommand = st.nextKeyStroke(null);
     imageName = st.nextToken();
     obscuredToMeView = GameModule.getGameModule().createPiece(BasicPiece.ID + ";;" + imageName + ";;");
+    hideCommand = st.nextToken(hideCommand);
     if (st.hasMoreTokens()) {
-      hideCommand = st.nextToken();
-    }
-    if (st.hasMoreTokens()) {
-      String s = st.nextToken();
+      String s = st.nextToken(String.valueOf(INSET));
       displayStyle = s.charAt(0);
       switch (displayStyle) {
         case PEEK:
@@ -121,9 +121,8 @@ public class Obscurable extends Decorator implements EditablePiece {
           }
       }
     }
-    if (st.hasMoreTokens()) {
-      maskName = st.nextToken();
-    }
+    maskName = st.nextToken(maskName);
+    access = PieceAccessConfigurer.decode(null);
     commands = null;
   }
 
@@ -146,6 +145,7 @@ public class Obscurable extends Decorator implements EditablePiece {
         se.append(displayStyle);
     }
     se.append(maskName);
+    se.append(PieceAccessConfigurer.encode(access));
     return ID + se.getValue();
   }
 
@@ -195,13 +195,11 @@ public class Obscurable extends Decorator implements EditablePiece {
   }
 
   public boolean obscuredToMe() {
-    return obscuredBy != null
-        && (PieceAccess.GlobalAccess.isHideAll() || !obscuredBy.equals(GameModule.getUserId()));
+    return access.currentPlayerHasAccess(obscuredBy);
   }
 
   public boolean obscuredToOthers() {
-    return obscuredBy != null
-        && (PieceAccess.GlobalAccess.isHideAll() || obscuredBy.equals(GameModule.getUserId()));
+    return obscuredBy != null;
   }
 
   public void setProperty(Object key, Object val) {
@@ -347,7 +345,7 @@ public class Obscurable extends Decorator implements EditablePiece {
       commands[0] = new KeyCommand(hideCommand, keyCommand, Decorator.getOutermost(this));
       commands[1] = new KeyCommand("Peek", peekKey, Decorator.getOutermost(this));
     }
-    commands[0].setEnabled(isMaskableBy(GameModule.getUserId()));
+    commands[0].setEnabled(isMaskable());
     if (obscuredToOthers()
         && displayStyle == PEEK
         && peekKey != null) {
@@ -358,13 +356,23 @@ public class Obscurable extends Decorator implements EditablePiece {
     }
   }
 
-  /** Return true if this piece can be masked/un-masked by the player with the given id*/
+  /** 
+   * Return true if this piece can be masked/un-masked by the current player 
+   * @param id ignored
+   * @deprecated 
+   */
   public boolean isMaskableBy(String id) {
-    return obscuredBy == null
-        || obscuredBy.equals(id)
-        || ObscurableOptions.getInstance().isUnmaskable(obscuredBy);
+    return isMaskable();
   }
 
+  /** 
+   * Return true if this piece can be masked/un-masked by the current player 
+   */
+  public boolean isMaskable() {
+    return access.currentPlayerCanModify(obscuredBy)
+    || ObscurableOptions.getInstance().isUnmaskable(obscuredBy);
+  }
+  
   public Command keyEvent(KeyStroke stroke) {
     if (!obscuredToMe()) {
       return super.keyEvent(stroke);
@@ -384,7 +392,7 @@ public class Obscurable extends Decorator implements EditablePiece {
         obscuredBy = null;
       }
       else if (!obscuredToMe()) {
-        obscuredBy = GameModule.getUserId();
+        obscuredBy = access.getCurrentPlayerId();
       }
       retVal = c.getChangeCommand();
     }
@@ -454,6 +462,7 @@ public class Obscurable extends Decorator implements EditablePiece {
     private String[] optionNames = new String[]{"Background", "Plain", "Inset", "Use Image"};
     private char[] optionChars = new char[]{BACKGROUND, PEEK, INSET, IMAGE};
     private ImagePicker imagePicker;
+    private PieceAccessConfigurer accessConfig;
 
     public Ed(Obscurable p) {
       controls.setLayout(new BoxLayout(controls, BoxLayout.Y_AXIS));
@@ -464,6 +473,8 @@ public class Obscurable extends Decorator implements EditablePiece {
       obscureKeyInput = new HotKeyConfigurer(null,"Keyboard Command:  ",p.keyCommand);
       box.add(obscureKeyInput.getControls());
       controls.add(box);
+      
+      accessConfig = new PieceAccessConfigurer(null,"Can be masked by:  ",p.access);
 
       box = Box.createHorizontalBox();
       box.add(new JLabel("View when masked: "));
@@ -577,6 +588,7 @@ public class Obscurable extends Decorator implements EditablePiece {
           se.append(optionChar);
       }
       se.append(maskNameInput.getValueString());
+      se.append(accessConfig.getValueString());
       return ID + se.getValue();
     }
 

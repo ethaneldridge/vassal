@@ -35,9 +35,10 @@ public interface PieceAccess {
   boolean currentPlayerHasAccess(String ownerId);
   
   /**
-   * Return true if the player with the given ID can gain ownership of this piece
+   * Return true if the current player can take (or relinquish)
+   * control of this piece
    */
-  boolean canOwn(String id);
+  boolean currentPlayerCanModify(String ownerId);
   
   /**
    * Global utility class to temporarily restrict access to all piece

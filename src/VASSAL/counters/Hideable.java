@@ -190,7 +190,7 @@ public class Hideable extends Decorator implements EditablePiece {
         commands = new KeyCommand[0];
       }
     }
-    hideCommand.setEnabled(access.canOwn(access.getCurrentPlayerId()));
+    hideCommand.setEnabled(access.currentPlayerCanModify(hiddenBy));
     return commands;
   }
 
@@ -269,7 +269,7 @@ public class Hideable extends Decorator implements EditablePiece {
       colorConfig = new ColorConfigurer(null, "Background color", p.bgColor);
       controls.add(colorConfig.getControls());
 
-      accessConfig = new PieceAccessConfigurer(null, "Piece can by hidden by ", p.access);
+      accessConfig = new PieceAccessConfigurer(null, "Can by hidden by ", p.access);
       controls.add(accessConfig.getControls());
     }
 

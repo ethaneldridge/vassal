@@ -66,9 +66,17 @@ public class ObscurableOptions implements CommandEncoder, GameComponent {
       public void propertyChange(PropertyChangeEvent evt) {
         if (Boolean.TRUE.equals(evt.getNewValue())) {
           ObscurableOptions.getInstance().allow(GameModule.getUserId());
+          String side = PlayerRoster.getMySide();
+          if (side != null) {
+            ObscurableOptions.getInstance().allow(side);
+          }
         }
         else {
           ObscurableOptions.getInstance().disallow(GameModule.getUserId());
+          String side = PlayerRoster.getMySide();
+          if (side != null) {
+            ObscurableOptions.getInstance().disallow(side);
+          }
         }
         GameModule.getGameModule().getServer().sendToOthers(new SetAllowed(instance.allowed));
       }
