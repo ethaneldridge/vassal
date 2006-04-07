@@ -21,27 +21,24 @@ package VASSAL.build.module;
 import java.awt.Component;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.io.File;
 import java.net.MalformedURLException;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Enumeration;
-import java.util.Vector;
+import java.util.Iterator;
+import java.util.List;
 
-import javax.swing.Box;
 import javax.swing.BoxLayout;
-import javax.swing.DefaultListModel;
-import javax.swing.JButton;
-import javax.swing.JComboBox;
-import javax.swing.JDialog;
-import javax.swing.JLabel;
-import javax.swing.JList;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
-import javax.swing.JScrollPane;
-import javax.swing.JTextField;
 
+import org.w3c.dom.Attr;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
+import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.NodeList;
 
 import VASSAL.build.Buildable;
@@ -52,16 +49,34 @@ import VASSAL.build.module.documentation.HelpFile;
 import VASSAL.command.Command;
 import VASSAL.command.CommandEncoder;
 import VASSAL.configure.Configurer;
+import VASSAL.configure.IconConfigurer;
+import VASSAL.configure.StringArrayConfigurer;
+import VASSAL.configure.StringConfigurer;
+import VASSAL.tools.LaunchButton;
 import VASSAL.tools.SequenceEncoder;
 
 /**
  * Maintains a list of players involved in the current game
  */
 public class PlayerRoster implements Configurable, CommandEncoder, GameComponent {
+  public static final String BUTTON_ICON = "buttonIcon";
+  public static final String BUTTON_TEXT = "buttonText";
+  public static final String TOOL_TIP = "buttonToolTip";
   public static final String COMMAND_PREFIX = "PLAYER\t";
-  protected Vector players = new Vector();
-  protected DefaultListModel sides = new DefaultListModel();
-  protected JButton retireButton = new JButton("Retire");
+  protected List players = new ArrayList();
+  protected List sides = new ArrayList();
+  protected LaunchButton retireButton;
+
+  public PlayerRoster() {
+    ActionListener al = new ActionListener() {
+      public void actionPerformed(ActionEvent e) {
+        launch();
+      }
+    };
+    retireButton = new LaunchButton("Retire", TOOL_TIP, BUTTON_TEXT, null, BUTTON_ICON, al);
+    retireButton.setToolTipText("Allow another player to take your side in this game");
+    retireButton.setVisible(false);
+  }
 
   public void removeFrom(Buildable parent) {
     GameModule.getGameModule().getGameState().removeGameComponent(this);
@@ -73,10 +88,16 @@ public class PlayerRoster implements Configurable, CommandEncoder, GameComponent
 
   public void build(Element e) {
     if (e != null) {
+      NamedNodeMap attributes = e.getAttributes();
+      for (int i = 0; i < attributes.getLength(); ++i) {
+        Attr att = (Attr) attributes.item(i);
+        retireButton.setAttribute(att.getName(), att.getValue());
+      }
       NodeList n = e.getElementsByTagName("*");
+      sides.clear();
       for (int i = 0; i < n.getLength(); ++i) {
         Element el = (Element) n.item(i);
-        sides.addElement(Builder.getText(el));
+        sides.add(Builder.getText(el));
       }
     }
   }
@@ -98,9 +119,12 @@ public class PlayerRoster implements Configurable, CommandEncoder, GameComponent
 
   public Element getBuildElement(Document doc) {
     Element el = doc.createElement(getClass().getName());
-    for (Enumeration e = sides.elements(); e.hasMoreElements();) {
+    el.setAttribute(BUTTON_TEXT, retireButton.getAttributeValueString(BUTTON_TEXT));
+    el.setAttribute(BUTTON_ICON, retireButton.getAttributeValueString(BUTTON_TEXT));
+    el.setAttribute(TOOL_TIP, retireButton.getAttributeValueString(TOOL_TIP));
+    for (Iterator e = sides.iterator(); e.hasNext();) {
       Element sub = doc.createElement("entry");
-      sub.appendChild(doc.createTextNode((String) e.nextElement()));
+      sub.appendChild(doc.createTextNode((String) e.next()));
       el.appendChild(sub);
     }
     return el;
@@ -129,23 +153,26 @@ public class PlayerRoster implements Configurable, CommandEncoder, GameComponent
   }
 
   public void addTo(Buildable b) {
-    retireButton.setToolTipText("Allow another player to take your side in this game");
-    retireButton.setVisible(false);
-    retireButton.setAlignmentY(0.0F);
-    retireButton.addActionListener(new ActionListener() {
-      public void actionPerformed(ActionEvent e) {
-        String mySide = getMySide();
-        if (mySide != null
-            && JOptionPane.YES_OPTION
-            == JOptionPane.showConfirmDialog(null, "Give up your position as '" + mySide + "'?",
-                                             "Retire", JOptionPane.YES_NO_OPTION)) {
-          remove(GameModule.getUserId());
-        }
-      }
-    });
     GameModule.getGameModule().getGameState().addGameComponent(this);
     GameModule.getGameModule().addCommandEncoder(this);
     GameModule.getGameModule().getToolBar().add(retireButton);
+  }
+
+  protected void launch() {
+    String mySide = getMySide();
+    if (mySide != null) {
+      String[] options = sides.size() == players.size() ? new String[] {"Yes", "No"} : new String[] {"Become observer", "Join another side", "Cancel"};
+      final int CANCEL = options.length - 1;
+      int option = (JOptionPane.showOptionDialog(GameModule.getGameModule().getFrame(), "Give up your position as '" + mySide + "'?", "Retire",
+          JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE, null, options, "Become observer"));
+      if (option == 0) {
+        remove(GameModule.getUserId());
+      }
+      else if (option != CANCEL) {
+        remove(GameModule.getUserId());
+        promptForSide();
+      }
+    }
   }
 
   public static boolean isActive() {
@@ -169,7 +196,7 @@ public class PlayerRoster implements Configurable, CommandEncoder, GameComponent
   public Entry[] getPlayers() {
     Entry[] p = new Entry[players.size()];
     for (int i = 0; i < p.length; ++i) {
-      p[i] = (Entry) players.elementAt(i);
+      p[i] = (Entry) players.get(i);
     }
     return p;
   }
@@ -177,16 +204,16 @@ public class PlayerRoster implements Configurable, CommandEncoder, GameComponent
   public void add(String playerId, String playerName, String side) {
     Entry e = new Entry(playerId, playerName, side);
     if (players.contains(e)) {
-      players.setElementAt(e, players.indexOf(e));
+      players.set(players.indexOf(e), e);
     }
     else {
-      players.addElement(e);
+      players.add(e);
     }
   }
 
   public void remove(String playerId) {
     Entry e = new Entry(playerId, null, null);
-    players.removeElement(e);
+    players.remove(e);
   }
 
   public Command decode(String command) {
@@ -215,9 +242,8 @@ public class PlayerRoster implements Configurable, CommandEncoder, GameComponent
 
   public Command getRestoreCommand() {
     Command c = null;
-    for (Enumeration e = players.elements();
-         e.hasMoreElements();) {
-      Entry entry = (Entry) e.nextElement();
+    for (Iterator e = players.iterator(); e.hasNext();) {
+      Entry entry = (Entry) e.next();
       Command sub = new Add(this, entry.playerId, entry.playerName, entry.side);
       c = c == null ? sub : c.append(sub);
     }
@@ -226,25 +252,37 @@ public class PlayerRoster implements Configurable, CommandEncoder, GameComponent
 
   public void setup(boolean gameStarting) {
     if (gameStarting) {
-      GameModule gm = GameModule.getGameModule();
       Entry me = new Entry(GameModule.getUserId(), GlobalOptions.getInstance().getPlayerId(), null);
       if (players.contains(me)) {
-        Entry saved = (Entry) players.elementAt(players.indexOf(me));
+        Entry saved = (Entry) players.get(players.indexOf(me));
         saved.playerName = me.playerName;
       }
       else {
-        me.side = new Pick().getValue();
-        if (me.side != null) {
-          Add a = new Add(this, me.playerId, me.playerName, me.side);
-          a.execute();
-          gm.getServer().sendToOthers(a);
-        }
+        promptForSide();
       }
     }
     else {
-      players.removeAllElements();
+      players.clear();
     }
     retireButton.setVisible(gameStarting && getMySide() != null);
+  }
+
+  protected void promptForSide() {
+    List availableSides = new ArrayList(sides);
+    List alreadyTaken = new ArrayList();
+    for (int i = 0; i < players.size(); ++i) {
+      alreadyTaken.add(((Entry) players.get(i)).side);
+    }
+    availableSides.removeAll(alreadyTaken);
+    availableSides.add(0, OBSERVER);
+    String newSide = (String) JOptionPane.showInputDialog(GameModule.getGameModule().getFrame(), "Join game as which side", "Choose side",
+        JOptionPane.QUESTION_MESSAGE, null, (String[]) availableSides.toArray(new String[availableSides.size()]), OBSERVER);
+    if (newSide != null && !OBSERVER.equals(newSide)) {
+      Entry me = new Entry(GameModule.getUserId(), GlobalOptions.getInstance().getPlayerId(), newSide);
+      Add a = new Add(this, me.playerId, me.playerName, me.side);
+      a.execute();
+      GameModule.getGameModule().getServer().sendToOthers(a);
+    }
   }
 
   public static class Entry {
@@ -289,8 +327,50 @@ public class PlayerRoster implements Configurable, CommandEncoder, GameComponent
   }
 
   private class Con extends Configurer {
+    private StringArrayConfigurer sidesConfig;
+    private IconConfigurer iconConfig;
+    private StringConfigurer textConfig;
+    private StringConfigurer tooltipConfig;
+    private JPanel controls;
+
     private Con() {
       super(null, null);
+      controls = new JPanel();
+      controls.setLayout(new BoxLayout(controls, BoxLayout.Y_AXIS));
+
+      sidesConfig = new StringArrayConfigurer(null, "Sides available to players:  ", (String[]) sides.toArray(new String[sides.size()]));
+      sidesConfig.addPropertyChangeListener(new PropertyChangeListener() {
+        public void propertyChange(PropertyChangeEvent evt) {
+          sides.clear();
+          sides.addAll(Arrays.asList(sidesConfig.getStringArray()));
+        }
+      });
+      controls.add(sidesConfig.getControls());
+
+      textConfig = new StringConfigurer(BUTTON_TEXT, "'Retire' button text", retireButton.getAttributeValueString(BUTTON_TEXT));
+      textConfig.addPropertyChangeListener(new PropertyChangeListener() {
+        public void propertyChange(PropertyChangeEvent evt) {
+          retireButton.setAttribute(BUTTON_TEXT, textConfig.getValueString());
+        }
+      });
+      controls.add(textConfig.getControls());
+
+      iconConfig = new IconConfigurer(BUTTON_ICON, "'Retire' button icon", null);
+      iconConfig.setValue(retireButton.getIcon());
+      iconConfig.addPropertyChangeListener(new PropertyChangeListener() {
+        public void propertyChange(PropertyChangeEvent evt) {
+          retireButton.setAttribute(BUTTON_ICON, iconConfig.getValueString());
+        }
+      });
+      controls.add(iconConfig.getControls());
+
+      tooltipConfig = new StringConfigurer(TOOL_TIP, "'Retire' button tooltip", retireButton.getAttributeValueString(TOOL_TIP));
+      tooltipConfig.addPropertyChangeListener(new PropertyChangeListener() {
+        public void propertyChange(PropertyChangeEvent evt) {
+          retireButton.setAttribute(TOOL_TIP, tooltipConfig.getValueString());
+        }
+      });
+      controls.add(tooltipConfig.getControls());
     }
 
     public String getValueString() {
@@ -301,84 +381,10 @@ public class PlayerRoster implements Configurable, CommandEncoder, GameComponent
     }
 
     public Component getControls() {
-      JPanel panel = new JPanel();
-      panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
-      panel.add(new JLabel("List of sides available to players:"));
-      final JList l = new JList(sides);
-      panel.add(new JScrollPane(l));
-      Box b = Box.createHorizontalBox();
-      final JTextField tf = new JTextField(8);
-      ActionListener al = new ActionListener() {
-        public void actionPerformed(ActionEvent e) {
-          String s = tf.getText();
-          if (s.length() > 0
-              && !sides.contains(s)
-              && !sides.equals(OBSERVER)) {
-            sides.addElement(s);
-          }
-          tf.setText("");
-        }
-      };
-      JButton addButton = new JButton("Add");
-      addButton.addActionListener(al);
-      tf.addActionListener(al);
-      b.add(tf);
-      b.add(addButton);
-      JButton removeButton = new JButton("Remove");
-      removeButton.addActionListener(new ActionListener() {
-        public void actionPerformed(ActionEvent e) {
-          Object[] o = l.getSelectedValues();
-          for (int i = 0; i < o.length; ++i) {
-            sides.removeElement(o[i]);
-          }
-        }
-      });
-      b.add(removeButton);
-      panel.add(b);
-      return panel;
+      return controls;
     }
   }
 
   private static String OBSERVER = "<observer>";
 
-  private class Pick extends JDialog {
-    private JComboBox box;
-
-    private Pick() {
-      super((java.awt.Frame) GameModule.getGameModule().getFrame(), "Choose Side", true);
-      getContentPane().setLayout(new BoxLayout(getContentPane(), BoxLayout.Y_AXIS));
-      getContentPane().add(new JLabel("Join game as which side?"));
-      Vector alreadyTaken = new Vector();
-      for (int i = 0; i < players.size(); ++i) {
-        alreadyTaken.addElement(((Entry) players.elementAt(i)).side);
-      }
-      Vector v = new Vector();
-      v.addElement(OBSERVER);
-      for (Enumeration e = sides.elements(); e.hasMoreElements();) {
-        String side = (String) e.nextElement();
-        if (!alreadyTaken.contains(side)) {
-          v.addElement(side);
-        }
-      }
-      box = new JComboBox(v);
-      getContentPane().add(box);
-      JButton b = new JButton("Ok");
-      b.addActionListener(new ActionListener() {
-        public void actionPerformed(ActionEvent e) {
-          dispose();
-        }
-      });
-      getContentPane().add(b);
-      setLocationRelativeTo(GameModule.getGameModule().getFrame());
-      pack();
-      if (v.size() > 1) {
-        setVisible(true);
-      }
-    }
-
-    public String getValue() {
-      String val = (String) box.getSelectedItem();
-      return OBSERVER.equals(val) ? null : val;
-    }
-  }
 }
