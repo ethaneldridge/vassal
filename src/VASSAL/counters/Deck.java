@@ -67,7 +67,7 @@ public class Deck extends Stack {
   public static final String ALWAYS = "Always";
   public static final String NEVER = "Never";
   public static final String USE_MENU = "Via right-click Menu";
-  private static final String NO_USER = "null"; // Dummy user ID for turning cards face down
+  private static final String NO_USER = "nobody"; // Dummy user ID for turning cards face down
 
   private boolean drawOutline = true;
   private Color outlineColor = Color.black;
@@ -454,6 +454,7 @@ public class Deck extends Stack {
     GamePiece top = nextDraw != null ? (GamePiece) nextDraw.get(0) : topPiece();
 
     if (top != null) {
+      Object owner = top.getProperty(Properties.OBSCURED_BY);
       top.setProperty(Properties.OBSCURED_BY, faceDown ? NO_USER : null);
       Color blankColor = getBlankColor();
       Rectangle r = top.getShape().getBounds();
@@ -479,6 +480,7 @@ public class Deck extends Stack {
       }
       top.draw(g, x + (int) (zoom * 2 * (count - 1)),
                y - (int) (zoom * 2 * (count - 1)), obs, zoom);
+      top.setProperty(Properties.OBSCURED_BY,owner);
     }
     else {
       if (drawOutline) {

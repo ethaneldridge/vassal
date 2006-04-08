@@ -257,7 +257,7 @@ public class PlayerRoster implements Configurable, CommandEncoder, GameComponent
         Entry saved = (Entry) players.get(players.indexOf(me));
         saved.playerName = me.playerName;
       }
-      else {
+      else if (sides.size() > 0){
         promptForSide();
       }
     }

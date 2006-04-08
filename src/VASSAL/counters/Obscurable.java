@@ -207,6 +207,9 @@ public class Obscurable extends Decorator implements EditablePiece {
       if (val instanceof String
           || val == null) {
         obscuredBy = (String) val;
+        if ("null".equals(obscuredBy)) {
+          obscuredBy = null;
+        }
       }
     }
     else if (Properties.SELECTED.equals(key)) {

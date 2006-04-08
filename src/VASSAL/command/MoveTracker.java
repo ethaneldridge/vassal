@@ -33,12 +33,14 @@ public class MoveTracker {
   private Point oldPosition;
   private String oldUnderneathId;
   private GamePiece piece;
+  private ChangeTracker changeTracker;
 
   public MoveTracker(GamePiece piece) {
     this.piece = piece;
     oldMapId = getMapId();
     oldPosition = piece.getPosition();
     oldUnderneathId = getUnderneathId();
+    changeTracker = new ChangeTracker(piece);
   }
 
   private String getUnderneathId() {
