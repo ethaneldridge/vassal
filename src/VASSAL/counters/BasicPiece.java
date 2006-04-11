@@ -611,4 +611,8 @@ public class BasicPiece implements EditablePiece, StateMergeable {
       return BasicPiece.ID + type;
     }
   }
+
+  public String toString() {
+    return super.toString()+"[name="+getName()+",type="+getType()+",state="+getState()+"]";
+  }
 }

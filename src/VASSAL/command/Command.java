@@ -117,10 +117,19 @@ public abstract class Command {
   public String toString() {
     String s = getClass().getName();
     s = s.substring(s.lastIndexOf(".") + 1);
+    String details = getDetails();
+    if (details != null) {
+      s += "[" + details+"]";
+    }
     for (int i = 0; i < seq.length; ++i) {
       s += "+" + seq[i].toString();
     }
     return s;
+  }
+  
+  /** Detailed information for toString() */
+  public String getDetails() {
+    return null;
   }
 
   /**

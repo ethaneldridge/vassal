@@ -2,6 +2,8 @@ package VASSAL.command;
 
 import java.awt.Point;
 
+import javax.swing.text.StyledEditorKit.UnderlineAction;
+
 import VASSAL.build.GameModule;
 import VASSAL.build.module.GlobalOptions;
 import VASSAL.build.module.Map;
@@ -213,4 +215,8 @@ public class MovePiece extends Command {
     });
     return dispatch;
   }
+  public String getDetails() {
+    return "id="+id+",map="+newMapId+",position="+newPosition+",under="+newUnderneathId;
+  }
+
 }

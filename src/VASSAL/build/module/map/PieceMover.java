@@ -109,12 +109,12 @@ public class PieceMover extends AbstractBuildable implements MouseListener, Game
   public static final String ICON_NAME = "icon";
   private String iconName;
   protected PieceFinder dragTargetSelector; // Selects drag target from mouse
-                                            // click on the Map
+  // click on the Map
   protected PieceFinder dropTargetSelector; // Selects piece to merge with at
-                                            // the drop destination
+  // the drop destination
   protected PieceVisitorDispatcher selectionProcessor; // Processes drag target
-                                                        // after having been
-                                                        // selected
+  // after having been
+  // selected
   protected Comparator pieceSorter = new PieceSorter();
 
   public void addTo(Buildable b) {
@@ -464,10 +464,10 @@ public class PieceMover extends AbstractBuildable implements MouseListener, Game
       // Now look for an already-existing piece at the destination point
       if (mergeWith == null) {
         mergeWith = map.findAnyPiece(p, dropTargetSelector);
+        if (mergeWith == null && !Boolean.TRUE.equals(dragging.getProperty(Properties.IGNORE_GRID))) {
+          p = map.snapTo(p);
+        }
         if (offset == null) {
-          if (mergeWith == null && !Boolean.TRUE.equals(dragging.getProperty(Properties.IGNORE_GRID))) {
-            p = map.snapTo(p);
-          }
           offset = new Point(p.x - dragging.getPosition().x, p.y - dragging.getPosition().y);
         }
         if (mergeWith != null && map.getStackMetrics().isStackingEnabled()) {
@@ -655,20 +655,20 @@ public class PieceMover extends AbstractBuildable implements MouseListener, Game
     static private DragHandler theDragHandler = null; // singleton pattern
 
     private JLabel dragCursor; // An image label. Lives on current DropTarget's
-                                // LayeredPane.
+    // LayeredPane.
     private Point drawOffset = new Point(); // translates event coords to local
-                                            // drawing coords
+    // drawing coords
 
     private Rectangle boundingBox; // image bounds
     private int originalPieceOffsetX; // How far drag STARTED from gamepiece's
-                                      // center
+    // center
     private int originalPieceOffsetY; // I.e. on original map
     private double dragPieceOffCenterZoom = 1.0; // zoom at start of drag
     private int currentPieceOffsetX; // How far cursor is CURRENTLY off-center,
-                                      // a function of
-                                      // dragPieceOffCenter{X,Y,Zoom}
+    // a function of
+    // dragPieceOffCenter{X,Y,Zoom}
     private int currentPieceOffsetY; // I.e. on current map (which may have
-                                      // different zoom
+    // different zoom
     private double dragCursorZoom = 1.0; // Current cursor scale (zoom)
 
     Component dragWin; // the component that initiated the drag operation
@@ -904,10 +904,10 @@ public class PieceMover extends AbstractBuildable implements MouseListener, Game
         }
 
         originalPieceOffsetX = piecePosition.x - mousePosition.x; // dragging
-                                                                  // from UL
-                                                                  // results in
-                                                                  // positive
-                                                                  // offsets
+        // from UL
+        // results in
+        // positive
+        // offsets
         originalPieceOffsetY = piecePosition.y - mousePosition.y;
         dragPieceOffCenterZoom = map == null ? 1.0 : map.getZoom();
 
@@ -921,15 +921,15 @@ public class PieceMover extends AbstractBuildable implements MouseListener, Game
 
         SwingUtilities.convertPointToScreen(mousePosition, drawWin);
         moveDragCursor(mousePosition.x, mousePosition.y);
-      }
 
-      // begin dragging
-      try {
-        dge.startDrag(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR), new StringSelection(""), this); // DEBUG
-        dge.getDragSource().addDragSourceMotionListener(this);
-      }
-      catch (InvalidDnDOperationException e) {
-        e.printStackTrace();
+        // begin dragging
+        try {
+          dge.startDrag(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR), new StringSelection(""), this); // DEBUG
+          dge.getDragSource().addDragSourceMotionListener(this);
+        }
+        catch (InvalidDnDOperationException e) {
+          e.printStackTrace();
+        }
       }
     }
 

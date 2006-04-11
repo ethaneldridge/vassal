@@ -27,7 +27,6 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
-import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
@@ -231,8 +230,7 @@ public class Chatter extends JPanel implements CommandEncoder, Buildable {
    */
   public void keyCommand(KeyStroke e) {
     if ((e.getKeyCode() == 0 || e.getKeyCode() == KeyEvent.CHAR_UNDEFINED)
-        && !Character.isISOControl(e.getKeyChar())
-        && (e.getModifiers() & (InputEvent.CTRL_DOWN_MASK + InputEvent.ALT_DOWN_MASK + InputEvent.META_DOWN_MASK)) == 0) {
+        && !Character.isISOControl(e.getKeyChar())) {
       input.setText(input.getText() + e.getKeyChar());
     }
     else if (e.isOnKeyRelease()) {
@@ -356,6 +354,10 @@ public class Chatter extends JPanel implements CommandEncoder, Buildable {
     }
 
     public String getMessage() {
+      return msg;
+    }
+    
+    public String getDetails() {
       return msg;
     }
   }

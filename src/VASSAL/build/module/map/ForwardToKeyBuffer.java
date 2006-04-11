@@ -39,6 +39,8 @@ import VASSAL.counters.KeyBuffer;
  * @see VASSAL.counters.GamePiece#keyEvent
  * @see InputEvent#isConsumed */
 public class ForwardToKeyBuffer implements Buildable, KeyListener {
+  private KeyEvent lastConsumedEvent;
+  
   public void build(org.w3c.dom.Element e) {
   }
 
@@ -66,13 +68,25 @@ public class ForwardToKeyBuffer implements Buildable, KeyListener {
     process(e);
   }
 
-  private void process(KeyEvent e) {
+  protected void process(KeyEvent e) {
+    // If we've consumed a KeyPressed event,
+    // then automatically consume any following KeyTyped event
+    // resulting from the same keypress
+    // This prevents echoing characters to the Chat area if they're keycommand for selected pieces
+    if (lastConsumedEvent != null
+        && lastConsumedEvent.getWhen() == e.getWhen()) {
+      e.consume();
+    }
+    else {
+      lastConsumedEvent = null;
+    }
     if (!e.isConsumed()) {
       Command comm = KeyBuffer.getBuffer().keyCommand
           (KeyStroke.getKeyStrokeForEvent(e));
       if (comm != null && !comm.isNull()) {
         GameModule.getGameModule().sendAndLog(comm);
         e.consume();
+        lastConsumedEvent = e;
       }
     }
   }

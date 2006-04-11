@@ -129,4 +129,8 @@ public class ChangePiece extends Command {
   public boolean isNull() {
     return newState.equals(oldState) && hasNullSubcommands();
   }
+  
+  public String getDetails() {
+    return "id="+id+",oldState="+oldState+",newState="+newState;
+  }
 }

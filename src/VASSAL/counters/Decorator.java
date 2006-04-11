@@ -272,4 +272,8 @@ public abstract class Decorator implements GamePiece, StateMergeable {
   public PieceEditor getEditor() {
     return new SimplePieceEditor(this);
   }
+  
+  public String toString() {
+    return super.toString()+"[name="+getName()+",type="+getType()+",state="+getState()+"]";
+  }
 }
