@@ -28,6 +28,7 @@ import java.io.File;
 import java.net.MalformedURLException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 
 import javax.swing.Box;
 import javax.swing.KeyStroke;
@@ -69,7 +70,8 @@ public class DynamicProperty extends Decorator implements EditablePiece, Propert
   protected boolean wrap;
   protected FormattedString format = new FormattedString();
 
-  private DynamicKeyCommand[] keyCommands;
+  protected DynamicKeyCommand[] keyCommands;
+  protected DynamicKeyCommand[] menuCommands;
 
   private ListConfigurer keyCommandListConfig;
 
@@ -94,6 +96,13 @@ public class DynamicProperty extends Decorator implements EditablePiece, Propert
     decodeConstraints(sd.nextToken(""));
     keyCommandListConfig.setValue(sd.nextToken(""));
     keyCommands = (DynamicKeyCommand[]) keyCommandListConfig.getListValue().toArray(new DynamicKeyCommand[keyCommandListConfig.getListValue().size()]);
+    List l = new ArrayList();
+    for (int i = 0; i < keyCommands.length; i++) {
+      if (keyCommands[i].getName() != null && keyCommands[i].getName().length() > 0) {
+        l.add(keyCommands[i]);
+      }
+    }
+    menuCommands = (DynamicKeyCommand[]) l.toArray(new DynamicKeyCommand[l.size()]);
   }
 
   protected void decodeConstraints(String s) {
@@ -204,7 +213,7 @@ public class DynamicProperty extends Decorator implements EditablePiece, Propert
   }
 
   protected KeyCommand[] myGetKeyCommands() {
-    return keyCommands;
+    return menuCommands;
   }
 
   public Command myKeyEvent(KeyStroke stroke) {

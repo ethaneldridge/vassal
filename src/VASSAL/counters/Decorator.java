@@ -274,6 +274,11 @@ public abstract class Decorator implements GamePiece, StateMergeable {
   }
   
   public String toString() {
-    return super.toString()+"[name="+getName()+",type="+getType()+",state="+getState()+"]";
+    if (piece == null) {
+      return super.toString();
+    }
+    else {
+      return super.toString()+"[name="+getName()+",type="+getType()+",state="+getState()+"]";
+    }
   }
 }

@@ -28,14 +28,14 @@ import java.awt.MediaTracker;
 import java.awt.Rectangle;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.image.ColorModel;
-import java.awt.image.PixelGrabber;
+import java.awt.image.RenderedImage;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.net.MalformedURLException;
 
+import javax.imageio.ImageIO;
 import javax.swing.JFileChooser;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
@@ -54,7 +54,6 @@ import VASSAL.build.module.documentation.HelpFile;
 import VASSAL.configure.Configurer;
 import VASSAL.configure.ConfigurerFactory;
 import VASSAL.configure.IconConfigurer;
-import VASSAL.counters.GamePiece;
 import VASSAL.tools.BackgroundTask;
 import VASSAL.tools.LaunchButton;
 
@@ -87,8 +86,9 @@ public class ImageSaver extends AbstractConfigurable {
   }
 
   /**
-   * Expects to be added to a {@link Map}.  Adds a button to the map
-   * window toolbar that initiates the capture */
+   * Expects to be added to a {@link Map}. Adds a button to the map window
+   * toolbar that initiates the capture
+   */
   public void addTo(Buildable b) {
     map = (Map) b;
     map.getToolBar().add(launch);
@@ -122,7 +122,7 @@ public class ImageSaver extends AbstractConfigurable {
       return new IconConfigurer(key, name, DEFAULT_ICON);
     }
   }
-  
+
   public void setAttribute(String key, Object value) {
     launch.setAttribute(key, value);
   }
@@ -132,8 +132,9 @@ public class ImageSaver extends AbstractConfigurable {
   }
 
   /**
-   * Outputs a snapshot of the Map to a PNG file.  Displays a file
-   * dialog to prompt the user for the file */
+   * Outputs a snapshot of the Map to a PNG file. Displays a file dialog to
+   * prompt the user for the file
+   */
   public void writeMapAsImage() {
     int sections = 1;
     if (promptToSplit) {
@@ -147,21 +148,17 @@ public class ImageSaver extends AbstractConfigurable {
       catch (NumberFormatException ex) {
       }
     }
-    JFileChooser fc
-      = GameModule.getGameModule().getFileChooser();
-    fc.setSelectedFile(new File(fc.getCurrentDirectory(),
-                                GameModule.getGameModule().getGameName()
-                                + "Map.png"));
-    if (fc.showSaveDialog(null) !=
-      JFileChooser.CANCEL_OPTION) {
+    JFileChooser fc = GameModule.getGameModule().getFileChooser();
+    fc.setSelectedFile(new File(fc.getCurrentDirectory(), GameModule.getGameModule().getGameName() + "Map.png"));
+    if (fc.showSaveDialog(null) != JFileChooser.CANCEL_OPTION) {
       final int sectionCount = sections;
       final String fileName = fc.getSelectedFile().getPath();
-      final JWindow w = new JWindow((Frame) SwingUtilities.getAncestorOfClass(Frame.class,map.getView()));
+      final JWindow w = new JWindow((Frame) SwingUtilities.getAncestorOfClass(Frame.class, map.getView()));
       final JLabel text = new JLabel("Saving Map Image ...");
-      text.setFont(new Font("Dialog",Font.PLAIN,48));
+      text.setFont(new Font("Dialog", Font.PLAIN, 48));
       text.setBackground(Color.white);
       text.setForeground(Color.black);
-      text.setBorder(new BevelBorder(BevelBorder.RAISED,Color.lightGray,Color.darkGray));
+      text.setBorder(new BevelBorder(BevelBorder.RAISED, Color.lightGray, Color.darkGray));
       w.getContentPane().setBackground(Color.white);
       w.getContentPane().add(text);
       w.pack();
@@ -177,8 +174,7 @@ public class ImageSaver extends AbstractConfigurable {
               String sectionName = fileName;
               if (sectionCount > 1) {
                 if (fileName.lastIndexOf(".") >= 0) {
-                  sectionName = fileName.substring(0, fileName.lastIndexOf("."))
-                    + (i + 1) + fileName.substring(fileName.lastIndexOf("."));
+                  sectionName = fileName.substring(0, fileName.lastIndexOf(".")) + (i + 1) + fileName.substring(fileName.lastIndexOf("."));
                 }
                 else {
                   sectionName = fileName + (i + 1);
@@ -195,10 +191,9 @@ public class ImageSaver extends AbstractConfigurable {
 
         public void doLater() {
           if (error instanceof OutOfMemoryError) {
-            JOptionPane.showMessageDialog(map.getView().getTopLevelAncestor(), "Insufficient memory\n"+
-                                                                               "Zooming out will reduce memory requirements\n"+
-                                                                               "Otherwise, try again and you will be prompted to split the map\n"+
-                                                                               "into a number of sections", "Error saving map image", JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(map.getView().getTopLevelAncestor(), "Insufficient memory\n" + "Zooming out will reduce memory requirements\n"
+                + "Otherwise, try again and you will be prompted to split the map\n" + "into a number of sections", "Error saving map image",
+                JOptionPane.ERROR_MESSAGE);
             promptToSplit = true;
           }
           else if (error != null) {
@@ -215,6 +210,7 @@ public class ImageSaver extends AbstractConfigurable {
       };
       Timer t = new Timer(1000, new ActionListener() {
         boolean toggle;
+
         public void actionPerformed(ActionEvent e) {
           if (toggle) {
             text.setText("Saving Map Image");
@@ -237,10 +233,8 @@ public class ImageSaver extends AbstractConfigurable {
    */
   public void writeImage(OutputStream[] out) throws IOException {
     Dimension buffer = map.getEdgeBuffer();
-    int totalWidth = (int) ((map.mapSize().width - 2 * buffer.width)
-      * map.getZoom());
-    int totalHeight = (int) ((map.mapSize().height - 2 * buffer.height)
-      * map.getZoom());
+    int totalWidth = (int) ((map.mapSize().width - 2 * buffer.width) * map.getZoom());
+    int totalHeight = (int) ((map.mapSize().height - 2 * buffer.height) * map.getZoom());
     for (int i = 0; i < out.length; ++i) {
       int height = totalHeight / out.length;
       if (i == out.length - 1) {
@@ -249,8 +243,7 @@ public class ImageSaver extends AbstractConfigurable {
 
       Image output = map.getView().createImage(totalWidth, height);
       Graphics gg = output.getGraphics();
-      map.paint(gg, -(int) (map.getZoom() * buffer.width),
-                -(int) (map.getZoom() * buffer.height) + height * i);
+      map.paint(gg, -(int) (map.getZoom() * buffer.width), -(int) (map.getZoom() * buffer.height) + height * i);
       try {
         MediaTracker t = new MediaTracker(map.getView());
         t.addImage(output, 0);
@@ -259,80 +252,19 @@ public class ImageSaver extends AbstractConfigurable {
       catch (Exception e) {
         e.printStackTrace();
       }
-//      writeGif(output,out[i]);
       writePNG(output, out[i]);
       out[i].close();
     }
   }
 
-/*
-  private void writeGif(Image output, OutputStream out) throws IOException {
-    Acme.JPM.Encoders.GifEncoder e = new Acme.JPM.Encoders.GifEncoder(output, out);
-    e.encode();
-  }
-*/
-
   private void writePNG(Image output, OutputStream out) throws IOException {
-    PngEncoder enc = new PngEncoder(output);
-    enc.setCompressionLevel(7);
-    out.write(enc.pngEncode());
-  }
-
-  /**
-   * Write a snapshot of the map to the given OutputStream in PPM
-   * format.  This results in a larger file (in a less familiar
-   * format), but requires less memory */
-  public void writePPM(OutputStream p) throws Exception {
-    int outW = (int) (map.mapSize().width * map.getZoom());
-    int outH = (int) (map.mapSize().height * map.getZoom());
-
-    Dimension buffer = map.getEdgeBuffer();
-
-    int MAXSIZE = 500000;
-    int chunk = MAXSIZE / outW;
-    int offsetY = (int) (map.getZoom() * buffer.height);
-    int offsetX = (int) (map.getZoom() * buffer.width);
-
-    p.write(("P6\n" + outW + " " + outH + "\n255\n").getBytes());
-
-    while (offsetY < outH) {
-      if (offsetY + chunk > outH) {
-        chunk = outH - offsetY;
-      }
-
-      Image output = map.getView().createImage(outW, chunk);
-      Graphics gg = output.getGraphics();
-      map.drawBoards(gg, offsetX, -offsetY, map.getZoom(), map.getView());
-      GamePiece stack[] = map.getPieces();
-      for (int i = 0; i < stack.length; ++i)
-        stack[i].draw(gg,
-                      (int) (map.getZoom()
-                             * stack[i].getPosition().x),
-                      (int) (map.getZoom()
-                             * stack[i].getPosition().y) - offsetY,
-                      map.getView(), map.getZoom());
-
-      int pix[] = new int[outW * chunk];
-
-      PixelGrabber pg = new PixelGrabber(output,
-                                         0, 0, outW, chunk, true);
-      pg.grabPixels();
-      pix = (int[]) pg.getPixels();
-      ColorModel model = pg.getColorModel();
-
-      byte out[] = new byte[outW * chunk * 3];
-
-      int n = 0, nbyte = 0;
-      for (int j = 0; j < chunk; ++j) {
-        for (int i = 0; i < outW; ++i) {
-          out[nbyte++] = (byte) model.getRed(pix[n]);
-          out[nbyte++] = (byte) model.getGreen(pix[n]);
-          out[nbyte++] = (byte) model.getBlue(pix[n]);
-          n++;
-        }
-      }
-      p.write(out);
-      offsetY += chunk;
+    if (output instanceof RenderedImage) {
+      ImageIO.write((RenderedImage) output, "png", out);
+    }
+    else {
+      PngEncoder enc = new PngEncoder(output);
+      enc.setCompressionLevel(7);
+      out.write(enc.pngEncode());
     }
   }
 
