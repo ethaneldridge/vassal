@@ -55,7 +55,6 @@ import VASSAL.configure.PlayerIdFormattedStringConfigurer;
 import VASSAL.configure.StringArrayConfigurer;
 import VASSAL.configure.StringConfigurer;
 import VASSAL.tools.FormattedString;
-import VASSAL.tools.PlayerIdFormattedString;
 import VASSAL.tools.SequenceEncoder;
 
 /**
@@ -65,7 +64,7 @@ import VASSAL.tools.SequenceEncoder;
 public class ReportState extends Decorator implements EditablePiece {
   public static final String ID = "report;";
   protected KeyStroke[] keys;
-  protected FormattedString format = new PlayerIdFormattedString();
+  protected FormattedString format = new FormattedString();
   protected String reportFormat;
   protected String[] cycleReportFormat;
   protected KeyStroke[] cycleDownKeys;

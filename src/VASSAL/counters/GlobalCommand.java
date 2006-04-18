@@ -28,7 +28,6 @@ import VASSAL.build.module.Map;
 import VASSAL.command.Command;
 import VASSAL.command.NullCommand;
 import VASSAL.tools.FormattedString;
-import VASSAL.tools.PlayerIdFormattedString;
 
 /**
  * Applies a given keyboard command to all counters on a map
@@ -36,7 +35,7 @@ import VASSAL.tools.PlayerIdFormattedString;
 public class GlobalCommand {
   private KeyStroke keyStroke;
   private boolean reportSingle;
-  private FormattedString reportFormat = new PlayerIdFormattedString();
+  private FormattedString reportFormat = new FormattedString();
 
   public void setKeyStroke(KeyStroke keyStroke) {
     this.keyStroke = keyStroke;

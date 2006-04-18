@@ -212,7 +212,7 @@ public class PieceWindow extends Widget implements UniqueIdManager.Identifyable 
   }
 
   public void removeFrom(Buildable parent) {
-    if (mainWindowDock == null) {
+    if (mainWindowDock == null && root != null && root.getTopLevelAncestor() != null) {
       root.getTopLevelAncestor().setVisible(false);
     }
     GameModule.getGameModule().getToolBar().remove(launch);

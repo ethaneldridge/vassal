@@ -725,14 +725,19 @@ public abstract class GameModule extends AbstractConfigurable implements Command
     return Builder.toString(doc);
   }
 
-  public static final String PLAYER_SIDE = "PlayerSide";
   /**
    * Return values of Global properties
    */
   public Object getProperty(Object key) {
-    if (PLAYER_SIDE.equals(key)) {
+    if (GlobalOptions.PLAYER_SIDE.equals(key)) {
       String mySide = PlayerRoster.getMySide();
       return mySide == null ? "" : mySide;
+    }
+    else if (GlobalOptions.PLAYER_NAME.equals(key)) {
+      return getPrefs().getValue(GameModule.REAL_NAME);
+    }
+    else if (GlobalOptions.PLAYER_ID.equals(key)) {
+      return GlobalOptions.getInstance().getPlayerId();
     }
     return globalProperties.get(key);
   }

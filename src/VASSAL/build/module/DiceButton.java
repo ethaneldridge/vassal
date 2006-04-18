@@ -40,7 +40,6 @@ import VASSAL.configure.VisibilityCondition;
 import VASSAL.tools.FormattedString;
 import VASSAL.tools.KeyStrokeListener;
 import VASSAL.tools.LaunchButton;
-import VASSAL.tools.PlayerIdFormattedString;
 
 /**
  * This component places a button into the controls window toolbar.
@@ -51,7 +50,7 @@ public class DiceButton extends AbstractConfigurable {
   protected int nSides = 6, nDice = 2, plus = 0;
   protected boolean reportTotal = false;
   protected boolean promptAlways = false;
-  protected FormattedString reportFormat = new PlayerIdFormattedString("** $" + REPORT_NAME + "$ = $" + RESULT + "$ *** <$" + GlobalOptions.PLAYER_NAME + "$>");
+  protected FormattedString reportFormat = new FormattedString("** $" + REPORT_NAME + "$ = $" + RESULT + "$ *** <$" + GlobalOptions.PLAYER_NAME + "$>");
   protected LaunchButton launch;
 
   public static final String DEPRECATED_NAME = "label";

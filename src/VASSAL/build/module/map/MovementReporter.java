@@ -34,20 +34,17 @@ import VASSAL.command.Command;
 import VASSAL.command.MovePiece;
 import VASSAL.command.NullCommand;
 import VASSAL.counters.GamePiece;
-import VASSAL.counters.Hideable;
 import VASSAL.counters.MovementMarkable;
-import VASSAL.counters.Obscurable;
 import VASSAL.counters.PieceAccess;
 import VASSAL.counters.Properties;
 import VASSAL.counters.Stack;
 import VASSAL.tools.FormattedString;
-import VASSAL.tools.PlayerIdFormattedString;
 
 /**
  * Builds an auto-report message for a collection of Move Commands
  */
 public class MovementReporter {
-  private FormattedString format = new PlayerIdFormattedString();
+  private FormattedString format = new FormattedString();
 
   private List movesToReport = new ArrayList();
   private List movesToMark = new ArrayList();

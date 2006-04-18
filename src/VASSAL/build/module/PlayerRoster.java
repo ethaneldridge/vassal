@@ -167,10 +167,16 @@ public class PlayerRoster implements Configurable, CommandEncoder, GameComponent
           JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE, null, options, "Become observer"));
       if (option == 0) {
         remove(GameModule.getUserId());
+        for (Enumeration e = GameModule.getGameModule().getComponents(Map.class);e.hasMoreElements();) {
+          ((Map)e.nextElement()).repaint();
+        }
       }
       else if (option != CANCEL) {
         remove(GameModule.getUserId());
         promptForSide();
+        for (Enumeration e = GameModule.getGameModule().getComponents(Map.class);e.hasMoreElements();) {
+          ((Map)e.nextElement()).repaint();
+        }
       }
     }
   }

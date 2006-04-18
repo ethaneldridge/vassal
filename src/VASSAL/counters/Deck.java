@@ -52,7 +52,6 @@ import VASSAL.command.Command;
 import VASSAL.command.NullCommand;
 import VASSAL.configure.ColorConfigurer;
 import VASSAL.tools.FormattedString;
-import VASSAL.tools.PlayerIdFormattedString;
 import VASSAL.tools.SequenceEncoder;
 
 /**
@@ -607,7 +606,7 @@ public class Deck extends Stack {
    */
   private Command reportCommand(String format, String commandName) {
     Command c = null;
-    FormattedString reportFormat = new PlayerIdFormattedString(format);
+    FormattedString reportFormat = new FormattedString(format);
     reportFormat.setProperty(DrawPile.DECK_NAME, getDeckName());
     reportFormat.setProperty(DrawPile.COMMAND_NAME, commandName);
     String rep = reportFormat.getText();

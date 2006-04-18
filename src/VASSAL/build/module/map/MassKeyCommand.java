@@ -55,7 +55,6 @@ import VASSAL.counters.PieceFilter;
 import VASSAL.counters.PropertiesPieceFilter;
 import VASSAL.tools.FormattedString;
 import VASSAL.tools.LaunchButton;
-import VASSAL.tools.PlayerIdFormattedString;
 
 /** Adds a button to a map window toolbar.  Hitting the button applies a particular key command to all pieces
  * on that map with a given name.
@@ -89,7 +88,7 @@ public class MassKeyCommand extends AbstractConfigurable {
   protected PieceFilter filter;
   private Map map;
   protected GlobalCommand globalCommand = new GlobalCommand();
-  protected FormattedString reportFormat = new PlayerIdFormattedString("");
+  protected FormattedString reportFormat = new FormattedString();
 
   public MassKeyCommand() {
     ActionListener al = new ActionListener() {

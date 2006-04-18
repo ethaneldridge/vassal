@@ -56,7 +56,6 @@ import VASSAL.configure.VisibilityCondition;
 import VASSAL.tools.FormattedString;
 import VASSAL.tools.KeyStrokeListener;
 import VASSAL.tools.LaunchButton;
-import VASSAL.tools.PlayerIdFormattedString;
 import VASSAL.tools.SequenceEncoder;
 import VASSAL.tools.UniqueIdManager;
 
@@ -82,7 +81,7 @@ public class SpecialDiceButton extends AbstractConfigurable implements CommandEn
   private Color bgColor;
   private ResultsIcon resultsIcon = new ResultsIcon();
 
-  private FormattedString format = new PlayerIdFormattedString();
+  private FormattedString format = new FormattedString();
   private String chatResultFormat = "** $" + NAME + "$ = [$result1$] *** <$" + GlobalOptions.PLAYER_NAME + "$>";
   private String windowTitleResultFormat = "$" + NAME + "$";
 

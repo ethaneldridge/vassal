@@ -8,6 +8,7 @@
 package VASSAL.tools;
 
 import java.util.HashMap;
+import java.util.Map;
 
 import VASSAL.build.GameModule;
 import VASSAL.build.module.properties.PropertySource;
@@ -15,15 +16,25 @@ import VASSAL.counters.GamePiece;
 
 public class FormattedString {
 
-  private String formatString;
-  private HashMap props = new HashMap();
+  protected String formatString;
+  protected Map props = new HashMap();
+  protected PropertySource defaultProperties;
 
   public FormattedString() {
-    setFormat("");
+    this("");
   }
 
   public FormattedString(String s) {
-    setFormat(s);
+    this(s,GameModule.getGameModule());
+  }
+  
+  public FormattedString(PropertySource defaultProperties) {
+    this("",defaultProperties);
+  }
+
+  public FormattedString(String formatString, PropertySource defaultProperties) {
+    this.formatString = formatString;
+    this.defaultProperties = defaultProperties;
   }
 
   public void setFormat(String s) {
@@ -47,7 +58,7 @@ public class FormattedString {
    * @return
    */
   public String getText() {
-    return getText(GameModule.getGameModule());
+    return getText(defaultProperties);
   }
 
   public String getText(GamePiece piece) {
@@ -58,10 +69,10 @@ public class FormattedString {
    * Also, if any property keys match a property in the given GamePiece,
    * substitute the value of that property
    * @see GamePiece#getProperty
-   * @param piece
+   * @param ps
    * @return
    */
-  public String getText(PropertySource piece) {
+  public String getText(PropertySource ps) {
     StringBuffer buffer = new StringBuffer();
     SequenceEncoder.Decoder st = new SequenceEncoder.Decoder(formatString, '$');
     boolean isProperty = true;
@@ -81,8 +92,8 @@ public class FormattedString {
             buffer.append(value);
           }
         }
-        else if (piece != null) {
-          Object value = piece.getProperty(token);
+        else if (ps != null) {
+          Object value = ps.getProperty(token);
           if (value != null) {
             buffer.append(value.toString());
           }
@@ -97,6 +108,14 @@ public class FormattedString {
     }
 
     return buffer.toString();
+  }
+
+  public PropertySource getDefaultProperties() {
+    return defaultProperties;
+  }
+
+  public void setDefaultProperties(PropertySource defaultProperties) {
+    this.defaultProperties = defaultProperties;
   }
 
 }
