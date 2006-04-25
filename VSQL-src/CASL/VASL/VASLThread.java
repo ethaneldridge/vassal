@@ -68,6 +68,7 @@ public class VASLThread
   // LOS stuff
   protected LOSResult result;
   private String resultsString;
+  protected String rangeString;
   private boolean useAuxSourceLOSPoint;
   private boolean useAuxTargetLOSPoint;
   private Location source;
@@ -160,6 +161,7 @@ public class VASLThread
       result = new LOSResult();
       scenario = new Scenario();
       resultsString = "";
+      rangeString = "";
 
       // create the map
       //CASLMap = new GameMap(mapWidth * 32 + 1, mapHeight * 10);
@@ -577,15 +579,16 @@ public class VASLThread
                        "Level " + (target.getBaseHeight() + target.getHex().getBaseHeight()));
           }
           // draw the results string
-          if (verbose) {
+          String result = verbose ? resultsString : rangeString;
+          //if (verbose) {
             g.setColor(Color.black);
             if (shiftSourceText) {
-              drawString(g, targetLOSPoint.x - 20, targetLOSPoint.y - shift, resultsString);
+              drawString(g, targetLOSPoint.x - 20, targetLOSPoint.y - shift, result);
             }
             else {
-              drawString(g, targetLOSPoint.x - 20, targetLOSPoint.y + shift * 2 - 2, resultsString);
+              drawString(g, targetLOSPoint.x - 20, targetLOSPoint.y + shift * 2 - 2, result);
             }
-          }
+          //}
         }
       }
     }
@@ -692,14 +695,16 @@ public class VASLThread
     CASLMap.LOS(source, useAuxSourceLOSPoint, target, useAuxTargetLOSPoint, result, scenario);
     // set the result string
     if (result.isBlocked()) {
+      rangeString = "Range: " + result.getRange();
       resultsString =
-          "Range: " + result.getRange() +
+          rangeString +
           "  Blocked in " + CASLMap.gridToHex(result.getBlockedAtPoint().x, result.getBlockedAtPoint().y).getName() +
           " ( " + result.getReason() + ")";
     }
     else {
+      rangeString = "Range: " + result.getRange();
       resultsString =
-          "Range: " + result.getRange() +
+          rangeString +
           (result.getHindrance() > 0 ? ("  Hindrances: " + result.getHindrance()) : "");
     }
   }
