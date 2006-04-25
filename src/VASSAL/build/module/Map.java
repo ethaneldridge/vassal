@@ -158,7 +158,8 @@ import VASSAL.tools.UniqueIdManager;
  * <code>VASSAL.build.module.map</code> package */
 public class Map extends AbstractConfigurable implements GameComponent,
     FocusListener, MouseListener, MouseMotionListener, DropTargetListener,
-    Configurable, UniqueIdManager.Identifyable, ToolBarComponent, GlobalPropertiesContainer, PropertySource  {
+    Configurable, UniqueIdManager.Identifyable, ToolBarComponent, GlobalPropertiesContainer, PropertySource,
+    PlayerRoster.SideChangeListener {
 
   private String mapID = "";
   private String mapName = "";
@@ -599,6 +600,7 @@ public class Map extends AbstractConfigurable implements GameComponent,
       GameModule.getGameModule().addKeyStrokeSource
           (new KeyStrokeSource(theMap, JComponent.WHEN_IN_FOCUSED_WINDOW));
     }
+    PlayerRoster.addSideChangeListener(this);
   }
 
   public void removeFrom(Buildable b) {
@@ -613,6 +615,11 @@ public class Map extends AbstractConfigurable implements GameComponent,
       GameModule.getGameModule().removeCommandEncoder(picker);
       GameModule.getGameModule().getGameState().addGameComponent(picker);
     }
+    PlayerRoster.removeSideChangeListener(this);
+  }
+  
+  public void sideChanged(String oldSide, String newSide) {
+    repaint();
   }
 
   /**

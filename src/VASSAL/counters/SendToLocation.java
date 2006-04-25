@@ -259,6 +259,7 @@ public class SendToLocation extends Decorator implements EditablePiece {
 
       b = Box.createHorizontalBox();
       boardNameInput = new JTextField(12);
+      boardNameInput.setText(p.boardName);
       boardNameInput.setEditable(false);
       b.add(new JLabel("Board:  "));
       b.add(boardNameInput);

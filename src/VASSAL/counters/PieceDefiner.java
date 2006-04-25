@@ -398,8 +398,8 @@ public class PieceDefiner extends javax.swing.JPanel implements HelpWindowExtens
     }
     inUseModel.setElementAt(selm1, index);
     inUseModel.setElementAt(sel, index - 1);
-    inUseList.setSelectedIndex(index - 1);
     ((GamePiece) inUseModel.lastElement()).setProperty(Properties.OUTER, null);
+    inUseList.setSelectedIndex(index - 1);
     refresh();
   }
 

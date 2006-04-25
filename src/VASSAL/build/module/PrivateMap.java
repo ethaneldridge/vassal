@@ -42,6 +42,7 @@ import javax.swing.JDialog;
 import javax.swing.JFrame;
 import javax.swing.JScrollPane;
 import javax.swing.KeyStroke;
+import javax.swing.SwingUtilities;
 import javax.swing.WindowConstants;
 
 import VASSAL.Info;
@@ -160,6 +161,19 @@ public class PrivateMap extends Map {
       d.setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
       d.setTitle(getDefaultWindowTitle());
       return d;
+    }
+  }
+  
+  
+
+  public void sideChanged(String oldSide, String newSide) {
+    super.sideChanged(oldSide, newSide);
+    setup(true);
+    if (isAccessibleTo(newSide)) {
+      ((View)getView()).enableListeners();
+    }
+    else {
+      ((View)getView()).disableListeners();
     }
   }
 
