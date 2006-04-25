@@ -1,9 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<classpath>
-	<classpathentry kind="src" path=""/>
-	<classpathentry exported="true" kind="src" path="/VASSAL"/>
-	<classpathentry exported="true" kind="lib" path="D:/eclipse/libraries/jep-2.3.0/lib/junit.jar"/>
-	<classpathentry exported="true" kind="lib" path="D:/eclipse312/libraries/jep-2.3.0.jar"/>
-	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
-	<classpathentry kind="output" path="bin"/>
-</classpath>
