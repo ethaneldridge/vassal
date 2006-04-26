@@ -279,10 +279,6 @@ public class ImageSaver extends AbstractConfigurable {
     }
   }
 
-  public org.w3c.dom.Element getBuildElement(org.w3c.dom.Document doc) {
-    return doc.createElement(getClass().getName());
-  }
-
   public static String getConfigureTypeName() {
     return "Image Capture Tool";
   }

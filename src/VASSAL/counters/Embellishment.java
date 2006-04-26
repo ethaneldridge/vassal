@@ -536,6 +536,13 @@ public class Embellishment extends Decorator implements EditablePiece {
     else if (key.equals(name + ACTIVE)) {
       return String.valueOf(isActive());
     }
+    else if (key.equals(Properties.VISIBLE_STATE)) {
+      String s = String.valueOf(super.getProperty(key));
+      if (drawUnderneathWhenSelected) {
+        s += getProperty(Properties.SELECTED);
+      }
+      return s;
+    }
     return super.getProperty(key);
   }
 

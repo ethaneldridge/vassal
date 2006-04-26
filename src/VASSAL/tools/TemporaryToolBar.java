@@ -21,10 +21,12 @@ public class TemporaryToolBar implements ToolBarComponent {
   }
 
   public void setDelegate(ToolBarComponent delegate) {
-    while (tempToolBar.getComponentCount() > 0) {
-      Component c = tempToolBar.getComponent(0);
-      tempToolBar.remove(c);
-      delegate.getToolBar().add(c);
+    if (tempToolBar != null) {
+      while (tempToolBar.getComponentCount() > 0) {
+        Component c = tempToolBar.getComponent(0);
+        tempToolBar.remove(c);
+        delegate.getToolBar().add(c);
+      }
     }
     tempToolBar = null;
     this.delegate = delegate;

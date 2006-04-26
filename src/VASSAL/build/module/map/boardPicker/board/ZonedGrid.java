@@ -139,8 +139,8 @@ public class ZonedGrid extends AbstractConfigurable implements GeometricGrid, Gr
     if (background != null) {
       Graphics2D g2d = (Graphics2D) g;
       Shape oldClip = g2d.getClip();
-      if (allZones != null) {
-        Area clipArea = new Area(g2d.getClip());
+      if (allZones != null && oldClip != null) {
+        Area clipArea = new Area(oldClip);
         clipArea.subtract(allZones);
         g2d.setClip(clipArea);
       }
