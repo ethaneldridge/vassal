@@ -24,8 +24,9 @@ import VASSAL.build.module.Documentation;
 import VASSAL.tools.ArchiveWriter;
 
 /**
- * A Configurer for {@link java.awt.Image} values.  Allows the user to
- * select an image file and writes it to a {@link ArchiveWriter}.  */
+ * A Configurer for {@link java.awt.Image} values. Allows the user to select an
+ * image file and writes it to a {@link ArchiveWriter}.
+ */
 public class ImageConfigurer extends FileConfigurer {
   private static final JFileChooser fc = new Chooser();
 
@@ -39,16 +40,14 @@ public class ImageConfigurer extends FileConfigurer {
       setValue((Object) null);
     }
     else {
-      setValue(fc.getSelectedFile().exists() ?
-               fc.getSelectedFile() : (Object) null);
+      setValue(fc.getSelectedFile().exists() ? fc.getSelectedFile() : (Object) null);
     }
   }
 
   public void setValue(Object o) {
     java.io.File f = (java.io.File) o;
     Object oldValue = value;
-    if (f != null
-      && f.exists()) {
+    if (f != null && f.exists()) {
       archive.addImage(f.getPath(), f.getName());
     }
     value = f;
@@ -70,15 +69,15 @@ public class ImageConfigurer extends FileConfigurer {
       super(Documentation.getDocumentationBaseDir());
       setFileFilter(new javax.swing.filechooser.FileFilter() {
         public boolean accept(java.io.File f) {
-          return f.getName().endsWith(".gif")
-            || f.isDirectory();
+          String name = f.getName();
+          return name.endsWith(".gif") || name.endsWith(".GIF") || name.endsWith(".jpg") || name.endsWith(".JPG") || name.endsWith(".png")
+              || name.endsWith(".PNG") || f.isDirectory();
         }
 
         public String getDescription() {
-          return "GIF files";
+          return "Image files";
         }
       });
     }
   }
 }
-
