@@ -52,15 +52,16 @@ import VASSAL.tools.SequenceEncoder;
  */
 public class Pivot extends Decorator implements EditablePiece {
   public static final String ID = "pivot;";
-  private int pivotX;
-  private int pivotY;
-  private double angle;
-  private String command;
-  private KeyStroke key;
-  private boolean fixedAngle;
-  private KeyCommand[] commands;
-  private KeyCommand pivotCommand;
-  private FreeRotator rotator;
+  public static final String DEGREES = "_Degrees";
+  protected int pivotX;
+  protected int pivotY;
+  protected double angle;
+  protected String command;
+  protected KeyStroke key;
+  protected boolean fixedAngle;
+  protected KeyCommand[] commands;
+  protected KeyCommand pivotCommand;
+  protected FreeRotator rotator;
 
   public Pivot() {
     this(ID, null);
@@ -209,7 +210,7 @@ public class Pivot extends Decorator implements EditablePiece {
   public Shape getShape() {
     return getInner().getShape();
   }
-
+  
   public PieceEditor getEditor() {
     return new Ed(this);
   }
@@ -221,7 +222,6 @@ public class Pivot extends Decorator implements EditablePiece {
     private DoubleConfigurer angle;
     private BooleanConfigurer fixedAngle;
     private JPanel controls;
-
     public Ed(Pivot p) {
       controls = new JPanel();
       controls.setLayout(new BoxLayout(controls, BoxLayout.Y_AXIS));

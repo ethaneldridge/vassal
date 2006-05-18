@@ -59,6 +59,7 @@ import VASSAL.command.Command;
 import VASSAL.configure.BooleanConfigurer;
 import VASSAL.configure.HotKeyConfigurer;
 import VASSAL.configure.IntConfigurer;
+import VASSAL.configure.StringConfigurer;
 import VASSAL.tools.RotateFilter;
 import VASSAL.tools.SequenceEncoder;
 
@@ -67,40 +68,44 @@ import VASSAL.tools.SequenceEncoder;
  */
 public class FreeRotator extends Decorator implements EditablePiece, MouseListener, MouseMotionListener, Drawable {
   public static final String ID = "rotate;";
+  
+  public static final String FACING = "_Facing";
+  public static final String DEGREES = "_Degrees";
 
-  private KeyCommand setAngleCommand;
-  private KeyCommand rotateCWCommand;
-  private KeyCommand rotateCCWCommand;
-  private KeyCommand[] commands;
-  private KeyStroke setAngleKey;
-  private String setAngleText = "Rotate";
-  private KeyStroke rotateCWKey;
-  private String rotateCWText = "Rotate CW";
-  private KeyStroke rotateCCWKey;
-  private String rotateCCWText = "Rotate CCW";
+  protected KeyCommand setAngleCommand;
+  protected KeyCommand rotateCWCommand;
+  protected KeyCommand rotateCCWCommand;
+  protected KeyCommand[] commands;
+  protected KeyStroke setAngleKey;
+  protected String setAngleText = "Rotate";
+  protected KeyStroke rotateCWKey;
+  protected String rotateCWText = "Rotate CW";
+  protected KeyStroke rotateCCWKey;
+  protected String rotateCCWText = "Rotate CCW";
+  protected String name = "Rotate";
 
   // for Random Rotate
-  private KeyCommand rotateRNDCommand;
-  private String rotateRNDText = "";
-  private KeyStroke rotateRNDKey;
+  protected KeyCommand rotateRNDCommand;
+  protected String rotateRNDText = "";
+  protected KeyStroke rotateRNDKey;
   // END for Random Rotate
 
-  private boolean useUnrotatedShape;
+  protected boolean useUnrotatedShape;
 
-  private double[] validAngles = new double[] {0.0};
-  private int angleIndex = 0;
+  protected double[] validAngles = new double[] {0.0};
+  protected int angleIndex = 0;
 
-  private java.util.Map images = new HashMap();
-  private java.util.Map bounds = new HashMap();
-  private PieceImage unrotated;
+  protected java.util.Map images = new HashMap();
+  protected java.util.Map bounds = new HashMap();
+  protected PieceImage unrotated;
 
-  private double tempAngle, startAngle;
-  private Point pivot;
-  private boolean drawGhost;
+  protected double tempAngle, startAngle;
+  protected Point pivot;
+  protected boolean drawGhost;
 
   public FreeRotator() {
     // modified for random rotation (added two ; )
-    this(ID + "6;];[;Rotate CW;Rotate CCW;;;", null);
+    this(ID + "6;];[;Rotate CW;Rotate CCW;;;;", null);
   }
 
   public FreeRotator(String type, GamePiece inner) {
@@ -190,6 +195,7 @@ public class FreeRotator extends Decorator implements EditablePiece, MouseListen
     rotateRNDKey = st.nextKeyStroke(null);
     rotateRNDText = st.nextToken("");
     // end for random rotation
+    name = st.nextToken("");
     commands = null;
   }
 
@@ -244,6 +250,7 @@ public class FreeRotator extends Decorator implements EditablePiece, MouseListen
     se.append(rotateRNDKey);
     se.append(rotateRNDText);
     // end for random rotation
+    se.append(name);
     return ID + se.getValue();
   }
 
@@ -407,6 +414,18 @@ public class FreeRotator extends Decorator implements EditablePiece, MouseListen
     super.setProperty(key, val);
   }
 
+  public Object getProperty(Object key) {
+  	if ((name+FACING).equals(key)) {
+      return String.valueOf(angleIndex + 1);
+	  } 
+    else if ((name+DEGREES).equals(key)) {
+      return String.valueOf((int) (Math.abs(validAngles[angleIndex])));
+    }
+    else {
+	    return super.getProperty(key);
+    }
+  }
+  
   public void mouseDragged(MouseEvent e) {
     if (drawGhost) {
       Point mousePos = getMap().mapCoordinates(e.getPoint());
@@ -520,6 +539,8 @@ public class FreeRotator extends Decorator implements EditablePiece, MouseListen
     // random rotate
     private HotKeyConfigurer rndKeyConfig;
     // end random rotate
+    private StringConfigurer nameConfig;
+    
     private JTextField anyCommand;
     private JTextField cwCommand;
     private JTextField ccwCommand;
@@ -532,6 +553,7 @@ public class FreeRotator extends Decorator implements EditablePiece, MouseListen
     private JPanel panel;
 
     public Ed(FreeRotator p) {
+      nameConfig = new StringConfigurer(null, "Name:  ", p.name);
       cwKeyConfig = new HotKeyConfigurer(null, "Command to rotate clockwise:  ", p.rotateCWKey);
       ccwKeyConfig = new HotKeyConfigurer(null, "Command to rotate counterclockwise:  ", p.rotateCCWKey);
       // random rotate
@@ -544,6 +566,7 @@ public class FreeRotator extends Decorator implements EditablePiece, MouseListen
       panel = new JPanel();
       panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
 
+      panel.add(nameConfig.getControls());
       panel.add(facingsConfig.getControls());
       cwControls = Box.createHorizontalBox();
       cwControls.add(cwKeyConfig.getControls());
@@ -619,6 +642,7 @@ public class FreeRotator extends Decorator implements EditablePiece, MouseListen
       se.append((KeyStroke) rndKeyConfig.getValue());
       se.append(rndCommand.getText() == null ? "" : rndCommand.getText().trim());
       // end random rotate
+      se.append(nameConfig.getValueString());
       return ID + se.getValue();
     }
 

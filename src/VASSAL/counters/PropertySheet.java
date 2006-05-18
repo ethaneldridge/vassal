@@ -423,13 +423,13 @@ public class PropertySheet extends Decorator implements EditablePiece {
           JComponent field;
           switch (type) {
             case TEXT_FIELD:
-              field = new JTextField(stateDecoder.nextToken());
+              field = new JTextField(stateDecoder.nextToken(""));
               ((JTextComponent) field).getDocument().addDocumentListener(changeListener);
               ((JTextField) field).addActionListener(frame);
               m_fields.add(field);
               break;
             case TEXT_AREA:
-              field = new JTextArea(stateDecoder.nextToken().replace(LINE_DELIMINATOR, '\n'));
+              field = new JTextArea(stateDecoder.nextToken("").replace(LINE_DELIMINATOR, '\n'));
               ((JTextComponent) field).getDocument().addDocumentListener(changeListener);
               m_fields.add(field);
               field = new JScrollPane(field);
@@ -438,7 +438,7 @@ public class PropertySheet extends Decorator implements EditablePiece {
             case TICKS_VAL:
             case TICKS_MAX:
             case TICKS_VALMAX:
-              field = new TickPanel(stateDecoder.nextToken(), type);
+              field = new TickPanel(stateDecoder.nextToken(""), type);
               ((TickPanel) field).addDocumentListener(changeListener);
               ((TickPanel) field).addActionListener(frame);
               if (backgroundColor != null)
@@ -448,14 +448,14 @@ public class PropertySheet extends Decorator implements EditablePiece {
             case SPINNER:
               JSpinner spinner = new JSpinner();
               JTextField textField = ((JSpinner.DefaultEditor) spinner.getEditor()).getTextField();
-              textField.setText(stateDecoder.nextToken());
+              textField.setText(stateDecoder.nextToken(""));
               textField.getDocument().addDocumentListener(changeListener);
               m_fields.add(textField);
               field = spinner;
               break;
             case LABEL_ONLY:
             default :
-              stateDecoder.nextToken();
+              stateDecoder.nextToken("");
               field = null;
               m_fields.add(field);
               break;
