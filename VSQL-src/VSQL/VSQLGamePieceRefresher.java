@@ -39,6 +39,7 @@ import VASSAL.command.RemovePiece;
 import VASSAL.counters.Decorator;
 import VASSAL.counters.GamePiece;
 import VASSAL.counters.Labeler;
+import VASSAL.counters.PieceCloner;
 import VASSAL.counters.Stack;
 import VASSAL.tools.LaunchButton;
 
@@ -191,7 +192,7 @@ public class VSQLGamePieceRefresher extends AbstractConfigurable {
     while (pwComponents.hasMoreElements() && newPiece == null) {
       AbstractBuildable bb = (AbstractBuildable) pwComponents.nextElement();
       if (bb instanceof PieceSlot) {
-        GamePiece p = ((PieceSlot) bb).getPiece();
+        GamePiece p = PieceCloner.getInstance().clonePiece(((PieceSlot) bb).getPiece());
         newPiece = checkNewPiece(oldPiece, p);
       }
       else {
@@ -211,9 +212,10 @@ public class VSQLGamePieceRefresher extends AbstractConfigurable {
     //Same BasicPiece name?
     if (oldPieceName.equals(newPieceName)) {
       if (embellishmentMatch(oldPiece, pallettePiece)) {
-        GamePiece outer = Decorator.getOutermost(pallettePiece);
-        newPiece = ((AddPiece) GameModule.getGameModule()
-            .decode(GameModule.getGameModule().encode(new AddPiece(outer)))).getTarget();
+//        GamePiece outer = Decorator.getOutermost(pallettePiece);
+        newPiece = PieceCloner.getInstance().clonePiece(pallettePiece);
+//        newPiece = ((AddPiece) GameModule.getGameModule()
+//            .decode(GameModule.getGameModule().encode(new AddPiece(outer)))).getTarget();
         updateLabels(newPiece, oldPiece);
       }
     }
