@@ -57,8 +57,6 @@ import VASSAL.configure.IconConfigurer;
 import VASSAL.tools.BackgroundTask;
 import VASSAL.tools.LaunchButton;
 
-import com.keypoint.PngEncoder;
-
 /**
  * This allows the user to capture a snapshot of the entire map into a PNG file
  */
@@ -262,9 +260,7 @@ public class ImageSaver extends AbstractConfigurable {
       ImageIO.write((RenderedImage) output, "png", out);
     }
     else {
-      PngEncoder enc = new PngEncoder(output);
-      enc.setCompressionLevel(7);
-      out.write(enc.pngEncode());
+      throw new IOException("Bad image type");
     }
   }
 

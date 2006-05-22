@@ -482,6 +482,9 @@ public class MapShader extends AbstractConfigurable implements GameComponent, Dr
    */
   public void setup(boolean gameStarting) {
     launch.setEnabled(gameStarting);
+    if (!gameStarting) {
+      boardClip = null;
+    }
   }
 
   public Command getRestoreCommand() {

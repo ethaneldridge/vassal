@@ -21,11 +21,14 @@ package VASSAL.build.module.gamepieceimage;
 
 import java.awt.Image;
 import java.awt.image.BufferedImage;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.util.ArrayList;
 import java.util.Iterator;
+
+import javax.imageio.ImageIO;
 
 import VASSAL.build.AbstractConfigurable;
 import VASSAL.build.AutoConfigurable;
@@ -37,9 +40,6 @@ import VASSAL.configure.ConfigurerFactory;
 import VASSAL.configure.VisibilityCondition;
 import VASSAL.tools.ImageSource;
 import VASSAL.tools.UniqueIdManager;
-
-import com.keypoint.PngEncoder;
-import com.keypoint.PngEncoderB;
 
 /**
  * 
@@ -324,16 +324,22 @@ public class GamePieceImage extends AbstractConfigurable implements Visualizable
   }
 
   public byte[] getEncodedImage(BufferedImage bufferedImage) {
-    PngEncoder encoder = null;
+    ByteArrayOutputStream out = new ByteArrayOutputStream();
+/*
+    // This causes a bug - the alpha channel is dropped
     if (layout.isIndexedColor()) {
       MedianCut m = new MedianCut(bufferedImage);
-      encoder = new PngEncoderB(m.convert(256), true);
+      bufferedImage = m.convert(256);
     }
-    else {
-      encoder = new PngEncoder(layout.buildImage(this), true);
+*/
+    try {
+      ImageIO.write(bufferedImage,"png", out);
     }
-    encoder.setCompressionLevel(9);
-    return encoder.pngEncode();
+    catch (IOException e) {
+      e.printStackTrace();
+      return new byte[1];
+    }
+    return out.toByteArray();
   }
 
   public ItemInstance getInstance(String name) {

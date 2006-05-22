@@ -1788,7 +1788,6 @@ public class Map extends AbstractConfigurable implements GameComponent,
                         MOVE_TO_FORMAT,
                         CREATE_FORMAT,
                         CHANGE_FORMAT,
-                        SUPPRESS_AUTO,
                         MOVE_KEY};
   }
 
