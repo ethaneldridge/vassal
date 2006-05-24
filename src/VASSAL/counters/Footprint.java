@@ -207,8 +207,9 @@ public class Footprint extends MovementMarkable {
 
   /**
    * setMoved is called with an argument of true each time the piece is moved.
-   * The argiment is false when the unit is marked as not moved.
+   * The argument is false when the unit is marked as not moved.
    */
+  // 
   public void setMoved(boolean justMoved) {
 
     if (justMoved) {
@@ -232,6 +233,7 @@ public class Footprint extends MovementMarkable {
 
   protected void clearTrail() {
     pointList.clear();
+    addPoint(getPosition());
     myBoundingBox = null;
     localVisibility = initiallyVisible;
     globalVisibility = initiallyVisible;

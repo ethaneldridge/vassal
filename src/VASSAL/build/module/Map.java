@@ -2022,7 +2022,8 @@ public class Map extends AbstractConfigurable implements GameComponent,
       if (s.getPosition().equals(pt)
           && map.getStackMetrics().isStackingEnabled()
           && !Boolean.TRUE.equals(p.getProperty(Properties.NO_STACK))
-          && s.topPiece() != null) {
+          && s.topPiece() != null
+          && map.getPieceCollection().canMerge(s,p)) {
         return map.getStackMetrics().merge(s, p);
       }
       else {
@@ -2035,7 +2036,8 @@ public class Map extends AbstractConfigurable implements GameComponent,
           && map.getStackMetrics().isStackingEnabled()
           && !Boolean.TRUE.equals(p.getProperty(Properties.NO_STACK))
           && !Boolean.TRUE.equals(piece.getProperty(Properties.INVISIBLE_TO_ME))
-          && !Boolean.TRUE.equals(piece.getProperty(Properties.NO_STACK))) {
+          && !Boolean.TRUE.equals(piece.getProperty(Properties.NO_STACK))
+          && map.getPieceCollection().canMerge(piece,p)) {
         return map.getStackMetrics().merge(piece, p);
       }
       else {

@@ -51,7 +51,6 @@ public class GamePieceLayout extends AbstractConfigurable implements Visualizabl
   protected static final String HEIGHT = "height";
   protected static final String BORDER = "border";
   protected static final String ITEMS = "layout";
-  protected static final String INDEXED = "indexed";
 
   protected static final String N = "Top";
   protected static final String S = "Bottom";
@@ -129,7 +128,6 @@ public class GamePieceLayout extends AbstractConfigurable implements Visualizabl
   protected String border = BORDER_3D;
   protected GamePieceImage imageDefn;
   protected ArrayList items = new ArrayList();
-  protected boolean indexedColor = true;
 
   public GamePieceLayout() {
     super();
@@ -138,11 +136,11 @@ public class GamePieceLayout extends AbstractConfigurable implements Visualizabl
   }
 
   public String[] getAttributeDescriptions() {
-    return new String[]{"Name:  ", "Counter Width:  ", "Counter Height:  ", "Border Style:  ", "Reduce Images to 256 Colors:  ", ""};
+    return new String[]{"Name:  ", "Counter Width:  ", "Counter Height:  ", "Border Style:  ", ""};
   }
 
   public Class[] getAttributeTypes() {
-    return new Class[]{String.class, Integer.class, Integer.class, BorderConfig.class, Boolean.class, LayoutConfig.class};
+    return new Class[]{String.class, Integer.class, Integer.class, BorderConfig.class, LayoutConfig.class};
   }
 
   public static class LayoutConfig implements ConfigurerFactory {
@@ -171,7 +169,7 @@ public class GamePieceLayout extends AbstractConfigurable implements Visualizabl
   }
 
   public String[] getAttributeNames() {
-    return new String[]{NAME, WIDTH, HEIGHT, BORDER, INDEXED, ITEMS};
+    return new String[]{NAME, WIDTH, HEIGHT, BORDER, ITEMS};
   }
 
   public void setAttribute(String key, Object value) {
@@ -196,12 +194,6 @@ public class GamePieceLayout extends AbstractConfigurable implements Visualizabl
     else if (ITEMS.equals(key)) {
       decodeItemList((String) value);
     }
-    else if (INDEXED.equals(key)) {
-      if (value instanceof String) {
-        value = new Boolean ((String) value);
-      }
-      indexedColor = ((Boolean) value).booleanValue();
-    }
     invalidate();
     LayoutConfig.refresh();
   }
@@ -221,9 +213,6 @@ public class GamePieceLayout extends AbstractConfigurable implements Visualizabl
     }
     else if (ITEMS.equals(key)) {
       return encodeItemList();
-    }
-    else if (INDEXED.equals(key)) {
-      return String.valueOf(indexedColor);
     }
     else
       return null;
@@ -320,10 +309,6 @@ public class GamePieceLayout extends AbstractConfigurable implements Visualizabl
     super.remove(b);
   }
   
-  public boolean isIndexedColor() {
-    return indexedColor;
-  }
-
   public Image getVisualizerImage() {
     return imageDefn.getVisualizerImage();
   }

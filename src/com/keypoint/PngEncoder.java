@@ -48,6 +48,7 @@ import java.util.zip.DeflaterOutputStream;
  * 19-Oct-2003 : Change private fields to protected fields so that
  *               PngEncoderB can inherit them (JDE)
  *				 Fixed bug with calculation of nRows
+ * @deprecated
  */
 
 public class PngEncoder extends Object {

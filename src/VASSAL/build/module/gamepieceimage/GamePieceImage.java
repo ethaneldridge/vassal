@@ -325,13 +325,6 @@ public class GamePieceImage extends AbstractConfigurable implements Visualizable
 
   public byte[] getEncodedImage(BufferedImage bufferedImage) {
     ByteArrayOutputStream out = new ByteArrayOutputStream();
-/*
-    // This causes a bug - the alpha channel is dropped
-    if (layout.isIndexedColor()) {
-      MedianCut m = new MedianCut(bufferedImage);
-      bufferedImage = m.convert(256);
-    }
-*/
     try {
       ImageIO.write(bufferedImage,"png", out);
     }

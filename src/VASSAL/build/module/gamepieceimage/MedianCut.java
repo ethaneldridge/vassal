@@ -13,6 +13,7 @@ import java.awt.image.WritableRaster;
 /** Converts an RGB image to 8-bit index color using Heckbert's median-cut
    color quantization algorithm. Based on median.c by Anton Kruger from the
    September, 1994 issue of Dr. Dobbs Journal.
+   @deprecated
 */
 public class MedianCut {
    

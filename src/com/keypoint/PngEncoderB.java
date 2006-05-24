@@ -52,7 +52,8 @@ import java.util.zip.DeflaterOutputStream;
  *               PngEncoderB can inherit them (JDE)
  *				 Fixed bug with calculation of nRows
  *				 Added modifications for unsigned short images
- *					(contributed by Christian at xpogen.com) 
+ *					(contributed by Christian at xpogen.com)
+ * @deprecated 
  */
 
 public class PngEncoderB extends PngEncoder 
