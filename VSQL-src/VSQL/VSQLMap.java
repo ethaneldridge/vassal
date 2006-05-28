@@ -19,45 +19,64 @@
  
 package VSQL;
 
-import java.awt.Point;
-import java.awt.Rectangle;
+import java.util.Enumeration;
 
+import VASSAL.build.Buildable;
 import VASSAL.build.module.Map;
-import VASSAL.build.module.map.boardPicker.Board;
+import VASSAL.build.module.map.LOS_Thread;
 
 public class VSQLMap extends Map {
 
-  public Point snapTo(Point p) {
-    Point snap = new Point(p);
-
-    Board b = findBoard(p);
-    if (b == null)
-      return snap;
-
-    Rectangle r = b.bounds();
-    snap.translate(-r.x, -r.y);
-    snap = b.snapTo(snap);
-    
-    /*
-     * RFE 882378 
-     * If we have snapped to a point 1 pixel off the edge of the map, move back onto the map.
-     */
-    if (snap.x == r.width+1) {
-      snap.x = r.width-1;
-    }
-    else if (snap.x == -1) {
-      snap.x = 0;
-    }
-    if (snap.y == r.height+1) {
-      snap.y = r.height;
-    }
-    else if (snap.y == -1) {
-      snap.y = 0;
-    }
-    // End RFE 882378
-    
-    snap.translate(r.x, r.y);
-    return snap;
+  protected LOS_Thread los = null;
+  protected VSQLHidePiecesButton hide = null;
+  
+  public VSQLMap() {
+    super();
   }
   
+  public boolean isLOSactivated() {
+    findLOSThread();
+    if (los != null) {
+      return los.isVisible();
+    }
+    return false;
+  }
+
+  protected void findLOSThread() {
+    if (los == null) {
+      Enumeration e = getBuildComponents();
+      while (e.hasMoreElements()) {
+        Buildable c = (Buildable) e.nextElement();
+        if (c instanceof LOS_Thread) {
+          los = (LOS_Thread) c;
+        }
+      }
+    }
+  }
+  
+  public void hidePieces() {
+    findHidePiecesButton();
+    if (hide != null) {
+      hide.setPiecesVisible(false);
+    }
+  }
+  
+  public void showPieces() {
+    findHidePiecesButton();
+    if (hide != null) {
+      hide.setPiecesVisible(true);
+    }
+  }
+  
+  protected void findHidePiecesButton() {
+    if (hide == null) {
+      Enumeration e = getBuildComponents();
+      while (e.hasMoreElements()) {
+        Buildable c = (Buildable) e.nextElement();
+        if (c instanceof VSQLHidePiecesButton) {
+          hide = (VSQLHidePiecesButton) c;
+        }
+      }
+    }
+  }
 }

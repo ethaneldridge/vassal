@@ -33,6 +33,7 @@ import VASSAL.build.module.map.boardPicker.Board;
 
 import CASL.Map.GameMap;
 import CASL.VASL.VASLThread;
+import VASSAL.build.Buildable;
 import VASSAL.build.GameModule;
 import VASSAL.build.module.map.boardPicker.board.HexGrid;
 import VASSAL.configure.BooleanConfigurer;
@@ -48,6 +49,7 @@ import VASSAL.preferences.Prefs;
 public class VSQLThread extends VASLThread {
 
   protected SQLGameMap SQLMap;
+  protected VSQLMap vmap;
 
   public static final String VSQL = "VSQL";
   public static final String RULE_LEVEL = "rulelevel";
@@ -75,6 +77,19 @@ public class VSQLThread extends VASLThread {
     setSnap();
   }
 
+  public void addTo(Buildable buildable) {
+    super.addTo(buildable);
+    vmap = (VSQLMap) buildable;
+  }
+  
+  protected void launch() {
+    if (!visible && hideCounters) {
+      vmap.hidePieces();
+      //map.setPiecesVisible(false);
+    }
+    super.launch();
+  }
+  
   protected GameMap createCASLMap(int w, int h) {
     SQLGameMap s = new SQLGameMap(w, h);
     setSnap();
@@ -83,6 +98,9 @@ public class VSQLThread extends VASLThread {
 
   // Catch LOS key release and reset grid snap
   public void mouseReleased(java.awt.event.MouseEvent e) {
+    if (e.getWhen() != lastRelease) {
+      vmap.showPieces();
+    }
     super.mouseReleased(e);
     setSnap();
   }

@@ -48,17 +48,28 @@ public class AvlInventory extends Inventory {
     int soviet_graveyard = getCount(GRAVEYARD_MAP_NAME, new String[] {"Nation" }, new String[] { "German" }, VP_MARKER);
     
     int german_total = german_terrain + german_graveyard;
+    String german_comment = "German: " + german_total + " (" + german_terrain + " cities, " +  german_graveyard + " elim)";
     int soviet_total = soviet_terrain + soviet_graveyard; 
-      
-    String[] result = new String[3];
-    result[0] = getConfigureName() + ":";
-    result[1] = "German: " + german_total + 
-    	" (Cities: " + german_terrain + 
-    	", Eliminated: " + german_graveyard + ")";
-    result[2] = "Soviet: " + soviet_total +
-    	" (Cities: " + soviet_terrain + 
-    	", Eliminated: " + soviet_graveyard + ")";
-    	
+    String soviet_comment = "Soviet: " + soviet_total + " (" + soviet_terrain + " cities, " +  soviet_graveyard + " elim)";
+    int lead = Math.abs(german_total - soviet_total);
+    String comment = "";
+    
+    if (lead == 0) {
+      comment = "Tied";
+    }
+    else {
+      comment = (german_total > soviet_total) ? "Germans" : "Soviets";
+      comment += " are leading by " + lead;
+    }
+    if (lead >= 30) {
+      comment += " VICTORY!";
+    }
+         
+    String[] result = new String[1];
+    result[0] = getConfigureName() + ": " +
+        comment + " - " +
+        ((german_total > soviet_total) ? (german_comment + " " + soviet_comment) : 
+          (soviet_comment + " " + german_comment));
       
     Command c = new DisplayResults(result, destination);
     c.execute();
