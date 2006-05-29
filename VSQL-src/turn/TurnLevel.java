@@ -25,7 +25,6 @@ import java.awt.Dimension;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.util.ArrayList;
-import java.util.Enumeration;
 
 import javax.swing.BorderFactory;
 import javax.swing.Box;
@@ -34,7 +33,6 @@ import javax.swing.JDialog;
 import javax.swing.JMenu;
 import javax.swing.JPanel;
 
-import VASSAL.build.AbstractConfigurable;
 import VASSAL.build.AutoConfigurable;
 import VASSAL.build.Buildable;
 import VASSAL.build.module.documentation.HelpFile;
@@ -44,7 +42,7 @@ import VASSAL.configure.FormattedStringConfigurer;
 import VASSAL.configure.StringEnumConfigurer;
 import VASSAL.tools.FormattedString;
 
-public abstract class TurnLevel extends AbstractConfigurable {
+public abstract class TurnLevel extends TurnComponent {
 
   protected static final String NAME = "name";
   protected static final String TURN_FORMAT = "turnFormat";
@@ -54,7 +52,6 @@ public abstract class TurnLevel extends AbstractConfigurable {
 
   protected TurnTracker turn;
   protected JDialog setDialog;
-  protected AbstractConfigurable parent;
   protected JPanel levelSetControls = null;
   protected Component childSetControls = null;
 
@@ -146,7 +143,21 @@ public abstract class TurnLevel extends AbstractConfigurable {
       getTurnLevel(currentSubLevel).getTurnStrings(desc);
     }
   }
+  
+  public void getTurnValues(ArrayList desc) {
+    desc.add(getValueString());
+    if (getTurnLevelCount() > 0) {
+      getTurnLevel(currentSubLevel).getTurnValues(desc);
+    }
+  }
 
+  public void getTurnNames(ArrayList desc) {
+    desc.add(getConfigureName());
+    if (getTurnLevelCount() > 0) {
+      getTurnLevel(currentSubLevel).getTurnNames(desc);
+    }
+  }
+  
   protected void buildConfigMenu(JMenu menu) {
     JMenu m = getConfigMenu();
     if (m != null) {
@@ -206,7 +217,6 @@ public abstract class TurnLevel extends AbstractConfigurable {
           for (int i = 0; i < getTurnLevelCount(); i++) {
             if (option.equals(getTurnLevel(i).getConfigureName())) {
               currentSubLevel = i;
-              updateTurnDisplay();
               addChildControls();
             }
           }
@@ -239,28 +249,12 @@ public abstract class TurnLevel extends AbstractConfigurable {
     return turn;
   }
 
-  public void updateTurnDisplay() {
-    turn.updateTurnDisplay();
-  }
-
   protected void setRolledOver(boolean b) {
     rolledOver = b;
   }
 
   protected boolean hasRolledOver() {
     return rolledOver;
-  }
-
-  protected TurnLevel getTurnLevel(int i) {
-    return (TurnLevel) buildComponents.get(i);
-  }
-
-  protected int getTurnLevelCount() {
-    return buildComponents.size();
-  }
-
-  protected Enumeration getTurnLevels() {
-    return getBuildComponents();
   }
 
   protected void setLow() {
@@ -311,11 +305,11 @@ public abstract class TurnLevel extends AbstractConfigurable {
   }
 
   public void addTo(Buildable parent) {
-    this.parent = (AbstractConfigurable) parent;
+    ((TurnComponent) parent).addLevel(this);
   }
 
   public void removeFrom(Buildable parent) {
-
+    ((TurnComponent) parent).removeLevel(this);
   }
 
   public HelpFile getHelpFile() {
@@ -331,4 +325,5 @@ public abstract class TurnLevel extends AbstractConfigurable {
       return new FormattedStringConfigurer(key, name, new String[] { TURN_NAME, TURN_TEXT });
     }
   }
+
 }

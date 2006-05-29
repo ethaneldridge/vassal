@@ -78,7 +78,7 @@ public class ListTurnLevel extends TurnLevel implements ActionListener {
 
   public void addTo(Buildable p) {
     super.addTo(p);
-    prompt = "First " + getConfigureName() + " in " + parent.getConfigureName();
+    prompt = "First " + getConfigureName() + " in " + ((TurnComponent) p).getConfigureName();
   }
   
   protected void setLow() {
@@ -204,6 +204,7 @@ public class ListTurnLevel extends TurnLevel implements ActionListener {
       }
       current = idx;
     }
+    
   }
 
   /* A list turn level is active only if at least one item is active */
@@ -247,7 +248,6 @@ public class ListTurnLevel extends TurnLevel implements ActionListener {
         for (int i = 0; i < list.length; i++) {
           if (option.equals(list[i])) {
             current = i;
-            updateTurnDisplay();
           }
         }
       }
@@ -364,6 +364,8 @@ public class ListTurnLevel extends TurnLevel implements ActionListener {
   }
 
   protected class ConfigDialog extends JDialog {
+
+    private static final long serialVersionUID = 1L;
 
     public ConfigDialog() {
       super(GameModule.getGameModule().getFrame(), "Configure " + getConfigureName());

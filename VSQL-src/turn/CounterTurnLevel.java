@@ -141,7 +141,6 @@ public class CounterTurnLevel extends TurnLevel {
     config.addPropertyChangeListener(new PropertyChangeListener() {
       public void propertyChange(PropertyChangeEvent e) {
         current = ((Integer) ((IntConfigurer) e.getSource()).getValue()).intValue();
-        updateTurnDisplay();
       }});
     
     return config.getControls();
