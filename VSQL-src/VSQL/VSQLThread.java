@@ -50,10 +50,16 @@ public class VSQLThread extends VASLThread {
 
   protected SQLGameMap SQLMap;
   protected VSQLMap vmap;
+  protected int state = STATE_OFF;
 
   public static final String VSQL = "VSQL";
   public static final String RULE_LEVEL = "rulelevel";
   public static final String SNAP_OPTION = "snapoption";
+  
+  public static final int STATE_OFF = 0;
+  public static final int STATE_VEH = 1;
+  public static final int STATE_ALL = 2;
+  public static final int STATE_NONE = 3;
 
   public static final String[] rule_levels = new String[] { "SL", "COI", "COD", "GI" };
 
@@ -83,11 +89,34 @@ public class VSQLThread extends VASLThread {
   }
   
   protected void launch() {
-    if (!visible && hideCounters) {
-      vmap.hidePieces();
-      //map.setPiecesVisible(false);
+    // Cycle through the piece visibility states for each time you hit the 
+    // LOS button
+    state += 1;
+    if (state > STATE_NONE) {
+      state = STATE_VEH;
     }
+    
+    boolean vis;
+    
+    if (state == STATE_OFF || state == STATE_ALL) {
+      vis = true;
+    }
+    else {
+      vis = false;
+    }
+    
+    vmap.setPiecesVisible(vis);
+    vmap.repaint();
+    //if (!visible && hideCounters) {
+    //  vmap.hidePieces();
+      //map.setPiecesVisible(false);
+    //}
     super.launch();
+  }
+  
+  public boolean isVisible() {
+    boolean vis = super.isVisible();
+    return vis && (state != STATE_NONE);
   }
   
   protected GameMap createCASLMap(int w, int h) {
@@ -98,8 +127,9 @@ public class VSQLThread extends VASLThread {
 
   // Catch LOS key release and reset grid snap
   public void mouseReleased(java.awt.event.MouseEvent e) {
-    if (e.getWhen() != lastRelease) {
-      vmap.showPieces();
+    if (!retainAfterRelease && e.getWhen() != lastRelease) {
+      vmap.setPiecesVisible(true);
+      state = STATE_OFF;
     }
     super.mouseReleased(e);
     setSnap();

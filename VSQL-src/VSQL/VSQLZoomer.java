@@ -106,6 +106,13 @@ public class VSQLZoomer extends Zoomer {
     zoomMaxButton.setEnabled(zoomLevel > 0);
   }
   
+  public void setup(boolean gameStarting) {
+    if (!gameStarting) {
+      zoomLevel = zoomStart-1;
+      setZoomButtons();
+    }
+  }
+  
   public void addTo(Buildable b) {
     super.addTo(b);
     map.getToolBar().add(zoomMinButton);

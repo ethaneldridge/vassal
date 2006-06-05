@@ -23,12 +23,10 @@ import java.util.Enumeration;
 
 import VASSAL.build.Buildable;
 import VASSAL.build.module.Map;
-import VASSAL.build.module.map.LOS_Thread;
 
 public class VSQLMap extends Map {
 
-  protected LOS_Thread los = null;
-  protected VSQLHidePiecesButton hide = null;
+  protected VSQLThread los = null;
   
   public VSQLMap() {
     super();
@@ -47,36 +45,12 @@ public class VSQLMap extends Map {
       Enumeration e = getBuildComponents();
       while (e.hasMoreElements()) {
         Buildable c = (Buildable) e.nextElement();
-        if (c instanceof LOS_Thread) {
-          los = (LOS_Thread) c;
+        if (c instanceof VSQLThread) {
+          los = (VSQLThread) c;
         }
       }
     }
   }
   
-  public void hidePieces() {
-    findHidePiecesButton();
-    if (hide != null) {
-      hide.setPiecesVisible(false);
-    }
-  }
-  
-  public void showPieces() {
-    findHidePiecesButton();
-    if (hide != null) {
-      hide.setPiecesVisible(true);
-    }
-  }
-  
-  protected void findHidePiecesButton() {
-    if (hide == null) {
-      Enumeration e = getBuildComponents();
-      while (e.hasMoreElements()) {
-        Buildable c = (Buildable) e.nextElement();
-        if (c instanceof VSQLHidePiecesButton) {
-          hide = (VSQLHidePiecesButton) c;
-        }
-      }
-    }
-  }
+
 }

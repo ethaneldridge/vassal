@@ -33,9 +33,9 @@ import VASSAL.counters.Clone;
 import VASSAL.counters.Decorator;
 import VASSAL.counters.Delete;
 import VASSAL.counters.GamePiece;
-import VASSAL.counters.Hideable;
 import VASSAL.counters.KeyCommand;
 import VASSAL.counters.Labeler;
+import VASSAL.counters.Marker;
 import VASSAL.counters.Properties;
 
 /**
@@ -63,6 +63,8 @@ public class VSQLConcealable extends Concealable {
     }
 
     GamePiece p = new BasicPiece(BasicPiece.ID + ";;" + imageName + ";?");
+    p = new Marker (Marker.ID + "Level", p);
+    ((Marker) p).mySetState("Ground");
     p = new Delete(Delete.ID + "Delete;D", p);
     p = new Clone(Clone.ID + "Clone;K", p);
     p = new VSQLConcealment(Concealment.ID + GameModule.getUserId() + ";" + nation, p);

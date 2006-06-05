@@ -34,11 +34,11 @@ import VASSAL.build.module.Map;
 import VASSAL.build.module.PieceWindow;
 import VASSAL.build.module.documentation.HelpFile;
 import VASSAL.build.widget.PieceSlot;
-import VASSAL.command.AddPiece;
 import VASSAL.command.RemovePiece;
+import VASSAL.counters.BasicPiece;
 import VASSAL.counters.Decorator;
+import VASSAL.counters.Embellishment;
 import VASSAL.counters.GamePiece;
-import VASSAL.counters.Labeler;
 import VASSAL.counters.PieceCloner;
 import VASSAL.counters.Stack;
 import VASSAL.tools.LaunchButton;
@@ -65,16 +65,16 @@ public class VSQLGamePieceRefresher extends AbstractConfigurable {
   }
 
   public String[] getAttributeNames() {
-    String s[] = { NAME, BUTTON_TEXT };
+    String s[] = {NAME, BUTTON_TEXT};
     return s;
   }
 
   public String[] getAttributeDescriptions() {
-    return new String[] { "Name", "Button text" };
+    return new String[] {"Name", "Button text"};
   }
 
   public Class[] getAttributeTypes() {
-    return new Class[] { String.class, String.class };
+    return new Class[] {String.class, String.class};
   }
 
   public void addTo(Buildable parent) {
@@ -163,14 +163,17 @@ public class VSQLGamePieceRefresher extends AbstractConfigurable {
   protected void processPiece(GamePiece oldPiece) {
 
     GamePiece newPiece = findNewPiece(oldPiece);
+    
 
     if (newPiece != null) {
-      Map map = oldPiece.getMap();
-      Point pos = oldPiece.getPosition();
-      map.placeOrMerge(newPiece, pos);
-      new RemovePiece(Decorator.getOutermost(oldPiece)).execute();
+      String pieceName = (String) newPiece.getProperty("BasicName");
+      if (!pieceName.equals("?")) {
+        Map map = oldPiece.getMap();
+        Point pos = oldPiece.getPosition();
+        map.placeOrMerge(newPiece, pos);
+        new RemovePiece(Decorator.getOutermost(oldPiece)).execute();
+      }
     }
-
   }
 
   // Find a new Piece matching the oldpiece
@@ -202,21 +205,22 @@ public class VSQLGamePieceRefresher extends AbstractConfigurable {
     return newPiece;
   }
 
-  //Compare old Piece with a piece on the pallette
+  // Compare old Piece with a piece on the pallette
   protected GamePiece checkNewPiece(GamePiece oldPiece, GamePiece pallettePiece) {
     GamePiece newPiece = null;
 
     String oldPieceName = Decorator.getInnermost(oldPiece).getName();
     String newPieceName = Decorator.getInnermost(pallettePiece).getName();
 
-    //Same BasicPiece name?
+    // Same BasicPiece name?
     if (oldPieceName.equals(newPieceName)) {
       if (embellishmentMatch(oldPiece, pallettePiece)) {
-//        GamePiece outer = Decorator.getOutermost(pallettePiece);
+        // GamePiece outer = Decorator.getOutermost(pallettePiece);
         newPiece = PieceCloner.getInstance().clonePiece(pallettePiece);
-//        newPiece = ((AddPiece) GameModule.getGameModule()
-//            .decode(GameModule.getGameModule().encode(new AddPiece(outer)))).getTarget();
-        updateLabels(newPiece, oldPiece);
+        // newPiece = ((AddPiece) GameModule.getGameModule()
+        // .decode(GameModule.getGameModule().encode(new
+        // AddPiece(outer)))).getTarget();
+        updateState(newPiece, oldPiece);
       }
     }
 
@@ -229,9 +233,13 @@ public class VSQLGamePieceRefresher extends AbstractConfigurable {
    */
   protected boolean embellishmentMatch(GamePiece piece1, GamePiece piece2) {
 
-    String imageName1 = innerEmbImageName(piece1);
     String imageName2 = innerEmbImageName(piece2);
+    String imageName1 = innerEmbImageName(piece1);
 
+    // Override the embellishment check for some pieces
+    if ("DM".equals(piece1.getProperty(BasicPiece.BASIC_NAME))) {
+      return true;
+    }
     if (imageName1 == null) {
       return imageName2 == null;
     }
@@ -255,9 +263,14 @@ public class VSQLGamePieceRefresher extends AbstractConfigurable {
     String name = null;
 
     while (p != null) {
-      p = Decorator.getDecorator(p, VSQLEmbellishment.class);
+      p = Decorator.getDecorator(p, Embellishment.class);
       if (p != null) {
-        name = ((VSQLEmbellishment) p).getImageNames()[0];
+        if (p instanceof VSQLEmbellishment) {
+          name = ((VSQLEmbellishment) p).getImageNames()[0];
+        }
+        else {
+          name = (new VSQLEmbellishment((Embellishment) p)).getImageNames()[0];
+        }
         p = ((Decorator) p).getInner();
       }
     }
@@ -266,22 +279,22 @@ public class VSQLGamePieceRefresher extends AbstractConfigurable {
 
   }
 
-  public void updateLabels(GamePiece newPiece, GamePiece oldPiece) {
+  public void updateState(GamePiece newPiece, GamePiece oldPiece) {
 
-    GamePiece p = newPiece;
+    GamePiece p = Decorator.getOutermost(newPiece);
     String type;
+    String newState;
 
-    while (p != null) {
-      p = Decorator.getDecorator(p, Labeler.class);
-      if (p != null) {
-        Labeler label = (Labeler) p;
-        type = label.myGetType();
-        String newState = findState(oldPiece, type, Labeler.class);
+    while (p != null && ! (p instanceof BasicPiece)) {
+      if (p instanceof Decorator) {
+        type = ((Decorator) p).myGetType();
+        newState = findState(oldPiece, type, p.getClass());
         if (newState != null) {
-          label.mySetState(newState);
+          ((Decorator) p).mySetState(newState);
         }
         p = ((Decorator) p).getInner();
       }
+      
     }
   }
 
@@ -291,27 +304,30 @@ public class VSQLGamePieceRefresher extends AbstractConfigurable {
     while (p != null) {
       p = Decorator.getDecorator(p, findClass);
       if (p != null) {
-        if (p instanceof Labeler) {
-          Labeler l = (Labeler) p;
-          if (l.myGetType().equals(typeToFind)) {
-            return l.myGetState();
+        
+//        if (p instanceof Labeler) {
+          //Labeler l = (Labeler) p;
+          if (((Decorator) p).myGetType().equals(typeToFind)) {
+            return ((Decorator) p).myGetState();
+            //return l.myGetState();
           }
-        }
+ //       }
+        p = ((Decorator) p).getInner();
       }
     }
     return null;
   }
 
-  //  protected class Embellishment2 extends Embellishment {
+  // protected class Embellishment2 extends Embellishment {
   //    
-  //    public Embellishment2(Embellishment e) {
-  //      mySetType(e.myGetType());
-  //      mySetState(e.myGetState());
-  //    }
+  // public Embellishment2(Embellishment e) {
+  // mySetType(e.myGetType());
+  // mySetState(e.myGetState());
+  // }
   //    
-  //    public String[] getImageNames() {
-  //      return imageName;
-  //    }
+  // public String[] getImageNames() {
+  // return imageName;
+  // }
   //    
-  //  }
+  // }
 }

@@ -40,6 +40,12 @@ public class VSQLEmbellishment extends Embellishment {
     super(type, d);
   }
 
+  public VSQLEmbellishment(Embellishment e) {
+    this();
+    mySetType(e.myGetType());
+    mySetState(e.myGetState());
+  }
+  
   public String[] getImageNames() {
     return imageName;
   }

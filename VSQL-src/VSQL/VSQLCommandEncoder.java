@@ -53,7 +53,7 @@ public class VSQLCommandEncoder extends ASLCommandEncoder {
     else if (type.startsWith(VSQLMarkMoved.ID)) {
       return new VSQLMarkMoved(type, inner);
     }
-    else if (type.startsWith(Embellishment.OLD_ID)) {
+    else if (type.startsWith(Embellishment.OLD_ID) || type.startsWith(Embellishment.ID)) {
       return new VSQLEmbellishment(type, inner);
     }
     else if (type.startsWith(VSQLTurreted.ID)) {
