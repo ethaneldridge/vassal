@@ -49,8 +49,14 @@ public class ASLBoard extends Board {
   private File boardFile;
 
   public ASLBoard() {
-    setGrid(new ASLHexGrid(64.5, false));
-    ((HexGrid) getGrid()).setHexWidth(56.25);
+//    
+//    Adjust grid to prevent double centres on edges
+//    
+//    setGrid(new ASLHexGrid(64.5, false));
+//    ((HexGrid) getGrid()).setHexWidth(56.25);
+//    
+    setGrid(new ASLHexGrid(64.6, false));
+    ((HexGrid) getGrid()).setHexWidth(56.24);
     ((HexGrid) getGrid()).setEdgesLegal(true);
     reversible = true;
   }

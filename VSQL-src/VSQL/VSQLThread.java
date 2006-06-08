@@ -114,7 +114,7 @@ public class VSQLThread extends VASLThread {
     super.launch();
   }
   
-  public boolean isVisible() {
+  public boolean isActive() {
     boolean vis = super.isVisible();
     return vis && (state != STATE_NONE);
   }

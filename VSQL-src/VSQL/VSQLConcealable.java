@@ -22,6 +22,7 @@ package VSQL;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Graphics;
+import java.awt.Rectangle;
 
 import VASL.counters.Concealable;
 import VASL.counters.Concealment;
@@ -57,12 +58,10 @@ public class VSQLConcealable extends Concealable {
    */
   public GamePiece createConcealment() {
 
-    boolean large = imageName.indexOf("58") > 0;
-    if (!imageName.startsWith(nation)) {
-      large = imageName.substring(0, 1).toUpperCase().equals(imageName.substring(0, 1));
-    }
-
-    GamePiece p = new BasicPiece(BasicPiece.ID + ";;" + imageName + ";?");
+    boolean large = boundingBox().height > 52;
+    String counterName = "? (" + (large ? "lg" : "sm") + ")";
+    
+    GamePiece p = new BasicPiece(BasicPiece.ID + ";;" + imageName + ";" + counterName);
     p = new Marker (Marker.ID + "Level", p);
     ((Marker) p).mySetState("Ground");
     p = new Delete(Delete.ID + "Delete;D", p);

@@ -20,8 +20,9 @@
 package ThirdReich;
 
 import java.awt.Point;
+import VASSAL.build.module.map.boardPicker.board.mapgrid.HexGridNumbering;
 
-public class ObliqueHexGridNumbering extends ThirdReich.HexGridNumbering {
+public class ObliqueHexGridNumbering extends HexGridNumbering {
 
   public int getRow(Point p) {
  

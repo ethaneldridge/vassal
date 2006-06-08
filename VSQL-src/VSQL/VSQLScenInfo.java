@@ -47,10 +47,7 @@ public class VSQLScenInfo extends AbstractBuildable implements GameComponent, Co
   private FixedTextConfigurer notes;
   private FixedTextConfigurer publicNotes;
   private Hashtable privateNotes = new Hashtable();
-  private JComboBox movesFirst;
   private JButton launch;
-  private JButton nextTurn;
-  private JButton prevTurn;
   private JFrame frame;
 
 //  private TurnMarker turn;
@@ -58,7 +55,7 @@ public class VSQLScenInfo extends AbstractBuildable implements GameComponent, Co
   private KeyStrokeListener keyListener;
   private AbstractAction launchAction;
 
-  private int axisSAN, alliedSAN;
+  //private int axisSAN, alliedSAN;
   private TextConfigurer myPrivate;
   private SecretNotesController secretNotes;
   protected String lastState = "";
@@ -317,23 +314,23 @@ public class VSQLScenInfo extends AbstractBuildable implements GameComponent, Co
     return s;
   }
 
-  public int getAxisSAN() {
-    return axisSAN;
-  }
-
-  public int getAlliedSAN() {
-    return alliedSAN;
-  }
-
-  private int getSAN(String s) {
-    int n = 0;
-    try {
-      n = Integer.parseInt(s.trim());
-    }
-    catch (Exception e) {
-    }
-    return n;
-  }
+//  public int getAxisSAN() {
+//    return axisSAN;
+//  }
+//
+//  public int getAlliedSAN() {
+//    return alliedSAN;
+//  }
+//
+//  private int getSAN(String s) {
+//    int n = 0;
+//    try {
+//      n = Integer.parseInt(s.trim());
+//    }
+//    catch (Exception e) {
+//    }
+//    return n;
+//  }
 
   public void setup(boolean show) {
     launch.setEnabled(show);
