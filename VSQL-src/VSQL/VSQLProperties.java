@@ -21,6 +21,15 @@ package VSQL;
 
 public class VSQLProperties {
   
+  // Political
+  public static final String SIDE = "SIDE";
+  public static final String NATION = "NATION";
+  
+  // Night Vision public properties
+  public static final String NV_SIDE = "NVS";
+  public static final String NV_RANGE = "NVR";
+  public static final String LIGHT = "LIGHT";
+  
   // Vehicle CA
   public static final String VEHICLE_CA = "VEHICLE_CA";
   
