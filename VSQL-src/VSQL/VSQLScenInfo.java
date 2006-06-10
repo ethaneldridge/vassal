@@ -42,22 +42,24 @@ import java.util.StringTokenizer;
 public class VSQLScenInfo extends AbstractBuildable implements GameComponent, CommandEncoder {
 
   protected final String PUBLIC = "PUBLIC_NOTES";
+  protected final String OBA = "OBA_INFO";
 
   //private JTextField AxisELR, AxisSAN, AlliedELR, AlliedSAN;
-  private FixedTextConfigurer notes;
-  private FixedTextConfigurer publicNotes;
-  private Hashtable privateNotes = new Hashtable();
-  private JButton launch;
-  private JFrame frame;
+  protected FixedTextConfigurer notes;
+  protected FixedTextConfigurer publicNotes;
+  protected Hashtable privateNotes = new Hashtable();
+  protected JButton launch;
+  protected JFrame frame;
+  protected OBA oba;
 
 //  private TurnMarker turn;
 
-  private KeyStrokeListener keyListener;
-  private AbstractAction launchAction;
+  protected KeyStrokeListener keyListener;
+  protected AbstractAction launchAction;
 
   //private int axisSAN, alliedSAN;
-  private TextConfigurer myPrivate;
-  private SecretNotesController secretNotes;
+  protected TextConfigurer myPrivate;
+  protected SecretNotesController secretNotes;
   protected String lastState = "";
 
   public VSQLScenInfo() {
@@ -81,80 +83,22 @@ public class VSQLScenInfo extends AbstractBuildable implements GameComponent, Co
     keyListener = new KeyStrokeListener(launchAction);
     keyListener.setKeyStroke(KeyStroke.getKeyStroke(KeyEvent.VK_F7, 0, false));
 
-//    turn = new TurnMarker("Axis", "Axis", 1);
-//    AxisELR = new JTextField(" ? ");
-//    AxisELR.setMaximumSize(AxisELR.getPreferredSize());
-//    AlliedELR = new JTextField(" ? ");
-//    AlliedELR.setMaximumSize(AlliedELR.getPreferredSize());
-//    AxisSAN = new JTextField(" ? ");
-//    AxisSAN.setMaximumSize(AxisSAN.getPreferredSize());
-//    AlliedSAN = new JTextField(" ? ");
-//    AlliedSAN.setMaximumSize(AlliedSAN.getPreferredSize());
-//    movesFirst = new JComboBox();
-//    movesFirst.addItemListener(new ItemListener() {
-//      public void itemStateChanged(ItemEvent evt) {
-//        turn.current = 1;
-//        String s = (String) movesFirst.getSelectedItem();
-//        int len = (s.startsWith("Ax") ? 4 : 6);
-//        turn.movesFirst = s.substring(0, len);
-//        turn.player = s.substring(0, len);
-//        turn.repaint();
-//      }
-//    });
-//    movesFirst.addItem("Axis moves first");
-//    movesFirst.addItem("Allied moves first");
-//    movesFirst.setSelectedIndex(0);
-//
     frame.getContentPane().setLayout(new BoxLayout(frame.getContentPane(), BoxLayout.Y_AXIS));
-//
-//    Box b = Box.createHorizontalBox();
-//    b.add(movesFirst);
-//    b.add(turn);
-//
-//    Box v = Box.createVerticalBox();
-//    nextTurn = new JButton("Next Turn");
-//    nextTurn.addActionListener(new ActionListener() {
-//      public void actionPerformed(ActionEvent e) {
-//        turn.advance();
-//      }
-//    });
-//    v.add(nextTurn);
-//
-//    prevTurn = new JButton("Prev Turn");
-//    prevTurn.addActionListener(new ActionListener() {
-//      public void actionPerformed(ActionEvent e) {
-//        turn.retreat();
-//      }
-//    });
-//    v.add(prevTurn);
-//    b.add(v);
-//
+
     Dimension base = new Dimension(300, 50);
-//    b.setMaximumSize(base);
-    //frame.getContentPane().add(b); Not used from v4.0
-
-    //  b = Box.createHorizontalBox();
-    //  b.add(new JLabel("Axis ELR: "));
-    //  b.add(AxisELR);
-    //  b.add(new JLabel("Axis SAN: "));
-    //  b.add(AxisSAN);
-    //  frame.getContentPane().add(b); Leave out for VSQL
-
-    //  b = Box.createHorizontalBox();
-    //  b.add(new JLabel("Allied ELR: "));
-    //  b.add(AlliedELR);
-    //  b.add(new JLabel("Allied SAN: "));
-    //  b.add(AlliedSAN);
-    //  frame.getContentPane().add(b); Leave out for VSQL
     
     notes = new FixedTextConfigurer(null, "Scenario Information: ");
     publicNotes = new FixedTextConfigurer(null, "Public Notes: ");
     myPrivate = new TextConfigurer(null, "Private notes: ");
     secretNotes = new SecretNotesController();
+    oba = new OBA();
     
     JTabbedPane tab = new JTabbedPane();
     tab.setPreferredSize(new Dimension(650, 650));
-    tab.addTab("Scenario", null, notes.getControls(), "Scenario");
+    Box box = Box.createVerticalBox();
+    box.add(oba.getControls());
+    box.add(notes.getControls());
+    tab.addTab("Scenario", null, box, "Scenario");
     tab.addTab("Public", null, publicNotes.getControls(), "Public");
     tab.addTab("Private", null, myPrivate.getControls(), "Private");
     tab.addTab("Delayed", null, secretNotes.getControls(), "Delayed");
@@ -200,8 +144,6 @@ public class VSQLScenInfo extends AbstractBuildable implements GameComponent, Co
 
   private void save() {
     privateNotes.put(GameModule.getUserId(), myPrivate.getValue());
-    //Command c = turn.getChangeCommand();
-    //c.execute();
     Command c = new SetInfo(getState(), this);
     c.append(secretNotes.save());
     GameModule.getGameModule().sendAndLog(c);
@@ -249,20 +191,6 @@ public class VSQLScenInfo extends AbstractBuildable implements GameComponent, Co
     catch (Exception e) {
     }
 
-    // turn.movesFirst = mf;
-    // movesFirst.setSelectedItem(mf + " moves first");
-    // turn.player = pl;
-    // turn.current = Integer.parseInt(c);
-    // AxisELR.setText(xELR);
-    // AlliedELR.setText(lELR);
-    // AxisSAN.setText(xSAN);
-    // AlliedSAN.setText(lSAN);
-
-    // turn.repaint();
-
-    // axisSAN = getSAN(xSAN);
-    // alliedSAN = getSAN(lSAN);
-
     if (st.hasMoreTokens()) {
       notes.setValue(st.nextToken());
     }
@@ -291,6 +219,7 @@ public class VSQLScenInfo extends AbstractBuildable implements GameComponent, Co
   }
 
   public static final String COMMAND_PREFIX = "INFO\t";
+  public static final String OBA_COMMAND_PREFIX = "OBA\t";
 
   public Command decode(String command) {
     Command comm = null;
@@ -313,24 +242,6 @@ public class VSQLScenInfo extends AbstractBuildable implements GameComponent, Co
     }
     return s;
   }
-
-//  public int getAxisSAN() {
-//    return axisSAN;
-//  }
-//
-//  public int getAlliedSAN() {
-//    return alliedSAN;
-//  }
-//
-//  private int getSAN(String s) {
-//    int n = 0;
-//    try {
-//      n = Integer.parseInt(s.trim());
-//    }
-//    catch (Exception e) {
-//    }
-//    return n;
-//  }
 
   public void setup(boolean show) {
     launch.setEnabled(show);
@@ -366,8 +277,6 @@ public class VSQLScenInfo extends AbstractBuildable implements GameComponent, Co
   }
 
   public String getState() {
-    //axisSAN = getSAN("");
-    //alliedSAN = getSAN("");
 
     SequenceEncoder se = new SequenceEncoder('\t');
     se.append("").append("").append("" + "").append("").append(
@@ -452,6 +361,8 @@ public class VSQLScenInfo extends AbstractBuildable implements GameComponent, Co
         p.setLayout(new BoxLayout(p, BoxLayout.Y_AXIS));
         textArea = new JTextArea(6, 20);
         textArea.setFont(new Font("monospaced", Font.PLAIN, 12));
+        textArea.setLineWrap(true);
+        textArea.setWrapStyleWord(true);
         textArea.addKeyListener(new java.awt.event.KeyAdapter() {
           public void keyReleased(java.awt.event.KeyEvent evt) {
             noUpdate = true;
@@ -470,65 +381,23 @@ public class VSQLScenInfo extends AbstractBuildable implements GameComponent, Co
     }
   }
 
+  public class OBA {
+
+    private static final long serialVersionUID = 1L;
+    protected JPanel panel;
+
+    public OBA() {
+      
+    }
+    
+    public Component getControls() {
+      if (panel == null) {
+        panel = new JPanel();
+        panel.setLayout(new BorderLayout());
+        panel.add(new JLabel("OBA Stuff here"), BorderLayout.CENTER);
+      }
+      return panel;
+    }
+  }
 }
 
-//class TurnMarker extends Canvas {
-//  int current;
-//  String player, movesFirst;
-//
-//  int oldCurrent;
-//  String oldPlayer;
-//
-//  TurnMarker(String f, String p, int c) {
-//    movesFirst = f;
-//    player = p;
-//    current = c;
-//  }
-//
-//  public Command getChangeCommand() {
-//    Command c = new NullCommand();
-//    if (current != oldCurrent || !player.equals(oldPlayer)) {
-//      String mess = "* Turn Updated from " + oldCurrent + " - " + oldPlayer + " to " + current + " - " + player;
-//      c.append(new Chatter.DisplayText(GameModule.getGameModule().getChatter(), mess));
-//    }
-//    return c;
-//  }
-//
-//  public void paint(Graphics g) {
-//    FontMetrics fm;
-//    g.setColor(Color.white);
-//    g.fillRect(0, 0, getSize().width - 1, getSize().height - 1);
-//    g.setColor(Color.black);
-//    g.drawRect(0, 0, getSize().width - 1, getSize().height - 1);
-//    fm = g.getFontMetrics();
-//    g.drawString(player, getSize().width / 2 - fm.stringWidth(player) / 2, getSize().height - 2);
-//    g.setFont(new Font("TimesRoman", Font.BOLD, 18));
-//    fm = g.getFontMetrics();
-//    g.drawString("" + current, getSize().width / 2 - fm.stringWidth("" + current) / 2, getSize().height / 2
-//        + fm.getAscent() / 2);
-//  }
-//
-//  public void advance() {
-//    current += (movesFirst.equals(player) ? 0 : 1);
-//    player = (player.equals("Axis") ? "Allied" : "Axis");
-//    repaint();
-//  }
-//
-//  public void retreat() {
-//    if (current > 1 || !movesFirst.equals(player)) {
-//      current -= (!movesFirst.equals(player) ? 0 : 1);
-//      player = (player.equals("Axis") ? "Allied" : "Axis");
-//      repaint();
-//    }
-//  }
-//
-//  public void backup() {
-//    oldCurrent = current;
-//    oldPlayer = player;
-//  }
-//
-//  public Dimension getPreferredSize() {
-//    return (new Dimension(48, 48));
-//  }
-//
-//}

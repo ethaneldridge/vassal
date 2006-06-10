@@ -26,6 +26,7 @@ import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Iterator;
 
+import VASL.counters.Turreted;
 import VASSAL.build.AbstractBuildable;
 import VASSAL.build.AbstractConfigurable;
 import VASSAL.build.Buildable;
@@ -291,11 +292,13 @@ public class VSQLGamePieceRefresher extends AbstractConfigurable {
     while (p != null) {
       p = Decorator.getDecorator(p, Embellishment.class);
       if (p != null) {
-        if (p instanceof VSQLEmbellishment) {
-          name = ((VSQLEmbellishment) p).getImageNames()[0];
-        }
-        else {
-          name = (new VSQLEmbellishment((Embellishment) p)).getImageNames()[0];
+        if (! (p instanceof Turreted)) {
+          if (p instanceof VSQLEmbellishment) {
+            name = ((VSQLEmbellishment) p).getImageNames()[0];
+          }
+          else {
+            name = (new VSQLEmbellishment((Embellishment) p)).getImageNames()[0];
+          }
         }
         p = ((Decorator) p).getInner();
       }
