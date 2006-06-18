@@ -19,18 +19,15 @@
 package TRC;
 
 import wga.WgaImmobilized;
-import Inventory.InvEmbellishment;
+import VASSAL.build.module.BasicCommandEncoder;
 import VASSAL.counters.Decorator;
 import VASSAL.counters.GamePiece;
 import VASSAL.counters.Immobilized;
 
-public class TrcCommandEncoder extends AutoImage.CommandEncoder {
+public class TrcCommandEncoder extends BasicCommandEncoder {
 
   public Decorator createDecorator(String type, GamePiece inner) {
-    if (type.startsWith(InvEmbellishment.ID)) {
-      return new InvEmbellishment(type, inner);
-    }
-    else if (type.startsWith(Immobilized.ID)) {
+    if (type.startsWith(Immobilized.ID)) {
       return new WgaImmobilized(type, inner);
     }
     return super.createDecorator(type, inner);

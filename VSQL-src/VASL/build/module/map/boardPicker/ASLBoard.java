@@ -47,6 +47,7 @@ public class ASLBoard extends Board {
   private String terrainChanges = "";
   private SSRFilter terrain;
   private File boardFile;
+  protected boolean loaded = false;
 
   public ASLBoard() {
 //    
@@ -171,6 +172,12 @@ public class ASLBoard extends Board {
   public void fixImage(Component map) {
     Cleanup.init();
     Cleanup.getInstance().addBoard(this);
+
+    boolean first = !loaded;
+    loaded = true;
+    if (first) {
+      GameModule.getGameModule().warn("Loading board " + getName() + " ...");
+    }
     try {
       if (boardFile.getName().equals(imageFile)) {
         baseImage = DataArchive.getImage(new FileInputStream(boardFile));
@@ -220,6 +227,9 @@ public class ASLBoard extends Board {
         && cropBounds.height < 0
         && !reversed) {
       boardImage = baseImage;
+      if (first) {
+        GameModule.getGameModule().warn("Board " + getName() + " loaded");
+      }
       return;
     }
     boardImage = GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice().getDefaultConfiguration().createCompatibleImage(boundaries.width, boundaries.height, Transparency.BITMASK);
@@ -271,6 +281,9 @@ public class ASLBoard extends Board {
     im = null;
     g.dispose();
     System.gc();
+    if (first) {
+      GameModule.getGameModule().warn("Board " + getName() + " loaded");
+    }
   }
 
   public synchronized Image getScaledImage(double zoom, Component obs) {

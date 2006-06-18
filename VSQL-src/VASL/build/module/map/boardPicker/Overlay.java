@@ -18,6 +18,7 @@
  */
 package VASL.build.module.map.boardPicker;
 
+import VASSAL.build.GameModule;
 import VASSAL.build.module.map.boardPicker.board.MapGrid;
 import VASSAL.tools.DataArchive;
 import VASSAL.tools.SequenceEncoder;
@@ -137,7 +138,7 @@ public class Overlay implements Cloneable {
         }
         else {
           throw new BoardException("Overlay file " + overlayFile.getPath()
-                                   + " not found");
+                                   + " not found loading " + name);
         }
       }
 
@@ -154,6 +155,7 @@ public class Overlay implements Cloneable {
         image = terrain.recolor(image, map);
       }
       waitFor(image, map);
+      GameModule.getGameModule().warn("Overlay " + name + " loaded from " + overlayFile.getName());
     }
     catch (BoardException e) {
       FontMetrics fm = map.getGraphics().getFontMetrics();
@@ -161,10 +163,11 @@ public class Overlay implements Cloneable {
       int width = fm.stringWidth(msg) + 10;
       int height = fm.getHeight() * 2;
       image = GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice().getDefaultConfiguration().createCompatibleImage(width, height, Transparency.BITMASK );
-      Graphics2D g = ((BufferedImage)image).createGraphics();
-      g.setColor(Color.black);
-      g.drawString(msg, 5, fm.getHeight());
-      g.dispose();
+      //Graphics2D g = ((BufferedImage)image).createGraphics();
+      //g.setColor(Color.black);
+      //g.drawString(msg, 5, fm.getHeight());
+      //g.dispose();
+      GameModule.getGameModule().warn(msg);
     }
     catch (MapGrid.BadCoords e) {
       FontMetrics fm = map.getGraphics().getFontMetrics();
