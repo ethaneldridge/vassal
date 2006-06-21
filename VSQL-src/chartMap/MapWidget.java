@@ -20,7 +20,7 @@ import VASSAL.build.Widget;
 import VASSAL.build.module.map.PieceMover;
 import VASSAL.build.widget.TabWidget;
 
-public class MapWidget extends Widget implements DropTargetListener {
+public class MapWidget extends Widget implements DropTargetListener, Runnable {
 
   protected JPanel panel;
   protected JScrollPane mapScroll;
@@ -90,19 +90,54 @@ public class MapWidget extends Widget implements DropTargetListener {
 
   /*
    * A counter has been dragged over the tab of a parent TabWidget
-   * containing another map, sp bring it to the front.
+   * containing another map, so bring it to the front after a 500ms delay
    */
+
+  protected Thread delayThread;
+  protected int delay = 500;
+  protected long expirationTime;
+  protected int showTab = -1;
+  
   public void dragOver(DropTargetDragEvent e) {
     if (tab != null) {
       Point p = e.getLocation();
       int tabNumber = tab.getUI().tabForCoordinate(tab, p.x, p.y);
       if (tabNumber >= 0 && tabNumber != tab.getSelectedIndex()) {
-        tab.setSelectedIndex(tabNumber);
+        if (tabNumber != showTab) {
+          restartDelay();
+          showTab = tabNumber;
+        }
+        if (delayThread == null || !delayThread.isAlive()) {
+          delayThread = new Thread(this);
+          delayThread.start();
+        }
+      }
+      else {
+        showTab = -1;
       }
     }
   }
   
+  public void run() {
+    while (System.currentTimeMillis() < expirationTime) {
+      try {
+        Thread.sleep(Math.max(0, expirationTime - System.currentTimeMillis()));
+      }
+      catch (InterruptedException e) {
+      }
+    }
+    if (showTab >= 0 && showTab < tab.getTabCount()) {
+      tab.setSelectedIndex(showTab);
+      tab.repaint();
+    }
+  }
+  
+  protected void restartDelay() {
+    expirationTime = System.currentTimeMillis() + delay;
+  }
+  
   public void dragEnter(DropTargetDragEvent e) {
+    restartDelay();
   }
 
   public void dropActionChanged(DropTargetDragEvent e) {
@@ -112,6 +147,7 @@ public class MapWidget extends Widget implements DropTargetListener {
   }
 
   public void dragExit(DropTargetEvent e) {
+    showTab = -1;
   }
   
   public String[] getAttributeDescriptions() {

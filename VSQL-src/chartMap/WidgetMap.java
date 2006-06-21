@@ -1,6 +1,9 @@
 package chartMap;
 
 import java.awt.Point;
+import java.awt.dnd.DropTargetDragEvent;
+import java.awt.dnd.DropTargetEvent;
+import java.awt.event.MouseEvent;
 
 import javax.swing.JComponent;
 import javax.swing.JScrollPane;
@@ -60,7 +63,15 @@ public class WidgetMap extends Map implements Runnable {
   /*
    * Delay 500ms before starting scroll
    */
+  protected Thread delayThread;
+  protected int delay = 500;
+  protected long expirationTime;
+  protected int scroll_dist;
+  protected int scroll_dx;
+  protected int scroll_dy;
+
   public void scrollAtEdge(Point evtPt, int dist) {
+    scroll_dist = dist;
     Point p = new Point(evtPt.x - scroll.getViewport().getViewPosition().x, evtPt.y - scroll.getViewport().getViewPosition().y);
     int dx = 0, dy = 0;
     if (p.x < dist && p.x >= 0)
@@ -72,14 +83,62 @@ public class WidgetMap extends Map implements Runnable {
     if (p.y >= scroll.getViewport().getSize().height - dist && p.y < scroll.getViewport().getSize().height)
       dy = 1;
 
+    scroll_dx = dx;
+    scroll_dy = dy;
+
     if (dx != 0 || dy != 0) {
-      scroll(2 * dist * dx, 2 * dist * dy);
+      if (delayThread == null || !delayThread.isAlive()) {
+
+        delayThread = new Thread(this);
+        delayThread.start();
+      }
+    }
+    else {
+      restartDelay();
     }
   }
 
-  public void run() {
-    // TODO Auto-generated method stub
+  protected void restartDelay() {
+    expirationTime = System.currentTimeMillis() + delay;
+  }
 
+  public void run() {
+    while (System.currentTimeMillis() < expirationTime) {
+      try {
+        Thread.sleep(Math.max(0, expirationTime - System.currentTimeMillis()));
+      }
+      catch (InterruptedException e) {
+      }
+    }
+    if (scroll_dx != 0 || scroll_dy != 0) {
+      scroll(2 * scroll_dist * scroll_dx, 2 * scroll_dist * scroll_dy);
+    }
+  }
+
+  public void mouseDragged(MouseEvent e) {
+    if (!e.isMetaDown()) {
+      scrollAtEdge(e.getPoint(), 15);
+    }
+    else {
+      restartDelay();
+    }
+  }
+
+  /*
+   * Start drag delay on entry to map
+   */
+  public void dragEnter(DropTargetDragEvent e) {
+    restartDelay();
+  }
+  
+  /*
+   * Cancel final scroll when dragging out of map 
+   */
+  public void dragExit(DropTargetEvent e) {
+    super.dragExit(e);
+    scroll_dx = 0;
+    scroll_dy = 0;
+    repaint();
   }
 
 }

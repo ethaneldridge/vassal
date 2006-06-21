@@ -19,14 +19,20 @@
 
 package vp;
 
+import java.awt.BorderLayout;
 import java.awt.Color;
+import java.awt.Dimension;
 import java.awt.event.ActionListener;
 
 import javax.swing.BoxLayout;
 import javax.swing.JDialog;
 import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JTable;
 import javax.swing.JTextArea;
 import javax.swing.KeyStroke;
+import javax.swing.border.TitledBorder;
+import javax.swing.table.AbstractTableModel;
 
 import VASSAL.build.AbstractConfigurable;
 import VASSAL.build.AutoConfigurable;
@@ -39,6 +45,7 @@ import VASSAL.configure.ColorConfigurer;
 import VASSAL.configure.Configurer;
 import VASSAL.configure.ConfigurerFactory;
 import VASSAL.configure.IconConfigurer;
+import VASSAL.configure.StringArrayConfigurer;
 import VASSAL.tools.LaunchButton;
 import VASSAL.tools.UniqueIdManager;
 
@@ -57,6 +64,7 @@ public class VPTracker extends AbstractConfigurable implements GameComponent, Un
   public static final String ICON = "icon";
   public static final String BUTTON_TEXT = "buttonText";
   public static final String COLOR = "color";
+  public static final String SIDES = "sides";
 
   protected Color color = Color.white;
 
@@ -64,6 +72,8 @@ public class VPTracker extends AbstractConfigurable implements GameComponent, Un
   protected LaunchButton launch;
   protected JTextArea VPLabel = new JTextArea();
   protected String id;
+  protected String[] sides = new String[0];
+  protected JTable table;
 
   public VPTracker() {
     
@@ -75,13 +85,15 @@ public class VPTracker extends AbstractConfigurable implements GameComponent, Un
     launch = new LaunchButton("VP", BUTTON_TEXT, HOT_KEY, ICON, al);
     launch.setToolTipText("VP");
     launch.setEnabled(false);
+    
+    table = new VPTable();
   }
   
   /*
    * Module level Configuration stuff
    */
   public String[] getAttributeNames() {
-    return new String[] { NAME, BUTTON_TEXT, ICON, HOT_KEY, COLOR };
+    return new String[] { NAME, BUTTON_TEXT, ICON, HOT_KEY, COLOR, SIDES };
   }
 
   public void setAttribute(String key, Object value) {
@@ -95,6 +107,13 @@ public class VPTracker extends AbstractConfigurable implements GameComponent, Un
       }
       color = (Color) value;
     }
+    else if (SIDES.equals(key)) {
+      if (value instanceof String) {
+        value = StringArrayConfigurer.stringToArray((String) value);
+      }
+      sides = ((String[]) value);
+      table.revalidate();
+    }
     else {
       launch.setAttribute(key, value);
     }
@@ -107,17 +126,20 @@ public class VPTracker extends AbstractConfigurable implements GameComponent, Un
     else if (COLOR.equals(key)) {
       return ColorConfigurer.colorToString(color);
     }
+    else if (SIDES.equals(key)) {
+      return StringArrayConfigurer.arrayToString(sides);
+    }
     else {
       return launch.getAttributeValueString(key);
     }
   }
   
   public String[] getAttributeDescriptions() {
-    return new String[] { "Name:  ", "Button text:  ", "Button Icon:  ", "Hotkey:  ", "Background Color:  "};
+    return new String[] { "Name:  ", "Button text:  ", "Button Icon:  ", "Hotkey:  ", "Background Color:  ", "Sides:  "};
   }
 
   public Class[] getAttributeTypes() {
-    return new Class[] { String.class, String.class, IconConfig.class, KeyStroke.class, Color.class};
+    return new Class[] { String.class, String.class, IconConfig.class, KeyStroke.class, Color.class, String[].class};
   }
 
   public static class IconConfig implements ConfigurerFactory {
@@ -128,7 +150,7 @@ public class VPTracker extends AbstractConfigurable implements GameComponent, Un
 
   
   public Class[] getAllowableConfigureComponents() {
-    return new Class[] {  };
+    return new Class[] { VPCounter.class };
   }
 
   public static String getConfigureTypeName() {
@@ -179,6 +201,7 @@ public class VPTracker extends AbstractConfigurable implements GameComponent, Un
 
   protected class VPWindow extends JDialog  {
 
+    protected static final long serialVersionUID = 1L;
     protected JPanel mainPanel;
     protected JPanel controlPanel;
     protected JPanel VPPanel;
@@ -191,7 +214,7 @@ public class VPTracker extends AbstractConfigurable implements GameComponent, Un
 
 
     public void setColor(Color color) {
-//      VPPanel.setBackground(color);
+      mainPanel.setBackground(color);
    
     }
 
@@ -201,6 +224,13 @@ public class VPTracker extends AbstractConfigurable implements GameComponent, Un
 
       mainPanel = new JPanel();
       mainPanel.setLayout(new BoxLayout(mainPanel, BoxLayout.Y_AXIS));
+      
+      table = new VPTable();
+      JScrollPane scroll = new JScrollPane(table, JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED, JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+      scroll.setBorder(new TitledBorder(getConfigureName()));
+      table.setPreferredScrollableViewportSize(new Dimension(400, 70));
+      mainPanel.add(scroll);
+      
       getContentPane().add(mainPanel);
 
       pack();
@@ -209,4 +239,39 @@ public class VPTracker extends AbstractConfigurable implements GameComponent, Un
  
   }
 
+  public class VPTable extends JTable {
+
+    private static final long serialVersionUID = 1L;
+
+    public VPTable() {
+      setModel(new MyTableModel());
+    }
+    
+    public class MyTableModel extends AbstractTableModel {
+      private static final long serialVersionUID = 1L;
+
+      public int getColumnCount() {
+        return sides.length+1;
+      }
+      
+      public String getColumnName(int col) {
+        if (col == 0) {
+          return "";
+        }
+        else {
+          return sides[col-1];
+        }
+      }
+      
+      public int getRowCount() {
+        // TODO Auto-generated method stub
+        return 1;
+      }
+      public Object getValueAt(int arg0, int arg1) {
+        // TODO Auto-generated method stub
+        return null;
+      }
+    }
+  }
+  
 }
