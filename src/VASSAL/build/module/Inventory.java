@@ -19,13 +19,14 @@
 package VASSAL.build.module;
 
 import java.awt.Component;
-import java.awt.Point;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.HashMap;
@@ -41,8 +42,7 @@ import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 import javax.swing.JTree;
 import javax.swing.KeyStroke;
-import javax.swing.event.PopupMenuEvent;
-import javax.swing.event.PopupMenuListener;
+import javax.swing.SwingUtilities;
 import javax.swing.event.TreeModelEvent;
 import javax.swing.event.TreeModelListener;
 import javax.swing.event.TreeSelectionEvent;
@@ -55,12 +55,10 @@ import VASSAL.build.AbstractConfigurable;
 import VASSAL.build.AutoConfigurable;
 import VASSAL.build.Buildable;
 import VASSAL.build.GameModule;
-import VASSAL.build.module.Chatter;
-import VASSAL.build.module.GameComponent;
-import VASSAL.build.module.PlayerRoster;
 import VASSAL.build.module.DiceButton.IconConfig;
 import VASSAL.build.module.documentation.HelpFile;
 import VASSAL.build.module.map.MenuDisplayer;
+import VASSAL.build.module.properties.PropertySource;
 import VASSAL.command.Command;
 import VASSAL.command.NullCommand;
 import VASSAL.configure.ConfigurerWindow;
@@ -68,12 +66,15 @@ import VASSAL.configure.HotKeyConfigurer;
 import VASSAL.configure.StringArrayConfigurer;
 import VASSAL.configure.StringEnum;
 import VASSAL.configure.VisibilityCondition;
+import VASSAL.counters.BoundsTracker;
 import VASSAL.counters.GamePiece;
 import VASSAL.counters.PieceCloner;
 import VASSAL.counters.PieceFilter;
 import VASSAL.counters.PieceIterator;
 import VASSAL.counters.Properties;
+import VASSAL.counters.PropertiesPieceFilter;
 import VASSAL.counters.Stack;
+import VASSAL.tools.FormattedString;
 import VASSAL.tools.LaunchButton;
 
 public class Inventory extends AbstractConfigurable implements GameComponent {
@@ -124,20 +125,14 @@ public class Inventory extends AbstractConfigurable implements GameComponent {
 
   public static final String INCLUDE_OFFMAP = "incOff";
 
-  public static final String INCLUDE = "include";
-  protected String include = "";
+  public static final String FILTER = "include";
+  protected String piecePropertiesFilter = "";
 
   public static final String GROUP_BY = "groupBy";
   protected String[] groupBy = {""};
 
   public static final String TOTAL = "total";
-  protected String totalMarker = "";
-
-  public static final String SHOWTOTAL = "showTotal";
-  protected boolean showTotal = false;
-
-  public static final String SHOWLOCATION = "showLocation";
-  protected boolean showLocation = false;
+  protected String nonLeafFormat = "$PropertyName";
 
   public static final String CENTERONPIECE = "centerOnPiece";
   protected boolean centerOnPiece = false;
@@ -154,7 +149,8 @@ public class Inventory extends AbstractConfigurable implements GameComponent {
   public static final String CUTABOVELEAVES = "cutLeaves";
   protected int cutAboveLeaves = 0;
 
-  protected static final boolean sendHotkeyEvents = false;
+  protected static final boolean sendHotkeyEvents = true;
+  protected String pieceFormat = "$PieceName$";
 
   public Inventory() {
     ActionListener al = new ActionListener() {
@@ -195,12 +191,20 @@ public class Inventory extends AbstractConfigurable implements GameComponent {
   }
 
   protected void generateInventory() {
+    buildTree();
+
+    Command c = new DisplayResults(results, destination);
+    c.execute();
+    GameModule.getGameModule().sendAndLog(c);
+  }
+
+  private void buildTree() {
     ArrayList path = new ArrayList();
     for (int i = 0; i < groupBy.length; i++)
       path.add(groupBy[i]);
-    results = new CounterInventory(new Counter(this.getConfigureName(), showTotal), path);
+    results = new CounterInventory(new Counter(this.getConfigureName()), path);
 
-    PieceIterator pi = new PieceIterator(GameModule.getGameModule().getGameState().getPieces(), new Selector(incAllMaps, mapList, include));
+    PieceIterator pi = new PieceIterator(GameModule.getGameModule().getGameState().getPieces(), new Selector(incAllMaps, mapList, piecePropertiesFilter));
 
     while (pi.hasMoreElements()) {
       ArrayList groups = new ArrayList();
@@ -215,26 +219,18 @@ public class Inventory extends AbstractConfigurable implements GameComponent {
       }
 
       int count = 1;
-      if (totalMarker.length() > 0)
+      if (nonLeafFormat.length() > 0)
         count = getTotalValue(p);
 
       Counter c;
-      // the second but last argument determines if the maps name is shown with
-      // the location
-      // makes no sense to include the map if the output is seperated by them,
-      // IMO
-      c = new Counter(p, groups, count, showLocation, true, showTotal);
+      c = new Counter(p, groups, count, pieceFormat);
       // Store
       results.insert(c);
     }
-
-    Command c = new DisplayResults(results, destination);
-    c.execute();
-    GameModule.getGameModule().sendAndLog(c);
   }
 
   protected int getTotalValue(GamePiece p) {
-    String s = (String) p.getProperty(totalMarker);
+    String s = (String) p.getProperty(nonLeafFormat);
     int count = 1;
     try {
       count = Integer.parseInt(s);
@@ -257,18 +253,18 @@ public class Inventory extends AbstractConfigurable implements GameComponent {
   public String[] getAttributeDescriptions() {
     return new String[] {"Name", "Button text", "Button icon", "Hotkey", "Report Destination", "Include Counters from All Maps?",
         "Include Counters from these Maps only", // "Separate Output by Map?",
-        "Only include counters with Marker", "Sort and Group By Marker", "Total and Report Integer values in Marker", "Show total of counters?",
-        "Show location of counter?", "Center on piece?", "Sides", "Key Command", "Cut tree at depth", "Cut tree above leaves"};
+        "Show only pieces matching these properties", "Sort and Group By Marker", "Label for folders", 
+        "Center on piece?", "Sides", "Key Command", "Cut tree at depth", "Cut tree above leaves"};
   }
 
   public Class[] getAttributeTypes() {
     return new Class[] {String.class, String.class, IconConfig.class, KeyStroke.class, Dest.class, Boolean.class, String[].class, // Boolean.class,
-        String.class, String[].class, String.class, Boolean.class, Boolean.class, Boolean.class, String[].class, KeyStroke.class, Integer.class, Integer.class};
+        String.class, String[].class, String.class, Boolean.class, String[].class, KeyStroke.class, Integer.class, Integer.class};
   }
 
   public String[] getAttributeNames() {
     return new String[] {NAME, BUTTON_TEXT, ICON, HOTKEY, DEST, INCLUDE_ALL_MAPS, MAP_LIST, // SEPARATE_BY_MAP,
-        INCLUDE, GROUP_BY, TOTAL, SHOWTOTAL, SHOWLOCATION, CENTERONPIECE, SIDES, KEYSTROKE, CUTBELOWROOT, CUTABOVELEAVES};
+        FILTER, GROUP_BY, TOTAL, CENTERONPIECE, SIDES, KEYSTROKE, CUTBELOWROOT, CUTABOVELEAVES};
   }
 
   public void setAttribute(String key, Object o) {
@@ -289,8 +285,8 @@ public class Inventory extends AbstractConfigurable implements GameComponent {
       }
       mapList = (String[]) o;
     }
-    else if (INCLUDE.equals(key)) {
-      include = (String) o;
+    else if (FILTER.equals(key)) {
+      piecePropertiesFilter = (String) o;
     }
     else if (GROUP_BY.equals(key)) {
       if (o instanceof String) {
@@ -299,13 +295,7 @@ public class Inventory extends AbstractConfigurable implements GameComponent {
       groupBy = (String[]) o;
     }
     else if (TOTAL.equals(key)) {
-      totalMarker = (String) o;
-    }
-    else if (SHOWTOTAL.equals(key)) {
-      showTotal = getBooleanValue(o);
-    }
-    else if (SHOWLOCATION.equals(key)) {
-      showLocation = getBooleanValue(o);
+      nonLeafFormat = (String) o;
     }
     else if (CENTERONPIECE.equals(key)) {
       centerOnPiece = getBooleanValue(o);
@@ -365,20 +355,14 @@ public class Inventory extends AbstractConfigurable implements GameComponent {
     else if (MAP_LIST.equals(key)) {
       return StringArrayConfigurer.arrayToString(mapList);
     }
-    else if (INCLUDE.equals(key)) {
-      return include;
+    else if (FILTER.equals(key)) {
+      return piecePropertiesFilter;
     }
     else if (GROUP_BY.equals(key)) {
       return StringArrayConfigurer.arrayToString(groupBy);
     }
     else if (TOTAL.equals(key)) {
-      return totalMarker;
-    }
-    else if (SHOWTOTAL.equals(key)) {
-      return showTotal + "";
-    }
-    else if (SHOWLOCATION.equals(key)) {
-      return showLocation + "";
+      return nonLeafFormat;
     }
     else if (CENTERONPIECE.equals(key)) {
       return centerOnPiece + "";
@@ -505,19 +489,17 @@ public class Inventory extends AbstractConfigurable implements GameComponent {
                 final CounterNode node = (CounterNode) path.getLastPathComponent();
                 final GamePiece p = node.getCounter().getPiece();
                 JPopupMenu menu = MenuDisplayer.createPopup(p);
-                menu.addPopupMenuListener(new PopupMenuListener() {
-
-                  public void popupMenuCanceled(PopupMenuEvent e) {
+                menu.addPropertyChangeListener("visible",new PropertyChangeListener() {
+                  public void propertyChange(PropertyChangeEvent evt) {
+                    if (Boolean.FALSE.equals(evt.getNewValue())) {
+                      p.setProperty("oldMap",p.getMap());
+                      SwingUtilities.invokeLater(new Runnable() {
+                        public void run() {
+                          updateTree(p);
+                        }
+                      });
+                    }
                   }
-
-                  public void popupMenuWillBecomeInvisible(PopupMenuEvent e) {
-                    // Remove the piece from the tree if it was deleted
-                    removeNodeForDeletedPiece(path, node, p);
-                  }
-
-                  public void popupMenuWillBecomeVisible(PopupMenuEvent e) {
-                  }
-
                 });
                 menu.show(tree, e.getX(), e.getY());
               }
@@ -649,13 +631,29 @@ public class Inventory extends AbstractConfigurable implements GameComponent {
       return piece;
     }
 
-    protected void removeNodeForDeletedPiece(final TreePath path, final CounterNode node, final GamePiece p) {
-      if (p.getMap() == null) {
-        CounterNode parent = (CounterNode) path.getParentPath().getLastPathComponent();
-        int[] indices = new int[]{parent.getIndexOfChild(node)};
-        parent.removeChild(node);
-        Object[] parentPath = path.getParentPath().getPath();
-        results.fireNodesRemoved(parentPath,indices,new Object[]{node});
+    protected void updateTree(final GamePiece newPiece) {
+      boolean structureChanged = true;
+      GamePiece oldPiece = (GamePiece) newPiece.getProperty(Properties.SNAPSHOT);
+      VASSAL.build.module.Map oldMap = (VASSAL.build.module.Map)newPiece.getProperty("oldMap"); 
+      if (oldPiece != null) {
+        if (oldMap == null ?  newPiece.getMap() == null : oldMap.equals(newPiece.getMap())) {
+          int i=0;
+          for (i = 0; i < groupBy.length; i++) {
+            Object oldValue = oldPiece.getProperty(groupBy[i]);
+            Object newValue = newPiece.getProperty(groupBy[i]);
+            if (oldValue == null ? newValue != null : !oldValue.equals(newValue)) {
+              break; 
+            }
+          }
+          if (i == groupBy.length) {
+            structureChanged = false;
+          }
+        }
+      }
+      if (structureChanged) {
+        buildTree();
+        results = Inventory.this.results;
+        tree.setModel(results);
       }
     }
 
@@ -666,9 +664,15 @@ public class Inventory extends AbstractConfigurable implements GameComponent {
         if (p != null) {
           // Save state first
           p.setProperty(Properties.SNAPSHOT, PieceCloner.getInstance().clonePiece(p));
+          p.setProperty("oldMap",p.getMap());
+          BoundsTracker t = new BoundsTracker();
+          t.addPiece(p);
           Command comm = p.keyEvent(stroke);
-          GameModule.getGameModule().sendAndLog(comm);
-          removeNodeForDeletedPiece(tree.getSelectionPath().getParentPath(),(CounterNode)tree.getLastSelectedPathComponent(),p);
+          if (comm != null) {
+            t.repaint();
+            GameModule.getGameModule().sendAndLog(comm);
+            updateTree(p);
+          }
         }
       }
 
@@ -702,30 +706,27 @@ public class Inventory extends AbstractConfigurable implements GameComponent {
    * @author Brent Easton and Torsten Spindler
    * 
    */
-  public class Counter {
+  public class Counter implements PropertySource {
     // The gamepiece is stored here to allow dynamic changes of name, location
     // and so forth
     protected GamePiece piece;
     protected ArrayList groups;
     protected int value;
-    protected boolean showLocation;
-    protected boolean showMapInLocation;
-    protected boolean showTotal;
     // Only used when no piece is defined
     protected String localName;
+    protected FormattedString format;
+    protected CounterNode node;
 
-    public Counter(String name, boolean showTotal) {
-      this(null, null, 0, false, false, showTotal);
+    public Counter(String name) {
+      this(null, null, 0, nonLeafFormat);
       this.localName = name;
     }
 
-    public Counter(GamePiece piece, ArrayList groups, int value, boolean showLocation, boolean showMapInLocation, boolean showTotal) {
+    public Counter(GamePiece piece, ArrayList groups, int value, String format) {
       this.piece = piece;
       this.value = value;
       this.groups = groups;
-      this.showLocation = showLocation;
-      this.showMapInLocation = showMapInLocation;
-      this.showTotal = showTotal;
+      this.format = new FormattedString(format);
     }
 
     // piece can be null, so provide a alternate name
@@ -740,26 +741,7 @@ public class Inventory extends AbstractConfigurable implements GameComponent {
     }
 
     public String toString() {
-      StringBuffer currentName = new StringBuffer(getName());
-      if (showLocation)
-        currentName.append(" (").append(getLocation()).append(")");
-      if (showTotal)
-        currentName.append(" [").append(getValue()).append("]");
-      return currentName.toString();
-    }
-
-    protected String getLocation() {
-      Point pos = piece.getPosition();
-      StringBuffer location = new StringBuffer();
-      // include map is set to false for full location name as it looks ugly
-      location.append(piece.getMap().getFullLocationName(pos, false));
-      if (showMapInLocation) {
-        // add whitespace if piece has location
-        if (location.length() > 0)
-          location.append(" ");
-        location.append(piece.getMap().getMapName());
-      }
-      return location.toString();
+      return format.getText(this);
     }
 
     public String[] getPath() {
@@ -777,14 +759,6 @@ public class Inventory extends AbstractConfigurable implements GameComponent {
       this.value = value;
     }
 
-    public boolean showsLocation() {
-      return showLocation;
-    }
-
-    public void setShowLocation(boolean showLocation) {
-      this.showLocation = showLocation;
-    }
-
     public GamePiece getPiece() {
       return piece;
     }
@@ -793,16 +767,47 @@ public class Inventory extends AbstractConfigurable implements GameComponent {
       this.piece = piece;
     }
 
-    public boolean getShowTotal() {
-      return showTotal;
-    }
-
     public boolean equals(Object o) {
       if (!(o instanceof Counter))
         return false;
       Counter c = (Counter) o;
       return getPath().equals(c.getPath());
     }
+
+    public Object getProperty(Object key) {
+      Object value = null;
+      String s = (String) key;
+      if (s.startsWith("sum_")) {
+        if (piece != null) {
+          value = piece.getProperty(s.substring(4));
+        }
+        else {
+          int sum = 0;
+          int n = results.getChildCount(node);
+          for (int i=0;i<n;++i) {
+            try {
+              CounterNode childNode = (CounterNode) results.getChild(node, i);
+              sum += Integer.parseInt((String) (childNode.getCounter()).getProperty(key));
+            }
+            catch (NumberFormatException e) {
+              sum++;
+            }
+          }
+          value = String.valueOf(sum);
+        }
+      }
+      else if ("PropertyName".equals(s)) {
+        return localName;
+      }
+      else if (piece != null) {
+        value = piece.getProperty(key);
+      }
+      return value;
+    }
+    public void setNode(CounterNode node) {
+      this.node = node;
+    }
+
   }
 
   /**
@@ -812,14 +817,16 @@ public class Inventory extends AbstractConfigurable implements GameComponent {
    */
   protected class Selector implements PieceFilter {
 
-    protected String includeMarker;
     protected String mapList[];
     protected boolean allMaps;
+    protected PieceFilter filter;
 
     public Selector(boolean all, String[] maps, String include) {
       allMaps = all;
       mapList = maps;
-      includeMarker = include;
+      if (include != null && include.length() > 0) {
+        filter = PropertiesPieceFilter.parse(include);
+      }
     }
 
     public boolean accept(GamePiece piece) {
@@ -848,8 +855,8 @@ public class Inventory extends AbstractConfigurable implements GameComponent {
       }
 
       // Check for marker
-      if (includeMarker != null && includeMarker.length() > 0) {
-        return piece.getProperty(includeMarker) != null;
+      if (filter != null) {
+        return filter.accept(piece);
       }
 
       // Default Accept piece
@@ -869,7 +876,6 @@ public class Inventory extends AbstractConfigurable implements GameComponent {
     protected final Counter counter;
     protected List children;
     protected int level;
-
     // protected int depth;
 
     public CounterNode(final String entry, final Counter counter, final int level) {
@@ -882,6 +888,7 @@ public class Inventory extends AbstractConfigurable implements GameComponent {
       // this.depth = 0;
       this.entry = entry;
       this.counter = counter;
+      counter.setNode(this);
       children = new ArrayList();
     }
 
@@ -1042,6 +1049,7 @@ public class Inventory extends AbstractConfigurable implements GameComponent {
         children.remove(removeMe);
       }
     }
+
   }
 
   public class CounterInventory implements TreeModel {
@@ -1084,7 +1092,7 @@ public class Inventory extends AbstractConfigurable implements GameComponent {
       for (int j = 0; path != null && j < path.length; j++) {
         hash.append(path[j]);
         if (inventory.get(hash.toString()) == null) {
-          newNode = new CounterNode(path[j], new Counter(path[j], counter.getShowTotal()), insertNode.getLevel() + 1);
+          newNode = new CounterNode(path[j], new Counter(path[j]), insertNode.getLevel() + 1);
           inventory.put(hash.toString(), newNode);
           insertNode.addChild(newNode);
         }

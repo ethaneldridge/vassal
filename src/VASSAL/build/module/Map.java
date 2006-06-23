@@ -875,7 +875,8 @@ public class Map extends AbstractConfigurable implements GameComponent,
       Enumeration e = getComponents(DrawPile.class);
       while (e.hasMoreElements()) {
         DrawPile d = (DrawPile) e.nextElement();
-        if (d.boundingBox().contains(p)) {
+        Rectangle box = d.boundingBox();
+        if (box != null && box.contains(p)) {
           deck = d.getConfigureName();
           break;
         }
