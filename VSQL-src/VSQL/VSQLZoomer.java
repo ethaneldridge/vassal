@@ -4,15 +4,18 @@ import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.util.Enumeration;
 
 import javax.swing.KeyStroke;
 
 import VASSAL.build.AutoConfigurable;
 import VASSAL.build.Buildable;
+import VASSAL.build.GameModule;
 import VASSAL.build.module.map.Zoomer;
 import VASSAL.configure.Configurer;
 import VASSAL.configure.ConfigurerFactory;
 import VASSAL.configure.IconConfigurer;
+import VASSAL.preferences.Prefs;
 import VASSAL.tools.LaunchButton;
 
 public class VSQLZoomer extends Zoomer {
@@ -107,7 +110,40 @@ public class VSQLZoomer extends Zoomer {
   }
   
   public void setup(boolean gameStarting) {
-    if (!gameStarting) {
+    if (gameStarting) {
+      
+      Prefs prefs = GameModule.getGameModule().getPrefs();
+      
+      int newZoomLevel = ((Integer) prefs.getValue(VSQLProperties.ZOOM_LEVELS)).intValue();
+      int newZoomStart = ((Integer) prefs.getValue(VSQLProperties.ZOOM_START)).intValue();
+      double newZoomFactor = ((Double) prefs.getValue(VSQLProperties.ZOOM_FACTOR)).doubleValue();
+      
+      Enumeration e = GameModule.getGameModule().getComponents(VSQLScenInfo.class);
+      if (e.hasMoreElements()) {
+        VSQLScenInfo info = (VSQLScenInfo) e.nextElement();
+        if (newZoomLevel == 0) {
+          newZoomLevel = info.getDefaultZoomLevels();
+        }
+        if (newZoomStart == 0) {
+          newZoomStart = info.getDefaultZoomStart();
+        }
+        if (newZoomFactor == 0.0) {
+          newZoomFactor = info.getDefaultMagnification();
+        }
+      }  
+      
+      if (newZoomLevel != 0) {
+        setAttribute(MAX, String.valueOf(newZoomLevel));
+      }
+      if (newZoomStart != 0) {
+        setAttribute(ZOOM_START, String.valueOf(newZoomStart));
+      }
+      if (newZoomFactor != 0.0) {
+        setAttribute(FACTOR, String.valueOf(newZoomFactor));
+      }
+      setZoomButtons();       
+    }
+    else {
       zoomLevel = zoomStart-1;
       setZoomButtons();
     }

@@ -18,26 +18,17 @@
  */
 package VSQL;
 
-import java.awt.Component;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.util.Enumeration;
 
-import javax.swing.DefaultComboBoxModel;
 import javax.swing.JCheckBox;
-import javax.swing.JComboBox;
-import javax.swing.JLabel;
-import javax.swing.JPanel;
-
-import VASSAL.build.module.map.boardPicker.Board;
 
 import CASL.Map.GameMap;
 import CASL.VASL.VASLThread;
 import VASSAL.build.Buildable;
 import VASSAL.build.GameModule;
+import VASSAL.build.module.map.boardPicker.Board;
 import VASSAL.build.module.map.boardPicker.board.HexGrid;
 import VASSAL.configure.BooleanConfigurer;
-import VASSAL.configure.Configurer;
 import VASSAL.preferences.Prefs;
 
 /*
@@ -51,27 +42,21 @@ public class VSQLThread extends VASLThread {
   protected SQLGameMap SQLMap;
   protected VSQLMap vmap;
   protected int state = STATE_OFF;
-
-  public static final String VSQL = "VSQL";
-  public static final String RULE_LEVEL = "rulelevel";
-  public static final String SNAP_OPTION = "snapoption";
   
   public static final int STATE_OFF = 0;
   public static final int STATE_VEH = 1;
   public static final int STATE_ALL = 2;
   public static final int STATE_NONE = 3;
 
-  public static final String[] rule_levels = new String[] { "SL", "COI", "COD", "GI" };
-
+ 
   public VSQLThread() {
     super();
 
-    final BooleanConfigurer snapCenter = new BooleanConfigurer(SNAP_OPTION, "Position all counters in center of hex?");
+    final BooleanConfigurer snapCenter = new BooleanConfigurer(VSQLProperties.SNAP_OPTION, "Position all counters in center of hex?");
     final JCheckBox snapBox = findBox(snapCenter.getControls());
-    GameModule.getGameModule().getPrefs().addOption(VSQL, snapCenter);
+    GameModule.getGameModule().getPrefs().addOption(VSQLProperties.VSQL, snapCenter);
 
-     final VSQLStringEnumConfigurer ruleLevel = new VSQLStringEnumConfigurer(RULE_LEVEL, "Rule Level", rule_levels);
-     GameModule.getGameModule().getPrefs().addOption(VSQL, ruleLevel);
+
 
     java.awt.event.ItemListener l = new java.awt.event.ItemListener() {
       public void itemStateChanged(java.awt.event.ItemEvent evt) {
@@ -141,7 +126,7 @@ public class VSQLThread extends VASLThread {
   private void setSnap() {
 
     Prefs prefs = GameModule.getGameModule().getPrefs();
-    boolean centerSnapOnly = ((Boolean) prefs.getValue(SNAP_OPTION)).booleanValue();
+    boolean centerSnapOnly = ((Boolean) prefs.getValue(VSQLProperties.SNAP_OPTION)).booleanValue();
     setSnap(centerSnapOnly);
   }
 
@@ -162,73 +147,5 @@ public class VSQLThread extends VASLThread {
     return r;
   }
 
-  public class VSQLStringEnumConfigurer extends Configurer {
-    private String[] validValues;
-    private JComboBox box;
-    private JPanel panel;
-
-    public VSQLStringEnumConfigurer(String key, String name, String[] validValues) {
-      super(key, name);
-      this.validValues = validValues;
-    }
-
-    public Component getControls() {
-      if (panel == null) {
-        panel = new JPanel();
-        panel.add(new JLabel(name));
-        box = new JComboBox(validValues);
-        if (isValidValue(getValue())) {
-          box.setSelectedItem(getValue());
-        }
-        else if (validValues.length > 0) {
-          box.setSelectedIndex(0);
-        }
-        box.addActionListener(new ActionListener() {
-          public void actionPerformed(ActionEvent e) {
-            noUpdate = true;
-            setValue(box.getSelectedItem());
-            noUpdate = false;
-          }
-        });
-        panel.add(box);
-      }
-      return panel;
-    }
-
-    public boolean isValidValue(Object o) {
-      for (int i = 0; i < validValues.length; ++i) {
-        if (validValues[i].equals(o)) {
-          return true;
-        }
-      }
-      return false;
-    }
-
-    public String[] getValidValues() {
-      return validValues;
-    }
-
-    public void setValidValues(String[] s) {
-      validValues = s;
-      box.setModel(new DefaultComboBoxModel(validValues));
-    }
-
-    public void setValue(Object o) {
-      if (validValues == null || isValidValue(o)) {
-        super.setValue(o);
-        if (!noUpdate && box != null) {
-          box.setSelectedItem(o);
-        }
-      }
-    }
-
-    public String getValueString() {
-      return box != null ? (String) box.getSelectedItem() : validValues[0];
-    }
-
-    public void setValue(String s) {
-      setValue((Object) s);
-    }
-
-  }
+ 
 }

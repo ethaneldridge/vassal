@@ -26,11 +26,14 @@ import VASSAL.build.module.noteswindow.SecretNotesController;
 import VASSAL.command.Command;
 import VASSAL.command.CommandEncoder;
 import VASSAL.configure.Configurer;
+import VASSAL.configure.DoubleConfigurer;
+import VASSAL.configure.IntConfigurer;
 import VASSAL.configure.TextConfigurer;
 import VASSAL.tools.KeyStrokeListener;
 import VASSAL.tools.SequenceEncoder;
 
 import javax.swing.*;
+import javax.swing.JSpinner.DefaultEditor;
 import javax.swing.border.TitledBorder;
 import javax.swing.table.AbstractTableModel;
 import javax.swing.table.TableCellEditor;
@@ -46,6 +49,7 @@ public class VSQLScenInfo extends AbstractBuildable implements GameComponent, Co
 
   protected final String PUBLIC = "PUBLIC_NOTES";
   protected final String OBA = "OBA_INFO";
+  protected final String ZOOM = "ZOOM";
 
   // private JTextField AxisELR, AxisSAN, AlliedELR, AlliedSAN;
   protected FixedTextConfigurer notes;
@@ -54,6 +58,7 @@ public class VSQLScenInfo extends AbstractBuildable implements GameComponent, Co
   protected JButton launch;
   protected JFrame frame;
   protected OBATable oba;
+  protected ZoomInfo zoom;
 
   // private TurnMarker turn;
 
@@ -97,6 +102,7 @@ public class VSQLScenInfo extends AbstractBuildable implements GameComponent, Co
     myPrivate = new TextConfigurer(null, "Private notes: ");
     secretNotes = new SecretNotesController();
     oba = new OBATable();
+    zoom = new ZoomInfo();
 
     JTabbedPane tab = new JTabbedPane();
     tab.setPreferredSize(new Dimension(650, 650));
@@ -104,15 +110,17 @@ public class VSQLScenInfo extends AbstractBuildable implements GameComponent, Co
     JPanel box = new JPanel();
     box.setLayout(new BorderLayout());
     box.add(notes.getControls(), BorderLayout.CENTER);
+    
     JScrollPane scroll = new JScrollPane(oba, JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED, JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
     scroll.setBorder(new TitledBorder("OBA Information:"));
     oba.setPreferredScrollableViewportSize(new Dimension(400, 70));
     box.add(scroll, BorderLayout.SOUTH);
-
+    
     tab.addTab("Scenario", null, box, "Scenario");
     tab.addTab("Public", null, publicNotes.getControls(), "Public");
     tab.addTab("Private", null, myPrivate.getControls(), "Private");
     tab.addTab("Delayed", null, secretNotes.getControls(), "Delayed");
+    tab.addTab("Zoom", null, zoom, "Zoom");
 
     frame.getContentPane().add(tab);
 
@@ -190,7 +198,7 @@ public class VSQLScenInfo extends AbstractBuildable implements GameComponent, Co
 
     SequenceEncoder.Decoder st = new SequenceEncoder.Decoder(in, '\t');
     try {
-      st.nextToken();  // Read throgh old SAN stuff
+      st.nextToken(); // Read throgh old SAN stuff
       st.nextToken();
       st.nextToken();
       st.nextToken();
@@ -213,6 +221,9 @@ public class VSQLScenInfo extends AbstractBuildable implements GameComponent, Co
       }
       else if (id.equals(OBA)) {
         oba.setState(encodedNotes);
+      }
+      else if (id.equals(ZOOM)) {
+        zoom.setState(encodedNotes);
       }
       else {
         StringBuffer buffer = new StringBuffer();
@@ -313,6 +324,8 @@ public class VSQLScenInfo extends AbstractBuildable implements GameComponent, Co
     se.append(publicNotes.getValueString());
     se.append(OBA);
     se.append(oba.getState());
+    se.append(ZOOM);
+    se.append(zoom.getState());
 
     return se.getValue();
   }
@@ -426,7 +439,6 @@ public class VSQLScenInfo extends AbstractBuildable implements GameComponent, Co
       getColumnModel().getColumn(2).setPreferredWidth(300);
       getColumnModel().getColumn(3).setPreferredWidth(80);
 
-
       JComboBox sideBox = new JComboBox();
       sideBox.addItem("");
       sideBox.addItem("Allied");
@@ -448,7 +460,7 @@ public class VSQLScenInfo extends AbstractBuildable implements GameComponent, Co
 
     public TableCellRenderer getCellRenderer(int row, int column) {
       if (column == 3 && side[row].equals("")) {
-          return new BlankRenderer();
+        return new BlankRenderer();
       }
       return super.getCellRenderer(row, column);
     }
@@ -458,18 +470,20 @@ public class VSQLScenInfo extends AbstractBuildable implements GameComponent, Co
       public Component getTableCellRendererComponent(JTable arg0, Object arg1, boolean arg2, boolean arg3, int arg4, int arg5) {
         return null;
       }
-      
     }
-    
-    class SpinnerEditor extends AbstractCellEditor implements TableCellEditor {
+
+    class SpinnerEditor extends AbstractCellEditor implements TableCellEditor, KeyListener {
 
       private static final long serialVersionUID = 1L;
-      SpinnerModel spinnerModel;
-      JSpinner spinner;
+      protected SpinnerModel spinnerModel;
+      protected JSpinner spinner;
+      protected JFormattedTextField spinnerText;
 
       public SpinnerEditor() {
         spinnerModel = new SpinnerNumberModel(0, 0, 9, 1);
         spinner = new JSpinner(spinnerModel);
+        spinnerText = ((DefaultEditor) spinner.getEditor()).getTextField();
+        spinnerText.addKeyListener(this);
       }
 
       public Object getCellEditorValue() {
@@ -479,6 +493,25 @@ public class VSQLScenInfo extends AbstractBuildable implements GameComponent, Co
       public Component getTableCellEditorComponent(JTable table, Object value, boolean isSelected, int row, int column) {
         spinner.setValue((Integer) value);
         return spinner;
+      }
+
+      /*
+       * Workaround for JRE Bug - Spinners in JTables not updating correctly
+       * when values typed in.
+       */
+      public void keyReleased(KeyEvent e) {
+        try {
+          spinnerText.commitEdit();
+        }
+        catch (Exception ex) {
+          spinnerText.setValue(spinner.getValue());
+        }
+      }
+
+      public void keyPressed(KeyEvent e) {
+      }
+
+      public void keyTyped(KeyEvent e) {
       }
     }
 
@@ -568,14 +601,147 @@ public class VSQLScenInfo extends AbstractBuildable implements GameComponent, Co
       }
 
       public boolean isCellEditable(int row, int col) {
-        if (col==0) {
+        if (col == 0) {
           return true;
         }
         else {
           return (!side[row].equals(""));
         }
       }
-
     }
   }
+
+  public int getDefaultZoomLevels() {
+    return zoom == null ? ZoomInfo.DEFAULT_LEVELS : zoom.getZoomLevel();
+  }
+  
+  public int getDefaultZoomStart() {
+    return zoom == null ? ZoomInfo.DEFAULT_START : zoom.getZoomStart();
+  }
+  
+  public double getDefaultMagnification() {
+    return zoom == null ? ZoomInfo.DEFAULT_MAGNIFICATION : zoom.getMagnification();
+  }
+  
+  public class ZoomInfo extends JPanel {
+
+    private static final long serialVersionUID = 1L;
+    protected static final int DEFAULT_LEVELS = 7;
+    protected static final int DEFAULT_START = 3;
+    protected static final double DEFAULT_MAGNIFICATION = 1.25d;
+    
+    protected final ShortIntConfigurer zoomLevels = new ShortIntConfigurer("", "  Number of zoom levels (use 0 for default):  ", null);
+    protected final ShortIntConfigurer zoomStart = new ShortIntConfigurer("", "  Starting Zoom Level (use 0 for default)l:  ", null);
+    protected final ShortDoubleConfigurer magnification = new ShortDoubleConfigurer("", "  Magnification factor (use 0.0 for default):  ", null);
+    
+    public ZoomInfo() {
+      setBorder(new TitledBorder("Scenario Specific Zoom Setup:"));
+      Box box = Box.createVerticalBox();
+
+      box.add(new JLabel("Set specific Zoom settings for this scenario only."));
+      box.add(new JLabel("These settings are saved in the save file."));
+      box.add(new JLabel("May be over-ridden by User-specific Zoom preferences (Edit Preferences -> VSQL)."));
+      box.add(zoomLevels.getControls());
+      box.add(zoomStart.getControls());
+      box.add(magnification.getControls());
+      add(box);
+    }
+
+    public int getZoomLevel() {
+      return zoomLevels.getIntValue(DEFAULT_LEVELS);
+    }
+    
+    public int getZoomStart() {
+      return zoomStart.getIntValue(DEFAULT_START);
+    }
+    
+    public double getMagnification() {
+      double d = DEFAULT_MAGNIFICATION;
+      try {
+        d = new Double(magnification.getValueString()).doubleValue();
+      }
+      catch (Exception e) {
+        
+      }
+      return d;
+    }
+    
+    public String getState() {
+      SequenceEncoder se = new SequenceEncoder(',');
+      se.append(zoomLevels.getValueString()+"");
+      se.append(zoomStart.getValueString()+"");
+      se.append(magnification.getValueString()+"");
+      return se.getValue();
+    }
+
+    public void setState(String state) {
+      SequenceEncoder.Decoder sd = new SequenceEncoder.Decoder(state, ',');
+      String s = sd.nextToken();
+      if (s == null || s.equals("")) {
+        zoomLevels.setValue(null);
+      }
+      else {
+        zoomLevels.setValue(new Integer(s));
+      }
+      zoomStart.setValue(new Integer(sd.nextInt(DEFAULT_START)));
+      magnification.setValue(new Double(sd.nextDouble(DEFAULT_MAGNIFICATION)));
+    }
+    
+  }
+ 
+  public class ShortIntConfigurer extends IntConfigurer {
+    public ShortIntConfigurer(String key, String name, Integer val) {
+      super(key, name, val);
+    }
+    
+    public Component getControls() {
+      if (p == null) {
+        p = new JPanel();
+        p.setLayout(new BoxLayout(p, BoxLayout.X_AXIS));
+        p.add(new JLabel(getName()));
+        nameField = new JTextField(2);
+        nameField.setMaximumSize
+          (new java.awt.Dimension(nameField.getMaximumSize().width,
+                                  nameField.getPreferredSize().height));
+        nameField.setText(getValueString());
+        p.add(nameField);
+        nameField.addKeyListener(new java.awt.event.KeyAdapter() {
+          public void keyReleased(java.awt.event.KeyEvent evt) {
+            noUpdate = true;
+            setValue(nameField.getText());
+            noUpdate = false;
+          }
+        });
+      }
+      return p;
+    }
+  }
+  
+  public class ShortDoubleConfigurer extends DoubleConfigurer {
+    public ShortDoubleConfigurer(String key, String name, Double val) {
+      super(key, name, val);
+    }
+    public Component getControls() {
+      if (p == null) {
+        p = new JPanel();
+        p.setLayout(new BoxLayout(p, BoxLayout.X_AXIS));
+        p.add(new JLabel(getName()));
+        nameField = new JTextField(3);
+        nameField.setMaximumSize
+          (new java.awt.Dimension(nameField.getMaximumSize().width,
+                                  nameField.getPreferredSize().height));
+        nameField.setText(getValueString());
+        p.add(nameField);
+        nameField.addKeyListener(new java.awt.event.KeyAdapter() {
+          public void keyReleased(java.awt.event.KeyEvent evt) {
+            noUpdate = true;
+            setValue(nameField.getText());
+            noUpdate = false;
+          }
+        });
+      }
+      return p;
+    }
+  }
+  
 }

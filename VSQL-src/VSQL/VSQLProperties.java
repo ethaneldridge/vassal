@@ -21,6 +21,16 @@ package VSQL;
 
 public class VSQLProperties {
   
+  public static final String VSQL = "VSQL";
+  
+  // Preferences
+  public static final String SNAP_OPTION = "snapoption";
+  public static final String ZOOM_LEVELS = "zoomLevels";
+  public static final String ZOOM_START = "zoomStart";
+  public static final String ZOOM_FACTOR = "zoomFactor";
+  //public static final String RULE_LEVEL = "rulelevel";
+  //public static final String[] rule_levels = new String[] { "SL", "COI", "COD", "GI" };
+  
   // Political
   public static final String SIDE = "SIDE";
   public static final String NATION = "NATION";
