@@ -19,6 +19,8 @@
 package VASSAL.build.module;
 
 import java.awt.Component;
+import java.awt.Graphics;
+import java.awt.Rectangle;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
@@ -36,6 +38,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.Vector;
 
+import javax.swing.Box;
+import javax.swing.BoxLayout;
+import javax.swing.Icon;
+import javax.swing.JButton;
+import javax.swing.JDialog;
 import javax.swing.JOptionPane;
 import javax.swing.JPopupMenu;
 import javax.swing.JScrollPane;
@@ -47,6 +54,8 @@ import javax.swing.event.TreeModelEvent;
 import javax.swing.event.TreeModelListener;
 import javax.swing.event.TreeSelectionEvent;
 import javax.swing.event.TreeSelectionListener;
+import javax.swing.tree.DefaultTreeCellRenderer;
+import javax.swing.tree.TreeCellRenderer;
 import javax.swing.tree.TreeModel;
 import javax.swing.tree.TreePath;
 import javax.swing.tree.TreeSelectionModel;
@@ -61,11 +70,12 @@ import VASSAL.build.module.map.MenuDisplayer;
 import VASSAL.build.module.properties.PropertySource;
 import VASSAL.command.Command;
 import VASSAL.command.NullCommand;
-import VASSAL.configure.ConfigurerWindow;
+import VASSAL.configure.Configurer;
+import VASSAL.configure.ConfigurerFactory;
+import VASSAL.configure.GamePieceFormattedStringConfigurer;
 import VASSAL.configure.HotKeyConfigurer;
 import VASSAL.configure.StringArrayConfigurer;
 import VASSAL.configure.StringEnum;
-import VASSAL.configure.VisibilityCondition;
 import VASSAL.counters.BoundsTracker;
 import VASSAL.counters.GamePiece;
 import VASSAL.counters.PieceCloner;
@@ -74,13 +84,14 @@ import VASSAL.counters.PieceIterator;
 import VASSAL.counters.Properties;
 import VASSAL.counters.PropertiesPieceFilter;
 import VASSAL.counters.Stack;
+import VASSAL.preferences.PositionOption;
 import VASSAL.tools.FormattedString;
 import VASSAL.tools.LaunchButton;
 
 public class Inventory extends AbstractConfigurable implements GameComponent {
   protected LaunchButton launch;
-  // protected ArrayList counters;
   protected CounterInventory results;
+  protected JTree tree;
 
   public static final String VERSION = "2.0";
   public static final String HOTKEY = "hotkey";
@@ -92,9 +103,7 @@ public class Inventory extends AbstractConfigurable implements GameComponent {
   /*
    * For use in formatted text output.
    */
-  // public static final String MAP_SEPARATOR = "mapSeparator";
   final protected String mapSeparator = "\n";
-  // public static final String GROUP_SEPARATOR = "groupSeparator";
   final protected String groupSeparator = "   ";
 
   /*
@@ -105,37 +114,23 @@ public class Inventory extends AbstractConfigurable implements GameComponent {
   public static final String DEST_TREE = "Tree Window";
   protected String destination = DEST_CHAT;
 
-  /*
-   * Include pieces on named maps Include Offmap pieces? Seperate output by map?
-   * Include pieces with marker Sort and break by Marker Total and report
-   * integer values in marker. Include location of counter?
-   */
-
-  public static final String INCLUDE_ALL_MAPS = "incAllMaps";
-  public boolean incAllMaps = true;
-
-  public static final String MAP_LIST = "mapList";
-  public String[] mapList = new String[0];
-
-  public static final String ZONE_LIST = "zoneList";
-  public String[] zoneList = new String[0];
-
-  public static final String SEPARATE_BY_LOCATION = "separateByLocation";
-  protected boolean separateByLocation = false;
-
-  public static final String INCLUDE_OFFMAP = "incOff";
-
   public static final String FILTER = "include";
   protected String piecePropertiesFilter = "";
 
   public static final String GROUP_BY = "groupBy";
   protected String[] groupBy = {""};
 
-  public static final String TOTAL = "total";
-  protected String nonLeafFormat = "$PropertyName";
+  public static final String NON_LEAF_FORMAT = "nonLeafFormat";
+  protected String nonLeafFormat = "$PropertyValue$";
 
   public static final String CENTERONPIECE = "centerOnPiece";
-  protected boolean centerOnPiece = false;
+  protected boolean centerOnPiece = true;
+
+  public static final String FORWARD_KEYSTROKE = "forwardKeystroke";
+  protected boolean forwardKeystroke = true;
+
+  public static final String SHOW_MENU = "showMenu";
+  protected boolean showMenu = true;
 
   public static final String SIDES = "sides";
   protected String[] sides = null;
@@ -149,13 +144,21 @@ public class Inventory extends AbstractConfigurable implements GameComponent {
   public static final String CUTABOVELEAVES = "cutLeaves";
   protected int cutAboveLeaves = 0;
 
-  protected static final boolean sendHotkeyEvents = true;
+  public static final String LEAF_FORMAT = "leafFormat";
   protected String pieceFormat = "$PieceName$";
+
+  public static final String PIECE_ZOOM = "pieceZoom";
+  protected double pieceZoom = .25;
+
+  public static final String DRAW_PIECES = "drawPieces";
+  protected boolean drawPieces = true;
+
+  protected JDialog frame;
 
   public Inventory() {
     ActionListener al = new ActionListener() {
       public void actionPerformed(ActionEvent e) {
-        generateInventory();
+        launch();
       }
     };
     launch = new LaunchButton(null, BUTTON_TEXT, HOTKEY, ICON, al);
@@ -173,6 +176,160 @@ public class Inventory extends AbstractConfigurable implements GameComponent {
     launch.setAlignmentY(0.0F);
     GameModule.getGameModule().getToolBar().add(getComponent());
     GameModule.getGameModule().getGameState().addGameComponent(this);
+    frame = new JDialog(GameModule.getGameModule().getFrame());
+    frame.setSize(150, 350);
+    frame.setTitle(getConfigureName());
+    String key = "Inventory." + getConfigureName();
+    GameModule.getGameModule().getPrefs().addOption(new PositionOption(key, frame));
+    frame.getContentPane().setLayout(new BoxLayout(frame.getContentPane(), BoxLayout.Y_AXIS));
+    frame.getContentPane().add(initTree());
+    frame.getContentPane().add(initButtons());
+  }
+
+  /**
+   * Construct an explorer like interface for the selected counters
+   */
+  protected Component initTree() {
+    // Initialize the tree to be displayed from the results tree
+    tree = new JTree();
+    tree.setRootVisible(false);
+    tree.setShowsRootHandles(true);
+    tree.setCellRenderer(initTreeCellRenderer());
+    tree.getSelectionModel().setSelectionMode(TreeSelectionModel.SINGLE_TREE_SELECTION);
+    // If wanted center on a selected counter
+    tree.addTreeSelectionListener(new TreeSelectionListener() {
+      public void valueChanged(TreeSelectionEvent e) {
+        if (centerOnPiece) {
+          GamePiece piece = getSelectedCounter();
+          if (piece != null)
+            piece.getMap().centerAt(piece.getPosition());
+        }
+      }
+    });
+    tree.addMouseListener(new MouseAdapter() {
+      public void mouseReleased(MouseEvent e) {
+        if (showMenu && e.isMetaDown()) {
+          final TreePath path = tree.getPathForLocation(e.getX(), e.getY());
+          if (path != null) {
+            if (path.getLastPathComponent() instanceof CounterNode) {
+              final CounterNode node = (CounterNode) path.getLastPathComponent();
+              final GamePiece p = node.getCounter().getPiece();
+              JPopupMenu menu = MenuDisplayer.createPopup(p);
+              menu.addPropertyChangeListener("visible", new PropertyChangeListener() {
+                public void propertyChange(PropertyChangeEvent evt) {
+                  if (Boolean.FALSE.equals(evt.getNewValue())) {
+                    p.setProperty("oldMap", p.getMap());
+                    SwingUtilities.invokeLater(new Runnable() {
+                      public void run() {
+                        refreshIfStructureChanged(p);
+                      }
+                    });
+                  }
+                }
+              });
+              menu.show(tree, e.getX(), e.getY());
+            }
+          }
+        }
+      }
+    });
+    tree.addKeyListener(new HotKeySender());
+
+    JScrollPane scrollPane = new JScrollPane(tree, JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED, JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+    return scrollPane;
+  }
+
+  protected TreeCellRenderer initTreeCellRenderer() {
+    return new DefaultTreeCellRenderer() {
+
+      public Component getTreeCellRendererComponent(JTree tree, Object value, boolean sel, boolean expanded, boolean leaf, int row, boolean hasFocus) {
+
+        super.getTreeCellRendererComponent(tree, value, sel, expanded, leaf, row, hasFocus);
+        if (value instanceof CounterNode) {
+          final GamePiece piece = ((CounterNode) value).getCounter().getPiece();
+          if (piece != null) {
+            final Rectangle r = piece.getShape().getBounds();
+            r.x = (int) Math.round(r.x * pieceZoom);
+            r.y = (int) Math.round(r.y * pieceZoom);
+            r.width = (int) Math.round(r.width * pieceZoom);
+            r.height = (int) Math.round(r.height * pieceZoom);
+            setIcon(new Icon() {
+
+              public int getIconHeight() {
+                return r.height;
+              }
+
+              public int getIconWidth() {
+                return r.width;
+              }
+
+              public void paintIcon(Component c, Graphics g, int x, int y) {
+                piece.draw(g, -r.x, -r.y, c, pieceZoom);
+              }
+
+            });
+          }
+        }
+        return this;
+      }
+
+    };
+  }
+
+  protected Component initButtons() {
+    Box buttonBox = Box.createHorizontalBox();
+    JButton refreshButton = new JButton("Refresh");
+    refreshButton.addActionListener(new ActionListener() {
+      public void actionPerformed(ActionEvent e) {
+        refresh();
+      }
+    });
+    buttonBox.add(refreshButton);
+    JButton closeButton = new JButton("Close");
+    closeButton.addActionListener(new ActionListener() {
+      public void actionPerformed(ActionEvent e) {
+        frame.setVisible(false);
+      }
+    });
+    buttonBox.add(closeButton);
+    return buttonBox;
+  }
+
+  public GamePiece getSelectedCounter() {
+    GamePiece piece = null;
+    CounterNode node = (CounterNode) tree.getLastSelectedPathComponent();
+    if (node != null && node.isLeaf()) {
+      piece = node.getCounter().getPiece();
+    }
+    return piece;
+  }
+
+  protected void refreshIfStructureChanged(final GamePiece newPiece) {
+    boolean structureChanged = true;
+    GamePiece oldPiece = (GamePiece) newPiece.getProperty(Properties.SNAPSHOT);
+    // This is necessary because the cloned snapshot doesn't have its map set
+    VASSAL.build.module.Map oldMap = (VASSAL.build.module.Map) newPiece.getProperty("oldMap");
+    if (oldPiece != null) {
+      if (oldMap == null ? newPiece.getMap() == null : oldMap.equals(newPiece.getMap())) {
+        int i = 0;
+        for (i = 0; i < groupBy.length; i++) {
+          // We've already established that the map is the same
+          if (!"CurrentMap".equals(groupBy[i])) {
+            Object oldValue = oldPiece.getProperty(groupBy[i]);
+            Object newValue = newPiece.getProperty(groupBy[i]);
+            if (oldValue == null ? newValue != null : !oldValue.equals(newValue)) {
+              break;
+            }
+          }
+        }
+        if (i == groupBy.length) {
+          structureChanged = false;
+        }
+      }
+    }
+    if (structureChanged) {
+      refresh();
+    }
   }
 
   protected Component getComponent() {
@@ -190,21 +347,18 @@ public class Inventory extends AbstractConfigurable implements GameComponent {
   public void remove(Buildable b) {
   }
 
-  protected void generateInventory() {
-    buildTree();
-
-    Command c = new DisplayResults(results, destination);
-    c.execute();
-    GameModule.getGameModule().sendAndLog(c);
+  protected void launch() {
+    refresh();
+    frame.setVisible(true);
   }
 
-  private void buildTree() {
+  private void buildTreeModel() {
     ArrayList path = new ArrayList();
     for (int i = 0; i < groupBy.length; i++)
       path.add(groupBy[i]);
     results = new CounterInventory(new Counter(this.getConfigureName()), path);
 
-    PieceIterator pi = new PieceIterator(GameModule.getGameModule().getGameState().getPieces(), new Selector(incAllMaps, mapList, piecePropertiesFilter));
+    PieceIterator pi = new PieceIterator(GameModule.getGameModule().getGameState().getPieces(), new Selector(piecePropertiesFilter));
 
     while (pi.hasMoreElements()) {
       ArrayList groups = new ArrayList();
@@ -251,20 +405,25 @@ public class Inventory extends AbstractConfigurable implements GameComponent {
   }
 
   public String[] getAttributeDescriptions() {
-    return new String[] {"Name", "Button text", "Button icon", "Hotkey", "Report Destination", "Include Counters from All Maps?",
-        "Include Counters from these Maps only", // "Separate Output by Map?",
-        "Show only pieces matching these properties", "Sort and Group By Marker", "Label for folders", 
-        "Center on piece?", "Sides", "Key Command", "Cut tree at depth", "Cut tree above leaves"};
+    return new String[] {"Name", "Button text", "Button icon", "Hotkey", "Report Destination", "Show only pieces matching these properties",
+        "Sort and Group By Marker", "Label for pieces", "Label for folders", "Center on selected piece", "Forward key strokes to selected piece",
+        "Show right-click menu of piece", "Draw pieces", "Zoom factor", "Sides", "Cut tree at depth", "Cut tree above leaves"};
   }
 
   public Class[] getAttributeTypes() {
-    return new Class[] {String.class, String.class, IconConfig.class, KeyStroke.class, Dest.class, Boolean.class, String[].class, // Boolean.class,
-        String.class, String[].class, String.class, Boolean.class, String[].class, KeyStroke.class, Integer.class, Integer.class};
+    return new Class[] {String.class, String.class, IconConfig.class, KeyStroke.class, Dest.class, String.class, String[].class, PieceFormatConfig.class,
+        String.class, Boolean.class, Boolean.class, Boolean.class, Boolean.class, Double.class, String[].class, Integer.class, Integer.class};
   }
 
   public String[] getAttributeNames() {
-    return new String[] {NAME, BUTTON_TEXT, ICON, HOTKEY, DEST, INCLUDE_ALL_MAPS, MAP_LIST, // SEPARATE_BY_MAP,
-        FILTER, GROUP_BY, TOTAL, CENTERONPIECE, SIDES, KEYSTROKE, CUTBELOWROOT, CUTABOVELEAVES};
+    return new String[] {NAME, BUTTON_TEXT, ICON, HOTKEY, DEST, FILTER, GROUP_BY, LEAF_FORMAT, NON_LEAF_FORMAT, CENTERONPIECE, FORWARD_KEYSTROKE, SHOW_MENU,
+        DRAW_PIECES, PIECE_ZOOM, SIDES, CUTBELOWROOT, CUTABOVELEAVES};
+  }
+
+  public static class PieceFormatConfig implements ConfigurerFactory {
+    public Configurer getConfigurer(AutoConfigurable c, String key, String name) {
+      return new GamePieceFormattedStringConfigurer(key, name);
+    }
   }
 
   public void setAttribute(String key, Object o) {
@@ -276,15 +435,6 @@ public class Inventory extends AbstractConfigurable implements GameComponent {
     else if (DEST.equals(key)) {
       destination = (String) o;
     }
-    else if (INCLUDE_ALL_MAPS.equals(key)) {
-      incAllMaps = getBooleanValue(o);
-    }
-    else if (MAP_LIST.equals(key)) {
-      if (o instanceof String) {
-        o = StringArrayConfigurer.stringToArray((String) o);
-      }
-      mapList = (String[]) o;
-    }
     else if (FILTER.equals(key)) {
       piecePropertiesFilter = (String) o;
     }
@@ -294,11 +444,29 @@ public class Inventory extends AbstractConfigurable implements GameComponent {
       }
       groupBy = (String[]) o;
     }
-    else if (TOTAL.equals(key)) {
+    else if (NON_LEAF_FORMAT.equals(key)) {
       nonLeafFormat = (String) o;
+    }
+    else if (LEAF_FORMAT.equals(key)) {
+      pieceFormat = (String) o;
     }
     else if (CENTERONPIECE.equals(key)) {
       centerOnPiece = getBooleanValue(o);
+    }
+    else if (SHOW_MENU.equals(key)) {
+      showMenu = getBooleanValue(o);
+    }
+    else if (DRAW_PIECES.equals(key)) {
+      drawPieces = getBooleanValue(o);
+    }
+    else if (PIECE_ZOOM.equals(key)) {
+      if (o instanceof String) {
+        o = Double.valueOf((String) o);
+      }
+      pieceZoom = ((Double) o).doubleValue();
+    }
+    else if (FORWARD_KEYSTROKE.equals(key)) {
+      forwardKeystroke = getBooleanValue(o);
     }
     else if (SIDES.equals(key)) {
       if (o instanceof String) {
@@ -349,23 +517,32 @@ public class Inventory extends AbstractConfigurable implements GameComponent {
     else if (DEST.equals(key)) {
       return destination;
     }
-    else if (INCLUDE_ALL_MAPS.equals(key)) {
-      return incAllMaps + "";
-    }
-    else if (MAP_LIST.equals(key)) {
-      return StringArrayConfigurer.arrayToString(mapList);
-    }
     else if (FILTER.equals(key)) {
       return piecePropertiesFilter;
     }
     else if (GROUP_BY.equals(key)) {
       return StringArrayConfigurer.arrayToString(groupBy);
     }
-    else if (TOTAL.equals(key)) {
+    else if (NON_LEAF_FORMAT.equals(key)) {
       return nonLeafFormat;
     }
+    else if (LEAF_FORMAT.equals(key)) {
+      return pieceFormat;
+    }
     else if (CENTERONPIECE.equals(key)) {
-      return centerOnPiece + "";
+      return String.valueOf(centerOnPiece);
+    }
+    else if (FORWARD_KEYSTROKE.equals(key)) {
+      return String.valueOf(forwardKeystroke);
+    }
+    else if (SHOW_MENU.equals(key)) {
+      return String.valueOf(showMenu);
+    }
+    else if (DRAW_PIECES.equals(key)) {
+      return String.valueOf(drawPieces);
+    }
+    else if (PIECE_ZOOM.equals(key)) {
+      return String.valueOf(pieceZoom);
     }
     else if (SIDES.equals(key)) {
       return StringArrayConfigurer.arrayToString(sides);
@@ -382,23 +559,6 @@ public class Inventory extends AbstractConfigurable implements GameComponent {
 
     else {
       return launch.getAttributeValueString(key);
-    }
-  }
-
-  public VisibilityCondition getAttributeVisibility(String name) {
-    if (MAP_LIST.equals(name)) {
-      return new VisibilityCondition() {
-        public boolean shouldBeVisible() {
-          return !incAllMaps;
-        }
-      };
-    }
-    else {
-      return new VisibilityCondition() {
-        public boolean shouldBeVisible() {
-          return true;
-        }
-      };
     }
   }
 
@@ -420,278 +580,107 @@ public class Inventory extends AbstractConfigurable implements GameComponent {
     return false;
   }
 
-  public class DisplayResults extends Command {
-
-    CounterInventory results;
-    String destination;
-    JTree tree;
-
-    public DisplayResults(CounterInventory results, String destination) {
-      this.results = results;
-      this.destination = destination;
-    }
-
-    protected void executeCommand() {
-      if (destination.equals(DEST_CHAT)) {
-        Command c = new NullCommand();
-        String res[] = results.getResultStringArray();
-
-        for (int i = 0; i < res.length; i++) {
-          c.append(new Chatter.DisplayText(GameModule.getGameModule().getChatter(), res[i]));
-        }
-        c.execute();
-        GameModule.getGameModule().sendAndLog(c);
-      }
-      else if (destination.equals(DEST_DIALOG)) {
-        String res[] = results.getResultStringArray();
-        String text = "";
-        for (int i = 0; i < res.length; i++) {
-          text += res[i] + "\n";
-        }
-        JTextArea textArea = new JTextArea(text);
-        textArea.setEditable(false);
-
-        JScrollPane scrollPane = new JScrollPane(textArea, JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED, JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
-
-        JOptionPane.showMessageDialog(GameModule.getGameModule().getFrame(), scrollPane, getConfigureName(), JOptionPane.PLAIN_MESSAGE);
-      }
-      else if (destination.equals(DEST_TREE)) {
-        showTree();
-      }
-    }
-
-    /**
-     * Construct an explorer like interface for the selected counters
-     */
-    protected void showTree() {
-      // Initialize the tree to be displayed from the results tree
-      tree = new JTree(results); // .getRoot());
-      tree.getSelectionModel().setSelectionMode(TreeSelectionModel.SINGLE_TREE_SELECTION);
-      // tree.getSelectionModel().setSelectionMode(TreeSelectionModel.DISCONTIGUOUS_TREE_SELECTION);
-      // If wanted center on a selected counter
-      if (centerOnPiece) {
-        tree.addTreeSelectionListener(new TreeSelectionListener() {
-          public void valueChanged(TreeSelectionEvent e) {
-            GamePiece piece = getSelectedCounter();
-            if (piece != null)
-              piece.getMap().centerAt(piece.getPosition());
-          }
-        });
-      }
-
-      tree.addMouseListener(new MouseAdapter() {
-
-        public void mouseReleased(MouseEvent e) {
-          if (e.isMetaDown()) {
-            final TreePath path = tree.getPathForLocation(e.getX(), e.getY());
-            if (path != null) {
-              if (path.getLastPathComponent() instanceof CounterNode) {
-                final CounterNode node = (CounterNode) path.getLastPathComponent();
-                final GamePiece p = node.getCounter().getPiece();
-                JPopupMenu menu = MenuDisplayer.createPopup(p);
-                menu.addPropertyChangeListener("visible",new PropertyChangeListener() {
-                  public void propertyChange(PropertyChangeEvent evt) {
-                    if (Boolean.FALSE.equals(evt.getNewValue())) {
-                      p.setProperty("oldMap",p.getMap());
-                      SwingUtilities.invokeLater(new Runnable() {
-                        public void run() {
-                          updateTree(p);
-                        }
-                      });
-                    }
-                  }
-                });
-                menu.show(tree, e.getX(), e.getY());
-              }
-            }
-          }
-        }
-      });
-      // Not working at the moment
-      // How to get from keycode to keystrokes?
-      // disabled by sendHotkeyEvents
-      if (sendHotkeyEvents) {
-        tree.addKeyListener(new HotKeySender());
-      }
-
-      JScrollPane scrollPane = new JScrollPane(tree, JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED, JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
-
-      int choice = getOptionsDialog(scrollPane);
-
+  protected void executeCommand() {
+    if (destination.equals(DEST_CHAT)) {
       Command c = new NullCommand();
-      if (choice == JOptionPane.YES_OPTION) {
-        // Send the hotKey to the involved pieces
-        c.append(sendHotKeyToPieces(keyStroke));
-      }
-      else if (choice == JOptionPane.NO_OPTION) {
-        // c.append(new
-        // Chatter.DisplayText(GameModule.getGameModule().getChatter(),
-        // "Cancelled."));
-      }
-      else if (choice == JOptionPane.CANCEL_OPTION) {
-        // This is not working at all :(
-        if (groupBy == null || groupBy.length == 0) {
-          JOptionPane.showMessageDialog(GameModule.getGameModule().getFrame(),
-              "Sorry, no tree layout can be defined, as there are neither markers nor map or zones defined.", "Custom Tree Layout Warning",
-              JOptionPane.WARNING_MESSAGE);
-        }
-        else {
-          // c.append(new
-          // Chatter.DisplayText(GameModule.getGameModule().getChatter(),
-          // "Customize tree layout"));
-          // SortedListConfigurer configurer = new
-          // SortedListConfigurer(groupBy);
-          // groupBy = configurer.showList();
-          StringArrayConfigurer config = new StringArrayConfigurer(null, "Order", groupBy);
-          ConfigurerWindow w = new ConfigurerWindow(config);
-          w.setLocationRelativeTo(GameModule.getGameModule().getFrame());
-          w.setVisible(true);
-          groupBy = config.getStringArray();
-        }
-      }
-      else {
-        // Probably the window has been destroyed
-        // do nothing.
+      String res[] = results.getResultStringArray();
+
+      for (int i = 0; i < res.length; i++) {
+        c.append(new Chatter.DisplayText(GameModule.getGameModule().getChatter(), res[i]));
       }
       c.execute();
       GameModule.getGameModule().sendAndLog(c);
-
     }
-
-    /**
-     * Chose the right option dialog. If there is no hotkey defined, only allow
-     * ok. If there is no groupBy (path) defined, present Apply and Cancel. Else
-     * add show complete Options.
-     * 
-     * @param pane
-     *          contains the tree output
-     * @return the choice made
-     */
-    protected int getOptionsDialog(JScrollPane pane) {
-      final String[] options;
-      final int choice;
-      if ((groupBy == null || groupBy.length == 0) && (keyStroke == null)) {
-        options = new String[] {"Ok"};
-        choice = JOptionPane.showOptionDialog(GameModule.getGameModule().getFrame(), pane, getConfigureName(), JOptionPane.YES_OPTION,
-            JOptionPane.PLAIN_MESSAGE, null, options, options[0]);
+    else if (destination.equals(DEST_DIALOG)) {
+      String res[] = results.getResultStringArray();
+      String text = "";
+      for (int i = 0; i < res.length; i++) {
+        text += res[i] + "\n";
       }
-      else if (groupBy == null || groupBy.length == 0) {
-        // TODO: Doesn't work?
-        options = new String[] {"Apply", "Cancel"};
-        choice = JOptionPane.showOptionDialog(GameModule.getGameModule().getFrame(), pane, getConfigureName(), JOptionPane.YES_NO_CANCEL_OPTION,
-            JOptionPane.PLAIN_MESSAGE, null, options, options[0]);
+      JTextArea textArea = new JTextArea(text);
+      textArea.setEditable(false);
+
+      JScrollPane scrollPane = new JScrollPane(textArea, JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED, JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+
+      JOptionPane.showMessageDialog(GameModule.getGameModule().getFrame(), scrollPane, getConfigureName(), JOptionPane.PLAIN_MESSAGE);
+    }
+    else if (destination.equals(DEST_TREE)) {
+      initTree();
+    }
+  }
+
+  /**
+   * @return Command which only has some text in. The actual processing is done
+   *         within the pieces.
+   */
+  protected Command sendHotKeyToPieces(final KeyStroke keyStroke) {
+    Command c = new NullCommand();
+    final TreePath[] tp = tree.getSelectionPaths();
+    // set to not get duplicates
+    HashSet pieces = new HashSet();
+    for (int i = 0; i < tp.length; i++) {
+      CounterNode node = (CounterNode) tp[i].getLastPathComponent();
+      if (node.isLeaf()) {
+        pieces.add(node.getCounter().getPiece());
       }
       else {
-        options = new String[] {"Apply", "Cancel", "Customize"};
-        choice = JOptionPane.showOptionDialog(GameModule.getGameModule().getFrame(), pane, getConfigureName(), JOptionPane.YES_NO_CANCEL_OPTION,
-            JOptionPane.PLAIN_MESSAGE, null, options, options[0]);
-      }
-      return choice;
-    }
-
-    /**
-     * @return Command which only has some text in. The actual processing is
-     *         done within the pieces.
-     */
-    protected Command sendHotKeyToPieces(final KeyStroke keyStroke) {
-      Command c = new NullCommand();
-      final TreePath[] tp = tree.getSelectionPaths();
-      // set to not get duplicates
-      HashSet pieces = new HashSet();
-      for (int i = 0; i < tp.length; i++) {
-        CounterNode node = (CounterNode) tp[i].getLastPathComponent();
-        if (node.isLeaf()) {
-          pieces.add(node.getCounter().getPiece());
-        }
-        else {
-          for (Iterator j = node.iterator(); j.hasNext();) {
-            CounterNode childNode = (CounterNode) j.next();
-            if (childNode.isLeaf())
-              pieces.add(childNode.getCounter().getPiece());
-          }
+        for (Iterator j = node.iterator(); j.hasNext();) {
+          CounterNode childNode = (CounterNode) j.next();
+          if (childNode.isLeaf())
+            pieces.add(childNode.getCounter().getPiece());
         }
       }
-      for (Iterator i = pieces.iterator(); i.hasNext();) {
-        GamePiece piece = (GamePiece) i.next();
-        GameModule.getGameModule().sendAndLog(piece.keyEvent(keyStroke));
-      }
-      return c;
     }
-
-    protected Command myUndoCommand() {
-      return null;
+    for (Iterator i = pieces.iterator(); i.hasNext();) {
+      GamePiece piece = (GamePiece) i.next();
+      GameModule.getGameModule().sendAndLog(piece.keyEvent(keyStroke));
     }
+    return c;
+  }
 
-    public GamePiece getSelectedCounter() {
-      GamePiece piece = null;
-      CounterNode node = (CounterNode) tree.getLastSelectedPathComponent();
-      if (node != null && node.isLeaf()) {
-        piece = node.getCounter().getPiece();
-      }
-      return piece;
-    }
+  protected Command myUndoCommand() {
+    return null;
+  }
 
-    protected void updateTree(final GamePiece newPiece) {
-      boolean structureChanged = true;
-      GamePiece oldPiece = (GamePiece) newPiece.getProperty(Properties.SNAPSHOT);
-      VASSAL.build.module.Map oldMap = (VASSAL.build.module.Map)newPiece.getProperty("oldMap"); 
-      if (oldPiece != null) {
-        if (oldMap == null ?  newPiece.getMap() == null : oldMap.equals(newPiece.getMap())) {
-          int i=0;
-          for (i = 0; i < groupBy.length; i++) {
-            Object oldValue = oldPiece.getProperty(groupBy[i]);
-            Object newValue = newPiece.getProperty(groupBy[i]);
-            if (oldValue == null ? newValue != null : !oldValue.equals(newValue)) {
-              break; 
-            }
-          }
-          if (i == groupBy.length) {
-            structureChanged = false;
-          }
-        }
-      }
-      if (structureChanged) {
-        buildTree();
-        results = Inventory.this.results;
-        tree.setModel(results);
-      }
-    }
+  private void refresh() {
+    buildTreeModel();
+    tree.setModel(results);
+  }
 
-    public class HotKeySender implements KeyListener {
+  public class HotKeySender implements KeyListener {
 
-      public void keyCommand(KeyStroke stroke) {
+    public void keyCommand(KeyStroke stroke) {
+      if (forwardKeystroke) {
         GamePiece p = getSelectedCounter();
         if (p != null) {
           // Save state first
           p.setProperty(Properties.SNAPSHOT, PieceCloner.getInstance().clonePiece(p));
-          p.setProperty("oldMap",p.getMap());
+          p.setProperty("oldMap", p.getMap());
           BoundsTracker t = new BoundsTracker();
           t.addPiece(p);
           Command comm = p.keyEvent(stroke);
           if (comm != null) {
             t.repaint();
             GameModule.getGameModule().sendAndLog(comm);
-            updateTree(p);
+            refreshIfStructureChanged(p);
           }
         }
       }
+    }
 
-      public void keyPressed(KeyEvent e) {
-        keyCommand(KeyStroke.getKeyStrokeForEvent(e));
-      }
+    public void keyPressed(KeyEvent e) {
+      keyCommand(KeyStroke.getKeyStrokeForEvent(e));
+    }
 
-      public void keyReleased(KeyEvent e) {
-        keyCommand(KeyStroke.getKeyStrokeForEvent(e));
-      }
+    public void keyReleased(KeyEvent e) {
+      keyCommand(KeyStroke.getKeyStrokeForEvent(e));
+    }
 
-      public void keyTyped(KeyEvent e) {
-        keyCommand(KeyStroke.getKeyStrokeForEvent(e));
-      }
-
+    public void keyTyped(KeyEvent e) {
+      keyCommand(KeyStroke.getKeyStrokeForEvent(e));
     }
 
   }
-
   public static class Dest extends StringEnum {
     public String[] getValidValues(AutoConfigurable target) {
       return new String[] {DEST_CHAT, DEST_DIALOG, DEST_TREE};
@@ -784,7 +773,7 @@ public class Inventory extends AbstractConfigurable implements GameComponent {
         else {
           int sum = 0;
           int n = results.getChildCount(node);
-          for (int i=0;i<n;++i) {
+          for (int i = 0; i < n; ++i) {
             try {
               CounterNode childNode = (CounterNode) results.getChild(node, i);
               sum += Integer.parseInt((String) (childNode.getCounter()).getProperty(key));
@@ -796,7 +785,7 @@ public class Inventory extends AbstractConfigurable implements GameComponent {
           value = String.valueOf(sum);
         }
       }
-      else if ("PropertyName".equals(s)) {
+      else if ("PropertyValue".equals(s)) {
         return localName;
       }
       else if (piece != null) {
@@ -804,6 +793,7 @@ public class Inventory extends AbstractConfigurable implements GameComponent {
       }
       return value;
     }
+
     public void setNode(CounterNode node) {
       this.node = node;
     }
@@ -817,13 +807,9 @@ public class Inventory extends AbstractConfigurable implements GameComponent {
    */
   protected class Selector implements PieceFilter {
 
-    protected String mapList[];
-    protected boolean allMaps;
     protected PieceFilter filter;
 
-    public Selector(boolean all, String[] maps, String include) {
-      allMaps = all;
-      mapList = maps;
+    public Selector(String include) {
       if (include != null && include.length() > 0) {
         filter = PropertiesPieceFilter.parse(include);
       }
@@ -842,17 +828,6 @@ public class Inventory extends AbstractConfigurable implements GameComponent {
       // Don't report pieces with no map
       if (piece.getMap() == null)
         return false;
-
-      // If a list of Maps supplied, check map names match
-      if (!allMaps && mapList != null && mapList.length > 0) {
-        String mapName = piece.getMap().getMapName();
-        boolean found = false;
-        for (int i = 0; i < mapList.length && !found; i++) {
-          found = mapName.equals(mapList[i]);
-        }
-        if (!found)
-          return false;
-      }
 
       // Check for marker
       if (filter != null) {
@@ -876,6 +851,7 @@ public class Inventory extends AbstractConfigurable implements GameComponent {
     protected final Counter counter;
     protected List children;
     protected int level;
+
     // protected int depth;
 
     public CounterNode(final String entry, final Counter counter, final int level) {
@@ -921,36 +897,13 @@ public class Inventory extends AbstractConfigurable implements GameComponent {
       else
         name.append(getEntry());
 
-      // if (includeChildrenInResult() == true) {
       for (Iterator i = children.iterator(); i.hasNext();) {
         CounterNode child = (CounterNode) i.next();
         name.append(child.toResultString());
       }
-      // }
       return name.toString();
     }
 
-    // private boolean includeChildrenInResult() {
-    // if (cutAboveLeaves > 0 && getDepth() <= cutAboveLeaves)
-    // return false;
-    // if (cutBelowRoot > 0 && getLevel() >= cutBelowRoot)
-    // return false;
-    // return true;
-    // }
-
-    // protected int getDepth() {
-    // return calcDepth();
-    // }
-    // protected int calcDepth() {
-    // int newDepth = 0;
-    // for (Iterator i = children.iterator(); i.hasNext();) {
-    // CounterNode child = (CounterNode) i.next();
-    // if (newDepth < child.getDepth()+1)
-    // newDepth = child.getDepth()+1;
-    // }
-    // // System.out.println(entry + " is now at depth " + newDepth);
-    // return newDepth;
-    // }
     public String getEntry() {
       return entry;
     }
@@ -1108,19 +1061,6 @@ public class Inventory extends AbstractConfigurable implements GameComponent {
     }
 
     /**
-     * Helping method to obtain a text based representation of the data stored.
-     * There is no total calculated for all counters on all maps, as there is no
-     * entry in inventory for this.
-     */
-    // protected void generateTextResult() {
-    // StringBuffer resultBuffer = new StringBuffer(); // name + mapSeparator);
-    //			
-    // if (showTotal)
-    // updateEntries();
-    // resultBuffer.append(root.toResultString());
-    // resultString = resultBuffer.toString();
-    // }
-    /**
      * Deliver information of the tree as text.
      * 
      * @return String
@@ -1128,7 +1068,6 @@ public class Inventory extends AbstractConfigurable implements GameComponent {
     public String getResultString() {
       if (changed)
         updateTree();
-      // generateTextResult();
       changed = false;
       return root.toResultString();
     }

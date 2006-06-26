@@ -2,8 +2,6 @@ package VASSAL.command;
 
 import java.awt.Point;
 
-import javax.swing.text.StyledEditorKit.UnderlineAction;
-
 import VASSAL.build.GameModule;
 import VASSAL.build.module.GlobalOptions;
 import VASSAL.build.module.Map;
