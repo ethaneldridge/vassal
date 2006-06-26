@@ -36,6 +36,7 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.Vector;
 
 import javax.swing.Box;
@@ -218,10 +219,9 @@ public class Inventory extends AbstractConfigurable implements GameComponent {
               menu.addPropertyChangeListener("visible", new PropertyChangeListener() {
                 public void propertyChange(PropertyChangeEvent evt) {
                   if (Boolean.FALSE.equals(evt.getNewValue())) {
-                    p.setProperty("oldMap", p.getMap());
                     SwingUtilities.invokeLater(new Runnable() {
                       public void run() {
-                        refreshIfStructureChanged(p);
+                        refresh();
                       }
                     });
                   }
@@ -302,34 +302,6 @@ public class Inventory extends AbstractConfigurable implements GameComponent {
       piece = node.getCounter().getPiece();
     }
     return piece;
-  }
-
-  protected void refreshIfStructureChanged(final GamePiece newPiece) {
-    boolean structureChanged = true;
-    GamePiece oldPiece = (GamePiece) newPiece.getProperty(Properties.SNAPSHOT);
-    // This is necessary because the cloned snapshot doesn't have its map set
-    VASSAL.build.module.Map oldMap = (VASSAL.build.module.Map) newPiece.getProperty("oldMap");
-    if (oldPiece != null) {
-      if (oldMap == null ? newPiece.getMap() == null : oldMap.equals(newPiece.getMap())) {
-        int i = 0;
-        for (i = 0; i < groupBy.length; i++) {
-          // We've already established that the map is the same
-          if (!"CurrentMap".equals(groupBy[i])) {
-            Object oldValue = oldPiece.getProperty(groupBy[i]);
-            Object newValue = newPiece.getProperty(groupBy[i]);
-            if (oldValue == null ? newValue != null : !oldValue.equals(newValue)) {
-              break;
-            }
-          }
-        }
-        if (i == groupBy.length) {
-          structureChanged = false;
-        }
-      }
-    }
-    if (structureChanged) {
-      refresh();
-    }
   }
 
   protected Component getComponent() {
@@ -643,29 +615,58 @@ public class Inventory extends AbstractConfigurable implements GameComponent {
   }
 
   private void refresh() {
+    // Make an attempt to keep the same nodes expanded
+    Set expanded = new HashSet();
+    for (int i=0,n=tree.getRowCount();i<n;++i) {
+      if (tree.isExpanded(i)) {
+        expanded.add(tree.getPathForRow(i).getLastPathComponent().toString());
+      }
+    }
     buildTreeModel();
     tree.setModel(results);
+    for (int i=0;i<tree.getRowCount();++i) {
+      if (expanded.contains(tree.getPathForRow(i).getLastPathComponent().toString())) {
+        tree.expandRow(i);
+      }
+    }
   }
 
   public class HotKeySender implements KeyListener {
-
+    BoundsTracker tracker;
     public void keyCommand(KeyStroke stroke) {
       if (forwardKeystroke) {
-        GamePiece p = getSelectedCounter();
-        if (p != null) {
-          // Save state first
-          p.setProperty(Properties.SNAPSHOT, PieceCloner.getInstance().clonePiece(p));
-          p.setProperty("oldMap", p.getMap());
-          BoundsTracker t = new BoundsTracker();
-          t.addPiece(p);
-          Command comm = p.keyEvent(stroke);
-          if (comm != null) {
-            t.repaint();
+        CounterNode node = (CounterNode) tree.getLastSelectedPathComponent();
+        if (node != null) {
+          Command comm = getCommand(node,stroke);
+          if (comm != null && !comm.isNull()) {
+            tracker.repaint();
             GameModule.getGameModule().sendAndLog(comm);
-            refreshIfStructureChanged(p);
+            tracker = null;
+            refresh();
           }
         }
       }
+    }
+    
+    protected Command getCommand(CounterNode node, KeyStroke stroke) {
+      GamePiece p = node.getCounter() == null ? null : node.getCounter().getPiece();
+      Command comm = null;
+      if (p != null) {
+        // Save state first
+        p.setProperty(Properties.SNAPSHOT, PieceCloner.getInstance().clonePiece(p));
+        if (tracker == null) {
+          tracker = new BoundsTracker();
+          tracker.addPiece(p);
+        }
+        comm = p.keyEvent(stroke);
+      }
+      else {
+        comm = new NullCommand();
+        for (int i=0,n=node.getChildCount();i<n;++i) {
+          comm = comm.append(getCommand((CounterNode) node.getChild(i),stroke));
+        }
+      }
+      return comm;
     }
 
     public void keyPressed(KeyEvent e) {
