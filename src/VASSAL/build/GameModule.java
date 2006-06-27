@@ -52,7 +52,7 @@ import VASSAL.build.module.Documentation;
 import VASSAL.build.module.GameState;
 import VASSAL.build.module.GlobalKeyCommand;
 import VASSAL.build.module.GlobalOptions;
-import VASSAL.build.module.InternetDiceButton;
+import VASSAL.build.module.Inventory;
 import VASSAL.build.module.Map;
 import VASSAL.build.module.ModuleExtension;
 import VASSAL.build.module.NotesWindow;
@@ -260,7 +260,7 @@ public abstract class GameModule extends AbstractConfigurable implements Command
   }
 
   public Class[] getAllowableConfigureComponents() {
-    Class[] c = {Map.class, PieceWindow.class, PrototypesContainer.class, ToolbarMenu.class, GlobalKeyCommand.class, DiceButton.class, InternetDiceButton.class,
+    Class[] c = {Map.class, PieceWindow.class, PrototypesContainer.class, ToolbarMenu.class, DiceButton.class, GlobalKeyCommand.class, Inventory.class, /*InternetDiceButton.class,*/
                  RandomTextButton.class, SpecialDiceButton.class, PredefinedSetup.class, ChartWindow.class, PrivateMap.class, PlayerHand.class, NotesWindow.class};
     return c;
   }

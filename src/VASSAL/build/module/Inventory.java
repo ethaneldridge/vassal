@@ -65,7 +65,6 @@ import VASSAL.build.AbstractConfigurable;
 import VASSAL.build.AutoConfigurable;
 import VASSAL.build.Buildable;
 import VASSAL.build.GameModule;
-import VASSAL.build.module.DiceButton.IconConfig;
 import VASSAL.build.module.documentation.HelpFile;
 import VASSAL.build.module.map.MenuDisplayer;
 import VASSAL.build.module.properties.PropertySource;
@@ -75,8 +74,10 @@ import VASSAL.configure.Configurer;
 import VASSAL.configure.ConfigurerFactory;
 import VASSAL.configure.GamePieceFormattedStringConfigurer;
 import VASSAL.configure.HotKeyConfigurer;
+import VASSAL.configure.IconConfigurer;
 import VASSAL.configure.StringArrayConfigurer;
 import VASSAL.configure.StringEnum;
+import VASSAL.configure.VisibilityCondition;
 import VASSAL.counters.BoundsTracker;
 import VASSAL.counters.GamePiece;
 import VASSAL.counters.PieceCloner;
@@ -99,6 +100,7 @@ public class Inventory extends AbstractConfigurable implements GameComponent {
   public static final String BUTTON_TEXT = "text";
   public static final String NAME = "name";
   public static final String ICON = "icon";
+  public static final String TOOLTIP = "tooltip";
   public static final String DEST = "destination";
 
   /*
@@ -113,7 +115,7 @@ public class Inventory extends AbstractConfigurable implements GameComponent {
   public static final String DEST_CHAT = "Chat Window";
   public static final String DEST_DIALOG = "Dialog Window";
   public static final String DEST_TREE = "Tree Window";
-  protected String destination = DEST_CHAT;
+  protected String destination = DEST_TREE;
 
   public static final String FILTER = "include";
   protected String piecePropertiesFilter = "";
@@ -154,6 +156,9 @@ public class Inventory extends AbstractConfigurable implements GameComponent {
   public static final String DRAW_PIECES = "drawPieces";
   protected boolean drawPieces = true;
 
+  public static final String FOLDERS_ONLY = "foldersOnly";
+  protected boolean foldersOnly = false;
+
   protected JDialog frame;
 
   public Inventory() {
@@ -162,15 +167,16 @@ public class Inventory extends AbstractConfigurable implements GameComponent {
         launch();
       }
     };
-    launch = new LaunchButton(null, BUTTON_TEXT, HOTKEY, ICON, al);
+    launch = new LaunchButton(null, TOOLTIP, BUTTON_TEXT, HOTKEY, ICON, al);
     setAttribute(NAME, "Inventory");
     setAttribute(BUTTON_TEXT, "Inventory");
-    launch.setToolTipText(getConfigureName());
+    setAttribute(TOOLTIP, "Show inventory of all pieces");
+    setAttribute(ICON, "/images/inventory.gif");
     launch.setEnabled(false);
   }
 
   public static String getConfigureTypeName() {
-    return "Inventory v" + VERSION;
+    return "Game Piece Inventory Window";
   }
 
   public void addTo(Buildable b) {
@@ -178,13 +184,13 @@ public class Inventory extends AbstractConfigurable implements GameComponent {
     GameModule.getGameModule().getToolBar().add(getComponent());
     GameModule.getGameModule().getGameState().addGameComponent(this);
     frame = new JDialog(GameModule.getGameModule().getFrame());
-    frame.setSize(150, 350);
     frame.setTitle(getConfigureName());
     String key = "Inventory." + getConfigureName();
     GameModule.getGameModule().getPrefs().addOption(new PositionOption(key, frame));
     frame.getContentPane().setLayout(new BoxLayout(frame.getContentPane(), BoxLayout.Y_AXIS));
     frame.getContentPane().add(initTree());
     frame.getContentPane().add(initButtons());
+    frame.setSize(150, 350);
   }
 
   /**
@@ -243,8 +249,7 @@ public class Inventory extends AbstractConfigurable implements GameComponent {
     return new DefaultTreeCellRenderer() {
 
       public Component getTreeCellRendererComponent(JTree tree, Object value, boolean sel, boolean expanded, boolean leaf, int row, boolean hasFocus) {
-
-        super.getTreeCellRendererComponent(tree, value, sel, expanded, leaf, row, hasFocus);
+        super.getTreeCellRendererComponent(tree, value, sel, expanded, leaf && !foldersOnly, row, hasFocus);
         if (value instanceof CounterNode) {
           final GamePiece piece = ((CounterNode) value).getCounter().getPiece();
           if (piece != null) {
@@ -377,21 +382,26 @@ public class Inventory extends AbstractConfigurable implements GameComponent {
   }
 
   public String[] getAttributeDescriptions() {
-    return new String[] {"Name", "Button text", "Button icon", "Hotkey", "Report Destination", "Show only pieces matching these properties",
-        "Sort and Group By Marker", "Label for pieces", "Label for folders", "Center on selected piece", "Forward key strokes to selected piece",
-        "Show right-click menu of piece", "Draw pieces", "Zoom factor", "Sides", "Cut tree at depth", "Cut tree above leaves"};
+    return new String[] {"Name", "Button text", "Button icon", "Hotkey", "Tooltip", "Show only pieces matching these properties", "Sort and Group By Properties",
+        "Label for folders", "Show only folders", "Label for pieces", "Center on selected piece", "Forward key strokes to selected piece",
+        "Show right-click menu of piece", "Draw piece images", "Zoom factor", "Available to these sides"};
   }
 
   public Class[] getAttributeTypes() {
-    return new Class[] {String.class, String.class, IconConfig.class, KeyStroke.class, Dest.class, String.class, String[].class, PieceFormatConfig.class,
-        String.class, Boolean.class, Boolean.class, Boolean.class, Boolean.class, Double.class, String[].class, Integer.class, Integer.class};
+    return new Class[] {String.class, String.class, IconConfig.class, KeyStroke.class, String.class, String.class, String[].class, String.class, Boolean.class,
+        PieceFormatConfig.class, Boolean.class, Boolean.class, Boolean.class, Boolean.class, Double.class, String[].class};
   }
 
   public String[] getAttributeNames() {
-    return new String[] {NAME, BUTTON_TEXT, ICON, HOTKEY, DEST, FILTER, GROUP_BY, LEAF_FORMAT, NON_LEAF_FORMAT, CENTERONPIECE, FORWARD_KEYSTROKE, SHOW_MENU,
-        DRAW_PIECES, PIECE_ZOOM, SIDES, CUTBELOWROOT, CUTABOVELEAVES};
+    return new String[] {NAME, BUTTON_TEXT, ICON, HOTKEY, TOOLTIP, FILTER, GROUP_BY, NON_LEAF_FORMAT, FOLDERS_ONLY, LEAF_FORMAT, CENTERONPIECE,
+        FORWARD_KEYSTROKE, SHOW_MENU, DRAW_PIECES, PIECE_ZOOM, SIDES};
   }
 
+  public static class IconConfig implements ConfigurerFactory {
+    public Configurer getConfigurer(AutoConfigurable c, String key, String name) {
+      return new IconConfigurer(key, name, "/images/inventory.gif");
+    }
+  }
   public static class PieceFormatConfig implements ConfigurerFactory {
     public Configurer getConfigurer(AutoConfigurable c, String key, String name) {
       return new GamePieceFormattedStringConfigurer(key, name);
@@ -399,13 +409,8 @@ public class Inventory extends AbstractConfigurable implements GameComponent {
   }
 
   public void setAttribute(String key, Object o) {
-
     if (NAME.equals(key)) {
       setConfigureName((String) o);
-      launch.setToolTipText((String) o);
-    }
-    else if (DEST.equals(key)) {
-      destination = (String) o;
     }
     else if (FILTER.equals(key)) {
       piecePropertiesFilter = (String) o;
@@ -430,6 +435,10 @@ public class Inventory extends AbstractConfigurable implements GameComponent {
     }
     else if (DRAW_PIECES.equals(key)) {
       drawPieces = getBooleanValue(o);
+    }
+    else if (FOLDERS_ONLY.equals(key)) {
+      foldersOnly = getBooleanValue(o);
+      cutAboveLeaves = foldersOnly ? 1 : 0;
     }
     else if (PIECE_ZOOM.equals(key)) {
       if (o instanceof String) {
@@ -472,6 +481,28 @@ public class Inventory extends AbstractConfigurable implements GameComponent {
     }
   }
 
+  private VisibilityCondition piecesVisible = new VisibilityCondition() {
+    public boolean shouldBeVisible() {
+      return !foldersOnly;
+    }
+  };
+
+  public VisibilityCondition getAttributeVisibility(String name) {
+    if (PIECE_ZOOM.equals(name)) {
+      return new VisibilityCondition() {
+        public boolean shouldBeVisible() {
+          return drawPieces && !foldersOnly;
+        }
+      };
+    }
+    else if (LEAF_FORMAT.equals(name) || CENTERONPIECE.equals(name) || FORWARD_KEYSTROKE.equals(name) || SHOW_MENU.equals(name) || DRAW_PIECES.equals(name)) {
+      return piecesVisible;
+    }
+    else {
+      return super.getAttributeVisibility(name);
+    }
+  }
+
   /**
    * @param o
    */
@@ -485,9 +516,6 @@ public class Inventory extends AbstractConfigurable implements GameComponent {
   public String getAttributeValueString(String key) {
     if (NAME.equals(key)) {
       return getConfigureName();
-    }
-    else if (DEST.equals(key)) {
-      return destination;
     }
     else if (FILTER.equals(key)) {
       return piecePropertiesFilter;
@@ -513,6 +541,9 @@ public class Inventory extends AbstractConfigurable implements GameComponent {
     else if (DRAW_PIECES.equals(key)) {
       return String.valueOf(drawPieces);
     }
+    else if (FOLDERS_ONLY.equals(key)) {
+      return String.valueOf(foldersOnly);
+    }
     else if (PIECE_ZOOM.equals(key)) {
       return String.valueOf(pieceZoom);
     }
@@ -528,7 +559,6 @@ public class Inventory extends AbstractConfigurable implements GameComponent {
     else if (CUTABOVELEAVES.equals(key)) {
       return cutAboveLeaves + "";
     }
-
     else {
       return launch.getAttributeValueString(key);
     }
@@ -617,14 +647,14 @@ public class Inventory extends AbstractConfigurable implements GameComponent {
   private void refresh() {
     // Make an attempt to keep the same nodes expanded
     Set expanded = new HashSet();
-    for (int i=0,n=tree.getRowCount();i<n;++i) {
+    for (int i = 0, n = tree.getRowCount(); i < n; ++i) {
       if (tree.isExpanded(i)) {
         expanded.add(tree.getPathForRow(i).getLastPathComponent().toString());
       }
     }
     buildTreeModel();
     tree.setModel(results);
-    for (int i=0;i<tree.getRowCount();++i) {
+    for (int i = 0; i < tree.getRowCount(); ++i) {
       if (expanded.contains(tree.getPathForRow(i).getLastPathComponent().toString())) {
         tree.expandRow(i);
       }
@@ -633,11 +663,12 @@ public class Inventory extends AbstractConfigurable implements GameComponent {
 
   public class HotKeySender implements KeyListener {
     BoundsTracker tracker;
+
     public void keyCommand(KeyStroke stroke) {
       if (forwardKeystroke) {
         CounterNode node = (CounterNode) tree.getLastSelectedPathComponent();
         if (node != null) {
-          Command comm = getCommand(node,stroke);
+          Command comm = getCommand(node, stroke);
           if (comm != null && !comm.isNull()) {
             tracker.repaint();
             GameModule.getGameModule().sendAndLog(comm);
@@ -647,7 +678,7 @@ public class Inventory extends AbstractConfigurable implements GameComponent {
         }
       }
     }
-    
+
     protected Command getCommand(CounterNode node, KeyStroke stroke) {
       GamePiece p = node.getCounter() == null ? null : node.getCounter().getPiece();
       Command comm = null;
@@ -662,8 +693,8 @@ public class Inventory extends AbstractConfigurable implements GameComponent {
       }
       else {
         comm = new NullCommand();
-        for (int i=0,n=node.getChildCount();i<n;++i) {
-          comm = comm.append(getCommand((CounterNode) node.getChild(i),stroke));
+        for (int i = 0, n = node.getChildCount(); i < n; ++i) {
+          comm = comm.append(getCommand((CounterNode) node.getChild(i), stroke));
         }
       }
       return comm;
@@ -951,18 +982,12 @@ public class Inventory extends AbstractConfigurable implements GameComponent {
 
     public int updateValues() {
       int value = 0;
-      // TODO if counter has a value, should it be added to the total or
-      // replaced
-      // by then children values?
-      // get old value, not sure if this useful?
       if (counter != null)
         value = counter.getValue();
 
       // inform children about update
       for (Iterator i = children.iterator(); i.hasNext();) {
         CounterNode child = (CounterNode) i.next();
-        // System.out.println("In " + getEntry() + " calling " +
-        // child.getEntry());
         value += child.updateValues();
       }
 
@@ -992,14 +1017,12 @@ public class Inventory extends AbstractConfigurable implements GameComponent {
         CounterNode child = (CounterNode) i.next();
         if (child.isLeaf()) {
           toBeRemoved.add(child);
-          // System.out.println("Removing " + child.getEntry());
         }
         else
           child.cutLeaves();
       }
       for (Iterator i = toBeRemoved.iterator(); i.hasNext();) {
         CounterNode removeMe = (CounterNode) i.next();
-        // System.out.println("Removing " + removeMe.getEntry());
         children.remove(removeMe);
       }
     }
@@ -1018,16 +1041,11 @@ public class Inventory extends AbstractConfigurable implements GameComponent {
     // The path determines where a counter is found in the tree
     protected ArrayList path;
     // Small speed up, only update values in tree when something has changed
-    // TODO is this a good idea? What happens when a command on the piece
-    // changes the value?
-    // this only works single threaded !! Test for online playing when one
-    // player alters the game.
     protected boolean changed;
 
     public CounterInventory(Counter c, ArrayList path) {
       this.root = new CounterNode(c.getName(), c);
       this.path = path;
-      // TODO preload hash with the number of counters in the game?
       this.inventory = new HashMap();
       changed = true;
     }
@@ -1088,9 +1106,6 @@ public class Inventory extends AbstractConfigurable implements GameComponent {
       return root;
     }
 
-    /**
-     * 
-     */
     private void updateTree() {
       updateEntries();
       if (cutBelowRoot > 0)
