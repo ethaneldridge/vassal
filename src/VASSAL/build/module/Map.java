@@ -740,21 +740,26 @@ public class Map extends AbstractConfigurable implements GameComponent,
     Rectangle r = b.bounds();
     snap.translate(-r.x, -r.y);
     snap = b.snapTo(snap);
+    snap.translate(r.x, r.y);
+    
     // RFE 882378
     // If we have snapped to a point 1 pixel off the edge of the map, move back onto the map.
-    if (snap.x == r.width + 1) {
-      snap.x = r.width - 1;
+    if (findBoard(snap) == null) {
+      snap.translate(-r.x, -r.y);
+      if (snap.x == r.width) {
+        snap.x = r.width - 1;
+      }
+      else if (snap.x == -1) {
+        snap.x = 0;
+      }
+      if (snap.y == r.height) {
+        snap.y = r.height - 1;
+      }
+      else if (snap.y == -1) {
+        snap.y = 0;
+      }
+      snap.translate(r.x, r.y);
     }
-    else if (snap.x == -1) {
-      snap.x = 0;
-    }
-    if (snap.y == r.height + 1) {
-      snap.y = r.height;
-    }
-    else if (snap.y == -1) {
-      snap.y = 0;
-    }
-    snap.translate(r.x, r.y);
     return snap;
   }
 

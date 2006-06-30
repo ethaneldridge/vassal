@@ -23,6 +23,7 @@ import javax.swing.JMenuItem;
 import javax.swing.JPopupMenu;
 import javax.swing.JToolBar;
 import javax.swing.KeyStroke;
+import javax.swing.SwingUtilities;
 
 import VASSAL.build.AbstractConfigurable;
 import VASSAL.build.Buildable;
@@ -50,6 +51,7 @@ public class ToolbarMenu extends AbstractConfigurable implements ContainerListen
   protected LaunchButton launch;
   protected JToolBar toolbar;
   protected JPopupMenu menu;
+  protected Runnable menuBuilder;
 
   public ToolbarMenu() {
     launch = new LaunchButton("Menu", BUTTON_TEXT, BUTTON_HOTKEY, BUTTON_ICON, new ActionListener() {
@@ -93,7 +95,7 @@ public class ToolbarMenu extends AbstractConfigurable implements ContainerListen
       }
       menuItems = Arrays.asList((String[]) value);
       if (toolbar != null) {
-        buildMenu();
+        scheduleBuildMenu();
       }
     }
     else {
@@ -107,7 +109,7 @@ public class ToolbarMenu extends AbstractConfigurable implements ContainerListen
     }
     toolbar.add(launch);
     toolbar.addContainerListener(this);
-    buildMenu();
+    scheduleBuildMenu();
   }
 
   public Class[] getAllowableConfigureComponents() {
@@ -192,13 +194,25 @@ public class ToolbarMenu extends AbstractConfigurable implements ContainerListen
       }
     }
   }
+  
+  protected void scheduleBuildMenu() {
+    if (menuBuilder == null) {
+      menuBuilder = new Runnable() {
+        public void run() {
+          buildMenu();
+          menuBuilder = null;
+        }
+      };
+      SwingUtilities.invokeLater(menuBuilder);
+    }
+  }
 
   public void componentAdded(ContainerEvent e) {
-    buildMenu();
+    scheduleBuildMenu();
   }
 
   public void componentRemoved(ContainerEvent e) {
-    buildMenu();
+    scheduleBuildMenu();
   }
 
   public void propertyChange(PropertyChangeEvent evt) {
@@ -206,7 +220,7 @@ public class ToolbarMenu extends AbstractConfigurable implements ContainerListen
     JMenuItem mi = (JMenuItem) buttonsToMenuMap.get(b);
     if (mi != null) {
       if (AbstractButton.TEXT_CHANGED_PROPERTY.equals(evt.getPropertyName())) {
-        buildMenu();
+        scheduleBuildMenu();
       }
       else if ("enabled".equals(evt.getPropertyName())) {
         mi.setEnabled(b.isEnabled());

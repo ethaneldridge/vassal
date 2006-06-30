@@ -173,6 +173,7 @@ public class Inventory extends AbstractConfigurable implements GameComponent {
     setAttribute(TOOLTIP, "Show inventory of all pieces");
     setAttribute(ICON, "/images/inventory.gif");
     launch.setEnabled(false);
+    launch.setVisible(false);
   }
 
   public static String getConfigureTypeName() {
@@ -570,6 +571,7 @@ public class Inventory extends AbstractConfigurable implements GameComponent {
 
   public void setup(boolean gameStarting) {
     launch.setEnabled(gameStarting && enabledForPlayersSide());
+    launch.setVisible(launch.isEnabled());
   }
 
   protected boolean enabledForPlayersSide() {

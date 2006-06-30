@@ -39,34 +39,43 @@ import VASSAL.tools.SequenceEncoder;
 public class Immobilized extends Decorator implements EditablePiece {
 
   public static final String ID = "immob;";
-  private boolean shiftToSelect = false;
-  private boolean ignoreGrid = false;
-  private boolean neverSelect = false;
-  private boolean neverMove = false;
-  private boolean moveIfSelected = false;
-  private EventFilter selectFilter;
-  private EventFilter moveFilter;
+  protected boolean shiftToSelect = false;
+  protected boolean ctlShiftToSelect = false;
+  protected boolean ignoreGrid = false;
+  protected boolean neverSelect = false;
+  protected boolean neverMove = false;
+  protected boolean moveIfSelected = false;
+  protected EventFilter selectFilter;
+  protected EventFilter moveFilter;
 
   protected static final char MOVE_SELECTED = 'I';
   protected static final char MOVE_NORMAL = 'N';
   protected static final char NEVER_MOVE = 'V';
   protected static final char IGNORE_GRID = 'g';
   protected static final char SHIFT_SELECT = 'i';
+  protected static final char CTL_SHIFT_SELECT = 'c';
   protected static final char NEVER_SELECT = 'n';
 
-  private class UseShift implements EventFilter {
+  protected class UseShift implements EventFilter {
     public boolean rejectEvent(InputEvent evt) {
       return !evt.isShiftDown() && !Boolean.TRUE.equals(getProperty(Properties.SELECTED));
     }
   };
 
-  private class MoveIfSelected implements EventFilter {
+  protected class UseCtlShift implements EventFilter {
+    public boolean rejectEvent(InputEvent evt) {
+      return !(evt.isShiftDown() && evt.isControlDown()) &&!Boolean.TRUE.equals(getProperty(Properties.SELECTED));
+    }
+  };
+  
+  
+  protected class MoveIfSelected implements EventFilter {
     public boolean rejectEvent(InputEvent evt) {
       return !Boolean.TRUE.equals(getProperty(Properties.SELECTED));
     }
   }
 
-  private static EventFilter NEVER = new EventFilter() {
+  protected static EventFilter NEVER = new EventFilter() {
     public boolean rejectEvent(InputEvent evt) {
       return true;
     }
@@ -83,6 +92,7 @@ public class Immobilized extends Decorator implements EditablePiece {
 
   public void mySetType(String type) {
     shiftToSelect = false;
+    ctlShiftToSelect = false;
     neverSelect = false;
     ignoreGrid = false;
     neverMove = false;
@@ -93,6 +103,10 @@ public class Immobilized extends Decorator implements EditablePiece {
     String movementOptions = st.nextToken("");
     if (selectionOptions.indexOf(SHIFT_SELECT) >= 0) {
       shiftToSelect = true;
+      moveIfSelected = true;
+    }
+    if (selectionOptions.indexOf(CTL_SHIFT_SELECT) >= 0) {
+      ctlShiftToSelect = true;
       moveIfSelected = true;
     }
     if (selectionOptions.indexOf(NEVER_SELECT) >= 0) {
@@ -122,6 +136,9 @@ public class Immobilized extends Decorator implements EditablePiece {
     }
     else if (shiftToSelect) {
       selectFilter = new UseShift();
+    }
+    else if (shiftToSelect) {
+      selectFilter = new UseCtlShift();
     }
     else {
       selectFilter = null;
@@ -190,6 +207,9 @@ public class Immobilized extends Decorator implements EditablePiece {
     else if (shiftToSelect) {
       buffer.append(SHIFT_SELECT);
     }
+    else if (ctlShiftToSelect) {
+      buffer.append(CTL_SHIFT_SELECT);
+    }
     if (ignoreGrid) {
       buffer.append(IGNORE_GRID);
     }
@@ -242,8 +262,12 @@ public class Immobilized extends Decorator implements EditablePiece {
       selectionOption = new JComboBox();
       selectionOption.addItem("normally");
       selectionOption.addItem("when shift-key down");
+      selectionOption.addItem("when ctl-shift-key down");
       selectionOption.addItem("never");
       if (p.neverSelect) {
+        selectionOption.setSelectedIndex(3);
+      }
+      else if (p.ctlShiftToSelect) {
         selectionOption.setSelectedIndex(2);
       }
       else if (p.shiftToSelect) {
@@ -291,6 +315,9 @@ public class Immobilized extends Decorator implements EditablePiece {
           s += SHIFT_SELECT;
           break;
         case 2:
+          s += CTL_SHIFT_SELECT;
+          break;
+        case 3:
           s += NEVER_SELECT;
       }
       if (ignoreGridBox.isSelected()) {

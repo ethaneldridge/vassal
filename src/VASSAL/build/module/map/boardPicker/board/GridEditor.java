@@ -53,6 +53,7 @@ public abstract class GridEditor extends JDialog implements MouseListener, KeyLi
   protected static final String CANCEL = "Cancel";
   protected static final String CANCEL_SET = "Cancel Set";
   protected static final String OK = "Save";
+  protected static final String NUMBERING = "Numbering";
   
   protected EditableGrid grid;
   protected Board board;
@@ -63,7 +64,7 @@ public abstract class GridEditor extends JDialog implements MouseListener, KeyLi
   protected boolean setMode;
   protected Point hp1, hp2, hp3;
   
-  protected JButton okButton, canSetButton, setButton;
+  protected JButton okButton, canSetButton, setButton, numberingButton;
   
   protected boolean saveGridVisible, saveNumberingVisible;
   protected double saveDx, saveDy;
@@ -81,9 +82,9 @@ public abstract class GridEditor extends JDialog implements MouseListener, KeyLi
     saveGridVisible = grid.isVisible();
     if (grid.getGridNumbering() != null) {
       saveNumberingVisible = grid.getGridNumbering().isVisible();
-      if (saveGridVisible) {
-        ((RegularGridNumbering) grid.getGridNumbering()).setAttribute(RegularGridNumbering.VISIBLE, Boolean.FALSE);
-      }
+      // if (saveGridVisible) {
+      //  ((RegularGridNumbering) grid.getGridNumbering()).setAttribute(RegularGridNumbering.VISIBLE, Boolean.FALSE);
+      // }
     }
     
     saveDx = grid.getDx();
@@ -156,6 +157,18 @@ public abstract class GridEditor extends JDialog implements MouseListener, KeyLi
     canSetButton.setVisible(false);
     buttonPanel.add(canSetButton);
 
+
+    numberingButton = new JButton(NUMBERING);
+    numberingButton.addActionListener(new ActionListener() {
+      public void actionPerformed(ActionEvent e) {
+        ((RegularGridNumbering) grid.getGridNumbering()).setAttribute(RegularGridNumbering.VISIBLE, new Boolean(! grid.getGridNumbering().isVisible()));
+        repaint();
+      }
+    });
+    numberingButton.setEnabled(grid.getGridNumbering() != null);
+    numberingButton.setVisible(true);
+    buttonPanel.add(numberingButton);
+    
     Box controlPanel = Box.createVerticalBox();
     controlPanel.add(textPanel);
     controlPanel.add(buttonPanel);
@@ -411,6 +424,8 @@ public abstract class GridEditor extends JDialog implements MouseListener, KeyLi
    * Panel to display the Grid Editor
    */
   protected class GridPanel extends JPanel {
+
+    private static final long serialVersionUID = 1L;
     protected Board board;
 
     public GridPanel() {
