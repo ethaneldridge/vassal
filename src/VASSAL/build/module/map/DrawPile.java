@@ -49,8 +49,8 @@ import VASSAL.tools.UniqueIdManager;
 
 public class DrawPile extends SetupStack {
   protected Deck dummy = new Deck(); // Used for storing type information
-  private boolean reshufflable;
-  private Deck myDeck;
+  protected boolean reshufflable;
+  protected Deck myDeck;
   private VisibilityCondition colorVisibleCondition = new VisibilityCondition() {
     public boolean shouldBeVisible() {
       return dummy.isDrawOutline();
@@ -76,7 +76,7 @@ public class DrawPile extends SetupStack {
       return dummy.getShuffleOption().equals(USE_MENU);
     }
   };
-  private static UniqueIdManager idMgr = new UniqueIdManager("Deck");
+  protected static UniqueIdManager idMgr = new UniqueIdManager("Deck");
 
   public void addTo(Buildable parent) {
     super.addTo(parent);
@@ -118,6 +118,7 @@ public class DrawPile extends SetupStack {
   public static final String RESHUFFLE_TARGET = "reshuffleTarget";
   public static final String RESHUFFLE_MESSAGE = "reshuffleMessage";
   public static final String REPORT_FORMAT = "reportFormat";
+  public static final String CAN_SAVE = "canSave";
 
   public static final String ALWAYS = "Always";
   public static final String NEVER = "Never";
@@ -171,7 +172,7 @@ public class DrawPile extends SetupStack {
     return new String[]{NAME, OWNING_BOARD, X_POSITION, Y_POSITION, WIDTH, HEIGHT, ALLOW_MULTIPLE,
                         ALLOW_SELECT, FACE_DOWN, DRAW_FACE_UP, FACE_DOWN_REPORT_FORMAT, SHUFFLE, SHUFFLE_REPORT_FORMAT,
                         REVERSIBLE, REVERSE_REPORT_FORMAT, DRAW, COLOR,
-                        RESHUFFLABLE, RESHUFFLE_COMMAND, RESHUFFLE_MESSAGE, RESHUFFLE_TARGET};
+                        RESHUFFLABLE, RESHUFFLE_COMMAND, RESHUFFLE_MESSAGE, RESHUFFLE_TARGET,CAN_SAVE};
   }
 
   public String[] getAttributeDescriptions() {
@@ -195,7 +196,8 @@ public class DrawPile extends SetupStack {
                         "Include command to send entire deck to another deck",
                         "Menu text",
                         "Report Format",
-                        "Name of deck to send to"};
+                        "Name of deck to send to",
+                        "Can be saved-to/loaded-from a file"};
   }
 
   public Class[] getAttributeTypes() {
@@ -219,7 +221,8 @@ public class DrawPile extends SetupStack {
                        Boolean.class,
                        String.class,
                        FormattedStringConfig.class,
-                       AssignedDeckPrompt.class};
+                       AssignedDeckPrompt.class,
+                       Boolean.class};
   }
 
   public static class FormattedStringConfig implements ConfigurerFactory {
@@ -281,6 +284,9 @@ public class DrawPile extends SetupStack {
     else if (FACE_DOWN_REPORT_FORMAT.equals(key)) {
       return dummy.getFaceDownMsgFormat();
     }
+    else if (CAN_SAVE.equals(key)) {
+      return String.valueOf(dummy.isPersistable());
+    }
     else {
       return super.getAttributeValueString(key);
     }
@@ -312,6 +318,14 @@ public class DrawPile extends SetupStack {
       }
       else {
         dummy.setDrawFaceUp("true".equals(value));
+      }
+    }
+    else if (CAN_SAVE.equals(key)) {
+      if (value instanceof Boolean) {
+        dummy.setPersistable(Boolean.TRUE.equals(value));
+      }
+      else {
+        dummy.setPersistable("true".equals(value));
       }
     }
     else if (SHUFFLE.equals(key)) {
@@ -451,7 +465,7 @@ public class DrawPile extends SetupStack {
     return false;
   }
 
-  private String getDeckType() {
+  protected String getDeckType() {
     return dummy.getType();
   }
 

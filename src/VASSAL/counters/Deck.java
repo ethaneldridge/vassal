@@ -21,12 +21,17 @@ package VASSAL.counters;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
+import java.awt.FileDialog;
 import java.awt.Frame;
 import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.Shape;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.io.File;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.Iterator;
@@ -47,6 +52,8 @@ import VASSAL.build.GameModule;
 import VASSAL.build.module.Chatter;
 import VASSAL.build.module.Map;
 import VASSAL.build.module.map.DrawPile;
+import VASSAL.command.AddPiece;
+import VASSAL.command.ChangePiece;
 import VASSAL.command.ChangeTracker;
 import VASSAL.command.Command;
 import VASSAL.command.NullCommand;
@@ -66,31 +73,32 @@ public class Deck extends Stack {
   public static final String ALWAYS = "Always";
   public static final String NEVER = "Never";
   public static final String USE_MENU = "Via right-click Menu";
-  private static final String NO_USER = "nobody"; // Dummy user ID for turning cards face down
+  protected static final String NO_USER = "nobody"; // Dummy user ID for turning cards face down
 
-  private boolean drawOutline = true;
-  private Color outlineColor = Color.black;
+  protected boolean drawOutline = true;
+  protected Color outlineColor = Color.black;
   protected Dimension size = new Dimension(40, 40);
   protected boolean shuffle = true;
-  private String faceDownOption = ALWAYS;
-  private String shuffleOption = ALWAYS;
-  private boolean allowMultipleDraw = false;
-  private boolean allowSelectDraw = false;
-  private boolean reversible = false;
-  private String reshuffleCommand = "";
-  private String reshuffleTarget;
-  private String reshuffleMsgFormat;
-  private String reverseMsgFormat;
-  private String shuffleMsgFormat;
-  private String faceDownMsgFormat;
-  private boolean drawFaceUp;
+  protected String faceDownOption = ALWAYS;
+  protected String shuffleOption = ALWAYS;
+  protected boolean allowMultipleDraw = false;
+  protected boolean allowSelectDraw = false;
+  protected boolean reversible = false;
+  protected String reshuffleCommand = "";
+  protected String reshuffleTarget;
+  protected String reshuffleMsgFormat;
+  protected String reverseMsgFormat;
+  protected String shuffleMsgFormat;
+  protected String faceDownMsgFormat;
+  protected boolean drawFaceUp;
+  protected boolean persistable;
 
-  private String deckName;
+  protected String deckName;
 
-  private boolean faceDown;
+  protected boolean faceDown;
   protected int dragCount = 0;
-  private ArrayList nextDraw;
-  private KeyCommand[] commands;
+  protected ArrayList nextDraw;
+  protected KeyCommand[] commands;
 
   public Deck() {
     this(ID);
@@ -119,6 +127,7 @@ public class Deck extends Stack {
     reverseMsgFormat = st.nextToken("");
     faceDownMsgFormat = st.nextToken("");
     drawFaceUp = st.nextBoolean(false);
+    persistable = st.nextBoolean(false);
   }
 
   public String getFaceDownOption() {
@@ -274,7 +283,8 @@ public class Deck extends Stack {
         .append(shuffleMsgFormat)
         .append(reverseMsgFormat)
         .append(faceDownMsgFormat)
-        .append(String.valueOf(drawFaceUp));
+        .append(drawFaceUp)
+        .append(persistable);
     return ID + se.getValue();
   }
 
@@ -529,7 +539,7 @@ public class Deck extends Stack {
     return value;
   }
 
-  private KeyCommand[] getKeyCommands() {
+  protected KeyCommand[] getKeyCommands() {
     if (commands == null) {
       ArrayList l = new ArrayList();
       KeyCommand c = null;
@@ -588,6 +598,22 @@ public class Deck extends Stack {
         };
         l.add(c);
       }
+      if (persistable) {
+        c =new KeyCommand("Save", null, this) {
+          public void actionPerformed(ActionEvent e) {
+            GameModule.getGameModule().sendAndLog(saveDeck());
+            map.repaint();
+          }
+        };
+        l.add(c);
+        c = new KeyCommand("Load", null, this) {
+          public void actionPerformed(ActionEvent e) {
+            GameModule.getGameModule().sendAndLog(loadDeck());
+            map.repaint();
+          }
+        };
+        l.add(c);
+      }
       commands = (KeyCommand[]) l.toArray(new KeyCommand[l.size()]);
     }
     for (int i = 0; i < commands.length; ++i) {
@@ -604,7 +630,7 @@ public class Deck extends Stack {
   /*
    * Format command report as per module designers setup.
    */
-  private Command reportCommand(String format, String commandName) {
+  protected Command reportCommand(String format, String commandName) {
     Command c = null;
     FormattedString reportFormat = new FormattedString(format);
     reportFormat.setProperty(DrawPile.DECK_NAME, getDeckName());
@@ -638,7 +664,7 @@ public class Deck extends Stack {
     }
   }
 
-  private void promptForNextDraw() {
+  protected void promptForNextDraw() {
     final JDialog d = new JDialog((Frame) SwingUtilities.getAncestorOfClass(Frame.class, map.getView()), true);
     d.setTitle("Draw");
     d.getContentPane().setLayout(new BoxLayout(d.getContentPane(), BoxLayout.Y_AXIS));
@@ -711,4 +737,138 @@ public class Deck extends Stack {
   public boolean isExpanded() {
     return false;
   }
+
+  /** Return true if this deck can be saved to and loaded from a file on disk */
+  public boolean isPersistable() {
+    return persistable;
+  }
+
+  public void setPersistable(boolean persistable) {
+    this.persistable = persistable;
+  }
+  
+  private File getSaveFileName() {
+    File outputFile = null;
+    FileDialog fd = GameModule.getGameModule().getFileDialog();
+    String name = fd.getFile();
+    if (name != null) {
+      int index = name.lastIndexOf('.');
+      if (index > 0) {
+        name = name.substring(0, index) + ".sav";
+        fd.setFile(name);
+      }
+    }
+    fd.setMode(FileDialog.SAVE);
+    fd.setVisible(true);
+    if (fd.getFile() != null) {
+      if (fd.getDirectory() != null) {
+        outputFile = new File(new File(fd.getDirectory()), fd.getFile());
+      }
+      else {
+        outputFile = new File(fd.getFile());
+      }
+      if (outputFile.exists()
+          && shouldConfirmOverwrite()
+          && JOptionPane.NO_OPTION == JOptionPane.showConfirmDialog(GameModule.getGameModule().getFrame(), "Overwrite " + outputFile.getName() + "?",
+              "File Exists", JOptionPane.YES_NO_OPTION)) {
+        outputFile = null;
+      }
+    }
+    return outputFile;
+  }
+  
+  private boolean shouldConfirmOverwrite() {
+    return System.getProperty("os.name").trim().equalsIgnoreCase("linux");
+  }
+
+  private Command saveDeck() {
+    Command c = new NullCommand();
+    GameModule.getGameModule().warn("Saving deck ...");
+    try {
+      File saveFile = getSaveFileName();
+      if (saveFile != null) {
+        saveDeck(saveFile);
+        GameModule.getGameModule().warn("deck Saved");
+      }
+      else {
+        GameModule.getGameModule().warn("Save Canceled");
+      }
+    }
+    catch (IOException err) {
+      GameModule.getGameModule().warn("Save Failed.  Try again.");
+    }
+    return c;
+  }
+
+  public void saveDeck(File f) throws IOException {
+    Command comm = new NullCommand();
+
+    FileWriter dest = new FileWriter(f);
+    for (Enumeration e = getPieces(); e.hasMoreElements();) {
+      GamePiece p = (GamePiece) e.nextElement();
+      comm = comm.append(new AddPiece(p));
+
+    }
+    comm.append(new ChangePiece(this.getId(), null, getState()));
+    dest.write(GameModule.getGameModule().encode(comm));
+    dest.close();
+  }
+
+  private File getLoadFileName() {
+    File inputFile = null;
+    FileDialog fd = GameModule.getGameModule().getFileDialog();
+    String name = fd.getFile();
+    if (name != null) {
+      int index = name.lastIndexOf('.');
+      if (index > 0) {
+        name = name.substring(0, index) + ".sav";
+        fd.setFile(name);
+      }
+    }
+    fd.setMode(FileDialog.LOAD);
+    fd.setVisible(true);
+    if (fd.getFile() != null) {
+      if (fd.getDirectory() != null) {
+        inputFile = new File(new File(fd.getDirectory()), fd.getFile());
+      }
+      else {
+        inputFile = new File(fd.getFile());
+      }
+    }
+    return inputFile;
+  }
+
+  private Command loadDeck() {
+    Command c = new NullCommand();
+    GameModule.getGameModule().warn("Loading deck ...");
+    try {
+      File saveFile = getLoadFileName();
+      if (saveFile != null) {
+        loadDeck(saveFile);
+        GameModule.getGameModule().warn("deck Loaded");
+      }
+      else {
+        GameModule.getGameModule().warn("Load Canceled");
+      }
+    }
+    catch (IOException err) {
+      GameModule.getGameModule().warn("Load Failed.  Try again.");
+    }
+    return c;
+
+  }
+
+  public void loadDeck(File f) throws IOException {
+    FileReader src = new FileReader(f);
+    char[] data = new char[10000];
+    StringBuffer buffer = new StringBuffer();
+    int len;
+    while ((len = src.read(data)) > 0) {
+      buffer.append(data,0,len);
+    }
+    GameModule.getGameModule().decode(buffer.toString()).execute();
+    src.close();
+  }
+
+
 }

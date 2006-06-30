@@ -29,6 +29,8 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
+import java.io.File;
+import java.net.MalformedURLException;
 import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.HashMap;
@@ -374,10 +376,17 @@ public class Inventory extends AbstractConfigurable implements GameComponent {
     return count;
   }
 
-  public HelpFile getHelpFile() {
-    return null;
+  public VASSAL.build.module.documentation.HelpFile getHelpFile() {
+    File dir = VASSAL.build.module.Documentation.getDocumentationBaseDir();
+    dir = new File(dir, "ReferenceManual");
+    try {
+      return new HelpFile(null, new File(dir, "Inventory.htm"));
+    }
+    catch (MalformedURLException ex) {
+      return null;
+    }
   }
-
+  
   public Class[] getAllowableConfigureComponents() {
     return new Class[0];
   }
