@@ -53,27 +53,25 @@ import VASSAL.build.module.Chatter;
 import VASSAL.build.module.Map;
 import VASSAL.build.module.map.DrawPile;
 import VASSAL.command.AddPiece;
-import VASSAL.command.ChangePiece;
 import VASSAL.command.ChangeTracker;
 import VASSAL.command.Command;
+import VASSAL.command.CommandEncoder;
 import VASSAL.command.NullCommand;
 import VASSAL.configure.ColorConfigurer;
 import VASSAL.tools.FormattedString;
 import VASSAL.tools.SequenceEncoder;
 
 /**
- * A collection of pieces that behaves like a deck, i.e.:
- * Doesn't move.
- * Can't be expanded.
- * Can be shuffled.
- * Can be turned face-up and face-down
+ * A collection of pieces that behaves like a deck, i.e.: Doesn't move. Can't be
+ * expanded. Can be shuffled. Can be turned face-up and face-down
  */
 public class Deck extends Stack {
   public static final String ID = "deck;";
   public static final String ALWAYS = "Always";
   public static final String NEVER = "Never";
   public static final String USE_MENU = "Via right-click Menu";
-  protected static final String NO_USER = "nobody"; // Dummy user ID for turning cards face down
+  protected static final String NO_USER = "nobody"; // Dummy user ID for turning
+  // cards face down
 
   protected boolean drawOutline = true;
   protected Color outlineColor = Color.black;
@@ -99,6 +97,23 @@ public class Deck extends Stack {
   protected int dragCount = 0;
   protected ArrayList nextDraw;
   protected KeyCommand[] commands;
+  protected CommandEncoder commandEncoder = new CommandEncoder() {
+    public Command decode(String command) {
+      Command c = null;
+      if (command.startsWith(LoadDeckCommand.PREFIX)) {
+        c = new LoadDeckCommand(Deck.this);
+      }
+      return c;
+    }
+
+    public String encode(Command c) {
+      String s = null;
+      if (c instanceof LoadDeckCommand) {
+        s = LoadDeckCommand.PREFIX;
+      }
+      return s;
+    }
+  };
 
   public Deck() {
     this(ID);
@@ -231,7 +246,9 @@ public class Deck extends Stack {
   }
 
   /**
-   * The popup menu text for the command that sends the entire deck to another deck
+   * The popup menu text for the command that sends the entire deck to another
+   * deck
+   * 
    * @return
    */
   public String getReshuffleCommand() {
@@ -243,8 +260,8 @@ public class Deck extends Stack {
   }
 
   /**
-   * The name of the {@link VASSAL.build.module.map.DrawPile} to which the contents of this deck
-   * will be sent when the reshuffle command is selected
+   * The name of the {@link VASSAL.build.module.map.DrawPile} to which the
+   * contents of this deck will be sent when the reshuffle command is selected
    */
   public String getReshuffleTarget() {
     return reshuffleTarget;
@@ -255,7 +272,9 @@ public class Deck extends Stack {
   }
 
   /**
-   * The message to send to the chat window when the deck is reshuffled to another deck
+   * The message to send to the chat window when the deck is reshuffled to
+   * another deck
+   * 
    * @return
    */
   public String getReshuffleMsgFormat() {
@@ -268,23 +287,10 @@ public class Deck extends Stack {
 
   public String getType() {
     SequenceEncoder se = new SequenceEncoder(';');
-    se.append(drawOutline)
-        .append(ColorConfigurer.colorToString(outlineColor))
-        .append(String.valueOf(size.width)).append(String.valueOf(size.height))
-        .append(faceDownOption)
-        .append(shuffleOption)
-        .append(String.valueOf(allowMultipleDraw))
-        .append(String.valueOf(allowSelectDraw))
-        .append(String.valueOf(reversible))
-        .append(reshuffleCommand)
-        .append(reshuffleTarget)
-        .append(reshuffleMsgFormat)
-        .append(deckName)
-        .append(shuffleMsgFormat)
-        .append(reverseMsgFormat)
-        .append(faceDownMsgFormat)
-        .append(drawFaceUp)
-        .append(persistable);
+    se.append(drawOutline).append(ColorConfigurer.colorToString(outlineColor)).append(String.valueOf(size.width)).append(String.valueOf(size.height)).append(
+        faceDownOption).append(shuffleOption).append(String.valueOf(allowMultipleDraw)).append(String.valueOf(allowSelectDraw)).append(
+        String.valueOf(reversible)).append(reshuffleCommand).append(reshuffleTarget).append(reshuffleMsgFormat).append(deckName).append(shuffleMsgFormat)
+        .append(reverseMsgFormat).append(faceDownMsgFormat).append(drawFaceUp).append(persistable);
     return ID + se.getValue();
   }
 
@@ -297,8 +303,7 @@ public class Deck extends Stack {
     ArrayList newContents = new ArrayList();
     DragBuffer.getBuffer().clear();
     for (int count = getPieceCount(); count > 0; --count) {
-      int i = (int) (GameModule.getGameModule().getRNG().nextFloat()
-          * indices.size());
+      int i = (int) (GameModule.getGameModule().getRNG().nextFloat() * indices.size());
       int index = ((Integer) indices.get(i)).intValue();
       indices.remove(i);
       newContents.add(getPieceAt(index));
@@ -307,10 +312,10 @@ public class Deck extends Stack {
   }
 
   /**
-   * Return an iterator of pieces to be drawn from the Deck.
-   * Normally, a random piece will be drawn, but if the Deck supports it,
-   * the user may have specified a particular set of pieces or a
-   * fixed number of pieces to select with the next draw.
+   * Return an iterator of pieces to be drawn from the Deck. Normally, a random
+   * piece will be drawn, but if the Deck supports it, the user may have
+   * specified a particular set of pieces or a fixed number of pieces to select
+   * with the next draw.
    */
   public PieceIterator drawCards() {
     Iterator it;
@@ -368,9 +373,7 @@ public class Deck extends Stack {
 
   public String getState() {
     SequenceEncoder se = new SequenceEncoder(';');
-    se.append(getMap() == null ? "null" : getMap().getIdentifier())
-        .append(getPosition().x)
-        .append(getPosition().y);
+    se.append(getMap() == null ? "null" : getMap().getIdentifier()).append(getPosition().x).append(getPosition().y);
     se.append(faceDown);
     SequenceEncoder se2 = new SequenceEncoder(',');
     for (Enumeration e = getPieces(); e.hasMoreElements();) {
@@ -427,8 +430,7 @@ public class Deck extends Stack {
   /** Reverse the order of the contents of the Deck */
   public Command reverse() {
     ArrayList list = new ArrayList();
-    for (Enumeration e = getPiecesInReverseOrder();
-         e.hasMoreElements();) {
+    for (Enumeration e = getPiecesInReverseOrder(); e.hasMoreElements();) {
       list.add(e.nextElement());
     }
     return setContents(list.iterator()).append(reportCommand(reverseMsgFormat, "Reverse"));
@@ -472,24 +474,19 @@ public class Deck extends Stack {
       for (int i = 0; i < count - 1; ++i) {
         if (blankColor != null) {
           g.setColor(blankColor);
-          g.fillRect(r.x + (int) (zoom * 2 * i),
-                     r.y - (int) (zoom * 2 * i), r.width, r.height);
+          g.fillRect(r.x + (int) (zoom * 2 * i), r.y - (int) (zoom * 2 * i), r.width, r.height);
           g.setColor(Color.black);
-          g.drawRect(r.x + (int) (zoom * 2 * i),
-                     r.y - (int) (zoom * 2 * i), r.width, r.height);
+          g.drawRect(r.x + (int) (zoom * 2 * i), r.y - (int) (zoom * 2 * i), r.width, r.height);
         }
         else if (faceDown) {
-          top.draw(g, x + (int) (zoom * 2 * i),
-                   y - (int) (zoom * 2 * i), obs, zoom);
+          top.draw(g, x + (int) (zoom * 2 * i), y - (int) (zoom * 2 * i), obs, zoom);
         }
         else {
-          getPieceAt(count - i - 1).draw(g, x + (int) (zoom * 2 * i),
-                                         y - (int) (zoom * 2 * i), obs, zoom);
+          getPieceAt(count - i - 1).draw(g, x + (int) (zoom * 2 * i), y - (int) (zoom * 2 * i), obs, zoom);
         }
       }
-      top.draw(g, x + (int) (zoom * 2 * (count - 1)),
-               y - (int) (zoom * 2 * (count - 1)), obs, zoom);
-      top.setProperty(Properties.OBSCURED_BY,owner);
+      top.draw(g, x + (int) (zoom * 2 * (count - 1)), y - (int) (zoom * 2 * (count - 1)), obs, zoom);
+      top.setProperty(Properties.OBSCURED_BY, owner);
     }
     else {
       if (drawOutline) {
@@ -503,9 +500,10 @@ public class Deck extends Stack {
   }
 
   /**
-   * The color used to draw boxes representing cards underneath the top one.
-   * If null, then draw each card normally for face-up decks,
-   * and duplicate the top card for face-down decks
+   * The color used to draw boxes representing cards underneath the top one. If
+   * null, then draw each card normally for face-up decks, and duplicate the top
+   * card for face-down decks
+   * 
    * @return
    */
   protected Color getBlankColor() {
@@ -599,7 +597,7 @@ public class Deck extends Stack {
         l.add(c);
       }
       if (persistable) {
-        c =new KeyCommand("Save", null, this) {
+        c = new KeyCommand("Save", null, this) {
           public void actionPerformed(ActionEvent e) {
             GameModule.getGameModule().sendAndLog(saveDeck());
             map.repaint();
@@ -709,8 +707,8 @@ public class Deck extends Stack {
   }
 
   /**
-   * Combine the contents of this Deck with the contents of the
-   * deck specified by {@link #reshuffleTarget}
+   * Combine the contents of this Deck with the contents of the deck specified
+   * by {@link #reshuffleTarget}
    */
   public Command sendToDeck() {
     Command c = null;
@@ -746,7 +744,7 @@ public class Deck extends Stack {
   public void setPersistable(boolean persistable) {
     this.persistable = persistable;
   }
-  
+
   private File getSaveFileName() {
     File outputFile = null;
     FileDialog fd = GameModule.getGameModule().getFileDialog();
@@ -776,7 +774,7 @@ public class Deck extends Stack {
     }
     return outputFile;
   }
-  
+
   private boolean shouldConfirmOverwrite() {
     return System.getProperty("os.name").trim().equalsIgnoreCase("linux");
   }
@@ -801,7 +799,7 @@ public class Deck extends Stack {
   }
 
   public void saveDeck(File f) throws IOException {
-    Command comm = new NullCommand();
+    Command comm = new LoadDeckCommand(this);
 
     FileWriter dest = new FileWriter(f);
     for (Enumeration e = getPieces(); e.hasMoreElements();) {
@@ -809,8 +807,9 @@ public class Deck extends Stack {
       comm = comm.append(new AddPiece(p));
 
     }
-    comm.append(new ChangePiece(this.getId(), null, getState()));
+    GameModule.getGameModule().addCommandEncoder(commandEncoder);
     dest.write(GameModule.getGameModule().encode(comm));
+    GameModule.getGameModule().removeCommandEncoder(commandEncoder);
     dest.close();
   }
 
@@ -844,7 +843,7 @@ public class Deck extends Stack {
     try {
       File saveFile = getLoadFileName();
       if (saveFile != null) {
-        loadDeck(saveFile);
+        c = loadDeck(saveFile);
         GameModule.getGameModule().warn("deck Loaded");
       }
       else {
@@ -858,17 +857,45 @@ public class Deck extends Stack {
 
   }
 
-  public void loadDeck(File f) throws IOException {
+  public Command loadDeck(File f) throws IOException {
     FileReader src = new FileReader(f);
     char[] data = new char[10000];
     StringBuffer buffer = new StringBuffer();
     int len;
     while ((len = src.read(data)) > 0) {
-      buffer.append(data,0,len);
+      buffer.append(data, 0, len);
     }
-    GameModule.getGameModule().decode(buffer.toString()).execute();
     src.close();
+    GameModule.getGameModule().addCommandEncoder(commandEncoder);
+    Command c = GameModule.getGameModule().decode(buffer.toString());
+    GameModule.getGameModule().removeCommandEncoder(commandEncoder);
+    c.execute();
+    return c;
   }
 
+  protected static class LoadDeckCommand extends Command {
+    public static final String PREFIX = "DECK\t";
+    private Deck target;
+
+    public LoadDeckCommand(Deck target) {
+      this.target = target;
+    }
+
+    protected void executeCommand() {
+      target.removeAll();
+      Command[] sub = getSubCommands();
+      for (int i = 0; i < sub.length; i++) {
+        if (sub[i] instanceof AddPiece) {
+          GamePiece p = ((AddPiece) sub[i]).getTarget();
+          p.setId(GameModule.getGameModule().getGameState().getNewPieceId());
+          target.add(p);
+        }
+      }
+    }
+
+    protected Command myUndoCommand() {
+      return null;
+    }
+  }
 
 }

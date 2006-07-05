@@ -36,11 +36,6 @@ public class MapWidget extends Widget {
     return "Map";
   }
 
-  /*
-   * Maps must be built prior to game start, so force a rebuild
-   * immediately. Default for widgets is to defer build until
-   * first call to getComponent()
-   */
   public void build(Element e) {
     if (e == null) {
       WidgetMap map = new WidgetMap();
@@ -50,8 +45,13 @@ public class MapWidget extends Widget {
     }
     else {
       super.build(e);
-      rebuild();
     }
+    /*
+     * Maps must be built prior to game start, so force a rebuild
+     * immediately. Default for widgets is to defer build until
+     * first call to getComponent()
+     */
+    rebuild();
   }
   
   /*
