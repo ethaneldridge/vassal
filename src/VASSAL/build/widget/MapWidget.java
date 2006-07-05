@@ -44,6 +44,7 @@ public class MapWidget extends Widget {
   public void build(Element e) {
     if (e == null) {
       WidgetMap map = new WidgetMap();
+      map.build(null);
       map.addTo(this);
       add(map);
     }
