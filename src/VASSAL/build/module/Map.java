@@ -72,7 +72,6 @@ import javax.swing.WindowConstants;
 
 import org.w3c.dom.Element;
 
-import VASSAL.Info;
 import VASSAL.build.AbstractConfigurable;
 import VASSAL.build.AutoConfigurable;
 import VASSAL.build.Buildable;
@@ -148,18 +147,17 @@ import VASSAL.tools.UniqueIdManager;
 
 /**
  * The Map is the main component for displaying and containing {@link
- * GamePiece}s during play.  Pieces are displayed on a Map and moved
- * by clicking and dragging.  Keyboard events are forwarded to
- * selected pieces.  Multiple map windows are supported in a single
- * game, with dragging between windows allowed.
- *
- * A Map may contain many different {@link Buildable} subcomponents.
- * Components which are added directly to a Map are contained in the
- * <code>VASSAL.build.module.map</code> package */
-public class Map extends AbstractConfigurable implements GameComponent,
-    FocusListener, MouseListener, MouseMotionListener, DropTargetListener,
-    Configurable, UniqueIdManager.Identifyable, ToolBarComponent, GlobalPropertiesContainer, PropertySource,
-    PlayerRoster.SideChangeListener {
+ * GamePiece}s during play. Pieces are displayed on a Map and moved by clicking
+ * and dragging. Keyboard events are forwarded to selected pieces. Multiple map
+ * windows are supported in a single game, with dragging between windows
+ * allowed.
+ * 
+ * A Map may contain many different {@link Buildable} subcomponents. Components
+ * which are added directly to a Map are contained in the
+ * <code>VASSAL.build.module.map</code> package
+ */
+public class Map extends AbstractConfigurable implements GameComponent, FocusListener, MouseListener, MouseMotionListener, DropTargetListener, Configurable,
+    UniqueIdManager.Identifyable, ToolBarComponent, GlobalPropertiesContainer, PropertySource, PlayerRoster.SideChangeListener, Runnable {
 
   private String mapID = "";
   private String mapName = "";
@@ -191,13 +189,14 @@ public class Map extends AbstractConfigurable implements GameComponent,
   private int[][] boardHeights; // Cache of board heights by row/column
 
   protected PieceCollection pieces = new DefaultPieceCollection();
-  
+
   protected java.util.Map globalProperties = new HashMap();
 
   protected Highlighter highlighter = new ColoredBorder();
 
-  private boolean clearFirst = false;  //  Whether to clear the display before drawing the map
-  private boolean hideCounters = false;//  Option to hide counters to see map
+  private boolean clearFirst = false; // Whether to clear the display before
+                                      // drawing the map
+  private boolean hideCounters = false;// Option to hide counters to see map
   protected float pieceOpacity = 1.0f;
   private boolean allowMultiple = false;
   private VisibilityCondition visibilityCondition;
@@ -206,9 +205,9 @@ public class Map extends AbstractConfigurable implements GameComponent,
   private String moveToFormat;
   private String createFormat;
   private String changeFormat = "$" + MESSAGE + "$";
-  
+
   protected KeyStroke moveKey;
-  
+
   protected JPanel root;
 
   public Map() {
@@ -252,8 +251,7 @@ public class Map extends AbstractConfigurable implements GameComponent,
       String s = (String) value;
       int i = s.indexOf(",");
       if (i > 0) {
-        edgeBuffer = new Dimension(Integer.parseInt(s.substring(0, i)),
-                                   Integer.parseInt(s.substring(i + 1)));
+        edgeBuffer = new Dimension(Integer.parseInt(s.substring(0, i)), Integer.parseInt(s.substring(i + 1)));
       }
     }
     else if (EDGE_WIDTH.equals(key)) {
@@ -298,8 +296,7 @@ public class Map extends AbstractConfigurable implements GameComponent,
         value = new Integer((String) value);
       }
       if (highlighter instanceof ColoredBorder) {
-        ((ColoredBorder) highlighter).setThickness
-            (((Integer) value).intValue());
+        ((ColoredBorder) highlighter).setThickness(((Integer) value).intValue());
       }
     }
     else if (USE_LAUNCH_BUTTON.equals(key)) {
@@ -391,7 +388,7 @@ public class Map extends AbstractConfigurable implements GameComponent,
     }
     else if (MOVE_KEY.equals(key)) {
       return HotKeyConfigurer.encode(moveKey);
-    }   
+    }
     else {
       return launchButton.getAttributeValueString(key);
     }
@@ -400,9 +397,7 @@ public class Map extends AbstractConfigurable implements GameComponent,
   public void build(Element e) {
     ActionListener al = new ActionListener() {
       public void actionPerformed(ActionEvent e) {
-        if (mainWindowDock == null
-            && launchButton.isEnabled()
-            && theMap.getTopLevelAncestor() != null) {
+        if (mainWindowDock == null && launchButton.isEnabled() && theMap.getTopLevelAncestor() != null) {
           theMap.getTopLevelAncestor().setVisible(!theMap.getTopLevelAncestor().isVisible());
         }
       }
@@ -442,8 +437,8 @@ public class Map extends AbstractConfigurable implements GameComponent,
   }
 
   /**
-   * Every map must include a {@link BoardPicker} as one of its
-   * build components */
+   * Every map must include a {@link BoardPicker} as one of its build components
+   */
   public void setBoardPicker(BoardPicker picker) {
     if (this.picker != null) {
       GameModule.getGameModule().removeCommandEncoder(picker);
@@ -458,9 +453,10 @@ public class Map extends AbstractConfigurable implements GameComponent,
   }
 
   /**
-   * Every map must include a {@link BoardPicker} as one of its
-   * build components
-   * @return the BoardPicker for this map*/
+   * Every map must include a {@link BoardPicker} as one of its build components
+   * 
+   * @return the BoardPicker for this map
+   */
   public BoardPicker getBoardPicker() {
     if (picker == null) {
       picker = new BoardPicker();
@@ -480,6 +476,7 @@ public class Map extends AbstractConfigurable implements GameComponent,
 
   /**
    * A map may include a {@link Zoomer} as one of its build components
+   * 
    * @return the Zoomer for this map
    */
   public Zoomer getZoomer() {
@@ -487,18 +484,19 @@ public class Map extends AbstractConfigurable implements GameComponent,
   }
 
   /**
-   * Every map must include a {@link StackMetrics} as one of its
-   * build components, which governs the stacking behavior of
-   * GamePieces on the map */
+   * Every map must include a {@link StackMetrics} as one of its build
+   * components, which governs the stacking behavior of GamePieces on the map
+   */
   public void setStackMetrics(StackMetrics sm) {
     metrics = sm;
   }
 
   /**
-   * Every map must include a {@link StackMetrics} as one of its
-   * build components, which governs the stacking behavior of
-   * GamePieces on the map
-   * @return the StackMetrics for this map */
+   * Every map must include a {@link StackMetrics} as one of its build
+   * components, which governs the stacking behavior of GamePieces on the map
+   * 
+   * @return the StackMetrics for this map
+   */
   public StackMetrics getStackMetrics() {
     if (metrics == null) {
       metrics = new StackMetrics();
@@ -522,11 +520,11 @@ public class Map extends AbstractConfigurable implements GameComponent,
   public JToolBar getToolBar() {
     return toolBar;
   }
-  
+
   public PropertyChangeListener getPropertyListener() {
     return new PropertyChangeListener() {
       public void propertyChange(PropertyChangeEvent evt) {
-        globalProperties.put(evt.getPropertyName(),evt.getNewValue());
+        globalProperties.put(evt.getPropertyName(), evt.getNewValue());
         repaint();
       }
     };
@@ -534,7 +532,7 @@ public class Map extends AbstractConfigurable implements GameComponent,
 
   /**
    * Add a {@link Drawable} component to this map
-   *
+   * 
    * @see #paint
    */
   public void addDrawComponent(Drawable theComponent) {
@@ -543,7 +541,7 @@ public class Map extends AbstractConfigurable implements GameComponent,
 
   /**
    * Remove a {@link Drawable} component from this map
-   *
+   * 
    * @see #paint
    */
   public void removeDrawComponent(Drawable theComponent) {
@@ -551,37 +549,27 @@ public class Map extends AbstractConfigurable implements GameComponent,
   }
 
   /**
-   * Expects to be added to a {@link GameModule}.  Determines a
-   * unique id for this map.  Registers itself as {@link
-   * KeyStrokeSource}.  Registers itself as a {@link GameComponent}.
-   * Registers itself as a drop target and drag source
-   *
+   * Expects to be added to a {@link GameModule}. Determines a unique id for
+   * this map. Registers itself as {@link KeyStrokeSource}. Registers itself as
+   * a {@link GameComponent}. Registers itself as a drop target and drag source
+   * 
    * @see #getId
-   * @see DragBuffer */
+   * @see DragBuffer
+   */
   public void addTo(Buildable b) {
     idMgr.add(this);
 
-    validator = new CompoundValidityChecker
-        (new MandatoryComponent(this, BoardPicker.class),
-         new MandatoryComponent(this, StackMetrics.class))
-        .append(idMgr);
+    validator = new CompoundValidityChecker(new MandatoryComponent(this, BoardPicker.class), new MandatoryComponent(this, StackMetrics.class)).append(idMgr);
 
-    if (Info.isDndEnabled()) {
-      DragGestureListener dgl = new DragGestureListener() {
-        public void dragGestureRecognized(DragGestureEvent dge) {
-          if (mouseListenerStack.size() == 0
-              && dragGestureListener != null) {
-            dragGestureListener.dragGestureRecognized(dge);
-          }
+    DragGestureListener dgl = new DragGestureListener() {
+      public void dragGestureRecognized(DragGestureEvent dge) {
+        if (mouseListenerStack.size() == 0 && dragGestureListener != null) {
+          dragGestureListener.dragGestureRecognized(dge);
         }
-      };
-      DragSource.getDefaultDragSource().createDefaultDragGestureRecognizer(theMap, DnDConstants.ACTION_MOVE, dgl);
-      theMap.setDropTarget(PieceMover.DragHandler.makeDropTarget(theMap, DnDConstants.ACTION_MOVE, this));
-    }
-    else {
-      DragBuffer.getBuffer().addDropTarget(theMap, this);
-      DragBuffer.getBuffer().addDragSource(theMap);
-    }
+      }
+    };
+    DragSource.getDefaultDragSource().createDefaultDragGestureRecognizer(theMap, DnDConstants.ACTION_MOVE, dgl);
+    theMap.setDropTarget(PieceMover.DragHandler.makeDropTarget(theMap, DnDConstants.ACTION_MOVE, this));
 
     GameModule.getGameModule().getGameState().addGameComponent(this);
     GameModule.getGameModule().getToolBar().add(launchButton);
@@ -593,12 +581,10 @@ public class Map extends AbstractConfigurable implements GameComponent,
       root.add(scroll, BorderLayout.CENTER);
       ComponentSplitter splitter = new ComponentSplitter();
       mainWindowDock = splitter.splitBottom(splitter.getSplitAncestor(GameModule.getGameModule().getControlPanel(), -1), root, true);
-      GameModule.getGameModule().addKeyStrokeSource
-          (new KeyStrokeSource(theMap, JComponent.WHEN_FOCUSED));
+      GameModule.getGameModule().addKeyStrokeSource(new KeyStrokeSource(theMap, JComponent.WHEN_FOCUSED));
     }
     else {
-      GameModule.getGameModule().addKeyStrokeSource
-          (new KeyStrokeSource(theMap, JComponent.WHEN_IN_FOCUSED_WINDOW));
+      GameModule.getGameModule().addKeyStrokeSource(new KeyStrokeSource(theMap, JComponent.WHEN_IN_FOCUSED_WINDOW));
     }
     PlayerRoster.addSideChangeListener(this);
   }
@@ -617,14 +603,15 @@ public class Map extends AbstractConfigurable implements GameComponent,
     }
     PlayerRoster.removeSideChangeListener(this);
   }
-  
+
   public void sideChanged(String oldSide, String newSide) {
     repaint();
   }
 
   /**
-   * Set the boards for this map.  Each map may contain more than
-   * one {@link Board} */
+   * Set the boards for this map. Each map may contain more than one
+   * {@link Board}
+   */
   public synchronized void setBoards(Enumeration boardList) {
     boards.removeAllElements();
     System.gc();
@@ -653,7 +640,7 @@ public class Map extends AbstractConfigurable implements GameComponent,
   }
 
   /**
-   *
+   * 
    * @return the {@link Zone} on this map containing the argument point
    */
   public Zone findZone(Point p) {
@@ -670,6 +657,7 @@ public class Map extends AbstractConfigurable implements GameComponent,
 
   /**
    * Return the board with the given name
+   * 
    * @param name
    * @return null if no such board found
    */
@@ -688,12 +676,12 @@ public class Map extends AbstractConfigurable implements GameComponent,
   }
 
   public Dimension getPreferredSize() {
-    return new Dimension((int) (getZoom() * mapSize().width),
-                         (int) (getZoom() * mapSize().height));
+    return new Dimension((int) (getZoom() * mapSize().width), (int) (getZoom() * mapSize().height));
   }
 
   /**
-   * @return the size of the map in pixels at 100% zoom, including the edge buffer
+   * @return the size of the map in pixels at 100% zoom, including the edge
+   *         buffer
    */
   public synchronized Dimension mapSize() {
     Rectangle r = new Rectangle(0, 0);
@@ -709,8 +697,9 @@ public class Map extends AbstractConfigurable implements GameComponent,
   }
 
   /**
-   * @return true if the given point may not be a local location.
-   * I.e., if this grid will attempt to snap it to the nearest grid location */
+   * @return true if the given point may not be a local location. I.e., if this
+   *         grid will attempt to snap it to the nearest grid location
+   */
   public boolean isLocationRestricted(Point p) {
     Board b = findBoard(p);
     if (b != null) {
@@ -726,10 +715,13 @@ public class Map extends AbstractConfigurable implements GameComponent,
   }
 
   /**
-   * @return the nearest allowable point according to the {@link VASSAL.build.module.map.boardPicker.board.MapGrid} on the {@link Board} at this point
-   *
+   * @return the nearest allowable point according to the
+   *         {@link VASSAL.build.module.map.boardPicker.board.MapGrid} on the
+   *         {@link Board} at this point
+   * 
    * @see Board#snapTo
-   * @see VASSAL.build.module.map.boardPicker.board.MapGrid#snapTo */
+   * @see VASSAL.build.module.map.boardPicker.board.MapGrid#snapTo
+   */
   public Point snapTo(Point p) {
     Point snap = new Point(p);
 
@@ -741,9 +733,10 @@ public class Map extends AbstractConfigurable implements GameComponent,
     snap.translate(-r.x, -r.y);
     snap = b.snapTo(snap);
     snap.translate(r.x, r.y);
-    
+
     // RFE 882378
-    // If we have snapped to a point 1 pixel off the edge of the map, move back onto the map.
+    // If we have snapped to a point 1 pixel off the edge of the map, move back
+    // onto the map.
     if (findBoard(snap) == null) {
       snap.translate(-r.x, -r.y);
       if (snap.x == r.width) {
@@ -763,18 +756,20 @@ public class Map extends AbstractConfigurable implements GameComponent,
     return snap;
   }
 
-  /** The buffer of empty space around the boards in the Map window,
-   * in component coordinates at 100% zoom
+  /**
+   * The buffer of empty space around the boards in the Map window, in component
+   * coordinates at 100% zoom
    */
   public Dimension getEdgeBuffer() {
     return new Dimension(edgeBuffer);
   }
 
   /**
-   * Translate a point from component coordinates (i.e. x,y position
-   * on the JPanel) to map coordinates, i.e. accounting for zoom factor
-   *
-   * @see #componentCoordinates */
+   * Translate a point from component coordinates (i.e. x,y position on the
+   * JPanel) to map coordinates, i.e. accounting for zoom factor
+   * 
+   * @see #componentCoordinates
+   */
   public Point mapCoordinates(Point p1) {
     Point p = new Point(p1.x, p1.y);
     p.x /= getZoom();
@@ -793,7 +788,7 @@ public class Map extends AbstractConfigurable implements GameComponent,
 
   /**
    * Translate a point from map coordinates to component coordinates
-   *
+   * 
    * @see #mapCoordinates
    */
   public Point componentCoordinates(Point p1) {
@@ -814,7 +809,7 @@ public class Map extends AbstractConfigurable implements GameComponent,
 
   /**
    * @return a String name for the given location on the map
-   *
+   * 
    * @see Board#locationName
    */
   public String locationName(Point p) {
@@ -822,8 +817,7 @@ public class Map extends AbstractConfigurable implements GameComponent,
     if (loc == null) {
       Board b = findBoard(p);
       if (b != null) {
-        loc = b.locationName(new Point(p.x - b.bounds().x,
-                                       p.y - b.bounds().y));
+        loc = b.locationName(new Point(p.x - b.bounds().x, p.y - b.bounds().y));
       }
     }
     if (loc == null) {
@@ -834,9 +828,9 @@ public class Map extends AbstractConfigurable implements GameComponent,
 
   /**
    * @return a String name for the given location on the map. Include Map name
-   *         if requested. Report deck name instead of location if point is inside
-   *         the bounds of a deck. Do not include location if this map is not visible
-   *         to all players.
+   *         if requested. Report deck name instead of location if point is
+   *         inside the bounds of a deck. Do not include location if this map is
+   *         not visible to all players.
    */
   public String getFullLocationName(Point p, boolean includeMap) {
     String loc = "";
@@ -892,6 +886,7 @@ public class Map extends AbstractConfigurable implements GameComponent,
 
   /**
    * Return the name of the deck whose position is p
+   * 
    * @param p
    * @return
    */
@@ -920,8 +915,7 @@ public class Map extends AbstractConfigurable implements GameComponent,
     if (!fe.isTemporary()) {
       boolean dirty = false;
       java.util.List l = new ArrayList();
-      for (Enumeration e = KeyBuffer.getBuffer().getPieces();
-           e.hasMoreElements();) {
+      for (Enumeration e = KeyBuffer.getBuffer().getPieces(); e.hasMoreElements();) {
         l.add(e.nextElement());
       }
       for (Iterator it = l.iterator(); it.hasNext();) {
@@ -938,11 +932,11 @@ public class Map extends AbstractConfigurable implements GameComponent,
   }
 
   /**
-   * Because MouseEvents are received in component coordinates, it
-   * is inconvenient for MouseListeners on the map to have to
-   * translate to map coordinates.  MouseListeners added with this
-   * method will receive mouse events with points already translated
-   * into map coordinates */
+   * Because MouseEvents are received in component coordinates, it is
+   * inconvenient for MouseListeners on the map to have to translate to map
+   * coordinates. MouseListeners added with this method will receive mouse
+   * events with points already translated into map coordinates
+   */
   public void addLocalMouseListener(MouseListener l) {
     multicaster = AWTEventMulticaster.add(multicaster, l);
   }
@@ -952,15 +946,17 @@ public class Map extends AbstractConfigurable implements GameComponent,
   }
 
   /**
-   * MouseListeners on a map may be pushed and popped onto a stack.
-   * Only the top listener on the stack receives mouse events */
+   * MouseListeners on a map may be pushed and popped onto a stack. Only the top
+   * listener on the stack receives mouse events
+   */
   public void pushMouseListener(MouseListener l) {
     mouseListenerStack.addElement(l);
   }
 
   /**
-   * MouseListeners on a map may be pushed and popped onto a stack.
-   * Only the top listener on the stack receives mouse events */
+   * MouseListeners on a map may be pushed and popped onto a stack. Only the top
+   * listener on the stack receives mouse events
+   */
   public void popMouseListener() {
     mouseListenerStack.removeElement(mouseListenerStack.lastElement());
   }
@@ -972,13 +968,14 @@ public class Map extends AbstractConfigurable implements GameComponent,
   }
 
   /**
-   * Mouse events are first translated into map coordinates.
-   * Then the event is forwarded to the top MouseListener in the
-   * stack, if any, otherwise forwarded to all LocalMouseListeners
-   *
+   * Mouse events are first translated into map coordinates. Then the event is
+   * forwarded to the top MouseListener in the stack, if any, otherwise
+   * forwarded to all LocalMouseListeners
+   * 
    * @see #pushMouseListener
    * @see #popMouseListener
-   * @see #addLocalMouseListener*/
+   * @see #addLocalMouseListener
+   */
   public void mouseClicked(MouseEvent e) {
     if (mouseListenerStack.size() > 0) {
       Point p = mapCoordinates(e.getPoint());
@@ -993,13 +990,14 @@ public class Map extends AbstractConfigurable implements GameComponent,
   }
 
   /**
-   * Mouse events are first translated into map coordinates.
-   * Then the event is forwarded to the top MouseListener in the
-   * stack, if any, otherwise forwarded to all LocalMouseListeners
-   *
+   * Mouse events are first translated into map coordinates. Then the event is
+   * forwarded to the top MouseListener in the stack, if any, otherwise
+   * forwarded to all LocalMouseListeners
+   * 
    * @see #pushMouseListener
    * @see #popMouseListener
-   * @see #addLocalMouseListener*/
+   * @see #addLocalMouseListener
+   */
   public void mousePressed(MouseEvent e) {
     if (mouseListenerStack.size() > 0) {
       Point p = mapCoordinates(e.getPoint());
@@ -1014,13 +1012,14 @@ public class Map extends AbstractConfigurable implements GameComponent,
   }
 
   /**
-   * Mouse events are first translated into map coordinates.
-   * Then the event is forwarded to the top MouseListener in the
-   * stack, if any, otherwise forwarded to all LocalMouseListeners
-   *
+   * Mouse events are first translated into map coordinates. Then the event is
+   * forwarded to the top MouseListener in the stack, if any, otherwise
+   * forwarded to all LocalMouseListeners
+   * 
    * @see #pushMouseListener
    * @see #popMouseListener
-   * @see #addLocalMouseListener*/
+   * @see #addLocalMouseListener
+   */
   public void mouseReleased(MouseEvent e) {
     Point p = e.getPoint();
     p.translate(theMap.getLocation().x, theMap.getLocation().y);
@@ -1046,7 +1045,9 @@ public class Map extends AbstractConfigurable implements GameComponent,
   }
 
   /**
-   * This listener will be notified when a drag event is initiated, assuming that no MouseListeners are on the stack.
+   * This listener will be notified when a drag event is initiated, assuming
+   * that no MouseListeners are on the stack.
+   * 
    * @see #pushMouseListener
    * @param dragGestureListener
    */
@@ -1058,7 +1059,11 @@ public class Map extends AbstractConfigurable implements GameComponent,
     return dragGestureListener;
   }
 
+  /*
+   * Restart scroll delay timer when re-entering map
+   */
   public void dragEnter(DropTargetDragEvent dtde) {
+    restartDelay();
   }
 
   public void dragOver(DropTargetDragEvent dtde) {
@@ -1068,7 +1073,13 @@ public class Map extends AbstractConfigurable implements GameComponent,
   public void dropActionChanged(DropTargetDragEvent dtde) {
   }
 
+  /*
+   * Cancel final scroll and repaint map
+   */
   public void dragExit(DropTargetEvent dte) {
+    scroll_dx = 0;
+    scroll_dy = 0;
+    repaint();
   }
 
   public void drop(DropTargetDropEvent dtde) {
@@ -1079,46 +1090,85 @@ public class Map extends AbstractConfigurable implements GameComponent,
   }
 
   /**
-   * Mouse motion events are not forwarded to LocalMouseListeners or
-   * to listeners on the stack */
+   * Mouse motion events are not forwarded to LocalMouseListeners or to
+   * listeners on the stack
+   */
   public void mouseMoved(MouseEvent e) {
   }
 
   /**
-   * Mouse motion events are not forwarded to LocalMouseListeners or
-   * to listeners on the stack
-   *
-   * The map scrolls when dragging the mouse near the edge */
+   * Mouse motion events are not forwarded to LocalMouseListeners or to
+   * listeners on the stack
+   * 
+   * The map scrolls when dragging the mouse near the edge
+   */
   public void mouseDragged(MouseEvent e) {
     if (!e.isMetaDown()) {
       scrollAtEdge(e.getPoint(), 15);
     }
+    else {
+      restartDelay();
+    }
   }
 
+  /*
+   * Delay 500ms before starting scroll at edge
+   */
+  protected Thread scrollDelayThread;
+  protected int scrollDelay = 500;
+  protected long scrollExpirationTime;
+  protected int scroll_dist;
+  protected int scroll_dx;
+  protected int scroll_dy;
+
   /**
-   * Scoll map so that the argument point is at least a certain distance from the visible edte
+   * Scoll map so that the argument point is at least a certain distance from
+   * the visible edte
+   * 
    * @param evtPt
    */
   public void scrollAtEdge(Point evtPt, int dist) {
-    Point p = new Point
-        (evtPt.x - scroll.getViewport().getViewPosition().x,
-         evtPt.y - scroll.getViewport().getViewPosition().y);
+    Point p = new Point(evtPt.x - scroll.getViewport().getViewPosition().x, evtPt.y - scroll.getViewport().getViewPosition().y);
     int dx = 0, dy = 0;
-    if (p.x < dist
-        && p.x >= 0)
+    if (p.x < dist && p.x >= 0)
       dx = -1;
-    if (p.x >= scroll.getViewport().getSize().width - dist
-        && p.x < scroll.getViewport().getSize().width)
+    if (p.x >= scroll.getViewport().getSize().width - dist && p.x < scroll.getViewport().getSize().width)
       dx = 1;
-    if (p.y < dist
-        && p.y >= 0)
+    if (p.y < dist && p.y >= 0)
       dy = -1;
-    if (p.y >= scroll.getViewport().getSize().height - dist
-        && p.y < scroll.getViewport().getSize().height)
+    if (p.y >= scroll.getViewport().getSize().height - dist && p.y < scroll.getViewport().getSize().height)
       dy = 1;
 
+    scroll_dx = dx;
+    scroll_dy = dy;
+    scroll_dist = dist;
+
     if (dx != 0 || dy != 0) {
-      scroll(2 * dist * dx, 2 * dist * dy);
+      if (scrollDelayThread == null || !scrollDelayThread.isAlive()) {
+
+        scrollDelayThread = new Thread(this);
+        scrollDelayThread.start();
+      }
+    }
+    else {
+      restartDelay();
+    }
+  }
+
+  protected void restartDelay() {
+    scrollExpirationTime = System.currentTimeMillis() + scrollDelay;
+  }
+
+  public void run() {
+    while (System.currentTimeMillis() < scrollExpirationTime) {
+      try {
+        Thread.sleep(Math.max(0, scrollExpirationTime - System.currentTimeMillis()));
+      }
+      catch (InterruptedException e) {
+      }
+    }
+    if (scroll_dx != 0 || scroll_dy != 0) {
+      scroll(2 * scroll_dist * scroll_dx, 2 * scroll_dist * scroll_dy);
     }
   }
 
@@ -1127,12 +1177,11 @@ public class Map extends AbstractConfigurable implements GameComponent,
     theMap.repaint();
   }
 
-
   /**
-   * Painting the map is done in three steps: 1) draw each of the
-   * {@link Board}s on the map.  2) draw all of the counters on the
-   * map.  3) draw all of the {@link Drawable} components on the map
-   *
+   * Painting the map is done in three steps: 1) draw each of the {@link Board}s
+   * on the map. 2) draw all of the counters on the map. 3) draw all of the
+   * {@link Drawable} components on the map
+   * 
    * @see #addDrawComponent
    * @see #setBoards
    * @see #addPiece
@@ -1158,7 +1207,6 @@ public class Map extends AbstractConfigurable implements GameComponent,
     }
   }
 
-
   public void repaint() {
     theMap.repaint();
   }
@@ -1177,8 +1225,7 @@ public class Map extends AbstractConfigurable implements GameComponent,
         else {
           stack[i].draw(g, pt.x, pt.y, theMap, getZoom());
           if (Boolean.TRUE.equals(stack[i].getProperty(Properties.SELECTED))) {
-            highlighter.draw
-                (stack[i], g, pt.x, pt.y, theMap, getZoom());
+            highlighter.draw(stack[i], g, pt.x, pt.y, theMap, getZoom());
           }
         }
       }
@@ -1196,8 +1243,7 @@ public class Map extends AbstractConfigurable implements GameComponent,
         Point pt = componentCoordinates(stack[i].getPosition());
         stack[i].draw(g, pt.x + xOffset, pt.y + yOffset, theMap, getZoom());
         if (Boolean.TRUE.equals(stack[i].getProperty(Properties.SELECTED))) {
-          highlighter.draw
-              (stack[i], g, pt.x - xOffset, pt.y - yOffset, theMap, getZoom());
+          highlighter.draw(stack[i], g, pt.x - xOffset, pt.y - yOffset, theMap, getZoom());
         }
       }
       g2d.setComposite(oldComposite);
@@ -1205,8 +1251,7 @@ public class Map extends AbstractConfigurable implements GameComponent,
   }
 
   public void drawDrawable(Graphics g, boolean aboveCounters) {
-    for (Enumeration e = drawComponents.elements();
-         e.hasMoreElements();) {
+    for (Enumeration e = drawComponents.elements(); e.hasMoreElements();) {
       Drawable drawable = (Drawable) e.nextElement();
       if (!(aboveCounters ^ drawable.drawAboveCounters())) {
         drawable.draw(g, this);
@@ -1215,8 +1260,8 @@ public class Map extends AbstractConfigurable implements GameComponent,
   }
 
   /**
-   * Paint the map at the given offset, i.e. such that (xOffset, yOffset)
-   * is in the upper left corner
+   * Paint the map at the given offset, i.e. such that (xOffset, yOffset) is in
+   * the upper left corner
    */
   public void paint(Graphics g, int xOffset, int yOffset) {
 
@@ -1235,7 +1280,8 @@ public class Map extends AbstractConfigurable implements GameComponent,
   }
 
   /**
-   * @return an Enumeration of all {@link Board}s on the map */
+   * @return an Enumeration of all {@link Board}s on the map
+   */
   public Enumeration getAllBoards() {
     return boards.elements();
   }
@@ -1245,10 +1291,9 @@ public class Map extends AbstractConfigurable implements GameComponent,
   }
 
   /**
-   * Returns the boundingBox of a GamePiece accounting for
-   * the offset of a piece within its parent stack.
-   * Return null if this piece is not on the map
-   *
+   * Returns the boundingBox of a GamePiece accounting for the offset of a piece
+   * within its parent stack. Return null if this piece is not on the map
+   * 
    * @see GamePiece#boundingBox
    */
   public Rectangle boundingBoxOf(GamePiece p) {
@@ -1269,8 +1314,9 @@ public class Map extends AbstractConfigurable implements GameComponent,
   }
 
   /**
-   * Returns the selection bounding box of a GamePiece accounting for
-   * the offset of a piece within a stack
+   * Returns the selection bounding box of a GamePiece accounting for the offset
+   * of a piece within a stack
+   * 
    * @see GamePiece#getShape
    */
   public Rectangle selectionBoundsOf(GamePiece p) {
@@ -1287,9 +1333,9 @@ public class Map extends AbstractConfigurable implements GameComponent,
   }
 
   /**
-   * @return an array of all GamePieces on the map.  This is a
-   * read-only copy.  Altering the array does not alter the pieces
-   * on the map.  */
+   * @return an array of all GamePieces on the map. This is a read-only copy.
+   *         Altering the array does not alter the pieces on the map.
+   */
   public GamePiece[] getPieces() {
     return pieces.getPieces();
   }
@@ -1297,7 +1343,7 @@ public class Map extends AbstractConfigurable implements GameComponent,
   public GamePiece[] getAllPieces() {
     return pieces.getAllPieces();
   }
-  
+
   public void setPieceCollection(PieceCollection pieces) {
     this.pieces = pieces;
   }
@@ -1313,41 +1359,38 @@ public class Map extends AbstractConfigurable implements GameComponent,
     }
     else {
 
-      Dimension buffer = new Dimension((int) (getZoom() * edgeBuffer.width),
-                                       (int) (getZoom() * edgeBuffer.height));
+      Dimension buffer = new Dimension((int) (getZoom() * edgeBuffer.width), (int) (getZoom() * edgeBuffer.height));
       g.clearRect(0, 0, buffer.width, theMap.getSize().height);
       g.clearRect(0, 0, theMap.getSize().width, buffer.height);
-      g.clearRect(theMap.getSize().width - buffer.width, 0,
-                  buffer.width, theMap.getSize().height);
-      g.clearRect(0, theMap.getSize().height - buffer.height,
-                  theMap.getSize().width, buffer.height);
+      g.clearRect(theMap.getSize().width - buffer.width, 0, buffer.width, theMap.getSize().height);
+      g.clearRect(0, theMap.getSize().height - buffer.height, theMap.getSize().width, buffer.height);
     }
   }
 
   /**
-   * Adjusts the bounds() rectangle to account for the Board's
-   * relative position to other boards.  In other words, if Board A
-   * is N pixels wide and Board B is to the right of Board A, then
-   * the origin of Board B will be adjusted N pixels to the right.
+   * Adjusts the bounds() rectangle to account for the Board's relative position
+   * to other boards. In other words, if Board A is N pixels wide and Board B is
+   * to the right of Board A, then the origin of Board B will be adjusted N
+   * pixels to the right.
    */
   protected void setBoardBoundaries() {
     int maxX = 0;
     int maxY = 0;
-    for (int i = 0,n = boards.size(); i < n; ++i) {
+    for (int i = 0, n = boards.size(); i < n; ++i) {
       Point relPos = ((Board) boards.get(i)).relativePosition();
       maxX = Math.max(maxX, relPos.x);
       maxY = Math.max(maxY, relPos.y);
     }
     boardWidths = new int[maxX + 1][maxY + 1];
     boardHeights = new int[maxX + 1][maxY + 1];
-    for (int i = 0,n = boards.size(); i < n; ++i) {
+    for (int i = 0, n = boards.size(); i < n; ++i) {
       Board b = (Board) boards.get(i);
       Point relPos = b.relativePosition();
       boardWidths[relPos.x][relPos.y] = b.bounds().width;
       boardHeights[relPos.x][relPos.y] = b.bounds().height;
     }
     Point offset = new Point(edgeBuffer.width, edgeBuffer.height);
-    for (int i = 0,n = boards.size(); i < n; ++i) {
+    for (int i = 0, n = boards.size(); i < n; ++i) {
       Board b = (Board) boards.get(i);
       Point relPos = b.relativePosition();
       Point location = getLocation(relPos.x, relPos.y, 1.0);
@@ -1382,10 +1425,10 @@ public class Map extends AbstractConfigurable implements GameComponent,
   }
 
   /**
-   * Draw the boards of the map at the given point and zoom factor
-   * onto the given Graphics object */
-  public void drawBoards(Graphics g, int xoffset, int yoffset,
-                         double zoom, Component obs) {
+   * Draw the boards of the map at the given point and zoom factor onto the
+   * given Graphics object
+   */
+  public void drawBoards(Graphics g, int xoffset, int yoffset, double zoom, Component obs) {
     for (int i = 0; i < boards.size(); ++i) {
       Board b = (Board) boards.elementAt(i);
       Point p = getLocation(b, zoom);
@@ -1399,14 +1442,15 @@ public class Map extends AbstractConfigurable implements GameComponent,
    */
   public void repaint(Rectangle r) {
     r.setLocation(componentCoordinates(new Point(r.x, r.y)));
-    r.setSize((int) (r.width * getZoom()),
-              (int) (r.height * getZoom()));
+    r.setSize((int) (r.width * getZoom()), (int) (r.height * getZoom()));
     theMap.repaint(r.x, r.y, r.width, r.height);
   }
 
   /**
-   * @param show if true, enable drawing of GamePiece.  If false,
-   * don't draw GamePiece when painting the map */
+   * @param show
+   *          if true, enable drawing of GamePiece. If false, don't draw
+   *          GamePiece when painting the map
+   */
   public void setPiecesVisible(boolean show) {
     hideCounters = !show;
   }
@@ -1431,26 +1475,24 @@ public class Map extends AbstractConfigurable implements GameComponent,
     }
     return value;
   }
-  
+
   public KeyStroke getMoveKey() {
     return moveKey;
   }
-  
+
   /**
    * @return the top-level window containing this map
    */
   protected Window createParentFrame() {
     if (GlobalOptions.getInstance().isUseSingleWindow()) {
       JDialog d = new JDialog(GameModule.getGameModule().getFrame());
-      d.setDefaultCloseOperation
-          (WindowConstants.DO_NOTHING_ON_CLOSE);
+      d.setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
       d.setTitle(getDefaultWindowTitle());
       return d;
     }
     else {
       JFrame d = new JFrame();
-      d.setDefaultCloseOperation
-          (WindowConstants.DO_NOTHING_ON_CLOSE);
+      d.setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
       d.setTitle(getDefaultWindowTitle());
       return d;
     }
@@ -1458,8 +1500,7 @@ public class Map extends AbstractConfigurable implements GameComponent,
 
   public boolean shouldDockIntoMainWindow() {
     boolean shouldDock = false;
-    if (GlobalOptions.getInstance().isUseSingleWindow()
-        && !launchButton.isVisible()) {
+    if (GlobalOptions.getInstance().isUseSingleWindow() && !launchButton.isVisible()) {
       shouldDock = true;
       for (Enumeration e = GameModule.getGameModule().getComponents(Map.class); e.hasMoreElements();) {
         Map m = (Map) e.nextElement();
@@ -1476,10 +1517,11 @@ public class Map extends AbstractConfigurable implements GameComponent,
   }
 
   /**
-   * When a game is started, create a top-level window, if none
-   * exists.  When a game is ended, remove all boards from the map
-   *
-   * @see GameComponent */
+   * When a game is started, create a top-level window, if none exists. When a
+   * game is ended, remove all boards from the map
+   * 
+   * @see GameComponent
+   */
   public void setup(boolean show) {
     if (show) {
       if (shouldDockIntoMainWindow()) {
@@ -1498,18 +1540,16 @@ public class Map extends AbstractConfigurable implements GameComponent,
       else {
         if (SwingUtilities.getWindowAncestor(theMap) == null) {
           final Window topWindow = createParentFrame();
-          topWindow.addWindowListener
-              (new WindowAdapter() {
-                public void windowClosing(WindowEvent e) {
-                  if (launchButton.isVisible()) {
-                    topWindow.setVisible(false);
-                  }
-                  else {
-                    GameModule.getGameModule()
-                        .getGameState().setup(false);
-                  }
-                }
-              });
+          topWindow.addWindowListener(new WindowAdapter() {
+            public void windowClosing(WindowEvent e) {
+              if (launchButton.isVisible()) {
+                topWindow.setVisible(false);
+              }
+              else {
+                GameModule.getGameModule().getGameState().setup(false);
+              }
+            }
+          });
           ((RootPaneContainer) topWindow).getContentPane().add("North", getToolBar());
           ((RootPaneContainer) topWindow).getContentPane().add("Center", scroll);
           topWindow.setSize(600, 400);
@@ -1526,7 +1566,8 @@ public class Map extends AbstractConfigurable implements GameComponent,
       System.gc();
       if (mainWindowDock != null) {
         if (mainWindowDock.getHideableComponent().isVisible()) {
-          GameModule.getGameModule().getGlobalPrefs().getOption(MAIN_WINDOW_HEIGHT).setValue(new Integer(mainWindowDock.getTopLevelAncestor().getSize().height));
+          GameModule.getGameModule().getGlobalPrefs().getOption(MAIN_WINDOW_HEIGHT)
+              .setValue(new Integer(mainWindowDock.getTopLevelAncestor().getSize().height));
         }
         mainWindowDock.hideComponent();
         toolBar.setVisible(false);
@@ -1561,8 +1602,7 @@ public class Map extends AbstractConfigurable implements GameComponent,
   }
 
   protected String getDefaultWindowTitle() {
-    return getMapName().length() > 0 ? getMapName()
-        : GameModule.getGameModule().getGameName() + " map";
+    return getMapName().length() > 0 ? getMapName() : GameModule.getGameModule().getGameName() + " map";
   }
 
   public GamePiece findPiece(Point pt, PieceFinder finder) {
@@ -1575,7 +1615,7 @@ public class Map extends AbstractConfigurable implements GameComponent,
     }
     return null;
   }
-  
+
   public GamePiece findAnyPiece(Point pt, PieceFinder finder) {
     GamePiece[] stack = pieces.getAllPieces();
     for (int i = stack.length - 1; i >= 0; --i) {
@@ -1588,9 +1628,9 @@ public class Map extends AbstractConfigurable implements GameComponent,
   }
 
   /**
-   * Place a piece at the destination point.  If necessary,
-   * remove the piece from its parent Stack or Map
-   *
+   * Place a piece at the destination point. If necessary, remove the piece from
+   * its parent Stack or Map
+   * 
    * @return a {@link Command} that reproduces this action
    */
   public Command placeAt(GamePiece piece, Point pt) {
@@ -1611,12 +1651,12 @@ public class Map extends AbstractConfigurable implements GameComponent,
   }
 
   /**
-   * Apply the provided {@link PieceVisitorDispatcher}
-   * to all pieces on this map.  Returns the first non-null {@link Command}
-   * returned by <code>commandFactory</code>
-   *
+   * Apply the provided {@link PieceVisitorDispatcher} to all pieces on this
+   * map. Returns the first non-null {@link Command} returned by
+   * <code>commandFactory</code>
+   * 
    * @param commandFactory
-   *
+   * 
    */
   public Command apply(PieceVisitorDispatcher commandFactory) {
     GamePiece[] stack = pieces.getPieces();
@@ -1629,11 +1669,10 @@ public class Map extends AbstractConfigurable implements GameComponent,
   }
 
   /**
-   * Move a piece to the destination point.  If a piece is at the point
-   * (i.e. has a location exactly equal to it), merge with the piece
-   * by forwarding to {@link StackMetrics#merge}.
-   * Otherwise, place by forwarding to placeAt()
-   *
+   * Move a piece to the destination point. If a piece is at the point (i.e. has
+   * a location exactly equal to it), merge with the piece by forwarding to
+   * {@link StackMetrics#merge}. Otherwise, place by forwarding to placeAt()
+   * 
    * @see StackMetrics#merge
    */
   public Command placeOrMerge(final GamePiece p, final Point pt) {
@@ -1645,17 +1684,16 @@ public class Map extends AbstractConfigurable implements GameComponent,
   }
 
   /**
-   * Adds a GamePiece to this map.  Removes the piece from its
-   * parent Stack and from its current map, if different from this
-   * map */
+   * Adds a GamePiece to this map. Removes the piece from its parent Stack and
+   * from its current map, if different from this map
+   */
   public void addPiece(GamePiece p) {
     if (indexOf(p) < 0) {
       if (p.getParent() != null) {
         p.getParent().remove(p);
         p.setParent(null);
       }
-      if (p.getMap() != null
-          && p.getMap() != this) {
+      if (p.getMap() != null && p.getMap() != this) {
         p.getMap().removePiece(p);
       }
       pieces.add(p);
@@ -1665,16 +1703,17 @@ public class Map extends AbstractConfigurable implements GameComponent,
   }
 
   /**
-   * Reorder the argument GamePiece to the new index.  When painting
-   * the map, pieces are drawn in order of index
-   * @deprecated use {@link PieceCollection#moveToFront} */
+   * Reorder the argument GamePiece to the new index. When painting the map,
+   * pieces are drawn in order of index
+   * 
+   * @deprecated use {@link PieceCollection#moveToFront}
+   */
   public void reposition(GamePiece s, int pos) {
   }
 
   /**
-   * Returns the index of a piece.
-   * When painting the map, pieces are drawn in order of index
-   * Return -1 if the piece is not on this map
+   * Returns the index of a piece. When painting the map, pieces are drawn in
+   * order of index Return -1 if the piece is not on this map
    */
   public int indexOf(GamePiece s) {
     return pieces.indexOf(s);
@@ -1688,21 +1727,21 @@ public class Map extends AbstractConfigurable implements GameComponent,
     theMap.repaint();
   }
 
-  /** Center the map at given map coordinates within its JScrollPane
-   container*/
+  /**
+   * Center the map at given map coordinates within its JScrollPane container
+   */
   public void centerAt(Point p) {
     centerAt(p, 0, 0);
   }
 
   /**
-   * Center the map at the given map coordinates, if the point is not
-   * already within (dx,dy) of the center
+   * Center the map at the given map coordinates, if the point is not already
+   * within (dx,dy) of the center
    */
   public void centerAt(Point p, int dx, int dy) {
     if (scroll != null) {
       p = componentCoordinates(p);
-      p.translate(-scroll.getViewport().getSize().width / 2,
-                  -scroll.getViewport().getSize().height / 2);
+      p.translate(-scroll.getViewport().getSize().width / 2, -scroll.getViewport().getSize().height / 2);
       Rectangle r = new Rectangle(p, scroll.getViewport().getSize());
       r.width = dx > r.width ? 0 : r.width - dx;
       r.height = dy > r.height ? 0 : r.height - dy;
@@ -1721,14 +1760,16 @@ public class Map extends AbstractConfigurable implements GameComponent,
 
   /**
    * Scrolls the map in the containing JScrollPane
-   * @param dx number of pixels to scroll horizontally
-   * @param dy number of pixels to scroll vertically
+   * 
+   * @param dx
+   *          number of pixels to scroll horizontally
+   * @param dy
+   *          number of pixels to scroll vertically
    */
   public void scroll(int dx, int dy) {
     Rectangle r = new Rectangle(scroll.getViewport().getViewRect());
     r.translate(dx, dy);
-    r = r.intersection(new Rectangle(new Point(0, 0),
-                                     getPreferredSize()));
+    r = r.intersection(new Rectangle(new Point(0, 0), getPreferredSize()));
     theMap.scrollRectToVisible(r);
   }
 
@@ -1758,63 +1799,22 @@ public class Map extends AbstractConfigurable implements GameComponent,
   }
 
   public String[] getAttributeDescriptions() {
-    return new String[]{"Map Name",
-                        "Mark pieces that move (if they possess the proper trait)",
-                        "\"Mark unmoved\" button icon",
-                        "Horizontal Padding",
-                        "Vertical Padding",
-                        "Can contain multiple boards",
-                        "Border color for selected counters",
-                        "Border thickness for selected counters",
-                        "Include toolbar button to show/hide",
-                        "Toolbar button name",
-                        "Toolbar button icon",
-                        "Hotkey",
-                        "Auto-report format for movement within this map",
-                        "Auto-report format for movement to this map",
-                        "Auto-report format for units created in this map",
-                        "Auto-report format for units modified on this map",
-                        "Key Command to apply to all units ending movement on this map"};
+    return new String[] {"Map Name", "Mark pieces that move (if they possess the proper trait)", "\"Mark unmoved\" button icon", "Horizontal Padding",
+        "Vertical Padding", "Can contain multiple boards", "Border color for selected counters", "Border thickness for selected counters",
+        "Include toolbar button to show/hide", "Toolbar button name", "Toolbar button icon", "Hotkey", "Auto-report format for movement within this map",
+        "Auto-report format for movement to this map", "Auto-report format for units created in this map", "Auto-report format for units modified on this map",
+        "Key Command to apply to all units ending movement on this map"};
   }
 
   public String[] getAttributeNames() {
-    return new String[]{NAME,
-                        MARK_MOVED,
-                        MARK_UNMOVED_ICON,
-                        EDGE_WIDTH,
-                        EDGE_HEIGHT,
-                        ALLOW_MULTIPLE,
-                        HIGHLIGHT_COLOR,
-                        HIGHLIGHT_THICKNESS,
-                        USE_LAUNCH_BUTTON,
-                        BUTTON_NAME,
-                        ICON,
-                        HOTKEY,
-                        MOVE_WITHIN_FORMAT,
-                        MOVE_TO_FORMAT,
-                        CREATE_FORMAT,
-                        CHANGE_FORMAT,
-                        MOVE_KEY};
+    return new String[] {NAME, MARK_MOVED, MARK_UNMOVED_ICON, EDGE_WIDTH, EDGE_HEIGHT, ALLOW_MULTIPLE, HIGHLIGHT_COLOR, HIGHLIGHT_THICKNESS, USE_LAUNCH_BUTTON,
+        BUTTON_NAME, ICON, HOTKEY, MOVE_WITHIN_FORMAT, MOVE_TO_FORMAT, CREATE_FORMAT, CHANGE_FORMAT, MOVE_KEY};
   }
 
   public Class[] getAttributeTypes() {
-    return new Class[]{String.class,
-                       GlobalOptions.Prompt.class,
-                       UnmovedIconConfig.class,
-                       Integer.class,
-                       Integer.class,
-                       Boolean.class,
-                       Color.class,
-                       Integer.class,
-                       Boolean.class,
-                       String.class,
-                       IconConfig.class,
-                       KeyStroke.class,
-                       MoveWithinFormatConfig.class,
-                       MoveToFormatConfig.class,
-                       CreateFormatConfig.class,
-                       ChangeFormatConfig.class,
-                       KeyStroke.class};
+    return new Class[] {String.class, GlobalOptions.Prompt.class, UnmovedIconConfig.class, Integer.class, Integer.class, Boolean.class, Color.class,
+        Integer.class, Boolean.class, String.class, IconConfig.class, KeyStroke.class, MoveWithinFormatConfig.class, MoveToFormatConfig.class,
+        CreateFormatConfig.class, ChangeFormatConfig.class, KeyStroke.class};
   }
 
   public static final String LOCATION = "location";
@@ -1838,39 +1838,26 @@ public class Map extends AbstractConfigurable implements GameComponent,
 
   public static class MoveWithinFormatConfig implements ConfigurerFactory {
     public Configurer getConfigurer(AutoConfigurable c, String key, String name) {
-      return new PlayerIdFormattedStringConfigurer(key, name, new String[]{PIECE_NAME,
-                                                                           LOCATION,
-                                                                           MAP_NAME,
-                                                                           OLD_LOCATION});
+      return new PlayerIdFormattedStringConfigurer(key, name, new String[] {PIECE_NAME, LOCATION, MAP_NAME, OLD_LOCATION});
     }
   }
 
   public static class MoveToFormatConfig implements ConfigurerFactory {
     public Configurer getConfigurer(AutoConfigurable c, String key, String name) {
-      return new PlayerIdFormattedStringConfigurer(key, name, new String[]{PIECE_NAME,
-                                                                           LOCATION,
-                                                                           OLD_MAP,
-                                                                           MAP_NAME,
-                                                                           OLD_LOCATION});
+      return new PlayerIdFormattedStringConfigurer(key, name, new String[] {PIECE_NAME, LOCATION, OLD_MAP, MAP_NAME, OLD_LOCATION});
     }
   }
 
   public static class CreateFormatConfig implements ConfigurerFactory {
     public Configurer getConfigurer(AutoConfigurable c, String key, String name) {
-      return new PlayerIdFormattedStringConfigurer(key, name, new String[]{PIECE_NAME,
-                                                                           MAP_NAME,
-                                                                           LOCATION});
+      return new PlayerIdFormattedStringConfigurer(key, name, new String[] {PIECE_NAME, MAP_NAME, LOCATION});
     }
   }
 
   public static class ChangeFormatConfig implements ConfigurerFactory {
     public Configurer getConfigurer(AutoConfigurable c, String key, String name) {
-      return new PlayerIdFormattedStringConfigurer(key, name, new String[]{MESSAGE,
-                                                                           ReportState.COMMAND_NAME,
-                                                                           ReportState.OLD_UNIT_NAME,
-                                                                           ReportState.NEW_UNIT_NAME,
-                                                                           ReportState.MAP_NAME,
-                                                                           ReportState.LOCATION_NAME});
+      return new PlayerIdFormattedStringConfigurer(key, name, new String[] {MESSAGE, ReportState.COMMAND_NAME, ReportState.OLD_UNIT_NAME,
+          ReportState.NEW_UNIT_NAME, ReportState.MAP_NAME, ReportState.LOCATION_NAME});
     }
   }
 
@@ -1882,8 +1869,7 @@ public class Map extends AbstractConfigurable implements GameComponent,
       String val = "$" + PIECE_NAME + "$ created in $" + LOCATION + "$";
       if (boards.size() > 0) {
         Board b = (Board) boards.firstElement();
-        if (b.getGrid() == null
-            || b.getGrid().getGridNumbering() == null) {
+        if (b.getGrid() == null || b.getGrid().getGridNumbering() == null) {
           val = "";
         }
       }
@@ -1903,8 +1889,7 @@ public class Map extends AbstractConfigurable implements GameComponent,
       String val = "$" + PIECE_NAME + "$" + " moves $" + OLD_LOCATION + "$ -> $" + LOCATION + "$ *";
       if (boards.size() > 0) {
         Board b = (Board) boards.firstElement();
-        if (b.getGrid() == null
-            || b.getGrid().getGridNumbering() != null) {
+        if (b.getGrid() == null || b.getGrid().getGridNumbering() != null) {
           val = "";
         }
       }
@@ -1929,9 +1914,9 @@ public class Map extends AbstractConfigurable implements GameComponent,
   }
 
   public Class[] getAllowableConfigureComponents() {
-    Class[] c = {GlobalMap.class, LOS_Thread.class, ToolbarMenu.class, HidePiecesButton.class,
-                 Zoomer.class, CounterDetailViewer.class, HighlightLastMoved.class, LayeredPieceCollection.class, ImageSaver.class,
-                 TextSaver.class, DrawPile.class, SetupStack.class, MassKeyCommand.class, MapShader.class, PieceRecenterer.class};
+    Class[] c = {GlobalMap.class, LOS_Thread.class, ToolbarMenu.class, HidePiecesButton.class, Zoomer.class, CounterDetailViewer.class,
+        HighlightLastMoved.class, LayeredPieceCollection.class, ImageSaver.class, TextSaver.class, DrawPile.class, SetupStack.class, MassKeyCommand.class,
+        MapShader.class, PieceRecenterer.class};
     return c;
   }
 
@@ -1967,7 +1952,7 @@ public class Map extends AbstractConfigurable implements GameComponent,
 
   /**
    * Each Map must have a unique String id
-   *
+   * 
    * @return the id for this map
    */
   public String getId() {
@@ -1975,9 +1960,11 @@ public class Map extends AbstractConfigurable implements GameComponent,
   }
 
   /**
-   * Make a best gues for a unique identifier for the target.
-   * Use {@link VASSAL.tools.UniqueIdManager.Identifyable#getConfigureName} if non-null, otherwise
-   * use {@link VASSAL.tools.UniqueIdManager.Identifyable#getId}
+   * Make a best gues for a unique identifier for the target. Use
+   * {@link VASSAL.tools.UniqueIdManager.Identifyable#getConfigureName} if
+   * non-null, otherwise use
+   * {@link VASSAL.tools.UniqueIdManager.Identifyable#getId}
+   * 
    * @return
    */
   public String getIdentifier() {
@@ -1988,10 +1975,7 @@ public class Map extends AbstractConfigurable implements GameComponent,
   public JComponent getView() {
     if (theMap == null) {
       theMap = new View(this);
-      scroll =
-          new JScrollPane(theMap,
-                          JScrollPane.VERTICAL_SCROLLBAR_ALWAYS,
-                          JScrollPane.HORIZONTAL_SCROLLBAR_ALWAYS);
+      scroll = new JScrollPane(theMap, JScrollPane.VERTICAL_SCROLLBAR_ALWAYS, JScrollPane.HORIZONTAL_SCROLLBAR_ALWAYS);
       scroll.unregisterKeyboardAction(KeyStroke.getKeyStroke(KeyEvent.VK_PAGE_DOWN, 0));
       scroll.unregisterKeyboardAction(KeyStroke.getKeyStroke(KeyEvent.VK_PAGE_UP, 0));
     }
@@ -1999,8 +1983,8 @@ public class Map extends AbstractConfigurable implements GameComponent,
   }
 
   /**
-   * Implements default logic for merging pieces at a given location within a map
-   * Returns a {@link Command} that merges the input {@link GamePiece} with
+   * Implements default logic for merging pieces at a given location within a
+   * map Returns a {@link Command} that merges the input {@link GamePiece} with
    * an existing piece at the input position, provided the pieces are stackable,
    * visible, in the same layer, etc.
    */
@@ -2025,11 +2009,8 @@ public class Map extends AbstractConfigurable implements GameComponent,
     }
 
     public Object visitStack(Stack s) {
-      if (s.getPosition().equals(pt)
-          && map.getStackMetrics().isStackingEnabled()
-          && !Boolean.TRUE.equals(p.getProperty(Properties.NO_STACK))
-          && s.topPiece() != null
-          && map.getPieceCollection().canMerge(s,p)) {
+      if (s.getPosition().equals(pt) && map.getStackMetrics().isStackingEnabled() && !Boolean.TRUE.equals(p.getProperty(Properties.NO_STACK))
+          && s.topPiece() != null && map.getPieceCollection().canMerge(s, p)) {
         return map.getStackMetrics().merge(s, p);
       }
       else {
@@ -2038,12 +2019,9 @@ public class Map extends AbstractConfigurable implements GameComponent,
     }
 
     public Object visitDefault(GamePiece piece) {
-      if (piece.getPosition().equals(pt)
-          && map.getStackMetrics().isStackingEnabled()
-          && !Boolean.TRUE.equals(p.getProperty(Properties.NO_STACK))
-          && !Boolean.TRUE.equals(piece.getProperty(Properties.INVISIBLE_TO_ME))
-          && !Boolean.TRUE.equals(piece.getProperty(Properties.NO_STACK))
-          && map.getPieceCollection().canMerge(piece,p)) {
+      if (piece.getPosition().equals(pt) && map.getStackMetrics().isStackingEnabled() && !Boolean.TRUE.equals(p.getProperty(Properties.NO_STACK))
+          && !Boolean.TRUE.equals(piece.getProperty(Properties.INVISIBLE_TO_ME)) && !Boolean.TRUE.equals(piece.getProperty(Properties.NO_STACK))
+          && map.getPieceCollection().canMerge(piece, p)) {
         return map.getStackMetrics().merge(piece, p);
       }
       else {
@@ -2051,7 +2029,6 @@ public class Map extends AbstractConfigurable implements GameComponent,
       }
     }
   }
-
 
   /**
    * The component that represents the map itself

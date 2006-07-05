@@ -65,7 +65,6 @@ import javax.swing.JRootPane;
 import javax.swing.KeyStroke;
 import javax.swing.SwingUtilities;
 
-import VASSAL.Info;
 import VASSAL.build.AbstractBuildable;
 import VASSAL.build.Buildable;
 import VASSAL.build.GameModule;
@@ -124,9 +123,7 @@ public class PieceMover extends AbstractBuildable implements MouseListener, Game
     map = (Map) b;
     map.addLocalMouseListener(this);
     GameModule.getGameModule().getGameState().addGameComponent(this);
-    if (Info.isDndEnabled()) {
-      map.setDragGestureListener(DragHandler.getTheDragHandler());
-    }
+    map.setDragGestureListener(DragHandler.getTheDragHandler());
   }
 
   protected MovementReporter createMovementReporter(Command c) {
@@ -524,9 +521,6 @@ public class PieceMover extends AbstractBuildable implements MouseListener, Game
   public void mousePressed(MouseEvent e) {
     if (canHandleEvent(e)) {
       selectMovablePieces(e);
-      if (!Info.isDndEnabled() && DragBuffer.getBuffer().getIterator().hasMoreElements()) {
-        map.getView().setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-      }
     }
   }
 

@@ -105,21 +105,18 @@ public class PieceSlot extends Widget implements MouseListener, KeyListener {
   public void setPiece(GamePiece p) {
     c = p;
     if (c != null) {
-      c.setPosition(new Point(panel.getSize().width / 2,
-          panel.getSize().height / 2));
+      c.setPosition(new Point(panel.getSize().width / 2, panel.getSize().height / 2));
       name = Decorator.getInnermost(c).getName();
     }
     panel.revalidate();
     panel.repaint();
-    pieceDefinition = c == null ? null : GameModule.getGameModule().encode(
-        new AddPiece(c));
+    pieceDefinition = c == null ? null : GameModule.getGameModule().encode(new AddPiece(c));
 
   }
 
   public GamePiece getPiece() {
     if (c == null && pieceDefinition != null) {
-      AddPiece comm = (AddPiece) GameModule.getGameModule().decode(
-          pieceDefinition);
+      AddPiece comm = (AddPiece) GameModule.getGameModule().decode(pieceDefinition);
       if (comm == null) {
         System.err.println("Couldn't build piece " + pieceDefinition);
         pieceDefinition = null;
@@ -127,8 +124,7 @@ public class PieceSlot extends Widget implements MouseListener, KeyListener {
       else {
         c = comm.getTarget();
         c.setState(comm.getState());
-        c.setPosition(new Point(panel.getSize().width / 2,
-            panel.getSize().height / 2));
+        c.setPosition(new Point(panel.getSize().width / 2, panel.getSize().height / 2));
       }
     }
     return c;
@@ -140,15 +136,12 @@ public class PieceSlot extends Widget implements MouseListener, KeyListener {
       FontMetrics fm = g.getFontMetrics();
       g.drawRect(0, 0, panel.getSize().width - 1, panel.getSize().height - 1);
       g.setFont(FONT);
-      g.drawString(" nil ", panel.getSize().width / 2 - fm.stringWidth(" nil ")
-          / 2, panel.getSize().height / 2);
+      g.drawString(" nil ", panel.getSize().width / 2 - fm.stringWidth(" nil ") / 2, panel.getSize().height / 2);
     }
     else {
-      getPiece().draw(g, panel.getSize().width / 2, panel.getSize().height / 2,
-          panel, 1.0);
+      getPiece().draw(g, panel.getSize().width / 2, panel.getSize().height / 2, panel, 1.0);
       if (Boolean.TRUE.equals(getPiece().getProperty(Properties.SELECTED))) {
-        BasicPiece.getHighlighter().draw(getPiece(), g,
-            panel.getSize().width / 2, panel.getSize().height / 2, panel, 1.0);
+        BasicPiece.getHighlighter().draw(getPiece(), g, panel.getSize().width / 2, panel.getSize().height / 2, panel, 1.0);
       }
     }
   }
@@ -172,10 +165,6 @@ public class PieceSlot extends Widget implements MouseListener, KeyListener {
     panel.requestFocus();
     panel.repaint();
 
-    if (!Info.isDndEnabled()) {
-      startDrag();
-      panel.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-    }
   }
 
   // Puts counter in DragBuffer. Call when mouse gesture recognized
@@ -183,8 +172,7 @@ public class PieceSlot extends Widget implements MouseListener, KeyListener {
 
     // Recenter piece; panel may have been resized at some point resulting
     // in pieces with inaccurate positional information.
-    getPiece().setPosition(
-        new Point(panel.getSize().width / 2, panel.getSize().height / 2));
+    getPiece().setPosition(new Point(panel.getSize().width / 2, panel.getSize().height / 2));
 
     // Erase selection border to avoid leaving selected after mouse dragged out
     getPiece().setProperty(Properties.SELECTED, null);
@@ -206,13 +194,11 @@ public class PieceSlot extends Widget implements MouseListener, KeyListener {
           panel.repaint();
         }
 
-        public void popupMenuWillBecomeInvisible(
-            javax.swing.event.PopupMenuEvent evt) {
+        public void popupMenuWillBecomeInvisible(javax.swing.event.PopupMenuEvent evt) {
           panel.repaint();
         }
 
-        public void popupMenuWillBecomeVisible(
-            javax.swing.event.PopupMenuEvent evt) {
+        public void popupMenuWillBecomeVisible(javax.swing.event.PopupMenuEvent evt) {
         }
       });
       popup.show(panel, e.getX(), e.getY());
@@ -232,22 +218,19 @@ public class PieceSlot extends Widget implements MouseListener, KeyListener {
   }
 
   public void keyPressed(KeyEvent e) {
-    KeyBuffer.getBuffer().keyCommand(
-        javax.swing.KeyStroke.getKeyStrokeForEvent(e));
+    KeyBuffer.getBuffer().keyCommand(javax.swing.KeyStroke.getKeyStrokeForEvent(e));
     e.consume();
     panel.repaint();
   }
 
   public void keyTyped(KeyEvent e) {
-    KeyBuffer.getBuffer().keyCommand(
-        javax.swing.KeyStroke.getKeyStrokeForEvent(e));
+    KeyBuffer.getBuffer().keyCommand(javax.swing.KeyStroke.getKeyStrokeForEvent(e));
     e.consume();
     panel.repaint();
   }
 
   public void keyReleased(KeyEvent e) {
-    KeyBuffer.getBuffer().keyCommand(
-        javax.swing.KeyStroke.getKeyStrokeForEvent(e));
+    KeyBuffer.getBuffer().keyCommand(javax.swing.KeyStroke.getKeyStrokeForEvent(e));
     e.consume();
     panel.repaint();
   }
@@ -286,23 +269,15 @@ public class PieceSlot extends Widget implements MouseListener, KeyListener {
   }
 
   public void addTo(Buildable parent) {
-    if (Info.isDndEnabled()) {
-      panel.setDropTarget(VASSAL.build.module.map.PieceMover.DragHandler
-          .makeDropTarget(panel, DnDConstants.ACTION_MOVE, null));
+    panel.setDropTarget(VASSAL.build.module.map.PieceMover.DragHandler.makeDropTarget(panel, DnDConstants.ACTION_MOVE, null));
 
-      DragGestureListener dragGestureListener = new DragGestureListener() {
-        public void dragGestureRecognized(DragGestureEvent dge) {
-          startDrag();
-          VASSAL.build.module.map.PieceMover.DragHandler.getTheDragHandler()
-              .dragGestureRecognized(dge);
-        }
-      };
-      DragSource.getDefaultDragSource().createDefaultDragGestureRecognizer(
-          panel, DnDConstants.ACTION_MOVE, dragGestureListener);
-    }
-    else {
-      DragBuffer.getBuffer().addDragSource(getComponent());
-    }
+    DragGestureListener dragGestureListener = new DragGestureListener() {
+      public void dragGestureRecognized(DragGestureEvent dge) {
+        startDrag();
+        VASSAL.build.module.map.PieceMover.DragHandler.getTheDragHandler().dragGestureRecognized(dge);
+      }
+    };
+    DragSource.getDefaultDragSource().createDefaultDragGestureRecognizer(panel, DnDConstants.ACTION_MOVE, dragGestureListener);
   }
 
   public org.w3c.dom.Element getBuildElement(org.w3c.dom.Document doc) {
@@ -313,8 +288,7 @@ public class PieceSlot extends Widget implements MouseListener, KeyListener {
     }
     el.setAttribute("width", getPreferredSize().width + "");
     el.setAttribute("height", getPreferredSize().height + "");
-    el.appendChild(doc.createTextNode(c == null ? pieceDefinition : GameModule
-        .getGameModule().encode(new AddPiece(c))));
+    el.appendChild(doc.createTextNode(c == null ? pieceDefinition : GameModule.getGameModule().encode(new AddPiece(c))));
     return el;
   }
 
@@ -391,8 +365,7 @@ public class PieceSlot extends Widget implements MouseListener, KeyListener {
     return new MyConfigurer(this);
   }
 
-  private static class MyConfigurer extends Configurer implements
-      HelpWindowExtension {
+  private static class MyConfigurer extends Configurer implements HelpWindowExtension {
     private PieceDefiner definer;
 
     public MyConfigurer(PieceSlot slot) {

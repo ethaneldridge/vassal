@@ -292,9 +292,7 @@ public class PrivateMap extends Map {
       for (Enumeration e = mouseMotionListeners.elements(); e.hasMoreElements();) {
         removeMouseMotionListener((MouseMotionListener) e.nextElement());
       }
-      if (Info.isDndEnabled()) {
-        super.setDropTarget(null);
-      }
+      super.setDropTarget(null);
     }
 
     /**
