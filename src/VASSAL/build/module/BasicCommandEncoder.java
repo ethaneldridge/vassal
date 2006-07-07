@@ -55,6 +55,7 @@ import VASSAL.counters.PlaceMarker;
 import VASSAL.counters.PropertySheet;
 import VASSAL.counters.Replace;
 import VASSAL.counters.ReportState;
+import VASSAL.counters.RestrictCommands;
 import VASSAL.counters.Restricted;
 import VASSAL.counters.ReturnToDeck;
 import VASSAL.counters.SendToLocation;
@@ -238,6 +239,11 @@ public class BasicCommandEncoder implements CommandEncoder, Buildable {
     decoratorFactories.put(DynamicProperty.ID, new DecoratorFactory() {
       public Decorator createDecorator(String type, GamePiece inner) {
         return new DynamicProperty(type, inner);
+      }
+    });
+    decoratorFactories.put(RestrictCommands.ID, new DecoratorFactory() {
+      public Decorator createDecorator(String type, GamePiece inner) {
+        return new RestrictCommands(type, inner);
       }
     });
   }
