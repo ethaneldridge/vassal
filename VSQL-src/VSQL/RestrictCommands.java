@@ -108,6 +108,23 @@ public class RestrictCommands extends Decorator implements EditablePiece {
     return null;
   }
   
+  /*
+   * Cancel execution of watched KeyStrokes
+   */
+  public Command keyEvent(KeyStroke stroke) {
+    if (!matchesFilter()) {
+      return super.keyEvent(stroke);
+    }
+    else {
+      for (int j = 0; j < watchKeys.length ; j++) {
+        if (watchKeys[j].equals(stroke)) {
+          return null;
+        }
+      }
+    }
+    return super.keyEvent(stroke);
+  }
+  
   protected KeyCommand[] getKeyCommands() {
     KeyCommand[] commands = super.getKeyCommands();
     ArrayList newCommands = new ArrayList(commands.length);

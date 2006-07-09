@@ -18,6 +18,47 @@
  */
 package VSQL;
 
+import java.awt.BorderLayout;
+import java.awt.Component;
+import java.awt.Dimension;
+import java.awt.Font;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
+import java.util.Enumeration;
+import java.util.Hashtable;
+import java.util.StringTokenizer;
+
+import javax.swing.AbstractAction;
+import javax.swing.AbstractCellEditor;
+import javax.swing.Box;
+import javax.swing.BoxLayout;
+import javax.swing.DefaultCellEditor;
+import javax.swing.JButton;
+import javax.swing.JComboBox;
+import javax.swing.JFormattedTextField;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JSpinner;
+import javax.swing.JTabbedPane;
+import javax.swing.JTable;
+import javax.swing.JTextArea;
+import javax.swing.JTextField;
+import javax.swing.KeyStroke;
+import javax.swing.SpinnerModel;
+import javax.swing.SpinnerNumberModel;
+import javax.swing.WindowConstants;
+import javax.swing.JSpinner.DefaultEditor;
+import javax.swing.border.TitledBorder;
+import javax.swing.table.AbstractTableModel;
+import javax.swing.table.TableCellEditor;
+import javax.swing.table.TableCellRenderer;
+
 import VASSAL.build.AbstractBuildable;
 import VASSAL.build.Buildable;
 import VASSAL.build.GameModule;
@@ -27,23 +68,11 @@ import VASSAL.command.Command;
 import VASSAL.command.CommandEncoder;
 import VASSAL.configure.Configurer;
 import VASSAL.configure.DoubleConfigurer;
+import VASSAL.configure.IconConfigurer;
 import VASSAL.configure.IntConfigurer;
 import VASSAL.configure.TextConfigurer;
 import VASSAL.tools.KeyStrokeListener;
 import VASSAL.tools.SequenceEncoder;
-
-import javax.swing.*;
-import javax.swing.JSpinner.DefaultEditor;
-import javax.swing.border.TitledBorder;
-import javax.swing.table.AbstractTableModel;
-import javax.swing.table.TableCellEditor;
-import javax.swing.table.TableCellRenderer;
-
-import java.awt.*;
-import java.awt.event.*;
-import java.util.Hashtable;
-import java.util.Enumeration;
-import java.util.StringTokenizer;
 
 public class VSQLScenInfo extends AbstractBuildable implements GameComponent, CommandEncoder {
 
@@ -75,7 +104,9 @@ public class VSQLScenInfo extends AbstractBuildable implements GameComponent, Co
     frame = new JFrame("Notes");
     frame.setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
 
-    launch = new JButton("Info");
+    IconConfigurer iconConfig = new IconConfigurer("", "", "b_notes"); 
+    iconConfig.setValue("b_notes");
+    launch = new JButton("", iconConfig.getIconValue());
     launch.setAlignmentY(0.0F);
     launch.setToolTipText("Scenario Info Window [F7]");
     launchAction = new AbstractAction() {
