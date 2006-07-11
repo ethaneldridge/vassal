@@ -8,6 +8,7 @@ import VASSAL.build.AbstractConfigurable;
 import VASSAL.build.Buildable;
 import VASSAL.build.GameModule;
 import VASSAL.build.module.documentation.HelpFile;
+import VASSAL.build.module.map.boardPicker.Board;
 import VASSAL.configure.Configurer;
 import VASSAL.configure.SingleChildInstance;
 
@@ -31,8 +32,13 @@ public class TerrainDefinitions extends AbstractConfigurable {
     return edgeDefinitions;
   }
     
-  public TerrainMap getTerrainMap(String boardName) {
-    return (TerrainMap) terrainMaps.get(boardName);
+  public TerrainMap getTerrainMap(TerrainHexGrid grid) {
+    TerrainMap tm = (TerrainMap) terrainMaps.get(grid.getBoard().getConfigureName());
+    if (tm == null) {
+      tm = new TerrainMap(grid);
+      terrainMaps.put(grid.getBoard().getConfigureName(), tm);
+    }
+    return tm;
   }
   
   public static TerrainDefinitions getInstance() {

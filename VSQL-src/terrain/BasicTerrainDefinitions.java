@@ -23,6 +23,18 @@ public class BasicTerrainDefinitions extends AbstractConfigurable {
     super();
   }
   
+  public MapTerrain getTerrain(String terrainName) {
+
+    Enumeration e = getBuildComponents();
+    while (e.hasMoreElements()) {
+      MapTerrain terrain = (MapTerrain) e.nextElement();
+      if (terrain.getConfigureName().equals(terrainName)) {
+        return terrain;
+      }
+    }
+    return null;
+  }
+  
   public String[] getTerrainNames() {
     String[] names = new String[buildComponents.size()+1];
     Enumeration e = getBuildComponents();

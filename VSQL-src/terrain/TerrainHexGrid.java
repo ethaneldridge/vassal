@@ -24,6 +24,27 @@ public class TerrainHexGrid extends HexGrid {
     return getSingleHexShape(x, y, false);
   }
   
+  public Area getSingleHex(Point p) {
+    Point snap = snapTo(p);
+    return getSingleHex(snap.x, snap.y);
+  }
+  
+  public Area getSingleHex(TerrainHex t) {
+    Point p = getHexCenter(t.getColumn(), t.getRow());
+    return getSingleHex(p.x, p.y);
+  }
+  /*
+   * Return the row,column co-ords for a hex at the given point
+   */
+  
+  public Point getHexPos(Point p) {
+    Point snap = snapTo(p);
+    Point pos = getGridPosition(snap);
+    Point orig = getHexCenter(pos.x, pos.y);
+    return  getGridPosition(snapTo(p));
+  }
+  
+
   /* 
    * getRawRow & getRowColumn extracted from HexGridNumbering where they
    * do not belong! Should have been in HexGrid in the first place.
@@ -32,7 +53,6 @@ public class TerrainHexGrid extends HexGrid {
     p = new Point(p);
     rotateIfSideways(p);
     int x = p.x - getOrigin().x;
-
     x = (int) Math.floor(x / getHexWidth() + 0.5);
     return x;
   }
@@ -52,6 +72,15 @@ public class TerrainHexGrid extends HexGrid {
       ny = (int) Math.round((p.y - origin.y - dy / 2) / dy);
     }
     return ny;
+  }
+  
+  /*
+   * Return the center of the specified hex
+   */
+  protected Point getHexCenter(int column, int row) {
+    int x = origin.x + (int) (column * dx);
+    int y = origin.y - (int) (dy * 0.5) + (int) (dy * row) + ((column % 2 == 0) ? (int) (dy/2) : (int) dy);
+    return new Point(x, y);
   }
   
   protected Point getGridPosition(Point p) {

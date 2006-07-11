@@ -9,6 +9,7 @@ import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Point;
+import java.awt.Rectangle;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
@@ -37,7 +38,7 @@ public class TerrainHexGridEditor extends GridEditor implements ActionListener {
   protected static final String BLANK = "Blank";
   protected static final String HEX = "Hex";
   protected static final String EDGE = "Edge";
-  protected static final String CONNECT = "Connections";
+  protected static final String LINE = "Line";
   protected static final String GRID = "Grid";
   protected static final String OPTIONS = "Options";
   protected static final String NUMBERING = "Numbering";
@@ -57,7 +58,7 @@ public class TerrainHexGridEditor extends GridEditor implements ActionListener {
   public TerrainHexGridEditor(EditableGrid grid) {
     super(grid);
     myGrid = (TerrainHexGrid) grid;
-    terrainMap = getTerrainDefs().getTerrainMap(myGrid.getBoard().getName());
+    terrainMap = getTerrainDefs().getTerrainMap(myGrid);
   }
 
   protected TerrainDefinitions getTerrainDefs() {
@@ -72,19 +73,15 @@ public class TerrainHexGridEditor extends GridEditor implements ActionListener {
       super.mouseClicked(e);
     }
     else {
-      if (e.isMetaDown()) {
-
-      }
-      else {
+      if (HEX.equals(mode)) {
 
         if (!e.isShiftDown() && selectedHexList.size() > 0) {
           clearHexSelection();
         }
-
-        Point pos = e.getPoint();
-        Point snap = myGrid.getBoard().snapTo(pos);
-        Point hexPos = myGrid.getGridPosition(snap);
-        Area hex = myGrid.getSingleHex(snap.x, snap.y);
+        
+        Point hexPos = myGrid.getHexPos(e.getPoint());
+        Area hex = myGrid.getSingleHex(e.getPoint());
+        
         int index = selectedHexList.indexOf(hexPos);
 
         if (index >= 0) {
@@ -105,13 +102,14 @@ public class TerrainHexGridEditor extends GridEditor implements ActionListener {
   }
   
   public void clearHexSelection() {
-    view.repaint(selectedArea.getBounds());
+    Rectangle update = selectedArea.getBounds();
     selectedHexList.clear();
     selectedArea = new Area();
+    view.repaint(update);
   }
   
   protected void setSelectedHexTerrain(String terrainName) {
-    terrainMap.setHexTerrainType(selectedHexList, terrainName);
+    terrainMap.setHexTerrainType(selectedHexList, (HexTerrain) getTerrainDefs().getHexTerrainDefinitions().getTerrain(terrainName));
   }
   
   public void actionPerformed(ActionEvent e) {
@@ -145,7 +143,7 @@ public class TerrainHexGridEditor extends GridEditor implements ActionListener {
       clearHexSelection();
       setMode(option);
     }
-    else if (CONNECT.equals(option)) {
+    else if (LINE.equals(option)) {
       clearHexSelection();
       setMode(option);
     }
@@ -214,12 +212,12 @@ public class TerrainHexGridEditor extends GridEditor implements ActionListener {
     /*
      * Connection Terrain Mode button and panel
      */
-    connectButton = new JButton(CONNECT);
+    connectButton = new JButton(LINE);
     connectButton.addActionListener(this);
     leftButtonBox.add(connectButton);
     JPanel connectPanel = new JPanel();
-    connectPanel.add(new JLabel(CONNECT));
-    cardPanel.add(connectPanel, CONNECT);
+    connectPanel.add(new JLabel(LINE));
+    cardPanel.add(connectPanel, LINE);
     
     /*
      * Save Button
@@ -312,7 +310,18 @@ public class TerrainHexGridEditor extends GridEditor implements ActionListener {
   }
   
   public void paintTerrain(Graphics g) {
-
+    Graphics2D g2 = (Graphics2D) g;
+    Color oldColor = g.getColor();
+    Composite oldComposite = g2.getComposite();
+    g2.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.3f));
+    g.setColor(Color.white);    
+    Area plains = terrainMap.getHexArea("Plains");
+    if (plains != null) g2.fill(plains);
+    g.setColor(Color.blue);
+    Area impassable = terrainMap.getHexArea("Impassable");
+    if (impassable != null) g2.fill(impassable);
+    g2.setComposite(oldComposite);
+    g.setColor(oldColor);
   }
 
   public void paintHighlights(Graphics g) {
@@ -320,7 +329,7 @@ public class TerrainHexGridEditor extends GridEditor implements ActionListener {
       Graphics2D g2 = (Graphics2D) g;
       Color oldColor = g.getColor();
       Composite oldComposite = g2.getComposite();
-      g2.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.5f));
+      g2.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.6f));
       g.setColor(Color.red);
       g2.fill(selectedArea);
       g2.setComposite(oldComposite);
@@ -485,6 +494,7 @@ public class TerrainHexGridEditor extends GridEditor implements ActionListener {
         else {
           button = new JButton(terrainNames[i], terrainIcons[i]);
         }
+        button.addActionListener(this);
         add(button);
         buttons.add(button);
       }
@@ -492,6 +502,7 @@ public class TerrainHexGridEditor extends GridEditor implements ActionListener {
 
     public void actionPerformed(ActionEvent e) {
       setSelectedHexTerrain(e.getActionCommand());
+      clearHexSelection();
     }
     
   }
