@@ -137,6 +137,12 @@ public class Translate extends Decorator implements EditablePiece {
         c = moveTarget(target);
       }
       mover.addKeyEventTarget(piece);
+      // Return a non-null command to indicate that a change actually happened
+      c = new NullCommand() {
+        public boolean isNull() {
+          return false;
+        }
+      };
     }
     return c;
   }
