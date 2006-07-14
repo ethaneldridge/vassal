@@ -2,10 +2,13 @@ package terrain;
 
 import java.awt.Point;
 
+import VASSAL.tools.SequenceEncoder;
+
 
 public class TerrainHex  {
 
   private static final long serialVersionUID = 1L;
+  protected static final String TYPE = "h";
   protected int row;
   protected int column;
   protected HexTerrain terrain;
@@ -22,6 +25,11 @@ public class TerrainHex  {
 
   public TerrainHex (Point p, HexTerrain t) {
     this(p.x, p.y, t);
+  }
+  
+  public TerrainHex(String code) {
+    this(0, 0);
+    decode(code);
   }
   
   public int getRow() {
@@ -44,4 +52,19 @@ public class TerrainHex  {
     return terrain;
   }
   
+  public String encode() {
+    SequenceEncoder se = new SequenceEncoder(TYPE, ',');
+    se.append(column);
+    se.append(row);
+    se.append(terrain == null ? "" : terrain.getTerrainName());
+    return se.getValue();
+  }
+  
+  public void decode(String code) {
+    SequenceEncoder.Decoder sd = new SequenceEncoder.Decoder(code, ',');
+    sd.nextToken();
+    column = sd.nextInt(0);
+    row = sd.nextInt(0);
+    terrain = (HexTerrain) TerrainDefinitions.getInstance().getHexTerrainDefinitions().getTerrain(sd.nextToken(TerrainMap.NO_TERRAIN)); 
+  }
 }

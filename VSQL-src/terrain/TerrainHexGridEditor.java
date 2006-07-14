@@ -117,6 +117,7 @@ public class TerrainHexGridEditor extends GridEditor implements ActionListener {
     if (OK.equals(option)) {
       cancelSetMode();
       setMode(BLANK);
+      terrainMap.save();
       setVisible(false);
     }
     else if (SET.equals(option)) {
@@ -313,13 +314,18 @@ public class TerrainHexGridEditor extends GridEditor implements ActionListener {
     Graphics2D g2 = (Graphics2D) g;
     Color oldColor = g.getColor();
     Composite oldComposite = g2.getComposite();
-    g2.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.3f));
-    g.setColor(Color.white);    
-    Area plains = terrainMap.getHexArea("Plains");
-    if (plains != null) g2.fill(plains);
-    g.setColor(Color.blue);
-    Area impassable = terrainMap.getHexArea("Impassable");
-    if (impassable != null) g2.fill(impassable);
+    g2.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.5f));
+    
+    String[] terrainNames = TerrainDefinitions.getInstance().getHexTerrainDefinitions().getTerrainNames();
+    for (int i=0; i < terrainNames.length; i++) {
+      String type = terrainNames[i];
+      Area area = terrainMap.getHexArea(type);
+      if (area != null) {
+        Color color = TerrainDefinitions.getInstance().getHexTerrainDefinitions().getTerrain(type).getColor();
+        g.setColor(color);
+        g2.fill(area);
+      }
+    }
     g2.setComposite(oldComposite);
     g.setColor(oldColor);
   }
@@ -329,7 +335,7 @@ public class TerrainHexGridEditor extends GridEditor implements ActionListener {
       Graphics2D g2 = (Graphics2D) g;
       Color oldColor = g.getColor();
       Composite oldComposite = g2.getComposite();
-      g2.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.6f));
+      g2.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.75f));
       g.setColor(Color.red);
       g2.fill(selectedArea);
       g2.setComposite(oldComposite);
@@ -472,6 +478,7 @@ public class TerrainHexGridEditor extends GridEditor implements ActionListener {
 
     public HexPanel() {
       super();
+      add(new JLabel("HEX MODE"));
       init();
     }
     

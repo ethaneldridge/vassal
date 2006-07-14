@@ -18,6 +18,10 @@ public class MapTerrain extends AbstractConfigurable {
     super();
   }  
   
+  public String getTerrainName() {
+    return getConfigureName();
+  }
+  
   public Color getColor() {
     return color;
   }

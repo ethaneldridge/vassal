@@ -40,8 +40,9 @@ public class TerrainHexGrid extends HexGrid {
   public Point getHexPos(Point p) {
     Point snap = snapTo(p);
     Point pos = getGridPosition(snap);
+    rotateIfSideways(pos);
     Point orig = getHexCenter(pos.x, pos.y);
-    return  getGridPosition(snapTo(p));
+    return pos;
   }
   
 
@@ -78,8 +79,16 @@ public class TerrainHexGrid extends HexGrid {
    * Return the center of the specified hex
    */
   protected Point getHexCenter(int column, int row) {
-    int x = origin.x + (int) (column * dx);
-    int y = origin.y - (int) (dy * 0.5) + (int) (dy * row) + ((column % 2 == 0) ? (int) (dy/2) : (int) dy);
+    int x, y;
+    
+    if (sideways) {
+      x = origin.y + (int) (dy * column) + ((row % 2 == 0) ? 0 : (int) (dy/2));
+      y = origin.x + (int) (dx * row);
+    }
+    else {
+      x = origin.x + (int) (dx * column);
+      y = origin.y - (int) (dy * 0.5) + (int) (dy * row) + ((column % 2 == 0) ? (int) (dy/2) : (int) dy);
+    }
     return new Point(x, y);
   }
   
@@ -105,4 +114,5 @@ public class TerrainHexGrid extends HexGrid {
     cfg.getConfigurer(SIDEWAYS).setValue(String.valueOf(sideways));
   }
  
+  
 }

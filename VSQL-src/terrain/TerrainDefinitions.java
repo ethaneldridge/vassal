@@ -8,7 +8,6 @@ import VASSAL.build.AbstractConfigurable;
 import VASSAL.build.Buildable;
 import VASSAL.build.GameModule;
 import VASSAL.build.module.documentation.HelpFile;
-import VASSAL.build.module.map.boardPicker.Board;
 import VASSAL.configure.Configurer;
 import VASSAL.configure.SingleChildInstance;
 

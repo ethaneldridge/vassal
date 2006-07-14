@@ -1,7 +1,10 @@
 package terrain;
 
+import java.awt.AlphaComposite;
 import java.awt.Color;
+import java.awt.Composite;
 import java.awt.Graphics;
+import java.awt.Graphics2D;
 import java.awt.image.BufferedImage;
 import java.util.Enumeration;
 
@@ -17,14 +20,14 @@ public class BasicTerrainDefinitions extends AbstractConfigurable {
   
   
   protected static final int ICON_SIZE = 16;
-  protected static final String NO_TERRAIN = "No Terrain";
+
 
   public BasicTerrainDefinitions() {
     super();
   }
   
   public MapTerrain getTerrain(String terrainName) {
-
+    
     Enumeration e = getBuildComponents();
     while (e.hasMoreElements()) {
       MapTerrain terrain = (MapTerrain) e.nextElement();
@@ -42,7 +45,7 @@ public class BasicTerrainDefinitions extends AbstractConfigurable {
     while(e.hasMoreElements()) {
       names[i++] = ((MapTerrain) e.nextElement()).getConfigureName();
     }
-    names[i] = NO_TERRAIN;
+    names[i] = TerrainMap.NO_TERRAIN;
     return names;
   }
 
@@ -63,12 +66,15 @@ public class BasicTerrainDefinitions extends AbstractConfigurable {
     BufferedImage image;
     int i;
     for (i=0; i < colors.length-1; i++) {
-      image = new BufferedImage(ICON_SIZE, ICON_SIZE, BufferedImage.TYPE_3BYTE_BGR);
-      Graphics g = image.getGraphics();
-      g.setColor(colors[i]);
-      g.fillRect(0, 0, ICON_SIZE, ICON_SIZE);
-      g.setColor(Color.black);
-      g.drawRect(0, 0, ICON_SIZE-1, ICON_SIZE-1);
+      image = new BufferedImage(ICON_SIZE, ICON_SIZE, BufferedImage.TYPE_4BYTE_ABGR);
+      Graphics2D g2 = (Graphics2D) image.getGraphics();
+      Composite oldComposite = g2.getComposite();
+      g2.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.5f));
+      g2.setColor(colors[i]);
+      g2.fillRect(0, 0, ICON_SIZE, ICON_SIZE);
+      g2.setComposite(oldComposite);
+      g2.setColor(Color.black);
+      g2.drawRect(0, 0, ICON_SIZE-1, ICON_SIZE-1);
       icons[i] = new ImageIcon(image);
     }
     image = new BufferedImage(ICON_SIZE, ICON_SIZE, BufferedImage.TYPE_4BYTE_ABGR);
