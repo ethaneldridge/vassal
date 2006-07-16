@@ -1,6 +1,7 @@
 package terrain;
 
 import java.awt.Point;
+import java.awt.Rectangle;
 import java.awt.geom.Area;
 
 import VASSAL.build.module.map.boardPicker.Board;
@@ -33,6 +34,18 @@ public class TerrainHexGrid extends HexGrid {
     Point p = getHexCenter(t.getColumn(), t.getRow());
     return getSingleHex(p.x, p.y);
   }
+  
+  /*
+   * Return the display shape of an Edge between two hexes
+   */
+  public Area getEdge(Point hexPos1, Point hexPos2) {
+    Point c1 = getHexCenter(hexPos1.x, hexPos1.y);
+    Point c2 = getHexCenter(hexPos2.x, hexPos2.y);
+    Point p = new Point((c1.x+c2.x)/2, (c1.y+c2.y)/2);
+    Point snap = snapToHexSide(p);
+    return new Area(new Rectangle(snap.x-4, snap.y-4, 9, 9));
+  }
+  
   /*
    * Return the row,column co-ords for a hex at the given point
    */
@@ -41,7 +54,6 @@ public class TerrainHexGrid extends HexGrid {
     Point snap = snapTo(p);
     Point pos = getGridPosition(snap);
     rotateIfSideways(pos);
-    Point orig = getHexCenter(pos.x, pos.y);
     return pos;
   }
   

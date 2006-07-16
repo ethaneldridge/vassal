@@ -15,6 +15,7 @@ import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
 import java.awt.geom.Area;
+import java.awt.geom.Ellipse2D;
 import java.util.ArrayList;
 import java.util.Iterator;
 
@@ -48,7 +49,9 @@ public class TerrainHexGridEditor extends GridEditor implements ActionListener {
   protected TerrainMap terrainMap;
   protected TerrainDefinitions terrain;
   protected ArrayList selectedHexList = new ArrayList();
-  protected Area selectedArea = new Area();
+  protected ArrayList selectedEdgeList = new ArrayList();
+  protected Area selectedHexArea = new Area();
+  protected Area selectedEdgeArea = new Area();
 
   protected JButton hexButton, edgeButton, connectButton, gridButton;
   protected JPanel cardPanel;
@@ -88,28 +91,71 @@ public class TerrainHexGridEditor extends GridEditor implements ActionListener {
           // Already in list, remove if shiftdown
           if (e.isShiftDown()) {
             selectedHexList.remove(index);
-            selectedArea.subtract(hex);
+            selectedHexArea.subtract(hex);
             view.repaint(hex.getBounds());
           }
         }
         else {
           selectedHexList.add(hexPos);
-          selectedArea.add(hex);
+          selectedHexArea.add(hex);
           view.repaint(hex.getBounds());
+        }
+      }
+      else if (EDGE.equals(mode)) {
+
+        if (!e.isShiftDown() && selectedEdgeList.size() > 0) {
+          clearEdgeSelection();
+        }
+        
+        Point p = e.getPoint();
+        Point snap = myGrid.snapToHexSide(p);
+        Point snapCentre = myGrid.snapToHex(p);
+        
+        // Ignore snaps to hex centres
+        if (snap.equals(snapCentre)) {
+          return;
+        }
+        
+        int index = selectedEdgeList.indexOf(snap);
+        Area area = new Area(new Ellipse2D.Double(snap.x-5, snap.y-5, 11, 11));
+        
+        if (index >= 0) {
+          // Already in list, remove if shiftdown
+          if (e.isShiftDown()) {
+            selectedEdgeList.remove(index);
+            selectedEdgeArea.subtract(area);
+            view.repaint(area.getBounds());
+          }
+        }
+        else {
+          selectedEdgeList.add(snap);
+          selectedEdgeArea.add(area);
+          view.repaint(area.getBounds());
         }
       }
     }
   }
   
   public void clearHexSelection() {
-    Rectangle update = selectedArea.getBounds();
+    Rectangle update = selectedHexArea.getBounds();
     selectedHexList.clear();
-    selectedArea = new Area();
+    selectedHexArea = new Area();
+    view.repaint(update);
+  }
+  
+  public void clearEdgeSelection() {
+    Rectangle update = selectedEdgeArea.getBounds();
+    selectedEdgeList.clear();
+    selectedEdgeArea = new Area();
     view.repaint(update);
   }
   
   protected void setSelectedHexTerrain(String terrainName) {
     terrainMap.setHexTerrainType(selectedHexList, (HexTerrain) getTerrainDefs().getHexTerrainDefinitions().getTerrain(terrainName));
+  }
+
+  protected void setSelectedEdgeTerrain(String terrainName) {
+    terrainMap.setEdgeTerrainType(selectedEdgeList, myGrid, (EdgeTerrain) getTerrainDefs().getEdgeTerrainDefinitions().getTerrain(terrainName));
   }
   
   public void actionPerformed(ActionEvent e) {
@@ -138,6 +184,7 @@ public class TerrainHexGridEditor extends GridEditor implements ActionListener {
       setVisible(false);
     }
     else if (HEX.equals(option)) {
+      clearEdgeSelection();
       setMode(option);
     }
     else if (EDGE.equals(option)) {
@@ -146,10 +193,12 @@ public class TerrainHexGridEditor extends GridEditor implements ActionListener {
     }
     else if (LINE.equals(option)) {
       clearHexSelection();
+      clearEdgeSelection();
       setMode(option);
     }
     else if (GRID.equals(option)) {
       clearHexSelection();
+      clearEdgeSelection();
       setMode(option);      
     }
     view.requestFocus();
@@ -206,8 +255,7 @@ public class TerrainHexGridEditor extends GridEditor implements ActionListener {
     edgeButton = new JButton(EDGE);
     edgeButton.addActionListener(this);
     leftButtonBox.add(edgeButton);
-    JPanel edgePanel = new JPanel();
-    edgePanel.add(new JLabel(EDGE));
+    JPanel edgePanel = new EdgePanel();
     cardPanel.add(edgePanel, EDGE);
 
     /*
@@ -326,21 +374,44 @@ public class TerrainHexGridEditor extends GridEditor implements ActionListener {
         g2.fill(area);
       }
     }
+    
+    terrainNames = TerrainDefinitions.getInstance().getEdgeTerrainDefinitions().getTerrainNames();
+    for (int i=0; i < terrainNames.length; i++) {
+      String type = terrainNames[i];
+      Area area = terrainMap.getEdgeArea(type);
+      if (area != null) {
+        Color color = TerrainDefinitions.getInstance().getEdgeTerrainDefinitions().getTerrain(type).getColor();
+        g2.setColor(color);
+        g2.fill(area);
+      }
+    }
+    
     g2.setComposite(oldComposite);
     g.setColor(oldColor);
   }
 
-  public void paintHighlights(Graphics g) {
+  public void paintSelected(Graphics g) {
     if (selectedHexList.size() > 0) {
       Graphics2D g2 = (Graphics2D) g;
       Color oldColor = g.getColor();
       Composite oldComposite = g2.getComposite();
       g2.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.75f));
       g.setColor(Color.red);
-      g2.fill(selectedArea);
+      g2.fill(selectedHexArea);
       g2.setComposite(oldComposite);
       g.setColor(oldColor);
     }
+    
+    if (selectedEdgeList.size() > 0) {
+      Graphics2D g2 = (Graphics2D) g;
+      Color oldColor = g.getColor();
+      Composite oldComposite = g2.getComposite();
+      g2.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.75f));
+      g.setColor(Color.red);
+      g2.fill(selectedEdgeArea);
+      g2.setComposite(oldComposite);
+      g.setColor(oldColor);
+    } 
   }
 
   /*
@@ -465,11 +536,14 @@ public class TerrainHexGridEditor extends GridEditor implements ActionListener {
     public void paint(Graphics g) {
       super.paint(g);
       paintTerrain(g);
-      paintHighlights(g);
+      paintSelected(g);
     }
 
   }
 
+  /*
+   * Panel of Terrain Selection buttons for Hex Mode
+   */
   protected class HexPanel extends JPanel implements ActionListener {
 
     private static final long serialVersionUID = 1L;
@@ -510,6 +584,53 @@ public class TerrainHexGridEditor extends GridEditor implements ActionListener {
     public void actionPerformed(ActionEvent e) {
       setSelectedHexTerrain(e.getActionCommand());
       clearHexSelection();
+    }
+    
+  }
+  
+  /*
+   * Panel of Terrain Selection buttons for Edge Mode
+   */
+  protected class EdgePanel extends JPanel implements ActionListener {
+
+    private static final long serialVersionUID = 1L;
+    
+    protected ArrayList buttons = new ArrayList();
+
+    public EdgePanel() {
+      super();
+      add(new JLabel("EDGE MODE"));
+      init();
+    }
+    
+    public void init() {
+      
+      Iterator it = buttons.iterator();
+      while (it.hasNext()) {
+        remove((JButton) it.next());
+      }
+      buttons.clear();
+      
+      String[] terrainNames = getTerrainDefs().getEdgeTerrainDefinitions().getTerrainNames();
+      Icon[] terrainIcons = getTerrainDefs().getEdgeTerrainDefinitions().getTerrainIcons();
+      
+      for (int i=0; i<terrainNames.length; i++) {
+        JButton button;
+        if (terrainNames[i] == null) {
+          button = new JButton(terrainNames[i]);
+        }
+        else {
+          button = new JButton(terrainNames[i], terrainIcons[i]);
+        }
+        button.addActionListener(this);
+        add(button);
+        buttons.add(button);
+      }
+    }
+
+    public void actionPerformed(ActionEvent e) {
+      setSelectedEdgeTerrain(e.getActionCommand());
+      clearEdgeSelection();
     }
     
   }

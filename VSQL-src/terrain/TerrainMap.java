@@ -27,11 +27,13 @@ public class TerrainMap {
   protected HashMap hexMap;
   protected HashMap hexArea;
   protected HashMap edgeMap;
+  protected HashMap edgeArea;
   
   public TerrainMap() {
     hexMap = new HashMap();
     hexArea = new HashMap();
     edgeMap = new HashMap();
+    edgeArea = new HashMap();
   }
   
   public TerrainMap(TerrainHexGrid g) {
@@ -51,10 +53,27 @@ public class TerrainMap {
     clearHexAreas();
   }
 
+  public void setEdgeTerrainType(TerrainEdge edge) {
+    if (edge.getTerrain() == null) {
+      edgeMap.remove(edge.getLocation());
+    }
+    else {
+      edgeMap.put(edge.getLocation(), edge);
+    }
+    clearEdgeAreas();
+  }
+  
   public void setHexTerrainType(ArrayList hexes, HexTerrain terrain) {
     Iterator i = hexes.iterator();
     while (i.hasNext()) {
       setHexTerrainType(new TerrainHex((Point) i.next(), terrain));
+    }
+  }
+
+  public void setEdgeTerrainType(ArrayList edges, TerrainHexGrid grid, EdgeTerrain terrain) {
+    Iterator i = edges.iterator();
+    while (i.hasNext()) {
+      setEdgeTerrainType(new TerrainEdge((Point) i.next(), grid, terrain));
     }
   }
   
@@ -65,6 +84,10 @@ public class TerrainMap {
   public Iterator getAllHexTerrain() {
     return hexMap.values().iterator();
   }
+
+  public Iterator getAllEdgeTerrain() {
+    return edgeMap.values().iterator();
+  }
   
   public Area getHexArea(String terrainType) {
     Area area = (Area) hexArea.get(terrainType);
@@ -74,13 +97,30 @@ public class TerrainMap {
     }
     return area;
   }
+
+  public Area getEdgeArea(String terrainType) {
+    Area area = (Area) edgeArea.get(terrainType);
+    if (area == null) {
+      rebuildEdgeAreas();
+      area = (Area) edgeArea.get(terrainType);
+    }
+    return area;
+  }
   
   public Iterator getHexAreaTypes() {
     return hexArea.keySet().iterator();
   }
+
+  public Iterator getEdgeAreaTypes() {
+    return edgeArea.keySet().iterator();
+  }
   
   protected void clearHexAreas() {
     hexArea.clear();
+  }
+
+  protected void clearEdgeAreas() {
+    edgeArea.clear();
   }
   
   protected void rebuildHexAreas() {
@@ -93,8 +133,20 @@ public class TerrainMap {
       if (area == null) area = new Area();
       area.add(grid.getSingleHex(hex));
       hexArea.put(type, area);
-    }
-    
+    }  
+  }
+  
+  protected void rebuildEdgeAreas() {
+    clearEdgeAreas();
+    Iterator i = getAllEdgeTerrain();
+    while (i.hasNext()) {
+      TerrainEdge edge = (TerrainEdge) i.next();
+      String type = edge.getTerrain().getConfigureName();
+      Area area = (Area) edgeArea.get(type);
+      if (area == null) area = new Area();
+      area.add(grid.getEdge(edge.getHexPos1(), edge.getHexPos2()));
+      edgeArea.put(type, area);
+    }  
   }
   
   public void save() {
@@ -104,6 +156,13 @@ public class TerrainMap {
     while (i.hasNext()) {
       TerrainHex hex = (TerrainHex) i.next();
       buffer.append(hex.encode());
+      buffer.append(System.getProperty("line.separator"));
+    }
+
+    i = edgeMap.values().iterator();
+    while (i.hasNext()) {
+      TerrainEdge edge = (TerrainEdge) i.next();
+      buffer.append(edge.encode());
       buffer.append(System.getProperty("line.separator"));
     }
     
@@ -129,6 +188,9 @@ public class TerrainMap {
         if (line.startsWith(TerrainHex.TYPE)) {
           addHexTerrain(line);
         }
+        else if (line.startsWith(TerrainEdge.TYPE)) {
+          addEdgeTerrain(line);
+        }
       }
     }
     catch (Exception e) {
@@ -144,4 +206,10 @@ public class TerrainMap {
     TerrainHex hex = new TerrainHex(line);
     setHexTerrainType(hex);    
   }
+  
+  protected void addEdgeTerrain(String line) {
+    TerrainEdge edge = new TerrainEdge(line);
+    setEdgeTerrainType(edge);    
+  }
+  
 }
