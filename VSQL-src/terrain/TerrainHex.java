@@ -4,18 +4,15 @@ import java.awt.Point;
 
 import VASSAL.tools.SequenceEncoder;
 
-
 public class TerrainHex  {
 
   private static final long serialVersionUID = 1L;
   protected static final String TYPE = "h";
-  protected int row;
-  protected int column;
+  protected HexRef reference;
   protected HexTerrain terrain;
   
   public TerrainHex (int c, int r, HexTerrain t) {
-    row = r;
-    column = c;
+    reference = new HexRef(c, r);
     terrain = t;    
   }
   
@@ -33,15 +30,15 @@ public class TerrainHex  {
   }
   
   public int getRow() {
-    return row;
+    return reference.getRow();
   }
   
   public int getColumn() {
-    return column;
+    return reference.getColumn();
   }
   
-  public Point getLocation() {
-    return new Point(column, row);
+  public HexRef getLocation() {
+    return reference;
   }
   
   public void setTerrain(HexTerrain t) {
@@ -54,8 +51,8 @@ public class TerrainHex  {
   
   public String encode() {
     SequenceEncoder se = new SequenceEncoder(TYPE, ',');
-    se.append(column);
-    se.append(row);
+    se.append(reference.getColumn());
+    se.append(reference.getRow());
     se.append(terrain == null ? "" : terrain.getTerrainName());
     return se.getValue();
   }
@@ -63,8 +60,7 @@ public class TerrainHex  {
   public void decode(String code) {
     SequenceEncoder.Decoder sd = new SequenceEncoder.Decoder(code, ',');
     sd.nextToken();
-    column = sd.nextInt(0);
-    row = sd.nextInt(0);
+    reference = new HexRef(sd.nextInt(0), sd.nextInt(0));
     terrain = (HexTerrain) TerrainDefinitions.getInstance().getHexTerrainDefinitions().getTerrain(sd.nextToken(TerrainMap.NO_TERRAIN)); 
   }
 }

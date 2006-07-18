@@ -1,6 +1,7 @@
 package terrain;
 
 import java.awt.Point;
+import java.awt.Rectangle;
 import java.awt.geom.Area;
 import java.io.BufferedReader;
 import java.io.InputStream;
@@ -24,10 +25,10 @@ public class TerrainMap {
   
   protected Board board;
   protected TerrainHexGrid grid;
-  protected HashMap hexMap;
+  protected HashMap hexMap;   // Keyed by Point = Hex Grid Position
   protected HashMap hexArea;
-  protected HashMap edgeMap;
-  protected HashMap edgeArea;
+  protected HashMap edgeMap;  // Keyed by Rect = 2 Hex Grid Positions
+  protected HashMap edgeArea; 
   
   public TerrainMap() {
     hexMap = new HashMap();
@@ -53,12 +54,18 @@ public class TerrainMap {
     clearHexAreas();
   }
 
+  /*
+   * Add edge to map twice, so that we can look it up from
+   * either hex
+   */
   public void setEdgeTerrainType(TerrainEdge edge) {
     if (edge.getTerrain() == null) {
       edgeMap.remove(edge.getLocation());
+      edgeMap.remove(edge.getReverseLocation());
     }
     else {
       edgeMap.put(edge.getLocation(), edge);
+      edgeMap.put(edge.getReverseLocation(), edge.reversed());
     }
     clearEdgeAreas();
   }
@@ -66,7 +73,7 @@ public class TerrainMap {
   public void setHexTerrainType(ArrayList hexes, HexTerrain terrain) {
     Iterator i = hexes.iterator();
     while (i.hasNext()) {
-      setHexTerrainType(new TerrainHex((Point) i.next(), terrain));
+      setHexTerrainType(new TerrainHex((HexRef) i.next(), terrain));
     }
   }
 
@@ -77,7 +84,7 @@ public class TerrainMap {
     }
   }
   
-  public TerrainHex getHexTerrain(Point hexPos) {
+  public TerrainHex getHexTerrain(HexRef hexPos) {
     return (TerrainHex) hexMap.get(hexPos);
   }
   
@@ -85,6 +92,11 @@ public class TerrainMap {
     return hexMap.values().iterator();
   }
 
+  public TerrainEdge getEdgeTerrain(HexRef hexPos1, HexRef hexPos2) {
+    Rectangle key = new Rectangle(hexPos1.x, hexPos1.y, hexPos2.x, hexPos2.y);
+    return (TerrainEdge) edgeMap.get(key);
+  }
+  
   public Iterator getAllEdgeTerrain() {
     return edgeMap.values().iterator();
   }
@@ -159,11 +171,19 @@ public class TerrainMap {
       buffer.append(System.getProperty("line.separator"));
     }
 
+    /*
+     * Edges appear in the TerrainMap twice, once for each hex they seperate.
+     * Only write them out once.
+     */
     i = edgeMap.values().iterator();
     while (i.hasNext()) {
       TerrainEdge edge = (TerrainEdge) i.next();
-      buffer.append(edge.encode());
-      buffer.append(System.getProperty("line.separator"));
+      if (edge.getHexPos1().getColumn() < edge.getHexPos2().getColumn() || 
+          (edge.getHexPos1().getColumn() == edge.getHexPos2().getColumn() && 
+              edge.getHexPos1().getRow() <= edge.getHexPos2().getRow())) {
+        buffer.append(edge.encode());
+        buffer.append(System.getProperty("line.separator"));
+      }
     }
     
     ArchiveWriter writer = GameModule.getGameModule().getArchiveWriter();

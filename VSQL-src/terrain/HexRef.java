@@ -1,7 +1,7 @@
 /* HexRef.java
  * Wrapper around a Point to represent a Hex Grid reference.
  */
-package avl;
+package terrain;
 
 import java.awt.Point;
 

@@ -3,7 +3,7 @@
  * two hex grid references.
  * 
  */
-package avl;
+package terrain;
 
 import java.awt.Rectangle;
 

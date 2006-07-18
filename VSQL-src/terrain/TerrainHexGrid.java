@@ -38,9 +38,9 @@ public class TerrainHexGrid extends HexGrid {
   /*
    * Return the display shape of an Edge between two hexes
    */
-  public Area getEdge(Point hexPos1, Point hexPos2) {
-    Point c1 = getHexCenter(hexPos1.x, hexPos1.y);
-    Point c2 = getHexCenter(hexPos2.x, hexPos2.y);
+  public Area getEdge(HexRef hexPos1, HexRef hexPos2) {
+    Point c1 = getHexCenter(hexPos1.getColumn(), hexPos1.getRow());
+    Point c2 = getHexCenter(hexPos2.getColumn(), hexPos2.getRow());
     Point p = new Point((c1.x+c2.x)/2, (c1.y+c2.y)/2);
     Point snap = snapToHexSide(p);
     return new Area(new Rectangle(snap.x-4, snap.y-4, 9, 9));
@@ -50,9 +50,9 @@ public class TerrainHexGrid extends HexGrid {
    * Return the row,column co-ords for a hex at the given point
    */
   
-  public Point getHexPos(Point p) {
+  public HexRef getHexPos(Point p) {
     Point snap = snapTo(p);
-    Point pos = getGridPosition(snap);
+    HexRef pos = new HexRef(getGridPosition(snap));
     rotateIfSideways(pos);
     return pos;
   }
@@ -87,6 +87,25 @@ public class TerrainHexGrid extends HexGrid {
     return ny;
   }
   
+  protected int getMaxRows() {
+    if (sideways) {
+      return (int) Math.floor(getContainer().getSize().height / getHexSize() + 0.5);
+    }
+    else {
+      return (int) Math.floor(getContainer().getSize().height / getHexWidth() + 0.5);
+    }
+  }
+
+  protected int getMaxColumns() {
+    if (sideways) {
+      return (int) Math.floor(getContainer().getSize().width / getHexWidth() + 0.5);
+    }
+    else {
+      return (int) Math.floor(getContainer().getSize().width / getHexSize() + 0.5);
+    }
+  }
+
+  
   /*
    * Return the center of the specified hex
    */
@@ -104,8 +123,11 @@ public class TerrainHexGrid extends HexGrid {
     return new Point(x, y);
   }
   
-  protected Point getGridPosition(Point p) {
-    return new Point(getRawColumn(p), getRawRow(p));
+  /*
+   * Return the raw Grid Reference of the hex contining the given point
+   */
+  protected HexRef getGridPosition(Point p) {
+    return new HexRef(getRawColumn(p), getRawRow(p));
   }
   
   /*
@@ -126,5 +148,67 @@ public class TerrainHexGrid extends HexGrid {
     cfg.getConfigurer(SIDEWAYS).setValue(String.valueOf(sideways));
   }
  
+  /*
+   * Return a list of the Grid positions of adjacent hexes. Do not include
+   * hexes where no part of the hex appears on the board.
+   * Argument is a GridPosition (c, r), not a map position(x, y)
+   */
   
+  
+  protected HexRef[] getAdjacentHexes(HexRef pos) {
+  
+    HexRef[] adjacent = new HexRef[6];
+    int c = pos.x;
+    int r = pos.y;
+    int next = 0;
+    
+    if (sideways) {
+      if (r % 2 == 0) {
+        next = addHex(adjacent, next, c-1, r-1);
+        next = addHex(adjacent, next, c, r-1);
+        next = addHex(adjacent, next, c-1, r);
+        next = addHex(adjacent, next, c+1, r);
+        next = addHex(adjacent, next, c-1, r+1);
+        next = addHex(adjacent, next, c, r+1);
+      }
+      else {
+        next = addHex(adjacent, next, c, r-1);
+        next = addHex(adjacent, next, c+1, r-1);
+        next = addHex(adjacent, next, c-1, r);
+        next = addHex(adjacent, next, c+1, r);
+        next = addHex(adjacent, next, c, r+1);
+        next = addHex(adjacent, next, c+1, r+1);
+      }
+    }
+    else {
+      if (c % 2 == 0) {
+        next = addHex(adjacent, next, c-1, r-1);
+        next = addHex(adjacent, next, c, r-1);
+        next = addHex(adjacent, next, c+1, r-1);
+        next = addHex(adjacent, next, c-1, r);
+        next = addHex(adjacent, next, c, r+1);
+        next = addHex(adjacent, next, c+1, r);
+      }
+      else {
+        next = addHex(adjacent, next, c-1, r);
+        next = addHex(adjacent, next, c, r-1);
+        next = addHex(adjacent, next, c+1, r);
+        next = addHex(adjacent, next, c-1, r+1);
+        next = addHex(adjacent, next, c, r+1);
+        next = addHex(adjacent, next, c+1, r+1);
+      }
+    }
+    
+    return adjacent;
+  }
+  
+  /*
+   * Add Hex to array if it is the map
+   */
+  protected int addHex(HexRef[] points, int next, int column, int row) {
+    if (column >= -1 && column <= getMaxColumns()+1 && row >= -1 && row <= getMaxRows()+1) {
+      points[next++] = new HexRef(column, row);
+    }
+    return next;
+  }
 }

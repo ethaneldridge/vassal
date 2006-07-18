@@ -82,7 +82,7 @@ public class TerrainHexGridEditor extends GridEditor implements ActionListener {
           clearHexSelection();
         }
         
-        Point hexPos = myGrid.getHexPos(e.getPoint());
+        HexRef hexPos = new HexRef(myGrid.getHexPos(e.getPoint()));
         Area hex = myGrid.getSingleHex(e.getPoint());
         
         int index = selectedHexList.indexOf(hexPos);
