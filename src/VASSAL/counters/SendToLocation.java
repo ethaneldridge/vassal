@@ -150,6 +150,7 @@ public class SendToLocation extends Decorator implements EditablePiece {
         }
         setProperty(BACK_MAP, getMap());
         setProperty(BACK_POINT, getPosition());
+        dest = m.snapTo(dest);
         c = m.placeOrMerge(Decorator.getOutermost(this), dest);
       }
     }

@@ -40,7 +40,7 @@ public class PieceImage {
       lastState = String.valueOf(piece.getProperty(Properties.VISIBLE_STATE));
 
       Rectangle bbox = piece.boundingBox();
-      im = new BufferedImage(bbox.width, bbox.height, BufferedImage.TYPE_4BYTE_ABGR);
+      im = new BufferedImage(Math.max(bbox.width,1), Math.max(bbox.height,1), BufferedImage.TYPE_4BYTE_ABGR);
       ((BufferedImage) im).setRGB(0, 0, bbox.width, bbox.height, new int[bbox.width * bbox.height], 0, bbox.width);
 
       piece.draw(((BufferedImage) im).createGraphics(), -bbox.x, -bbox.y, obs, 1.0);

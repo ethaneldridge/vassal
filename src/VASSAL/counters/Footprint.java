@@ -34,8 +34,10 @@ import java.awt.Shape;
 import java.awt.Stroke;
 import java.io.File;
 import java.net.MalformedURLException;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Enumeration;
-import java.util.Vector;
+import java.util.List;
 
 import javax.swing.Box;
 import javax.swing.BoxLayout;
@@ -67,7 +69,7 @@ public class Footprint extends MovementMarkable {
   // State Variables (Saved in logfile/sent to opponent)
   protected boolean globalVisibility = false;  // Shared trail visibility (if globallyVisible == true)
   protected String startMapId = "";            // Map Id trail started on
-  protected Vector pointList = new Vector();   // List of points
+  protected List pointList = new ArrayList();   // List of points
 
   // Type Variables (Configured in Ed)
   protected KeyStroke trailKey;	                   // Control Key to invoke
@@ -116,7 +118,7 @@ public class Footprint extends MovementMarkable {
   }
 
   protected Enumeration getPointList() {
-    return pointList.elements();
+    return Collections.enumeration(pointList);
   }
 
   public void mySetState(String newState) {
@@ -131,7 +133,7 @@ public class Footprint extends MovementMarkable {
         SequenceEncoder.Decoder sp = new SequenceEncoder.Decoder(point, ',');
         int x = sp.nextInt(0);
         int y = sp.nextInt(0);
-        pointList.addElement(new Point(x, y));
+        pointList.add(new Point(x, y));
       }
     }
   }
@@ -213,22 +215,26 @@ public class Footprint extends MovementMarkable {
   public void setMoved(boolean justMoved) {
 
     if (justMoved) {
-      Point where = this.getPosition();
-      if (pointList.size() == 0) {
-        addPoint(where);
-      }
-      else {
-        Point last = (Point) pointList.lastElement();
-        if (!last.equals(where)) { // Don't add the same point twice
-          addPoint(where);
-        }
-      }
+      recordCurrentPosition();
     }
     else {
       clearTrail();
       myBoundingBox = null;
     }
     redraw();
+  }
+
+  protected void recordCurrentPosition() {
+    Point where = this.getPosition();
+    if (pointList.size() == 0) {
+      addPoint(where);
+    }
+    else {
+      Point last = (Point) pointList.get(pointList.size()-1);
+      if (!last.equals(where)) { // Don't add the same point twice
+        addPoint(where);
+      }
+    }
   }
 
   protected void clearTrail() {
@@ -257,7 +263,7 @@ public class Footprint extends MovementMarkable {
   protected void addPoint(Point p) {
 
     startMapId = getMap().getId();
-    pointList.addElement(p);
+    pointList.add(p);
 
     getMyBoundingBox();
 
@@ -282,6 +288,9 @@ public class Footprint extends MovementMarkable {
 
     int x1, y1, x2, y2;
     piece.draw(g, x, y, obs, zoom);
+    if (getMap() != null) {
+      recordCurrentPosition();
+    }
 
     /**
      * No map, or trail not visible, do nothing!

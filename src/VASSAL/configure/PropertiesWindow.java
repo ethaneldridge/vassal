@@ -58,7 +58,13 @@ public class PropertiesWindow extends JDialog {
     while (child != null) {
       Node nextChild = child.getNextSibling();
       if (Node.ELEMENT_NODE == child.getNodeType()) {
-        originalState.removeChild(child);
+        try {
+          Class.forName(((Element)child).getTagName());
+          originalState.removeChild(child);
+        }
+        catch (ClassNotFoundException e1) {
+          // If the child element isn't a Buildable component, leave it there
+        }
       }
       child = nextChild;
     }
