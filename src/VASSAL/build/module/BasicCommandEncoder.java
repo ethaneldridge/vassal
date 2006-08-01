@@ -52,6 +52,7 @@ import VASSAL.counters.NonRectangular;
 import VASSAL.counters.Obscurable;
 import VASSAL.counters.Pivot;
 import VASSAL.counters.PlaceMarker;
+import VASSAL.counters.PlaySound;
 import VASSAL.counters.PropertySheet;
 import VASSAL.counters.Replace;
 import VASSAL.counters.ReportState;
@@ -244,6 +245,11 @@ public class BasicCommandEncoder implements CommandEncoder, Buildable {
     decoratorFactories.put(RestrictCommands.ID, new DecoratorFactory() {
       public Decorator createDecorator(String type, GamePiece inner) {
         return new RestrictCommands(type, inner);
+      }
+    });
+    decoratorFactories.put(PlaySound.ID, new DecoratorFactory() {
+      public Decorator createDecorator(String type, GamePiece inner) {
+        return new PlaySound(type, inner);
       }
     });
   }

@@ -91,6 +91,7 @@ public class PieceDefiner extends javax.swing.JPanel implements HelpWindowExtens
       availableModel.addElement(new SubMenu());
       availableModel.addElement(new RestrictCommands());
       availableModel.addElement(new Restricted());
+      availableModel.addElement(new PlaySound());
       availableModel.addElement(new Marker());
       availableModel.addElement(new DynamicProperty());
     }

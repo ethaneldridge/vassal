@@ -18,6 +18,8 @@
  */
 package VASSAL.tools;
 
+import java.applet.Applet;
+import java.applet.AudioClip;
 import java.awt.Dimension;
 import java.awt.Graphics2D;
 import java.awt.Image;
@@ -66,10 +68,12 @@ public class DataArchive extends SecureClassLoader {
   protected ZipFile archive = null;
   protected List extensions = new ArrayList();
   private HashMap imageCache = new HashMap();
+  private HashMap soundCache = new HashMap();
   private HashMap scaledImageCache = new HashMap();
   private HashMap imageSources = new HashMap();
   protected String[] imageNames;
   public static final String IMAGE_DIR = "images/";
+  public static final String SOUNDS_DIR = "sounds/";
   private BooleanConfigurer smoothPrefs;
   private CodeSource cs;
   private static Image NULL_IMAGE = new BufferedImage(1, 1, BufferedImage.TYPE_4BYTE_ABGR); // empty image for images scaled to zero size
@@ -157,6 +161,16 @@ public class DataArchive extends SecureClassLoader {
       imageCache.put(path, image);
       return image;
     }
+  }
+  
+  public AudioClip getCachedAudioClip(String name) throws IOException {
+    String path = SOUNDS_DIR + name;
+    AudioClip clip = (AudioClip)soundCache.get(path);
+    if (clip == null) {
+      clip = Applet.newAudioClip(getURL(path));
+      soundCache.put(path,clip);
+    }
+    return clip;
   }
 
 /*

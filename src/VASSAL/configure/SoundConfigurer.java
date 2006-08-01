@@ -40,7 +40,9 @@ import VASSAL.build.GameModule;
 import VASSAL.build.module.documentation.HelpFile;
 
 /**
- * Configurer for specifying an AudioClip
+ * Configurer for specifying an AudioClip. This class is intended to allow
+ * players to override a default sound with their own sound file on their local
+ * file system
  */
 public class SoundConfigurer extends Configurer {
   public static final String DEFAULT = "default";
@@ -55,7 +57,7 @@ public class SoundConfigurer extends Configurer {
     super(key, name);
     this.defaultResource = defaultResource;
     try {
-      clipFactory = Applet.class.getMethod("newAudioClip",new Class[]{URL.class});
+      clipFactory = Applet.class.getMethod("newAudioClip", new Class[] {URL.class});
     }
     catch (NoSuchMethodException e) {
     }
@@ -71,35 +73,35 @@ public class SoundConfigurer extends Configurer {
         controls.add(new JLabel("Sound not supported on this platform"));
       }
       else {
-      controls = new JPanel();
-      controls.setLayout(new BoxLayout(controls,BoxLayout.X_AXIS));
-      controls.add(new JLabel(name));
-      JButton b = new JButton("Play");
-      b.addActionListener(new ActionListener() {
-        public void actionPerformed(ActionEvent e) {
-          play();
-        }
-      });
-      controls.add(b);
-      b = new JButton("Default");
-      b.addActionListener(new ActionListener() {
-        public void actionPerformed(ActionEvent e) {
-          setValue(DEFAULT);
-        }
-      });
-      controls.add(b);
-      b = new JButton("Select");
-      b.addActionListener(new ActionListener() {
-        public void actionPerformed(ActionEvent e) {
-          chooseClip();
-        }
-      });
-      controls.add(b);
-      textField = new JTextField();
-      textField.setMaximumSize(new Dimension(textField.getMaximumSize().width,textField.getPreferredSize().height));
-      textField.setEditable(false);
-      textField.setText(DEFAULT.equals(clipName) ? defaultResource : clipName);
-      controls.add(textField);
+        controls = new JPanel();
+        controls.setLayout(new BoxLayout(controls, BoxLayout.X_AXIS));
+        controls.add(new JLabel(name));
+        JButton b = new JButton("Play");
+        b.addActionListener(new ActionListener() {
+          public void actionPerformed(ActionEvent e) {
+            play();
+          }
+        });
+        controls.add(b);
+        b = new JButton("Default");
+        b.addActionListener(new ActionListener() {
+          public void actionPerformed(ActionEvent e) {
+            setValue(DEFAULT);
+          }
+        });
+        controls.add(b);
+        b = new JButton("Select");
+        b.addActionListener(new ActionListener() {
+          public void actionPerformed(ActionEvent e) {
+            chooseClip();
+          }
+        });
+        controls.add(b);
+        textField = new JTextField();
+        textField.setMaximumSize(new Dimension(textField.getMaximumSize().width, textField.getPreferredSize().height));
+        textField.setEditable(false);
+        textField.setText(DEFAULT.equals(clipName) ? defaultResource : clipName);
+        controls.add(textField);
       }
     }
     return controls;
@@ -119,7 +121,7 @@ public class SoundConfigurer extends Configurer {
     }
     URL url = null;
     if (DEFAULT.equals(s)) {
-      url = getClass().getResource("/images/"+defaultResource);
+      url = getClass().getResource("/images/" + defaultResource);
       clipName = s;
     }
     else if (NO_VALUE.equals(s)) {
@@ -140,7 +142,7 @@ public class SoundConfigurer extends Configurer {
     }
     if (url != null) {
       try {
-        setValue(clipFactory.invoke(null, new Object[]{url}));
+        setValue(clipFactory.invoke(null, new Object[] {url}));
       }
       catch (Exception e) {
         e.printStackTrace();
