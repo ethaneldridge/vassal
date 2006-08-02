@@ -195,7 +195,7 @@ public class Map extends AbstractConfigurable implements GameComponent, FocusLis
   protected Highlighter highlighter = new ColoredBorder();
 
   private boolean clearFirst = false; // Whether to clear the display before
-                                      // drawing the map
+  // drawing the map
   private boolean hideCounters = false;// Option to hide counters to see map
   protected float pieceOpacity = 1.0f;
   private boolean allowMultiple = false;
@@ -1331,6 +1331,19 @@ public class Map extends AbstractConfigurable implements GameComponent, FocusLis
     }
     return r;
   }
+  
+  /** Returns the position of a GamePiece accounting for the offset within a parent stack, if any */
+  public Point positionOf(GamePiece p) {
+    if (p.getMap() != this) {
+      throw new RuntimeException("Piece is not on this map");
+    }
+    Point point = p.getPosition();
+    if (p.getParent() != null) {
+      Point pt = getStackMetrics().relativePosition(p.getParent(), p);
+      point.translate(pt.x, pt.y);
+    }
+    return point;
+  }
 
   /**
    * @return an array of all GamePieces on the map. This is a read-only copy.
@@ -1605,6 +1618,10 @@ public class Map extends AbstractConfigurable implements GameComponent, FocusLis
     return getMapName().length() > 0 ? getMapName() : GameModule.getGameModule().getGameName() + " map";
   }
 
+  /**
+   * Use the provided {@link PieceFinder} instance to locate a visible piece at
+   * the given location
+   */
   public GamePiece findPiece(Point pt, PieceFinder finder) {
     GamePiece[] stack = pieces.getPieces();
     for (int i = stack.length - 1; i >= 0; --i) {
@@ -1616,6 +1633,10 @@ public class Map extends AbstractConfigurable implements GameComponent, FocusLis
     return null;
   }
 
+  /**
+   * Use the provided {@link PieceFinder} instance to locate any piece at the
+   * given location, regardless of whether it is visible or not
+   */
   public GamePiece findAnyPiece(Point pt, PieceFinder finder) {
     GamePiece[] stack = pieces.getAllPieces();
     for (int i = stack.length - 1; i >= 0; --i) {

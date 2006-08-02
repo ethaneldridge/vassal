@@ -18,7 +18,6 @@
  */
 package VASSAL.build.widget;
 
-import java.awt.Cursor;
 import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.FontMetrics;
@@ -37,7 +36,6 @@ import java.net.MalformedURLException;
 
 import javax.swing.JPopupMenu;
 
-import VASSAL.Info;
 import VASSAL.build.Buildable;
 import VASSAL.build.Builder;
 import VASSAL.build.Configurable;
@@ -148,7 +146,7 @@ public class PieceSlot extends Widget implements MouseListener, KeyListener {
 
   public Dimension getPreferredSize() {
     if (c != null && panel.getGraphics() != null) {
-      c.draw(panel.getGraphics(), 0, 0, panel, 1.0);
+//      c.draw(panel.getGraphics(), 0, 0, panel, 1.0);
       return c.boundingBox().getSize();
     }
     else {

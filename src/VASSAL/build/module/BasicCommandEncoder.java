@@ -31,6 +31,7 @@ import VASSAL.command.CommandEncoder;
 import VASSAL.command.MovePiece;
 import VASSAL.command.NullCommand;
 import VASSAL.command.RemovePiece;
+import VASSAL.counters.ActionButton;
 import VASSAL.counters.AreaOfEffect;
 import VASSAL.counters.BasicPiece;
 import VASSAL.counters.Clone;
@@ -250,6 +251,11 @@ public class BasicCommandEncoder implements CommandEncoder, Buildable {
     decoratorFactories.put(PlaySound.ID, new DecoratorFactory() {
       public Decorator createDecorator(String type, GamePiece inner) {
         return new PlaySound(type, inner);
+      }
+    });
+    decoratorFactories.put(ActionButton.ID, new DecoratorFactory() {
+      public Decorator createDecorator(String type, GamePiece inner) {
+        return new ActionButton(type, inner);
       }
     });
   }

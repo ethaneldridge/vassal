@@ -196,6 +196,9 @@ public abstract class Decorator implements GamePiece, StateMergeable {
     if (c == null) {
       return myC;
     }
+    else if (myC == null) {
+      return c;
+    }
     else {
       KeyCommand all[] = new KeyCommand[c.length + myC.length];
       System.arraycopy(myC, 0, all, 0, myC.length);

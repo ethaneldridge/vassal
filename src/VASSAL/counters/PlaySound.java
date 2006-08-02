@@ -51,7 +51,7 @@ public class PlaySound extends Decorator implements EditablePiece {
   protected KeyStroke stroke;
   protected KeyCommand command;
   protected KeyCommand[] commands;
-  protected FormattedString format;
+  protected FormattedString format = new FormattedString();
   
   public PlaySound() {
     this(ID,null);
@@ -84,6 +84,7 @@ public class PlaySound extends Decorator implements EditablePiece {
   }
 
   public Command myKeyEvent(KeyStroke stroke) {
+    myGetKeyCommands();
     if (command.matches(stroke)) {
         try {
           AudioClip clip = GameModule.getGameModule().getDataArchive().getCachedAudioClip(format.getText(Decorator.getOutermost(this)));
@@ -115,7 +116,7 @@ public class PlaySound extends Decorator implements EditablePiece {
   }
 
   public String getDescription() {
-    return "Play Sound";
+    return format.getFormat().length() == 0 ? "Play Sound" : "Play Sound - "+format.getFormat();
   }
 
   public void mySetType(String type) {
@@ -130,7 +131,7 @@ public class PlaySound extends Decorator implements EditablePiece {
     File dir = VASSAL.build.module.Documentation.getDocumentationBaseDir();
     dir = new File(dir, "ReferenceManual");
     try {
-      return new HelpFile(null, new File(dir, "GlobalKeyCommand.htm"));
+      return new HelpFile(null, new File(dir, "PlaySound.htm"));
     }
     catch (MalformedURLException ex) {
       return null;
