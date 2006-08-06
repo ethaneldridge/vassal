@@ -38,33 +38,8 @@ public class AudioClipConfigurer extends FileConfigurer {
     this.archive = archive;
   }
 
-  public void chooseNewValue() {
-    if (fc.showOpenDialog(null) == JFileChooser.CANCEL_OPTION) {
-      setValue((Object) null);
-    }
-    else {
-      setValue(fc.getSelectedFile().exists() ? fc.getSelectedFile() : (Object) null);
-    }
-  }
-
-  public void setValue(Object o) {
-    java.io.File f = (java.io.File) o;
-    Object oldValue = value;
-    if (f != null && f.exists()) {
-      archive.addSound(f.getPath(), f.getName());
-    }
-    value = f;
-    changeSupport.firePropertyChange(key, oldValue, value);
-    if (tf != null && !noUpdate) {
-      tf.setText(getValueString());
-    }
-  }
-
-  public java.awt.Component getControls() {
-    java.awt.Component c = super.getControls();
-    tf.setEditable(false);
-    tf.setColumns(20);
-    return c;
+  protected void addToArchive(java.io.File f) {
+    archive.addSound(f.getPath(), f.getName());
   }
 
   private static class Chooser extends JFileChooser {
@@ -82,5 +57,9 @@ public class AudioClipConfigurer extends FileConfigurer {
         }
       });
     }
+  }
+
+  protected JFileChooser initFileChooser() {
+    return fc;
   }
 }

@@ -35,28 +35,33 @@ import VASSAL.tools.ArchiveWriter;
  * A Configurer for java.io.File values
  */
 public class FileConfigurer extends Configurer {
+  private JFileChooser globalFileChooser;
   protected VASSAL.tools.ArchiveWriter archive;
 
   protected JPanel p;
   protected JTextField tf;
-  private static JFileChooser fc;
+  protected JFileChooser fc;
+  protected boolean editable;
 
   public FileConfigurer(String key, String name) {
     super(key, name);
     setValue(null);
-    initFileChooser();
+    fc = initFileChooser();
+    editable = true;
   }
 
-  private static void initFileChooser() {
-    if (fc == null) {
-      fc = new JFileChooser(Documentation.getDocumentationBaseDir());
+  protected JFileChooser initFileChooser() {
+    if (globalFileChooser == null) {
+      globalFileChooser = new JFileChooser(Documentation.getDocumentationBaseDir());
     }
+    return globalFileChooser;
   }
 
   /**
    * If a non-null {@link ArchiveWriter} is used in the constructor, then
-   * invoking {@link #setValue} on this FileConfigurer will
-   * automatically add the file to the archive */
+   * invoking {@link #setValue} on this FileConfigurer will automatically add
+   * the file to the archive
+   */
   public FileConfigurer(String key, String name, ArchiveWriter archive) {
     this(key, name);
     this.archive = archive;
@@ -73,19 +78,17 @@ public class FileConfigurer extends Configurer {
 
   public void setValue(Object o) {
     File f = (File) o;
-    if (f != null) {
-      if (!f.exists()) {
-        //f = null;           // TODO: JU: RK, is this needed?
-      }
-      else if (archive != null) {
-        archive.addFile(f.getPath(), f.getName());
-      }
+    if (archive != null && f != null && f.exists()) {
+      addToArchive(f);
     }
     super.setValue(f);
     if (tf != null && !noUpdate) {
       tf.setText(getValueString());
-      //            tf.revalidate();
     }
+  }
+
+  protected void addToArchive(File f) {
+    archive.addFile(f.getPath(), f.getName());
   }
 
   public void setValue(String s) {
@@ -104,9 +107,8 @@ public class FileConfigurer extends Configurer {
       JButton b = new JButton("Select");
       p.add(b);
       tf = new JTextField(getValueString());
-      tf.setMaximumSize
-        (new java.awt.Dimension(tf.getMaximumSize().width,
-                                tf.getPreferredSize().height));
+      tf.setEditable(editable);
+      tf.setMaximumSize(new java.awt.Dimension(tf.getMaximumSize().width, tf.getPreferredSize().height));
       tf.getDocument().addDocumentListener(new javax.swing.event.DocumentListener() {
         public void changedUpdate(javax.swing.event.DocumentEvent evt) {
           update();
@@ -122,21 +124,17 @@ public class FileConfigurer extends Configurer {
 
         public void update() {
           File f = new File(tf.getText());
-          if (f.exists()) {
-            noUpdate = true;
-            setValue(f);
-            noUpdate = false;
-          }
+          noUpdate = true;
+          setValue(f);
+          noUpdate = false;
         }
       });
       p.add(tf);
-      b.addActionListener
-        (new java.awt.event.ActionListener() {
-          public void actionPerformed
-            (java.awt.event.ActionEvent e) {
-            chooseNewValue();
-          }
-        });
+      b.addActionListener(new java.awt.event.ActionListener() {
+        public void actionPerformed(java.awt.event.ActionEvent e) {
+          chooseNewValue();
+        }
+      });
     }
     return p;
   }
@@ -146,8 +144,7 @@ public class FileConfigurer extends Configurer {
       setValue((Object) null);
     }
     else {
-      setValue(fc.getSelectedFile().exists() ?
-               fc.getSelectedFile() : (Object) null);
+      setValue(fc.getSelectedFile().exists() ? fc.getSelectedFile() : (Object) null);
     }
   }
 
@@ -167,6 +164,15 @@ public class FileConfigurer extends Configurer {
     f.pack();
     f.setVisible(true);
   }
+
+  public boolean isEditable() {
+    return editable;
+  }
+
+  public void setEditable(boolean editable) {
+    this.editable = editable;
+    if (tf != null) {
+      tf.setEditable(editable);
+    }
+  }
 }
-
-

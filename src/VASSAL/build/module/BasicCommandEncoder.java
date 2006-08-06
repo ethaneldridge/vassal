@@ -30,6 +30,7 @@ import VASSAL.command.Command;
 import VASSAL.command.CommandEncoder;
 import VASSAL.command.MovePiece;
 import VASSAL.command.NullCommand;
+import VASSAL.command.PlayAudioClipCommand;
 import VASSAL.command.RemovePiece;
 import VASSAL.counters.ActionButton;
 import VASSAL.counters.AreaOfEffect;
@@ -406,7 +407,7 @@ public class BasicCommandEncoder implements CommandEncoder, Buildable {
       return new MovePiece(id, newMapId, new Point(newX, newY), newUnderId, oldMapId, new Point(oldX, oldY), oldUnderId, playerid);
     }
     else {
-      return null;
+      return PlayAudioClipCommand.decode(command);
     }
   }
 
@@ -444,6 +445,9 @@ public class BasicCommandEncoder implements CommandEncoder, Buildable {
     }
     else if (c instanceof NullCommand) {
       return "";
+    }
+    else if (c instanceof PlayAudioClipCommand) {
+      return ((PlayAudioClipCommand)c).encode();
     }
     else {
       return null;

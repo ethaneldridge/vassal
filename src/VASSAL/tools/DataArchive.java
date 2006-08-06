@@ -56,6 +56,8 @@ import java.util.zip.ZipInputStream;
 
 import javax.swing.ImageIcon;
 
+import sun.applet.AppletAudioClip;
+
 import VASSAL.build.GameModule;
 import VASSAL.build.module.GlobalOptions;
 import VASSAL.build.module.documentation.HelpFile;
@@ -167,7 +169,7 @@ public class DataArchive extends SecureClassLoader {
     String path = SOUNDS_DIR + name;
     AudioClip clip = (AudioClip)soundCache.get(path);
     if (clip == null) {
-      clip = Applet.newAudioClip(getURL(path));
+      clip = new AppletAudioClip(getBytes(getFileStream(path)));
       soundCache.put(path,clip);
     }
     return clip;

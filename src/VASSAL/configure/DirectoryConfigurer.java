@@ -43,6 +43,9 @@ public class DirectoryConfigurer extends FileConfigurer {
     }
     super.setValue(f);
   }
+  
+  protected void addToArchive(File f) {
+  }
 
   public void chooseNewValue() {
     getControls();

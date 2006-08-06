@@ -25,7 +25,6 @@ import java.awt.Rectangle;
 import java.awt.Shape;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.awt.event.MouseListener;
 import java.io.File;
 import java.net.MalformedURLException;
 import java.util.HashMap;
@@ -41,7 +40,6 @@ import VASSAL.build.module.documentation.HelpFile;
 import VASSAL.command.Command;
 import VASSAL.configure.HotKeyConfigurer;
 import VASSAL.configure.IntConfigurer;
-import VASSAL.counters.ActionButton.ButtonPusher.ComponentMouseListener;
 import VASSAL.tools.SequenceEncoder;
 
 /**
@@ -112,7 +110,7 @@ public class ActionButton extends Decorator implements EditablePiece {
   }
 
   public String getDescription() {
-    return "Action Button - " + HotKeyConfigurer.getString(stroke);
+    return stroke == null ? "Action Button" : "Action Button - " + HotKeyConfigurer.getString(stroke);
   }
 
   public void mySetType(String type) {
@@ -202,7 +200,7 @@ public class ActionButton extends Decorator implements EditablePiece {
         if (l == null) {
           l = new ComponentMouseListener(piece, x, y);
           obs.addMouseListener(l);
-          components.put(obs,l);
+          components.put(obs, l);
         }
         else {
           l.xOffset = x;
@@ -220,36 +218,24 @@ public class ActionButton extends Decorator implements EditablePiece {
      * @param x
      * @param y
      * @param Offset
-     *          A function to determine the offset of the target piece. This is
-     *          done for efficiency reasons, since computing the offset may be
-     *          expensive (as in the case of a piece in an expanded stack on a
-     *          map) and is only needed if the piece has the ActionButton trait
+     *          A function to determine the offset of the target piece. This
+     *          callback is done for efficiency reasons, since computing the
+     *          offset may be expensive (as in the case of a piece in an
+     *          expanded stack on a map) and is only needed if the piece has the
+     *          ActionButton trait
      */
-    public void doClick(GamePiece p, Point point, Offset offset) {
+    public void doClick(GamePiece p, Point point) {
       for (GamePiece piece = p; piece instanceof Decorator; piece = ((Decorator) piece).getInner()) {
         if (piece instanceof ActionButton) {
           ActionButton action = (ActionButton) piece;
-          Point relative = offset.getRelativeOffset(point);
-          System.err.println(point+"->"+relative);
-          if (action.bounds.contains(relative)) {
-            System.err.println(action.bounds+" contains "+relative);
-            p.setProperty(Properties.SNAPSHOT, PieceCloner.getInstance().clonePiece(p)); // save state prior to command
+          if (action.bounds.contains(point)) {
+            // Save state prior to command
+            p.setProperty(Properties.SNAPSHOT, PieceCloner.getInstance().clonePiece(p));
             Command command = p.keyEvent(action.stroke);
             GameModule.getGameModule().sendAndLog(command);
           }
-          else {
-            System.err.println("MISS:  "+action.bounds+" does not contain "+relative);
-          }
         }
       }
-    }
-
-    protected static interface Offset {
-      /**
-       * Given a click at the original location, find the offset relative to the
-       * position of the target GamePiece
-       */
-      Point getRelativeOffset(Point originalLocation);
     }
 
     protected class MapMouseListener extends MouseAdapter {
@@ -259,26 +245,21 @@ public class ActionButton extends Decorator implements EditablePiece {
         this.map = map;
       }
 
-      public void mouseReleased(MouseEvent e) {
-        final GamePiece p = map.findPiece(e.getPoint(), PieceFinder.PIECE_IN_STACK);
+      public void mouseClicked(MouseEvent e) {
+        Point point = e.getPoint();
+        final GamePiece p = map.findPiece(point, PieceFinder.PIECE_IN_STACK);
         if (p != null) {
-          doClick(p, e.getPoint(), new Offset() {
-            public Point getRelativeOffset(Point point) {
-              Point offset = new Point(point);
-              Point rel = map.positionOf(p);
-              offset.translate(rel.x, rel.y);
-              return offset;
-            }
-          });
+          Point rel = map.positionOf(p);
+          point.translate(-rel.x, -rel.y);
+          doClick(p, point);
         }
       }
     }
 
-    protected class ComponentMouseListener extends MouseAdapter implements Offset {
+    protected class ComponentMouseListener extends MouseAdapter {
       private GamePiece target;
       private int xOffset;
       private int yOffset;
-      private MouseEvent mouseDown;
 
       public ComponentMouseListener(GamePiece piece, int x, int y) {
         target = piece;
@@ -286,24 +267,11 @@ public class ActionButton extends Decorator implements EditablePiece {
         yOffset = y;
       }
 
-      public void mouseReleased(MouseEvent e) {
-        System.err.println(e);
-        System.err.println(e.getSource());
-        if (mouseDown != null && mouseDown.getPoint().distance(e.getPoint()) < 5) {
-          doClick(target, e.getPoint(), this);
-        }
-        mouseDown = null;
+      public void mouseClicked(MouseEvent e) {
+        Point point = e.getPoint();
+        point.translate(-xOffset,-yOffset);
+        doClick(target, point);
         e.getComponent().repaint();
-      }
-      
-      public void mousePressed(MouseEvent e) {
-        System.err.println(e);
-        System.err.println(e.getSource());
-        mouseDown = e;
-      }
-
-      public Point getRelativeOffset(Point originalLocation) {
-        return new Point(originalLocation.x - xOffset, originalLocation.y - yOffset);
       }
     }
 

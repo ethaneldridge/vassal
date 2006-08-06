@@ -18,6 +18,8 @@
  */
 package VASSAL.configure;
 
+import java.io.File;
+
 import javax.swing.JFileChooser;
 
 import VASSAL.build.module.Documentation;
@@ -33,35 +35,15 @@ public class ImageConfigurer extends FileConfigurer {
   public ImageConfigurer(String key, String name, ArchiveWriter archive) {
     super(key, name);
     this.archive = archive;
+    editable = false;
+  }
+  
+  protected JFileChooser initFileChooser() {
+    return fc;
   }
 
-  public void chooseNewValue() {
-    if (fc.showOpenDialog(null) == JFileChooser.CANCEL_OPTION) {
-      setValue((Object) null);
-    }
-    else {
-      setValue(fc.getSelectedFile().exists() ? fc.getSelectedFile() : (Object) null);
-    }
-  }
-
-  public void setValue(Object o) {
-    java.io.File f = (java.io.File) o;
-    Object oldValue = value;
-    if (f != null && f.exists()) {
-      archive.addImage(f.getPath(), f.getName());
-    }
-    value = f;
-    changeSupport.firePropertyChange(key, oldValue, value);
-    if (tf != null && !noUpdate) {
-      tf.setText(getValueString());
-    }
-  }
-
-  public java.awt.Component getControls() {
-    java.awt.Component c = super.getControls();
-    tf.setEditable(false);
-    tf.setColumns(20);
-    return c;
+  protected void addToArchive(File f) {
+    archive.addImage(f.getPath(), f.getName());
   }
 
   private static class Chooser extends JFileChooser {
