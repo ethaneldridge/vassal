@@ -29,6 +29,7 @@ import VASSAL.counters.Stack;
 
 /**
  * Specialised Counter Inventory for Gettysburg 1988
+ * BME 4-Aug-06 Modify to allow 0.5 VP's
  */
 public class G88Inventory extends Inventory {
 
@@ -42,26 +43,26 @@ public class G88Inventory extends Inventory {
   
   protected void generateInventory() {
 
-    int USA_terrain = getCount(MAIN_MAP_NAME, new String[] { "Control", "LAYER_NAME" }, new String[] { "true", "USA" }, VP_MARKER);
-    int CSA_terrain = getCount(MAIN_MAP_NAME, new String[] { "Control", "LAYER_NAME" }, new String[] { "true", "CSA" }, VP_MARKER);
-    int USA_step = getCount(MAIN_MAP_NAME, new String[] { "LAYER_NAME", "OtherSide" }, new String[] { "[Step]", "USA" }, null);
-    int CSA_step = getCount(MAIN_MAP_NAME, new String[] { "LAYER_NAME", "OtherSide" }, new String[] { "[Step]", "CSA" }, null);
-    int USA_graveyard = getCount(GRAVEYARD_MAP_NAME, new String[] { "VP", "OtherSide" }, new String[] { null, "USA" }, VP_MARKER);
-    int CSA_graveyard = getCount(GRAVEYARD_MAP_NAME, new String[] { "VP", "OtherSide" }, new String[] { null, "CSA" }, VP_MARKER);
+    double USA_terrain = getCount(MAIN_MAP_NAME, new String[] { "Control", "LAYER_NAME" }, new String[] { "true", "USA" }, VP_MARKER);
+    double CSA_terrain = getCount(MAIN_MAP_NAME, new String[] { "Control", "LAYER_NAME" }, new String[] { "true", "CSA" }, VP_MARKER);
+    double USA_step = getCount(MAIN_MAP_NAME, new String[] { "LAYER_NAME", "OtherSide" }, new String[] { "[Step]", "USA" }, null);
+    double CSA_step = getCount(MAIN_MAP_NAME, new String[] { "LAYER_NAME", "OtherSide" }, new String[] { "[Step]", "CSA" }, null);
+    double USA_graveyard = getCount(GRAVEYARD_MAP_NAME, new String[] { "VP", "OtherSide" }, new String[] { null, "USA" }, VP_MARKER);
+    double CSA_graveyard = getCount(GRAVEYARD_MAP_NAME, new String[] { "VP", "OtherSide" }, new String[] { null, "CSA" }, VP_MARKER);
     
-    int USA_total = USA_terrain + USA_step + USA_graveyard;
-    int CSA_total = CSA_terrain + CSA_step + CSA_graveyard; 
+    double USA_total = USA_terrain + USA_step + USA_graveyard;
+    double CSA_total = CSA_terrain + CSA_step + CSA_graveyard; 
       
     String[] result = new String[3];
     result[0] = getConfigureName() + ":";
-    result[1] = "USA " + USA_total + 
-    	" (Terrain: " + USA_terrain + 
-    	", Eliminated: " + USA_graveyard +
-    	", Step: " + USA_step +	")";
-    result[2] = "CSA: " + CSA_total +
-    	" (Terrain: " + CSA_terrain + 
-    	", Eliminated: " + CSA_graveyard +
-    	", Step: " + CSA_step +
+    result[1] = "USA " + format(USA_total) + 
+    	" (Terrain: " + format(USA_terrain) + 
+    	", Eliminated: " + format(USA_graveyard) +
+    	", Step: " + format(USA_step) +	")";
+    result[2] = "CSA: " + format(CSA_total) +
+    	" (Terrain: " + format(CSA_terrain) + 
+    	", Eliminated: " + format(CSA_graveyard) +
+    	", Step: " + format(CSA_step) +
     	")";
     	
       
@@ -69,82 +70,21 @@ public class G88Inventory extends Inventory {
     c.execute();
     GameModule.getGameModule().sendAndLog(c);
     
-//    counters = new ArrayList();
-//    
-//    PieceIterator pi = new PieceIterator(GameModule.getGameModule().getGameState().getPieces(), new Selector(
-//        incAllMaps, mapList, include));
-//
-//    while (pi.hasMoreElements()) {
-//
-//      GamePiece p = pi.nextPiece();
-//
-//      String group = "";
-//      if (groupBy.length() > 0) {
-//        group = (String) p.getProperty(groupBy);
-//      }
-//
-//      int count = 1;
-//      if (totalMarker.length() > 0) {
-//        String s = (String) p.getProperty(totalMarker);
-//        try {
-//          count = Integer.parseInt(s);
-//        }
-//        catch (Exception e) {
-//          count = 1;
-//        }
-//      }
-//      
-//      Point pos = p.getPosition();
-//
-//      boolean incMap = mapList.length > 0;
-//      String loc = p.getMap().getFullLocationName(pos, incMap);
-//
-//      Counter c = new Counter(group, p.getName(), loc, count);
-//
-//      counters.add(c);
-//
-//    }
-//
-//    Collections.sort(counters);
-//
-//    String[] result = new String[] { getConfigureName() + ": " };
-//    String lastBreak = null;
-//    String breakVal;
-//    int total = 0;
-//    int count = 0;
-//
-//    Iterator i = counters.iterator();
-//    while (i.hasNext()) {
-//      Counter c = (Counter) i.next();
-//      breakVal = c.getBreakKey() + "";
-//      if (breakVal.equals(lastBreak)) {
-//        count += c.getCount();
-//      }
-//      else {
-//        if (lastBreak != null) {
-//          result[0] += lastBreak + ": " + count + "  ";
-//        }
-//        lastBreak = breakVal;
-//        count = c.getCount();
-//      }
-//    }
-//    
-//    if (lastBreak != null) {
-//       result[0] += lastBreak + ": " + count + "  ";
-//    }
-//
-//    Command c = new DisplayResults(result, destination);
-//    c.execute();
-//    GameModule.getGameModule().sendAndLog(c);
-
   }
   
+  protected String format(double number) {
+    String result = Double.toString(number);
+    if (result.endsWith(".0")) {
+      return result.substring(0, result.length()-2);
+    }
+    return result;
+  }
   /*
    * Count the VPs stored in property countPropertyName on map mapName for counters
    * with properties match matchNames/matchValues.
    */
-  protected int getCount(String mapName, String[] matchNames, String[] matchValues, String countPropertyName) {
-    int count = 0;
+  protected double getCount(String mapName, String[] matchNames, String[] matchValues, String countPropertyName) {
+    double count = 0.0;
     
     PieceIterator pi = new PieceIterator(GameModule.getGameModule().getGameState().getPieces(), 
         new G88Selector(mapName, matchNames, matchValues));
@@ -160,7 +100,7 @@ public class G88Inventory extends Inventory {
       }
       else {
         try {
-          count += Integer.parseInt(vp);
+          count += Double.parseDouble(vp);
         } 
         catch (Exception e) {
           count += 1;
@@ -192,7 +132,6 @@ public class G88Inventory extends Inventory {
       if (piece.getMap() == null) return false;
 
       if (mapName != null && mapName.length() > 0) {
-        String name = piece.getMap().getMapName();
         if (!mapName.equals(piece.getMap().getMapName())) {
           return false;
         }

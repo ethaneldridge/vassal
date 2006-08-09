@@ -90,7 +90,7 @@ public class TurnTracker extends TurnComponent implements CommandEncoder, GameCo
   protected PropertyChangeSupport propertyChangeSupport = new PropertyChangeSupport(this);
   
   protected static final String COMMAND_PREFIX = "TURN";
-  public static final String VERSION = "1.7";
+  public static final String VERSION = "1.8";
 
   public static final String NAME = "name";
   public static final String HOT_KEY = "hotkey";

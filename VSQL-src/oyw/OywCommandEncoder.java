@@ -28,6 +28,12 @@ public class OywCommandEncoder extends BasicCommandEncoder {
     if (type.startsWith(OywPlaceMarker.ID)) {
       return new OywPlaceMarker(type, inner);
     }
+    else if (type.startsWith(OywSendToLocation.ID)) {
+      return new OywSendToLocation(type, inner);
+    }
+    else if (type.startsWith(OywActionButton.ID)) {
+      return new OywActionButton(type, inner);
+    }
     return super.createDecorator(type, inner);
   }
 }

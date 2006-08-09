@@ -21,6 +21,9 @@ package VSQL;
 import java.awt.Component;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
+import java.beans.PropertyChangeSupport;
 
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.JComboBox;
@@ -33,6 +36,9 @@ import VASL.counters.Concealment;
 import VASL.counters.TextInfo;
 import VASSAL.build.Buildable;
 import VASSAL.build.GameModule;
+import VASSAL.build.module.GameComponent;
+import VASSAL.build.module.properties.GlobalPropertiesContainer;
+import VASSAL.command.Command;
 import VASSAL.configure.Configurer;
 import VASSAL.configure.DoubleConfigurer;
 import VASSAL.configure.IntConfigurer;
@@ -45,7 +51,9 @@ import VASSAL.counters.ReportState;
 /**
  * @author Brent Easton
  */
-public class VSQLCommandEncoder extends ASLCommandEncoder {
+public class VSQLCommandEncoder extends ASLCommandEncoder implements GameComponent {
+
+  protected PropertyChangeSupport propertyChangeSupport = new PropertyChangeSupport(this);
   
   public VSQLCommandEncoder() {
     
@@ -58,16 +66,48 @@ public class VSQLCommandEncoder extends ASLCommandEncoder {
     final DoubleConfigurer zoomFactor = new DoubleConfigurer(VSQLProperties.ZOOM_FACTOR, "Personal Magnification Factor (0.0 for default):  ", new Double(0.0));
     GameModule.getGameModule().getPrefs().addOption(VSQLProperties.VSQL, zoomFactor);
 
-    //final VSQLStringEnumConfigurer ruleLevel = new VSQLStringEnumConfigurer(VSQLProperties.RULE_LEVEL, "Rule Level", rule_levels);
-    //GameModule.getGameModule().getPrefs().addOption(VSQLProperties.VSQL, ruleLevel);
+    final VSQLStringEnumConfigurer ruleLevel = new VSQLStringEnumConfigurer(VSQLProperties.RULE_LEVEL, "Rule Level", VSQLProperties.RULE_LEVELS);
+    ruleLevel.addPropertyChangeListener(new PropertyChangeListener(){
+      public void propertyChange(PropertyChangeEvent e) {
+        updateRuleLevel((String) e.getNewValue());       
+      }});
+    GameModule.getGameModule().getPrefs().addOption(VSQLProperties.VSQL, ruleLevel);
+  }
+  
+  /*
+   * Set the Rule Level into a global variable at game start
+   */
+  public void setup(boolean gameStarting) {
+
+    String ruleLevel = GameModule.getGameModule().getPrefs().getStoredValue(VSQLProperties.RULE_LEVEL);
+    updateRuleLevel(ruleLevel);
+  }
+  
+  protected void updateRuleLevel(String ruleLevel) {
+    int level = 1;
+    String oldLevel = (String) GameModule.getGameModule().getProperty(VSQLProperties.RULE_LEVEL);
+    
+    if (VSQLProperties.SL.equals(ruleLevel)) {
+      level = 1;
+    }
+    else if (VSQLProperties.COI.equals(ruleLevel)) {
+      level = 2;
+    }
+    else if (VSQLProperties.COD.equals(ruleLevel)) {
+      level = 3;
+    }
+    else if (VSQLProperties.GI.equals(ruleLevel)) {
+      level = 4;
+    }
+    propertyChangeSupport.firePropertyChange(VSQLProperties.RULE_LEVEL, oldLevel, level+"");
   }
   
   /**
-   * Create the rule-level preference
+   * Find modules Global properties
    */
   public void addTo(Buildable b) {
     super.addTo(b);
-    
+    propertyChangeSupport.addPropertyChangeListener(((GlobalPropertiesContainer) b).getPropertyListener());
   }
   
  /**
@@ -104,9 +144,6 @@ public class VSQLCommandEncoder extends ASLCommandEncoder {
     }
     else if (type.startsWith(TrackRotator.ID)) {
       return new TrackRotator(type, inner);
-    }
-    else if (type.startsWith(RestrictCommands.ID)) {
-      return new RestrictCommands(type, inner);
     }
     else {
       return super.createDecorator(type, inner);
@@ -181,5 +218,9 @@ public class VSQLCommandEncoder extends ASLCommandEncoder {
       setValue((Object) s);
     }
 
+  }
+
+  public Command getRestoreCommand() {
+    return null;
   }
 }

@@ -2,6 +2,7 @@ package avl;
 
 import java.awt.Point;
 import java.awt.Rectangle;
+import java.awt.geom.AffineTransform;
 import java.awt.geom.Area;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -113,6 +114,9 @@ public class AvlTerrainHexGrid extends TerrainHexGrid {
       Point c = getHexCenter(hexPos.x, hexPos.y);
       shape.add(getSingleHex(c.x, c.y));   
     }
+    // Offset shape by the board position 
+    Rectangle r = getBoard().bounds();
+    shape = new Area(AffineTransform.getTranslateInstance(r.x, r.y).createTransformedShape(shape));
     return shape;
   }
 

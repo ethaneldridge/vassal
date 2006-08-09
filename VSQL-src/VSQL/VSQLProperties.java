@@ -28,8 +28,12 @@ public class VSQLProperties {
   public static final String ZOOM_LEVELS = "zoomLevels";
   public static final String ZOOM_START = "zoomStart";
   public static final String ZOOM_FACTOR = "zoomFactor";
-  //public static final String RULE_LEVEL = "rulelevel";
-  //public static final String[] rule_levels = new String[] { "SL", "COI", "COD", "GI" };
+  public static final String RULE_LEVEL = "rulelevel";
+  public static final String SL = "SL";
+  public static final String COI = "COI";
+  public static final String COD = "COD";
+  public static final String GI = "GI";
+  public static final String[] RULE_LEVELS = new String[] { SL, COI, COD, GI };
   
   // Political
   public static final String SIDE = "SIDE";
