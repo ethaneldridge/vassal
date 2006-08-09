@@ -22,6 +22,10 @@ public class PropertySetter implements PropertyChanger {
     }
   }
 
+  public String getRawValue() {
+    return newValue; 
+  }
+  
   public String getNewValue(String oldValue) {
     String s = newValue;
     if (format != null) {

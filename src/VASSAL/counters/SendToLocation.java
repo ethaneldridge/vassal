@@ -6,8 +6,11 @@ import java.awt.Graphics;
 import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.Shape;
+import java.awt.Window;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 import java.io.File;
 import java.net.MalformedURLException;
 import java.util.ArrayList;
@@ -26,10 +29,11 @@ import VASSAL.build.module.Map;
 import VASSAL.build.module.documentation.HelpFile;
 import VASSAL.build.module.map.boardPicker.Board;
 import VASSAL.command.Command;
+import VASSAL.configure.BooleanConfigurer;
 import VASSAL.configure.ChooseComponentDialog;
 import VASSAL.configure.HotKeyConfigurer;
-import VASSAL.configure.IntConfigurer;
 import VASSAL.configure.StringConfigurer;
+import VASSAL.tools.FormattedString;
 import VASSAL.tools.SequenceEncoder;
 
 /*
@@ -66,8 +70,12 @@ public class SendToLocation extends Decorator implements EditablePiece {
   protected KeyStroke backKey;
   protected String mapId;
   protected String boardName;
-  protected int x;
-  protected int y;
+  protected FormattedString x = new FormattedString("");
+  protected FormattedString xIndex = new FormattedString("");
+  protected FormattedString xOffset = new FormattedString("");
+  protected FormattedString y = new FormattedString("");
+  protected FormattedString yIndex = new FormattedString("");
+  protected FormattedString yOffset = new FormattedString("");
   protected KeyCommand sendCommand;
   protected KeyCommand backCommand;
 
@@ -87,10 +95,14 @@ public class SendToLocation extends Decorator implements EditablePiece {
     key = st.nextKeyStroke(null);
     mapId = st.nextToken();
     boardName = st.nextToken();
-    x = st.nextInt(0);
-    y = st.nextInt(0);
+    x.setFormat(st.nextToken("0"));
+    y.setFormat(st.nextToken("0"));
     backCommandName = st.nextToken("");
     backKey = st.nextKeyStroke(null);
+    xIndex.setFormat(st.nextToken("0"));
+    yIndex.setFormat(st.nextToken("0"));
+    xOffset.setFormat(st.nextToken("0"));
+    yOffset.setFormat(st.nextToken("0"));
   }
 
   public String myGetType() {
@@ -99,10 +111,14 @@ public class SendToLocation extends Decorator implements EditablePiece {
         .append(key)
         .append(mapId)
         .append(boardName)
-        .append(x + "")
-        .append(y + "")
+        .append(x.getFormat())
+        .append(y.getFormat())
         .append(backCommandName)
-        .append(backKey);
+        .append(backKey)
+        .append(xIndex.getFormat())
+        .append(yIndex.getFormat())
+        .append(xOffset.getFormat())
+        .append(yOffset.getFormat());
     return ID + se.getValue();
   }
 
@@ -131,7 +147,22 @@ public class SendToLocation extends Decorator implements EditablePiece {
   }
 
   public String myGetState() {
-    return "";
+    SequenceEncoder se = new SequenceEncoder(';');
+    Map backMap = (Map)getProperty(BACK_MAP);
+    if (backMap != null) {
+      se.append(backMap.getIdentifier());
+    }
+    else {
+      se.append("");
+    }
+    Point backPoint = (Point)getProperty(BACK_POINT);
+    if (backPoint != null) {
+      se.append(backPoint.x).append(backPoint.y);
+    }
+    else {
+      se.append("").append("");
+    }
+    return se.getValue();
   }
 
   public Command myKeyEvent(KeyStroke stroke) {
@@ -143,7 +174,13 @@ public class SendToLocation extends Decorator implements EditablePiece {
         m = getMap();
       }
       if (m != null) {
-        Point dest = new Point(x, y);
+        Point dest;
+        try {
+          dest = getDestination();
+        }
+        catch (Exception e) {
+          return null;
+        }
         Board b = m.getBoardByName(boardName);
         if (b != null) {
           dest.translate(b.bounds().x, b.bounds().y);
@@ -166,8 +203,30 @@ public class SendToLocation extends Decorator implements EditablePiece {
     }
     return c;
   }
+  
+  protected Point getDestination() {
+    GamePiece outer = Decorator.getOutermost(this);
+    int xPos = Integer.parseInt(x.getText(outer)) + Integer.parseInt(xIndex.getText(outer)) * Integer.parseInt(xOffset.getText(outer));
+    int yPos = Integer.parseInt(y.getText(outer)) + Integer.parseInt(yIndex.getText(outer)) * Integer.parseInt(yOffset.getText(outer));
+    return new Point(xPos, yPos);
+  }
 
   public void mySetState(String newState) {
+    SequenceEncoder.Decoder st = new SequenceEncoder.Decoder(newState,';');
+    String mapId = st.nextToken("");
+    if (mapId.length() > 0) {
+      setProperty(BACK_MAP,Map.getMapById(mapId));
+    }
+    String x = st.nextToken("");
+    String y = st.nextToken("");
+    if (x.length() > 0 && y.length()> 0) {
+      try {
+        setProperty(BACK_POINT, new Point(Integer.parseInt(x), Integer.parseInt(y)));
+      }
+      catch (NumberFormatException e) {
+        // Ignore
+      }
+    }
   }
 
   public Rectangle boundingBox() {
@@ -204,7 +263,7 @@ public class SendToLocation extends Decorator implements EditablePiece {
       return null;
     }
   }
-
+  
   public static class Ed implements PieceEditor {
     private StringConfigurer nameInput;
     private StringConfigurer backNameInput;
@@ -212,8 +271,13 @@ public class SendToLocation extends Decorator implements EditablePiece {
     private HotKeyConfigurer backKeyInput;
     private JTextField mapIdInput;
     private JTextField boardNameInput;
-    private IntConfigurer xInput;
-    private IntConfigurer yInput;
+    private StringConfigurer xInput;
+    private StringConfigurer yInput;
+    protected BooleanConfigurer advancedInput;
+    protected StringConfigurer xIndexInput;
+    protected StringConfigurer xOffsetInput;
+    protected StringConfigurer yIndexInput;
+    protected StringConfigurer yOffsetInput;
     private Map map;
     private JPanel controls;
 
@@ -279,15 +343,49 @@ public class SendToLocation extends Decorator implements EditablePiece {
       b.add(select);
       b.add(clear);
       controls.add(b);
-
-      xInput = new IntConfigurer(null, "X Position:  ", new Integer(p.x));
+      
+      xInput = new StringConfigurer(null, "X Position:  ", p.x.getFormat());
       controls.add(xInput.getControls());
 
-      yInput = new IntConfigurer(null, "Y Position:  ", new Integer(p.y));
+      yInput = new StringConfigurer(null, "Y Position:  ", p.y.getFormat());
       controls.add(yInput.getControls());
       
+      advancedInput = new BooleanConfigurer(null, "Advanced Options", false);
+      advancedInput.addPropertyChangeListener(new PropertyChangeListener() {
+        public void propertyChange(PropertyChangeEvent arg0) {
+          updateAdvancedVisibility();
+        }});
+      controls.add(advancedInput.getControls());
+      
+      b = Box.createHorizontalBox();
+      xIndexInput = new StringConfigurer(null, "Additional X offset:  ", p.xIndex.getFormat());
+      b.add(xIndexInput.getControls());
+      xOffsetInput = new StringConfigurer(null, " times ", p.xOffset.getFormat());
+      b.add(xOffsetInput.getControls());
+      controls.add(b);
+      
+      b = Box.createHorizontalBox();
+      yIndexInput = new StringConfigurer(null, "Additional Y offset:  ", p.yIndex.getFormat());
+      b.add(yIndexInput.getControls());
+      yOffsetInput = new StringConfigurer(null, " times ", p.yOffset.getFormat());
+      b.add(yOffsetInput.getControls());
+      controls.add(b);
+      
+      updateAdvancedVisibility();
     }
-
+    
+    private void updateAdvancedVisibility() {
+      boolean visible = advancedInput.booleanValue().booleanValue();
+      xIndexInput.getControls().setVisible(visible);
+      xOffsetInput.getControls().setVisible(visible);
+      yIndexInput.getControls().setVisible(visible);
+      yOffsetInput.getControls().setVisible(visible);
+      Window w = SwingUtilities.getWindowAncestor(controls);
+      if (w != null) {
+        w.pack();
+      }
+    }
+    
     private void clearBoard() {
       boardNameInput.setText("");
     }
@@ -328,7 +426,11 @@ public class SendToLocation extends Decorator implements EditablePiece {
           .append(xInput.getValueString())
           .append(yInput.getValueString())
           .append(backNameInput.getValueString())
-          .append((KeyStroke)backKeyInput.getValue());
+          .append((KeyStroke)backKeyInput.getValue())
+          .append(xIndexInput.getValueString())
+          .append(yIndexInput.getValueString())
+          .append(xOffsetInput.getValueString())
+          .append(yOffsetInput.getValueString());
       return ID + se.getValue();
     }
 

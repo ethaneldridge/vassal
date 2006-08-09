@@ -94,7 +94,7 @@ public class PropertyChangerConfigurer extends Configurer {
     PropertyChanger pc = getPropertyChanger();
     typeConfig.setValue(typeToDescription.get(pc.getClass()));
     if (pc instanceof PropertySetter) {
-      valueConfig.setValue(pc.getNewValue("0"));
+      valueConfig.setValue(((PropertySetter)pc).getRawValue());
       valueConfig.getControls().setVisible(true);
     }
     else {
@@ -157,7 +157,7 @@ public class PropertyChangerConfigurer extends Configurer {
         se.append(ENUM_CODE).append(((PropertyPrompt) propChanger).getPrompt()).append(((EnumeratedPropertyPrompt) propChanger).getValidValues());
         break;
       case PLAIN_CODE:
-        se.append(PLAIN_CODE).append(((PropertySetter)propChanger).getNewValue(null));
+        se.append(PLAIN_CODE).append(((PropertySetter)propChanger).getRawValue());
       }
     }
     return se.getValue();

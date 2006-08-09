@@ -71,6 +71,7 @@ public class PieceDefiner extends javax.swing.JPanel implements HelpWindowExtens
       availableModel.addElement(new Labeler());
       availableModel.addElement(new ReportState());
       availableModel.addElement(new TriggerAction());
+      availableModel.addElement(new ActionButton());
       availableModel.addElement(new FreeRotator());
       availableModel.addElement(new Pivot());
       availableModel.addElement(new Hideable());
@@ -85,13 +86,13 @@ public class PieceDefiner extends javax.swing.JPanel implements HelpWindowExtens
       availableModel.addElement(new PlaceMarker());
       availableModel.addElement(new Replace());
       availableModel.addElement(new NonRectangular());
+      availableModel.addElement(new PlaySound());
       availableModel.addElement(new MovementMarkable());
       availableModel.addElement(new Footprint());
       availableModel.addElement(new AreaOfEffect());
       availableModel.addElement(new SubMenu());
       availableModel.addElement(new RestrictCommands());
       availableModel.addElement(new Restricted());
-      availableModel.addElement(new PlaySound());
       availableModel.addElement(new Marker());
       availableModel.addElement(new DynamicProperty());
     }

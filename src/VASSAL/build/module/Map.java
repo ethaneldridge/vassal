@@ -1112,10 +1112,10 @@ public class Map extends AbstractConfigurable implements GameComponent, FocusLis
   }
 
   /*
-   * Delay 500ms before starting scroll at edge
+   * Delay before starting scroll at edge
    */
   protected Thread scrollDelayThread;
-  protected int scrollDelay = 500;
+  protected int scrollDelay = 200;
   protected long scrollExpirationTime;
   protected int scroll_dist;
   protected int scroll_dx;

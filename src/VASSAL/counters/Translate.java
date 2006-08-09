@@ -23,8 +23,11 @@ import java.awt.Graphics;
 import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.Shape;
+import java.awt.Window;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 import java.io.File;
 import java.net.MalformedURLException;
 import java.util.ArrayList;
@@ -32,6 +35,7 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Set;
 
+import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.JPanel;
 import javax.swing.KeyStroke;
@@ -45,8 +49,8 @@ import VASSAL.command.Command;
 import VASSAL.command.NullCommand;
 import VASSAL.configure.BooleanConfigurer;
 import VASSAL.configure.HotKeyConfigurer;
-import VASSAL.configure.IntConfigurer;
 import VASSAL.configure.StringConfigurer;
+import VASSAL.tools.FormattedString;
 import VASSAL.tools.SequenceEncoder;
 
 /**
@@ -58,8 +62,12 @@ public class Translate extends Decorator implements EditablePiece {
   protected KeyCommand[] commands;
   protected String commandName;
   protected KeyStroke keyCommand;
-  protected int xDist;
-  protected int yDist;
+  protected FormattedString xDist = new FormattedString("");
+  protected FormattedString xIndex = new FormattedString("");
+  protected FormattedString xOffset = new FormattedString("");
+  protected FormattedString yDist = new FormattedString("");
+  protected FormattedString yIndex = new FormattedString("");
+  protected FormattedString yOffset = new FormattedString("");
   protected boolean moveStack;
   protected KeyCommand moveCommand;
   protected static MoveExecuter mover;
@@ -82,9 +90,13 @@ public class Translate extends Decorator implements EditablePiece {
     SequenceEncoder.Decoder st = new SequenceEncoder.Decoder(type, ';');
     commandName = st.nextToken("Move Forward");
     keyCommand = st.nextKeyStroke('M');
-    xDist = st.nextInt(0);
-    yDist = st.nextInt(60);
+    xDist.setFormat(st.nextToken("0"));
+    yDist.setFormat(st.nextToken("60"));
     moveStack = st.nextBoolean(true);
+    xIndex.setFormat(st.nextToken("0"));
+    yIndex.setFormat(st.nextToken("0"));
+    xOffset.setFormat(st.nextToken("0"));
+    yOffset.setFormat(st.nextToken("0"));
     commands = null;
   }
 
@@ -108,7 +120,15 @@ public class Translate extends Decorator implements EditablePiece {
 
   public String myGetType() {
     SequenceEncoder se = new SequenceEncoder(';');
-    se.append(commandName).append(keyCommand).append(xDist).append(yDist).append(moveStack);
+    se.append(commandName)
+      .append(keyCommand)
+      .append(xDist.getFormat())
+      .append(yDist.getFormat())
+      .append(moveStack)
+      .append(xIndex.getFormat())
+      .append(yIndex.getFormat())
+      .append(xOffset.getFormat())
+      .append(yOffset.getFormat());
     return ID + se.getValue();
   }
 
@@ -149,7 +169,7 @@ public class Translate extends Decorator implements EditablePiece {
 
   protected Command moveTarget(GamePiece target) {
     Point p = new Point(getPosition());
-    p.translate(xDist, -yDist);
+    translate(p);
     FreeRotator myRotation = (FreeRotator) Decorator.getDecorator(this, FreeRotator.class);
     if (myRotation != null) {
       Point2D myPosition = getPosition().getLocation();
@@ -164,6 +184,28 @@ public class Translate extends Decorator implements EditablePiece {
     return null;
   }
 
+  protected void translate(Point p) {
+    int x = 0;
+    int y = 0;
+    GamePiece outer = Decorator.getOutermost(this);
+    
+    try {
+      x = Integer.parseInt(xDist.getText(outer)) + Integer.parseInt(xIndex.getText(outer)) * Integer.parseInt(xOffset.getText(outer));
+    }
+    catch (Exception e) {
+      
+    }
+    
+    try {
+      y = Integer.parseInt(yDist.getText(outer)) + Integer.parseInt(yIndex.getText(outer)) * Integer.parseInt(yOffset.getText(outer));
+    }
+    catch (Exception e) {
+      
+    }
+    
+    p.translate(x, -y);
+  }
+  
   protected GamePiece findTarget(KeyStroke stroke) {
     GamePiece outer = Decorator.getOutermost(this);
     GamePiece target = outer;
@@ -217,12 +259,17 @@ public class Translate extends Decorator implements EditablePiece {
   }
 
   public static class Editor implements PieceEditor {
-    private IntConfigurer xDist;
-    private IntConfigurer yDist;
+    private StringConfigurer xDist;
+    private StringConfigurer yDist;
     private StringConfigurer name;
     private HotKeyConfigurer key;
     private JPanel controls;
     private BooleanConfigurer moveStack;
+    protected BooleanConfigurer advancedInput;
+    protected StringConfigurer xIndexInput;
+    protected StringConfigurer xOffsetInput;
+    protected StringConfigurer yIndexInput;
+    protected StringConfigurer yOffsetInput;
 
     public Editor(Translate t) {
       controls = new JPanel();
@@ -231,14 +278,49 @@ public class Translate extends Decorator implements EditablePiece {
       controls.add(name.getControls());
       key = new HotKeyConfigurer(null, "Keyboard shortcut:  ", t.keyCommand);
       controls.add(key.getControls());
-      xDist = new IntConfigurer(null, "Distance to the right:  ", new Integer(t.xDist));
+      xDist = new StringConfigurer(null, "Distance to the right:  ", t.xDist.getFormat());
       controls.add(xDist.getControls());
-      yDist = new IntConfigurer(null, "Distance upwards:  ", new Integer(t.yDist));
+      yDist = new StringConfigurer(null, "Distance upwards:  ", t.yDist.getFormat());
       controls.add(yDist.getControls());
       moveStack = new BooleanConfigurer(null, "Move entire stack", new Boolean(t.moveStack));
       controls.add(moveStack.getControls());
+      
+      advancedInput = new BooleanConfigurer(null, "Advanced Options", false);
+      advancedInput.addPropertyChangeListener(new PropertyChangeListener() {
+        public void propertyChange(PropertyChangeEvent e) {
+          updateAdvancedVisibility();
+        }});
+      controls.add(advancedInput.getControls());
+      
+      Box b = Box.createHorizontalBox();
+      xIndexInput = new StringConfigurer(null, "Additional offset to the right:  ", t.xIndex.getFormat());
+      b.add(xIndexInput.getControls());
+      xOffsetInput = new StringConfigurer(null, " times ", t.xOffset.getFormat());
+      b.add(xOffsetInput.getControls());
+      controls.add(b);
+      
+      b = Box.createHorizontalBox();
+      yIndexInput = new StringConfigurer(null, "Additional offset upwards:  ", t.yIndex.getFormat());
+      b.add(yIndexInput.getControls());
+      yOffsetInput = new StringConfigurer(null, " times ", t.yOffset.getFormat());
+      b.add(yOffsetInput.getControls());
+      controls.add(b);
+      
+      updateAdvancedVisibility();
     }
 
+    private void updateAdvancedVisibility() {
+      boolean visible = advancedInput.booleanValue().booleanValue();
+      xIndexInput.getControls().setVisible(visible);
+      xOffsetInput.getControls().setVisible(visible);
+      yIndexInput.getControls().setVisible(visible);
+      yOffsetInput.getControls().setVisible(visible);
+      Window w = SwingUtilities.getWindowAncestor(controls);
+      if (w != null) {
+        w.pack();
+      }
+    }
+    
     public Component getControls() {
       return controls;
     }
@@ -249,7 +331,15 @@ public class Translate extends Decorator implements EditablePiece {
 
     public String getType() {
       SequenceEncoder se = new SequenceEncoder(';');
-      se.append(name.getValueString()).append((KeyStroke) key.getValue()).append(xDist.getValueString()).append(yDist.getValueString()).append(moveStack.getValueString());
+      se.append(name.getValueString())
+        .append((KeyStroke) key.getValue())
+        .append(xDist.getValueString())
+        .append(yDist.getValueString())
+        .append(moveStack.getValueString())
+        .append(xIndexInput.getValueString())
+        .append(yIndexInput.getValueString())
+        .append(xOffsetInput.getValueString())
+        .append(yOffsetInput.getValueString());
       return ID + se.getValue();
     }
   }
