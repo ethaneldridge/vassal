@@ -41,6 +41,7 @@ import org.w3c.dom.Attr;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NamedNodeMap;
+import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
 import VASSAL.build.AbstractConfigurable;
@@ -55,6 +56,12 @@ import VASSAL.configure.ConfigurerFactory;
 import VASSAL.configure.FormattedStringConfigurer;
 import VASSAL.configure.SingleChildInstance;
 import VASSAL.configure.StringEnum;
+import VASSAL.preferences.BooleanPreference;
+import VASSAL.preferences.DoublePreference;
+import VASSAL.preferences.EnumPreference;
+import VASSAL.preferences.IntegerPreference;
+import VASSAL.preferences.StringPreference;
+import VASSAL.preferences.TextPreference;
 import VASSAL.tools.FormattedString;
 
 public class GlobalOptions extends AbstractConfigurable {
@@ -136,7 +143,12 @@ public class GlobalOptions extends AbstractConfigurable {
   }
 
   public Class[] getAllowableConfigureComponents() {
-    return new Class[0];
+    return new Class[] {StringPreference.class, 
+        TextPreference.class,
+        EnumPreference.class,
+        IntegerPreference.class, 
+        DoublePreference.class, 
+        BooleanPreference.class} ;
   }
 
   public String[] getAttributeDescriptions() {
@@ -181,10 +193,49 @@ public class GlobalOptions extends AbstractConfigurable {
         Attr att = (Attr) n.item(i);
         setAttribute(att.getName(), att.getValue());
       }
-      NodeList l = e.getElementsByTagName("option");
+      
+//      NodeList l = e.getElementsByTagName("option");
+//      for (int i=0,len=l.getLength();i<len;++i) {
+//        Element option = (Element)l.item(i);
+//        optionInitialValues.put(option.getAttribute("name"),Builder.getText(option));
+//      }
+
+        
+      NodeList l = e.getChildNodes();
       for (int i=0,len=l.getLength();i<len;++i) {
-        Element option = (Element)l.item(i);
-        optionInitialValues.put(option.getAttribute("name"),Builder.getText(option));
+        Node node = (Node) l.item(i);
+        if (node.getNodeType() == Node.ELEMENT_NODE) {
+          Element element = (Element) node;
+          String name = element.getTagName();
+          if (name.equals("option")) {
+            optionInitialValues.put(element.getAttribute("name"),Builder.getText(element));
+          }
+          else {
+            Buildable b = null;
+            try {
+              b = Builder.create(element);
+              b.addTo(this);
+              add(b);
+            }
+            catch (Throwable err) {
+              String msg = err.getMessage();
+              if (msg == null) {
+                msg = err.getClass().getName().substring(err.getClass().getName().lastIndexOf(".") + 1);
+              }
+              System.err.println(b.toString());
+              err.printStackTrace();
+              javax.swing.JOptionPane.showMessageDialog
+                (null,
+                 "Unable to create class "
+                 + ((Element) b).getTagName()
+                 + " in " + GameModule.getGameModule()
+                            .getDataArchive().getName()
+                 + "\n" + msg,
+                 "Error",
+                 javax.swing.JOptionPane.ERROR_MESSAGE);
+            }
+          }
+        }
       }
     }
   }
@@ -244,7 +295,7 @@ public class GlobalOptions extends AbstractConfigurable {
     File dir = VASSAL.build.module.Documentation.getDocumentationBaseDir();
     dir = new File(dir, "ReferenceManual");
     try {
-      return new HelpFile(null, new File(dir, "GameModule.htm"), "#GlobalOptions");
+      return new HelpFile(null, new File(dir, "GlobalOptions.htm"));
     }
     catch (MalformedURLException ex) {
       return null;
