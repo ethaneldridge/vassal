@@ -799,7 +799,7 @@ public class Deck extends Stack {
   }
 
   public void saveDeck(File f) throws IOException {
-    Command comm = new LoadDeckCommand(this);
+    Command comm = new LoadDeckCommand(null);
 
     FileWriter dest = new FileWriter(f);
     for (Enumeration e = getPieces(); e.hasMoreElements();) {
@@ -869,10 +869,37 @@ public class Deck extends Stack {
     GameModule.getGameModule().addCommandEncoder(commandEncoder);
     Command c = GameModule.getGameModule().decode(buffer.toString());
     GameModule.getGameModule().removeCommandEncoder(commandEncoder);
-    c.execute();
+    if (c instanceof LoadDeckCommand) {
+      /*
+       * A LoadDeckCommand doesn't specify the deck to be changed (since the
+       * saved deck can be loaded into any deck) so the Command we send to other
+       * players is a ChangePiece command for this deck, which we need to place
+       * after the AddPiece commands for the contents
+       */
+      ChangeTracker t = new ChangeTracker(this);
+      c.execute();
+      Command[] sub = c.getSubCommands();
+      c = new NullCommand();
+      for (int i = 0; i < sub.length; ++i) {
+        c.append(sub[i]);
+      }
+      c.append(t.getChangeCommand());
+    }
+    else {
+      GameModule.getGameModule().warn(f.getName() + " is not a saved deck file");
+      c = null;
+    }
     return c;
   }
 
+  /**
+   * Command to set the contents of this deck from a saved file. The contents
+   * are saved with whatever id's the pieces have in the game when the deck was
+   * saved, but new copies are created when the deck is re-loaded.
+   * 
+   * @author rkinney
+   * 
+   */
   protected static class LoadDeckCommand extends Command {
     public static final String PREFIX = "DECK\t";
     private Deck target;
@@ -887,10 +914,16 @@ public class Deck extends Stack {
       for (int i = 0; i < sub.length; i++) {
         if (sub[i] instanceof AddPiece) {
           GamePiece p = ((AddPiece) sub[i]).getTarget();
-          p.setId(GameModule.getGameModule().getGameState().getNewPieceId());
+          // We set the id to null so that the piece will get a new id
+          // when the AddPiece command executes
+          p.setId(null);
           target.add(p);
         }
       }
+    }
+
+    public String getTargetId() {
+      return target == null ? "" : target.getId();
     }
 
     protected Command myUndoCommand() {

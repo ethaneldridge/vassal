@@ -137,7 +137,7 @@ public class Immobilized extends Decorator implements EditablePiece {
     else if (shiftToSelect) {
       selectFilter = new UseShift();
     }
-    else if (shiftToSelect) {
+    else if (ctlShiftToSelect) {
       selectFilter = new UseCtlShift();
     }
     else {

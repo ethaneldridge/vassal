@@ -31,6 +31,7 @@ import javax.swing.JPopupMenu;
 import VASSAL.build.AutoConfigurable;
 import VASSAL.build.Buildable;
 import VASSAL.build.GameModule;
+import VASSAL.build.module.GameComponent;
 import VASSAL.build.module.Map;
 import VASSAL.build.module.documentation.HelpFile;
 import VASSAL.build.module.map.boardPicker.Board;
@@ -149,17 +150,21 @@ public class DrawPile extends SetupStack {
     public String[] getValidValues(AutoConfigurable target) {
       String[] values;
       DrawPile dp;
+      GameComponent g;
       Map m;
 
       ArrayList l = new ArrayList();
       l.add(NONE);
-      for (Enumeration e = GameModule.getGameModule().getComponents(Map.class); e.hasMoreElements();) {
-        m = (Map) e.nextElement();
-        if (m != null) {
-          for (Enumeration e1 = m.getComponents(DrawPile.class); e1.hasMoreElements();) {
-            dp = (DrawPile) e1.nextElement();
-            if (dp.getConfigureName() != null)
-              l.add(dp.getConfigureName());
+      for (Enumeration e = GameModule.getGameModule().getGameState().getGameComponentsEnum(); e.hasMoreElements();) {
+        g = (GameComponent) e.nextElement();
+        if (g != null && g instanceof Map) {
+          m = (Map) g;
+          if (m != null) {
+            for (Enumeration e1 = m.getComponents(DrawPile.class); e1.hasMoreElements();) {
+              dp = (DrawPile) e1.nextElement();
+              if (dp.getConfigureName() != null)
+                l.add(dp.getConfigureName());
+            }
           }
         }
       }
