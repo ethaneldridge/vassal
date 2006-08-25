@@ -36,8 +36,29 @@ public class VSQLProperties {
   public static final String[] RULE_LEVELS = new String[] { SL, COI, COD, GI };
   
   // Political
-  public static final String SIDE = "SIDE";
-  public static final String NATION = "NATION";
+  public static final String SIDE = "Side";
+  public static final String AXIS = "Axis";
+  public static final String ALLIED = "Allied";
+  public static final String NEUTRAL = "Neutral";
+  
+  public static final String NATION = "Nation";
+  public static final String GERMAN = "German";
+  public static final String AMERICAN = "American";
+  public static final String RUSSIAN = "Russian";
+  public static final String AXIS_MINOR = "Axis Minor";
+  public static final String ALLIED_MINOR = "Allied Minor";
+  public static final String BRITISH = "British";
+  public static final String FRENCH = "French";
+  
+  public static final String GERMAN_COLOR = "194,246,255";
+  public static final String AMERICAN_COLOR = "181,222,90";
+  public static final String RUSSIAN_COLOR = "206,156,74";
+  public static final String NEUTRAL_COLOR = "156,206,156";
+  public static final String AXIS_MINOR_COLOR = NEUTRAL_COLOR;
+  public static final String ALLIED_MINOR_COLOR = NEUTRAL_COLOR;
+  public static final String BRITISH_COLOR = "253,198,137";
+  public static final String FRENCH_COLOR = "0,113,235";
+  public static final String PLC_COLOR = "239,239,170";
   
   // Night Vision public properties
   public static final String NV_SIDE = "NVS";
@@ -51,14 +72,14 @@ public class VSQLProperties {
   public static final String STACKED_COUNT = "STACKED_COUNT";
   
   // Unit Types
-  public static final String UNIT_TYPE = "TYPE";
+  public static final String UNIT_TYPE = "Type";
   public static final String VEHICLE = "Vehicle";
   public static final String INFANTRY = "Infantry";
   public static final String GUN = "Gun";
   public static final String SW = "SW";
   
   // Unit Sub-types
-  public static final String UNIT_SUB_TYPE = "STYPE";
+  public static final String UNIT_SUB_TYPE = "Stype";
   public static final String LEADER = "Leader";
   public static final String SQUAD = "Squad";
   public static final String CREW = "Crew";
@@ -67,4 +88,8 @@ public class VSQLProperties {
   public static final String ARMORED_CAR = "Armored Car";
   public static final String MOTOR_CYCLE = "Motor Cycle";
   public static final String BUNKER = "Bunker";
+  
+  // PLC's
+  public static final String PLC = "PLC";
+  public static final String PLC_NATIONALITY = "PlcNationality";
 }

@@ -22,8 +22,6 @@ package VSQL;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Graphics;
-import java.awt.Rectangle;
-
 import VASL.counters.Concealable;
 import VASL.counters.Concealment;
 import VASL.counters.MarkMoved;
@@ -58,6 +56,8 @@ public class VSQLConcealable extends Concealable {
    */
   public GamePiece createConcealment() {
 
+    resetPLCNationality();
+    
     boolean large = boundingBox().height > 52;
     String counterName = "? (" + (large ? "lg" : "sm") + ")";
     
@@ -101,7 +101,111 @@ public class VSQLConcealable extends Concealable {
 
     return ColorConfigurer.colorToString(c);
   }
+
+  public Color getColor(String nation) {
+    Color c = Color.WHITE;
+    if (nation.equals("ge")) {
+      c = ColorConfigurer.stringToColor(VSQLProperties.GERMAN_COLOR);
+    }
+    else if (nation.equals("ru")) {
+      c = ColorConfigurer.stringToColor(VSQLProperties.RUSSIAN_COLOR);
+    }
+    else if (nation.equals("am")) {
+      c = ColorConfigurer.stringToColor(VSQLProperties.AMERICAN_COLOR);
+    }
+    else if (nation.equals("ax") || nation.equals("al")) {
+      c = ColorConfigurer.stringToColor(VSQLProperties.NEUTRAL_COLOR);
+    }
+    else if (nation.equals("pl")) {
+      c = ColorConfigurer.stringToColor(VSQLProperties.PLC_COLOR);
+    }
+    else if (nation.equals("br")) {
+      c = ColorConfigurer.stringToColor(VSQLProperties.BRITISH_COLOR);
+    }
+    else if (nation.equals("fr")) {
+      c = ColorConfigurer.stringToColor(VSQLProperties.FRENCH_COLOR);
+    }
+    else {
+      c = super.getColor(nation);
+    }
+
+    return c;
+  }
   
+  public String getSide(String prefix) {
+    String side = VSQLProperties.NEUTRAL;
+    
+    if (prefix.equals("ge")) {
+      side = VSQLProperties.AXIS;
+    }
+    else if (prefix.equals("ru")) {
+      side = VSQLProperties.ALLIED;
+    }
+    else if (prefix.equals("am")) {
+      side = VSQLProperties.ALLIED;
+    }
+    else if (prefix.equals("ax")) {
+      side = VSQLProperties.AXIS;
+    }
+    else if (prefix.equals("al")) {
+      side = VSQLProperties.ALLIED;
+    }
+    else if (prefix.equals("pl")) {
+      side = VSQLProperties.ALLIED;
+    }
+    else if (prefix.equals("br")) {
+      side = VSQLProperties.ALLIED;
+    }
+    else if (prefix.equals("fr")) {
+      side = VSQLProperties.ALLIED;
+    }
+    return side;
+  }
+  
+  public Object getProperty(Object key) {
+    if (((String) key).equals(VSQLProperties.NATION) && "true".equals(Decorator.getOutermost(this).getProperty(VSQLProperties.PLC))) {
+      return getSide(getPrefix(nation));
+    }
+    else {
+      return super.getProperty(key);
+    }      
+  }
+  
+  protected void resetPLCNationality() {
+    GamePiece outer = Decorator.getOutermost(this);
+    if ("true".equals(outer.getProperty(VSQLProperties.PLC))) {
+      String s = Decorator.getOutermost(this).getProperty(VSQLProperties.PLC_NATIONALITY) + "";
+      nation = getPrefix(s);
+      imageName = nation + "-conceal";
+    }
+  }
+  
+  protected String getPrefix(String nation) {
+    String prefix = "pl";
+    if (VSQLProperties.GERMAN.equals(nation)) {
+      prefix = "ge";
+    }
+    else if (VSQLProperties.AMERICAN.equals(nation)) {
+      prefix = "am";
+    }
+    else if (VSQLProperties.RUSSIAN.equals(nation)) {
+      prefix = "ru";
+    }
+    else if (VSQLProperties.AXIS_MINOR.equals(nation)) {
+      prefix = "ax";
+    }
+    else if (VSQLProperties.ALLIED_MINOR.equals(nation)) {
+      prefix = "al";
+    }
+    else if (VSQLProperties.BRITISH.equals(nation)) {
+      prefix = "br";
+    }
+    else if (VSQLProperties.FRENCH.equals(nation)) {
+      prefix = "fr";
+    } 
+    return prefix;
+  }
+
   /*
    * If this unit is obscured to Me,then make sure I can't see any Control commands from
    * inner pieces

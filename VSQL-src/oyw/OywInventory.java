@@ -43,10 +43,10 @@ public class OywInventory extends Inventory {
   
   protected void generateInventory() {
 
-    int English_terrain = getCount(MAIN_MAP_NAME, new String[] { "Control", "Control_Level" }, new String[] { "true", "1" }, VP_MARKER_2);
-    int French_terrain = getCount(MAIN_MAP_NAME, new String[] { "Control", "Control_Level" }, new String[] { "true", "2" }, VP_MARKER_2);
-    int English_graveyard = getCount(GRAVEYARD_MAP_NAME, new String[] { "CurrentZone" }, new String[] { "French Eliminated" }, VP_MARKER);
-    int French_graveyard = getCount(GRAVEYARD_MAP_NAME, new String[] { "CurrentZone" }, new String[] { "English Eliminated" }, VP_MARKER);
+    int English_terrain = getCount(MAIN_MAP_NAME, new String[] { "Control", "Control_Level" }, new String[] { "true", "2" }, VP_MARKER);
+    int French_terrain = getCount(MAIN_MAP_NAME, new String[] { "Control", "Control_Level" }, new String[] { "true", "3" }, VP_MARKER);
+    int English_graveyard = getCount(MAIN_MAP_NAME, new String[] { "CurrentZone" }, new String[] { "The Tower of London" }, VP_MARKER);
+    int French_graveyard = getCount(MAIN_MAP_NAME, new String[] { "CurrentZone" }, new String[] { "The Conciergerie" }, VP_MARKER);
     
     int English_total = English_terrain + English_graveyard;
     int French_total = French_terrain + French_graveyard; 
@@ -55,10 +55,10 @@ public class OywInventory extends Inventory {
     result[0] = getConfigureName() + ":";
     result[1] = "English: " + English_total + 
     	" (Countries: " + English_terrain + 
-    	", Eliminated: " + English_graveyard + ")";
+    	", Captured: " + English_graveyard + ")";
     result[2] = "French: " + French_total +
     	" (Countries: " + French_terrain + 
-    	", Eliminated: " + French_graveyard +
+    	", Captured: " + French_graveyard +
     	")";
     	
       
@@ -121,7 +121,6 @@ public class OywInventory extends Inventory {
       if (piece.getMap() == null) return false;
 
       if (mapName != null && mapName.length() > 0) {
-        String name = piece.getMap().getMapName();
         if (!mapName.equals(piece.getMap().getMapName())) {
           return false;
         }

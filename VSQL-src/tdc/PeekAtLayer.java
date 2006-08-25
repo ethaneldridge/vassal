@@ -127,11 +127,11 @@ public class PeekAtLayer extends Decorator implements EditablePiece {
   public void draw(Graphics g, int x, int y, Component obs, double zoom) {
     if (peeking && Boolean.TRUE.equals(getProperty(Properties.SELECTED))) {
       GamePiece outer = Decorator.getOutermost(this);
-      if (Boolean.TRUE.equals(outer.getProperty(layerName + Embellishment.ACTIVE))) {
-        ((BasicPiece) Decorator.getDecorator(outer, BasicPiece.class)).draw(g, x, y, obs, zoom);
+      if ("true".equals(outer.getProperty(layerName + Embellishment.ACTIVE))) {
+        ((BasicPiece) Decorator.getInnermost(this)).draw(g, x, y, obs, zoom);
       }
       else {
-        drawLayer(outer, g, x, y, obs, zoom);
+        drawLayer(this, g, x, y, obs, zoom);
       }
     }
     else {
@@ -144,7 +144,7 @@ public class PeekAtLayer extends Decorator implements EditablePiece {
     if (e == null) {
       piece.draw(g, x, y, obs, zoom);
     }
-    else if (e.getName().equals(layerName)) {
+    else if (getLayerName(e).equals(layerName)) {
       e.setActive(true);
       e.draw(g, x, y, obs, zoom);
       e.setActive(false);
@@ -152,9 +152,16 @@ public class PeekAtLayer extends Decorator implements EditablePiece {
     else {
       drawLayer(e.getInner(), g, x, y, obs, zoom);
     }
-    
   }
 
+  protected String getLayerName(Embellishment e) {
+    SequenceEncoder.Decoder sd = new SequenceEncoder.Decoder(e.myGetType(), ';');
+    for (int i=0; i < 19; i++) {
+      sd.nextToken();
+    }
+    return sd.nextToken("");
+  }
+  
   public String getName() {
     return piece.getName();
   }
