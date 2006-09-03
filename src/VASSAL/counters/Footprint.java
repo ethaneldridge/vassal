@@ -216,6 +216,7 @@ public class Footprint extends MovementMarkable {
 
     if (justMoved) {
       recordCurrentPosition();
+      startMapId = getMap().getId();
     }
     else {
       clearTrail();
@@ -262,7 +263,6 @@ public class Footprint extends MovementMarkable {
    */
   protected void addPoint(Point p) {
 
-    startMapId = getMap().getId();
     pointList.add(p);
 
     getMyBoundingBox();
