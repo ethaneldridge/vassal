@@ -22,6 +22,7 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.WindowConstants;
 
+import VASSAL.build.GameModule;
 import VASSAL.build.module.map.boardPicker.Board;
 import VASSAL.build.module.map.boardPicker.board.mapgrid.GridContainer;
 import VASSAL.build.module.map.boardPicker.board.mapgrid.GridNumbering;
@@ -124,6 +125,7 @@ public abstract class GridEditor extends JDialog implements MouseListener, KeyLi
       public void actionPerformed(ActionEvent e) {
         cancelSetMode();
         setVisible(false);
+        GameModule.getGameModule().getDataArchive().clearScaledImageCache();
       }
     });
     buttonPanel.add(okButton);

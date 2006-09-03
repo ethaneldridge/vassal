@@ -46,6 +46,7 @@ import javax.swing.JScrollPane;
 import VASSAL.build.AbstractConfigurable;
 import VASSAL.build.AutoConfigurable;
 import VASSAL.build.Buildable;
+import VASSAL.build.GameModule;
 import VASSAL.build.module.map.boardPicker.Board;
 import VASSAL.build.module.map.boardPicker.board.HexGrid;
 import VASSAL.build.module.map.boardPicker.board.MapGrid;
@@ -305,6 +306,7 @@ public class Zone extends AbstractConfigurable implements GridContainer {
         public void actionPerformed(ActionEvent e) {
           setValue((Object) getValueString());
           frame.setVisible(false);
+          GameModule.getGameModule().getDataArchive().clearScaledImageCache();
         }
       });
       buttonPanel.add(closeButton);
