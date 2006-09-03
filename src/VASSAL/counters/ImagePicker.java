@@ -18,6 +18,8 @@
  */
 package VASSAL.counters;
 
+import java.awt.BorderLayout;
+import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.Image;
 import java.awt.Window;
@@ -31,6 +33,8 @@ import javax.swing.DefaultComboBoxModel;
 import javax.swing.ImageIcon;
 import javax.swing.JComboBox;
 import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 import javax.swing.SwingUtilities;
 
@@ -44,6 +48,8 @@ public class ImagePicker extends javax.swing.JPanel implements MouseListener, It
   private JComboBox select;
   private ImageIcon icon;
   private JLabel imageView;
+  private JPanel imageViewer;
+  private JScrollPane imageScroller;
 
   public ImagePicker() {
     noImage = new JTextArea(1,10);
@@ -56,6 +62,11 @@ public class ImagePicker extends javax.swing.JPanel implements MouseListener, It
     icon = new ImageIcon();
     imageView = new JLabel(icon);
     imageView.addMouseListener(this);
+    
+    imageViewer = new JPanel(new BorderLayout());
+    imageScroller = new JScrollPane(imageView, JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED, JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+    imageViewer.add(imageScroller, BorderLayout.CENTER);
+  
     select = new JComboBox(GameModule.getGameModule().getDataArchive().getImageNames());
     select.addItemListener(this);
     setLayout(new BoxLayout(this,BoxLayout.Y_AXIS));
@@ -67,6 +78,9 @@ public class ImagePicker extends javax.swing.JPanel implements MouseListener, It
     return imageName;
   }
 
+  protected void setViewSize() {
+    
+  }
   public void setImageName(String name) {
     imageName = name;
     remove(0);
@@ -76,8 +90,14 @@ public class ImagePicker extends javax.swing.JPanel implements MouseListener, It
     else {
       try {
         icon.setImage(getImage());
+        
+        Dimension d = new Dimension (icon.getIconWidth(), icon.getIconHeight());
+        if (d.width > 400) d.width = 400;
+        if (d.height > 400) d.height = 400;
+        imageScroller.setPreferredSize(d);
+        
         name = imageName;
-        add(imageView,0);
+        add(imageViewer,0);
       }
       catch (java.io.IOException e) {
         name = null;
