@@ -35,6 +35,7 @@ import java.awt.event.MouseMotionListener;
 import java.io.File;
 import java.net.MalformedURLException;
 import java.util.Enumeration;
+import java.util.Iterator;
 import java.util.Vector;
 
 import javax.swing.JComponent;
@@ -108,9 +109,9 @@ public class PrivateMap extends Map {
       owners = (String[]) value;
     }
     else if (USE_BOARDS.equals(key)) {
-      Enumeration e = GameModule.getGameModule().getComponents(Map.class);
-      while (e.hasMoreElements()) {
-        Map m = (Map) e.nextElement();
+      Iterator it = Map.getAllMaps();
+      while (it.hasNext()) {
+        Map m = (Map) it.next();
         if (m.getMapName().equals(value)) {
           surrogate = m;
           break;

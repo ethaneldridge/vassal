@@ -121,7 +121,7 @@ public class PlayerRoster implements Configurable, CommandEncoder, GameComponent
   public Element getBuildElement(Document doc) {
     Element el = doc.createElement(getClass().getName());
     el.setAttribute(BUTTON_TEXT, retireButton.getAttributeValueString(BUTTON_TEXT));
-    el.setAttribute(BUTTON_ICON, retireButton.getAttributeValueString(BUTTON_TEXT));
+    el.setAttribute(BUTTON_ICON, retireButton.getAttributeValueString(BUTTON_ICON));
     el.setAttribute(TOOL_TIP, retireButton.getAttributeValueString(TOOL_TIP));
     for (Iterator e = sides.iterator(); e.hasNext();) {
       Element sub = doc.createElement("entry");
