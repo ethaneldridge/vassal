@@ -303,7 +303,8 @@ public class Map extends AbstractConfigurable implements GameComponent, FocusLis
       if (value instanceof String) {
         value = new Boolean((String) value);
       }
-      launchButton.setVisible(((Boolean) value).booleanValue());
+      useLaunchButton = ((Boolean)value).booleanValue();
+      launchButton.setVisible(useLaunchButton);
     }
     else if (SUPPRESS_AUTO.equals(key)) {
       if (value instanceof String) {
@@ -372,7 +373,7 @@ public class Map extends AbstractConfigurable implements GameComponent, FocusLis
       }
     }
     else if (USE_LAUNCH_BUTTON.equals(key)) {
-      return "" + launchButton.isVisible();
+      return String.valueOf(useLaunchButton);
     }
     else if (MOVE_WITHIN_FORMAT.equals(key)) {
       return getMoveWithinFormat();
@@ -1511,7 +1512,7 @@ public class Map extends AbstractConfigurable implements GameComponent, FocusLis
 
   public boolean shouldDockIntoMainWindow() {
     boolean shouldDock = false;
-    if (GlobalOptions.getInstance().isUseSingleWindow() && !launchButton.isVisible()) {
+    if (GlobalOptions.getInstance().isUseSingleWindow() && !useLaunchButton) {
       shouldDock = true;
       for (Enumeration e = GameModule.getGameModule().getComponents(Map.class); e.hasMoreElements();) {
         Map m = (Map) e.nextElement();
@@ -1553,7 +1554,7 @@ public class Map extends AbstractConfigurable implements GameComponent, FocusLis
           final Window topWindow = createParentFrame();
           topWindow.addWindowListener(new WindowAdapter() {
             public void windowClosing(WindowEvent e) {
-              if (launchButton.isVisible()) {
+              if (useLaunchButton) {
                 topWindow.setVisible(false);
               }
               else {
@@ -1567,7 +1568,7 @@ public class Map extends AbstractConfigurable implements GameComponent, FocusLis
           PositionOption option = new PositionOption(PositionOption.key + getIdentifier(), topWindow);
           GameModule.getGameModule().getPrefs().addOption(option);
         }
-        theMap.getTopLevelAncestor().setVisible(!launchButton.isVisible());
+        theMap.getTopLevelAncestor().setVisible(!useLaunchButton);
         theMap.revalidate();
       }
     }
@@ -1943,7 +1944,7 @@ public class Map extends AbstractConfigurable implements GameComponent, FocusLis
     if (visibilityCondition == null) {
       visibilityCondition = new VisibilityCondition() {
         public boolean shouldBeVisible() {
-          return launchButton.isVisible();
+          return useLaunchButton;
         }
       };
     }

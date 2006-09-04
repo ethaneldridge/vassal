@@ -79,6 +79,7 @@ public class ToolbarMenu extends AbstractConfigurable implements ContainerListen
     return new String[] {BUTTON_TEXT, BUTTON_ICON, BUTTON_HOTKEY, MENU_ITEMS};
   }
 
+  
   public String getAttributeValueString(String key) {
     if (MENU_ITEMS.equals(key)) {
       return StringArrayConfigurer.arrayToString((String[]) menuItems.toArray(new String[menuItems.size()]));
@@ -97,6 +98,10 @@ public class ToolbarMenu extends AbstractConfigurable implements ContainerListen
       if (toolbar != null) {
         scheduleBuildMenu();
       }
+    }
+    else if (BUTTON_TEXT.equals(key)) {
+      setConfigureName((String) value);
+      launch.setAttribute(key, value);
     }
     else {
       launch.setAttribute(key, value);
