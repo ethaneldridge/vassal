@@ -691,8 +691,6 @@ public class Map extends AbstractConfigurable implements GameComponent, FocusLis
     }
     r.width += edgeBuffer.width;
     r.height += edgeBuffer.height;
-    r.width = Math.max(r.width, 200);
-    r.height = Math.max(r.height, 200);
     return r.getSize();
   }
 
@@ -2077,7 +2075,7 @@ public class Map extends AbstractConfigurable implements GameComponent, FocusLis
     }
 
     public Dimension getPreferredSize() {
-      return map.getPreferredSize();
+    	return map.getPreferredSize();
     }
 
     public Map getMap() {

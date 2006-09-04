@@ -78,8 +78,10 @@ public class FileConfigurer extends Configurer {
 
   public void setValue(Object o) {
     File f = (File) o;
-    if (archive != null && f != null && f.exists()) {
-      addToArchive(f);
+    if (f != null && f.exists()) {
+    	if (archive != null) {
+    		addToArchive(f);
+    	}
     }
     super.setValue(f);
     if (tf != null && !noUpdate) {
@@ -123,7 +125,8 @@ public class FileConfigurer extends Configurer {
         }
 
         public void update() {
-          File f = new File(tf.getText());
+          String text = tf.getText();
+          File f = text != null && text.length() > 0  && !"null".equals(text) ? new File(text) : null;
           noUpdate = true;
           setValue(f);
           noUpdate = false;
