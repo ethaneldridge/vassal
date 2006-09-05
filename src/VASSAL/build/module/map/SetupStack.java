@@ -6,7 +6,7 @@ import java.io.File;
 import java.net.MalformedURLException;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Enumeration;
+import java.util.Iterator;
 
 import VASSAL.build.AbstractConfigurable;
 import VASSAL.build.AutoConfigurable;
@@ -244,8 +244,8 @@ public class SetupStack extends AbstractConfigurable implements GameComponent, U
           l.addAll(Arrays.asList(m.getBoardPicker().getAllowableBoardNames()));
         }
         else {
-          for (Enumeration e = GameModule.getGameModule().getComponents(Map.class); e.hasMoreElements();) {
-            m = (Map) e.nextElement();
+          for (Iterator it = Map.getAllMaps(); it.hasNext();) {
+            m = (Map) it.next();
             l.addAll(Arrays.asList(m.getBoardPicker().getAllowableBoardNames()));
           }
         }

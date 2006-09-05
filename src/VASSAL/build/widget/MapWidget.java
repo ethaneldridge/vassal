@@ -173,4 +173,8 @@ public class MapWidget extends Widget {
     }
   }
 
+public WidgetMap getMap() {
+	return map;
+}
+
 }

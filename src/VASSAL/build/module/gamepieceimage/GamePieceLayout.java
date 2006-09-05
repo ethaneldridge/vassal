@@ -127,6 +127,7 @@ public class GamePieceLayout extends AbstractConfigurable implements Visualizabl
   protected int height = 54;
   protected String border = BORDER_3D;
   protected GamePieceImage imageDefn;
+  protected Image visImage;
   protected ArrayList items = new ArrayList();
 
   public GamePieceLayout() {
@@ -310,7 +311,10 @@ public class GamePieceLayout extends AbstractConfigurable implements Visualizabl
   }
   
   public Image getVisualizerImage() {
-    return imageDefn.getVisualizerImage();
+	  if (visImage == null) {
+		  rebuildVisualizerImage();
+	  }
+	  return visImage;
   }
 
   public Image buildImage(GamePieceImage defn) {
@@ -404,99 +408,9 @@ public class GamePieceLayout extends AbstractConfigurable implements Visualizabl
     return getLayoutWidth();
   }
 
-  public void rebuildVisualizerImage(GamePieceImage defn) {
-    // Create our base image
-    Image image = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
-    Graphics g = image.getGraphics();
-
-    // Fill in the sample Background color
-    Color bgColor = imageDefn.getBgColor().getColor();
-    g.setColor(bgColor);
-
-    if (getBorder().equals(BORDER_3D)) {
-      g.fill3DRect(0, 0, width, height, true);
-    }
-    else {
-
-      g.fillRect(0, 0, width, height);
-
-      // Add Border
-      if (getBorder().equals(BORDER_PLAIN) || getBorder().equals(BORDER_FANCY)) {
-        Color bg = bgColor == null ? Color.WHITE : bgColor;
-        g.setColor(imageDefn.getBorderColor().getColor());
-        ((Graphics2D) g).setStroke(new BasicStroke(1.0f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
-        g.drawRect(0, 0, width - 1, height - 1);
-        if (getBorder().equals(BORDER_FANCY)) {
-          Color lt = new Color(bg.getRed() / 2, bg.getGreen() / 2, bg.getBlue() / 2);
-          Color dk = new Color(bg.getRed() + (255 - bg.getRed()) / 2, bg.getGreen()
-                                                                      + (255 - bg.getGreen()) / 2, bg.getBlue() + (255 - bg.getBlue()) / 2);
-          g.setColor(dk);
-          g.drawLine(1, 1, width - 3, 1);
-          g.drawLine(1, 2, 1, height - 3);
-          g.setColor(lt);
-          g.drawLine(width - 2, 2, width - 2, height - 2);
-          g.drawLine(2, height - 2, width - 3, height - 2);
-        }
-      }
-    }
-
-    // layer each item over the top
-    Iterator i = items.iterator();
-    while (i.hasNext()) {
-      Item item = (Item) i.next();
-      if (item != null) {
-        item.draw(g, defn);
-      }
-    }
-  }
 
   public void rebuildVisualizerImage() {
-    if (imageDefn == null) {
-      imageDefn = new GamePieceImage(this);
-    }
-    // Create our base image
-    Image image = new BufferedImage(Math.max(width,1), Math.max(height,1), BufferedImage.TYPE_INT_RGB);
-    Graphics g = image.getGraphics();
-
-    // Fill in the sample Background color
-    Color bgColor = imageDefn.getBgColor().getColor();
-    g.setColor(bgColor);
-
-    if (getBorder().equals(BORDER_3D)) {
-      g.fill3DRect(0, 0, width, height, true);
-    }
-    else {
-
-      g.fillRect(0, 0, width, height);
-
-      // Add Border
-      if (getBorder().equals(BORDER_PLAIN) || getBorder().equals(BORDER_FANCY)) {
-        Color bg = bgColor == null ? Color.WHITE : bgColor;
-        g.setColor(imageDefn.getBorderColor().getColor());
-        ((Graphics2D) g).setStroke(new BasicStroke(1.0f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
-        g.drawRect(0, 0, width - 1, height - 1);
-        if (getBorder().equals(BORDER_FANCY)) {
-          Color lt = new Color(bg.getRed() / 2, bg.getGreen() / 2, bg.getBlue() / 2);
-          Color dk = new Color(bg.getRed() + (255 - bg.getRed()) / 2, bg.getGreen()
-                                                                      + (255 - bg.getGreen()) / 2, bg.getBlue() + (255 - bg.getBlue()) / 2);
-          g.setColor(dk);
-          g.drawLine(1, 1, width - 3, 1);
-          g.drawLine(1, 2, 1, height - 3);
-          g.setColor(lt);
-          g.drawLine(width - 2, 2, width - 2, height - 2);
-          g.drawLine(2, height - 2, width - 3, height - 2);
-        }
-      }
-    }
-
-    // layer each item over the top
-    Iterator i = items.iterator();
-    while (i.hasNext()) {
-      Item item = (Item) i.next();
-      if (item != null) {
-        item.draw(g, imageDefn);
-      }
-    }
+	  visImage = buildImage(imageDefn);
   }
 
   public void setImageDefn(GamePieceImage d) {

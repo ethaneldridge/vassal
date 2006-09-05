@@ -35,7 +35,7 @@ import java.awt.Shape;
 import java.awt.geom.AffineTransform;
 import java.io.File;
 import java.net.MalformedURLException;
-import java.util.Enumeration;
+import java.util.Iterator;
 
 import javax.swing.Box;
 import javax.swing.Icon;
@@ -43,7 +43,6 @@ import javax.swing.JOptionPane;
 import javax.swing.KeyStroke;
 import javax.swing.SwingUtilities;
 
-import VASSAL.build.GameModule;
 import VASSAL.build.module.GlobalOptions;
 import VASSAL.build.module.Map;
 import VASSAL.build.module.documentation.HelpFile;
@@ -224,8 +223,8 @@ public class MovementMarkable extends Decorator implements EditablePiece {
 
     public Component getControls() {
       boolean enabled = false;
-      for (Enumeration e = GameModule.getGameModule().getComponents(Map.class); e.hasMoreElements();) {
-        Map m = (Map) e.nextElement();
+      for (Iterator it = Map.getAllMaps(); it.hasNext();) {
+        Map m = (Map) it.next();
         String value = m.getAttributeValueString(Map.MARK_MOVED);
         enabled = enabled
             || GlobalOptions.ALWAYS.equals(value)

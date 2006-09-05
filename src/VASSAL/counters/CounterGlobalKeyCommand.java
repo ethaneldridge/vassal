@@ -9,7 +9,7 @@ import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.io.File;
 import java.net.MalformedURLException;
-import java.util.Enumeration;
+import java.util.Iterator;
 
 import javax.swing.BoxLayout;
 import javax.swing.JPanel;
@@ -185,10 +185,10 @@ public class CounterGlobalKeyCommand extends Decorator implements EditablePiece 
       }
       filter = new BooleanAndPieceFilter(filter,new RangeFilter(getMap(), getPosition(), r));
     }
-    for (Enumeration e = GameModule.getGameModule().getComponents(Map.class); e.hasMoreElements();) {
-      Map m = (Map) e.nextElement();
-      c = c.append(globalCommand.apply(m, filter));
-    }
+    for (Iterator it = Map.getAllMaps(); it.hasNext();) {
+        Map m = (Map) it.next();
+        c = c.append(globalCommand.apply(m, filter));
+	}
     GameModule.getGameModule().sendAndLog(c);
   }
 

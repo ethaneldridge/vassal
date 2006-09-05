@@ -18,7 +18,6 @@
  */
 package VASSAL.tools;
 
-import java.applet.Applet;
 import java.applet.AudioClip;
 import java.awt.Dimension;
 import java.awt.Graphics2D;
@@ -57,7 +56,6 @@ import java.util.zip.ZipInputStream;
 import javax.swing.ImageIcon;
 
 import sun.applet.AppletAudioClip;
-
 import VASSAL.build.GameModule;
 import VASSAL.build.module.GlobalOptions;
 import VASSAL.build.module.documentation.HelpFile;
@@ -364,6 +362,12 @@ public class DataArchive extends SecureClassLoader {
     return Toolkit.getDefaultToolkit().createImage(getBytes(in));
   }
 
+  /**
+   * Add an ImageSource under the given name, but only if no source is yet registered under this name.
+   * @param name
+   * @param src
+   * @return true if the ImageSource was added, false if it existed already
+   */
   public boolean addImageSource(String name, ImageSource src) {
     if (!imageSources.containsKey(name)) {
       imageSources.put(name,src);
