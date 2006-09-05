@@ -71,13 +71,6 @@ public class Documentation extends AbstractConfigurable {
       intro.setAttribute(HelpFile.TYPE, HelpFile.RESOURCE);
       intro.addTo(this);
       add(intro);
-
-      intro = new HelpFile();
-      intro.setAttribute(HelpFile.TITLE, "User's Guide");
-      intro.setAttribute(HelpFile.FILE, "docs/UsersGuide/index.htm");
-      intro.setAttribute(HelpFile.TYPE, HelpFile.LOCAL_FILE);
-      intro.addTo(this);
-      add(intro);
     }
     else {
       super.build(el);
