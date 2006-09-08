@@ -132,6 +132,9 @@ public class FreeRotator extends Decorator implements EditablePiece, MouseListen
   }
 
   public double getAngle() {
+    if (useUnrotatedShape) {
+      return 0.0;
+    }
     return validAngles[angleIndex];
   }
 
@@ -162,7 +165,7 @@ public class FreeRotator extends Decorator implements EditablePiece, MouseListen
   }
 
   public Shape getShape() {
-    if (getAngle() == 0.0 || useUnrotatedShape) {
+    if (getAngle() == 0.0) {
       return piece.getShape();
     }
     return AffineTransform.getRotateInstance(getAngleInRadians()).createTransformedShape(piece.getShape());

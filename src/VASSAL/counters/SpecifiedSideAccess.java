@@ -24,32 +24,40 @@ import java.util.List;
 import VASSAL.build.module.PlayerRoster;
 
 /**
- * Access is granted if the {@link VASSAL.build.module.PlayerRoster#getMySide()}
+ * Access is granted if {@link VASSAL.build.module.PlayerRoster#getMySide()}
  * is in a specified list
  * 
  * @author rkinney
  * 
  */
 public class SpecifiedSideAccess implements PieceAccess {
-  private List sides;
+	private List sides;
 
-  public SpecifiedSideAccess(List sides) {
-    this.sides = Collections.unmodifiableList(sides);
+	public SpecifiedSideAccess(List sides) {
+		this.sides = Collections.unmodifiableList(sides);
+	}
+
+	public String getCurrentPlayerId() {
+		return PlayerRoster.getMySide();
+	}
+
+	public boolean currentPlayerHasAccess(String ownerId) {
+	  if (ownerId == null) {
+		  return true;
+	  }
+	  else if (sides.contains(ownerId)) {
+		  return !GlobalAccess.isHideAll() && sides.contains(getCurrentPlayerId());
+	  }
+	  else {
+		  return false;
+	  }
   }
 
-  public String getCurrentPlayerId() {
-    return PlayerRoster.getMySide();
-  }
+	public List getSides() {
+		return sides;
+	}
 
-  public boolean currentPlayerHasAccess(String ownerId) {
-    return ownerId == null || (!GlobalAccess.isHideAll() && sides.contains(getCurrentPlayerId()));
-  }
-  
-  public List getSides() {
-    return sides;
-  }
-
-  public boolean currentPlayerCanModify(String ownerId) {
-    return sides.contains(getCurrentPlayerId());
-  }
+	public boolean currentPlayerCanModify(String ownerId) {
+		return sides.contains(getCurrentPlayerId());
+	}
 }

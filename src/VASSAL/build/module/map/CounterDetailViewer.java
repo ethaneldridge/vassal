@@ -102,6 +102,7 @@ public class CounterDetailViewer extends AbstractConfigurable implements Drawabl
   public static final String BORDER_WIDTH = "borderWidth";
   public static final String SHOW_NOSTACK = "showNoStack";
   public static final String SHOW_DECK = "showDeck";
+  public static final String UNROTATE_PIECES = "unrotatePieces";
   public static final String DISPLAY = "display";
   public static final String LAYER_LIST = "layerList";
   public static final String SUMMARY_REPORT_FORMAT = "summaryReportFormat";
@@ -136,6 +137,7 @@ public class CounterDetailViewer extends AbstractConfigurable implements Drawabl
   protected boolean drawSingleDeprecated = false;
   protected boolean showText = false;
   protected boolean showTextSingleDeprecated = false;
+  protected boolean unrotatePieces = false;
   protected boolean showDeck = false;
   protected double zoomLevel = 1.0;
   protected double graphicsZoomLevel = 1.0;
@@ -214,7 +216,9 @@ public class CounterDetailViewer extends AbstractConfigurable implements Drawabl
 
     for (int i = 0; i < pieces.size(); i++) {
       GamePiece piece = (GamePiece) pieces.get(i);
+      if (unrotatePieces) piece.setProperty(Properties.USE_UNROTATED_SHAPE, Boolean.TRUE);
       Rectangle pieceBounds = piece.getShape().getBounds();
+      if (unrotatePieces) piece.setProperty(Properties.USE_UNROTATED_SHAPE, Boolean.FALSE);
       bounds.width += (int) (pieceBounds.width * graphicsZoomLevel) + borderWidth;
       bounds.height = Math.max(bounds.height, (int) (pieceBounds.height * graphicsZoomLevel) + borderWidth * 2);
     }
@@ -245,10 +249,12 @@ public class CounterDetailViewer extends AbstractConfigurable implements Drawabl
         // Draw the next piece
         // pt is the location of the left edge of the piece
         GamePiece piece = (GamePiece) pieces.get(i);
+        if (unrotatePieces) piece.setProperty(Properties.USE_UNROTATED_SHAPE, Boolean.TRUE);
         Rectangle pieceBounds = piece.getShape().getBounds();
         g.setClip(bounds.x - 3, bounds.y - 3, bounds.width + 5, bounds.height + 5);
         piece.draw(g, bounds.x - (int) (pieceBounds.x * graphicsZoom) + borderOffset, bounds.y - (int) (pieceBounds.y * graphicsZoom) + borderWidth, comp,
             graphicsZoom);
+        if (unrotatePieces) piece.setProperty(Properties.USE_UNROTATED_SHAPE, Boolean.FALSE);
         g.setClip(oldClip);
 
         if (isTextUnderCounters()) {
@@ -698,7 +704,7 @@ public class CounterDetailViewer extends AbstractConfigurable implements Drawabl
 
     SHOW_TEXT, SHOW_TEXT_SINGLE_DEPRECATED, FONT_SIZE, SUMMARY_REPORT_FORMAT, COUNTER_REPORT_FORMAT, EMPTY_HEX_REPORT_FORMAT,
 
-    DISPLAY, LAYER_LIST, PROPERTY_FILTER,SHOW_NOSTACK, SHOW_DECK};
+    DISPLAY, LAYER_LIST, PROPERTY_FILTER,SHOW_NOSTACK, UNROTATE_PIECES, SHOW_DECK};
   }
 
   public String[] getAttributeDescriptions() {
@@ -714,7 +720,7 @@ public class CounterDetailViewer extends AbstractConfigurable implements Drawabl
         "Font size:  ", "Summary text above pieces:  ", "Text below each piece:  ","Text for empty location:  ",
 
         "Include individual pieces:  ", "Listed layers",
-        "Piece selection property filter:  ","Include non-stacking pieces (if movable)?", "Include top piece in Deck?"};
+        "Piece selection property filter:  ","Include non-stacking pieces (if movable)?", "Show pieces in un-rotated state", "Include top piece in Deck?"};
 
   }
 
@@ -727,7 +733,7 @@ public class CounterDetailViewer extends AbstractConfigurable implements Drawabl
 
     Boolean.class, Boolean.class, Integer.class, ReportFormatConfig.class, CounterFormatConfig.class,EmptyFormatConfig.class,
 
-    DisplayConfig.class, String[].class, String.class,Boolean.class, Boolean.class};
+    DisplayConfig.class, String[].class, String.class,Boolean.class, Boolean.class, Boolean.class};
   }
 
   public static class DisplayConfig extends StringEnum {
@@ -866,6 +872,14 @@ public class CounterDetailViewer extends AbstractConfigurable implements Drawabl
         showDeck = "true".equals(value);
       }
     }
+    else if (UNROTATE_PIECES.equals(name)) {
+        if (value instanceof Boolean) {
+          unrotatePieces = ((Boolean) value).booleanValue();
+        }
+        else if (value instanceof String) {
+          unrotatePieces = "true".equals(value);
+        }
+      }
     else if (DISPLAY.equals(name)) {
       displayWhat = (String) value;
     }
@@ -957,6 +971,9 @@ public class CounterDetailViewer extends AbstractConfigurable implements Drawabl
     }
     else if (SHOW_DECK.equals(name)) {
       return String.valueOf(showDeck);
+    }
+    else if (UNROTATE_PIECES.equals(name)) {
+        return String.valueOf(unrotatePieces);
     }
     else if (DISPLAY.equals(name)) {
       return displayWhat;
