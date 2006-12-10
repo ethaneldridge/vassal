@@ -149,6 +149,7 @@ public abstract class GridEditor extends JDialog implements MouseListener, KeyLi
         startSetMode();
       }
     });
+    setButton.setRequestFocusEnabled(false);
     buttonPanel.add(setButton);
 
     canSetButton = new JButton(CANCEL_SET);
@@ -158,6 +159,7 @@ public abstract class GridEditor extends JDialog implements MouseListener, KeyLi
       }
     });
     canSetButton.setVisible(false);
+    canSetButton.setRequestFocusEnabled(false);
     buttonPanel.add(canSetButton);
 
 
@@ -170,6 +172,7 @@ public abstract class GridEditor extends JDialog implements MouseListener, KeyLi
     });
     numberingButton.setEnabled(grid.getGridNumbering() != null);
     numberingButton.setVisible(true);
+    numberingButton.setRequestFocusEnabled(false);
     buttonPanel.add(numberingButton);
     
     Box controlPanel = Box.createVerticalBox();
@@ -178,7 +181,7 @@ public abstract class GridEditor extends JDialog implements MouseListener, KeyLi
     
     getContentPane().add(controlPanel, BorderLayout.SOUTH);
 
-    board.fixImage(view);
+    board.fixImage();
     scroll.revalidate();
     pack();
     repaint();
@@ -451,7 +454,7 @@ public abstract class GridEditor extends JDialog implements MouseListener, KeyLi
 
     public void setBoard(Board b) {
       board = b;
-      board.fixImage(null);
+      board.fixImage();
       setSize(board.getSize());
       setPreferredSize(board.getSize());
     }
