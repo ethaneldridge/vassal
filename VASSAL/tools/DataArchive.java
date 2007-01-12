@@ -1,7 +1,7 @@
 /*
  * $Id$
  *
- * Copyright (c) 2000-2003 by Rodney Kinney
+ * Copyright (c) 2000-2007 by Rodney Kinney, Joel Uckelman
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Library General Public
@@ -53,6 +53,9 @@ import java.util.List;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 import java.util.zip.ZipInputStream;
+import javax.imageio.ImageIO;
+import javax.imageio.ImageReader;
+import javax.imageio.stream.MemoryCacheImageInputStream;
 import javax.swing.ImageIcon;
 import sun.applet.AppletAudioClip;
 
@@ -69,13 +72,15 @@ public class DataArchive extends SecureClassLoader {
   protected List extensions = new ArrayList();
   private HashMap imageCache = new HashMap();
   private HashMap soundCache = new HashMap();
-  private HashMap scaledImageCache = new HashMap();
+//  private HashMap scaledImageCache = new HashMap();
+  private HashMap transImageCache = new HashMap();
   private HashMap imageSources = new HashMap();
   protected String[] imageNames;
   public static final String IMAGE_DIR = "images/";
   public static final String SOUNDS_DIR = "sounds/";
   private BooleanConfigurer smoothPrefs;
   private CodeSource cs;
+  protected SVGManager svgManager;
 
   // empty image for images scaled to zero size
   private static final Image NULL_IMAGE =
@@ -176,6 +181,81 @@ public class DataArchive extends SecureClassLoader {
     return clip;
   }
 
+  public Image getTransformedImage(Image base, double scale, double theta,
+                                   boolean forceSmoothing) {
+    if (base == null) {
+      return null;
+    }
+
+    Dimension d = getImageBounds(base).getSize();
+    d.width *= scale;
+    d.height *= scale;
+    if (d.width == 0 || d.height == 0) {
+      return NULL_IMAGE;
+    }
+
+    TransformedCacheKey key = new TransformedCacheKey(base, scale, theta);
+    Image trans = (Image) transImageCache.get(key);
+    if (trans == null) {
+      trans = createTransformedInstance(base, scale, theta, forceSmoothing);
+      new ImageIcon(trans); // Wait for the image to load
+      transImageCache.put(key, trans);
+    }
+    return trans;
+  }
+
+  protected Image createTransformedInstance(Image im, double zoom,
+    double theta, boolean forceSmoothing) {
+    if (zoom == 1 && theta == 0) return im;
+
+    // get smoothing preferences
+    if (smoothPrefs == null) {
+      smoothPrefs = (BooleanConfigurer) GameModule.getGameModule()
+        .getPrefs().getOption(GlobalOptions.SCALER_ALGORITHM);
+      if (smoothPrefs == null) {
+        smoothPrefs = new BooleanConfigurer(null, null, Boolean.TRUE);
+      }
+      smoothPrefs.addPropertyChangeListener(new PropertyChangeListener() {
+        public void propertyChange(PropertyChangeEvent evt) {
+          clearTransformedImageCache();
+        }
+      });
+    }
+    
+    boolean smooth = Boolean.TRUE.equals(smoothPrefs.getValue());
+
+    if (im instanceof SVGManager.SVGBufferedImage) {
+      return ((SVGManager.SVGBufferedImage) im)
+        .getTransformedInstance(zoom, theta);
+    }
+    else {
+      Rectangle ubox = getImageBounds(im);
+
+      AffineTransform bt = new AffineTransform();
+      bt.rotate(-Math.PI/180 * theta, ubox.getCenterX(), ubox.getCenterY());
+      bt.scale(zoom, zoom);
+
+      Rectangle tbox = bt.createTransformedShape(ubox).getBounds();
+    
+      BufferedImage trans = new BufferedImage(tbox.width,
+                                              tbox.height,
+                                              BufferedImage.TYPE_4BYTE_ABGR);
+      Graphics2D g2d = trans.createGraphics();
+      g2d.setRenderingHint(RenderingHints.KEY_INTERPOLATION,
+                           RenderingHints.VALUE_INTERPOLATION_BILINEAR);
+      g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING,
+                           RenderingHints.VALUE_ANTIALIAS_ON);
+      AffineTransform t = new AffineTransform();
+      t.translate(-tbox.x, -tbox.y);
+      t.rotate(-Math.PI/180 * theta, ubox.getCenterX(), ubox.getCenterY());
+      t.scale(zoom, zoom);
+      t.translate(ubox.x, ubox.y);
+
+      g2d.drawImage(im, t, null);
+      return trans;
+    }
+  }
+
   /**
    * Return a scaled instance of the image.
    * The image will be retrieved from cache if available, cached otherwise
@@ -184,7 +264,8 @@ public class DataArchive extends SecureClassLoader {
    * @return
    */
   public Image getScaledImage(Image base, double scale) {
-    return getScaledImage(base, scale, false, true);
+//    return getScaledImage(base, scale, false, true);
+    return getTransformedImage(base, scale, 0, true);
   }
 
   /**
@@ -196,7 +277,11 @@ public class DataArchive extends SecureClassLoader {
    * @param forceSmoothing If true, force smoothing.  This usually yields better results, but can be slow for large images
    * @return
    */
-  public Image getScaledImage(Image base, double scale, boolean reversed, boolean forceSmoothing) {
+  public Image getScaledImage(Image base, double scale, boolean reversed,
+                              boolean forceSmoothing) {
+    return getTransformedImage(base, scale,
+                               reversed ? 180 : 0, forceSmoothing);
+/*
     if (base == null) {
       return null;
     }
@@ -214,7 +299,9 @@ public class DataArchive extends SecureClassLoader {
       scaledImageCache.put(key, scaled);
     }
     return scaled;
+*/
   }
+
 
   /**
    * Create a new scaled instance of the argument image, optionally reversed
@@ -224,6 +311,7 @@ public class DataArchive extends SecureClassLoader {
    * @param forceSmoothing If true, force a smoothing algorithm.  May be too slow for large images
    * @return
    */
+/*
   protected Image createScaledInstance(Image im, Dimension size, boolean reversed, boolean forceSmoothing) {
     Dimension fullSize = getImageBounds(im).getSize();
     if (fullSize.equals(size) && !reversed) {
@@ -241,7 +329,10 @@ public class DataArchive extends SecureClassLoader {
       });
     }
     boolean smooth = Boolean.TRUE.equals(smoothPrefs.getValue());
-    if (reversed) {
+    if (im instanceof SVGManager.SVGBufferedImage) {
+      return im.getScaledInstance(size.width, size.height, 0);
+    }
+    else if (reversed) {
       BufferedImage rev = new BufferedImage(size.width, size.height, BufferedImage.TYPE_4BYTE_ABGR);
       Graphics2D g2d = rev.createGraphics();
       if (smooth) {
@@ -260,6 +351,7 @@ public class DataArchive extends SecureClassLoader {
       return im.getScaledInstance(size.width, size.height, smooth ? Image.SCALE_AREA_AVERAGING : Image.SCALE_DEFAULT);
     }
   }
+*/
 
   /**
    *
@@ -281,6 +373,40 @@ public class DataArchive extends SecureClassLoader {
     ImageProducer prod;
     prod = new FilteredImageSource(img.getSource(), filter);
     return Toolkit.getDefaultToolkit().createImage(prod);
+  }
+
+  /**
+   * Get the size of an image without loading and decoding it.
+   *
+   * @param name filename of the image
+   * @return the size of the image
+   */
+  public Dimension getImageSize(String name) throws IOException {
+    String path = IMAGE_DIR + name;
+    String gifPath = path + ".gif";
+
+    if (name.toLowerCase().endsWith(".svg")) {
+      if (svgManager == null) svgManager = new SVGManager(this);
+
+      return svgManager.getImageSize("jar:file://" +
+         (archive != null ? archive.getName() : "null") + "!/" + path,
+        getFileStream(path));
+    }
+    else {
+      String ext = name.substring(name.lastIndexOf('.') + 1);
+      ImageReader reader =
+         (ImageReader) ImageIO.getImageReadersBySuffix(ext).next();
+
+      try {
+         reader.setInput(new MemoryCacheImageInputStream(getFileStream(path)));
+      }
+      catch (IOException e) {
+         reader.setInput(
+            new MemoryCacheImageInputStream(getFileStream(gifPath)));
+      }
+
+      return new Dimension(reader.getWidth(0), reader.getHeight(0));
+    }
   }
 
 /*
@@ -325,6 +451,8 @@ public class DataArchive extends SecureClassLoader {
   }
 
   public void unCacheImage(Image im) {
+/*
+    {
     ArrayList toClear = new ArrayList();
     for (Iterator iterator = scaledImageCache.keySet().iterator(); iterator.hasNext();) {
       ScaledCacheKey key = (ScaledCacheKey) iterator.next();
@@ -336,14 +464,42 @@ public class DataArchive extends SecureClassLoader {
       ScaledCacheKey scaledCacheKey = (ScaledCacheKey) iterator.next();
       scaledImageCache.remove(scaledCacheKey);
     }
+    }
+*/
+    ArrayList toClear = new ArrayList();
+    for (Iterator i = transImageCache.keySet().iterator(); i.hasNext(); ) {
+      TransformedCacheKey key = (TransformedCacheKey) i.next();
+      if (im.equals(key.base)) {
+        toClear.add(key);
+      }
+    }
+
+    for (Iterator i = toClear.iterator(); i.hasNext(); ) {
+      TransformedCacheKey transCacheKey = (TransformedCacheKey) i.next();
+      transImageCache.remove(transCacheKey);
+    }
   }
   
+  public void clearTransformedImageCache() {
+    transImageCache.clear();
+    for (Iterator i = extensions.iterator(); i.hasNext();) {
+      DataArchive ext = (DataArchive) i.next();
+      ext.clearTransformedImageCache();
+    }
+  }
+
+  /**
+   * @deprecated Use {@link #clearTransformedImageCache()} instead.
+   */
   public void clearScaledImageCache() {
+    clearTransformedImageCache();
+/*
     scaledImageCache.clear();
     for (Iterator iter = extensions.iterator(); iter.hasNext();) {
       DataArchive ext = (DataArchive) iter.next();
       ext.clearScaledImageCache();
     }
+*/
   }
 
   public Image getImage(String name) throws IOException {
@@ -351,11 +507,20 @@ public class DataArchive extends SecureClassLoader {
     String gifPath = path + ".gif";
     Image image = null;
 
-    try {
-       image = getImage(getFileStream(path));
+    if (name.toLowerCase().endsWith(".svg")) {
+      if (svgManager == null) svgManager = new SVGManager(this);
+
+      image = svgManager.loadSVGImage("jar:file://" +
+         (archive != null ? archive.getName() : "null") + "!/" + path,
+        getFileStream(path));
     }
-    catch (IOException e) {
-      image = getImage(getFileStream(gifPath));
+    else {
+      try {
+        image = getImage(getFileStream(path));
+      }
+      catch (IOException e) {
+        image = getImage(getFileStream(gifPath));
+      }
     }
     return image;
   }
@@ -422,19 +587,25 @@ public class DataArchive extends SecureClassLoader {
       stream = archive.getInputStream(entry);
     }
     else {
-      for (int i = 0; i < extensions.size() && stream == null; ++i) {
-        DataArchive ext = (DataArchive) extensions.get(i);
-        try {
-          stream = ext.getFileStream(file);
-        }
-        catch (IOException e) {
-          // Not found in this extension.  Try the next.
-        }
-      }
+      stream = getFileStreamFromExtension(file);
     }
 
     if (stream == null) {
       throw new IOException("\'" + file + "\' not found in " + archive.getName());
+    }
+    return stream;
+  }
+
+  protected InputStream getFileStreamFromExtension(String file) {
+    InputStream stream = null;;
+    for (int i = 0; i < extensions.size() && stream == null; ++i) {
+      DataArchive ext = (DataArchive) extensions.get(i);
+      try {
+        stream = ext.getFileStream(file);
+      }
+      catch (IOException e) {
+        // Not found in this extension.  Try the next.
+      }
     }
     return stream;
   }
@@ -450,18 +621,24 @@ public class DataArchive extends SecureClassLoader {
       url = new URL("jar:" + archiveURL + "!/" + fileName);
     }
     else {
-      for (int i = 0; i < extensions.size() && url == null; ++i) {
-        DataArchive ext = (DataArchive) extensions.get(i);
-        try {
-          url = ext.getURL(fileName);
-        }
-        catch (IOException e) {
-          // Not found in this extension.  Try the next.
-        }
-      }
+      url = getURLFromExtension(fileName);
     }
     if (url == null) {
       throw new IOException("\'" + fileName + "\' not found in " + archive.getName());
+    }
+    return url;
+  }
+
+  protected URL getURLFromExtension(String fileName) {
+    URL url = null;
+    for (int i = 0; i < extensions.size() && url == null; ++i) {
+      DataArchive ext = (DataArchive) extensions.get(i);
+      try {
+        url = ext.getURL(fileName);
+      }
+      catch (IOException e) {
+        // Not found in this extension.  Try the next.
+      }
     }
     return url;
   }
@@ -599,6 +776,7 @@ public class DataArchive extends SecureClassLoader {
     }
   }
 
+/*
   private static class ScaledCacheKey {
     private Image base;
     private Dimension bounds;
@@ -628,6 +806,43 @@ public class DataArchive extends SecureClassLoader {
       result = base.hashCode();
       result = 29 * result + bounds.hashCode();
       result = 29 * result + (reversed ? 1 : 0);
+      return result;
+    }
+  }
+*/
+
+  private static class TransformedCacheKey {
+    private Image base;
+    private double zoom;
+    private double theta;
+
+    public TransformedCacheKey(Image base, double zoom, double theta) {
+      this.base = base;
+      this.zoom = zoom;
+      this.theta = theta;
+    }
+
+    public boolean equals(Object o) {
+      if (this == o) return true;
+      if (!(o instanceof TransformedCacheKey)) return false;
+
+      final TransformedCacheKey t = (TransformedCacheKey) o;
+
+      if (base == null) return t.base == null;
+      if (!base.equals(t.base) || zoom != t.zoom || theta != t.theta) {
+        return false;
+      }
+
+      return true;
+    }
+
+    public int hashCode() {
+      int result = 17;
+      result = 37 * result + base.hashCode();
+      long l = Double.doubleToLongBits(zoom);
+      result = 37 * result + (int)(l^(l >>> 32)); 
+      l = Double.doubleToLongBits(theta);
+      result = 37 * result + (int)(l^(l >>> 32)); 
       return result;
     }
   }

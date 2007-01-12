@@ -1,3 +1,22 @@
+/*
+ * $Id$
+ *
+ * Copyright (c) 2005 by Rodney Kinney
+ *
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Library General Public
+ * License (LGPL) as published by the Free Software Foundation.
+ *
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Library General Public License for more details.
+ *
+ * You should have received a copy of the GNU Library General Public
+ * License along with this library; if not, copies are available 
+ * at http://www.opensource.org.
+ */
+
 package VASSAL.build.module.map.boardPicker.board;
 
 import java.awt.BorderLayout;
@@ -29,25 +48,6 @@ import VASSAL.build.module.map.boardPicker.board.mapgrid.GridContainer;
 import VASSAL.build.module.map.boardPicker.board.mapgrid.GridNumbering;
 import VASSAL.build.module.map.boardPicker.board.mapgrid.RegularGridNumbering;
 import VASSAL.tools.AdjustableSpeedScrollPane;
-
-/*
- * $Id$
- *
- * Copyright (c) 2005 by Rodney Kinney
- *
- * This library is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Library General Public
- * License (LGPL) as published by the Free Software Foundation.
- *
- * This library is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * Library General Public License for more details.
- *
- * You should have received a copy of the GNU Library General Public
- * License along with this library; if not, copies are available 
- * at http://www.opensource.org.
- */
 
 public abstract class GridEditor extends JDialog implements MouseListener, KeyListener {
   
@@ -130,7 +130,8 @@ public abstract class GridEditor extends JDialog implements MouseListener, KeyLi
       public void actionPerformed(ActionEvent e) {
         cancelSetMode();
         setVisible(false);
-        GameModule.getGameModule().getDataArchive().clearScaledImageCache();
+        GameModule.getGameModule()
+                  .getDataArchive().clearTransformedImageCache();
       }
     });
     buttonPanel.add(okButton);
@@ -149,6 +150,7 @@ public abstract class GridEditor extends JDialog implements MouseListener, KeyLi
         startSetMode();
       }
     });
+    setButton.setRequestFocusEnabled(false);
     buttonPanel.add(setButton);
 
     canSetButton = new JButton(CANCEL_SET);
@@ -158,6 +160,7 @@ public abstract class GridEditor extends JDialog implements MouseListener, KeyLi
       }
     });
     canSetButton.setVisible(false);
+    canSetButton.setRequestFocusEnabled(false);
     buttonPanel.add(canSetButton);
 
 
@@ -170,6 +173,7 @@ public abstract class GridEditor extends JDialog implements MouseListener, KeyLi
     });
     numberingButton.setEnabled(grid.getGridNumbering() != null);
     numberingButton.setVisible(true);
+    numberingButton.setRequestFocusEnabled(false);
     buttonPanel.add(numberingButton);
     
     Box controlPanel = Box.createVerticalBox();
@@ -178,7 +182,7 @@ public abstract class GridEditor extends JDialog implements MouseListener, KeyLi
     
     getContentPane().add(controlPanel, BorderLayout.SOUTH);
 
-    board.fixImage(view);
+    board.fixImage();
     scroll.revalidate();
     pack();
     repaint();
@@ -451,7 +455,7 @@ public abstract class GridEditor extends JDialog implements MouseListener, KeyLi
 
     public void setBoard(Board b) {
       board = b;
-      board.fixImage(null);
+      board.fixImage();
       setSize(board.getSize());
       setPreferredSize(board.getSize());
     }

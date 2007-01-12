@@ -75,6 +75,7 @@ public class Board extends AbstractConfigurable implements GridContainer {
   protected String boardName = "Board 1";
   protected boolean reversible = false;
   protected boolean reversed = false;
+  protected boolean fixedBoundaries = false;
 
   private Color color = null;
 
@@ -228,7 +229,7 @@ public class Board extends AbstractConfigurable implements GridContainer {
 
   public void draw(java.awt.Graphics g,
                    int x, int y, double zoom, Component obs) {
-    if (boardImage == null) fixImage(obs);
+    if (boardImage == null) fixImage();
     drawRegion(g, new Point(x, y),
       new Rectangle(x, y, Math.round((float) zoom * boundaries.width),
                           Math.round((float) zoom * boundaries.height)),
@@ -237,7 +238,7 @@ public class Board extends AbstractConfigurable implements GridContainer {
 
   public void drawRegion(final Graphics g, final Point location,
    Rectangle visibleRect, final double zoom, final Component obs) {
-    if (boardImage == null) fixImage(obs);
+    if (boardImage == null) fixImage();
     Rectangle bounds = new Rectangle(location.x, location.y,
       Math.round(boundaries.width  * (float) zoom),
       Math.round(boundaries.height * (float) zoom));
@@ -265,7 +266,7 @@ public class Board extends AbstractConfigurable implements GridContainer {
   }
 
   public synchronized Image getScaledImage(double zoom, Component obs) {
-    if (boardImage == null) fixImage(obs);
+    if (boardImage == null) fixImage();
     return GameModule.getGameModule().getDataArchive()
       .getScaledImage(boardImage, zoom, reversed, false);
   }
@@ -327,34 +328,36 @@ public class Board extends AbstractConfigurable implements GridContainer {
     return b;
   }
 
+  /**
+   * @deprecated Use {@link #fixImage()} instead.
+   */
   public void fixImage(Component map) {
-    Cleanup.init();
-    Cleanup.getInstance().addBoard(this);
-    if (imageFile == null)
-      return;
+    fixImage();
+  }
+
+  public void fixImage() {
+    if (imageFile == null || boardImage != null) return;
     try {
+      Cleanup.init();
+      Cleanup.getInstance().addBoard(this);
       try {
-        boardImage =
-          GameModule.getGameModule().getDataArchive().getImage(imageFile);
+        boardImage = GameModule.getGameModule()
+                               .getDataArchive().getImage(imageFile);
+        Icon icon = new ImageIcon(boardImage);
+        boundaries.setSize(icon.getIconWidth(), icon.getIconHeight());
+        fixedBoundaries = true;
       }
       catch (IOException e) {
-        boardImage = null;
-      }
-
-      if (boardImage == null && imageFile != null) {
         JOptionPane.showMessageDialog
             (null,
              "Error reading board image " + imageFile + " in "
              + GameModule.getGameModule().getDataArchive().getName(),
              "Not Found",
              JOptionPane.ERROR_MESSAGE);
+
         return;
       }
-
-      Icon icon = new ImageIcon(boardImage);
-      boundaries.setSize(icon.getIconWidth(),
-                         icon.getIconHeight());
-    }
+    } 
     catch (OutOfMemoryError err) {
       JOptionPane.showMessageDialog
           (null,
@@ -396,17 +399,41 @@ public class Board extends AbstractConfigurable implements GridContainer {
    * @return The (read-only) boundaries of this Board within the overall Map
    */
   public Rectangle bounds() {
+    if (imageFile != null && boardImage == null
+                          && fixedBoundaries == false) fixBounds();
     return new Rectangle(boundaries);
   }
 
-  /** Translate the location of the board by the given number of pixels
+  protected void fixBounds() {
+    if (imageFile == null || boardImage != null) return;
+
+    try {
+      boundaries.setSize(GameModule.getGameModule()
+                              .getDataArchive().getImageSize(imageFile));
+      fixedBoundaries = true;
+    }
+    catch (IOException e) {
+      JOptionPane.showMessageDialog
+            (null,
+             "Error reading board image " + imageFile + " in "
+             + GameModule.getGameModule().getDataArchive().getName(),
+             "Not Found",
+             JOptionPane.ERROR_MESSAGE);
+    }
+  }
+
+  /** 
+   * Translate the location of the board by the given number of pixels
+   *
    * @see #bounds()
    */
   public void translate(int x, int y) {
     boundaries.translate(x, y);
   }
 
-  /** Set the location of this board
+  /**
+   * Set the location of this board
+   *
    * @see #bounds()
    */
   public void setLocation(int x, int y) {
@@ -435,9 +462,7 @@ public class Board extends AbstractConfigurable implements GridContainer {
    */
   public static class Cleanup implements GameComponent {
     private static Cleanup instance;
-
     private HashSet toClean = new HashSet();
-
     private boolean gameStarted = false;
 
     public static void init() {
@@ -456,6 +481,7 @@ public class Board extends AbstractConfigurable implements GridContainer {
 
     /**
      * Mark this board as needing to be cleaned up when the game is closed
+     *
      * @param b
      */
     public void addBoard(Board b) {
