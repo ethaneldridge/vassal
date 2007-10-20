@@ -780,7 +780,7 @@ public class Deck extends Stack implements PlayerRoster.SideChangeListener {
 
   public Command pieceRemoved(GamePiece p) {
     ChangeTracker tracker = new ChangeTracker(p);
-    p.setProperty(Properties.OBSCURED_BY, isFaceDown() && !isDrawFaceUp() ? GameModule.getUserId() : null);
+    p.setProperty(Properties.OBSCURED_TO_OTHERS, Boolean.valueOf(isFaceDown() && !isDrawFaceUp()));
     return tracker.getChangeCommand();
   }
 
@@ -1198,7 +1198,9 @@ public class Deck extends Stack implements PlayerRoster.SideChangeListener {
 
     FileWriter dest = new FileWriter(f);
     for (Enumeration<GamePiece> e = getPieces(); e.hasMoreElements();) {
-      comm = comm.append(new AddPiece(e.nextElement()));
+      GamePiece p = e.nextElement();
+      p.setMap(null);
+      comm = comm.append(new AddPiece(p));
     }
     GameModule.getGameModule().addCommandEncoder(commandEncoder);
     dest.write(GameModule.getGameModule().encode(comm));
