@@ -262,8 +262,9 @@ public class Embellishment extends Decorator implements TranslatablePiece {
   
   public String getName(boolean localized) {
     String name = null;
-    if (value > 0 && getCommonName(localized, value - 1) != null && getCommonName(localized, value - 1).length() > 0) {
-      SequenceEncoder.Decoder st = new SequenceEncoder.Decoder(getCommonName(localized, value - 1), '+');
+    String commonName = value > 0 ? getCommonName(localized, value - 1) : null;
+    if (value > 0 && commonName != null && commonName.length() > 0) {
+      SequenceEncoder.Decoder st = new SequenceEncoder.Decoder(commonName, '+');
       String first = st.nextToken();
       if (st.hasMoreTokens()) {
         String second = st.nextToken();
@@ -632,15 +633,17 @@ public class Embellishment extends Decorator implements TranslatablePiece {
       return s.substring(1);
     }
     if (s.endsWith("+")) {
-      return s.substring(0, s.length() - 2);
+      return s.substring(0, s.length() - 1);
     }
     return s;
   }
   
+  /** Get the name of this level (alone) */
   protected String getCommonName(boolean localized, int i) {
-    return localized ? getLocalizedCommonName(i) : commonName[i]+"";
+    return localized ? getLocalizedCommonName(i) : commonName[i];
   }
   
+  /** Get the localized name of this level (alone) */
   protected String getLocalizedCommonName(int i) {
     String name = commonName[i];
     if (name == null) return null;

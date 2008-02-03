@@ -18,8 +18,11 @@
  */
 package VASSAL.build.module;
 
+import java.awt.Component;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.util.Arrays;
+import java.util.List;
 
 import javax.swing.KeyStroke;
 
@@ -32,6 +35,7 @@ import VASSAL.build.module.properties.MutablePropertiesContainer;
 import VASSAL.build.module.properties.MutableProperty;
 import VASSAL.build.module.properties.MutableProperty.Impl;
 import VASSAL.command.Command;
+import VASSAL.command.NullCommand;
 import VASSAL.configure.AutoConfigurer;
 import VASSAL.configure.Configurer;
 import VASSAL.configure.ConfigurerFactory;
@@ -80,30 +84,26 @@ public class DiceButton extends AbstractConfigurable {
     ActionListener rollAction = new ActionListener() {
       public void actionPerformed(ActionEvent e) {
         if (promptAlways) {
-          promptAlways = false; // Show the usu
-          // Remove label, hotkey, and prompt controls
-          AutoConfigurer ac = (AutoConfigurer) getConfigurer();
+          DiceButton delegate = new DiceButton();
+          List<String> keepAttributes = Arrays.asList(new String[]{N_DICE, N_SIDES, PLUS});
+          for (String key : keepAttributes) {
+            delegate.setAttribute(key, getAttributeValueString(key));
+          }
+          AutoConfigurer ac = new AutoConfigurer(delegate);
           ConfigurerWindow w = new ConfigurerWindow(ac, true);
-          ac.getConfigurer(NAME).getControls().setVisible(false);
-          ac.getConfigurer(BUTTON_TEXT).getControls().setVisible(false);
-          ac.getConfigurer(TOOLTIP).getControls().setVisible(false);
-          ac.getConfigurer(ICON).getControls().setVisible(false);
-          ac.getConfigurer(HOTKEY).getControls().setVisible(false);
-          ac.getConfigurer(PROMPT_ALWAYS).getControls().setVisible(false);
-          ac.getConfigurer(REPORT_FORMAT).getControls().setVisible(false);
-          ac.getConfigurer(REPORT_TOTAL).getControls().setVisible(false);
+          for (String key : getAttributeNames()) {
+            if (!keepAttributes.contains(key)) {
+              Component controls = ac.getConfigurer(key).getControls();
+              controls.getParent().remove(controls);
+            }
+          }
           w.pack();
+          w.setLocationRelativeTo(launch.getTopLevelAncestor());
           w.setVisible(true);
-          ac.getConfigurer(NAME).getControls().setVisible(true);
-          ac.getConfigurer(BUTTON_TEXT).getControls().setVisible(true);
-          ac.getConfigurer(TOOLTIP).getControls().setVisible(true);
-          ac.getConfigurer(ICON).getControls().setVisible(true);
-          ac.getConfigurer(HOTKEY).getControls().setVisible(true);
-          ac.getConfigurer(PROMPT_ALWAYS).getControls().setVisible(true);
-          ac.getConfigurer(REPORT_FORMAT).getControls().setVisible(true);
-          ac.getConfigurer(REPORT_TOTAL).getControls().setVisible(true);
+          for (String key : keepAttributes) {
+            setAttribute(key, delegate.getAttributeValueString(key));
+          }
           DR();
-          promptAlways = true;
         }
         else {
           DR();
@@ -160,7 +160,7 @@ public class DiceButton extends AbstractConfigurable {
       val += total;
 
     String report = formatResult(val);
-    Command c = new Chatter.DisplayText(GameModule.getGameModule().getChatter(),report);
+    Command c = report.length() == 0 ? new NullCommand() : new Chatter.DisplayText(GameModule.getGameModule().getChatter(),report);
     c.execute();
     c.append(property.setPropertyValue(val));
     GameModule.getGameModule().sendAndLog(c);
@@ -175,7 +175,10 @@ public class DiceButton extends AbstractConfigurable {
     reportFormat.setProperty(REPORT_NAME, getLocalizedConfigureName());
     reportFormat.setProperty(RESULT, result);
     String text = reportFormat.getLocalizedText();
-    String report = text.startsWith("*") ? "*" + text : "* " + text; //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
+    String report = text;
+    if (text.length() > 0) {
+      report = text.startsWith("*") ? "*" + text : "* " + text; //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
+    }
     return report;
   }
 

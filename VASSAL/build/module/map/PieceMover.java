@@ -108,6 +108,7 @@ public class PieceMover extends AbstractBuildable
   protected GamePiece dragging;
   protected LaunchButton markUnmovedButton;
   protected String markUnmovedText;
+  protected String markUnmovedIcon;
   public static final String ICON_NAME = "icon"; //$NON-NLS-1$
   protected String iconName;
   protected PieceFinder dragTargetSelector; // Selects drag target from mouse
@@ -128,6 +129,8 @@ public class PieceMover extends AbstractBuildable
     GameModule.getGameModule().getGameState().addGameComponent(this);
     map.setDragGestureListener(DragHandler.getTheDragHandler());
     map.setPieceMover(this);
+    setAttribute(Map.MARK_UNMOVED_TEXT, map.getAttributeValueString(Map.MARK_UNMOVED_TEXT));
+    setAttribute(Map.MARK_UNMOVED_ICON, map.getAttributeValueString(Map.MARK_UNMOVED_ICON));
   }
 
   protected MovementReporter createMovementReporter(Command c) {
@@ -177,8 +180,10 @@ public class PieceMover extends AbstractBuildable
         GamePiece selected = null;
         if (this.map.getStackMetrics().isStackingEnabled() && this.map.getPieceCollection().canMerge(dragging, s) && !DragBuffer.getBuffer().contains(s)
             && s.topPiece() != null) {
-          if (this.map.isLocationRestricted(pt) && s.getPosition().equals(this.map.snapTo(pt))) {
-            selected = s;
+          if (this.map.isLocationRestricted(pt) && !s.isExpanded()) {
+            if (s.getPosition().equals(this.map.snapTo(pt))) {
+              selected = s; 
+            }
           }
           else {
             selected = (GamePiece) super.visitStack(s);
@@ -317,7 +322,7 @@ public class PieceMover extends AbstractBuildable
           }
         };
         
-        markUnmovedButton = new LaunchButton("", NAME, null, null, al );
+        markUnmovedButton = new LaunchButton("", NAME, null, Map.MARK_UNMOVED_ICON, al );
         if (iconName != null) {
           try {
             markUnmovedButton.setIcon(new ImageIcon(GameModule.getGameModule().getDataArchive().getCachedImage(iconName)));
@@ -329,7 +334,7 @@ public class PieceMover extends AbstractBuildable
         if (markUnmovedButton.getIcon() == null) {
           Icon icon = null;
           try {
-            icon = new ImageIcon(GameModule.getGameModule().getDataArchive().getCachedImage(map.getAttributeValueString(Map.MARK_UNMOVED_ICON)));
+            icon = new ImageIcon(GameModule.getGameModule().getDataArchive().getCachedImage(markUnmovedIcon));
           }
           catch (IOException e) {
             URL defaultImage = getClass().getResource("/images/unmoved.gif"); //$NON-NLS-1$
@@ -384,6 +389,12 @@ public class PieceMover extends AbstractBuildable
         markUnmovedButton.setAttribute(NAME, value);
       }
       markUnmovedText = (String) value;
+    }
+    else if (Map.MARK_UNMOVED_ICON.equals(key)) {
+      if (markUnmovedButton != null) {
+        markUnmovedButton.setAttribute(Map.MARK_UNMOVED_ICON, value);
+      }
+      markUnmovedIcon = (String) value;
     }
   }
 
@@ -550,6 +561,7 @@ public class PieceMover extends AbstractBuildable
         }
         if (mergeWith != null && map.getStackMetrics().isStackingEnabled()) {
           mergeCandidates = new ArrayList<GamePiece>();
+          mergeCandidates.add(dragging);
           mergeCandidates.add(mergeWith);
           mergeTargets.put(p, mergeCandidates);
         }

@@ -41,6 +41,7 @@ import org.jivesoftware.smack.PacketListener;
 import org.jivesoftware.smack.XMPPConnection;
 import org.jivesoftware.smack.XMPPException;
 import org.jivesoftware.smack.filter.AndFilter;
+import org.jivesoftware.smack.filter.FromContainsFilter;
 import org.jivesoftware.smack.filter.IQTypeFilter;
 import org.jivesoftware.smack.filter.PacketFilter;
 import org.jivesoftware.smack.filter.PacketTypeFilter;
@@ -56,12 +57,16 @@ import org.jivesoftware.smackx.muc.ParticipantStatusListener;
 import org.jivesoftware.smackx.packet.DiscoverItems;
 import org.jivesoftware.smackx.packet.VCard;
 
+import VASSAL.build.GameModule;
 import VASSAL.chat.ChatServerConnection;
 import VASSAL.chat.Player;
+import VASSAL.chat.PlayerEncoder;
 import VASSAL.chat.PrivateChatManager;
 import VASSAL.chat.Room;
 import VASSAL.chat.ServerStatus;
+import VASSAL.chat.SimplePlayer;
 import VASSAL.chat.SimpleStatus;
+import VASSAL.chat.SynchEncoder;
 import VASSAL.chat.messageboard.MessageBoard;
 import VASSAL.chat.ui.ChatControlsInitializer;
 import VASSAL.chat.ui.ChatServerControls;
@@ -77,12 +82,10 @@ import VASSAL.command.Command;
 import VASSAL.command.CommandEncoder;
 import VASSAL.i18n.Resources;
 
-public class JabberClient implements ChatServerConnection, PacketListener, ServerStatus, ChatControlsInitializer {
+public class JabberClient implements ChatServerConnection, PacketListener, ServerStatus, ChatControlsInitializer, PlayerEncoder {
   private static final String QUERY_ROOMS = "http://jabber.org/protocol/muc#rooms";
   private MessageBoard msgSvr;
   private XMPPConnection conn;
-  private String username;
-  private String password;
   private String host;
   private int port = 5222;
   private PropertyChangeSupport propSupport = new PropertyChangeSupport(this);
@@ -92,6 +95,8 @@ public class JabberClient implements ChatServerConnection, PacketListener, Serve
   private CommandEncoder encoder;
   private final JabberRoom defaultRoom;
   private MultiUserChat currentChat;
+  private AccountInfo account;
+  private SynchEncoder synchEncoder;
   protected MessageBoardControlsInitializer messageBoardControls;
   protected RoomInteractionControlsInitializer roomControls;
   // protected ServerStatusControlsInitializer serverStatusControls;
@@ -99,12 +104,12 @@ public class JabberClient implements ChatServerConnection, PacketListener, Serve
   protected JabberPlayer.Manager playerMgr = new JabberPlayer.Manager();
   protected JabberRoom.Manager roomMgr = new JabberRoom.Manager();
 
-  public JabberClient(CommandEncoder encoder, String host, int port, String username, String password) {
+  public JabberClient(CommandEncoder encoder, String host, int port, AccountInfo account) {
+    XMPPConnection.DEBUG_ENABLED = "true".equals(System.getProperty("enableJabber"));
     this.host = host;
     this.conferenceService = "conference." + host;
-    this.username = username;
-    this.password = password;
     this.encoder = encoder;
+    this.account = account;
     defaultRoom = roomMgr.getRoomByName(this, "Main Room");
     messageBoardControls = new MessageBoardControlsInitializer(Resources.getString("Chat.messages"), msgSvr); //$NON-NLS-1$
     roomControls = new RoomInteractionControlsInitializer(this);
@@ -114,7 +119,7 @@ public class JabberClient implements ChatServerConnection, PacketListener, Serve
     roomControls.addPlayerActionFactory(SendSoundAction.factory(this, Resources.getString("Chat.send_wakeup"), "wakeUpSound", "phone1.wav")); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
     // serverStatusControls = new ServerStatusControlsInitializer(serverStatus);
     playerStatusControls = new SimpleStatusControlsInitializer(this);
-    me = playerMgr.getPlayerByName(this, username);
+    synchEncoder = new SynchEncoder(this,this);
   }
 
   public void addPropertyChangeListener(String propertyName, PropertyChangeListener l) {
@@ -147,7 +152,9 @@ public class JabberClient implements ChatServerConnection, PacketListener, Serve
           conn.disconnect();
         }
         try {
-          me = playerMgr.getPlayerByName(this, username);
+          String username = account.getUserName();
+          String password = account.getPassword();
+          playerMgr.getPlayerByLogin(this, account.getUserName()).setName(account.getRealName());
           ConnectionConfiguration config = new ConnectionConfiguration(host, port);
           config.setSecurityMode(ConnectionConfiguration.SecurityMode.disabled);
           config.setCompressionEnabled(true);
@@ -156,34 +163,41 @@ public class JabberClient implements ChatServerConnection, PacketListener, Serve
           conn = new XMPPConnection(config);
           conn.connect();
           conn.addConnectionListener(new ConnectionListener());
-          if (username == null || password == null) {
-            conn.loginAnonymously();
+          try {
+            conn.login(username, password, "VASSAL");
           }
-          else {
-            try {
-              conn.login(username, password, "VASSAL");
-            }
-            catch (XMPPException e) {
-              // Create the account if it doesn't exist
-              if (e.getXMPPError().getCode() == 401) {
-                Map<String, String> attributes = new HashMap<String, String>();
-                attributes.put("name", me.getName());
+          catch (XMPPException e) {
+            // Create the account if it doesn't exist
+            if (e.getXMPPError() != null && e.getXMPPError().getCode() == 401) {
+              Map<String, String> attributes = new HashMap<String, String>();
+              attributes.put("name", me.getName());
+              try {
                 conn.getAccountManager().createAccount(username, password, attributes);
-                conn.login(username, password);
-                VCard c = new VCard();
-                c.setNickName(me.getName());
-                c.save(conn);
               }
-              else {
-                throw e;
+              catch (XMPPException createAccountError) {
+                if (createAccountError.getXMPPError() != null && createAccountError.getXMPPError().getCode() == 409) {
+                  // Account already exists. Password is incorrect
+                  fireStatus(Resources.getString("Chat.invalid_password", username));
+                  setConnected(false);
+                  return;
+                }
+                else {
+                  throw e;
+                }
               }
+              conn.login(username, password, "VASSAL");
+              VCard c = new VCard();
+              c.setNickName(me.getName());
+              c.save(conn);
+            }
+            else {
+              throw e;
             }
           }
           monitor = new MonitorRooms();
+          monitor.init();
           propSupport.firePropertyChange(CONNECTED, null, Boolean.TRUE);
           setRoom(defaultRoom);
-          // poll = new Timer();
-          // poll.scheduleAtFixedRate(new PollRoomsThread(),1000,30000);
         }
         catch (XMPPException e) {
           reportXMPPException(e);
@@ -224,29 +238,20 @@ public class JabberClient implements ChatServerConnection, PacketListener, Serve
     messageBoardControls.initializeControls(controls);
     roomControls.initializeControls(controls);
     // serverStatusControls.initializeControls(controls);
-    // GameModule.getGameModule().addCommandEncoder(synchEncoder);
+    GameModule.getGameModule().addCommandEncoder(synchEncoder);
     // GameModule.getGameModule().addCommandEncoder(privateChatEncoder);
     // GameModule.getGameModule().addCommandEncoder(soundEncoder);
-    // me.setName((String) GameModule.getGameModule().getPrefs().getValue(GameModule.REAL_NAME));
-    // GameModule.getGameModule().getPrefs().getOption(GameModule.REAL_NAME).addPropertyChangeListener(nameChangeListener);
-    SimpleStatus s = (SimpleStatus) me.getStatus();
-    // s = new SimpleStatus(s.isLooking(), s.isAway(), (String)
-    // GameModule.getGameModule().getPrefs().getValue(GameModule.PERSONAL_INFO));
-    me.setStatus(s);
-    // GameModule.getGameModule().getPrefs().getOption(GameModule.PERSONAL_INFO).addPropertyChangeListener(profileChangeListener);
     controls.getRoomTree().setCellRenderer(new LockableRoomTreeRenderer());
   }
 
   public void uninitializeControls(ChatServerControls controls) {
     messageBoardControls.uninitializeControls(controls);
     roomControls.uninitializeControls(controls);
-    // serverStatusControls.uninitializeControls(controls);
     playerStatusControls.uninitializeControls(controls);
-    // GameModule.getGameModule().removeCommandEncoder(synchEncoder);
+    // serverStatusControls.uninitializeControls(controls);
+    GameModule.getGameModule().removeCommandEncoder(synchEncoder);
     // GameModule.getGameModule().removeCommandEncoder(privateChatEncoder);
     // GameModule.getGameModule().removeCommandEncoder(soundEncoder);
-    // GameModule.getGameModule().getPrefs().getOption(GameModule.REAL_NAME).removePropertyChangeListener(nameChangeListener);
-    // GameModule.getGameModule().getPrefs().getOption(GameModule.PERSONAL_INFO).removePropertyChangeListener(profileChangeListener);
   }
 
   public void processPacket(Packet packet) {
@@ -275,7 +280,7 @@ public class JabberClient implements ChatServerConnection, PacketListener, Serve
       }
       if (!newRoom.equals(getRoom())) {
         leaveCurrentRoom();
-        currentChat = newRoom.join(this, me);
+        currentChat = newRoom.join(this, (JabberPlayer) getUserInfo());
         monitor.sendRoomChanged();
       }
     }
@@ -299,12 +304,12 @@ public class JabberClient implements ChatServerConnection, PacketListener, Serve
   }
 
   public Player getUserInfo() {
-    return me;
+    return playerMgr.getPlayerByLogin(this, account.getUserName());
   }
 
   public void setUserInfo(Player p) {
     if (monitor != null) {
-      monitor.sendStatus((SimpleStatus) p.getStatus());
+      monitor.sendStatus((SimplePlayer) p);
     }
   }
 
@@ -369,9 +374,12 @@ public class JabberClient implements ChatServerConnection, PacketListener, Serve
       }
     };
 
-    public MonitorRooms() throws XMPPException {
-      super();
-      this.monitorRoom = new MultiUserChat(conn, StringUtils.escapeNode(getModule()) + "@" + getConferenceService());
+    public void init() throws XMPPException {
+      new TrackRooms().addTo(conn);
+      new TrackStatus(getMonitorRoomJID().toLowerCase()).addTo(conn);
+      monitorRoom = new MultiUserChat(conn, getMonitorRoomJID());
+      monitorRoom.addMessageListener(this);
+      monitorRoom.addParticipantStatusListener(this);
       monitorRoom.join(StringUtils.parseName(conn.getUser()));
       try {
         // This is necessary to create the room if it doesn't already exist
@@ -383,29 +391,24 @@ public class JabberClient implements ChatServerConnection, PacketListener, Serve
           throw ex;
         }
       }
-      TrackRooms r = new TrackRooms();
-      conn.addPacketListener(r, r);
-      TrackStatus s = new TrackStatus();
-      conn.addPacketListener(s, s);
-      for (Iterator it = monitorRoom.getOccupants(); it.hasNext();) {
-        String jid = (String) it.next();
-        JabberPlayer player = playerMgr.getPlayer(getAbsolutePlayerJID(jid));
-        sendRoomQuery(player.getJid());
-      }
-      monitorRoom.addMessageListener(this);
-      monitorRoom.addParticipantStatusListener(this);
     }
 
-    public void sendStatus(SimpleStatus s) {
-      sendStatus(s,null);
+    public String getMonitorRoomJID() {
+      return StringUtils.escapeNode(getModule()) + "@" + getConferenceService();
     }
 
-    public void sendStatus(SimpleStatus s, String recipient) {
+    public void sendStatus(SimplePlayer p) {
+      sendStatus(p, null);
+    }
+
+    public void sendStatus(SimplePlayer player, String recipient) {
+      SimpleStatus s = (SimpleStatus) player.getStatus();
       Presence p = new Presence(Presence.Type.available);
       p.setStatus("");
       p.setMode(Presence.Mode.chat);
       p.setProperty("looking", s.isLooking());
       p.setProperty("away", s.isAway());
+      p.setProperty("realName",player.getName());
       p.setTo(recipient == null ? monitorRoom.getRoom() : recipient);
       conn.sendPacket(p);
     }
@@ -464,6 +467,7 @@ public class JabberClient implements ChatServerConnection, PacketListener, Serve
     }
 
     private void sendRoomQuery(String jid) {
+      System.out.println("Sending room query to " + jid);
       DiscoverItems disco = new DiscoverItems();
       disco.setType(IQ.Type.GET);
       disco.setTo(jid);
@@ -481,7 +485,7 @@ public class JabberClient implements ChatServerConnection, PacketListener, Serve
     }
 
     public void joined(String participant) {
-      sendStatus((SimpleStatus) me.getStatus());
+      playerMgr.getPlayer(getAbsolutePlayerJID(participant));
     }
 
     public void left(String participant) {
@@ -527,67 +531,75 @@ public class JabberClient implements ChatServerConnection, PacketListener, Serve
     }
 
     public void nicknameChanged(String participant, String newNickname) {
-      System.out.println(participant + ":" + newNickname);
     }
-    private class TrackStatus implements PacketListener, PacketFilter {
-      public boolean accept(Packet packet) {
+    private class TrackStatus extends PacketProcessor {
+      String prefix;
+
+      public TrackStatus(String prefix) {
+        this.prefix = prefix;
+      }
+
+      public boolean acceptPacket(Packet packet) {
         boolean accept = false;
         if (packet instanceof Presence) {
           Presence p = (Presence) packet;
-          if (p.getType() == Presence.Type.available) {
-            accept = true;
+          if (p.getType() == Presence.Type.available && p.getMode() == Presence.Mode.chat) {
+            String name = p.getFrom();
+            if (name != null && name.toLowerCase().startsWith(prefix)) {
+              accept = true;
+            }
           }
         }
         return accept;
       }
 
-      public void processPacket(Packet packet) {
+      public void process(Packet packet) {
         Presence p = (Presence) packet;
         JabberPlayer player = playerMgr.getPlayer(getAbsolutePlayerJID(p.getFrom()));
         SimpleStatus status = (SimpleStatus) player.getStatus();
-        status = new SimpleStatus((Boolean)p.getProperty("looking"), (Boolean)p.getProperty("away"),status.getProfile());
+        String profile = status == null ? "" : status.getProfile();
+        Object looking = p.getProperty("looking");
+        Object away = p.getProperty("away");
+        status = new SimpleStatus(looking == null ? false : (Boolean) looking, away == null ? false : (Boolean) away, profile);
         player.setStatus(status);
+        player.setName(String.valueOf(p.getProperty("realName")));
         fireRoomsUpdated();
       }
     }
-    private class TrackRooms implements PacketListener, PacketFilter {
-      private boolean initialized = true;
-      private PacketFilter filter = new AndFilter(new IQTypeFilter(IQ.Type.RESULT), new PacketTypeFilter(DiscoverItems.class));
+    private class TrackRooms extends PacketProcessor {
+      private PacketFilter roomResponseFilter = new AndFilter(new IQTypeFilter(IQ.Type.RESULT), new PacketTypeFilter(DiscoverItems.class));
+      private PacketFilter newPlayerFilter = new AndFilter(new PacketTypeFilter(Presence.class), new FromContainsFilter(getMonitorRoomJID()));
 
       public TrackRooms() {
-        // When we first create this listener, we expect a flood of updates from all the players already connected to
-        // the server
-        // Instead of updating the list of rooms for each player on the server, we sleep and send one event
-        // new Thread() {
-        // public void run() {
-        // try {
-        // Thread.sleep(3000);
-        // }
-        // catch (InterruptedException e) {
-        // }
-        // initialized = true;
-        // fireRoomsUpdated();
-        // }
-        // }.start();
       }
 
-      public void processPacket(Packet packet) {
-        DiscoverItems result = (DiscoverItems) packet;
-        JabberPlayer player = playerMgr.getPlayer(packet.getFrom());
-        // Collect the entityID for each returned item
-        for (Iterator<DiscoverItems.Item> items = result.getItems(); items.hasNext();) {
-          String roomJID = items.next().getEntityID();
-          if (!roomJID.equals(monitorRoom.getRoom())) {
-            player.join(roomMgr.getRoomByJID(JabberClient.this, roomJID));
+      public void process(Packet packet) {
+        if (roomResponseFilter.accept(packet)) {
+          DiscoverItems result = (DiscoverItems) packet;
+          JabberPlayer player = playerMgr.getPlayer(packet.getFrom());
+          // Collect the entityID for each returned item
+          for (Iterator<DiscoverItems.Item> items = result.getItems(); items.hasNext();) {
+            String roomJID = items.next().getEntityID();
+            if (!roomJID.equals(monitorRoom.getRoom())) {
+              player.join(roomMgr.getRoomByJID(JabberClient.this, roomJID));
+            }
           }
-        }
-        if (initialized) {
           fireRoomsUpdated();
         }
+        else if (newPlayerFilter.accept(packet)) {
+          sendRoomQuery(getAbsolutePlayerJID(packet.getFrom()));
+        }
       }
 
-      public boolean accept(Packet packet) {
-        return filter.accept(packet) && QUERY_ROOMS.equals(((DiscoverItems) packet).getNode());
+      public boolean acceptPacket(Packet packet) {
+        boolean accept = false;
+        if (roomResponseFilter.accept(packet)) {
+          accept = QUERY_ROOMS.equals(((DiscoverItems) packet).getNode());
+        }
+        else if (newPlayerFilter.accept(packet)) {
+          accept = ((Presence) packet).isAvailable();
+        }
+        return accept;
       }
     }
   }
@@ -661,10 +673,27 @@ public class JabberClient implements ChatServerConnection, PacketListener, Serve
         return null;
       }
     };
-    String username = args.length == 0 ? "test" : args[0];
-    String password = args.length == 0 ? "test" : args[1];
-//    JabberClient client = new JabberClient(c, "63.144.41.3", 5222, username, password);
-    JabberClient client = new JabberClient(c, "localhost", 5222, username, password);
+    final String username = args.length == 0 ? "test" : args[0];
+    final String password = args.length == 0 ? "test" : args[1];
+    // JabberClient client = new JabberClient(c, "63.144.41.3", 5222, username, password);
+    AccountInfo account = new AccountInfo() {
+      public String getPassword() {
+        return password;
+      }
+
+      public String getUserName() {
+        return username;
+      }
+
+      public String getModule() {
+        return "JabberTestModule";
+      }
+
+      public String getRealName() {
+        return username;
+      }
+    };
+    JabberClient client = new JabberClient(c, "localhost", 5222, account);
     client.addPropertyChangeListener(new PropertyChangeListener() {
       public void propertyChange(PropertyChangeEvent evt) {
         System.err.println(evt.getPropertyName() + "=" + evt.getNewValue());
@@ -686,5 +715,13 @@ public class JabberClient implements ChatServerConnection, PacketListener, Serve
 
   public String getHost() {
     return host;
+  }
+
+  public String playerToString(Player p) {
+    return ((JabberPlayer)p).getJid();
+  }
+
+  public Player stringToPlayer(String s) {
+    return playerMgr.getPlayer(s);
   }
 }

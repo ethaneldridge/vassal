@@ -78,6 +78,7 @@ public class LaunchButton extends JButton {
     });
     GameModule.getGameModule().addKeyStrokeListener(keyListener);
     addActionListener(al);
+    setFocusable(false);
   }
 
   protected void fireActionPerformed(ActionEvent event) {
