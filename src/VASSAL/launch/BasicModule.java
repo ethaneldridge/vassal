@@ -1,8 +1,26 @@
+/*
+ * Copyright (c) 2000-2007 by Rodney Kinney
+ *
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Library General Public
+ * License (LGPL) as published by the Free Software Foundation.
+ *
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * Library General Public License for more details.
+ *
+ * You should have received a copy of the GNU Library General Public
+ * License along with this library; if not, copies are available
+ * at http://www.opensource.org.
+ */
+
 package VASSAL.launch;
 
 import java.awt.Rectangle;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.KeyEvent;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.io.File;
@@ -10,6 +28,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import javax.swing.JMenuItem;
 import org.w3c.dom.Document;
+import org.w3c.dom.Element;
 import VASSAL.build.Buildable;
 import VASSAL.build.Builder;
 import VASSAL.build.GameModule;
@@ -40,13 +59,15 @@ import VASSAL.configure.StringConfigurer;
 import VASSAL.configure.TextConfigurer;
 import VASSAL.i18n.Language;
 import VASSAL.i18n.Resources;
+import VASSAL.launch.EditorWindow;
+import VASSAL.launch.PlayerWindow;
 import VASSAL.preferences.PositionOption;
 import VASSAL.preferences.Prefs;
 import VASSAL.tools.DataArchive;
 import VASSAL.tools.SequenceEncoder;
 
 public class BasicModule extends GameModule {
-  private static char COMMAND_SEPARATOR = (char) java.awt.event.KeyEvent.VK_ESCAPE;
+  private static char COMMAND_SEPARATOR = (char) KeyEvent.VK_ESCAPE;
   protected ChatServerControls serverControls;
 
   public BasicModule(DataArchive archive) {
@@ -90,18 +111,39 @@ public class BasicModule extends GameModule {
       throw new IllegalArgumentException(ex.getMessage());
     }
 
-    getFileMenu().add(getPrefs().getEditor().getEditAction());
-    final JMenuItem q = new JMenuItem(Resources.getString(Resources.QUIT));
-    q.addActionListener(new ActionListener() {
+    final PlayerWindow pw = PlayerWindow.getInstance();
+
+    pw.setMenuItem(PlayerWindow.MenuKey.EDIT_PREFS,
+                   getPrefs().getEditor().getEditAction());
+
+    // setup quit items
+    final JMenuItem quitItem =
+      new JMenuItem(Resources.getString(Resources.QUIT));
+    quitItem.setMnemonic('Q');
+    quitItem.addActionListener(new ActionListener() {
       public void actionPerformed(ActionEvent e) {
         quit();
       }
     });
-    q.setMnemonic('Q');
-    getFileMenu().add(q);
+ 
+    pw.setMenuItem(PlayerWindow.MenuKey.QUIT, quitItem);
+
+    if (EditorWindow.hasInstance()) {
+      final EditorWindow ew = ModuleEditorWindow.getInstance();
+      final JMenuItem edQuitItem =
+        new JMenuItem(Resources.getString(Resources.QUIT));
+      edQuitItem.setMnemonic('Q');
+      edQuitItem.addActionListener(new ActionListener() {
+        public void actionPerformed(ActionEvent e) {
+          quit();
+        }
+      });
+
+      ew.setMenuItem(EditorWindow.MenuKey.QUIT, edQuitItem);
+    }
   }
 
-  public void build(org.w3c.dom.Element e) {
+  public void build(Element e) {
     /*
      * We determine the name of the module at the very beginning, so we know which preferences to read
      */
@@ -174,7 +216,8 @@ public class BasicModule extends GameModule {
       return null;
     }
     Command c = null;
-    SequenceEncoder.Decoder st = new SequenceEncoder.Decoder(command, COMMAND_SEPARATOR);
+    final SequenceEncoder.Decoder st =
+      new SequenceEncoder.Decoder(command, COMMAND_SEPARATOR);
     String first = st.nextToken();
     if (command.equals(first)) {
       c = decodeSubCommand(first);
@@ -241,17 +284,21 @@ public class BasicModule extends GameModule {
   }
 
   protected void initFrame() {
-    Rectangle screen = VASSAL.Info.getScreenBounds(frame);
-    String key = "BoundsOfGameModule"; //$NON-NLS-1$
+    final Rectangle screen = VASSAL.Info.getScreenBounds(frame);
+
     if (GlobalOptions.getInstance().isUseSingleWindow()) {
+// FIXME: annoying!
       frame.setLocation(screen.getLocation());
       frame.setSize(screen.width, screen.height / 3);
     }
     else {
-      Rectangle r = new Rectangle(0, 0, screen.width, screen.height / 4);
+      final String key = "BoundsOfGameModule"; //$NON-NLS-1$
+      final Rectangle r = new Rectangle(0, 0, screen.width, screen.height / 4);
       getPrefs().addOption(new PositionOption(key, frame, r));
     }
-    String mess = Resources.getString("BasicModule.version_message", gameName, moduleVersion); //$NON-NLS-1$
+
+    final String mess = Resources.getString(
+      "BasicModule.version_message", gameName, moduleVersion); //$NON-NLS-1$
     warn(mess);
     System.err.println("-- " + mess); //$NON-NLS-1$
     frame.setTitle(gameName);

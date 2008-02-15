@@ -50,6 +50,7 @@ import VASSAL.command.NullCommand;
 import VASSAL.configure.DirectoryConfigurer;
 import VASSAL.counters.GamePiece;
 import VASSAL.i18n.Resources;
+import VASSAL.launch.PlayerWindow;
 import VASSAL.tools.ArchiveWriter;
 import VASSAL.tools.BackgroundTask;
 import VASSAL.tools.BridgeStream;
@@ -76,7 +77,8 @@ public class GameState implements CommandEncoder {
   /**
    * Expects to be added to a GameModule.  Adds <code>New</code>,
    * <code>Load</code>, <code>Close</code>, and <code>Save</code>
-   * entries to the <code>File</code> menu of the controls window */
+   * entries to the <code>File</code> menu of the controls window
+   */
   public void addTo(GameModule mod) {
     loadGame = new JMenuItem(Resources.getString("GameState.load_game"));  //$NON-NLS-1$
     loadGame.addActionListener(new ActionListener() {
@@ -111,10 +113,11 @@ public class GameState implements CommandEncoder {
     });
     closeGame.setMnemonic('C');
 
-    mod.getFileMenu().insert(newGame, 0);
-    mod.getFileMenu().add(loadGame);
-    mod.getFileMenu().add(saveGame);
-    mod.getFileMenu().add(closeGame);
+    final PlayerWindow pw = PlayerWindow.getInstance();
+    pw.setMenuItem(PlayerWindow.MenuKey.NEW_GAME, newGame);
+    pw.setMenuItem(PlayerWindow.MenuKey.OPEN_GAME, loadGame);
+    pw.setMenuItem(PlayerWindow.MenuKey.SAVE_GAME, saveGame);
+    pw.setMenuItem(PlayerWindow.MenuKey.CLOSE_GAME, closeGame);
 
     saveGame.setEnabled(gameStarting);
     closeGame.setEnabled(gameStarting);
@@ -177,7 +180,7 @@ public class GameState implements CommandEncoder {
    * @return an iterator of all {@link GameSetupStep}s that are not
    * yet finished
    */
-  public Iterator getUnfinishedSetupSteps() {
+  public Iterator<GameSetupStep> getUnfinishedSetupSteps() {
     ArrayList<GameSetupStep> l = new ArrayList<GameSetupStep>();
     for (GameSetupStep step : setupSteps) {
       if (!step.isFinished()) {
@@ -220,6 +223,9 @@ public class GameState implements CommandEncoder {
     newGame.setEnabled(!gameStarting);
     saveGame.setEnabled(gameStarting);
     closeGame.setEnabled(gameStarting);
+    PlayerWindow.getInstance()
+                .getMenuItem(PlayerWindow.MenuKey.EDIT_MODULE)
+                .setEnabled(!gameStarting);
 
     if (gameStarting) {
       loadGame.setText(Resources.getString("GameState.load_continuation"));  //$NON-NLS-1$
@@ -551,7 +557,7 @@ public class GameState implements CommandEncoder {
    * in the game. Used when saving a game.
    */
   public Command getRestorePiecesCommand() {
-    ArrayList<GamePiece> pieceList = new ArrayList<GamePiece>();
+    final ArrayList<GamePiece> pieceList = new ArrayList<GamePiece>();
     for (GamePiece p : pieces.values()) {
       int index = 0;
       if (p.getParent() == null) {
@@ -560,7 +566,8 @@ public class GameState implements CommandEncoder {
       // TODO remove stacks that were empty when the game was loaded and are still empty now 
       pieceList.add(index, p);
     }
-    Command c = new NullCommand();
+
+    final Command c = new NullCommand();
     for (GamePiece p : pieceList) {
       c.append(new AddPiece(p));
     }

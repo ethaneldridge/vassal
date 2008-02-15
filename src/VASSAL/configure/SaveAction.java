@@ -23,19 +23,25 @@ import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.ImageIcon;
 
+import VASSAL.i18n.Resources;
+
 /**
  * General-purpose "Save" action
  */
 public abstract class SaveAction extends AbstractAction {
+  protected String parentType = "";
+  
   public SaveAction() {
-    URL iconURL = getClass().getResource("/images/Save16.gif");
+    final URL iconURL = getClass().getResource("/images/Save16.gif");
     if (iconURL != null) {
       putValue(Action.SMALL_ICON, new ImageIcon(iconURL));
     }
-    else {
-      putValue(Action.NAME, "Save");
-    }
-    putValue(Action.SHORT_DESCRIPTION, "Save");
+
+    putValue(Action.NAME, Resources.getString("Editor.save", parentType));
+    putValue(Action.SHORT_DESCRIPTION, Resources.getString("Editor.save", parentType));
   }
 
+  public void setParent(String p) {
+    parentType = p;
+  }
 }

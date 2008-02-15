@@ -18,6 +18,8 @@ package VASSAL.launch;
 
 import java.awt.Component;
 import java.awt.event.ActionEvent;
+
+import VASSAL.build.GameModule;
 import VASSAL.build.module.ModuleExtension;
 import VASSAL.i18n.Resources;
 import VASSAL.tools.ArchiveWriter;
@@ -31,12 +33,12 @@ public class NewExtensionAction extends GameModuleAction {
   private static final long serialVersionUID = 1L;
 
   public NewExtensionAction(Component comp) {
-    super(Resources.getString(Resources.NEW), comp);
+    super(Resources.getString("Editor.new_extension"), comp);
   }
 
   public void performAction(ActionEvent e) {
     ModuleExtension ext = new ModuleExtension(new ArchiveWriter((String) null));
     ext.build();
-    new VASSAL.configure.ExtensionEditWindow(ext).setVisible(true);
+    ExtensionEditorWindow.getInstance().moduleLoading(GameModule.getGameModule(), ext);
   }
 }
