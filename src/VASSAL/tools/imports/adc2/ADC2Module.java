@@ -121,7 +121,8 @@ import VASSAL.tools.imports.adc2.SymbolSet.SymbolData;
 
 public class ADC2Module extends Importer {
   
-  private static final String CHARTS = "Charts";
+  private static final String PC_NAME = "$pcName$";
+private static final String CHARTS = "Charts";
   private static final String TRAY = "Tray";
   private static final String FORCE_POOL_PNG = "forcePool.png";
   private static final String FORCE_POOL = "Force Pool";
@@ -360,9 +361,11 @@ public class ADC2Module extends Importer {
   }
   
   private final HashSet<String> uniquePieceNames = new HashSet<String>();
+  public static boolean usePieceNames = false;
   
   public class Piece {
-    public final PieceClass pieceClass;
+    private static final String PIECE_PROPERTIES = "Piece Properties";
+	public final PieceClass pieceClass;
     public final HideState hideState;
     private final int[] values = new int[8];
     private final ValueType[] types = new ValueType[8];
@@ -372,6 +375,9 @@ public class ADC2Module extends Importer {
     private GamePiece gamePiece;
     private PieceSlot pieceSlot;
     private final int position;
+	private PropertySheet classPS = null;
+	private PropertySheet piecePS = null;
+	private Marker pieceNameMarker = null;
   
     public Piece(PieceClass cl) {
       this.name = null;
@@ -427,7 +433,7 @@ public class ADC2Module extends Importer {
     public boolean equals(Object obj) {
       if (!(obj instanceof Piece))
         return false;
-      if (getName().equals(((Piece) obj).getName()) && pieceClass == ((Piece) obj).pieceClass)
+      if (getUniqueClassName().equals(((Piece) obj).getUniqueClassName()) && pieceClass == ((Piece) obj).pieceClass)
         return true;
       else
         return false;
@@ -491,17 +497,31 @@ public class ADC2Module extends Importer {
       String path = se.getValue();
       
       // find insertion point
-      GamePiece outer;
-      if (gamePiece.getClass() == Hideable.class || gamePiece.getClass() == Obscurable.class) {
-        outer = gamePiece; 
-        gamePiece = ((Decorator) gamePiece).getInner();
+      // try to place between class and piece property sheets.
+      GamePiece outer = null;
+      GamePiece candidate = Decorator.getDecorator(gamePiece, PropertySheet.class);
+      if (candidate == null) { // no class or piece properties
+    	  // make sure flip is inaccessible when hidden
+    	  if (gamePiece.getClass() == Hideable.class || gamePiece.getClass() == Obscurable.class) {
+    		  outer = gamePiece; 
+    		  gamePiece = ((Decorator) gamePiece).getInner();
+    	  }
       }
-      else
-        outer = null;
-      
+      else { // piece has either class or piece properties
+    	  PropertySheet prop = (PropertySheet) candidate;
+    	  if (prop == classPS) { // make sure class properties change if flipped
+    		  outer = classPS;
+    		  gamePiece = prop.getInner();
+    	  }
+    	  else if (prop == piecePS) { // make sure piece properties don't change if flipped
+    		  outer = prop.getOuter();
+    		  gamePiece = prop;
+    	  }
+      }
+            
       // set replacement
       se = new SequenceEncoder(path, ';');
-      se.append("null").append(0).append(0).append(true);
+      se.append("null").append(0).append(0).append(true).append((KeyStroke) null).append("").append("").append(true);
       gamePiece = new Replace(Replace.ID + "Flip;F;" + se.getValue(), gamePiece);
       if (outer != null) {
         ((Decorator) outer).setInner(gamePiece);
@@ -519,7 +539,7 @@ public class ADC2Module extends Importer {
         // TODO: implement a YES_NO field type for PropertySheets
         // and a stack property viewer.
         // Piece values
-        appendDecorator(getPropertySheet());
+        appendDecorator(getPieceNameMarker());
         appendDecorator(getDynamicProperty());
         appendDecorator(getPieceValueMask());
         appendDecorator(getMovementMarkable());
@@ -527,13 +547,28 @@ public class ADC2Module extends Importer {
         appendDecorator(getAttackedEmbellishment());
         appendDecorator(getFreeRotator());
         appendDecorator(getUsePrototype());
+        appendDecorator(getPiecePropertySheet());
+        appendDecorator(getClassPropertySheet());
         appendDecorator(getHidden());
       }
       
       return gamePiece;
     }
 
-    private void appendDecorator(Decorator p) {
+    private Marker getPieceNameMarker() {
+    	if (pieceNameMarker == null) {
+    		if (name != null && name.length() > 0) {
+    			usePieceNames = true;
+    		}
+    		pieceNameMarker = new Marker(Marker.ID + "pcName", null);
+    		final SequenceEncoder se = new SequenceEncoder(',');
+    		se.append(name == null ? "" : name);
+    		pieceNameMarker.mySetState(se.getValue());
+    	}
+    	return pieceNameMarker;
+	}
+
+	private void appendDecorator(Decorator p) {
       if (p != null) {
         p.setInner(gamePiece);
         gamePiece = p;
@@ -617,66 +652,59 @@ public class ADC2Module extends Importer {
 
      //TODO:  add more math functions to MouseOverStackViewer including min(), max(), and mean().
     //     and antialiased characters in MouseOverStackViewer
-    protected PropertySheet getPropertySheet() {
-      PropertySheet p = pieceClass.getPropertySheetDecorator();
-      
-      if (p != null) {
-        SequenceEncoder.Decoder decoder = new SequenceEncoder.Decoder(p.myGetType().substring(PropertySheet.ID.length()), ';');
-          String definition = decoder.nextToken();
-          String menuName = decoder.nextToken();
-          char launchKey = decoder.nextChar('\0');
-          int commitStyle = decoder.nextInt(0);
-          String red = decoder.hasMoreTokens() ? decoder.nextToken() : "";
-          String green = decoder.hasMoreTokens() ? decoder.nextToken() : "";
-          String blue = decoder.hasMoreTokens() ? decoder.nextToken() : "";
-    
-        SequenceEncoder se = new SequenceEncoder('~');
-        SequenceEncoder state = new SequenceEncoder('~');
-        for(int i = 0; i < pieceValues.length; ++i) {
-          if (pieceValues[i] != null && !pieceValues[i].equals("")) {
-            se.append("0" + pieceValues[i]);
-            Object o = getValue(i);
-            if (o instanceof String)
-              state.append((String) o);
-            else if (o instanceof Integer)
-              state.append(o.toString());
-            else if (o instanceof Boolean)
-              state.append(o.equals(Boolean.TRUE) ? "yes" : "no");
-            else
-              state.append("");
-          }
-        }
-        
-        if (definition.length() == 0) {
-          definition = se.getValue();
-        }
-        else if (se.getValue() != null) {
-          definition = definition + "~" + se.getValue();
-        }
-        
-        String st = p.myGetState();
-        if (st == null) {
-          st = state.getValue();
-        }
-        else if (state.getValue() != null) {
-          st = p.myGetState() + "~" + state.getValue();
-        }
-        
-        if (definition != null && definition.length() > 0) {
-          se = new SequenceEncoder(definition, ';'); // properties
-          se.append(menuName); // menu name
-          se.append(launchKey); // key
-          se.append(commitStyle); // commit
-          se.append(red).append(green).append(blue); // colour
-          p.mySetType(PropertySheet.ID + se.getValue());
-          p.mySetState(st);
-        }
-        else {
-          p = null;
-        }
-      }
+    protected PropertySheet getPiecePropertySheet() {
+    	if (piecePS == null) {
+    		piecePS = new PropertySheet();
+    		SequenceEncoder se = new SequenceEncoder('~');
+    		SequenceEncoder state = new SequenceEncoder('~');
+    		for(int i = 0; i < pieceValues.length; ++i) {
+    			if (pieceValues[i] != null && !pieceValues[i].equals("")) {
+    				se.append("0" + pieceValues[i]);
+    				Object o = getValue(i);
+    				if (o instanceof String)
+    					state.append((String) o);
+    				else if (o instanceof Integer)
+    					state.append(o.toString());
+    				else if (o instanceof Boolean)
+    					state.append(o.equals(Boolean.TRUE) ? "yes" : "no");
+    				else
+    					state.append("");
+    			}
+    		}
 
-      return p;
+    		String definition = se.getValue();
+
+    		String st = piecePS.myGetState();
+    		if (st == null) {
+    			st = state.getValue();
+    		}
+    		else if (state.getValue() != null) {
+    			st = piecePS.myGetState() + "~" + state.getValue();
+    		}
+
+    		if (definition != null && definition.length() > 0) {
+    			se = new SequenceEncoder(';'); // properties
+    			se.append(definition);
+    			se.append(PIECE_PROPERTIES); // menu name
+    			se.append('P'); // key
+    			se.append(0); // commit
+    			se.append("").append("").append(""); // colour
+    			piecePS.mySetType(PropertySheet.ID + se.getValue());
+    			piecePS.mySetState(st);
+    		}
+    		else {
+    			piecePS = null;
+    		}
+    	}
+    	
+    	return piecePS;
+    }
+    
+    protected PropertySheet getClassPropertySheet() {
+    	if (classPS == null) {
+    		classPS = pieceClass.getPropertySheetDecorator();
+    	}
+    	return classPS;
     }
     
     protected DynamicProperty getDynamicProperty() {
@@ -691,7 +719,7 @@ public class ADC2Module extends Importer {
       if (fileName == null)
         return null;
       SequenceEncoder se = new SequenceEncoder(BasicPiece.ID, ';');
-      se.append("").append("").append(fileName).append(getName());
+      se.append("").append("").append(fileName).append(getUniqueClassName());
       return new BasicPiece(se.getValue());
     }
 
@@ -712,11 +740,12 @@ public class ADC2Module extends Importer {
       return (flags & 0x10) > 0;
     }
 
-    public String getName() {
-      if (name == null)
-        return pieceClass.getUniqueName();
-      else
-        return pieceClass.getUniqueName() + " " + name;
+    public String getUniqueClassName() {
+    	return pieceClass.getUniqueName();
+    }
+    
+    public String getClassName() {
+    	return pieceClass.getName();
     }
     
     protected void setValue(int index, String value) {
@@ -997,7 +1026,8 @@ public class ADC2Module extends Importer {
    */
   public class PieceClass {
     
-    protected static final int NO_HIDDEN_SYMBOL = 30001;
+    public static final String CLASS_PROPERTIES = "Class Properties";
+	protected static final int NO_HIDDEN_SYMBOL = 30001;
     protected static final int PLAYER_DEFAULT_HIDDEN_SYMBOL = 30000;
     private final int[] values = new int[8];
     private final ValueType[] types = new ValueType[8];
@@ -1035,10 +1065,11 @@ public class ADC2Module extends Importer {
       return dp;
     }
 
+    // need a unique name for the basic piece so that flip definitions will work
     public String getUniqueName() {
       if (uniqueName == null) {
         uniqueName = getName();
-        int index = 0;
+        int index = 1;
         while (uniquePieceNames.contains(uniqueName)) {
           uniqueName = getName() + " (" + (index++) + ")";
         }
@@ -1069,15 +1100,18 @@ public class ADC2Module extends Importer {
         }
       }
 
-      PropertySheet p = new PropertySheet();
-      SequenceEncoder se = new SequenceEncoder(';'); // properties
-      se.append(type.getValue() == null ? "" : type.getValue());
-      se.append("Properties"); // menu name
-      se.append('P'); // key
-      se.append(0); // commit
-      se.append("").append("").append(""); // colour
-      p.mySetType(PropertySheet.ID + se.getValue());
-      p.mySetState(state.getValue());
+      PropertySheet p = null;
+      if (type.getValue() != null && type.getValue().length() > 0) {
+    	  p = new PropertySheet();
+    	  SequenceEncoder se = new SequenceEncoder(';'); // properties
+    	  se.append(type.getValue() == null ? "" : type.getValue());
+    	  se.append(CLASS_PROPERTIES); // menu name
+    	  se.append('C'); // key
+    	  se.append(0); // commit
+    	  se.append("").append("").append(""); // colour
+    	  p.mySetType(PropertySheet.ID + se.getValue());
+    	  p.mySetState(state.getValue());
+      }
 
       return p;
     }
@@ -2186,10 +2220,8 @@ public class ADC2Module extends Importer {
     GameModule gameModule = GameModule.getGameModule();
     gameModule.setAttribute(GameModule.MODULE_NAME, name);
 
-    configureMouseOverStackViewer(gameModule);
     writePrototypesToArchive(gameModule);
     getMap().writeToArchive();
-    getMainMap().setAttribute(Map.MARK_UNMOVED_ICON, StateFlag.MOVE.getStatusIconName());
     configureStatusFlagButtons();
     configureMapLayers();        
     writeClassesToArchive(gameModule);
@@ -2200,12 +2232,24 @@ public class ADC2Module extends Importer {
     writeToolbarMenuToArchive(gameModule);
     writeSetupStacksToArchive(gameModule);    
     writePlayersToArchive(gameModule);    
+    configureMouseOverStackViewer(gameModule);
+    configureMainMap(gameModule);
     configureDiceRoller(gameModule);
     if (turnNames.size() > 1)  // must have at least two turns
       configureTurnCounter(gameModule);
     if (useLOS)
       insertComponent(new LOS_Thread(), gameModule);
   }
+
+private void configureMainMap(GameModule gameModule) throws IOException {
+	final Map mainMap = getMainMap();
+	mainMap.setAttribute(Map.MARK_UNMOVED_ICON, StateFlag.MOVE.getStatusIconName());
+//	if (usePieceNames) {
+//		mainMap.setAttribute(Map.MOVE_WITHIN_FORMAT, "$" + Map.PIECE_NAME + "$" + "/" + PC_NAME + " moves $" + Map.OLD_LOCATION + "$ -> $" + Map.LOCATION + "$ *");
+//		mainMap.setAttribute(Map.MOVE_TO_FORMAT, "$" + Map.PIECE_NAME + "$" + "/" + PC_NAME + " moves $" + Map.OLD_LOCATION + "$ -> $" + Map.LOCATION + "$ *");
+//		mainMap.setAttribute(Map.CREATE_FORMAT, "$" + Map.PIECE_NAME + "$/" + PC_NAME + " created in $" + Map.LOCATION + "$");
+//	}
+}
 
   private void configureStatusFlagButtons() throws IOException {
     String imageName;
@@ -2380,7 +2424,11 @@ public class ADC2Module extends Importer {
     viewer.setAttribute(CounterDetailViewer.SHOW_TEXT, Boolean.TRUE);
     if (sb.length() > 0)
       sb.append(' ');
+    viewer.setAttribute(CounterDetailViewer.MINIMUM_DISPLAYABLE, "1");
     viewer.setAttribute(CounterDetailViewer.SUMMARY_REPORT_FORMAT, sb.toString() + "($LocationName$)");
+    if (usePieceNames) {
+    	viewer.setAttribute(CounterDetailViewer.COUNTER_REPORT_FORMAT, PC_NAME);
+    }
     viewer.setAttribute(CounterDetailViewer.UNROTATE_PIECES, Boolean.TRUE);
     viewer.setAttribute(CounterDetailViewer.BG_COLOR, Color.WHITE);
   }
