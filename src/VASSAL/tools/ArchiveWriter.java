@@ -68,11 +68,17 @@ public class ArchiveWriter extends DataArchive {
     closeWhenNotInUse = false;
 
     if (archiveName != null) {
-      try {
-        archive = new ZipFile(archiveName);
-      }
-      catch (IOException e) {
-        ReadErrorDialog.error(e, archiveName);
+      final File f = new File(archiveName);
+      if (f.exists()) {
+        try {
+          archive = new ZipFile(f);
+        }
+        catch (IOException e) {
+// FIXME: This isn't quite right, e.g., in the case where the user intends
+// to overwrite the given file, but it isn't a zip file. How to distinguish
+// between that situation and a bona fide I/O error?
+          ReadErrorDialog.error(e, archiveName);
+        }
       }
     }
   }
