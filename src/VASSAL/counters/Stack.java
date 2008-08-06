@@ -463,7 +463,9 @@ public class Stack implements GamePiece, StateMergeable {
     if (!"null".equals(mapId)) {
       m = Map.getMapById(mapId);
       if (m == null) {
-        throw new IllegalStateException("Could not find map " + mapId);
+//        throw new IllegalStateException("Could not find map " + mapId);
+        System.err.println("Could not find map " + mapId);
+        return;
       }
     }
 
