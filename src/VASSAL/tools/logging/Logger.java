@@ -1,7 +1,32 @@
+/*
+ * $Id$
+ *
+ * Copyright (c) 2008 by Joel Uckelman
+ *
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Library General Public
+ * License (LGPL) as published by the Free Software Foundation.
+ *
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * Library General Public License for more details.
+ *
+ * You should have received a copy of the GNU Library General Public
+ * License along with this library; if not, copies are available
+ * at http://www.opensource.org.
+ */
+
 package VASSAL.tools.logging;
 
 import VASSAL.Info;
 
+import java.util.concurrent.CountDownLatch;
+
+/**
+ * @author Joel Uckelman
+ * @since 3.1.0
+ */
 public class Logger {
   private Logger() {}
 
@@ -36,5 +61,33 @@ public class Logger {
 
   public static void log(Throwable thrown, String message, int type) {
     LogManager.enqueue(new LogEntry(pid, type, thrown, message));
+  }
+
+  public static void logAndWait(Throwable thrown, int type) {
+    logAndWait(thrown, null, type);
+  }
+
+  public static void logAndWait(Throwable thrown, String message, int type) {
+    // We create a latch which a special listener will release when
+    // this log entry reaches it; then the listener uninstalls itself.
+    final CountDownLatch latch = new CountDownLatch(1);
+    final LogEntry waiting = new LogEntry(pid, type, thrown, message);
+
+    LogManager.addLogListener(new LogListener() {
+      public void handle(LogEntry entry) {
+        if (entry == waiting) {
+          LogManager.removeLogListener(this);
+          latch.countDown();
+        }
+      }
+    });
+    
+    try {
+      LogManager.enqueue(waiting);
+      latch.await();
+    }
+    catch (InterruptedException e) {
+      log(e);
+    }
   }
 }
