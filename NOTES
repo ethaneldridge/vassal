@@ -27,6 +27,7 @@ Changes since beta6:
 
 A number of problems present in 3.1.0-beta7 are fixed in 3.1.0-beta8:
 
+* Bug 2522301: NPE when loading broken PNGs
 * Bug 2503662: NPE on connection with a newly created module
 * Bug 2502717: NPE in PrefsEditor.save()
 * Bug 2501338: IllegalStateException if cannot create extensions directory 
