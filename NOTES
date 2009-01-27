@@ -1,4 +1,5 @@
-The VASSAL Team is happy to announce the release of VASSAL 3.1.0-beta8.
+The VASSAL Team is happy to announce the release of VASSAL 3.1.0-beta8, the
+final beta release before 3.1.0.
 
 *********************
 Download
@@ -30,6 +31,7 @@ A number of problems present in 3.1.0-beta7 are fixed in 3.1.0-beta8:
 * Bug 2536324: Memory mapped and Scaling prefs missing
 * Bug 2527705: NPE in SelectionHiglighter.addHighlighter()
 * Bug 2522301: NPE when loading broken PNGs
+* Bug 2521503: Bug Dialog Show Details does not repack dialog correctly
 * Bug 2514834: OutOfMemoryError should not be reported as a bug
 * Bug 2503662: NPE on connection with a newly created module
 * Bug 2502717: NPE in PrefsEditor.save()
@@ -56,11 +58,6 @@ New features:
 * New VASSAL application icon.
 * Less ugly Windows installer theme.
 * Die-roll sorting.
-
-
-Other changes:
-
-
 
 Please report all bugs in beta8, even if they are bugs which you've
 already reported against other betas. We take your bug reports very
