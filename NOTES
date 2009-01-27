@@ -22,11 +22,12 @@ http://downloads.sourceforge.net/vassalengine/VASSAL-3.1.0-beta8-src.zip
 
 
 *********************
-Changes since beta6:
+Changes since beta7:
 *********************
 
 A number of problems present in 3.1.0-beta7 are fixed in 3.1.0-beta8:
 
+* Bug 2536324: Memory mapped and Scaling prefs missing
 * Bug 2522301: NPE when loading broken PNGs
 * Bug 2514834: OutOfMemoryError should not be reported as a bug
 * Bug 2503662: NPE on connection with a newly created module
