@@ -22,7 +22,6 @@ package VASSAL.tools.swing;
 import java.awt.Component;
 import java.awt.Container;
 import java.awt.Dimension;
-import java.awt.Insets;
 import java.awt.Window;
 import java.awt.event.ActionEvent;
 import java.awt.event.ComponentAdapter;
@@ -86,7 +85,7 @@ public class DetailsButton extends JButton {
       }
     });
 
-//    if (buddy != null) setBuddy(buddy);
+    if (buddy != null) setBuddy(buddy);
 
     setBorderPainted(false);
     setContentAreaFilled(false);
@@ -108,9 +107,9 @@ public class DetailsButton extends JButton {
   }
 
   /**
-   * Sets the buddy component for the expanding component. The width of the
-   * expanding component is 
-   * component remains visible 
+   * Sets the buddy component for the expanding component.
+   * The width of the expanding component is adjusted to match the width of
+   * the buddy component when the expanding component is invisible.
    *
    * @param comp the buddy component  
    */
@@ -139,9 +138,7 @@ public class DetailsButton extends JButton {
       ws.height += eh;
 
       if (!expander.isPreferredSizeSet()) {
-        final Container parent = expander.getParent();
-        final Insets insets = parent.getInsets();
-        expander.setSize(parent.getWidth() - insets.left - insets.right, 300);
+        expander.setSize(buddy.getWidth(), 300);
       }
     } 
     else {
@@ -194,13 +191,13 @@ public class DetailsButton extends JButton {
         final JScrollPane sp2 = new JScrollPane(b);
 
         final DetailsButton db = new DetailsButton("Show", "Hide", sp2);
-//        db.setBuddy(sp1);
+        db.setBuddy(sp1);
 
         final JPanel contents = new JPanel();
         contents.setLayout(new MigLayout("hidemode 3", "", "[]unrel[]rel[]"));
-        contents.add(sp1, "cell 0 0, grow, push, sizegroupx panes");
+        contents.add(sp1, "cell 0 0, grow, push");
         contents.add(db, "cell 0 1");
-        contents.add(sp2, "cell 0 2, grow, push, sizegroupx panes");
+        contents.add(sp2, "cell 0 2, grow, push");
 
         final JDialog d = new JDialog();
         d.add(contents); 
@@ -223,7 +220,7 @@ public class DetailsButton extends JButton {
         final JScrollPane sp = new JScrollPane(b);
 
         final DetailsButton db = new DetailsButton("Show", "Hide", sp);
-//        db.setBuddy(a);
+        db.setBuddy(a);
 
         final JPanel contents = new JPanel();
         contents.setLayout(
