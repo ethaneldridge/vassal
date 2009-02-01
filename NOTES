@@ -27,6 +27,7 @@ Changes since beta8:
 
 A number of problems present in 3.1.0-beta8 are fixed in 3.1.0:
 
+* Bug 2550316: Manual edit of buildfile can create duplicate PieceSlot ids
 * Bug 2546979: NumberFormatException in ReportState.mySetState()
 
 Please report all bugs, even if they are bugs which you've already reported
@@ -67,11 +68,8 @@ module with one click.
 Help us test
 *********************
 
-This is a beta release, and may still contain some rough edges. Should
-you find any problems/oddities/bugs, please tell us so that we can fix
-them before VASSAL 3.1.0 is released. Also, if you've had problems with
-3.0.x or a previous 3.1.0 beta, please check and let us know if those
-problems are resolved in 3.1.0-beta8.
+Should you find any problems/oddities/bugs, please tell us so that we can
+fix them for the next release of VASSAL.
 
 Report bugs here in the Technical Support & Bugs category at the VASSAL
 forums:
