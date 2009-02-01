@@ -1,5 +1,4 @@
-The VASSAL Team is happy to announce the release of VASSAL 3.1.0-beta8, the
-final beta release before 3.1.0.
+The VASSAL Team is happy to announce the release of VASSAL 3.1.0.
 
 *********************
 Download
@@ -7,61 +6,32 @@ Download
 
 For Windows:
 
-http://downloads.sourceforge.net/vassalengine/VASSAL-3.1.0-beta8-windows.exe
+http://downloads.sourceforge.net/vassalengine/VASSAL-3.1.0-windows.exe
 
 For Mac OS X:
 
-http://downloads.sourceforge.net/vassalengine/VASSAL-3.1.0-beta8-macosx.dmg
+http://downloads.sourceforge.net/vassalengine/VASSAL-3.1.0-macosx.dmg
 
 For Linux (and other platforms):
 
-http://downloads.sourceforge.net/vassalengine/VASSAL-3.1.0-beta8-generic.zip
+http://downloads.sourceforge.net/vassalengine/VASSAL-3.1.0-generic.zip
 
 Source code:
 
-http://downloads.sourceforge.net/vassalengine/VASSAL-3.1.0-beta8-src.zip
+http://downloads.sourceforge.net/vassalengine/VASSAL-3.1.0-src.zip
 
 
 *********************
-Changes since beta7:
+Changes since beta8:
 *********************
 
-A number of problems present in 3.1.0-beta7 are fixed in 3.1.0-beta8:
+A number of problems present in 3.1.0-beta8 are fixed in 3.1.0:
 
-* Bug 2536324: Memory mapped and Scaling prefs missing
-* Bug 2527705: NPE in SelectionHiglighter.addHighlighter()
-* Bug 2522301: NPE when loading broken PNGs
-* Bug 2521503: Bug Dialog Show Details does not repack dialog correctly
-* Bug 2514834: OutOfMemoryError should not be reported as a bug
-* Bug 2503662: NPE on connection with a newly created module
-* Bug 2502717: NPE in PrefsEditor.save()
-* Bug 2501338: IllegalStateException if cannot create extensions directory 
-* Bug 2499980: User Profile display reverting to pre 3.1 version
-* Bug 2499446: NPE when extension directory does not exist
-* Bug 2499238: Return to Deck stacking issue
-* Bug 2498607: Edit extension from another module generates bug report
-* Bug 2497564: No GamePieceImage items when piece first created
-* Bug 2495248: NPE in Replace.replacePiece()
-* Bug 2489325: SocketException in ModuleManager$SocketListener.run()
-* Bug 2446130: Better handling for ModuleManager socket errors
-* Bug 2431468: NumberFormatException in StackMetrics.setAttribute()
-* Bug 2373491: StackOverflowError due to infinite Send-to-location loop
-* Bug 2300943: Module names with apostrophes don't appear in Server Status
-* Bug 2286774: Problems playing modules from folders with '!' in pathname
-* Bug 2286742: Exception loading tutorial while constructing Welcome Wizard
-* Bug 2265820: Prevent StackOverflowErrors due to LaunchButton loops
-* Bug: Main Room must not be lockable
-* Bug: Tooltip for dice button was completely broken.
+* Bug 2546979: NumberFormatException in ReportState.mySetState()
 
-New features:
-
-* New VASSAL application icon.
-* Less ugly Windows installer theme.
-* Die-roll sorting.
-
-Please report all bugs in beta8, even if they are bugs which you've
-already reported against other betas. We take your bug reports very
-seriously---they're the reason we've been able to fix so many bugs.
+Please report all bugs, even if they are bugs which you've already reported
+against other versions. We take your bug reports very seriously---they're
+the reason we've been able to fix so many bugs.
 
 
 *********************
