@@ -27,8 +27,13 @@ Changes since beta8:
 
 A number of problems present in 3.1.0-beta8 are fixed in 3.1.0:
 
+* Bug 2556069: NPE if SendToLocation fails
+* Bug 2555660: Help button in TranslateVassalWindow has bad URL
+* Bug 2550357: Cut components are not available for multiple pastes
+* Bug 2550346: Some Editor Dialogs need Scrollbars
 * Bug 2550316: Manual edit of buildfile can create duplicate PieceSlot ids
 * Bug 2546979: NumberFormatException in ReportState.mySetState()
+* Bug 2543910: ArrayIndexOutOfBoundsException in PieceFinder$Movable
 
 Please report all bugs, even if they are bugs which you've already reported
 against other versions. We take your bug reports very seriously---they're
