@@ -35,8 +35,8 @@ import VASSAL.counters.DeckVisitorDispatcher;
 import VASSAL.counters.GlobalCommand;
 import VASSAL.counters.KeyCommand;
 import VASSAL.counters.PieceFilter;
+import VASSAL.tools.RecursionLimiter.Loopable;
 import VASSAL.tools.SequenceEncoder;
-import VASSAL.tools.InfiniteLoopDetection.Loopable;
 
 /**
  * This version of {@link MassKeyCommand} is added directly to a

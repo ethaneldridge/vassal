@@ -64,14 +64,15 @@ import VASSAL.counters.PieceFilter;
 import VASSAL.i18n.TranslatableConfigurerFactory;
 import VASSAL.tools.FormattedString;
 import VASSAL.tools.LaunchButton;
+import VASSAL.tools.RecursionLimiter;
 import VASSAL.tools.ToolBarComponent;
-import VASSAL.tools.InfiniteLoopDetection;
 
 /**
  * Adds a button to a map window toolbar. Hitting the button applies a particular key command to all pieces on that map
  * with a given name.
  */
-public class MassKeyCommand extends AbstractConfigurable implements InfiniteLoopDetection.Loopable {
+public class MassKeyCommand extends AbstractConfigurable
+                            implements RecursionLimiter.Loopable {
   public static final String DEPRECATED_NAME = "text";
   public static final String NAME = "name";
   public static final String ICON = "icon";

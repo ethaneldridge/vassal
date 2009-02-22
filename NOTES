@@ -27,10 +27,12 @@ Changes since beta8:
 
 A number of problems present in 3.1.0-beta8 are fixed in 3.1.0:
 
+* Bug 2603679: NumberFormatException in FreeRotator.mySetState()
 * Bug 2594850: unnecessary bug report for bad data in PositionOption
 * Bug 2557845: InterruptedException in ImageSaver
 * Bug 2556069: NPE if SendToLocation fails
 * Bug 2555660: Help button in TranslateVassalWindow has bad URL
+* Bug 2551552: Detect deep recursion
 * Bug 2550357: Cut components are not available for multiple pastes
 * Bug 2550346: Some Editor Dialogs need Scrollbars
 * Bug 2550316: Manual edit of buildfile can create duplicate PieceSlot ids

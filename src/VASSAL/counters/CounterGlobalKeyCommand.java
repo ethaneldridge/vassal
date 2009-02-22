@@ -47,13 +47,15 @@ import VASSAL.configure.StringConfigurer;
 import VASSAL.i18n.PieceI18nData;
 import VASSAL.i18n.Resources;
 import VASSAL.i18n.TranslatablePiece;
+import VASSAL.tools.RecursionLimiter;
 import VASSAL.tools.SequenceEncoder;
-import VASSAL.tools.InfiniteLoopDetection;
 
 /**
  * Adds a menu item that applies a {@link GlobalCommand} to other pieces
  */
-public class CounterGlobalKeyCommand extends Decorator implements TranslatablePiece, InfiniteLoopDetection.Loopable {
+public class CounterGlobalKeyCommand extends Decorator
+                                     implements TranslatablePiece,
+                                                RecursionLimiter.Loopable {
   public static final String ID = "globalkey;";
   protected KeyCommand[] command;
   protected String commandName;

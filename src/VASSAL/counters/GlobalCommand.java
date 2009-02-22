@@ -29,9 +29,9 @@ import VASSAL.command.Command;
 import VASSAL.command.NullCommand;
 import VASSAL.tools.ErrorDialog;
 import VASSAL.tools.FormattedString;
-import VASSAL.tools.InfiniteLoopDetection;
-import VASSAL.tools.InfiniteLoopException;
-import VASSAL.tools.InfiniteLoopDetection.Loopable;
+import VASSAL.tools.RecursionLimiter;
+import VASSAL.tools.RecursionLimiter.Loopable;
+import VASSAL.tools.RecursionLimitException;
 
 /**
  * Applies a given keyboard command to all counters on a map
@@ -84,10 +84,11 @@ public class GlobalCommand {
   public Command apply(Map[] m, PieceFilter filter) {
     Command c = new NullCommand();
     try {
-      InfiniteLoopDetection.startExecution(owner);
+      RecursionLimiter.startExecution(owner);
       String reportText = reportFormat.getLocalizedText();
       if (reportText.length() > 0) {
-        c = new Chatter.DisplayText(GameModule.getGameModule().getChatter(), "*" + reportText);
+        c = new Chatter.DisplayText(
+          GameModule.getGameModule().getChatter(), "*" + reportText);
         c.execute();
       }
       for (int mapI = 0; mapI < m.length; ++mapI) {
@@ -108,11 +109,11 @@ public class GlobalCommand {
         c = visitor.getCommand();
       }
     }
-    catch (InfiniteLoopException e) {
+    catch (RecursionLimitException e) {
       ErrorDialog.infiniteLoop(e);
     }
     finally {
-      InfiniteLoopDetection.endExecution();
+      RecursionLimiter.endExecution();
     }
     
     return c;
