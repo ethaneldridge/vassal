@@ -46,14 +46,15 @@ import VASSAL.configure.VisibilityCondition;
 import VASSAL.i18n.TranslatableConfigurerFactory;
 import VASSAL.tools.ErrorDialog;
 import VASSAL.tools.FormattedString;
+import VASSAL.tools.InfiniteLoopDetection;
+import VASSAL.tools.InfiniteLoopException;
 import VASSAL.tools.LaunchButton;
 import VASSAL.tools.SequenceEncoder;
-import VASSAL.tools.ThrowableUtils;
 
 /**
  * This component places a button into the controls window toolbar.
  * Pressing the button displays a message, plays a sound and/or sends hotkeys */
-public class DoActionButton extends AbstractConfigurable {
+public class DoActionButton extends AbstractConfigurable implements InfiniteLoopDetection.Loopable {
 
   public static final String BUTTON_TEXT = "text"; //$NON-NLS-1$
   public static final String TOOLTIP = "tooltip"; //$NON-NLS-1$
@@ -75,10 +76,6 @@ public class DoActionButton extends AbstractConfigurable {
   protected boolean doHotkey = false;
   protected List<KeyStroke> hotkeys = new ArrayList<KeyStroke>();
   
-  // Detect looping Action Buttons
-  protected static final int RECURSION_LIMIT = 50;
-  protected static int recursionDepth = 0;
-  
   public DoActionButton() {
     ActionListener rollAction = new ActionListener() {
       public void actionPerformed(ActionEvent e) {
@@ -86,13 +83,7 @@ public class DoActionButton extends AbstractConfigurable {
           execute();
         }
         catch (InfiniteLoopException ex) {
-          ErrorDialog.showDetails(
-            ex,
-            ThrowableUtils.getStackTrace(ex),
-            "Error.infinite_loop",
-            getConfigureTypeName(),
-            getConfigureName()
-          );
+          ErrorDialog.infiniteLoop(ex);
         }        
       }
     };
@@ -331,9 +322,7 @@ public class DoActionButton extends AbstractConfigurable {
 
   protected void execute() throws InfiniteLoopException {
     try {
-      if (++recursionDepth > RECURSION_LIMIT) {
-        throw new InfiniteLoopException();
-      }
+      InfiniteLoopDetection.startExecution(this);
 
       final Command c = new NullCommand();
       if (doReport) {
@@ -360,11 +349,16 @@ public class DoActionButton extends AbstractConfigurable {
       GameModule.getGameModule().sendAndLog(c);
     }
     finally {
-      --recursionDepth;
+      InfiniteLoopDetection.endExecution();
     }
   }
+
+  // Implement Loopable
+  public String getComponentTypeName () {
+    return getConfigureTypeName();
+  }
   
-  private static class InfiniteLoopException extends Exception {
-    private static final long serialVersionUID = 1L;
+  public String getComponentName() {
+    return getConfigureName();
   }
 }

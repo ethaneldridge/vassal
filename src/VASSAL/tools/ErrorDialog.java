@@ -55,6 +55,16 @@ public class ErrorDialog {
     }
   }
 
+  public static void infiniteLoop(InfiniteLoopException e) {
+    showDetails(
+        e,
+        ThrowableUtils.getStackTrace(e),
+        "Error.infinite_loop",
+        e.getComponentTypeName(),
+        e.getComponentName()
+      );  
+  }
+  
   public static void show(
     String messageKey,
     Object... args)
