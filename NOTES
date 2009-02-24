@@ -27,6 +27,7 @@ Changes since beta8:
 
 A number of problems present in 3.1.0-beta8 are fixed in 3.1.0:
 
+* Bug 2621493: Not all module text can be translated
 * Bug 2603679: NumberFormatException in FreeRotator.mySetState()
 * Bug 2594850: unnecessary bug report for bad data in PositionOption
 * Bug 2557845: InterruptedException in ImageSaver
