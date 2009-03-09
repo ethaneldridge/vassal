@@ -31,6 +31,9 @@ Changes since 3.1.0:
 
 The following bugs in 3.1.0 are fixed in 3.1.1:
 
+* Bug 2676355: Bug Dialog sometimes hangs over other modal dialogs
+* Bug 2673589: ImageIO throws IllegalArgumentException reading bad mages
+* Bug 2658210: OutOfMemoryError in Importer should not generate Bug Dialog
 * Bug 2665747: NPE in MovementReporter reporting Drag & Drop move
 * Bug 2653477: ArrayIndexOutOfBoundsException in Embellishment.getLocalized
 * Bug 2432256: ArrayIndexOutOfBoundsException in Embellishment
