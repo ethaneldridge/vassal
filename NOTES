@@ -31,6 +31,7 @@ Changes since 3.1.0:
 
 The following bugs in 3.1.0 are fixed in 3.1.1:
 
+* Bug 2665747: NPE in MovementReporter reporting Drag & Drop move
 * Bug 2653477: ArrayIndexOutOfBoundsException in Embellishment.getLocalized
 * Bug 2432256: ArrayIndexOutOfBoundsException in Embellishment
 
