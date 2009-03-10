@@ -47,12 +47,15 @@ SetCompressor /SOLID lzma
 SetDatablockOptimize on
 
 !include "FileFunc.nsh"
-!include "MUI2.nsh"
+!insertmacro GetFileName
+
 !include "nsDialogs.nsh"
 !include "WinMessages.nsh"
-!include "WordFunc.nsh"
 
-!insertmacro GetFileName
+!include "WinVer.nsh"
+!insertmacro IsNT
+
+!include "WordFunc.nsh"
 !insertmacro VersionConvert
 !insertmacro VersionCompare
 !insertmacro WordFind
@@ -60,6 +63,7 @@ SetDatablockOptimize on
 #
 # Modern UI 2 setup
 #
+!include "MUI2.nsh"
 !define MUI_ABORTWARNING
 
 !define MUI_HEADERIMAGE
@@ -216,14 +220,11 @@ loop:
 !macro WaitForVASSALToClose
   #
   # Detect running instances of VASSAL.
-  # Based on http://nsis.sourceforge.net/Get_Windows_version
-  # and http://nsis.sourceforge.net/Get_a_list_of_running_processes.
+  # Based on http://nsis.sourceforge.net/Get_a_list_of_running_processes.
   #
 
   ; no PSAPI on Windows 9x and ME, so don't try there
-  ReadRegStr $0 HKLM "Software\Microsoft\Windows\CurrentVersion" "VersionNumber"
-  StrCpy $0 $0 1
-  ${If} $0 == "4"
+  ${IfNot} ${IsNT}
     Goto cannot_check 
   ${EndIf}
 
