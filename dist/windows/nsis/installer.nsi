@@ -47,18 +47,10 @@ SetCompressor /SOLID lzma
 SetDatablockOptimize on
 
 !include "FileFunc.nsh"
-!insertmacro GetFileName
-
 !include "nsDialogs.nsh"
 !include "WinMessages.nsh"
-
 !include "WinVer.nsh"
-!insertmacro IsNT
-
 !include "WordFunc.nsh"
-!insertmacro VersionConvert
-!insertmacro VersionCompare
-!insertmacro WordFind
 
 #
 # Modern UI 2 setup
