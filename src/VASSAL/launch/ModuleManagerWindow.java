@@ -653,15 +653,17 @@ public class ModuleManagerWindow extends JFrame {
   public void addModule(File f) {
     if (!rootNode.contains(f)) {
       final ModuleInfo moduleInfo = new ModuleInfo(f);
-      final MyTreeNode moduleNode = new MyTreeNode(moduleInfo);
-      treeModel.insertNodeInto(moduleNode, rootNode,
-                               rootNode.findInsertIndex(moduleInfo));
-      for (ExtensionInfo ext : moduleInfo.getExtensions()) {
-        final MyTreeNode extensionNode = new MyTreeNode(ext);
-        treeModel.insertNodeInto(extensionNode, moduleNode,
-            moduleNode.findInsertIndex(ext));
+      if (moduleInfo.isValid()) {
+        final MyTreeNode moduleNode = new MyTreeNode(moduleInfo);
+        treeModel.insertNodeInto(moduleNode, rootNode,
+                                 rootNode.findInsertIndex(moduleInfo));
+        for (ExtensionInfo ext : moduleInfo.getExtensions()) {
+          final MyTreeNode extensionNode = new MyTreeNode(ext);
+          treeModel.insertNodeInto(extensionNode, moduleNode,
+              moduleNode.findInsertIndex(ext));
+        }
+        updateModuleList();
       }
-      updateModuleList();
     }
   }
 
@@ -1126,7 +1128,6 @@ public class ModuleManagerWindow extends JFrame {
       }
       else {
         setValid(false);
-        return;
       }  
     }
     
