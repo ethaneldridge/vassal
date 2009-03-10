@@ -52,6 +52,8 @@ SetDatablockOptimize on
 !include "WinVer.nsh"
 !include "WordFunc.nsh"
 
+#!include "GetJavaVersion.nsh"
+
 #
 # Modern UI 2 setup
 #
@@ -325,6 +327,9 @@ FunctionEnd
 
 
 Function preSetupType
+  ; save registers
+  Push $0
+
   !insertmacro MUI_HEADER_TEXT "Setup Type" "Choose setup options"
 
   nsDialogs::Create /NOUNLOAD 1018
@@ -343,6 +348,9 @@ Function preSetupType
 	Pop $0
 
   nsDialogs::Show
+
+  ; restore registers
+  Pop $0
 FunctionEnd
 
 
@@ -572,6 +580,9 @@ FunctionEnd
 
 
 Function preShortcuts
+  ; save registers
+  Push $0
+
   ; set shortcuts defaults
   StrCpy $AddDesktopSC 1
   StrCpy $AddStartMenuSC 1 
@@ -597,6 +608,9 @@ Function preShortcuts
   SendMessage $AddQuickLaunchSC ${BM_SETCHECK} ${BST_CHECKED} 1
 
   nsDialogs::Show
+
+  ; restore registers
+  Pop $0
 FunctionEnd
 
 
@@ -622,6 +636,9 @@ FunctionEnd
 
 
 Function preConfirm
+  ; save registers
+  Push $0
+
   !insertmacro MUI_HEADER_TEXT "Ready to Install" "Please confirm that you are ready to install"
 
   nsDialogs::Create /NOUNLOAD 1018
@@ -631,6 +648,9 @@ Function preConfirm
   Pop $0
 
   nsDialogs::Show
+
+  ; restore registers
+  Pop $0
 FunctionEnd
 
 
@@ -779,7 +799,7 @@ Section "-Application" Application
   WriteRegStr HKLM "${AROOT}\VASSALSavedGame\shell\open\command" "" '$INSTDIR\VASSAL.exe --load "%1"'
 
   ; notify Windows that file associations have changed
-  System::Call 'Shell32::SHChangeNotify(i 0x08000000, i 0, i 0, i 0)'
+  ${RefreshShellIcons}
 SectionEnd
 
 #
