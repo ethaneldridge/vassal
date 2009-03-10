@@ -846,7 +846,7 @@ Section Uninstall
   DeleteRegKey HKLM "${AROOT}\VASSALSavedGame"
 
   ; notify Windows that file associations have changed
-  System::Call 'Shell32::SHChangeNotify(i 0x08000000, i 0, i 0, i 0)'
+  ${RefreshShellIcons}
   
   ; delete the installed files and directories
   !include "${TMPDIR}/uninstall_files.inc"
