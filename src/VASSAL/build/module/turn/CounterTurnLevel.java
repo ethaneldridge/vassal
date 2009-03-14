@@ -91,14 +91,14 @@ public class CounterTurnLevel extends TurnLevel {
   }
 
   protected String getValueString() {
-    return current + ""; //$NON-NLS-1$
+    return String.valueOf(current);
   }
 
   /* (non-Javadoc)
    * @see turn.TurnLevel#getLongestValueName()
    */
   protected String getLongestValueName() {
-    return start < 10000 ? "9999" : start+""; //$NON-NLS-1$ //$NON-NLS-2$
+    return start < 10000 ? "9999" : String.valueOf(start); //$NON-NLS-1$ 
   }
 
   /* 
@@ -113,7 +113,7 @@ public class CounterTurnLevel extends TurnLevel {
 
     // If no sub-levels, or they rolled over, advance this level
     if (getTurnLevelCount() == 0 || (getTurnLevelCount() > 0 && hasSubLevelRolledOver())) {
-      current++;
+      current += incr;
       if (loop && current > loopLimit) {
         current = start;
         setRolledOver(true);
@@ -129,7 +129,7 @@ public class CounterTurnLevel extends TurnLevel {
     // If no sub-levels, or they rolled over, retreat this level
     int oldCurrent = current;
     if (getTurnLevelCount() == 0 || (getTurnLevelCount() > 0 && hasSubLevelRolledOver())) {
-      current--;
+      current -= incr;
       if (loop && oldCurrent <= start) {
         current = loopLimit;
         setRolledOver(true);
