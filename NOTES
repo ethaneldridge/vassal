@@ -31,9 +31,13 @@ Changes since 3.1.0:
 
 The following bugs in 3.1.0 are fixed in 3.1.1:
 
+* Bug 2688226: NPE Adding Preference
+* Bug 2687265: NPE in SendToLocation
 * Bug 2687178: Mark unmoved button appears even if icon set to null
+* Bug 2686890: Turn Counter does not respond to Hotkeys when undocked
 * Bug 2686888: Turn Counter always increments/decrements by 1
 * Bug 2685559: NPE in Embellishment.getMatchingActivationChar()
+* Bug 2684931: ClassCastException when loading module
 * Bug 2672959: Old Java fails to read PNGs with small palettes
 * Bug 2676355: Bug Dialog sometimes hangs over other modal dialogs
 * Bug 2673589: ImageIO throws IllegalArgumentException reading bad mages
