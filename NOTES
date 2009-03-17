@@ -31,6 +31,7 @@ Changes since 3.1.0:
 
 The following bugs in 3.1.0 are fixed in 3.1.1:
 
+* Bug 2689040: StringIndexOutOfBoundsException inviting peer2peer players
 * Bug 2688226: NPE Adding Preference
 * Bug 2687265: NPE in SendToLocation
 * Bug 2687178: Mark unmoved button appears even if icon set to null
