@@ -1,4 +1,5 @@
-The VASSAL Team is happy to announce the release of VASSAL 3.1.1.
+The VASSAL Team is happy to announce the release of VASSAL 3.1.2, which
+fixes a serious problem in 3.1.1.
 
 *********************
 Download
@@ -6,28 +7,32 @@ Download
 
 For Linux:
 
-  http://downloads.sourceforge.net/vassalengine/VASSAL-3.1.1-linux.zip
+  http://downloads.sourceforge.net/vassalengine/VASSAL-3.1.2-linux.zip
 
 For Mac OS X:
 
-  http://downloads.sourceforge.net/vassalengine/VASSAL-3.1.1-macosx.dmg
+  http://downloads.sourceforge.net/vassalengine/VASSAL-3.1.2-macosx.dmg
 
 For Windows:
 
-  http://downloads.sourceforge.net/vassalengine/VASSAL-3.1.1-windows.exe
+  http://downloads.sourceforge.net/vassalengine/VASSAL-3.1.2-windows.exe
 
 For other operating systems:
 
-  http://downloads.sourceforge.net/vassalengine/VASSAL-3.1.1-other.zip
+  http://downloads.sourceforge.net/vassalengine/VASSAL-3.1.2-other.zip
 
 Source code:
 
-  http://downloads.sourceforge.net/vassalengine/VASSAL-3.1.1-src.zip
+  http://downloads.sourceforge.net/vassalengine/VASSAL-3.1.2-src.zip
 
 
 *********************
 Changes since 3.1.0:
 *********************
+
+The following bugs in 3.1.1 are fixed in 3.1.2:
+
+* Bug 2690874: No Moved button if no text specified
 
 The following bugs in 3.1.0 are fixed in 3.1.1:
 
@@ -54,7 +59,7 @@ images from loading properly. We now recommend that anyone using a version
 of Java older than 1.5.0_08 upgrade to *at least* 1.5.0_08.
 
 For Linux and Mac users, this should require no action on your part. Windows
-users installing VASSAL 3.1.1 with the Windows installer will be prompted to
+users installing VASSAL 3.1.2 with the Windows installer will be prompted to
 update Java if what they have is older than 1.5.0_08.
 
 For feature changes from 3.0 to 3.1, see the release notes for 3.1.0.
