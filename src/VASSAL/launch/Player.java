@@ -34,9 +34,10 @@ import VASSAL.build.module.ExtensionsLoader;
 import VASSAL.build.module.ModuleExtension;
 import VASSAL.i18n.Localization;
 import VASSAL.i18n.Resources;
-import VASSAL.tools.CommunicationErrorDialog;
 import VASSAL.tools.DataArchive;
+import VASSAL.tools.ErrorDialog;
 import VASSAL.tools.JarArchive;
+import VASSAL.tools.ThrowableUtils;
 import VASSAL.tools.menu.MacOSXMenuManager;
 import VASSAL.tools.menu.MenuBarProxy;
 import VASSAL.tools.menu.MenuManager;
@@ -129,7 +130,11 @@ public class Player extends Launcher {
       catch (IOException e) {
         // This is not fatal, since we've successfully opened the module,
         // but possibly this means that the Module Manager has died.
-        CommunicationErrorDialog.error(e);
+        ErrorDialog.showDetails(
+          e,
+          ThrowableUtils.getStackTrace(e),
+          "Error.socket_error"
+        );
       }
     }
   }

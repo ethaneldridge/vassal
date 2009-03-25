@@ -32,6 +32,7 @@ Changes since 3.1.0:
 
 The following bugs are fixed in 3.1.3:
 
+* Bug 2706019: Too few parameters for socket failure dialog
 * Bug 2698781: Cannot switch to English if PC Locale is non-English
 * Bug 2665174: NPE due to no default UI font
 * Bug: 8-bit PNGs with 1-bit alpha have bad transparency 
