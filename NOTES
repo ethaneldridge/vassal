@@ -32,8 +32,10 @@ Changes since 3.1.0:
 
 The following bugs are fixed in 3.1.3:
 
+* Bug 2721276: Illegal Heap sizes crashing startup
 * Bug 2706019: Too few parameters for socket failure dialog
 * Bug 2698781: Cannot switch to English if PC Locale is non-English
+* Bug 2680395: Error in Maximum Heap calculation and check
 * Bug 2665174: NPE due to no default UI font
 * Bug 2580669: Module-specific exception classes cannot be logged
 * Bug 2372121: Race condition causes truncated errorLogs in bug reports
