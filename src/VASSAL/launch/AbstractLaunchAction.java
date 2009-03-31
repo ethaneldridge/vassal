@@ -398,10 +398,10 @@ public abstract class AbstractLaunchAction extends AbstractAction {
           throw new IOException("failed to start child process");
         }
         else {
-          WarningDialog.show(
+          FutureUtils.wait(WarningDialog.show(
             "Warning.maximum_heap_too_large",
             FAILSAFE_MAXIMUM_HEAP
-          );
+          ));
         }
       }
 
