@@ -48,8 +48,8 @@ DISTDIR:=dist
 
 VNUM:=3.1.3
 SVNVERSION:=$(shell svnversion | perl -pe 's/(\d+:)?(\d+[MS]?)/$$2/; s/(\d+)M/$$1+1/e')
-VERSION:=$(VNUM)-svn$(SVNVERSION)
-#VERSION:=$(VNUM)
+#VERSION:=$(VNUM)-svn$(SVNVERSION)
+VERSION:=$(VNUM)
 
 #CLASSPATH:=$(CLASSDIR):$(LIBDIR)/*
 
@@ -128,7 +128,7 @@ $(TMPDIR)/VASSAL.exe: Info.class $(TMPDIR)
 	$(LAUNCH4J) $(CURDIR)/$(TMPDIR)/VASSAL.l4j.xml
 
 version:
-	sed -ri 's/VERSION = ".*"/VERSION = "$(VERSION)"/' $(SRCDIR)/VASSAL/Info.java
+	sed -ri 's/ VERSION = ".*"/ VERSION = "$(VERSION)"/' $(SRCDIR)/VASSAL/Info.java
 
 #dist/windows/VASSAL.ico:
 #	convert -bordercolor Transparent -border 1x1 src/icons/22x22/VASSAL.png $(TMPDIR)/VASSAL-24.png
