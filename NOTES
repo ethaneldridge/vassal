@@ -32,7 +32,14 @@ Changes since 3.1.0:
 
 The following bugs are fixed in 3.1.4:
 
+* Bug 2718948: v3.0+ DoesNotStack trait bug
+  - Replace Crtl-Shift-Click Selection filter with Alt-Click selection filter
+  - Allow Alt-lassoo to select Alt-click selection filter units
+  - Allow Ctrl-lassoo to deselect Does Not Stack units.
+  - Double-click on Does Not Stack units causes selection status to toggle
 * Bug: Bind to loopback ports only to avoid collisions and firewall problems
+* Bug: Module Manager fails to start if port in prefs is already in use
+* Bug: Race condition when setting Module Manager port and key
 
 The following bugs are fixed in 3.1.3:
 
