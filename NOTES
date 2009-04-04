@@ -40,6 +40,7 @@ The following bugs are fixed in 3.1.4:
 * Bug: Bind to loopback ports only to avoid collisions and firewall problems
 * Bug: Module Manager fails to start if port in prefs is already in use
 * Bug: Race condition when setting Module Manager port and key
+* Bug: GUI calls by Module Manager server executed off the EDT
 
 The following bugs are fixed in 3.1.3:
 
