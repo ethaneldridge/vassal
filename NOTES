@@ -32,6 +32,7 @@ Changes since 3.1.0:
 
 The following bugs are fixed in 3.1.4:
 
+* Bug 2731738: Memory test fails on Windows 98, Windows ME
 * Bug 2718948: v3.0+ DoesNotStack trait bug
   - Replace Crtl-Shift-Click Selection filter with Alt-Click selection filter
   - Allow Alt-lassoo to select Alt-click selection filter units
@@ -41,6 +42,7 @@ The following bugs are fixed in 3.1.4:
 * Bug: Module Manager fails to start if port in prefs is already in use
 * Bug: Race condition when setting Module Manager port and key
 * Bug: GUI calls by Module Manager server executed off the EDT
+* Bug: Memory test inaccurate on Linux
 
 The following bugs are fixed in 3.1.3:
 
