@@ -33,7 +33,7 @@ import VASSAL.tools.version.VersionTokenizer;
  * Class for storing release-related information
  */
 public final class Info {
-  private static final String VERSION = "3.1.3"; //$NON-NLS-1$
+  private static final String VERSION = "3.1.4-svn5489"; //$NON-NLS-1$
   
   // Do not allow editing of modules with this revision or later
   private static final String EDITOR_EXPIRY_VERSION = "3.2";  //$NON-NLS-1$
@@ -95,13 +95,31 @@ public final class Info {
     }
   }
 
-  // Strictly speaking, this doesn't guarantee uniqueness, but the
-  // probability that any reasonable number or simultaneously-running
-  // instances of the VASSAL ModuleManager, Player or Editor will get
-  // the same ID is vanishingly small.
-  private static final int instanceID =
-    (int) (Math.random() * Integer.MAX_VALUE);
+  private static final int instanceID;
 
+  // Set the instance id from the system properties.
+  static {
+    final String idstr = System.getProperty("VASSAL.id");
+    if (idstr == null) {
+      instanceID = 0;
+    }
+    else {
+      int id;
+      try {
+        id = Integer.parseInt(idstr);
+      }
+      catch (NumberFormatException e) {
+        id = -1;
+      }
+
+      instanceID = id;
+    }
+  }
+
+  /**
+   * Returns the instance id for this process. The instance id will be
+   * be unique across the Module Manager and its children.
+   */
   public static int getInstanceID() {
     return instanceID;
   }
