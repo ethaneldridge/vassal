@@ -33,11 +33,13 @@ Changes since 3.1.0:
 The following bugs are fixed in 3.1.4:
 
 * Bug 2731738: Memory test fails on Windows 98, Windows ME
+* Bug 2721306: IllegalArgumentException in PanelWidget.getLayout()
 * Bug 2718948: v3.0+ DoesNotStack trait bug
   - Replace Crtl-Shift-Click Selection filter with Alt-Click selection filter
-  - Allow Alt-lassoo to select Alt-click selection filter units
-  - Allow Ctrl-lassoo to deselect Does Not Stack units.
+  - Allow Alt-lasso to select Alt-click selection filter units
+  - Allow Ctrl-lasso to deselect Does Not Stack units.
   - Double-click on Does Not Stack units causes selection status to toggle
+* Bug 2696618: ImageSaver fails when map has nonpositive dimensions
 * Bug: Bind to loopback ports only to avoid collisions and firewall problems
 * Bug: Module Manager fails to start if port in prefs is already in use
 * Bug: Race condition when setting Module Manager port and key
