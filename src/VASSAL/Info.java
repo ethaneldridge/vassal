@@ -33,7 +33,7 @@ import VASSAL.tools.version.VersionTokenizer;
  * Class for storing release-related information
  */
 public final class Info {
-  private static final String VERSION = "3.1.4-svn5489"; //$NON-NLS-1$
+  private static final String VERSION = "3.1.4"; //$NON-NLS-1$
   
   // Do not allow editing of modules with this revision or later
   private static final String EDITOR_EXPIRY_VERSION = "3.2";  //$NON-NLS-1$
