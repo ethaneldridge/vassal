@@ -46,6 +46,7 @@ The following bugs are fixed in 3.1.4:
 * Bug: GUI calls by Module Manager server executed off the EDT
 * Bug: Memory test inaccurate on Linux
 * Bug: Deadlock when Module Manager is closed before children
+* Bug: Java 1.5 ImageIO fails to load PNGs with iTXt chunks
 
 The following bugs are fixed in 3.1.3:
 
