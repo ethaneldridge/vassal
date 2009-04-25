@@ -230,6 +230,7 @@ public class Stack implements GamePiece, StateMergeable {
     pos = Math.min(pos, pieceCount);
     int index = indexOf(p);
     if (index >= 0) {
+      final boolean origExpanded = isExpanded(); // Bug #2766794
       if (pos > index) {
         insertPieceAt(p, pos + 1);
         removePieceAt(index);
@@ -238,6 +239,7 @@ public class Stack implements GamePiece, StateMergeable {
         removePieceAt(index);
         insertPieceAt(p, pos);
       }
+      setExpanded(origExpanded);
     }
     else {
       insertChild(p, pos);
