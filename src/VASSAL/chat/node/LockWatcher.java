@@ -20,6 +20,8 @@ package VASSAL.chat.node;
 import java.io.IOException;
 import java.net.Socket;
 
+import VASSAL.tools.ThrowableUtils;
+
 /**
  * Watches for thread lock on a server.  Kills the runtime if unable to establish new connection
  * Copyright (c) 2003 by Rodney Kinney.  All rights reserved.
@@ -88,6 +90,7 @@ public class LockWatcher extends Thread {
       try {
         sleep(timeout);
         System.err.println("No response from server in "+(timeout/1000.0)+" seconds.  Terminating process"); //$NON-NLS-1$ //$NON-NLS-2$
+        ThrowableUtils.printAllStackTraces();
         System.exit(0);
       }
       // FIXME: review error message

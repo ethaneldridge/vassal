@@ -20,6 +20,7 @@ package VASSAL.tools;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;
+import java.util.Map;
 
 import VASSAL.tools.logging.Logger;
 
@@ -122,5 +123,16 @@ public class ThrowableUtils {
     thrown.printStackTrace(pw);
     pw.flush();
     return sw.toString();
-  }      
+  }
+
+  public static void printAllStackTraces() {
+    final Map<Thread,StackTraceElement[]> tmap = Thread.getAllStackTraces();
+    for (Thread thread : tmap.keySet()) {
+      System.err.println("Thread " + thread.getName());
+      final StackTraceElement[] trace = tmap.get(thread);
+      for (StackTraceElement e : trace) {
+        System.err.println("\tat " + e);
+      }
+    }
+  }
 }
