@@ -393,7 +393,9 @@ public class MapShader extends AbstractConfigurable implements GameComponent, Dr
   }
 
   protected void buildTexture() {
-    texture = new TexturePaint(getShadePattern(), getPatternRect());
+    if (getShadePattern() != null) {
+      texture = new TexturePaint(getShadePattern(), getPatternRect());
+    }
   }
 
   public Color getColor() {
