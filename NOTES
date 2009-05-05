@@ -32,6 +32,7 @@ Changes since 3.1.0
 
 The following bugs are fixed in 3.1.5:
 
+* Bug 2785328: ImageIO fails to read size of JPEGs with bad color profiles 
 * Bug 2784636: NPE in MapShader.buildTexture()
 * Bug 2766794: Expanded Stack of 2 pieces collapses when arrow keys used
 * Bug 2659577: ImageSaver paints Boards with no background black
