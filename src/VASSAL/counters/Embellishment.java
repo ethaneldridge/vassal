@@ -60,13 +60,11 @@ import VASSAL.configure.StringConfigurer;
 import VASSAL.i18n.PieceI18nData;
 import VASSAL.i18n.Resources;
 import VASSAL.i18n.TranslatablePiece;
-import VASSAL.tools.ErrorDialog;
 import VASSAL.tools.FormattedString;
 import VASSAL.tools.SequenceEncoder;
 import VASSAL.tools.image.ImageUtils;
 import VASSAL.tools.imageop.ImageOp;
 import VASSAL.tools.imageop.ScaledImagePainter;
-import VASSAL.tools.logging.Logger;
 
 /**
  * The "Layer" trait. Contains a list of images that the user may cycle through.
@@ -283,6 +281,7 @@ public class Embellishment extends Decorator implements TranslatablePiece {
   }
   
   public String getName(boolean localized) {
+    checkPropertyLevel(); // Name Change?
     String name = null;
     String commonName = value > 0 ? getCommonName(localized, value - 1) : null;
     if (value > 0 && commonName != null && commonName.length() > 0) {
