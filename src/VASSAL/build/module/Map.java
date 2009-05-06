@@ -70,6 +70,7 @@ import javax.swing.KeyStroke;
 import javax.swing.OverlayLayout;
 import javax.swing.RootPaneContainer;
 import javax.swing.SwingUtilities;
+import javax.swing.Timer;
 import javax.swing.WindowConstants;
 
 import org.w3c.dom.Element;
@@ -175,7 +176,7 @@ import org.jdesktop.swinghelper.layer.demo.DebugPainter;
  * contained in the <code>VASSAL.build.module.map</code> package
  */
 public class Map extends AbstractConfigurable implements GameComponent, MouseListener, MouseMotionListener, DropTargetListener, Configurable,
-    UniqueIdManager.Identifyable, ToolBarComponent, MutablePropertiesContainer, PropertySource, PlayerRoster.SideChangeListener, Runnable {
+    UniqueIdManager.Identifyable, ToolBarComponent, MutablePropertiesContainer, PropertySource, PlayerRoster.SideChangeListener {
   protected String mapID = ""; //$NON-NLS-1$
   protected String mapName = ""; //$NON-NLS-1$
   protected static final String MAIN_WINDOW_HEIGHT = "mainWindowHeight"; //$NON-NLS-1$
@@ -1328,8 +1329,8 @@ mainWindowDock = splitter.splitBottom(splitter.getSplitAncestor(GameModule.getGa
    */
   public static final int PREFERRED_EDGE_SCROLL_DELAY = 200;
   public static final String PREFERRED_EDGE_DELAY = "PreferredEdgeDelay"; //$NON-NLS-1$
-  
-  protected Thread scrollDelayThread;
+ 
+  protected Timer scrollDelayTimer; 
   protected long scrollExpirationTime;
   protected int scroll_dist;
   protected int scroll_dx;
@@ -1365,9 +1366,12 @@ mainWindowDock = splitter.splitBottom(splitter.getSplitAncestor(GameModule.getGa
     scroll_dist = dist;
 
     if (dx != 0 || dy != 0) {
-      if (scrollDelayThread == null || !scrollDelayThread.isAlive()) {
-        scrollDelayThread = new Thread(this);
-        scrollDelayThread.start();
+      if (scrollDelayTimer == null || !scrollDelayTimer.isRunning()) {
+        scrollDelayTimer = new Timer(
+          (int)(scrollExpirationTime - System.currentTimeMillis()),
+          scrollerAction
+        );
+        scrollDelayTimer.start();
       }
     }
     else {
@@ -1375,22 +1379,17 @@ mainWindowDock = splitter.splitBottom(splitter.getSplitAncestor(GameModule.getGa
     }
   }
 
+  protected ActionListener scrollerAction = new ActionListener() {
+    public void actionPerformed(ActionEvent e) {
+      if (scroll_dx != 0 || scroll_dy != 0) {
+        scroll(2 * scroll_dist * scroll_dx, 2 * scroll_dist * scroll_dy);
+      }
+    }
+  };
+
   protected void restartDelay() {
     scrollExpirationTime = System.currentTimeMillis() + 
       ((Integer) GameModule.getGameModule().getPrefs().getValue(PREFERRED_EDGE_DELAY)).intValue();
-  }
-
-  public void run() {
-    while (System.currentTimeMillis() < scrollExpirationTime) {
-      try {
-        Thread.sleep(Math.max(0, scrollExpirationTime - System.currentTimeMillis()));
-      }
-      catch (InterruptedException e) {
-      }
-    }
-    if (scroll_dx != 0 || scroll_dy != 0) {
-      scroll(2 * scroll_dist * scroll_dx, 2 * scroll_dist * scroll_dy);
-    }
   }
 
   public void repaint(boolean cf) {
