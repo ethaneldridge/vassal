@@ -32,11 +32,18 @@ Changes since 3.1.0
 
 The following bugs are fixed in 3.1.5:
 
+* Bug 2786932: MemoryUtils.getPhysicalMemory() fails on PPC Linux
+* Bug 2787242: Layer tracking Property - Report Action lags on PieceName
+* Bug 2787134: NPE during map scrolling due to off-EDT Swing calls
 * Bug 2785328: ImageIO fails to read size of JPEGs with bad color profiles 
 * Bug 2784636: NPE in MapShader.buildTexture()
 * Bug 2766794: Expanded Stack of 2 pieces collapses when arrow keys used
 * Bug 2659577: ImageSaver paints Boards with no background black
+* Bug: Accidentally rejecting perfectly valid mask images in ADC2 symbol sets
+* Bug: CounterDetailViewer calls Swing methods off EDT
+
 * Image scaling is now 35% faster.
+* Map-edge autoscrolling is now smoother and more responsive.
 
 The following bugs are fixed in 3.1.4:
 
