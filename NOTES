@@ -41,6 +41,7 @@ The following bugs are fixed in 3.1.5:
 * Bug 2659577: ImageSaver paints Boards with no background black
 * Bug: Accidentally rejecting perfectly valid mask images in ADC2 symbol sets
 * Bug: CounterDetailViewer calls Swing methods off EDT
+* Bug: CounterDetailViewer should not appear during piece drags
 
 * Image scaling is now 35% faster.
 * Map-edge autoscrolling is now smoother and more responsive.
