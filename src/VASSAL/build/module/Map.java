@@ -1379,9 +1379,8 @@ mainWindowDock = splitter.splitBottom(splitter.getSplitAncestor(GameModule.getGa
       
       @Override
       public void timingEvent(float fraction) {
-        // Follow the parabola x^2
-        final int delta = 2*(t++);
-        scroll(sx*delta, sy*delta);
+        // Constant velocity along each axis, 5px per tick 
+        scroll(sx*5, sy*5);
 
         // Check whether we have hit an edge
         final Rectangle vrect = scroll.getViewport().getViewRect();
