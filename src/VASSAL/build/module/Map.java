@@ -1271,7 +1271,7 @@ mainWindowDock = splitter.splitBottom(splitter.getSplitAncestor(GameModule.getGa
   }
 
   public void dragOver(DropTargetDragEvent dtde) {
-    scrollAtEdge(dtde.getLocation(), 15);
+    scrollAtEdge(dtde.getLocation(), SCROLL_ZONE);
   }
 
   public void dropActionChanged(DropTargetDragEvent dtde) {
@@ -1318,7 +1318,7 @@ mainWindowDock = splitter.splitBottom(splitter.getSplitAncestor(GameModule.getGa
    */
   public void mouseDragged(MouseEvent e) {
     if (!e.isMetaDown()) {
-      scrollAtEdge(e.getPoint(), 15);
+      scrollAtEdge(e.getPoint(), SCROLL_ZONE);
     }
     else {
       if (scroller.isRunning()) scroller.stop();
@@ -1330,6 +1330,9 @@ mainWindowDock = splitter.splitBottom(splitter.getSplitAncestor(GameModule.getGa
    */
   public static final int PREFERRED_EDGE_SCROLL_DELAY = 200;
   public static final String PREFERRED_EDGE_DELAY = "PreferredEdgeDelay"; //$NON-NLS-1$
+
+  /** The width of the hot zone for triggering autoscrolling. */
+  public static final int SCROLL_ZONE = 30;
 
   /** The horizontal component of the autoscrolling vector, -1, 0, or 1. */
   protected int sx;
