@@ -1375,12 +1375,17 @@ mainWindowDock = splitter.splitBottom(splitter.getSplitAncestor(GameModule.getGa
   /** The animator which controls autoscrolling. */
   protected Animator scroller = new Animator(Animator.INFINITE,
     new TimingTargetAdapter() {
-      private int t;
+
+      private long t0;
       
       @Override
       public void timingEvent(float fraction) {
+        final long t1 = System.currentTimeMillis();
+        final int dt = (int)((t1 - t0)/4);
+        t0 = t1;
+
         // Constant velocity along each axis, 5px per tick 
-        scroll(sx*5, sy*5);
+        scroll(sx*dt, sy*dt);
 
         // Check whether we have hit an edge
         final Rectangle vrect = scroll.getViewport().getViewRect();
@@ -1396,7 +1401,9 @@ mainWindowDock = splitter.splitBottom(splitter.getSplitAncestor(GameModule.getGa
       }
 
       @Override
-      public void begin() { t = 1; }
+      public void begin() {
+        t0 = System.currentTimeMillis();
+      }
     }
   ); 
 
