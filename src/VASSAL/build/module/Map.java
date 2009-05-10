@@ -1380,11 +1380,11 @@ mainWindowDock = splitter.splitBottom(splitter.getSplitAncestor(GameModule.getGa
       
       @Override
       public void timingEvent(float fraction) {
+        // Constant velocity along each axis, 0.5px/ms
         final long t1 = System.currentTimeMillis();
-        final int dt = (int)((t1 - t0)/4);
+        final int dt = (int)((t1 - t0)/2);
         t0 = t1;
 
-        // Constant velocity along each axis, 5px per tick 
         scroll(sx*dt, sy*dt);
 
         // Check whether we have hit an edge
