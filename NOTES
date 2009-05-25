@@ -33,7 +33,8 @@ Changes since 3.1.0
 The following bugs are fixed in 3.1.6:
 
 * Bug 2794703: StackOverflow using Embellishment level following property
-* Bug: Transparent images used for orthogonal rotations of opaque sources.
+* Bug: Transparent images used for orthogonal rotations of opaque sources
+* Bug: Incorrect PropertySource used to evaluate properties
 
 The following bugs are fixed in 3.1.5:
 
