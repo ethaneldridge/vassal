@@ -1,9 +1,11 @@
-3.1.6 - 26 May 2009
+3.1.6 - 30 May 2009
 
+* Bug 2798275: Layer following prop does not allow non-string custom props
 * Bug 2794703: StackOverflow using Embellishment level following property
 * Bug 2793103: Memory check fails on Linux due to architecture mismatch
 * Bug: Transparent images used for orthogonal rotations of opaque sources
 * Bug: Incorrect PropertySource used to evaluate properties
+* Bug: Use bounds for primary screen on multi-monitor X11 systems.
 
 3.1.5 - 11 May 2009
 
