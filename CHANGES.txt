@@ -1,3 +1,5 @@
+3.1.7 - ???
+
 3.1.6 - 30 May 2009
 
 * Bug 2798275: Layer following prop does not allow non-string custom props
