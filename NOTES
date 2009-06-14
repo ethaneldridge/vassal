@@ -32,6 +32,7 @@ Changes since 3.1.0
 
 The following bugs are fixed in 3.1.7:
 
+* Bug 2805282: SendToLocation does not undo correctly
 
 The following bugs are fixed in 3.1.6:
 
