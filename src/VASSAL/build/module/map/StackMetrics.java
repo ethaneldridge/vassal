@@ -661,7 +661,7 @@ public class StackMetrics extends AbstractConfigurable {
             fixedParent = createStack(fixed, true);
             GameModule.getGameModule().getGameState().addPiece(fixedParent);
             fixed.getMap().addPiece(fixedParent);
-            comm = comm.append(new AddPiece(fixedParent));
+            comm = comm.append(fixedParent.getMap().placeAt(fixedParent, fixedParent.getPosition()));
             index = 1;
           }
         }
