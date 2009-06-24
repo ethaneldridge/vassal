@@ -481,11 +481,10 @@ public class ModuleManagerWindow extends JFrame {
         }
       }
       
-      if (missingFolders.size() > 0) {
-        for (File mf : missingFolders) {
-          Logger.log(Resources.getString("ModuleManager.removing_folder", mf.getPath()));
-          moduleInfo.removeFolder(mf);
-        }
+      for (File mf : missingFolders) {
+        Logger.log(
+          Resources.getString("ModuleManager.removing_folder", mf.getPath()));
+        moduleInfo.removeFolder(mf);
       }
       
       rootNode.add(moduleNode);
@@ -1546,15 +1545,17 @@ public class ModuleManagerWindow extends JFrame {
       // Refresh any that are. Only include Save files belonging to this
       // module, or that are pre vassal 3.1
       final File[] files = getFile().listFiles();
-      if (files != null) {
-        for (int i = 0; i < files.length; i++) {
-          final AbstractMetaData fdata = MetaDataFactory.buildMetaData(files[i]);
-          if (fdata != null) {
-            if (fdata instanceof SaveMetaData) {
-              final String moduleName = ((SaveMetaData) fdata).getModuleName();
-              if (moduleName == null || moduleName.length() == 0 || moduleName.equals(getModuleInfo().getModuleName())) {
-                update(files[i]);
-              }
+      if (files == null) return;
+
+      for (File f : files) {
+        final AbstractMetaData fdata = MetaDataFactory.buildMetaData(f);
+        if (fdata != null) {
+          if (fdata instanceof SaveMetaData) {
+            final String moduleName = ((SaveMetaData) fdata).getModuleName();
+            if (moduleName == null ||
+                moduleName.length() == 0 ||
+                moduleName.equals(getModuleInfo().getModuleName())) {
+              update(f);
             }
           }
         }
