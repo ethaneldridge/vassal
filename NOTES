@@ -33,6 +33,7 @@ Changes since 3.1.0
 The following bugs are fixed in 3.1.7:
 
 * Bug 2811211: Area of Effect does not display in all Zoned Grids 
+* Bug 2806392: Observer side linked to password
 * Bug 2806183: Trigger action fails to execute another TA more than once
 * Bug 2805282: SendToLocation does not undo correctly
 * Bug 2804153: NPE in ModuleManager when refreshing Save Folder
