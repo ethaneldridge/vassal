@@ -34,6 +34,7 @@ The following bugs are fixed in 3.1.7:
 
 * Bug 2806183: Trigger action fails to execute another TA more than once
 * Bug 2805282: SendToLocation does not undo correctly
+* Bug 2804153: NPE in ModuleManager when refreshing Save Folder
 
 The following bugs are fixed in 3.1.6:
 
