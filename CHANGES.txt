@@ -1,4 +1,11 @@
-3.1.7 - ???
+3.1.7 - 26 June 2009
+
+* Bug 2811307: Extraneous error messages in Embellishment following property
+* Bug 2811211: Area of Effect does not display in all Zoned Grids
+* Bug 2806392: Observer side linked to password
+* Bug 2806183: Trigger action fails to execute another TA more than once
+* Bug 2805282: SendToLocation does not undo correctly
+* Bug 2804153: NPE in ModuleManager when refreshing Save Folder
 
 3.1.6 - 30 May 2009
 
