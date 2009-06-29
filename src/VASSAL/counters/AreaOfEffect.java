@@ -211,10 +211,9 @@ public class AreaOfEffect extends Decorator implements TranslatablePiece, MapSha
     // (For instance, don't draw it at an offset if it's in an expanded stack)
     final Point mapPosition = getPosition();
     final Board board = map.findBoard(mapPosition);
-    final Rectangle boardBounds = board.bounds();
-    final Point boardPosition = new Point(mapPosition.x-boardBounds.x, mapPosition.y-boardBounds.y);
-    final MapGrid grid = board == null ? null : board.getGrid();
-    
+    final Rectangle boardBounds = board == null ? null : board.bounds();
+    final Point boardPosition = board == null ? null : new Point(mapPosition.x-boardBounds.x, mapPosition.y-boardBounds.y);
+    final MapGrid grid = board == null ? null : board.getGrid();  
     final int myRadius = getRadius();
 
     if (grid instanceof GeometricGrid) {
