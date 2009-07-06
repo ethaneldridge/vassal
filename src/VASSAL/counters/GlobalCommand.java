@@ -83,6 +83,9 @@ public class GlobalCommand {
    */
   public Command apply(Map[] m, PieceFilter filter) {
     Command c = new NullCommand();
+    if (keyStroke == null) {  // Do not issue Null keystrokes
+      return c;
+    }
     try {
       RecursionLimiter.startExecution(owner);
       String reportText = reportFormat.getLocalizedText();
