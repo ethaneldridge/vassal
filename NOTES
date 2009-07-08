@@ -32,6 +32,7 @@ Changes since 3.1.0
 
 The following bugs are fixed in 3.1.8:
 
+* Bug 2817069: IllegalComponentStateException in MenuDisplayer
 * Bug 2817064: Global Key Commands can send Null KeyStrokes
 * Bug 2817038: NPE in MetaDataFactory.buildMetaData()
 * Bug 2816275: NPE in Embellishment adding layer with no image
