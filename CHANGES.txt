@@ -1,4 +1,11 @@
-3.1.8 - ???
+3.1.8 - 10 July 2009
+
+* Bug 2817069: IllegalComponentStateException in MenuDisplayer
+* Bug 2817064: Global Key Commands can send Null KeyStrokes
+* Bug 2817038: NPE in MetaDataFactory.buildMetaData()
+* Bug 2816275: NPE in Embellishment adding layer with no image
+* Bug 2813782: NPE in VASSAL.counters.AreaOfEffect.getArea
+* Bug 2813765: Can't always Peek at a card, even though you can unmask it
 
 3.1.7 - 26 June 2009
 
