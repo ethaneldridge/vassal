@@ -1,3 +1,8 @@
+3.1.9 - 11 July 2009
+
+* Bug 2817613: Bad initial zoom level when loading old Zoomer attributes
+* Rolled back fix for Bug 2813765.
+
 3.1.8 - 9 July 2009
 
 * Bug 2817069: IllegalComponentStateException in MenuDisplayer
