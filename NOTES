@@ -1,4 +1,4 @@
-The VASSAL Team is happy to announce the release of VASSAL 3.1.9, which
+The VASSAL Team is happy to announce the release of VASSAL 3.1.10, which
 fixes several problems found in earlier versions.
 
 *********************
@@ -7,28 +7,32 @@ Download
 
 For Linux:
 
-  http://downloads.sourceforge.net/vassalengine/VASSAL-3.1.9-linux.tar.bz2
+  http://downloads.sourceforge.net/vassalengine/VASSAL-3.1.10-linux.tar.bz2
 
 For Mac OS X:
 
-  http://downloads.sourceforge.net/vassalengine/VASSAL-3.1.9-macosx.dmg
+  http://downloads.sourceforge.net/vassalengine/VASSAL-3.1.10-macosx.dmg
 
 For Windows:
 
-  http://downloads.sourceforge.net/vassalengine/VASSAL-3.1.9-windows.exe
+  http://downloads.sourceforge.net/vassalengine/VASSAL-3.1.10-windows.exe
 
 For other operating systems:
 
-  http://downloads.sourceforge.net/vassalengine/VASSAL-3.1.9-other.zip
+  http://downloads.sourceforge.net/vassalengine/VASSAL-3.1.10-other.zip
 
 Source code:
 
-  http://downloads.sourceforge.net/vassalengine/VASSAL-3.1.9-src.zip
+  http://downloads.sourceforge.net/vassalengine/VASSAL-3.1.10-src.zip
 
 
 *********************
 Changes since 3.1.0
 *********************
+
+The following bugs are fixed in 3.1.10:
+
+* Bug 2817070: PropertySheet saves empty hotkey as null
 
 The following bugs are fixed in 3.1.9:
 
@@ -53,16 +57,7 @@ The following bugs are fixed in 3.1.7:
 * Bug 2805282: SendToLocation does not undo correctly
 * Bug 2804153: NPE in ModuleManager when refreshing Save Folder
 
-The following bugs are fixed in 3.1.6:
-
-* Bug 2798275: Layer following prop does not allow non-string custom props
-* Bug 2794703: StackOverflow using Embellishment level following property
-* Bug 2793103: Memory check fails on Linux due to architecture mismatch
-* Bug: Transparent images used for orthogonal rotations of opaque sources
-* Bug: Incorrect PropertySource used to evaluate properties
-* Bug: Use bounds for primary screen on multi-monitor X11 systems.
-
-For changes prior to 3.1.6, see the change log.
+For changes prior to 3.1.7, see the change log.
 
 The recommended minimum Java version for VASSAL 3.1 has changed. A bug in
 versions of Java prior to 1.5.0_08 (a.k.a. Java 5 update 8) prevents some
@@ -70,7 +65,7 @@ images from loading properly. We now recommend that anyone using a version
 of Java older than 1.5.0_08 upgrade to *at least* 1.5.0_08.
 
 For Linux and Mac users, this should require no action on your part. Windows
-users installing VASSAL 3.1.9 with the Windows installer will be prompted to
+users installing VASSAL 3.1.10 with the Windows installer will be prompted to
 update Java if what they have is older than 1.5.0_08.
 
 For feature changes from 3.0 to 3.1, see the release notes for 3.1.0.
