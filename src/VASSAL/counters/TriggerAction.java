@@ -86,7 +86,9 @@ public class TriggerAction extends Decorator implements TranslatablePiece, Loopa
 
   protected KeyCommand[] myGetKeyCommands() {
     if (command.length() > 0 && key != null) {
-      return new KeyCommand[] {new KeyCommand(command, key, Decorator.getOutermost(this), matchesFilter())};
+      final KeyCommand c = new KeyCommand(command, key, Decorator.getOutermost(this), matchesFilter());
+      c.setEnabled(getMap() != null);
+      return new KeyCommand[] {c};
     }
     else {
       return new KeyCommand[0];
@@ -147,12 +149,13 @@ public class TriggerAction extends Decorator implements TranslatablePiece, Loopa
       return null;
     }
 
-    // 3. Issue the outgoing keystrokes
+    // 3. Issue the outgoing keystrokes if the piece is still
+    //    on a map.
     GamePiece outer = Decorator.getOutermost(this);
     Command c = new NullCommand();
     try {
       RecursionLimiter.startExecution(this);
-      for (int i = 0; i < actionKeys.length; i++) {
+      for (int i = 0; i < actionKeys.length && getMap() != null; i++) {
         c.append(outer.keyEvent(actionKeys[i]));
       }
     }

@@ -28,8 +28,10 @@ import java.awt.event.MouseEvent;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Set;
+
 import javax.swing.Box;
 import javax.swing.KeyStroke;
+
 import VASSAL.build.GameModule;
 import VASSAL.build.module.Map;
 import VASSAL.build.module.documentation.HelpFile;
@@ -37,7 +39,11 @@ import VASSAL.command.Command;
 import VASSAL.configure.HotKeyConfigurer;
 import VASSAL.configure.IntConfigurer;
 import VASSAL.configure.StringConfigurer;
+import VASSAL.tools.ErrorDialog;
+import VASSAL.tools.RecursionLimitException;
+import VASSAL.tools.RecursionLimiter;
 import VASSAL.tools.SequenceEncoder;
+import VASSAL.tools.RecursionLimiter.Loopable;
 
 /**
  * A trait that acts like a button on a GamePiece, such that clicking on a
@@ -46,7 +52,7 @@ import VASSAL.tools.SequenceEncoder;
  * @author rkinney
  * 
  */
-public class ActionButton extends Decorator implements EditablePiece {
+public class ActionButton extends Decorator implements EditablePiece, Loopable {
   public static final String ID = "button;";
   protected KeyStroke stroke;
   protected Rectangle bounds = new Rectangle();
@@ -91,7 +97,8 @@ public class ActionButton extends Decorator implements EditablePiece {
       pusher.register(getMap());
     }
     else {
-      pusher.register(obs, Decorator.getOutermost(this), x, y);
+     // Do not allow button pushes if piece is not on a map
+     // pusher.register(obs, Decorator.getOutermost(this), x, y);
     }
   }
 
@@ -126,6 +133,15 @@ public class ActionButton extends Decorator implements EditablePiece {
     return HelpFile.getReferenceManualPage("ActionButton.htm");
   }
 
+  // Implement Loopable
+  public String getComponentName() {
+    return Decorator.getOutermost(this).getLocalizedName();
+  }
+
+  public String getComponentTypeName() {
+    return getDescription();
+  }
+  
   public PieceEditor getEditor() {
     return new Ed(this);
   }
@@ -240,8 +256,17 @@ public class ActionButton extends Decorator implements EditablePiece {
             // Save state prior to command
             p.setProperty(Properties.SNAPSHOT,
               PieceCloner.getInstance().clonePiece(p));
-            Command command = p.keyEvent(action.stroke);
-            GameModule.getGameModule().sendAndLog(command);
+            try {
+              RecursionLimiter.startExecution(action);
+              Command command = p.keyEvent(action.stroke);
+              GameModule.getGameModule().sendAndLog(command);
+            }
+            catch (RecursionLimitException e) {
+              ErrorDialog.infiniteLoop(e);
+            }
+            finally {
+              RecursionLimiter.endExecution();
+            }
           }
         }
       }
