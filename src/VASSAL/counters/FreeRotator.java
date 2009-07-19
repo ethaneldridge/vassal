@@ -41,6 +41,7 @@ import java.util.Random;
 
 import javax.swing.Box;
 import javax.swing.BoxLayout;
+import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
@@ -116,6 +117,9 @@ public class FreeRotator extends Decorator
   protected double tempAngle, startAngle;
   protected Point pivot;
   protected boolean drawGhost;
+  
+  protected Map startMap;
+  protected Point startPosition;
 
   public FreeRotator() {
     // modified for random rotation (added two ; )
@@ -473,15 +477,39 @@ public class FreeRotator extends Decorator
   }
  
   public void beginInteractiveRotate() {
-    final Map m = getMap();
-    m.pushMouseListener(this);
-    m.addDrawComponent(this);
-    m.getView().addMouseMotionListener(this);
-    m.getView().setCursor(Cursor.getPredefinedCursor(Cursor.CROSSHAIR_CURSOR));     m.disableKeyListeners();
+    startPosition = getPosition();
+    startMap = getMap();
+    startMap.pushMouseListener(this);
+    startMap.addDrawComponent(this);
+
+    final JComponent view = startMap.getView();
+    view.addMouseMotionListener(this);
+    view.setCursor(Cursor.getPredefinedCursor(Cursor.CROSSHAIR_CURSOR));
+
+    startMap.disableKeyListeners();
 
     pivot = getPosition();
   }
+  
+  public void endInteractiveRotate() {
+    startMap.getView().setCursor(null);
+    startMap.removeDrawComponent(this);
+    startMap.popMouseListener();
+    startMap.getView().removeMouseMotionListener(this);
+    startMap.enableKeyListeners();
+    drawGhost = false;
+  }
 
+  /**
+   * Has the piece been moved by a Global key command since interactive 
+   * rotate mode was turned on?
+   */
+  public boolean hasPieceMoved() {
+    final Map m = getMap();
+    final Point p = getPosition();
+    return m == null || m != startMap || p == null || !p.equals(startPosition);
+  }
+  
   /** The point around which the piece will pivot while rotating interactively */
   public void setPivot(int x, int y) {
     pivot = new Point(x, y);
@@ -497,11 +525,20 @@ public class FreeRotator extends Decorator
   }
 
   public void mousePressed(MouseEvent e) {
+    if (hasPieceMoved()) {
+      endInteractiveRotate();
+      return;
+    }
     drawGhost = true;
     startAngle = getRelativeAngle(e.getPoint(), getPosition());
   }
 
   public void mouseReleased(MouseEvent e) {
+    if (hasPieceMoved()) {
+      endInteractiveRotate();
+      return;
+    }
+    
     final Map m = getMap();
 
     try {
@@ -519,11 +556,7 @@ public class FreeRotator extends Decorator
       GameModule.getGameModule().sendAndLog(c);
     }
     finally {
-      m.getView().setCursor(null);
-      m.removeDrawComponent(this);
-      m.popMouseListener();
-      m.getView().removeMouseMotionListener(this);
-      m.enableKeyListeners();
+      endInteractiveRotate();
     }
   }
 
@@ -583,6 +616,10 @@ public class FreeRotator extends Decorator
   }
 
   public void mouseMoved(MouseEvent e) {
+    if (hasPieceMoved()) {
+      endInteractiveRotate();
+      return;
+    }
   }
 
   /**
