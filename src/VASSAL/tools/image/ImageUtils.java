@@ -371,6 +371,8 @@ public class ImageUtils {
     return toCompatibleImage(img);
   }
 
+  // Used to indicate whether this version of Java has the PNG iTXt bug.
+  // This can be removed once we no longer support Java 1.5.
   private static final boolean iTXtBug;
 
   static {
@@ -379,51 +381,84 @@ public class ImageUtils {
   }
 
   public static boolean useImageIO(InputStream in) throws IOException {
+    //
+    // ImageIO fails on the following types of images:
+    //
+    // Sun Bug 6788458: 8-bit/channel color type 2 (RGB) PNGs with tRNS chunks
+    // Sun Bug 6541476: PNGs with iTXt chunks on Java 1.5
+    // 
+    // http://bugs.sun.com/bugdatabase/view_bug.do?bug_id=6788458
+    // http://bugs.sun.com/bugdatabase/view_bug.do?bug_id=6541476
+    //
+    // We attempt to detect these images and use Toolkit.createImage() in
+    // the cases where we know that ImageIO will fail.
+    //
+
     final DataInputStream din = new DataInputStream(in);
 
     // Bail immediately if this stream is not a PNG.
     if (!PNGDecoder.decodeSignature(din)) return true;
 
-    // Numbers in comments after chunk cases here refer to sections in the
-    // PNG standard, found at http://www.w3.org/TR/PNG/
+    // The PNG chunks refered to here are defined in the PNG
+    // standard, found at http://www.w3.org/TR/PNG/
     PNGDecoder.Chunk ch = PNGDecoder.decodeChunk(din);
 
     // This is not a PNG if IHDR is not the first chunk.
     if (ch.type != PNGDecoder.IHDR) return true;
 
-    // Check whether this is an 8-bit-per-channel Truecolor image
-    if (ch.data[8] != 8 || ch.data[9] != 2) {
-      //
-      // ImageIO in Java 1.5 fails to handle iTXt chunks properly, so we
-      // must check whether this is a 1.5 JVM. If so, we cannot use ImageIO
-      // to load this PNG.
-      // 
-      // See Sun Bug 6541476, at
-      // http://bugs.sun.com/bugdatabase/view_bug.do?bug_id=6541476
-      //
-      return !iTXtBug;
+    if (iTXtBug) {
+      // We are using a version of Java which suffers from the iTXt bug.
+      if (ch.data[8] != 8 || ch.data[9] != 2) {
+        // This is not an 8-bit-per-channel Truecolor image.
+        // Use ImageIO if there are no iTXt chunks.
+        while (true) {
+          ch = PNGDecoder.decodeChunk(din);
+          switch (ch.type) {
+          case PNGDecoder.iTXt: return false;
+          case PNGDecoder.IEND: return true;
+          default:
+          }
+        }
+      }
+      else {
+        // This is an 8-bit-per-channel Truecolor image.
+        // Use ImageIO if there are no iTXt chunks and no tRNs chunk.
+        while (true) {
+          ch = PNGDecoder.decodeChunk(din);
+          switch (ch.type) {
+          case PNGDecoder.iTXt: return false;
+          case PNGDecoder.tRNS: return false;
+          case PNGDecoder.IEND: return true;
+          default:
+          }
+        }
+      }
     }
+    else {
+      if (ch.data[8] != 8 || ch.data[9] != 2) {
+        // This is not an 8-bit-per-channel Truecolor image, use ImageIO
+        return true;
+      }
 
-    // IHDR is required to be first, and tRNS is required to appear before
-    // the first IDAT chunk; therefore, if we find an IDAT we're done.
-    while (true) {
-      ch = PNGDecoder.decodeChunk(din);
+      // IHDR is required to be first, and tRNS is required to appear before
+      // the first IDAT chunk; therefore, if we find an IDAT we're done.
+      while (true) {
+        ch = PNGDecoder.decodeChunk(din);
 
 /*
-      System.out.println(new char[]{
-        (char)((ch.type >> 24) & 0xff),
-        (char)((ch.type >> 16) & 0xff),
-        (char)((ch.type >> 8) & 0xff),
-        (char)(ch.type & 0xff)
-      });
+        System.out.println(new char[]{
+          (char)((ch.type >> 24) & 0xff),
+          (char)((ch.type >> 16) & 0xff),
+          (char)((ch.type >> 8) & 0xff),
+          (char)(ch.type & 0xff)
+        });
 */      
 
-      switch (ch.type) {
-      case PNGDecoder.tRNS:  // 11.3.2
-        return false;      
-      case PNGDecoder.IDAT:  // 12.2.4
-        return true;
-      default:
+        switch (ch.type) {
+        case PNGDecoder.tRNS: return false;      
+        case PNGDecoder.IDAT: return true;
+        default:
+        }
       }
     }
   }
