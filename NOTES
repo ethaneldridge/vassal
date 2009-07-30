@@ -32,6 +32,7 @@ Changes since 3.1.0
 
 The following bugs are fixed in 3.1.10:
 
+* Bug 2826715: NPE in GlobalProperty.encode()
 * Bug 2817139: NPE in RangeFilter ctor
 * Bug 2817070: PropertySheet saves empty hotkey as null
 * Bug 2259361: NPE in FreeRotator - Counter moved or deleted during rotate 
