@@ -40,6 +40,7 @@ The following bugs are fixed in 3.1.10:
 * Bug 2817139: NPE in RangeFilter ctor
 * Bug 2827113: ArrayIndexOutOfBoundsException in Embellishment
 * Bug 2817070: PropertySheet saves empty hotkey as null
+* Bug 2756330: StackOverflowError in BasicPiece.mySetType()
 * Bug 2259361: NPE in FreeRotator - Counter moved or deleted during rotate 
 
 The following bugs are fixed in 3.1.9:
