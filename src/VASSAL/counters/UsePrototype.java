@@ -116,23 +116,29 @@ public class UsePrototype extends Decorator implements EditablePiece, Loopable {
   }
 
   protected void buildPrototype() {
-    PrototypeDefinition def = PrototypesContainer.getPrototype(prototypeName);
+    final PrototypeDefinition def =
+      PrototypesContainer.getPrototype(prototypeName);
     if (def != null) {
-      GamePiece expandedPrototype = def.getPiece(properties);
-      String type = expandedPrototype.getType(); // Check to see if prototype definition has changed
+      final GamePiece expandedPrototype = def.getPiece(properties);
+
+      // Check to see if prototype definition has changed
+      final String type = expandedPrototype.getType();
       if (!type.equals(lastCachedPrototype)) {
         lastCachedPrototype = type;
         try {
           RecursionLimiter.startExecution(this);
+
           prototype = PieceCloner.getInstance().clonePiece(expandedPrototype);
-          Decorator outer = (Decorator) Decorator.getInnermost(prototype).getProperty(Properties.OUTER);
+          final Decorator outer = (Decorator)
+            Decorator.getInnermost(prototype).getProperty(Properties.OUTER);
           if (outer != null) { // Will be null for an empty prototype
             outer.setInner(piece);
             prototype.setProperty(Properties.OUTER, this);
           }
           else {
             prototype = null;
-          }        }
+          }
+        }
         catch (RecursionLimitException e) {
           ErrorDialog.infiniteLoop(e);
           prototype = null;
