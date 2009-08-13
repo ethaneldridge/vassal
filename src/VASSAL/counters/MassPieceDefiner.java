@@ -113,6 +113,13 @@ public class MassPieceDefiner extends PieceDefiner {
       e.definer.moveDecoratorDown(index);
     }
   }
+  
+  protected void paste() {
+    super.paste();
+    for (Entry e : definers) {
+      e.definer.paste();
+    }
+  }
 
   protected boolean edit(int index) {
     boolean result = super.edit(index);

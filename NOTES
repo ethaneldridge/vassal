@@ -33,6 +33,8 @@ Changes since 3.1.0
 The following bugs are fixed in 3.1.10:
 
 * Bug 2835827: Use images with premultiplied alpha on Macs
+* Bug 2835735: ArrayIndexOutOfBoundsException in PieceDefiner
+* Bug 2832499: IllegalArgumentException in PropertySheet
 * Bug 2832472: Inventory: Pieces appear multiple times  
 * Bug 2832471: Inventory: Label for folders cannot contain properties  
 * Bug 2827225: NPE in NodeClient.doInvite()
