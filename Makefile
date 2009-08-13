@@ -46,10 +46,10 @@ JDOCDIR:=javadoc
 DOCDIR:=doc
 DISTDIR:=dist
 
-VNUM:=3.1.7
+VNUM:=3.1.10
 SVNVERSION:=$(shell svnversion | perl -pe 's/(\d+:)?(\d+[MS]?)/$$2/; s/(\d+)M/$$1+1/e')
-#VERSION:=$(VNUM)-svn$(SVNVERSION)
-VERSION:=$(VNUM)
+VERSION:=$(VNUM)-svn$(SVNVERSION)
+#VERSION:=$(VNUM)
 
 #CLASSPATH:=$(CLASSDIR):$(LIBDIR)/*
 
@@ -118,7 +118,7 @@ Vengine.jar: all $(TMPDIR)
 		sed -e '/Vengine.jar/d' -e '/AppleJavaExtensions.jar/d' -e '/^  $$/d' \
 	) >>$(TMPDIR)/Vengine.mf
 	$(JAR) cvfm $(LIBDIR)/$@ $(TMPDIR)/Vengine.mf -C $(CLASSDIR) .
-	cd $(LIBDIR) ; $(JAR) i $@ ; cd ..
+	pushd $(LIBDIR) ; $(JAR) i $@ ; popd
 
 $(TMPDIR)/VASSAL.exe: Info.class $(TMPDIR)
 	cp dist/windows/{VASSAL.l4j.xml,VASSAL.ico} $(TMPDIR)
@@ -166,7 +166,7 @@ $(TMPDIR)/VASSAL-$(VERSION)-other.zip: version all $(JARS)
 	rm $(TMPDIR)/VASSAL-$(VERSION)/lib/AppleJavaExtensions.jar
 	cp $(LIBDIR)/Vengine.jar $(TMPDIR)/VASSAL-$(VERSION)/lib
 	cp dist/VASSAL.sh dist/windows/VASSAL.bat $(TMPDIR)/VASSAL-$(VERSION)
-	cd $(TMPDIR) ; zip -9rv $(notdir $@) VASSAL-$(VERSION) ; cd ..
+	pushd $(TMPDIR) ; zip -9rv $(notdir $@) VASSAL-$(VERSION) ; popd
 
 $(TMPDIR)/VASSAL-$(VERSION)-linux.tar.bz2: version release-other
 	cp dist/VASSAL.sh $(TMPDIR)/VASSAL-$(VERSION)
@@ -190,7 +190,7 @@ $(TMPDIR)/VASSAL-$(VERSION)-windows.exe: version release-other $(TMPDIR)/VASSAL.
 
 $(TMPDIR)/VASSAL-$(VERSION)-src.zip: version
 	svn export . $(TMPDIR)/VASSAL-$(VERSION)-src
-	cd $(TMPDIR) ; zip -9rv $(notdir $@) VASSAL-$(VERSION)-src ; cd ..
+	pushd $(TMPDIR) ; zip -9rv $(notdir $@) VASSAL-$(VERSION)-src ; popd
 
 release-linux: $(TMPDIR)/VASSAL-$(VERSION)-linux.tar.bz2
 
