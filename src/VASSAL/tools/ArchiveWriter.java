@@ -39,6 +39,7 @@ import java.util.zip.ZipFile;
 import java.util.zip.ZipInputStream;
 import java.util.zip.ZipOutputStream;
 
+import VASSAL.build.BadDataReport;
 import VASSAL.build.GameModule;
 import VASSAL.configure.DirectoryConfigurer;
 import VASSAL.launch.Launcher;
@@ -284,6 +285,8 @@ public class ArchiveWriter extends DataArchive {
     temp += n + ".zip";
 
     ZipOutputStream out = null;
+    ZipEntry entry = null;
+    
     try {
       out = new ZipOutputStream(
               new BufferedOutputStream(
@@ -311,7 +314,7 @@ public class ArchiveWriter extends DataArchive {
                 new BufferedInputStream(
                   new FileInputStream(archive.getName())));
 
-          ZipEntry entry = null;
+          
 
           while ((entry = in.getNextEntry()) != null) {
             // skip modified or new entries
@@ -339,6 +342,16 @@ public class ArchiveWriter extends DataArchive {
           }
           in.close();
         }
+        // This exception is generated when the user has manually added
+        // files to the archive with non-UTF8 encoded characters in the
+        // filename. 
+        catch (IllegalArgumentException e) {
+          ErrorDialog.show(
+            "Error.bad_file_name",
+            entry == null ? "" : entry.getName()
+          );
+          return;
+        }
         finally {
           IOUtils.closeQuietly(in);
         }
@@ -348,7 +361,7 @@ public class ArchiveWriter extends DataArchive {
       for (String name : files.keySet()) {
         final Object o = files.get(name);
 
-        final ZipEntry entry = new ZipEntry(name);
+        entry = new ZipEntry(name);
 
         final int method;
         if (name.startsWith(imageDir) || name.startsWith(soundDir)) {
