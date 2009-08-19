@@ -34,6 +34,7 @@ The following bugs are fixed in 3.1.10:
 
 * Bug 2839923: Users not showing an IP address
 * Bug 2839916: Player with no Name does not appear properly on Server
+* Bug 2838915: ArrayIndexOutOfBoundsException in ReportState.myKeyEvent()
 * Bug 2835827: Use images with premultiplied alpha on Macs
 * Bug 2835735: ArrayIndexOutOfBoundsException in PieceDefiner
 * Bug 2832499: IllegalArgumentException in PropertySheet
