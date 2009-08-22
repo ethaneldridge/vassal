@@ -63,7 +63,6 @@ public class Obscurable extends Decorator implements TranslatablePiece {
   protected String imageName;
   protected String obscuredToOthersImage;
   protected String obscuredBy;
-  protected ObscurableOptions obscuredOptions; 
   protected String hideCommand = "Mask";
   protected String peekCommand = "Peek";
   protected GamePiece obscuredToMeView;
@@ -77,7 +76,7 @@ public class Obscurable extends Decorator implements TranslatablePiece {
   protected KeyCommand[] commandsWithoutPeek;
   protected KeyCommand hide;
   protected KeyCommand peek;
-  
+
   public Obscurable() {
     this(ID + "M;", null);
   }
@@ -88,11 +87,7 @@ public class Obscurable extends Decorator implements TranslatablePiece {
   }
 
   public void mySetState(String in) {
-    final SequenceEncoder.Decoder sd = new SequenceEncoder.Decoder(in, ';');
-    String token = sd.nextToken("null");    
-    obscuredBy = "null".equals(token) ? null : token;
-    token = sd.nextToken("");
-    obscuredOptions = (obscuredBy == null ? null : new ObscurableOptions(token)); 
+    obscuredBy = "null".equals(in) ? null : in;
   }
 
   public void mySetType(String in) {
@@ -160,10 +155,7 @@ public class Obscurable extends Decorator implements TranslatablePiece {
   }
 
   public String myGetState() {
-    final SequenceEncoder se = new SequenceEncoder(';');
-    se.append(obscuredBy == null ? "null" : obscuredBy);
-    se.append((obscuredBy == null || obscuredOptions == null) ? "" : obscuredOptions.encodeOptions());
-    return se.getValue();
+    return obscuredBy == null ? "null" : obscuredBy;
   }
 
   public Rectangle boundingBox() {
@@ -229,7 +221,6 @@ public class Obscurable extends Decorator implements TranslatablePiece {
         obscuredBy = (String) val;
         if ("null".equals(obscuredBy)) {
           obscuredBy = null;
-          obscuredOptions = null;
         }
       }
     }
@@ -245,7 +236,6 @@ public class Obscurable extends Decorator implements TranslatablePiece {
         owner = access.getCurrentPlayerId();
       }
       obscuredBy = owner;
-      obscuredOptions = new ObscurableOptions(ObscurableOptions.getInstance().encodeOptions());
     }
     else {
       super.setProperty(key, val);
@@ -473,19 +463,8 @@ public class Obscurable extends Decorator implements TranslatablePiece {
    * Return true if this piece can be masked/unmasked by the current player 
    */
   public boolean isMaskable() {
-    // Check if piece is owned by us. Returns true if we own the piece, or if it
-    // is not currently masked
-    if (access.currentPlayerCanModify(obscuredBy)) {
-      return true;
-    }
-    
-    // Check ObscurableOptions in play when piece was Obscured 
-    if (obscuredOptions != null) {
-      return obscuredOptions.isUnmaskable(obscuredBy);
-    }
-    
-    // Fall-back, use current global ObscurableOptions
-    return ObscurableOptions.getInstance().isUnmaskable(obscuredBy);
+    return access.currentPlayerCanModify(obscuredBy)
+    || ObscurableOptions.getInstance().isUnmaskable(obscuredBy);
   }
   
   public Command keyEvent(KeyStroke stroke) {
@@ -508,11 +487,9 @@ public class Obscurable extends Decorator implements TranslatablePiece {
       final ChangeTracker c = new ChangeTracker(this);
       if (obscuredToOthers() || obscuredToMe()) {
         obscuredBy = null;
-        obscuredOptions = null;
       }
       else if (!obscuredToMe()) {
         obscuredBy = access.getCurrentPlayerId();
-        obscuredOptions = new ObscurableOptions(ObscurableOptions.getInstance().encodeOptions());
       }
 
       retVal = c.getChangeCommand();
