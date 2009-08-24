@@ -525,12 +525,12 @@ public class ModuleManagerWindow extends JFrame {
             final ModuleInfo modInfo = (ModuleInfo) target; 
             if (modInfo.isModuleTooNew()) {
               ErrorDialog.show(
-                  "Error.module_too_new",
-                  modInfo.getFile().getPath(),
-                  modInfo.getVassalVersion(),
-                  Info.getVersion()
-                );
-                return;
+                "Error.module_too_new",
+                modInfo.getFile().getPath(),
+                modInfo.getVassalVersion(),
+                Info.getVersion()
+              );
+              return;
             }
             else {
               ((ModuleInfo) target).play();  
@@ -1182,6 +1182,7 @@ public class ModuleManagerWindow extends JFrame {
     protected String getVassalVersion() {
       return metadata == null ? "" : metadata.getVassalVersion();
     }
+
     /**
      * Initialise ModuleInfo based on a saved preference string.
      * See encode().
