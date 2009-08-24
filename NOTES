@@ -31,12 +31,12 @@ Changes since 3.1.0
 *********************
 
 The following bugs are fixed in 3.1.10:
-
 * Bug 2839923: Users not showing an IP address
 * Bug 2839916: Player with no Name does not appear properly on Server
 * Bug 2838915: ArrayIndexOutOfBoundsException in ReportState.myKeyEvent()
 * Bug 2835827: Use images with premultiplied alpha on Macs
 * Bug 2835735: ArrayIndexOutOfBoundsException in PieceDefiner
+* Bug 2833840: IllegalArgumentException in FileChooser with Java 1.5
 * Bug 2832499: IllegalArgumentException in PropertySheet
 * Bug 2832472: Inventory: Pieces appear multiple times  
 * Bug 2832471: Inventory: Label for folders cannot contain properties  
