@@ -32,6 +32,7 @@ import java.net.URL;
 
 import javax.swing.AbstractAction;
 import javax.swing.Action;
+import javax.swing.ImageIcon;
 import javax.swing.JFrame;
 import javax.swing.JMenuItem;
 import javax.swing.JPanel;
@@ -47,7 +48,6 @@ import VASSAL.configure.ConfigureTree;
 import VASSAL.configure.ModuleUpdaterDialog;
 import VASSAL.configure.SaveAction;
 import VASSAL.configure.SaveAsAction;
-import VASSAL.configure.ShowHelpAction;
 import VASSAL.configure.ValidationReport;
 import VASSAL.configure.ValidationReportDialog;
 import VASSAL.i18n.Resources;
@@ -169,6 +169,7 @@ public abstract class EditorWindow extends JFrame {
       helpMenu.setMnemonic(Resources.getString("General.help.shortcut").charAt(0));
 
       helpMenu.add(mm.addKey("General.help"));
+      helpMenu.add(mm.addKey("Help.user_guide"));
       helpMenu.add(mm.addKey("Editor.ModuleEditor.reference_manual"));
       helpMenu.addSeparator();
       helpMenu.add(mm.addKey("AboutScreen.about_vassal"));
@@ -220,31 +221,51 @@ public abstract class EditorWindow extends JFrame {
     createUpdater.setEnabled(false);
     mm.addAction("create_module_updater", createUpdater);
 
-    URL url = null; 
+    final File docbase = Documentation.getDocumentationBaseDir();
+
     try {
-      url = new File(Documentation.getDocumentationBaseDir(),
-                     "README.html").toURI().toURL();
+      mm.addAction(
+        "General.help", 
+        new ShowInBrowserAction(
+          Resources.getString(Resources.HELP),
+          docbase,
+          "README.html",
+          null
+        )
+      );
     }
     catch (MalformedURLException e) {
       ErrorDialog.bug(e);
     }
-    mm.addAction("General.help", new ShowHelpAction(url, null));
 
-    url = null;
     try {
-      File dir = VASSAL.build.module.Documentation.getDocumentationBaseDir();
-      dir = new File(dir, "ReferenceManual/index.htm"); //$NON-NLS-1$
-      url = URLUtils.toURL(dir);
+      mm.addAction(
+        "Help.user_guide",
+        new ShowInBrowserAction(
+          Resources.getString("Help.user_guide"),
+          docbase,
+          "userguide/userguide.pdf",
+           null
+        )
+      );
     }
     catch (MalformedURLException e) {
       ErrorDialog.bug(e);
     }
 
-    final Action helpAction = new ShowHelpAction(url,
-      helpWindow.getClass().getResource("/images/Help16.gif")); //$NON-NLS-1$
-    helpAction.putValue(Action.SHORT_DESCRIPTION, Resources.getString(
-      "Editor.ModuleEditor.reference_manual")); //$NON-NLS-1$
-
+    Action helpAction = null;
+    try {
+      helpAction = new ShowInBrowserAction(
+        Resources.getString("Editor.ModuleEditor.reference_manual"),
+        docbase,
+        "ReferenceManual/index.htm",
+        new ImageIcon(EditorWindow.class.getResource("/images/Help16.gif"))
+      );
+    }
+    catch (MalformedURLException e) {
+      ErrorDialog.bug(e);
+    }
+    
     mm.addAction("Editor.ModuleEditor.reference_manual", helpAction);
     toolBar.add(helpAction);
   

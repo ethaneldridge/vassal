@@ -97,7 +97,6 @@ import VASSAL.chat.ui.ServerStatusView;
 import VASSAL.configure.BooleanConfigurer;
 import VASSAL.configure.DirectoryConfigurer;
 import VASSAL.configure.IntConfigurer;
-import VASSAL.configure.ShowHelpAction;
 import VASSAL.configure.StringArrayConfigurer;
 import VASSAL.i18n.Resources;
 import VASSAL.preferences.PositionOption;
@@ -263,6 +262,7 @@ public class ModuleManagerWindow extends JFrame {
 
     helpMenu.add(mm.addKey("General.help"));
     helpMenu.add(mm.addKey("Main.tour"));
+    helpMenu.add(mm.addKey("Help.user_guide"));
     helpMenu.addSeparator();
     helpMenu.add(mm.addKey("UpdateCheckAction.update_check"));
     helpMenu.add(mm.addKey("Help.error_log"));
@@ -286,15 +286,37 @@ public class ModuleManagerWindow extends JFrame {
       Prefs.getGlobalPrefs().getEditor().getEditAction());
     mm.addAction("General.quit", shutDownAction);
 
-    URL url = null; 
+    final File docbase = Documentation.getDocumentationBaseDir();
+
     try {
-      url = new File(Documentation.getDocumentationBaseDir(),
-                     "README.html").toURI().toURL();
+      mm.addAction(
+        "General.help", 
+        new ShowInBrowserAction(
+          Resources.getString(Resources.HELP),
+          docbase,
+          "README.html",
+          null
+        )
+      );
     }
     catch (MalformedURLException e) {
       ErrorDialog.bug(e);
     }
-    mm.addAction("General.help", new ShowHelpAction(url, null));
+
+    try {
+      mm.addAction(
+        "Help.user_guide",
+        new ShowInBrowserAction(
+          Resources.getString("Help.user_guide"),
+          docbase,
+          "userguide/userguide.pdf",
+           null
+        )
+      );
+    }
+    catch (MalformedURLException e) {
+      ErrorDialog.bug(e);
+    }
     
     mm.addAction("Main.tour", new LaunchTourAction(this));
     mm.addAction("AboutScreen.about_vassal", new AboutVASSALAction(this));
@@ -378,10 +400,12 @@ public class ModuleManagerWindow extends JFrame {
     }
     
     setDividerLocation(getPreferredDividerLocation());
-    serverStatusView.addPropertyChangeListener("dividerLocation", new PropertyChangeListener(){
+    serverStatusView.addPropertyChangeListener("dividerLocation",
+                                               new PropertyChangeListener(){
       public void propertyChange(PropertyChangeEvent e) {
         setPreferredDividerLocation((Integer) e.getNewValue());
-      }});
+      }
+    });
     
     final Rectangle r = Info.getScreenBounds(this);
     serverStatusControls.setPreferredSize(
@@ -412,7 +436,7 @@ public class ModuleManagerWindow extends JFrame {
   protected int getPreferredDividerLocation() {
     return dividerLocationConfig.getIntValue(500);
   }
-  
+
   protected void buildTree() {
     recentModuleConfig = new StringArrayConfigurer("RecentModules", null);
     Prefs.getGlobalPrefs().addOption(null, recentModuleConfig);

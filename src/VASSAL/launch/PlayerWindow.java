@@ -31,7 +31,6 @@ import javax.swing.JToolBar;
 
 import VASSAL.Info;
 import VASSAL.build.module.Documentation;
-import VASSAL.configure.ShowHelpAction;
 import VASSAL.i18n.Resources;
 import VASSAL.tools.ApplicationIcons;
 import VASSAL.tools.ErrorDialog;
@@ -104,6 +103,7 @@ public class PlayerWindow extends JFrame {
    
     helpMenu.add(mm.addMarker("Documentation.VASSAL.start"));
     helpMenu.add(mm.addKey("General.help"));
+    helpMenu.add(mm.addKey("Help.user_guide"));
     helpMenu.add(mm.addMarker("Documentation.VASSAL.end"));
 
     helpMenu.addSeparator();
@@ -116,15 +116,37 @@ public class PlayerWindow extends JFrame {
       helpMenu.add(mm.addKey("AboutScreen.about_vassal"));
     }
 
-    URL url = null; 
+    final File docbase = Documentation.getDocumentationBaseDir();
+
     try {
-      url = new File(Documentation.getDocumentationBaseDir(),
-                     "README.html").toURI().toURL();
+      mm.addAction(
+        "General.help", 
+        new ShowInBrowserAction(
+          Resources.getString(Resources.HELP),
+          docbase,
+          "README.html",
+          null
+        )
+      );
     }
     catch (MalformedURLException e) {
       ErrorDialog.bug(e);
     }
-    mm.addAction("General.help", new ShowHelpAction(url, null));
+
+    try {
+      mm.addAction(
+        "Help.user_guide",
+        new ShowInBrowserAction(
+          Resources.getString("Help.user_guide"),
+          docbase,
+          "userguide/userguide.pdf",
+           null
+        )
+      );
+    }
+    catch (MalformedURLException e) {
+      ErrorDialog.bug(e);
+    }
 
     mm.addAction("AboutScreen.about_vassal", new AboutVASSALAction(this));
     
