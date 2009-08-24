@@ -30,7 +30,11 @@ Source code:
 Changes since 3.1.0
 *********************
 
+* VASSAL has a new User's Guide! You can view the User's Guide by selecting
+"User's Guide" from the Help menu in any of VASSAL's components.
+
 The following bugs are fixed in 3.1.10:
+
 * Bug 2839923: Users not showing an IP address
 * Bug 2839916: Player with no Name does not appear properly on Server
 * Bug 2838915: ArrayIndexOutOfBoundsException in ReportState.myKeyEvent()
@@ -64,16 +68,7 @@ The following bugs are fixed in 3.1.8:
 * Bug 2813782: NPE in VASSAL.counters.AreaOfEffect.getArea
 * Bug 2813765: Can't always Peek at a card, even though you can unmask it
 
-The following bugs are fixed in 3.1.7:
-
-* Bug 2811307: Extraneous error messages in Embellishment following property
-* Bug 2811211: Area of Effect does not display in all Zoned Grids 
-* Bug 2806392: Observer side linked to password
-* Bug 2806183: Trigger action fails to execute another TA more than once
-* Bug 2805282: SendToLocation does not undo correctly
-* Bug 2804153: NPE in ModuleManager when refreshing Save Folder
-
-For changes prior to 3.1.7, see the change log.
+For changes prior to 3.1.8, see the change log.
 
 The recommended minimum Java version for VASSAL 3.1 has changed. A bug in
 versions of Java prior to 1.5.0_08 (a.k.a. Java 5 update 8) prevents some
