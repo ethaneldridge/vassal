@@ -522,7 +522,19 @@ public class ModuleManagerWindow extends JFrame {
 
           // launch module or load save, otherwise expand or collapse node
           if (target instanceof ModuleInfo) {
-            ((ModuleInfo) target).play();
+            final ModuleInfo modInfo = (ModuleInfo) target; 
+            if (modInfo.isModuleTooNew()) {
+              ErrorDialog.show(
+                  "Error.module_too_new",
+                  modInfo.getFile().getPath(),
+                  modInfo.getVassalVersion(),
+                  Info.getVersion()
+                );
+                return;
+            }
+            else {
+              ((ModuleInfo) target).play();  
+            }
           }
           else if (target instanceof SaveFileInfo) {
             ((SaveFileInfo) target).play();
@@ -1163,6 +1175,13 @@ public class ModuleManagerWindow extends JFrame {
       }  
     }
     
+    protected boolean isModuleTooNew() {
+      return metadata == null ? false : Info.isModuleTooNew(metadata.getVassalVersion());
+    }
+    
+    protected String getVassalVersion() {
+      return metadata == null ? "" : metadata.getVassalVersion();
+    }
     /**
      * Initialise ModuleInfo based on a saved preference string.
      * See encode().
@@ -1293,9 +1312,11 @@ public class ModuleManagerWindow extends JFrame {
     @Override 
     public JPopupMenu buildPopup(int row) {
       final JPopupMenu m = new JPopupMenu();
-      m.add(new Player.LaunchAction(ModuleManagerWindow.this, file));
+      final Action playAction = new Player.LaunchAction(ModuleManagerWindow.this, file);
+      playAction.setEnabled(!Info.isModuleTooNew(metadata.getVassalVersion()));
+      m.add(playAction);
       final Action editAction = new Editor.ListLaunchAction(ModuleManagerWindow.this, file);
-      editAction.setEnabled(!Info.isTooNewToEdit(metadata.getVassalVersion()));
+      editAction.setEnabled(!Info.isModuleTooNew(metadata.getVassalVersion()));
       m.add(editAction);
       m.add(new AbstractAction(Resources.getString("General.remove")) {
         private static final long serialVersionUID = 1L;
@@ -1433,7 +1454,7 @@ public class ModuleManagerWindow extends JFrame {
 
       final Action editAction = new EditExtensionLaunchAction(
           ModuleManagerWindow.this, getFile(), getSelectedModule());
-      editAction.setEnabled(!Info.isTooNewToEdit(metadata.getVassalVersion()));
+      editAction.setEnabled(!Info.isModuleTooNew(metadata.getVassalVersion()));
       m.add(editAction);
       return m;
     }
