@@ -1,3 +1,26 @@
+3.1.10 - 26 August 2009
+
+* VASSAL has a new User's Guide.
+
+* Bug 2839923: Users not showing an IP address
+* Bug 2839916: Player with no Name does not appear properly on Server
+* Bug 2838915: ArrayIndexOutOfBoundsException in ReportState.myKeyEvent()
+* Bug 2835827: Use images with premultiplied alpha on Macs
+* Bug 2835735: ArrayIndexOutOfBoundsException in PieceDefiner
+* Bug 2833840: IllegalArgumentException in FileChooser with Java 1.5
+* Bug 2832499: IllegalArgumentException in PropertySheet
+* Bug 2832472: Inventory: Pieces appear multiple times  
+* Bug 2832471: Inventory: Label for folders cannot contain properties  
+* Bug 2827225: NPE in NodeClient.doInvite()
+* Bug 2826715: NPE in GlobalProperty.encode()
+* Bug 2825175: Game Piece Inventory: "Draw Piece Images?" option is broken
+* Bug 2817139: NPE in RangeFilter ctor
+* Bug 2827113: ArrayIndexOutOfBoundsException in Embellishment
+* Bug 2817070: PropertySheet saves empty hotkey as null
+* Bug 2756330: StackOverflowError in BasicPiece.mySetType()
+* Bug 2735630: IllegalArgumentException due to non-UTF8 ZipEntry names
+* Bug 2259361: NPE in FreeRotator - Counter moved or deleted during rotate 
+
 3.1.9 - 11 July 2009
 
 * Bug 2817613: Bad initial zoom level when loading old Zoomer attributes
