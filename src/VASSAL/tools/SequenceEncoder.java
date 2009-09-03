@@ -99,12 +99,12 @@ public class SequenceEncoder {
   }
 
   public SequenceEncoder append(KeyStroke stroke) {
-    String s = HotKeyConfigurer.encode(stroke);
+    final String s = HotKeyConfigurer.encode(stroke);
     return append(s != null ? s : "");
   }
 
   public SequenceEncoder append(Color color) {
-    String s = ColorConfigurer.colorToString(color);
+    final String s = ColorConfigurer.colorToString(color);
     return append(s != null ? s : "");
   }
 
@@ -118,19 +118,20 @@ public class SequenceEncoder {
 
   private void appendEscapedString(String s) {
     final String ss = (s == null ? "" : s);
+    final int length = buffer.length();
+
     int begin = 0;
     int end = ss.indexOf(delimit);
-    int length = buffer.length();
 
     while (begin <= end) {
       buffer.append(ss.substring(begin, end)).append('\\');
       begin = end;
       end = ss.indexOf(delimit, end + 1);
     }
+
     buffer.append(ss.substring(begin));
-    if (ss.endsWith("\\")
-        || (ss.startsWith("\'")
-        && ss.endsWith("\'"))) {
+
+    if (ss.endsWith("\\") || (ss.startsWith("\'") && ss.endsWith("\'"))) {
       buffer.insert(length, "'").append("'");
     }
   }
