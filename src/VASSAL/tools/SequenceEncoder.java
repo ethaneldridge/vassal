@@ -149,11 +149,11 @@ public class SequenceEncoder {
     }
 
     public String nextToken() {
-      if (!hasMoreTokens()) {
-        throw new NoSuchElementException();
-      }
-      String value = val;
-      int i = val.indexOf(delimit);
+      if (!hasMoreTokens()) throw new NoSuchElementException();
+
+      String value;
+
+      final int i = val.indexOf(delimit);
       if (i < 0) {
         value = val;
         val = null;
@@ -172,6 +172,7 @@ public class SequenceEncoder {
             break;
           }
         }
+
         if (end < 0) {
           buffer.append(val.substring(begin));
           val = null;
@@ -180,12 +181,14 @@ public class SequenceEncoder {
           buffer.append(val.substring(begin, end));
           val = end >= val.length() - 1 ? "" : val.substring(end + 1);
         }
+
         value = buffer.toString();
       }
-      if (value.startsWith("'")
-          && value.endsWith("'")) {
+
+      if (value.startsWith("'") && value.endsWith("'")) {
         value = value.substring(1, value.length() - 1);
       }
+
       return value;
     }
 
