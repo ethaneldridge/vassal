@@ -1394,6 +1394,10 @@ public class ModuleManagerWindow extends JFrame {
     public String getSortKey() {
       return metadata == null ? "" : metadata.getLocalizedName();
     }
+    
+    public Color getTreeCellFgColor() {
+      return Info.isModuleTooNew(getVassalVersion()) ? Color.gray : Color.black;
+    }
   }
   
   /** *************************************************************************
