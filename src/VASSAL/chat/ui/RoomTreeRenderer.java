@@ -61,8 +61,9 @@ public class RoomTreeRenderer extends DefaultTreeCellRenderer {
                                                          boolean leaf, int row,
                                                          boolean hasFocus) {
     super.getTreeCellRendererComponent(tree, value, sel, expanded, leaf, row, hasFocus);
+    putClientProperty("html.disable", Boolean.TRUE);
     value = ((DefaultMutableTreeNode) value).getUserObject();
-    if (value instanceof Player) {
+    if (value instanceof Player) {      
       if (((SimpleStatus)((Player) value).getStatus()).isAway()) {
         setIcon(away);
       }
