@@ -53,7 +53,7 @@ import VASSAL.configure.StringArrayConfigurer;
  */
 public class SequenceEncoder {
   private StringBuilder buffer;
-  private char delimit;
+  private final char delimit;
 
   public SequenceEncoder(char delimiter) {
     this(null, delimiter);
