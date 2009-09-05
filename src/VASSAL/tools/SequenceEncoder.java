@@ -76,7 +76,7 @@ public class SequenceEncoder {
     }
 
     if (s != null) {
-      if (s.endsWith("\\") || (s.startsWith("\'") && s.endsWith("\'"))) {
+      if (s.endsWith("\\") || (s.startsWith("'") && s.endsWith("'"))) {
         buffer.append("'");
         appendEscapedString(s);
         buffer.append("'");
