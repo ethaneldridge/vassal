@@ -238,10 +238,7 @@ public class SequenceEncoder {
     }
 
     public boolean nextBoolean(boolean defaultValue) {
-      if (val != null) {
-        defaultValue = "true".equals(nextToken());
-      }
-      return defaultValue;
+      return val != null ? "true".equals(nextToken()) : defaultValue;
     }
 
     /**
