@@ -251,19 +251,20 @@ public class SequenceEncoder {
      */
     public char nextChar(char defaultValue) {
       if (val != null) {
-        String s = nextToken();
+        final String s = nextToken();
         defaultValue = s.length() > 0 ? s.charAt(0) : defaultValue;
       }
       return defaultValue;
     }
 
     public KeyStroke nextKeyStroke(char defaultValue) {
-      return nextKeyStroke(KeyStroke.getKeyStroke(defaultValue, InputEvent.CTRL_MASK));
+      return nextKeyStroke(
+        KeyStroke.getKeyStroke(defaultValue, InputEvent.CTRL_MASK));
     }
 
     public Color nextColor(Color defaultValue) {
       if (val != null) {
-        String s = nextToken();
+        final String s = nextToken();
         if (s.length() > 0) {
           defaultValue = ColorConfigurer.stringToColor(s);
         }
@@ -276,12 +277,13 @@ public class SequenceEncoder {
 
     public KeyStroke nextKeyStroke(KeyStroke defaultValue) {
       if (val != null) {
-        String s = nextToken();
+        final String s = nextToken();
         if (s.length() == 0) {
           defaultValue = null;
         }
         else if (s.indexOf(',') < 0) {
-          defaultValue = KeyStroke.getKeyStroke(s.charAt(0), InputEvent.CTRL_MASK);
+          defaultValue =
+            KeyStroke.getKeyStroke(s.charAt(0), InputEvent.CTRL_MASK);
         }
         else {
           defaultValue = HotKeyConfigurer.decode(s);
@@ -296,22 +298,24 @@ public class SequenceEncoder {
      * @return
      */
     public String nextToken(String defaultValue) {
-      if (val != null) {
-        defaultValue = nextToken();
-      }
-      return defaultValue;
+      return val != null ? nextToken() : defaultValue;
     }
 
     public String[] nextStringArray(int minLength) {
-      String[] retVal = new String[0];
+      String[] retVal;
       if (val != null) {
         retVal = StringArrayConfigurer.stringToArray(nextToken());
       }
+      else {
+        retVal = new String[0];
+      }
+
       if (retVal.length < minLength) {
-        String[] old = retVal;
+        final String[] old = retVal;
         retVal = new String[minLength];
         System.arraycopy(old,0,retVal,0,old.length);
       }
+
       return retVal;
     }
   }
