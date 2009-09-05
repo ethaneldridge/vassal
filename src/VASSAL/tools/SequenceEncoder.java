@@ -1,7 +1,7 @@
 /*
  * $Id$
  *
- * Copyright (c) 2000-2003 by Rodney Kinney
+ * Copyright (c) 2000-2009 by Rodney Kinney, Joel Uckelman
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Library General Public
@@ -67,14 +67,25 @@ public class SequenceEncoder {
   }
 
   public SequenceEncoder append(String s) {
+    // start the buffer, or add delimiter after previous token
     if (buffer == null) {
       buffer = new StringBuilder();
-      appendEscapedString(s);
     }
     else {
       buffer.append(delimit);
-      appendEscapedString(s);
     }
+
+    if (s != null) {
+      if (s.endsWith("\\") || (s.startsWith("\'") && s.endsWith("\'"))) {
+        buffer.append("'");
+        appendEscapedString(s);
+        buffer.append("'");
+      }
+      else {
+        appendEscapedString(s);
+      }
+    }
+
     return this;
   }
 
@@ -99,13 +110,11 @@ public class SequenceEncoder {
   }
 
   public SequenceEncoder append(KeyStroke stroke) {
-    final String s = HotKeyConfigurer.encode(stroke);
-    return append(s != null ? s : "");
+    return append(HotKeyConfigurer.encode(stroke));
   }
 
   public SequenceEncoder append(Color color) {
-    final String s = ColorConfigurer.colorToString(color);
-    return append(s != null ? s : "");
+    return append(ColorConfigurer.colorToString(color));
   }
 
   public SequenceEncoder append(String[] s) {
@@ -117,23 +126,16 @@ public class SequenceEncoder {
   }
 
   private void appendEscapedString(String s) {
-    final String ss = (s == null ? "" : s);
-    final int length = buffer.length();
-
     int begin = 0;
-    int end = ss.indexOf(delimit);
+    int end = s.indexOf(delimit);
 
     while (begin <= end) {
-      buffer.append(ss.substring(begin, end)).append('\\');
+      buffer.append(s.substring(begin, end)).append('\\');
       begin = end;
-      end = ss.indexOf(delimit, end + 1);
+      end = s.indexOf(delimit, end + 1);
     }
 
-    buffer.append(ss.substring(begin));
-
-    if (ss.endsWith("\\") || (ss.startsWith("\'") && ss.endsWith("\'"))) {
-      buffer.insert(length, "'").append("'");
-    }
+    buffer.append(s.substring(begin));
   }
 
   public static class Decoder {
