@@ -138,7 +138,7 @@ public class SequenceEncoder {
 
   public static class Decoder {
     private String val;
-    private char delimit;
+    private final char delimit;
 
     public Decoder(String value, char delimiter) {
       val = value;
