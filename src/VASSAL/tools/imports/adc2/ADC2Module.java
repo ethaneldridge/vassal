@@ -334,9 +334,9 @@ private static final String CHARTS = "Charts";
     
     public String getStatusPropertyName() {
       if (getType() == CLASS_VALUE)
-        return classValues[type >> 4];
+        return classValues[type >>> 4];
       else if (getType() == PIECE_VALUE)
-        return pieceValues[type >> 4];
+        return pieceValues[type >>> 4];
       else
         return null;
     }
