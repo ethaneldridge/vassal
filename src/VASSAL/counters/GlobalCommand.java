@@ -87,6 +87,9 @@ public class GlobalCommand {
       return c;
     }
     try {
+      if (reportSingle) {
+        Map.setChangeReportingEnabled(false);
+      }
       RecursionLimiter.startExecution(owner);
       String reportText = reportFormat.getLocalizedText();
       if (reportText.length() > 0) {
@@ -95,10 +98,6 @@ public class GlobalCommand {
         c.execute();
       }
       for (int mapI = 0; mapI < m.length; ++mapI) {
-        String mapFormat = m[mapI].getChangeFormat();
-        if (reportSingle) {
-          m[mapI].setAttribute(Map.CHANGE_FORMAT, "");
-        }
         Visitor visitor = new Visitor(c, filter, keyStroke);
         DeckVisitorDispatcher dispatcher = new DeckVisitorDispatcher(visitor);
         GamePiece[] p = m[mapI].getPieces();
@@ -106,9 +105,6 @@ public class GlobalCommand {
           dispatcher.accept(p[i]);
         }
         visitor.getTracker().repaint();
-        if (reportSingle) {
-          m[mapI].setAttribute(Map.CHANGE_FORMAT, mapFormat);
-        }
         c = visitor.getCommand();
       }
     }
@@ -117,6 +113,9 @@ public class GlobalCommand {
     }
     finally {
       RecursionLimiter.endExecution();
+      if (reportSingle) {
+        Map.setChangeReportingEnabled(true);
+      }
     }
     
     return c;
