@@ -33,7 +33,9 @@ Changes since 3.1.0
 The following bugs are fixed in 3.1.11:
 
 * Bug 2849638: StackOverflowError - Return to Deck and Map auto-move
+* Bug 2844284: GKC does not "Suppress individual reports" across maps
 * Bug 2839916: Player with no Name does not appear properly on Server (II)
+* Bug 2817002: UnsatisfiedLinkError in JNA on some versions of Mac OS X
 
 New in 3.1.10:
 
