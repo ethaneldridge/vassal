@@ -1,4 +1,12 @@
-3.1.11 - ???
+3.1.11 - 30 September 2009
+
+* The Mac OS X bundle has been updated to run with a 64-bit JVM if one
+is available.
+
+* Bug 2849638: StackOverflowError - Return to Deck and Map auto-move
+* Bug 2844284: GKC does not "Suppress individual reports" across maps
+* Bug 2839916: Player with no Name does not appear properly on Server (II)
+* Bug 2817002: UnsatisfiedLinkError in JNA on some versions of Mac OS X
 
 3.1.10 - 26 August 2009
 
