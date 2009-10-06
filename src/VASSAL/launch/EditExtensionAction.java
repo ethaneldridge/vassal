@@ -1,6 +1,4 @@
 /*
- * $Id$
- *
  * Copyright (c) 2000-2007 by Rodney Kinney
  *
  * This library is free software; you can redistribute it and/or
@@ -22,6 +20,7 @@ package VASSAL.launch;
 import java.awt.Component;
 import java.io.File;
 import java.io.IOException;
+import java.util.zip.ZipFile;
 
 import javax.swing.JFrame;
 
@@ -30,12 +29,11 @@ import VASSAL.build.GameModule;
 import VASSAL.build.module.ModuleExtension;
 import VASSAL.i18n.Resources;
 import VASSAL.tools.ArchiveWriter;
-import VASSAL.tools.io.ZipArchive;
 
 /**
  * Loads an exiting module extension and opens it in an extension edit window
- *
  * @author rodneykinney
+ *
  */
 public class EditExtensionAction extends LoadModuleAction {
   private static final long serialVersionUID = 1L;
@@ -51,14 +49,13 @@ public class EditExtensionAction extends LoadModuleAction {
   }
   
   protected void loadModule(File f) throws IOException {
-    final ModuleExtension ext =
-      new ModuleExtension(new ArchiveWriter(new ZipArchive(f)));
+    ModuleExtension ext = new ModuleExtension(new ArchiveWriter(new ZipFile(f.getPath())));
     ext.build();
-    final JFrame frame = GameModule.getGameModule().getFrame();
-    final ExtensionEditorWindow w =
-      new ExtensionEditorWindow(GameModule.getGameModule(), ext);
+    JFrame frame = GameModule.getGameModule().getFrame();
+    ExtensionEditorWindow w = new ExtensionEditorWindow(GameModule.getGameModule(), ext);
     w.setLocation(0, frame.getY() + frame.getHeight());
     w.setSize(Info.getScreenBounds(frame).width/2,w.getHeight());
     w.setVisible(true);
   }
+
 }

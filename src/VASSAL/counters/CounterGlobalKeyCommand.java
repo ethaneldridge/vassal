@@ -39,15 +39,14 @@ import VASSAL.build.module.map.MassKeyCommand;
 import VASSAL.command.Command;
 import VASSAL.command.NullCommand;
 import VASSAL.configure.BooleanConfigurer;
+import VASSAL.configure.HotKeyConfigurer;
 import VASSAL.configure.IntConfigurer;
-import VASSAL.configure.NamedHotKeyConfigurer;
 import VASSAL.configure.PropertyExpression;
 import VASSAL.configure.PropertyExpressionConfigurer;
 import VASSAL.configure.StringConfigurer;
 import VASSAL.i18n.PieceI18nData;
 import VASSAL.i18n.Resources;
 import VASSAL.i18n.TranslatablePiece;
-import VASSAL.tools.NamedKeyStroke;
 import VASSAL.tools.RecursionLimiter;
 import VASSAL.tools.SequenceEncoder;
 
@@ -60,8 +59,8 @@ public class CounterGlobalKeyCommand extends Decorator
   public static final String ID = "globalkey;";
   protected KeyCommand[] command;
   protected String commandName;
-  protected NamedKeyStroke key;
-  protected NamedKeyStroke globalKey;
+  protected KeyStroke key;
+  protected KeyStroke globalKey;
   protected GlobalCommand globalCommand = new GlobalCommand(this);
   protected PropertyExpression propertiesFilter = new PropertyExpression();
   protected boolean restrictRange;
@@ -84,8 +83,8 @@ public class CounterGlobalKeyCommand extends Decorator
     type = type.substring(ID.length());
     SequenceEncoder.Decoder st = new SequenceEncoder.Decoder(type, ';');
     commandName = st.nextToken("Global Command");
-    key = st.nextNamedKeyStroke('G');
-    globalKey = st.nextNamedKeyStroke('K');
+    key = st.nextKeyStroke('G');
+    globalKey = st.nextKeyStroke('K');
     propertiesFilter.setExpression(st.nextToken(""));
     restrictRange = st.nextBoolean(false);
     range = st.nextInt(1);
@@ -117,7 +116,7 @@ public class CounterGlobalKeyCommand extends Decorator
   protected KeyCommand[] myGetKeyCommands() {
     if (command == null) {
       myCommand = new KeyCommand(commandName, key, Decorator.getOutermost(this), this);
-      if (commandName.length() > 0 && key != null && ! key.isNull()) {
+      if (commandName.length() > 0 && key != null) {
         command = new KeyCommand[]{ myCommand };
       }
       else {
@@ -208,9 +207,9 @@ public class CounterGlobalKeyCommand extends Decorator
 
   public static class Ed implements PieceEditor {
     protected StringConfigurer nameInput;
-    protected NamedHotKeyConfigurer keyInput;
-    protected NamedHotKeyConfigurer globalKey;
-    protected PropertyExpressionConfigurer propertyMatch;
+    protected HotKeyConfigurer keyInput;
+    protected HotKeyConfigurer globalKey;
+    protected StringConfigurer propertyMatch;
     protected MassKeyCommand.DeckPolicyConfig deckPolicy;
     protected BooleanConfigurer suppress;
     protected BooleanConfigurer restrictRange;
@@ -248,17 +247,17 @@ public class CounterGlobalKeyCommand extends Decorator
       nameInput = new StringConfigurer(null, "Command name:  ", p.commandName);
       controls.add(nameInput.getControls());
 
-      keyInput = new NamedHotKeyConfigurer(null, "Keyboard Command:  ", p.key);
+      keyInput = new HotKeyConfigurer(null, "Keyboard Command:  ", p.key);
       controls.add(keyInput.getControls());
 
-      globalKey = new NamedHotKeyConfigurer(null, "Global Key Command:  ", p.globalKey);
+      globalKey = new HotKeyConfigurer(null, "Global Key Command:  ", p.globalKey);
       controls.add(globalKey.getControls());
 
       propertyMatch = new PropertyExpressionConfigurer(null, "Matching Properties:  ", p.propertiesFilter);
       controls.add(propertyMatch.getControls());
       
       deckPolicy = new MassKeyCommand.DeckPolicyConfig();
-      deckPolicy.setValue(p.globalCommand.getSelectFromDeck());
+      deckPolicy.setValue(new Integer(p.globalCommand.getSelectFromDeck()));
       controls.add(deckPolicy.getControls());
 
       restrictRange = new BooleanConfigurer(null, "Restrict Range?", p.restrictRange);
@@ -269,7 +268,7 @@ public class CounterGlobalKeyCommand extends Decorator
       controls.add(fixedRange.getControls());
       fixedRange.addPropertyChangeListener(pl);
       
-      range = new IntConfigurer(null, "Range:  ", p.range);
+      range = new IntConfigurer(null, "Range:  ", new Integer(p.range));
       controls.add(range.getControls());
 
       rangeProperty = new StringConfigurer(null, "Range Property:  ", p.rangeProperty);
@@ -288,8 +287,8 @@ public class CounterGlobalKeyCommand extends Decorator
     public String getType() {
       SequenceEncoder se = new SequenceEncoder(';');
       se.append(nameInput.getValueString())
-          .append(keyInput.getValueString())
-          .append(globalKey.getValueString())
+          .append((KeyStroke) keyInput.getValue())
+          .append((KeyStroke) globalKey.getValue())
           .append(propertyMatch.getValueString())
           .append(restrictRange.getValueString())
           .append(range.getValueString())
@@ -307,9 +306,8 @@ public class CounterGlobalKeyCommand extends Decorator
   }
 
   // Implement Loopable
-  // Be careful not to start a new infinite loop.
   public String getComponentName() {
-    return piece.getProperty(BasicPiece.BASIC_NAME).toString();
+    return Decorator.getOutermost(this).getLocalizedName();
   }
 
   public String getComponentTypeName() {

@@ -1,7 +1,8 @@
 /*
  * $Id$
  *
- * Copyright (c) 2003 by Rodney Kinney
+ * Copyright (c) 2003-2009 by Rodney Kinney, Brent Easton, Joel Uckelman,
+ * Alysa Habraken
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Library General Public
@@ -20,6 +21,8 @@ package VASSAL;
 
 import java.awt.Component;
 import java.awt.GraphicsConfiguration;
+import java.awt.GraphicsDevice;
+import java.awt.GraphicsEnvironment;
 import java.awt.Insets;
 import java.awt.Rectangle;
 import java.awt.Toolkit;
@@ -33,21 +36,29 @@ import VASSAL.tools.version.VersionTokenizer;
  * Class for storing release-related information
  */
 public final class Info {
-  private static final String VERSION = "3.2.0-svn4869"; //$NON-NLS-1$
+  private static final String VERSION = "3.1.6"; //$NON-NLS-1$
   
   // Do not allow editing of modules with this revision or later
-  private static final String EDITOR_EXPIRY_VERSION = "3.3";  //$NON-NLS-1$
+  private static final String EDITOR_EXPIRY_VERSION = "3.2";  //$NON-NLS-1$
   
   private static File homeDir;
 
   private static final boolean isWindows;
   private static final boolean isMacOSX; 
+  private static final boolean isLinux;
+  private static final boolean isX11;
 
   static {
     // set the OS flags
     final String os = System.getProperty("os.name").toLowerCase();
     isWindows =  os.startsWith("windows");
     isMacOSX = os.startsWith("mac os x");
+    isLinux = os.startsWith("linux");
+
+    // determine whether we are using X11
+    final String graphenv =
+      System.getProperty("java.awt.graphicsenv").toLowerCase();
+    isX11 = graphenv.indexOf("x11") != -1;
   }
 
   /** The path to the JVM binary. */
@@ -132,12 +143,25 @@ public final class Info {
   public static Rectangle getScreenBounds(Component c) {
     final Rectangle bounds =
       new Rectangle(Toolkit.getDefaultToolkit().getScreenSize());
-    final GraphicsConfiguration config = c.getGraphicsConfiguration();
-    final Insets insets = Toolkit.getDefaultToolkit().getScreenInsets(config);
-    bounds.translate(insets.left, insets.top);
-    bounds.setSize(bounds.width - insets.left - insets.right,
-                   bounds.height - insets.top - insets.bottom);
-    return bounds;
+    
+    if (isX11) {
+      // multi-monitor support for X11
+      final GraphicsEnvironment ge =
+        GraphicsEnvironment.getLocalGraphicsEnvironment();
+      final GraphicsDevice dev = ge.getDefaultScreenDevice();
+      bounds.setBounds(dev.getDefaultConfiguration().getBounds());
+        
+      return bounds;
+    }
+    else {   
+      final GraphicsConfiguration config = c.getGraphicsConfiguration();
+      final Insets insets = Toolkit.getDefaultToolkit().getScreenInsets(config);
+      bounds.translate(insets.left, insets.top);
+      bounds.setSize(bounds.width - insets.left - insets.right,
+                     bounds.height - insets.top - insets.bottom);
+    
+      return bounds;
+    }
   }
 
   public static boolean isMacOSX() {
@@ -152,6 +176,14 @@ public final class Info {
   
   public static boolean isWindows() {
     return isWindows;
+  }
+  
+  public static boolean isLinux() {
+    return isLinux;
+  }
+  
+  public static boolean isX11() {
+    return isX11;
   }
   
   public static boolean isTooNewToEdit(String version) {

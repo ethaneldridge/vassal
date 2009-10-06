@@ -37,6 +37,7 @@ import javax.swing.BorderFactory;
 import javax.swing.JComponent;
 import javax.swing.JLayeredPane;
 import javax.swing.JPanel;
+import javax.swing.KeyStroke;
 import javax.swing.border.EtchedBorder;
 
 import org.w3c.dom.Element;
@@ -57,11 +58,9 @@ import VASSAL.configure.IconConfigurer;
 import VASSAL.configure.VisibilityCondition;
 import VASSAL.counters.GamePiece;
 import VASSAL.i18n.ComponentI18nData;
-import VASSAL.i18n.Resources;
 import VASSAL.i18n.Translatable;
 import VASSAL.tools.KeyStrokeSource;
 import VASSAL.tools.LaunchButton;
-import VASSAL.tools.NamedKeyStroke;
 import VASSAL.tools.ScrollPane;
 
 /**
@@ -104,7 +103,7 @@ public class GlobalMap implements AutoConfigurable,
                               HOTKEY, ICON_NAME, al);
     launch.setAttribute(TOOLTIP, "Show/Hide overview window");
     launch.setAttribute(HOTKEY,
-      NamedKeyStroke.getNamedKeyStroke(KeyEvent.VK_O,
+      KeyStroke.getKeyStroke(KeyEvent.VK_O,
                              KeyEvent.CTRL_MASK + KeyEvent.SHIFT_MASK));
   }
 
@@ -206,12 +205,12 @@ public class GlobalMap implements AutoConfigurable,
 
   public String[] getAttributeDescriptions() {
     return new String[] {
-      Resources.getString(Resources.TOOLTIP_TEXT),
-      Resources.getString(Resources.BUTTON_TEXT),
-      Resources.getString(Resources.BUTTON_ICON),
-      Resources.getString("Editor.GlobalMap.show_hide"), //$NON-NLS-1$
-      Resources.getString("Editor.GlobalMap.scale_factor"), //$NON-NLS-1$
-      Resources.getString("Editor.GlobalMap.hilight"), //$NON-NLS-1$
+      "Tooltip text",
+      "Button text",
+      "Button icon",
+      "Hotkey to show/hide",
+      "Scale factor",
+      "Visible rectangle highlight color"
     };
   }
 
@@ -220,7 +219,7 @@ public class GlobalMap implements AutoConfigurable,
       String.class,
       String.class,
       IconConfig.class,
-      NamedKeyStroke.class,
+      KeyStroke.class,
       Double.class,
       Color.class
     };
@@ -295,7 +294,7 @@ public class GlobalMap implements AutoConfigurable,
   }
 
   public static String getConfigureTypeName() {
-    return Resources.getString("Editor.GlobalMap.component_type"); //$NON-NLS-1$
+    return "Overview Window";
   }
 
   public String getConfigureName() {

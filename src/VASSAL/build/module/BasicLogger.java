@@ -28,7 +28,6 @@ import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.io.File;
 import java.io.IOException;
-import java.io.OutputStream;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
@@ -50,21 +49,17 @@ import VASSAL.command.Command;
 import VASSAL.command.CommandEncoder;
 import VASSAL.command.Logger;
 import VASSAL.configure.BooleanConfigurer;
+import VASSAL.configure.HotKeyConfigurer;
 import VASSAL.configure.IconConfigurer;
-import VASSAL.configure.NamedHotKeyConfigurer;
 import VASSAL.i18n.Resources;
 import VASSAL.launch.Launcher;
+import VASSAL.tools.ArchiveWriter;
 import VASSAL.tools.KeyStrokeListener;
-import VASSAL.tools.NamedKeyStroke;
-import VASSAL.tools.NamedKeyStrokeListener;
+import VASSAL.tools.Obfuscator;
 import VASSAL.tools.WriteErrorDialog;
 import VASSAL.tools.filechooser.FileChooser;
 import VASSAL.tools.filechooser.LogFileFilter;
 import VASSAL.tools.io.FastByteArrayOutputStream;
-import VASSAL.tools.io.FileArchive;
-import VASSAL.tools.io.IOUtils;
-import VASSAL.tools.io.ObfuscatingOutputStream;
-import VASSAL.tools.io.ZipArchive;
 import VASSAL.tools.menu.MenuManager;
 
 public class BasicLogger implements Logger, Buildable, GameComponent, CommandEncoder {
@@ -128,7 +123,7 @@ public class BasicLogger implements Logger, Buildable, GameComponent, CommandEnc
     button.setToolTipText(Resources.getString("BasicLogger.step_forward_tooltip"));  //$NON-NLS-1$
     button.setAlignmentY((float) 0.0);
 
-    final NamedKeyStrokeListener stepKeyListener = new NamedKeyStrokeListener(stepAction, NamedKeyStroke.getNamedKeyStroke(KeyEvent.VK_PAGE_DOWN, 0));
+    final KeyStrokeListener stepKeyListener = new KeyStrokeListener(stepAction, KeyStroke.getKeyStroke(KeyEvent.VK_PAGE_DOWN, 0));
     mod.addKeyStrokeListener(stepKeyListener);
 
     final KeyStrokeListener newLogKeyListener = new KeyStrokeListener(newLogAction, KeyStroke.getKeyStroke(KeyEvent.VK_W, Event.ALT_MASK));
@@ -155,12 +150,12 @@ public class BasicLogger implements Logger, Buildable, GameComponent, CommandEnc
           }
         });
         undoIconConfig.fireUpdate();
-        final NamedHotKeyConfigurer stepKeyConfig = new NamedHotKeyConfigurer("stepHotKey", Resources.getString("BasicLogger.step_forward_hotkey"), stepKeyListener.getNamedKeyStroke());  //$NON-NLS-1$ //$NON-NLS-2$
+        final HotKeyConfigurer stepKeyConfig = new HotKeyConfigurer("stepHotKey", Resources.getString("BasicLogger.step_forward_hotkey"), stepKeyListener.getKeyStroke());  //$NON-NLS-1$ //$NON-NLS-2$
         GlobalOptions.getInstance().addOption(stepKeyConfig);
         stepKeyConfig.addPropertyChangeListener(new PropertyChangeListener() {
           public void propertyChange(PropertyChangeEvent evt) {
-            stepKeyListener.setKeyStroke((NamedKeyStroke) stepKeyConfig.getValue());
-            stepAction.putValue(Action.SHORT_DESCRIPTION, Resources.getString("BasicLogger.step_forward_tooltip2", NamedHotKeyConfigurer.getString(stepKeyListener.getNamedKeyStroke())));  //$NON-NLS-1$
+            stepKeyListener.setKeyStroke((KeyStroke) stepKeyConfig.getValue());
+            stepAction.putValue(Action.SHORT_DESCRIPTION, Resources.getString("BasicLogger.step_forward_tooltip2", HotKeyConfigurer.getString(stepKeyListener.getKeyStroke())));  //$NON-NLS-1$
           }
         });
         stepKeyConfig.fireUpdate();
@@ -188,6 +183,7 @@ public class BasicLogger implements Logger, Buildable, GameComponent, CommandEnc
   }
 
   public void setup(boolean show) {
+    VASSAL.tools.logging.Logger.log("BasicLogger.setup() - Game starting = "+show+", endLogAction.enabled()="+endLogAction.isEnabled()); // Debug [2817148] 
     newLogAction.setEnabled(show);
     if (show) {
       logOutput.clear();
@@ -219,6 +215,7 @@ public class BasicLogger implements Logger, Buildable, GameComponent, CommandEnc
       endLogAction.setEnabled(false);
       stepAction.setEnabled(false);
       outputFile = null;
+      VASSAL.tools.logging.Logger.log("BasicLogger.setup() - Game ending, outPutfile set to null"); // Debug [2817148] 
     }
   }
 
@@ -247,6 +244,7 @@ public class BasicLogger implements Logger, Buildable, GameComponent, CommandEnc
    * Check if user would like to create a new logfile
    */
   public void queryNewLogFile(boolean atStart) {
+    VASSAL.tools.logging.Logger.log("BasicLogger.queryNewLogfile() - atStart="+atStart); // Debug [2817148] 
     String prefName;
     String prompt;
     if (isLogging()) {
@@ -287,35 +285,23 @@ public class BasicLogger implements Logger, Buildable, GameComponent, CommandEnc
    */
   public void write() throws IOException {
     if (!logOutput.isEmpty()) {
+      VASSAL.tools.logging.Logger.log("BasicLogger.write() - outputFile = "+(outputFile == null ? "null" : outputFile.getPath())); // Debug [2817148] 
       final Command log = beginningState;
       for (Command c : logOutput) {
         log.append(new LogCommand(c, logInput, stepAction));
       }
 
-// FIXME: Extremely inefficient! Make encode write to an OutputStream
       final String s = GameModule.getGameModule().encode(log);
-      final FastByteArrayOutputStream ba = new FastByteArrayOutputStream();
-      OutputStream out = null;
-      try {
-        out = new ObfuscatingOutputStream(ba);
-        out.write(s.getBytes("UTF-8"));
-        out.close();
-      }
-      finally {
-        IOUtils.closeQuietly(out);
-      }
+      final FastByteArrayOutputStream out = new FastByteArrayOutputStream();
+      new Obfuscator(s.getBytes("UTF-8")).write(out); //$NON-NLS-1$    
 
-      FileArchive archive = null;
-      try {
-        archive = new ZipArchive(outputFile);
-        archive.add(GameState.SAVEFILE_ZIP_ENTRY, ba.toInputStream());
-        metadata.save(archive);
-        archive.close();
-      }
-      finally {
-        IOUtils.closeQuietly(archive);
-      }      
-
+      if (outputFile == null) { // Debug [2817148] 
+        throw new IllegalStateException("Logfile variable is null, please submit this bug"); // Debug [2817148] 
+      } // Debug [2817148] 
+      final ArchiveWriter saver = new ArchiveWriter(outputFile.getPath());
+      saver.addFile(GameState.SAVEFILE_ZIP_ENTRY, out.toInputStream()); //$NON-NLS-1$
+      metadata.save(saver);
+      saver.write();
       Launcher.getInstance().sendSaveCmd(outputFile);
 
       GameModule.getGameModule().getGameState().setModified(false);
@@ -348,7 +334,9 @@ public class BasicLogger implements Logger, Buildable, GameComponent, CommandEnc
   }
  
   protected void beginOutput() {
+    VASSAL.tools.logging.Logger.log("BasicLogger.beginOutput(), call getSaveFile()"); // Debug [2817148] 
     outputFile = getSaveFile();
+    VASSAL.tools.logging.Logger.log("BasicLogger.beginOutput(), outputFile = "+(outputFile == null ? "null" : outputFile.getPath())); // Debug [2817148] 
     if (outputFile == null) return;
 
     final GameModule gm = GameModule.getGameModule();
@@ -439,6 +427,7 @@ public class BasicLogger implements Logger, Buildable, GameComponent, CommandEnc
         GameModule.getGameModule().warn(Resources.getString("BasicLogger.logfile_written"));  //$NON-NLS-1$
         newLogAction.setEnabled(true);
         GameModule.getGameModule().appendToTitle(null);
+        VASSAL.tools.logging.Logger.log("BasicLogger.endLogAction.actionPerformed() - outPutfile set to null"); // Debug [2817148] 
         outputFile = null;
       }
       catch (IOException ex) {
@@ -451,6 +440,7 @@ public class BasicLogger implements Logger, Buildable, GameComponent, CommandEnc
     private static final long serialVersionUID = 1L;
 
     public void actionPerformed(ActionEvent e) {
+      VASSAL.tools.logging.Logger.log("BasicLogger.newLogAction.actionPerformed()"); // Debug [2817148] 
       beginOutput();
     }
   };

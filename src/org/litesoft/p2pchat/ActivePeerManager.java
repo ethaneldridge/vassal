@@ -132,7 +132,7 @@ public class ActivePeerManager
     IllegalArgument.ifNull("PeerInfo", pPeerInfo);
     IllegalArgument.ifNull("InputStream", pInputStream);
     IllegalArgument.ifNull("OutputStream", pOutputStream);
-    pPeerInfo.setID(String.valueOf(++zPeerCnt));
+    pPeerInfo.setID(new Integer(++zPeerCnt).toString());
     zListofPeers.addElement(
       new ActivePeer(zMyInfo, zUserDialog, this, zPendingPeerManager,
                      pPeerInfo, pInputStream, pOutputStream));
@@ -142,7 +142,7 @@ public class ActivePeerManager
     IllegalArgument.ifNull("PeerInfo", pPeerInfo);
     IllegalArgument.ifNull("PeerReader", reader);
     IllegalArgument.ifNull("PeerWriter", writer);
-    pPeerInfo.setID(String.valueOf(++zPeerCnt));
+    pPeerInfo.setID(new Integer(++zPeerCnt).toString());
     zListofPeers.addElement(
       new ActivePeer(zMyInfo, zUserDialog, this, zPendingPeerManager,
                      pPeerInfo, reader, writer));

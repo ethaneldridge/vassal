@@ -27,7 +27,6 @@ import java.util.Timer;
 import java.util.TimerTask;
 import java.util.logging.Logger;
 
-import VASSAL.tools.ArrayUtils;
 import VASSAL.tools.PropertiesEncoder;
 import VASSAL.tools.SequenceEncoder;
 
@@ -86,9 +85,8 @@ public class ServerNode extends Node {
         }
       }
     }
-
-    final MsgSender[] senders = ArrayUtils.copyOf(target);
-
+    final MsgSender[] senders = new MsgSender[target.length];
+    System.arraycopy(target, 0, senders, 0, target.length);
     return new MsgSender() {
       public void send(String msg) {
         for (int i = 0; i < senders.length; ++i) {

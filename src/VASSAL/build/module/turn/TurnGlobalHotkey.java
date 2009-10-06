@@ -1,5 +1,7 @@
 package VASSAL.build.module.turn;
 
+import javax.swing.KeyStroke;
+
 import VASSAL.build.AbstractConfigurable;
 import VASSAL.build.AutoConfigurable;
 import VASSAL.build.Buildable;
@@ -8,13 +10,12 @@ import VASSAL.build.module.Chatter;
 import VASSAL.build.module.documentation.HelpFile;
 import VASSAL.command.Command;
 import VASSAL.configure.Configurer;
-import VASSAL.configure.NamedHotKeyConfigurer;
+import VASSAL.configure.HotKeyConfigurer;
 import VASSAL.configure.PlayerIdFormattedStringConfigurer;
 import VASSAL.configure.PropertyExpression;
 import VASSAL.counters.BasicPiece;
 import VASSAL.i18n.TranslatableConfigurerFactory;
 import VASSAL.tools.FormattedString;
-import VASSAL.tools.NamedKeyStroke;
 
 public class TurnGlobalHotkey extends AbstractConfigurable {
 
@@ -24,7 +25,7 @@ public class TurnGlobalHotkey extends AbstractConfigurable {
   public static final String REPORT_FORMAT = "reportFormat"; //$NON-NLS-1$
   
   protected PropertyExpression match = new PropertyExpression();
-  protected NamedKeyStroke hotkey;
+  protected KeyStroke hotkey;
   protected FormattedString format = new FormattedString();
   protected BasicPiece checkPiece = new BasicPiece();
   
@@ -40,7 +41,7 @@ public class TurnGlobalHotkey extends AbstractConfigurable {
   public Class<?>[] getAttributeTypes() {
     return new Class<?>[] {
       String.class,
-      NamedKeyStroke.class,
+      KeyStroke.class,
       PropertyExpression.class,
       ReportFormatConfig.class
     };
@@ -61,7 +62,7 @@ public class TurnGlobalHotkey extends AbstractConfigurable {
       return getConfigureName();
     }
     else if (HOTKEY.equals(key)) {
-      return NamedHotKeyConfigurer.encode(hotkey);
+      return HotKeyConfigurer.encode(hotkey);
     }
     else if (MATCH.equals(key)) {
       return match.getExpression();
@@ -79,9 +80,9 @@ public class TurnGlobalHotkey extends AbstractConfigurable {
     }
     else if (HOTKEY.equals(key)) {    
       if (value instanceof String) {
-        value = NamedHotKeyConfigurer.decode((String) value);
+        value = HotKeyConfigurer.decode((String) value);
       }
-      hotkey = (NamedKeyStroke) value;
+      hotkey = (KeyStroke) value;
     }
     else if (MATCH.equals(key)) {
       match.setExpression((String) value);
@@ -92,7 +93,8 @@ public class TurnGlobalHotkey extends AbstractConfigurable {
     
   }
 
-  public Class<?>[] getAllowableConfigureComponents() {
+  @SuppressWarnings("unchecked")
+  public Class[] getAllowableConfigureComponents() {
     return new Class[0];
   }
 

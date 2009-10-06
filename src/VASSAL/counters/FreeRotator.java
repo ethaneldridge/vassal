@@ -37,7 +37,6 @@ import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Random;
 
 import javax.swing.Box;
@@ -54,13 +53,12 @@ import VASSAL.build.module.map.Drawable;
 import VASSAL.command.ChangeTracker;
 import VASSAL.command.Command;
 import VASSAL.configure.BooleanConfigurer;
+import VASSAL.configure.HotKeyConfigurer;
 import VASSAL.configure.IntConfigurer;
-import VASSAL.configure.NamedHotKeyConfigurer;
 import VASSAL.configure.StringConfigurer;
 import VASSAL.i18n.PieceI18nData;
 import VASSAL.i18n.Resources;
 import VASSAL.i18n.TranslatablePiece;
-import VASSAL.tools.NamedKeyStroke;
 import VASSAL.tools.SequenceEncoder;
 import VASSAL.tools.imageop.GamePieceOp;
 import VASSAL.tools.imageop.Op;
@@ -87,18 +85,18 @@ public class FreeRotator extends Decorator
   protected KeyCommand rotateCWCommand;
   protected KeyCommand rotateCCWCommand;
   protected KeyCommand[] commands;
-  protected NamedKeyStroke setAngleKey;
+  protected KeyStroke setAngleKey;
   protected String setAngleText = "Rotate";
-  protected NamedKeyStroke rotateCWKey;
+  protected KeyStroke rotateCWKey;
   protected String rotateCWText = "Rotate CW";
-  protected NamedKeyStroke rotateCCWKey;
+  protected KeyStroke rotateCCWKey;
   protected String rotateCCWText = "Rotate CCW";
   protected String name = "Rotate";
 
   // for Random Rotate
   protected KeyCommand rotateRNDCommand;
   protected String rotateRNDText = "";
-  protected NamedKeyStroke rotateRNDKey;
+  protected KeyStroke rotateRNDKey;
   // END for Random Rotate
 
   protected boolean useUnrotatedShape;
@@ -248,19 +246,19 @@ public class FreeRotator extends Decorator
       validAngles[i] = -i * (360.0 / validAngles.length);
     }
     if (validAngles.length == 1) {
-      setAngleKey = st.nextNamedKeyStroke(null);
+      setAngleKey = st.nextKeyStroke(null);
       if (st.hasMoreTokens()) {
         setAngleText = st.nextToken();
       }
     }
     else {
-      rotateCWKey = st.nextNamedKeyStroke(null);
-      rotateCCWKey = st.nextNamedKeyStroke(null);
+      rotateCWKey = st.nextKeyStroke(null);
+      rotateCCWKey = st.nextKeyStroke(null);
       rotateCWText = st.nextToken("");
       rotateCCWText = st.nextToken("");
     }
     // for random rotation
-    rotateRNDKey = st.nextNamedKeyStroke(null);
+    rotateRNDKey = st.nextKeyStroke(null);
     rotateRNDText = st.nextToken("");
     // end for random rotation
     name = st.nextToken("");
@@ -606,11 +604,7 @@ public class FreeRotator extends Decorator
   }
 
   public String getDescription() {
-    String d = "Can Rotate";
-    if (name.length() > 0) {
-      d += " - " + name;
-    }
-    return d;
+    return "Can Rotate";
   }
 
   public VASSAL.build.module.documentation.HelpFile getHelpFile() {
@@ -626,24 +620,14 @@ public class FreeRotator extends Decorator
                        new String[] {getCommandDescription(name, "Set Angle command"), getCommandDescription(name, "Rotate CW command"), getCommandDescription(name, "Rotate CCW command"), getCommandDescription(name, "Rotate Random command")});
   }
 
-  /**
-   * Return Property names exposed by this trait
-   */
-  public List<String> getPropertyNames() {
-    ArrayList<String> l = new ArrayList<String>();
-    l.add(name + FACING);
-    l.add(name + DEGREES);
-    return l;
-  }
-  
   private static class Ed implements PieceEditor, PropertyChangeListener {
     private BooleanConfigurer anyConfig;
-    private NamedHotKeyConfigurer anyKeyConfig;
+    private HotKeyConfigurer anyKeyConfig;
     private IntConfigurer facingsConfig;
-    private NamedHotKeyConfigurer cwKeyConfig;
-    private NamedHotKeyConfigurer ccwKeyConfig;
+    private HotKeyConfigurer cwKeyConfig;
+    private HotKeyConfigurer ccwKeyConfig;
     // random rotate
-    private NamedHotKeyConfigurer rndKeyConfig;
+    private HotKeyConfigurer rndKeyConfig;
     // end random rotate
     private StringConfigurer nameConfig;
     
@@ -660,15 +644,15 @@ public class FreeRotator extends Decorator
 
     public Ed(FreeRotator p) {
       nameConfig = new StringConfigurer(null, "Description:  ", p.name);
-      cwKeyConfig = new NamedHotKeyConfigurer(null, "Command to rotate clockwise:  ", p.rotateCWKey);
-      ccwKeyConfig = new NamedHotKeyConfigurer(null, "Command to rotate counterclockwise:  ", p.rotateCCWKey);
+      cwKeyConfig = new HotKeyConfigurer(null, "Command to rotate clockwise:  ", p.rotateCWKey);
+      ccwKeyConfig = new HotKeyConfigurer(null, "Command to rotate counterclockwise:  ", p.rotateCCWKey);
       // random rotate
-      rndKeyConfig = new NamedHotKeyConfigurer(null, "Command to rotate randomly:  ", p.rotateRNDKey);
+      rndKeyConfig = new HotKeyConfigurer(null, "Command to rotate randomly:  ", p.rotateRNDKey);
       // end random rotate
       anyConfig = new BooleanConfigurer(null, "Allow arbitrary rotations",
         Boolean.valueOf(p.validAngles.length == 1));
-      anyKeyConfig = new NamedHotKeyConfigurer(null, "Command to rotate:  ", p.setAngleKey);
-      facingsConfig = new IntConfigurer(null, "Number of allowed facings:  ", p.validAngles.length == 1 ? 6 : p.validAngles.length);
+      anyKeyConfig = new HotKeyConfigurer(null, "Command to rotate:  ", p.setAngleKey);
+      facingsConfig = new IntConfigurer(null, "Number of allowed facings:  ", new Integer(p.validAngles.length == 1 ? 6 : p.validAngles.length));
 
       panel = new JPanel();
       panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
@@ -735,21 +719,21 @@ public class FreeRotator extends Decorator
       final SequenceEncoder se = new SequenceEncoder(';');
       if (Boolean.TRUE.equals(anyConfig.getValue())) {
         se.append("1")
-          .append(anyKeyConfig.getValueString())
+          .append((KeyStroke) anyKeyConfig.getValue())
           .append(anyCommand.getText() == null
                   ? "" : anyCommand.getText().trim());
       }
       else {
         se.append(facingsConfig.getValueString())
-          .append(cwKeyConfig.getValueString())
-          .append(ccwKeyConfig.getValueString())
+          .append((KeyStroke) cwKeyConfig.getValue())
+          .append((KeyStroke) ccwKeyConfig.getValue())
           .append(cwCommand.getText() == null
                   ? "" : cwCommand.getText().trim())
           .append(ccwCommand.getText() == null
                   ? "" : ccwCommand.getText().trim());
       }
       // random rotate
-      se.append(rndKeyConfig.getValueString())
+      se.append((KeyStroke) rndKeyConfig.getValue())
         .append(rndCommand.getText() == null
                 ? "" : rndCommand.getText().trim());
       // end random rotate

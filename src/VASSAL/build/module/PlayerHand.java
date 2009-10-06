@@ -26,7 +26,6 @@ import VASSAL.build.module.map.HandMetrics;
 import VASSAL.build.module.map.StackExpander;
 import VASSAL.build.module.map.StackMetrics;
 import VASSAL.counters.GamePiece;
-import VASSAL.i18n.Resources;
 
 public class PlayerHand extends PrivateMap {
   public void build(org.w3c.dom.Element el) {
@@ -45,7 +44,7 @@ public class PlayerHand extends PrivateMap {
   }
 
   public static String getConfigureTypeName() {
-    return Resources.getString("Editor.PlayerHand.component_type"); //$NON-NLS-1$
+    return "Player Hand";
   }
 
   public HelpFile getHelpFile() {

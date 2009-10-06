@@ -1,11 +1,8 @@
-/**
+/*
  * FormattedString.java
- * 
  * A String that can include options of the form $optionName$. Option values
  * are maintained in a property list and getText returns the string will all
  * options replaced by their value
- * 
- * 
  */
 
 package VASSAL.tools;
@@ -13,24 +10,16 @@ package VASSAL.tools;
 import java.util.HashMap;
 import java.util.Map;
 
-import VASSAL.build.AbstractConfigurable;
 import VASSAL.build.BadDataReport;
 import VASSAL.build.GameModule;
 import VASSAL.build.module.properties.PropertySource;
 import VASSAL.counters.EditablePiece;
 import VASSAL.counters.GamePiece;
 import VASSAL.i18n.Resources;
-import VASSAL.script.expression.Expression;
-import VASSAL.script.expression.ExpressionException;
 
 public class FormattedString {
 
-  // The actual string for display purposes
   protected String formatString;
-  
-  // An efficiently evaluable representation of the string
-  protected Expression format;
-  
   protected Map<String,String> props = new HashMap<String,String>();
   protected PropertySource defaultProperties;
 
@@ -47,13 +36,12 @@ public class FormattedString {
   }
 
   public FormattedString(String formatString, PropertySource defaultProperties) {
-    setFormat(formatString);
+    this.formatString = formatString;
     this.defaultProperties = defaultProperties;
   }
 
   public void setFormat(String s) {
     formatString = s;
-    format = Expression.createExpression(s);
   }
 
   public String getFormat() {
@@ -80,6 +68,9 @@ public class FormattedString {
     return getText(defaultProperties, true);
   }
 
+//  public String getText(GamePiece piece) {  GamePiece is now a PropertySource
+//    return getText((PropertySource)piece);
+//  }
   /**
    * Return the resulting string after substituting properties
    * Also, if any property keys match a property in the given GamePiece,
@@ -114,22 +105,44 @@ public class FormattedString {
     return getText(ps, true);
   }
   
-  protected String getText(PropertySource ps, boolean localized){
-    try {
-      return format.evaluate(ps, props, localized);
+  protected String getText(PropertySource ps, boolean localized) {
+    final StringBuilder buffer = new StringBuilder();
+    final SequenceEncoder.Decoder st =
+      new SequenceEncoder.Decoder(formatString, '$');
+    boolean isProperty = true;
+    while (st.hasMoreTokens()) {
+      final String token = st.nextToken();
+      isProperty = !isProperty;
+      if (token.length() > 0) {
+        /*
+         * Only even numbered tokens with at least one token after them are valid $propertName$ strings.
+         */
+        if (!isProperty || ! st.hasMoreTokens()) {
+          buffer.append(token);
+        }
+        else if (props.containsKey(token)) {
+          final String value = props.get(token);
+          if (value != null) {
+            buffer.append(value);
+          }
+        }
+        else if (ps != null) {
+          final Object value =
+            localized ? ps.getLocalizedProperty(token) : ps.getProperty(token);
+          if (value != null) {
+            buffer.append(value.toString());
+          }
+          else if (!localized) {
+            buffer.append(token);
+          } 
+        }
+        else {
+          buffer.append(token);
+        }
+      }
     }
-    catch (ExpressionException e) {
-      if (ps instanceof EditablePiece) {
-        ErrorDialog.dataError(new BadDataReport((EditablePiece) ps, Resources.getString("Error.expression_error"), format.getExpression(), e));
-      }
-      else if (ps instanceof AbstractConfigurable) {
-        ErrorDialog.dataError(new BadDataReport((AbstractConfigurable) ps, Resources.getString("Error.expression_error"), format.getExpression(), e));        
-      }
-      else {
-        ErrorDialog.dataError(new BadDataReport(Resources.getString("Error.expression_error"), format.getExpression(), e));                
-      }
-      return "";
-    }
+
+    return buffer.toString();
   }
 
   /**
@@ -137,20 +150,13 @@ public class FormattedString {
    * an integer. If the expanded string is not an integer, generate a Bad Data Report
    * with debugging information and return a value of 0
    * 
+   * @param formattedInt Formatted String
+   * @param source Property Source (Usually the outer of the piece)
+   * @param description A Description of the field
+   * @param piece The source trait
+   * @return parsed integer
    */
   public int getTextAsInt(PropertySource ps, String description, EditablePiece source) {
-    int result = 0;
-    final String value = getText(ps, "0");
-    try {
-      result = Integer.parseInt(value);
-    }
-    catch (NumberFormatException e) {
-      ErrorDialog.dataError(new BadDataReport(source, Resources.getString("Error.non_number_error"), debugInfo(this, value, description), e));  
-    }
-    return result;  
-  }
-  
-  public int getTextAsInt(PropertySource ps, String description, AbstractConfigurable source) {
     int result = 0;
     final String value = getText(ps, "0");
     try {
@@ -169,7 +175,7 @@ public class FormattedString {
    *  description[format]=value
    * 
    * Use format 1 if the generated value is the same as the format
-   * Use format 2 if the formated contains an expression that has been expanded.
+   * Use format 2 if the formated contained $...$ variables that have been expanded.
    * 
    * @param format Formatted String
    * @param description Description of the String

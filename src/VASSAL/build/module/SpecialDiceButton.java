@@ -33,6 +33,7 @@ import javax.swing.Icon;
 import javax.swing.ImageIcon;
 import javax.swing.JDialog;
 import javax.swing.JLabel;
+import javax.swing.KeyStroke;
 
 import VASSAL.build.AbstractConfigurable;
 import VASSAL.build.AutoConfigurable;
@@ -51,13 +52,10 @@ import VASSAL.configure.ConfigurerFactory;
 import VASSAL.configure.IconConfigurer;
 import VASSAL.configure.PlayerIdFormattedStringConfigurer;
 import VASSAL.configure.VisibilityCondition;
-import VASSAL.i18n.Resources;
 import VASSAL.i18n.TranslatableConfigurerFactory;
-import VASSAL.tools.ArrayUtils;
 import VASSAL.tools.FormattedString;
 import VASSAL.tools.KeyStrokeListener;
 import VASSAL.tools.LaunchButton;
-import VASSAL.tools.NamedKeyStroke;
 import VASSAL.tools.SequenceEncoder;
 import VASSAL.tools.UniqueIdManager;
 import VASSAL.tools.imageop.Op;
@@ -85,25 +83,25 @@ public class SpecialDiceButton extends AbstractConfigurable implements CommandEn
   protected String chatResultFormat = "** $" + NAME + "$ = [$result1$] *** <$" + GlobalOptions.PLAYER_NAME + "$>"; //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
   protected String windowTitleResultFormat = "$" + NAME + "$"; //$NON-NLS-1$ //$NON-NLS-2$
   protected String tooltip = ""; //$NON-NLS-1$
-  protected MutableProperty.Impl property = new Impl("",this); //$NON-NLS-1$
+  protected MutableProperty.Impl property = new Impl("",this);
 
-  public static final String BUTTON_TEXT = "text"; //$NON-NLS-1$
-  public static final String TOOLTIP = "tooltip"; //$NON-NLS-1$
-  public static final String NAME = "name"; //$NON-NLS-1$
-  public static final String ICON = "icon"; //$NON-NLS-1$
-  public static final String RESULT_CHATTER = "resultChatter"; //$NON-NLS-1$
-  public static final String CHAT_RESULT_FORMAT = "format"; //$NON-NLS-1$
-  public static final String RESULT_N = "result#"; //$NON-NLS-1$
-  public static final String RESULT_TOTAL = "numericalTotal"; //$NON-NLS-1$
-  public static final String RESULT_WINDOW = "resultWindow"; //$NON-NLS-1$
-  public static final String WINDOW_TITLE_RESULT_FORMAT = "windowTitleResultFormat"; //$NON-NLS-1$
-  public static final String RESULT_BUTTON = "resultButton"; //$NON-NLS-1$
-  public static final String WINDOW_X = "windowX"; //$NON-NLS-1$
-  public static final String WINDOW_Y = "windowY"; //$NON-NLS-1$
-  public static final String BACKGROUND_COLOR = "backgroundColor"; //$NON-NLS-1$
-  public static final String DICE_SET = "diceSet"; //$NON-NLS-1$
-  public static final String HOTKEY = "hotkey"; //$NON-NLS-1$
-  public static final String NONE = "<none>"; //$NON-NLS-1$
+  public static final String BUTTON_TEXT = "text";
+  public static final String TOOLTIP = "tooltip";
+  public static final String NAME = "name";
+  public static final String ICON = "icon";
+  public static final String RESULT_CHATTER = "resultChatter";
+  public static final String CHAT_RESULT_FORMAT = "format";
+  public static final String RESULT_N = "result#";
+  public static final String RESULT_TOTAL = "numericalTotal";
+  public static final String RESULT_WINDOW = "resultWindow";
+  public static final String WINDOW_TITLE_RESULT_FORMAT = "windowTitleResultFormat";
+  public static final String RESULT_BUTTON = "resultButton";
+  public static final String WINDOW_X = "windowX";
+  public static final String WINDOW_Y = "windowY";
+  public static final String BACKGROUND_COLOR = "backgroundColor";
+  public static final String DICE_SET = "diceSet";
+  public static final String HOTKEY = "hotkey";
+  public static final String NONE = "<none>";
   private static final int[] EMPTY = new int[0];
 
   public SpecialDiceButton() {
@@ -117,14 +115,13 @@ public class SpecialDiceButton extends AbstractConfigurable implements CommandEn
       }
     };
     launch = new LaunchButton(null, TOOLTIP, BUTTON_TEXT, HOTKEY, ICON, rollAction);
-    final String desc = Resources.getString("Editor.SpecialDiceButton.symbols"); //$NON-NLS-1$
-    setAttribute(NAME, desc);
-    setAttribute(BUTTON_TEXT, desc);
-    launch.setAttribute(TOOLTIP, desc);
+    setAttribute(NAME, "Symbols");
+    setAttribute(BUTTON_TEXT, "Sym");
+    launch.setAttribute(TOOLTIP, "Symbols");
   }
 
   public static String getConfigureTypeName() {
-    return Resources.getString("Editor.SpecialDiceButton.component_type"); //$NON-NLS-1$
+    return "Symbolic Dice Button";
   }
 
   /**
@@ -245,19 +242,19 @@ public class SpecialDiceButton extends AbstractConfigurable implements CommandEn
 
   public String[] getAttributeDescriptions() {
     return new String[]{
-    	Resources.getString(Resources.NAME_LABEL),
-    	Resources.getString(Resources.BUTTON_TEXT),
-	    Resources.getString(Resources.TOOLTIP_TEXT),
-	    Resources.getString(Resources.BUTTON_ICON),
-	    Resources.getString(Resources.HOTKEY_LABEL),
-	    Resources.getString("Editor.SpecialDiceButton.report_results_text"), //$NON-NLS-1$
-	    Resources.getString("Editor.report_format"), //$NON-NLS-1$
-	    Resources.getString("Editor.SpecialDiceButton.result_window"), //$NON-NLS-1$
-	    Resources.getString("Editor.SpecialDiceButton.window_title"), //$NON-NLS-1$
-	    Resources.getString("Editor.SpecialDiceButton.result_button"), //$NON-NLS-1$
-	    Resources.getString("Editor.SpecialDiceButton.width"), //$NON-NLS-1$
-	    Resources.getString("Editor.SpecialDiceButton.height"), //$NON-NLS-1$
-	    Resources.getString("Editor.SpecialDiceButton.background") //$NON-NLS-1$
+      "Name:  ",
+      "Button text:  ",
+      "Tooltip text:  ",
+      "Button icon:  ",
+      "Hotkey:  ",
+      "Report results as text?",
+      "Report format:  ",
+      "Show result in window?",
+      "Window title format:  ",
+      "Show result in button?",
+      "Width:  ",
+      "Height:  ",
+      "Background color:  "
     };
   }
 
@@ -267,7 +264,7 @@ public class SpecialDiceButton extends AbstractConfigurable implements CommandEn
       String.class,
       String.class,
       IconConfig.class,
-      NamedKeyStroke.class,
+      KeyStroke.class,
       Boolean.class,
       ReportFormatConfig.class,
       Boolean.class,
@@ -396,7 +393,7 @@ public class SpecialDiceButton extends AbstractConfigurable implements CommandEn
   public void setAttribute(String key, Object o) {
     if (NAME.equals(key)) {
       setConfigureName((String) o);
-      property.setPropertyName(getConfigureName()+"_result"); //$NON-NLS-1$
+      property.setPropertyName(getConfigureName()+"_result");
       launch.setToolTipText((String) o);
     }
     else if (RESULT_CHATTER.equals(key)) {
@@ -581,7 +578,8 @@ public class SpecialDiceButton extends AbstractConfigurable implements CommandEn
 
     public ShowResults(SpecialDiceButton oTarget, int[] results) {
       target = oTarget;
-      rolls = ArrayUtils.copyOf(results);
+      rolls = new int[results.length];
+      System.arraycopy(results, 0, rolls, 0, results.length);
     }
 
     protected void executeCommand() {

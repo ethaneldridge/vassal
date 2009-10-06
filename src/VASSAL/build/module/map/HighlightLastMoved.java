@@ -35,7 +35,6 @@ import VASSAL.configure.SingleChildInstance;
 import VASSAL.counters.ColoredBorder;
 import VASSAL.counters.GamePiece;
 import VASSAL.counters.Stack;
-import VASSAL.i18n.Resources;
 
 public class HighlightLastMoved extends AbstractConfigurable implements Drawable, MouseListener, GameComponent {
   public static final String ENABLED = "enabled";
@@ -57,9 +56,9 @@ public class HighlightLastMoved extends AbstractConfigurable implements Drawable
   
   public String[] getAttributeDescriptions() {
     return new String[]{
-    		Resources.getString("Editor.HighlightLastMoved.enabled"), //$NON-NLS-1$
-    		Resources.getString(Resources.COLOR_LABEL),
-    		Resources.getString("Editor.HighlightLastMoved.thickness"), //$NON-NLS-1$
+      "Enabled?",
+      "Color:  ",
+      "Thickness:  "
     };
   }
 
@@ -199,7 +198,7 @@ public class HighlightLastMoved extends AbstractConfigurable implements Drawable
   }
 
   public static String getConfigureTypeName() {
-    return Resources.getString("Editor.HighlightLastMoved.component_type"); //$NON-NLS-1$
+    return "Last Move Highlighter";
   }
 
   public Class<?>[] getAllowableConfigureComponents() {

@@ -65,6 +65,7 @@ import VASSAL.build.module.GameComponent;
 import VASSAL.build.module.GlobalOptions;
 import VASSAL.build.module.Map;
 import VASSAL.build.module.map.boardPicker.Board;
+import VASSAL.build.module.map.boardPicker.board.mapgrid.Zone;
 import VASSAL.command.ChangeTracker;
 import VASSAL.command.Command;
 import VASSAL.command.NullCommand;
@@ -74,7 +75,6 @@ import VASSAL.counters.BoundsTracker;
 import VASSAL.counters.Deck;
 import VASSAL.counters.DeckVisitor;
 import VASSAL.counters.DeckVisitorDispatcher;
-import VASSAL.counters.Decorator;
 import VASSAL.counters.DragBuffer;
 import VASSAL.counters.EventFilter;
 import VASSAL.counters.GamePiece;
@@ -436,10 +436,40 @@ public class PieceMover extends AbstractBuildable
   protected void setOldLocation(GamePiece p) {
     if (p instanceof Stack) {
       for (int i = 0; i < ((Stack) p).getPieceCount(); i++) {
-        Decorator.setOldProperties(((Stack) p).getPieceAt(i));
+        setOld(((Stack) p).getPieceAt(i));
       }
     }
-    else Decorator.setOldProperties(p);
+    else setOld(p);
+  }
+  
+  private void setOld(GamePiece p) {
+    String mapName = ""; //$NON-NLS-1$
+    String boardName = ""; //$NON-NLS-1$
+    String zoneName = ""; //$NON-NLS-1$
+    String locationName = ""; //$NON-NLS-1$
+    final Map m = p.getMap();
+    final Point pos = p.getPosition();
+    
+    if (m != null) {
+      mapName = m.getConfigureName();
+      final Board b = m.findBoard(pos);
+      if (b != null) {
+        boardName = b.getName();
+      }
+      final Zone z = m.findZone(pos);
+      if (z != null) {
+        zoneName = z.getName();
+      }
+      locationName = m.locationName(pos);
+    }
+    
+    p.setProperty(BasicPiece.OLD_X, String.valueOf(pos.x));
+    p.setProperty(BasicPiece.OLD_Y, String.valueOf(pos.y));
+    p.setProperty(BasicPiece.OLD_MAP, mapName);
+    p.setProperty(BasicPiece.OLD_BOARD, boardName);
+    p.setProperty(BasicPiece.OLD_ZONE, zoneName);
+    p.setProperty(BasicPiece.OLD_LOCATION_NAME, locationName);
+    
   }
 
   public Command markMoved(GamePiece p, boolean hasMoved) {
@@ -508,15 +538,16 @@ public class PieceMover extends AbstractBuildable
        * Take a copy of the pieces in dragging.
        * If it is a stack, it is cleared by the merging process.
        */
-      final ArrayList<GamePiece> draggedPieces = new ArrayList<GamePiece>(0);
+      GamePiece[] draggedPieces;
       if (dragging instanceof Stack) {
         int size = ((Stack) dragging).getPieceCount();
+        draggedPieces = new GamePiece[size];
         for (int i = 0; i < size; i++) {
-          draggedPieces.add(((Stack) dragging).getPieceAt(i));
+          draggedPieces[i] = ((Stack) dragging).getPieceAt(i);
         }
       }
       else {
-        draggedPieces.add(dragging);
+        draggedPieces = new GamePiece[]{dragging};
       }
 
       if (offset != null) {
@@ -557,7 +588,7 @@ public class PieceMover extends AbstractBuildable
           mergeTargets.put(p, mergeCandidates);
         }
       }
-    
+
       if (mergeWith == null) {
         comm = comm.append(movedPiece(dragging, p));
         comm = comm.append(map.placeAt(dragging, p));
@@ -570,33 +601,12 @@ public class PieceMover extends AbstractBuildable
         }
       }
       else {
-        // Do not add pieces to the Deck that are Obscured to us, or that the Deck
-        // does not want to contain. Removing them from the draggedPieces list will
-        // cause them to be left behind where the drag started.
-        if (mergeWith instanceof Deck) {
-          final ArrayList<GamePiece> newList = new ArrayList<GamePiece>(0);
-          for (GamePiece piece : draggedPieces) {
-            if (!Boolean.TRUE.equals(piece.getProperty(Properties.OBSCURED_TO_ME)) &&
-                ((Deck) mergeWith).mayContain(piece)) {
-              newList.add(piece);
-            }
-          }
-          if (newList.size() != draggedPieces.size()) {
-            draggedPieces.clear();
-            for (GamePiece piece : newList) {
-              draggedPieces.add(piece);
-            }
-          }
-        }
-        
-        for (GamePiece piece : draggedPieces) {
-          comm = comm.append(movedPiece(piece, mergeWith.getPosition()));
-          comm = comm.append(map.getStackMetrics().merge(mergeWith, piece));       
-        }
+        comm = comm.append(movedPiece(dragging, mergeWith.getPosition()));
+        comm = comm.append(map.getStackMetrics().merge(mergeWith, dragging));
       }
 
-      for (GamePiece piece : draggedPieces) {
-        KeyBuffer.getBuffer().add(piece);
+      for (int i = 0; i < draggedPieces.length; i++) {
+        KeyBuffer.getBuffer().add(draggedPieces[i]);
       }
 
       // Record each individual piece moved

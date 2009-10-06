@@ -28,7 +28,6 @@ import java.awt.RenderingHints;
 import java.awt.geom.AffineTransform;
 import VASSAL.build.AutoConfigurable;
 import VASSAL.configure.StringEnum;
-import VASSAL.tools.ArrayUtils;
 import VASSAL.tools.SequenceEncoder;
 
 public class SymbolItem extends Item {  
@@ -61,35 +60,38 @@ public class SymbolItem extends Item {
   }
   
   public String[] getAttributeDescriptions() {
-    return ArrayUtils.insert(
-      super.getAttributeDescriptions(), 2,
-      "Symbol Set:  ",
-      "Width:  ", 
-      "Height:  ",
-      "Line Width:  "
-    );
+    String a[] = new String[] { "Symbol Set:  ", "Width:  ", "Height:  ", "Line Width:  " };
+    String b[] = super.getAttributeDescriptions();
+    String c[] = new String[a.length + b.length];
+    System.arraycopy(b, 0, c, 0, 2);
+    System.arraycopy(a, 0, c, 2, a.length);
+    System.arraycopy(b, 2, c, a.length+2, b.length-2);
+    return c;
   }
 
   public Class<?>[] getAttributeTypes() {
-    return ArrayUtils.insert(
-      super.getAttributeTypes(), 2,
-      new Class<?>[]{
-        SetConfig.class, 
-        Integer.class,
-        Integer.class,
-        Double.class
-      }
-    );
+    final Class<?> a[] = new Class<?>[] {
+      SetConfig.class, 
+      Integer.class,
+      Integer.class,
+      Double.class
+    };
+    final Class<?> b[] = super.getAttributeTypes();
+    final Class<?> c[] = new Class<?>[a.length + b.length];
+    System.arraycopy(b, 0, c, 0, 2);
+    System.arraycopy(a, 0, c, 2, a.length);
+    System.arraycopy(b, 2, c, a.length+2, b.length-2);
+    return c;
   }
 
   public String[] getAttributeNames() {
-    return ArrayUtils.insert(
-      super.getAttributeNames(), 2,
-      SET,
-      WIDTH,
-      HEIGHT,
-      LINE_WIDTH
-    );
+    String a[] = new String[] { SET, WIDTH, HEIGHT, LINE_WIDTH };
+    String b[] = super.getAttributeNames();
+    String c[] = new String[a.length + b.length];
+    System.arraycopy(b, 0, c, 0, 2);
+    System.arraycopy(a, 0, c, 2, a.length);
+    System.arraycopy(b, 2, c, a.length+2, b.length-2);
+    return c;
   }
   
   public static class SetConfig extends StringEnum {
@@ -104,19 +106,19 @@ public class SymbolItem extends Item {
     }
     else if (WIDTH.equals(key)) {
       if (o instanceof String) {
-        o = Integer.valueOf((String) o);
+        o = new Integer((String) o);
       }
       width = ((Integer) o).intValue();
     }
     else if (HEIGHT.equals(key)) {
       if (o instanceof String) {
-        o = Integer.valueOf((String) o);
+        o = new Integer((String) o);
       }
       height = ((Integer) o).intValue();
     }    
     else if (LINE_WIDTH.equals(key)) {
       if (o instanceof String) {
-        o = Double.valueOf((String) o);
+        o = new Double(Double.parseDouble((String) o));
       }
       lineWidth = ((Double) o).doubleValue();
     }
@@ -126,6 +128,7 @@ public class SymbolItem extends Item {
     if (layout != null) {
       layout.refresh();
     }
+
   }
   
   public String getAttributeValueString(String key) {

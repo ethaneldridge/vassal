@@ -19,7 +19,6 @@
 package VASSAL.counters;
 
 import java.awt.CardLayout;
-import java.awt.Component;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.util.ArrayList;
@@ -37,10 +36,10 @@ import VASSAL.tools.ScrollPane;
 public class MultiImagePicker extends JPanel {
   private static final long serialVersionUID = 1L;
 
-  protected JList imageList;
-  protected DefaultListModel imageListElements = new DefaultListModel();
-  protected CardLayout cl = new CardLayout();
-  protected JPanel multiPanel = new JPanel();
+  private JList imageList;
+  private DefaultListModel imageListElements = new DefaultListModel();
+  private CardLayout cl = new CardLayout();
+  private JPanel multiPanel = new JPanel();
 
   public MultiImagePicker() {
     setLayout(new BoxLayout(this, BoxLayout.X_AXIS));
@@ -72,10 +71,6 @@ public class MultiImagePicker extends JPanel {
     addEntry();
   }
 
-  public void addListSelectionListener(ListSelectionListener l) {
-    imageList.addListSelectionListener(l);
-  }
-  
   public void showSelected() {
     if (imageList.getSelectedValue() != null) {
       cl.show(multiPanel, (String) imageList.getSelectedValue());
@@ -142,33 +137,6 @@ public class MultiImagePicker extends JPanel {
     imageListElements.removeAllElements();
   }
 
-  public void swap(int index1, int index2) {
-    Component[] components = new Component[imageListElements.size()];
-    for (int i = 0; i < imageListElements.size(); i++) {
-      components[i] = multiPanel.getComponent(i);
-    }
-    multiPanel.removeAll();
-    cl = new CardLayout();
-    multiPanel.setLayout(cl);
-    
-    for (int i = 0; i < imageListElements.size(); i++) {
-      Component c = null;
-      if (i == index1) {
-        c = components[index2];
-      }
-      else if (i == index2) {
-        c = components[index1];
-      }
-      else {
-        c = components[i];
-      }
-      multiPanel.add(c, "Image " + (i+1));
-    }
-    
-    imageList.setSelectedIndex(index2);
-    showSelected();
-  }
-  
   public void setImageList(String names[]) {
     while (names.length > multiPanel.getComponentCount()) {
       addEntry();

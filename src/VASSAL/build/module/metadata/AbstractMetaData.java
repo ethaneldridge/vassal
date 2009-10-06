@@ -20,10 +20,8 @@ package VASSAL.build.module.metadata;
 import java.io.BufferedInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.io.OutputStream;
 import java.util.HashMap;
 import java.util.Locale;
-import java.util.Map;
 
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
@@ -52,7 +50,6 @@ import VASSAL.i18n.Translation;
 import VASSAL.tools.ArchiveWriter;
 import VASSAL.tools.ErrorDialog;
 import VASSAL.tools.io.FastByteArrayOutputStream;
-import VASSAL.tools.io.FileArchive;
 import VASSAL.tools.io.IOUtils;
 import VASSAL.tools.logging.Logger;
 
@@ -129,20 +126,19 @@ public abstract class AbstractMetaData {
   public String getLocalizedDescription() {
     return descriptionAttr == null ? "" : descriptionAttr.getLocalizedValue();
   }
+  
  
-  public void save(FileArchive archive) throws IOException {
-    OutputStream out = null;
-    try {
-      out = archive.getOutputStream(getZipEntryName());
-      save(out);
-      out.close();
-    }
-    finally {
-      IOUtils.closeQuietly(out);
-    }
-  }
- 
-  protected void save(OutputStream out) throws IOException {
+  
+  /**
+   * Write common metadata to the specified Archive. Call addElements to
+   * add elements specific to particular concrete subclasses.
+   * 
+   * @param archive
+   *          Extension Archive
+   * @throws IOException
+   *           If anything goes wrong
+   */
+  public void save(ArchiveWriter archive) throws IOException {
     Document doc = null;
     Element e = null;
     try {
@@ -176,6 +172,7 @@ public abstract class AbstractMetaData {
       }
       
       addElements(doc, root);
+
     }
     catch (ParserConfigurationException ex) {
       ErrorDialog.bug(ex);
@@ -183,12 +180,13 @@ public abstract class AbstractMetaData {
       throw (IOException) new IOException().initCause(ex);
     }
 
+    final FastByteArrayOutputStream out = new FastByteArrayOutputStream();
     try {
       final Transformer xformer =
         TransformerFactory.newInstance().newTransformer();
       xformer.setOutputProperty(OutputKeys.INDENT, "yes");
-      xformer.setOutputProperty(
-        "{http://xml.apache.org/xslt}indent-amount", "2");
+      xformer.setOutputProperty("{http://xml.apache.org/xslt}indent-amount",
+          "2");
       xformer.transform(new DOMSource(doc), new StreamResult(out));
     }
     catch (TransformerConfigurationException ex) {
@@ -205,20 +203,7 @@ public abstract class AbstractMetaData {
       // FIXME: switch to IOException(Throwable) ctor in Java 1.6
       throw (IOException) new IOException().initCause(ex);
     }
-  }
-  
-  /**
-   * Write common metadata to the specified Archive. Call addElements to
-   * add elements specific to particular concrete subclasses.
-   * 
-   * @param archive
-   *          Extension Archive
-   * @throws IOException
-   *           If anything goes wrong
-   */
-  public void save(ArchiveWriter archive) throws IOException {
-    final FastByteArrayOutputStream out = new FastByteArrayOutputStream();
-    save(out);
+
     archive.addFile(getZipEntryName(), out.toInputStream());
   }
 
@@ -274,7 +259,7 @@ public abstract class AbstractMetaData {
    * Utility Exception class, used to cancel SAX parsing
    *
    */
-  static class SAXEndException extends SAXException {
+  class SAXEndException extends SAXException {
     private static final long serialVersionUID = 1L; 
   }
   
@@ -282,7 +267,7 @@ public abstract class AbstractMetaData {
    * Utility class representing a Configurable attribute and its translations
    * 
    */
-  static class Attribute {
+  class Attribute {
     protected String attributeName;
     protected String value;
     protected HashMap<String, String> translations =
@@ -357,11 +342,12 @@ public abstract class AbstractMetaData {
       e = doc.createElement(prefix);
       e.appendChild(doc.createTextNode(value));
       root.appendChild(e);
-     
-      for (Map.Entry<String,String> en : translations.entrySet()) { 
+      
+      for (String lang : translations.keySet()) {
+        String tx = translations.get(lang);
         e = doc.createElement(prefix);
-        e.setAttribute(LANG_ATTR, en.getValue());
-        e.appendChild(doc.createTextNode(en.getKey()));
+        e.setAttribute(LANG_ATTR, lang);
+        e.appendChild(doc.createTextNode(tx));
         root.appendChild(e);
       }
     }

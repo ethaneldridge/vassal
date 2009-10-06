@@ -34,7 +34,6 @@ import VASSAL.configure.ConfigurerFactory;
 import VASSAL.configure.FormattedStringConfigurer;
 import VASSAL.configure.StringEnum;
 import VASSAL.configure.VisibilityCondition;
-import VASSAL.tools.ArrayUtils;
 import VASSAL.tools.SequenceEncoder;
 
 public class TextItem extends Item {
@@ -88,34 +87,37 @@ public class TextItem extends Item {
   }
 
   public String[] getAttributeDescriptions() {
-    return ArrayUtils.insert(
-      super.getAttributeDescriptions(), 2,
-      "Font style:  ",
-      "Text is:  ",
-      "Text:  "
-    );
+    String a[] = new String[] { "Font style:  ", "Text is:  ", "Text:  "};
+    String b[] = super.getAttributeDescriptions();
+    String c[] = new String[a.length + b.length];
+    System.arraycopy(b, 0, c, 0, 2);
+    System.arraycopy(a, 0, c, 2, a.length);
+    System.arraycopy(b, 2, c, a.length + 2, b.length - 2);
+    return c;
   }
 
   public Class<?>[] getAttributeTypes() {
-    return ArrayUtils.insert(
-      super.getAttributeTypes(), 2,
-      new Class<?>[] {
-        FontStyleConfig.class,
-        TextSource.class,
-        String.class
-      }
-    );
+    final Class<?> a[] = new Class<?>[] {
+      FontStyleConfig.class,
+      TextSource.class,
+      String.class
+    };
+    final Class<?> b[] = super.getAttributeTypes();
+    final Class<?> c[] = new Class<?>[a.length + b.length];
+    System.arraycopy(b, 0, c, 0, 2);
+    System.arraycopy(a, 0, c, 2, a.length);
+    System.arraycopy(b, 2, c, a.length + 2, b.length - 2);
+    return c;
   }
 
   public String[] getAttributeNames() {
-    return ArrayUtils.insert(
-      super.getAttributeNames(), 2,
-      new String[] {
-        FONT,
-        SOURCE,
-        TEXT
-      }
-    );
+    String a[] = new String[] { FONT, SOURCE, TEXT };
+    String b[] = super.getAttributeNames();
+    String c[] = new String[a.length + b.length];
+    System.arraycopy(b, 0, c, 0, 2);
+    System.arraycopy(a, 0, c, 2, a.length);
+    System.arraycopy(b, 2, c, a.length + 2, b.length - 2);
+    return c;
   }
 
   public static class FontStyleConfig implements ConfigurerFactory {

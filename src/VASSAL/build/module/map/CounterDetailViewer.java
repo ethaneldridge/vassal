@@ -195,7 +195,7 @@ public class CounterDetailViewer extends AbstractConfigurable implements Drawabl
     GameModule.getGameModule().getPrefs().addOption(Resources.getString("Prefs.general_tab"),
         new BooleanConfigurer(USE_KEYBOARD, Resources.getString("CounterDetailViewer.use_prompt", keyDesc), Boolean.FALSE));
     GameModule.getGameModule().getPrefs().addOption(Resources.getString("Prefs.general_tab"),
-        new IntConfigurer(PREFERRED_DELAY, Resources.getString("CounterDetailViewer.delay_prompt"), delay));
+        new IntConfigurer(PREFERRED_DELAY, Resources.getString("CounterDetailViewer.delay_prompt"), new Integer(delay)));
 
     view.addMouseMotionListener(this);
     view.addMouseListener(this);
@@ -637,8 +637,7 @@ public class CounterDetailViewer extends AbstractConfigurable implements Drawabl
   }
 
   protected int getPreferredDelay() {
-    return (Integer)
-      GameModule.getGameModule().getPrefs().getValue(PREFERRED_DELAY);
+    return ((Integer) GameModule.getGameModule().getPrefs().getValue(PREFERRED_DELAY)).intValue();
   }
 
   public void mouseDragged(MouseEvent e) {
@@ -760,32 +759,32 @@ public class CounterDetailViewer extends AbstractConfigurable implements Drawabl
 
   public String[] getAttributeDescriptions() {
     return new String[] {
-       Resources.getString("Editor.MouseOverStackViewer.version"), //$NON-NLS-1$ not displayed
-       Resources.getString("Editor.MouseOverStackViewer.recommend_delay"), //$NON-NLS-1$
-       Resources.getString("Editor.MouseOverStackViewer.keyboard_shortcut"), //$NON-NLS-1$  
-       Resources.getString("Editor.MouseOverStackViewer.bg_color"), //$NON-NLS-1$
-       Resources.getString("Editor.MouseOverStackViewer.text_color"), //$NON-NLS-1$ 
-       Resources.getString("Editor.MouseOverStackViewer.display_pieces"), //$NON-NLS-1$
-       Resources.getString("Editor.MouseOverStackViewer.display_zoom"), //$NON-NLS-1$
-       Resources.getString("Editor.MouseOverStackViewer.draw_pieces"), //$NON-NLS-1$
-       Resources.getString("Editor.MouseOverStackViewer.draw_zoom"), //$NON-NLS-1$
-       Resources.getString("Editor.MouseOverStackViewer.display_graphics_obselete"), //$NON-NLS-1$ Obsolete
-       Resources.getString("Editor.MouseOverStackViewer.piece_gap"), //$NON-NLS-1$
-       Resources.getString("Editor.MouseOverStackViewer.display_text"), //$NON-NLS-1$
-       Resources.getString("Editor.MouseOverStackViewer.display_text_obsolete"), //$NON-NLS-1$ Obsolete
-       Resources.getString("Editor.MouseOverStackViewer.font_size"), //$NON-NLS-1$
-       Resources.getString("Editor.MouseOverStackViewer.summary_text"), //$NON-NLS-1$
-       Resources.getString("Editor.MouseOverStackViewer.text_below"), //$NON-NLS-1$
-       Resources.getString("Editor.MouseOverStackViewer.text_empty"), //$NON-NLS-1$
-       Resources.getString("Editor.MouseOverStackViewer.include_pieces"), //$NON-NLS-1$
-       Resources.getString("Editor.MouseOverStackViewer.listed_layers"), //$NON-NLS-1$
-       Resources.getString("Editor.MouseOverStackViewer.piece_filter"), //$NON-NLS-1$
-       Resources.getString("Editor.MouseOverStackViewer.non_stacking"), //$NON-NLS-1$
-       Resources.getString("Editor.MouseOverStackViewer.move_selected"), //$NON-NLS-1$
-       Resources.getString("Editor.MouseOverStackViewer.non_moveable"), //$NON-NLS-1$ 
-       Resources.getString("Editor.MouseOverStackViewer.unrotated_state"), //$NON-NLS-1$
-       Resources.getString("Editor.MouseOverStackViewer.top_deck"), //$NON-NLS-1$
-      }; 
+      "Version", // Not displayed
+      "Recommended Delay before display (ms):  ",
+      "Keyboard shortcut to display:  ",  
+      "Background color:  ",
+      "Border/text color:  ", 
+      "Display when at least this many pieces will be included:  ",
+      "Always display when zoom level less than:  ",
+      "Draw pieces?",
+      "Draw pieces using zoom factor:  ",
+      "Display unit graphics for single counter?", // Obsolete
+      "Width of gap between pieces:  ",
+      "Display text?",
+      "Display text report for single counter?",// Obsolete
+      "Font size:  ",
+      "Summary text above pieces:  ",
+      "Text below each piece:  ",
+      "Text for empty location:  ",
+      "Include individual pieces:  ",
+      "Listed layers",
+      "Piece selection property filter:  ",
+      "Include non-stacking pieces?",
+      "Include move-when-selected pieces?",
+      "Include non-movable pieces?", 
+      "Show pieces in un-rotated state?",
+      "Include top piece in Deck?"
+    }; 
   }
 
   public Class<?>[] getAttributeTypes() {
@@ -867,7 +866,7 @@ public class CounterDetailViewer extends AbstractConfigurable implements Drawabl
   public void setAttribute(String name, Object value) {
     if (DELAY.equals(name)) {
       if (value instanceof String) {
-        value = Integer.valueOf((String) value);
+        value = new Integer((String) value);
       }
       if (value != null) {
         delay = ((Integer) value).intValue();
@@ -916,19 +915,19 @@ public class CounterDetailViewer extends AbstractConfigurable implements Drawabl
     }
     else if (ZOOM_LEVEL.equals(name)) {
       if (value instanceof String) {
-        value = Double.valueOf((String) value);
+        value = new Double((String) value);
       }
       zoomLevel = ((Double) value).doubleValue();
     }
     else if (DRAW_PIECES_AT_ZOOM.equals(name)) {
       if (value instanceof String) {
-        value = Double.valueOf((String) value);
+        value = new Double((String) value);
       }
       graphicsZoomLevel = ((Double) value).doubleValue();
     }
     else if (BORDER_WIDTH.equals(name)) {
       if (value instanceof String) {
-        value = Integer.valueOf((String) value);
+        value = new Integer((String) value);
       }
       borderWidth = ((Integer) value).intValue();
     }
@@ -1015,7 +1014,7 @@ public class CounterDetailViewer extends AbstractConfigurable implements Drawabl
     }
     else if (FONT_SIZE.equals(name)) {
       if (value instanceof String) {
-        value = Integer.valueOf((String) value);
+        value = new Integer((String) value);
       }
       if (value != null) {
         fontSize = ((Integer) value).intValue();
@@ -1107,7 +1106,7 @@ public class CounterDetailViewer extends AbstractConfigurable implements Drawabl
   }
 
   public static String getConfigureTypeName() {
-    return Resources.getString("Editor.MouseOverStackViewer.component_type"); //$NON-NLS-1$
+    return "Mouse-over Stack Viewer";
   }
 
   public VisibilityCondition getAttributeVisibility(String name) {

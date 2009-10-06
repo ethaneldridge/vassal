@@ -1,7 +1,7 @@
 /*
  * $Id$
  *
- * Copyright (c) 2008-2009 by Joel Uckelman
+ * Copyright (c) 2008 by Joel Uckelman
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Library General Public
@@ -122,15 +122,8 @@ public class ArrayUtils {
   // FIXME: replace with Arrays.copyOf() in Java 1.6
   @SuppressWarnings("unchecked")
   public static <T> T[] copyOf(T[] orig, int newLength) {
-    return (T[]) copyOf(orig, newLength, orig.getClass());
-  }
-
-  // FIXME: replace with Arrays.copyOf() in Java 1.6
-  @SuppressWarnings("unchecked")
-  public static <T,U> T[] copyOf(U[] orig, int newLength,
-                                 Class<? extends T[]> newType) {
     final T[] copy =
-      (T[]) Array.newInstance(newType.getComponentType(), newLength);
+      (T[]) Array.newInstance(orig.getClass().getComponentType(), newLength);
     System.arraycopy(orig, 0, copy, 0, Math.min(orig.length, newLength));
     return copy;
   }
@@ -226,18 +219,11 @@ public class ArrayUtils {
   // FIXME: replace with Arrays.copyOfRange() in Java 1.6
   @SuppressWarnings("unchecked")
   public static <T> T[] copyOfRange(T[] orig, int from, int to) {
-    return (T[]) copyOfRange(orig, from, to, orig.getClass());
-  }
-
-  // FIXME: replace with Arrays.copyOfRange() in Java 1.6
-  @SuppressWarnings("unchecked")
-  public static <T,U> T[] copyOfRange(U[] orig, int from, int to,
-                                      Class<? extends T[]> newType) {
     final int newLength = to - from;
     if (newLength < 0) throw new IllegalArgumentException();
 
     final T[] copy =
-      (T[]) Array.newInstance(newType.getComponentType(), newLength);
+      (T[]) Array.newInstance(orig.getClass().getComponentType(), newLength);
     System.arraycopy(orig, from, copy, 0,
                      Math.min(orig.length - from, newLength));
     return copy;
@@ -301,14 +287,8 @@ public class ArrayUtils {
 
   @SuppressWarnings("unchecked")
   public static <T> T[] prepend(T[] orig, T e) {
-    return prepend((Class<T[]>) orig.getClass(), orig, e);
-  }
-
-  @SuppressWarnings("unchecked")
-  public static <T,X extends T,Y extends T> T[] prepend(Class<T[]> type,
-                                                        X[] orig, Y e) {
-    final T[] tmp =
-      (T[]) Array.newInstance(type.getComponentType(), orig.length+1);
+    final T[] tmp = (T[]) Array.newInstance(
+      orig.getClass().getComponentType(), orig.length+1);
     tmp[0] = e;
     System.arraycopy(orig, 0, tmp, 1, orig.length);
     return tmp;
@@ -362,14 +342,8 @@ public class ArrayUtils {
     return tmp;
   }
 
-  @SuppressWarnings("unchecked")
   public static <T> T[] append(T[] orig, T e) {
-    return append((Class<T[]>) orig.getClass(), orig, e);
-  }
-
-  public static <T,X extends T,Y extends T> T[] append(Class<T[]> type,
-                                                       X[] orig, Y e) {
-    final T[] tmp = copyOf(orig, orig.length+1, type);
+    final T[] tmp = copyOf(orig, orig.length+1);
     tmp[orig.length] = e;
     return tmp;
   }
@@ -432,14 +406,8 @@ public class ArrayUtils {
 
   @SuppressWarnings("unchecked")
   public static <T> T[] append(T[] a, T... b) {
-    return append((Class<T[]>) a.getClass(), a, b);
-  }
-
-  @SuppressWarnings("unchecked")
-  public static <T,X extends T,Y extends T> T[] append(Class<T[]> type,
-                                                       X[] a, Y... b) {
-    final T[] tmp = (T[]) Array.newInstance(type.getComponentType(),
-                                            a.length + b.length);
+    final T[] tmp = (T[]) Array.newInstance(
+      a.getClass().getComponentType(), a.length + b.length);
     System.arraycopy(a, 0, tmp, 0, a.length);
     System.arraycopy(b, 0, tmp, a.length, b.length);
     return tmp;
@@ -511,14 +479,8 @@ public class ArrayUtils {
 
   @SuppressWarnings("unchecked")
   public static <T> T[] insert(T[] orig, int pos, T e) {
-    return insert((Class<T[]>) orig.getClass(), orig, pos, e);
-  }
-
-  @SuppressWarnings("unchecked")
-  public static <T,X extends T,Y extends T> T[] insert(Class<T[]> type,
-                                                       X[] orig, int pos, Y e) {
-    final T[] tmp =
-      (T[]) Array.newInstance(type.getComponentType(), orig.length+1);
+    final T[] tmp = (T[]) Array.newInstance(
+      orig.getClass().getComponentType(), orig.length+1);
     System.arraycopy(orig, 0, tmp, 0, pos);
     tmp[pos] = e;
     System.arraycopy(orig, pos+1, tmp, pos, orig.length - pos);
@@ -591,14 +553,8 @@ public class ArrayUtils {
 
   @SuppressWarnings("unchecked")
   public static <T> T[] insert(T[] a, int pos, T... b) {
-    return insert((Class<T[]>) a.getClass(), a, pos, b);
-  }
-
-  @SuppressWarnings("unchecked")
-  public static <T,X extends T,Y extends T> T[] insert(Class<T[]> type,
-                                                       X[] a, int pos, Y... b) {
-    final T[] tmp =
-      (T[]) Array.newInstance(type.getComponentType(), a.length+b.length);
+    final T[] tmp = (T[]) Array.newInstance(
+      a.getClass().getComponentType(), a.length+b.length);
     System.arraycopy(a, 0, tmp, 0, pos);
     System.arraycopy(b, 0, tmp, pos, b.length);
     System.arraycopy(a, pos, tmp, pos+b.length, a.length - pos);

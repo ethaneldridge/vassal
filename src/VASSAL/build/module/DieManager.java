@@ -36,7 +36,6 @@ import VASSAL.configure.BooleanConfigurer;
 import VASSAL.configure.StringArrayConfigurer;
 import VASSAL.configure.StringConfigurer;
 import VASSAL.configure.StringEnumConfigurer;
-import VASSAL.i18n.Resources;
 import VASSAL.preferences.Prefs;
 import VASSAL.tools.FormattedString;
 
@@ -325,10 +324,10 @@ public class DieManager extends AbstractConfigurable {
 
   public String[] getAttributeDescriptions() {
     return new String[]{
-    		Resources.getString("Editor.DieManager.description"), //$NON-NLS-1$
-    		Resources.getString("Editor.DieManager.ndice"), //$NON-NLS-1$
-    		Resources.getString("Editor.DieManager.nsides") //$NON-NLS-1$
-     };
+      "Description",
+      "Multi-roll Default Ndice",
+      "Multi-roll Default Nsides"
+    };
   }
 
   public Class<?>[] getAttributeTypes() {
@@ -353,13 +352,13 @@ public class DieManager extends AbstractConfigurable {
     }
     else if (DFLT_NDICE.equals(key)) {
       if (value instanceof String) {
-        value = Integer.valueOf((String) value);
+        value = new Integer((String) value);
       }
       defaultNDice = ((Integer) value).intValue();
     }
     else if (DFLT_NSIDES.equals(key)) {
       if (value instanceof String) {
-        value = Integer.valueOf((String) value);
+        value = new Integer((String) value);
       }
       defaultNSides = ((Integer) value).intValue();
     }
@@ -394,7 +393,7 @@ public class DieManager extends AbstractConfigurable {
   }
 
   public static String getConfigureTypeName() {
-    return Resources.getString("Editor.DieManager.component_type"); //$NON-NLS-1$
+    return "Die Manager";
   }
 
   public void setSecondaryEmail(String email) {

@@ -34,7 +34,6 @@ import VASSAL.build.module.GameState;
 import VASSAL.build.module.Map;
 import VASSAL.build.module.map.StackMetrics;
 import VASSAL.command.Command;
-import VASSAL.tools.ArrayUtils;
 import VASSAL.tools.EnumeratedIterator;
 import VASSAL.tools.ErrorDialog;
 import VASSAL.tools.SequenceEncoder;
@@ -277,17 +276,18 @@ public class Stack implements GamePiece, StateMergeable {
    * Return a comma-separated list of the names of the pieces in this Stack
    */
   public String getName(boolean localized) {
-    final StringBuilder val = new StringBuilder();
+    String val = "";
     final PieceIterator visibleFilter =
       PieceIterator.visible(getPiecesReverseIterator());
     while (visibleFilter.hasMoreElements()) {
-      final GamePiece p = visibleFilter.nextPiece();
-      val.append(localized ? p.getLocalizedName() : p.getName());
-      if (val.length() > 0 && visibleFilter.hasMoreElements()) {
-        val.append(", ");
+      GamePiece p = visibleFilter.nextPiece();
+      String s = localized ? p.getLocalizedName() : p.getName();
+      val += s;
+      if (s.length() > 0 && visibleFilter.hasMoreElements()) {
+        val += ", ";
       }
     }
-    return val.toString();
+    return val;
   }
   
   public String getName() {
@@ -655,10 +655,10 @@ public class Stack implements GamePiece, StateMergeable {
 
   private class AllPieceIterator implements Iterator<GamePiece> {
     private int index = 0;
-    private final GamePiece[] p;
+    private final GamePiece[] p = new GamePiece[pieceCount];
 
     public AllPieceIterator() {
-      p = ArrayUtils.copyOf(contents, pieceCount);
+      System.arraycopy(contents, 0, p, 0, pieceCount);
     }
 
     public boolean hasNext() {
@@ -676,10 +676,10 @@ public class Stack implements GamePiece, StateMergeable {
 
   private class ReversePieceIterator implements Iterator<GamePiece> {
     private int index = pieceCount - 1;
-    private final GamePiece[] p;
+    private final GamePiece[] p = new GamePiece[pieceCount];    
 
     public ReversePieceIterator() {
-      p = ArrayUtils.copyOf(contents, pieceCount);
+      System.arraycopy(contents, 0, p, 0, pieceCount);
     }
 
     public boolean hasNext() {

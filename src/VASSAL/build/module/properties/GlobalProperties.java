@@ -1,7 +1,7 @@
 /*
  * $Id$
  *
- * Copyright (c) 2000-2009 by Rodney Kinney, Brent Easton
+ * Copyright (c) 2000-2008 by Rodney Kinney
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Library General Public
@@ -70,6 +70,7 @@ public class GlobalProperties extends AbstractConfigurable implements MutablePro
   }
 
   public void removeFrom(Buildable parent) {
+    parent = null;
   }
 
   public HelpFile getHelpFile() {
@@ -77,20 +78,18 @@ public class GlobalProperties extends AbstractConfigurable implements MutablePro
   }
 
   public Class<?>[] getAllowableConfigureComponents() {
-    return new Class<?>[] {GlobalProperty.class};
+    return new Class[] {GlobalProperty.class};
   }
 
   public void addTo(Buildable parent) {
     this.parent = (MutablePropertiesContainer) parent;
-
-    for (Map.Entry<String,MutableProperty> e : initialValues.entrySet()) {
-      this.parent.addMutableProperty(e.getKey(), e.getValue());
+    for (String key : initialValues.keySet()) {
+      MutableProperty p = initialValues.get(key);
+      this.parent.addMutableProperty(key, p);
     }
-
     tempToolbar.setDelegate((ToolBarComponent) parent);
     propertySource = (PropertySource) parent;
-    GameModule.getGameModule().addCommandEncoder(
-      new ChangePropertyCommandEncoder(this));
+    GameModule.getGameModule().addCommandEncoder(new ChangePropertyCommandEncoder(this));
   }
   
   public void addMutableProperty(String key, MutableProperty p) {
@@ -138,9 +137,5 @@ public class GlobalProperties extends AbstractConfigurable implements MutablePro
    */
   public String getI18nPrefix() {
     return "";
-  }
-  
-  public MutablePropertiesContainer getParent() {
-    return parent;
   }
 }

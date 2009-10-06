@@ -47,7 +47,6 @@ import VASSAL.configure.AutoConfigurer;
 import VASSAL.configure.ColorConfigurer;
 import VASSAL.configure.Configurer;
 import VASSAL.configure.VisibilityCondition;
-import VASSAL.i18n.Resources;
 
 /**
  * A Hexgrid is a map grid composed of hexes.
@@ -74,17 +73,17 @@ public class HexGrid extends AbstractConfigurable
   protected Map<Integer,Area> shapeCache = new HashMap<Integer,Area>();
   protected HexGridEditor gridEditor;
 
-  public static final String X0 = "x0"; //$NON-NLS-1$
-  public static final String Y0 = "y0"; //$NON-NLS-1$
-  public static final String DY = "dy"; //$NON-NLS-1$
-  public static final String DX = "dx"; //$NON-NLS-1$
-  public static final String VISIBLE = "visible"; //$NON-NLS-1$
-  public static final String DOTS_VISIBLE = "dotsVisible"; //$NON-NLS-1$
-  public static final String CORNERS = "cornersLegal"; //$NON-NLS-1$
-  public static final String EDGES = "edgesLegal"; //$NON-NLS-1$
-  public static final String SIDEWAYS = "sideways"; //$NON-NLS-1$
-  public static final String COLOR = "color"; //$NON-NLS-1$
-  public static final String SNAP_SCALE = "snapscale"; //$NON-NLS-1$
+  public static final String X0 = "x0";
+  public static final String Y0 = "y0";
+  public static final String DY = "dy";
+  public static final String DX = "dx";
+  public static final String VISIBLE = "visible";
+  public static final String DOTS_VISIBLE = "dotsVisible";
+  public static final String CORNERS = "cornersLegal";
+  public static final String EDGES = "edgesLegal";
+  public static final String SIDEWAYS = "sideways";
+  public static final String COLOR = "color";
+  public static final String SNAP_SCALE = "snapscale";
 
   protected static final double sqrt3_2 = sqrt(3) / 2.;
 
@@ -105,16 +104,16 @@ public class HexGrid extends AbstractConfigurable
 
   public String[] getAttributeDescriptions() {
     return new String[]{
-    	Resources.getString("Editor.HexGrid.sideways"), //$NON-NLS-1$
-    	Resources.getString("Editor.Grid.x_offset"), //$NON-NLS-1$
-    	Resources.getString("Editor.Grid.y_offset"), //$NON-NLS-1$
-    	Resources.getString("Editor.HexGrid.hex_height"), //$NON-NLS-1$
-    	Resources.getString("Editor.HexGrid.hex_width"), //$NON-NLS-1$
-    	Resources.getString("Editor.Grid.edges"), //$NON-NLS-1$
-    	Resources.getString("Editor.HexGrid.vertices"), //$NON-NLS-1$
-    	Resources.getString("Editor.Grid.show_grid"), //$NON-NLS-1$
-    	Resources.getString("Editor.Grid.center_dots"), //$NON-NLS-1$
-    	Resources.getString(Resources.COLOR_LABEL),
+      "Sideways (hexrows go horizontal)?",
+      "X offset:  ",
+      "Y offset:  ",
+      "Hex Height:  ",
+      "Hex Width:  ",
+      "Edges are legal locations?",
+      "Vertices are legal locations?",
+      "Show grid?",
+      "Draw center dots?",
+      "Color:  "
     };
   }
 
@@ -156,13 +155,13 @@ public class HexGrid extends AbstractConfigurable
       public void propertyChange(java.beans.PropertyChangeEvent evt) {
         if (evt.getNewValue() != null) {
           double hgt = ((Double) evt.getNewValue()).doubleValue();
-          dxConfig.setValue(Double.valueOf(sqrt3_2 * hgt).toString());
+          dxConfig.setValue(new Double(sqrt3_2 * hgt).toString());
         }
       }
     });
 
     if (!buttonExists) {
-      JButton b = new JButton(Resources.getString("Editor.Grid.edit_grid")); //$NON-NLS-1$
+      JButton b = new JButton("Edit Grid");
       b.addActionListener(new ActionListener() {
         public void actionPerformed(ActionEvent e) {
           editGrid();
@@ -192,7 +191,7 @@ public class HexGrid extends AbstractConfigurable
   }
 
   public boolean isVisible() {
-    return visible == true || (numbering != null && numbering.isVisible());
+    return visible;
   }
 
   public boolean isEdgesLegal() {
@@ -271,7 +270,7 @@ public class HexGrid extends AbstractConfigurable
   }
 
   public static String getConfigureTypeName() {
-    return Resources.getString("Editor.HexGrid.component_type"); //$NON-NLS-1$
+    return "Hex Grid";
   }
   
   public String getGridName() {
@@ -283,7 +282,7 @@ public class HexGrid extends AbstractConfigurable
   }
 
   public VASSAL.build.module.documentation.HelpFile getHelpFile() {
-    return HelpFile.getReferenceManualPage("HexGrid.htm"); //$NON-NLS-1$
+    return HelpFile.getReferenceManualPage("HexGrid.htm");
   }
 
   public String getAttributeValueString(String key) {
@@ -315,27 +314,29 @@ public class HexGrid extends AbstractConfigurable
       return String.valueOf(dotsVisible);
     }
     else if (COLOR.equals(key)) {
-      return ColorConfigurer.colorToString(color);
+      return visible ? ColorConfigurer.colorToString(color) : null;
     }
     return null;
   }
 
   public void setAttribute(String key, Object val) {
+    if (val == null)
+      return;
     if (X0.equals(key)) {
       if (val instanceof String) {
-        val = Integer.valueOf((String) val);
+        val = new Integer((String) val);
       }
       origin.x = ((Integer) val).intValue();
     }
     else if (Y0.equals(key)) {
       if (val instanceof String) {
-        val = Integer.valueOf((String) val);
+        val = new Integer((String) val);
       }
       origin.y = ((Integer) val).intValue();
     }
     else if (DY.equals(key)) {
       if (val instanceof String) {
-        val = Double.valueOf((String) val);
+        val = new Double((String) val);
       }
       dy = ((Double) val).doubleValue();
       if (dx == sqrt3_2 * 64.0) {
@@ -344,7 +345,7 @@ public class HexGrid extends AbstractConfigurable
     }
     else if (DX.equals(key)) {
       if (val instanceof String) {
-        val = Double.valueOf((String) val);
+        val = new Double((String) val);
       }
       dx = ((Double) val).doubleValue();
     }
@@ -725,16 +726,16 @@ public class HexGrid extends AbstractConfigurable
 
   /** Draw the grid even if set to be not visible */
   public void forceDraw(Graphics g, Rectangle bounds, Rectangle visibleRect, double zoom, boolean reversed) {
-    if (!bounds.intersects(visibleRect) || color == null) {
+    if (!bounds.intersects(visibleRect)) {
       return;
     }
-    
+   
     Graphics2D g2d = (Graphics2D) g;
 
     g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING,
                          RenderingHints.VALUE_ANTIALIAS_ON);
 
-    g2d.setColor(color);
+    g2d.setColor(color == null ? Color.black : color);
 
     float x1,y1, x2,y2, x3,y3, x4, y4;
 
@@ -871,7 +872,7 @@ public class HexGrid extends AbstractConfigurable
     cfg.getConfigurer(SIDEWAYS).setValue(String.valueOf(sideways));
   }
   
-  public static class HexGridEditor extends GridEditor {
+  public class HexGridEditor extends GridEditor {
     private static final long serialVersionUID = 1L; 
 
     public HexGridEditor(EditableGrid grid) {

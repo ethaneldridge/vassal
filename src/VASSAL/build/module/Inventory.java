@@ -97,7 +97,6 @@ import VASSAL.i18n.TranslatableConfigurerFactory;
 import VASSAL.preferences.PositionOption;
 import VASSAL.tools.FormattedString;
 import VASSAL.tools.LaunchButton;
-import VASSAL.tools.NamedKeyStroke;
 import VASSAL.tools.ScrollPane;
 import VASSAL.tools.WriteErrorDialog;
 import VASSAL.tools.filechooser.FileChooser;
@@ -208,7 +207,7 @@ public class Inventory extends AbstractConfigurable
   }
 
   public static String getConfigureTypeName() {
-    return Resources.getString("Editor.Inventory.component_type"); //$NON-NLS-1$
+    return "Game Piece Inventory Window";
   }
 
   public void addTo(Buildable b) {
@@ -488,26 +487,26 @@ public class Inventory extends AbstractConfigurable
 
   public String[] getAttributeDescriptions() {
     return new String[] {
-    	Resources.getString(Resources.NAME_LABEL),
-    	Resources.getString(Resources.BUTTON_TEXT),
-    	Resources.getString(Resources.TOOLTIP_TEXT),
-    	Resources.getString(Resources.BUTTON_ICON),
-    	Resources.getString(Resources.HOTKEY_LABEL),
-    	// "Display",
-    	Resources.getString("Editor.Inventory.show_pieces"), //$NON-NLS-1$
-    	Resources.getString("Editor.Inventory.sort_group_properties"), //$NON-NLS-1$
-    	Resources.getString("Editor.Inventory.label_folders"), //$NON-NLS-1$
-    	Resources.getString("Editor.Inventory.show_folders"), //$NON-NLS-1$
-    	Resources.getString("Editor.Inventory.label_pieces"), //$NON-NLS-1$
-    	Resources.getString("Editor.Inventory.sort"), //$NON-NLS-1$
-    	Resources.getString("Editor.Inventory.label_sort"), //$NON-NLS-1$
-    	Resources.getString("Editor.Inventory.sort_method"), //$NON-NLS-1$
-    	Resources.getString("Editor.Inventory.center_piece"), //$NON-NLS-1$
-    	Resources.getString("Editor.Inventory.forward_keystroke"), //$NON-NLS-1$
-    	Resources.getString("Editor.Inventory.rightclick_piece"), //$NON-NLS-1$
-    	Resources.getString("Editor.Inventory.draw_piece"), //$NON-NLS-1$
-    	Resources.getString("Editor.Inventory.zoom"), //$NON-NLS-1$
-    	Resources.getString("Editor.Inventory.available") //$NON-NLS-1$
+      "Name:  ",
+      "Button text:  ",
+      "Tooltip text:  ",
+      "Button icon:  ",
+      "Hotkey:  ",
+      // "Display",
+      "Show only pieces matching these properties:  ",
+      "Sort and Group By Properties",
+      "Label for folders:  ",
+      "Show only folders?",
+      "Label for pieces:  ",
+      "Sort?",
+      "Label for sort:  ",
+      "Sorting method:  ",
+      "Center on selected piece?",
+      "Forward key strokes to selected piece?",
+      "Show right-click menu of piece?",
+      "Draw piece images?",
+      "Zoom factor:  ",
+      "Available to these sides"
     };
   }
 
@@ -517,7 +516,7 @@ public class Inventory extends AbstractConfigurable
       String.class,
       String.class,
       IconConfig.class,
-      NamedKeyStroke.class,
+      KeyStroke.class,
       // DestConfig.class, 
       PropertyExpression.class,
       String[].class,
@@ -1070,7 +1069,7 @@ public class Inventory extends AbstractConfigurable
    * 
    * @author Brent Easton
    */
-  protected static class Selector implements PieceFilter {
+  protected class Selector implements PieceFilter {
 
     protected PieceFilter filter;
 
@@ -1330,7 +1329,7 @@ public class Inventory extends AbstractConfigurable
           return 1;
    
         throw new IllegalArgumentException(
-          "These CounterNodes are not strange!"); //$NON-NLS-1$
+          "These CounterNodes are not strange!");
       }
     }
   

@@ -31,28 +31,23 @@ import java.awt.geom.Area;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.util.ArrayList;
-import java.util.List;
-
 import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.KeyStroke;
 import javax.swing.SwingUtilities;
-
 import VASSAL.build.GameModule;
 import VASSAL.build.module.ObscurableOptions;
 import VASSAL.build.module.documentation.HelpFile;
 import VASSAL.command.ChangeTracker;
 import VASSAL.command.Command;
-import VASSAL.configure.NamedHotKeyConfigurer;
+import VASSAL.configure.HotKeyConfigurer;
 import VASSAL.configure.PieceAccessConfigurer;
 import VASSAL.configure.StringConfigurer;
 import VASSAL.configure.StringEnumConfigurer;
 import VASSAL.i18n.PieceI18nData;
 import VASSAL.i18n.TranslatablePiece;
-import VASSAL.tools.ArrayUtils;
-import VASSAL.tools.NamedKeyStroke;
 import VASSAL.tools.SequenceEncoder;
 
 public class Obscurable extends Decorator implements TranslatablePiece {
@@ -63,8 +58,8 @@ public class Obscurable extends Decorator implements TranslatablePiece {
   protected static final char IMAGE = 'G';
 
   protected char obscureKey;
-  protected NamedKeyStroke keyCommand;
-  protected NamedKeyStroke peekKey;
+  protected KeyStroke keyCommand;
+  protected KeyStroke peekKey;
   protected String imageName;
   protected String obscuredToOthersImage;
   protected String obscuredBy;
@@ -98,7 +93,7 @@ public class Obscurable extends Decorator implements TranslatablePiece {
   public void mySetType(String in) {
     SequenceEncoder.Decoder st = new SequenceEncoder.Decoder(in, ';');
     st.nextToken();
-    keyCommand = st.nextNamedKeyStroke(null);
+    keyCommand = st.nextKeyStroke(null);
     imageName = st.nextToken();
     obscuredToMeView = GameModule.getGameModule().createPiece(BasicPiece.ID + ";;" + imageName + ";;");
     hideCommand = st.nextToken(hideCommand);
@@ -109,10 +104,10 @@ public class Obscurable extends Decorator implements TranslatablePiece {
         case PEEK:
           if (s.length() > 1) {
             if (s.length() == 2) {
-              peekKey = NamedKeyStroke.getNamedKeyStroke(s.charAt(1),InputEvent.CTRL_MASK);
+              peekKey = KeyStroke.getKeyStroke(s.charAt(1),InputEvent.CTRL_MASK);
             }
             else {
-              peekKey = NamedHotKeyConfigurer.decode(s.substring(1));
+              peekKey = HotKeyConfigurer.decode(s.substring(1));
             }
             peeking = false;
           }
@@ -145,7 +140,7 @@ public class Obscurable extends Decorator implements TranslatablePiece {
           se.append(displayStyle);
         }
         else {
-          se.append(displayStyle + NamedHotKeyConfigurer.encode(peekKey));
+          se.append(displayStyle + HotKeyConfigurer.encode(peekKey));
         }
         break;
       case IMAGE:
@@ -405,12 +400,17 @@ public class Obscurable extends Decorator implements TranslatablePiece {
 
   public KeyCommand[] getKeyCommands() {
     if (obscuredToMe()) {
-      final KeyCommand myC[] = myGetKeyCommands();
-      final KeyCommand c[] = (KeyCommand[])
-        Decorator.getInnermost(this).getProperty(Properties.KEY_COMMANDS);
-
-      if (c == null) return myC;
-      else return ArrayUtils.append(KeyCommand[].class, myC, c); 
+      KeyCommand myC[] = myGetKeyCommands();
+      KeyCommand c[] = (KeyCommand[]) Decorator.getInnermost(this).getProperty(Properties.KEY_COMMANDS);
+      if (c == null) {
+        return myC;
+      }
+      else {
+        KeyCommand all[] = new KeyCommand[c.length + myC.length];
+        System.arraycopy(myC, 0, all, 0, myC.length);
+        System.arraycopy(c, 0, all, myC.length, c.length);
+        return all;
+      }
     }
     else {
       return super.getKeyCommands();
@@ -423,7 +423,7 @@ public class Obscurable extends Decorator implements TranslatablePiece {
       
     // Hide Command
     if (keyCommand == null) { // Backwards compatibility with VASL classes
-      keyCommand = NamedKeyStroke.getNamedKeyStroke(obscureKey, InputEvent.CTRL_MASK);
+      keyCommand = KeyStroke.getKeyStroke(obscureKey, InputEvent.CTRL_MASK);
     }
       
     hide = new KeyCommand(hideCommand, keyCommand, outer, this);
@@ -550,22 +550,12 @@ public class Obscurable extends Decorator implements TranslatablePiece {
     return getI18nData(new String[] {hideCommand, maskName, peekCommand}, new String[] {"Mask command", "Name when masked", "Peek command"});
   }
   
-  /**
-   * Return Property names exposed by this trait
-   */
-  public List<String> getPropertyNames() {
-    final ArrayList<String> l = new ArrayList<String>();
-    l.add(Properties.OBSCURED_TO_OTHERS);
-    l.add(Properties.OBSCURED_TO_ME);    
-    return l;
-  }
-  
   private static class Ed implements PieceEditor {
     private ImagePicker picker;
-    private NamedHotKeyConfigurer obscureKeyInput;
+    private HotKeyConfigurer obscureKeyInput;
     private StringConfigurer obscureCommandInput, maskNameInput;
     private StringEnumConfigurer displayOption;
-    private NamedHotKeyConfigurer peekKeyInput;
+    private HotKeyConfigurer peekKeyInput;
     private JPanel controls = new JPanel();
     private String[] optionNames = new String[]{"Background", "Plain", "Inset", "Use Image"};
     private char[] optionChars = new char[]{BACKGROUND, PEEK, INSET, IMAGE};
@@ -578,7 +568,7 @@ public class Obscurable extends Decorator implements TranslatablePiece {
       Box box = Box.createHorizontalBox();
       obscureCommandInput = new StringConfigurer(null, "Mask Command:  ", p.hideCommand);
       box.add(obscureCommandInput.getControls());
-      obscureKeyInput = new NamedHotKeyConfigurer(null,"  Keyboard Command:  ",p.keyCommand);
+      obscureKeyInput = new HotKeyConfigurer(null,"  Keyboard Command:  ",p.keyCommand);
       box.add(obscureKeyInput.getControls());
       controls.add(box);
       
@@ -644,7 +634,7 @@ public class Obscurable extends Decorator implements TranslatablePiece {
       box.add(showDisplayOption);
       controls.add(box);
 
-      peekKeyInput = new NamedHotKeyConfigurer(null,"Peek Command:  ",p.peekKey);
+      peekKeyInput = new HotKeyConfigurer(null,"Peek Command:  ",p.peekKey);
       peekKeyInput.getControls().setVisible(p.displayStyle == PEEK);
       controls.add(peekKeyInput.getControls());
 
@@ -672,7 +662,7 @@ public class Obscurable extends Decorator implements TranslatablePiece {
 
     public String getType() {
       SequenceEncoder se = new SequenceEncoder(';');
-      se.append(obscureKeyInput.getValueString())
+      se.append((KeyStroke)obscureKeyInput.getValue())
           .append(picker.getImageName())
           .append(obscureCommandInput.getValueString());
       char optionChar = INSET;

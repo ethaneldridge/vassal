@@ -31,7 +31,6 @@ import VASSAL.build.module.documentation.HelpFile;
 import VASSAL.configure.Configurer;
 import VASSAL.configure.SingleChildInstance;
 import VASSAL.i18n.ComponentI18nData;
-import VASSAL.i18n.Resources;
 
 /**
  * Container for definitions of Game Piece prototypes.
@@ -75,7 +74,7 @@ public class PrototypesContainer extends AbstractConfigurable {
   }
 
   public static String getConfigureTypeName() {
-    return Resources.getString("Editor.PrototypesContainer.component_type"); //$NON-NLS-1$
+    return "Game Piece Prototype Definitions";
   }
 
   public void add(Buildable b) {
@@ -120,7 +119,7 @@ public class PrototypesContainer extends AbstractConfigurable {
   
   public ComponentI18nData getI18nData() {
     ComponentI18nData data = super.getI18nData();
-    data.setPrefix(""); //$NON-NLS-1$
+    data.setPrefix("");
     return data;
   }
 }

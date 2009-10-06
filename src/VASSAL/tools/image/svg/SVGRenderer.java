@@ -179,7 +179,7 @@ public class SVGRenderer {
         in = new BufferedInputStream(
           GameModule.getGameModule()
                     .getDataArchive()
-                    .getInputStream(file));
+                    .getImageInputStream(file));
         final Document doc = loadDocument(uri, in);
         in.close();
         return doc;
@@ -190,7 +190,7 @@ public class SVGRenderer {
     }
   }
 
-  private static class Rasterizer extends SVGAbstractTranscoder {
+  private class Rasterizer extends SVGAbstractTranscoder {
     private DocumentLoader docLoader;
     private BufferedImage image;
     private AffineTransform xform;

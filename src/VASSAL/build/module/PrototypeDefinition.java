@@ -49,7 +49,6 @@ import VASSAL.counters.PieceDefiner;
 import VASSAL.counters.PieceEditor;
 import VASSAL.counters.Properties;
 import VASSAL.i18n.ComponentI18nData;
-import VASSAL.i18n.Resources;
 import VASSAL.tools.ErrorDialog;
 import VASSAL.tools.FormattedString;
 import VASSAL.tools.UniqueIdManager;
@@ -174,9 +173,8 @@ public class PrototypeDefinition extends AbstractConfigurable
   }
 
   public static String getConfigureTypeName() {
-    return Resources.getString("Editor.Prototype.component_type"); //$NON-NLS-1$
+    return "Definition";
   }
-  
   public static class Config extends Configurer {
     private Box box;
     private PieceDefiner pieceDefiner;
@@ -186,7 +184,7 @@ public class PrototypeDefinition extends AbstractConfigurable
     public Config(PrototypeDefinition def) {
       super(null, null, def);
       box = Box.createVerticalBox();
-      name = new StringConfigurer(null, Resources.getString(Resources.NAME_LABEL), def.name);
+      name = new StringConfigurer(null, "Name:  ", def.name);
       box.add(name.getControls());
       pieceDefiner = new Definer(GameModule.getGameModule().getGpIdSupport());
       pieceDefiner.setPiece(def.getPiece());
@@ -242,7 +240,6 @@ public class PrototypeDefinition extends AbstractConfigurable
           super.removeTrait(index);
         }
       }
-
       private static class Plain extends BasicPiece {
         public Plain() {
           super(ID + ";;;;"); //$NON-NLS-1$

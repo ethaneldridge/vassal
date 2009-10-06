@@ -51,7 +51,7 @@ public class SourceOpMappedBitmapImpl extends SourceOpBitmapImpl
   public BufferedImage eval() throws ImageIOException {
     InputStream in = null;
     try {
-      in = archive.getInputStream(name);
+      in = archive.getImageInputStream(name);
     }
     catch (FileNotFoundException e) {
       throw new ImageNotFoundException(name, e);

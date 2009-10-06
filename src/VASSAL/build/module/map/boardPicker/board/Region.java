@@ -31,7 +31,6 @@ import VASSAL.build.AbstractConfigurable;
 import VASSAL.build.Buildable;
 import VASSAL.build.module.map.boardPicker.Board;
 import VASSAL.counters.Labeler;
-import VASSAL.i18n.Resources;
 
 
 public class Region extends AbstractConfigurable {
@@ -45,7 +44,7 @@ public class Region extends AbstractConfigurable {
   private boolean selected = false;
 
   public Region() {
-    setConfigureName(Resources.getString("Editor.Region.new_region")); //$NON-NLS-1$
+    setConfigureName("New Region");
   }
 
   public Region(Point p) {
@@ -84,9 +83,9 @@ public class Region extends AbstractConfigurable {
     origin.translate(dx, dy);
   }
 
-  public static final String NAME = "name"; //$NON-NLS-1$
-  public static final String X = "originx"; //$NON-NLS-1$
-  public static final String Y = "originy"; //$NON-NLS-1$
+  public static final String NAME = "name";
+  public static final String X = "originx";
+  public static final String Y = "originy";
 
   public String[] getAttributeNames() {
     return new String[] {
@@ -98,9 +97,9 @@ public class Region extends AbstractConfigurable {
 
   public String[] getAttributeDescriptions() {
     return new String[]{
-      Resources.getString(Resources.NAME_LABEL),
-      Resources.getString("Editor.Region.x_coord"), //$NON-NLS-1$
-      Resources.getString("Editor.Region.y_coord"), //$NON-NLS-1$
+      "Name:  ",
+      "X Co-ord:  ",
+      "Y Co-ord:  "
     };
   }
 
@@ -122,7 +121,7 @@ public class Region extends AbstractConfigurable {
   }
 
   public static String getConfigureTypeName() {
-    return Resources.getString("Editor.Region.component_type"); //$NON-NLS-1$
+    return "Region";
   }
 
   public boolean contains(Point p) {
@@ -157,13 +156,13 @@ public class Region extends AbstractConfigurable {
     }
     else if (X.equals(key)) {
       if (val instanceof String) {
-        val = Integer.valueOf((String) val);
+        val = new Integer((String) val);
       }
       origin.x = ((Integer) val).intValue();
     }
     else if (Y.equals(key)) {
       if (val instanceof String) {
-        val = Integer.valueOf((String) val);
+        val = new Integer((String) val);
       }
       origin.y = ((Integer) val).intValue();
     }
@@ -226,7 +225,7 @@ public class Region extends AbstractConfigurable {
     final int labelOffset = 7;
 
     int size = (int) (scale * myGrid.getFontSize() + 0.5);
-    Font f = new Font("Dialog", Font.PLAIN, size); //$NON-NLS-1$
+    Font f = new Font("Dialog", Font.PLAIN, size);
 
     Color fg = selected ? Color.white : Color.black;
     Color bg = selected ? Color.black : Color.white;
@@ -257,7 +256,7 @@ public class Region extends AbstractConfigurable {
     g.setClip(oldClip);
 
     // Calculate and store the selection rectangle
-    int width = g.getFontMetrics().stringWidth(getConfigureName() + "  ")+1; //$NON-NLS-1$
+    int width = g.getFontMetrics().stringWidth(getConfigureName() + "  ")+1;
     int height = g.getFontMetrics().getHeight()+1;
 
     selectionRect.setLocation(posX - (width / 2), posY - 1);

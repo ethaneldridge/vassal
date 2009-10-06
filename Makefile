@@ -13,7 +13,7 @@
 # Also you might possibly need mingw32 for use with launch4j, depending on
 # the architecture of your machine.
 # 
-# For intellectual property reasons, nsis will not work out of the box on
+# For intellectual property reasons, NSIS will not work out of the box on
 # Linux. (It will fail with "Invalid command:  System::Call"). To remedy
 # this, you can either: 
 #
@@ -46,10 +46,10 @@ JDOCDIR:=javadoc
 DOCDIR:=doc
 DISTDIR:=dist
 
-VNUM:=3.2.0
+VNUM:=3.1.7
 SVNVERSION:=$(shell svnversion | perl -pe 's/(\d+:)?(\d+[MS]?)/$$2/; s/(\d+)M/$$1+1/e')
-VERSION:=$(VNUM)-svn$(SVNVERSION)
-#VERSION:=$(VNUM)
+#VERSION:=$(VNUM)-svn$(SVNVERSION)
+VERSION:=$(VNUM)
 
 #CLASSPATH:=$(CLASSDIR):$(LIBDIR)/*
 

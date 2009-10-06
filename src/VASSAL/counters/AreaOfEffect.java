@@ -36,7 +36,6 @@ import java.awt.geom.Area;
 import java.awt.geom.Ellipse2D;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
-
 import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
@@ -46,7 +45,6 @@ import javax.swing.JSeparator;
 import javax.swing.JTextField;
 import javax.swing.KeyStroke;
 import javax.swing.SwingUtilities;
-
 import VASSAL.build.module.Map;
 import VASSAL.build.module.documentation.HelpFile;
 import VASSAL.build.module.map.MapShader;
@@ -58,13 +56,12 @@ import VASSAL.command.Command;
 import VASSAL.configure.BooleanConfigurer;
 import VASSAL.configure.ChooseComponentDialog;
 import VASSAL.configure.ColorConfigurer;
+import VASSAL.configure.HotKeyConfigurer;
 import VASSAL.configure.IntConfigurer;
-import VASSAL.configure.NamedHotKeyConfigurer;
 import VASSAL.configure.StringConfigurer;
 import VASSAL.i18n.PieceI18nData;
 import VASSAL.i18n.Resources;
 import VASSAL.i18n.TranslatablePiece;
-import VASSAL.tools.NamedKeyStroke;
 import VASSAL.tools.SequenceEncoder;
 
 /**
@@ -84,7 +81,7 @@ public class AreaOfEffect extends Decorator implements TranslatablePiece, MapSha
   protected boolean alwaysActive;
   protected boolean active;
   protected String activateCommand;
-  protected NamedKeyStroke activateKey;
+  protected KeyStroke activateKey;
   protected KeyCommand[] commands;
   protected String mapShaderName;
   protected MapShader shader;
@@ -134,7 +131,7 @@ public class AreaOfEffect extends Decorator implements TranslatablePiece, MapSha
     radius = st.nextInt(defaultRadius);
     alwaysActive = st.nextBoolean(true);
     activateCommand = st.nextToken("Show Area");
-    activateKey = st.nextNamedKeyStroke(null);
+    activateKey = st.nextKeyStroke(null);
     keyCommand = new KeyCommand(activateCommand, activateKey, Decorator.getOutermost(this), this);
     mapShaderName = st.nextToken("");
     if (mapShaderName.length() == 0) {
@@ -324,7 +321,7 @@ public class AreaOfEffect extends Decorator implements TranslatablePiece, MapSha
     protected IntConfigurer radiusValue;
     protected BooleanConfigurer alwaysActive;
     protected StringConfigurer activateCommand;
-    protected NamedHotKeyConfigurer activateKey;
+    protected HotKeyConfigurer activateKey;
     protected BooleanConfigurer useMapShader;
     protected BooleanConfigurer fixedRadius;
     protected StringConfigurer radiusMarker;
@@ -374,7 +371,7 @@ public class AreaOfEffect extends Decorator implements TranslatablePiece, MapSha
 
       transparencyColorValue = new ColorConfigurer(null, "Fill Color:  ", trait.transparencyColor);
       panel.add(transparencyColorValue.getControls());
-      transparencyValue = new IntConfigurer(null, "Opacity (%):  ", (int) (trait.transparencyLevel * 100));
+      transparencyValue = new IntConfigurer(null, "Opacity (%):  ", new Integer((int) (trait.transparencyLevel * 100)));
       panel.add(transparencyValue.getControls());
       
       fixedRadius = new BooleanConfigurer(null, "Fixed Radius?", 
@@ -386,7 +383,7 @@ public class AreaOfEffect extends Decorator implements TranslatablePiece, MapSha
       });
       panel.add(fixedRadius.getControls());
       
-      radiusValue = new IntConfigurer(null, "Radius: ", trait.radius);
+      radiusValue = new IntConfigurer(null, "Radius: ", new Integer(trait.radius));
       panel.add(radiusValue.getControls());
       
       radiusMarker = new StringConfigurer(null, "Radius Marker: ", trait.radiusMarker);
@@ -394,7 +391,7 @@ public class AreaOfEffect extends Decorator implements TranslatablePiece, MapSha
 
       alwaysActive = new BooleanConfigurer(null, "Always visible?", trait.alwaysActive ? Boolean.TRUE : Boolean.FALSE);
       activateCommand = new StringConfigurer(null, "Toggle visible command:  ", trait.activateCommand);
-      activateKey = new NamedHotKeyConfigurer(null, "Toggle visible keyboard shortcut:  ", trait.activateKey);
+      activateKey = new HotKeyConfigurer(null, "Toggle visible keyboard shortcut:  ", trait.activateKey);
 
       updateRangeVisibility();
       
@@ -462,7 +459,7 @@ public class AreaOfEffect extends Decorator implements TranslatablePiece, MapSha
       se.append(radiusValue.getValueString());
       se.append(alwaysActiveSelected);
       se.append(activateCommand.getValueString());
-      se.append(activateKey.getValueString());
+      se.append((KeyStroke) activateKey.getValue());
       if (Boolean.TRUE.equals(useMapShader.getValue()) && mapShaderId != null) {
         se.append(mapShaderId);
       }

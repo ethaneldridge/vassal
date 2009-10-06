@@ -32,9 +32,6 @@ import VASSAL.tools.opcache.OpFailedException;
 
 public class Op {
   public static SourceOp load(String name) {
-    if (!name.startsWith("/"))
-      name = "images/" + name;
-
     if (name.endsWith(".svg"))
       return new SourceOpSVGImpl(name);
     else
@@ -46,9 +43,6 @@ public class Op {
   }
  
   public static SourceOp loadLarge(String name) {
-    if (!name.startsWith("/"))
-      name = "images/" + name;
-
     if (name.endsWith(".svg"))
       return new SourceOpSVGImpl(name);
     else if (ImageUtils.useMappedImages())

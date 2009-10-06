@@ -406,7 +406,7 @@ public class ModuleManagerWindow extends JFrame {
   }
   
   protected void setPreferredDividerLocation(int i) {
-    dividerLocationConfig.setValue(i);
+    dividerLocationConfig.setValue(new Integer(i));
   }
   
   protected int getPreferredDividerLocation() {
@@ -735,7 +735,8 @@ public class ModuleManagerWindow extends JFrame {
    *  - Return column count
    *  - Return column headings
    */
-  private static class MyTreeTableModel extends DefaultTreeTableModel {
+  private class MyTreeTableModel extends DefaultTreeTableModel {
+  
     public MyTreeTableModel(MyTreeNode rootNode) {
       super(rootNode);
     }
@@ -761,14 +762,14 @@ public class ModuleManagerWindow extends JFrame {
    * Fix for bug on startup generating illegal column numbers
    *
    */
-  private static class MyTree extends JXTreeTable {
+  private class MyTree extends JXTreeTable {
+
     private static final long serialVersionUID = 1L;
 
     public MyTree(MyTreeTableModel treeModel) {
       super(treeModel);
     }
     
-// FIXME: Where's the rest of the comment???
     /**
      * There appears to be a bug/strange interaction between JXTreetable and the ComponentSplitter
      * when the Component
@@ -786,7 +787,8 @@ public class ModuleManagerWindow extends JFrame {
    *   - Gray out inactve extensions
    *   - Gray out Save Games that belong to other modules
    */
-  private static class MyTreeCellRenderer extends DefaultTreeCellRenderer {
+  private class MyTreeCellRenderer extends DefaultTreeCellRenderer {
+
     private static final long serialVersionUID = 1L;
     
     public Component getTreeCellRendererComponent(
@@ -807,7 +809,8 @@ public class ModuleManagerWindow extends JFrame {
    * Custom cell render for Version column
    *   - Center data
    */
-  private static class VersionCellRenderer extends DefaultTableCellRenderer {
+  private class VersionCellRenderer extends DefaultTableCellRenderer  {
+    
     private static final long serialVersionUID = 1L;
     
     public VersionCellRenderer() {
@@ -1720,7 +1723,7 @@ public class ModuleManagerWindow extends JFrame {
   /**
    * Action to Edit an Extension in another process
    */
-  private static class EditExtensionLaunchAction extends AbstractLaunchAction {
+  private class EditExtensionLaunchAction extends AbstractLaunchAction {
     private static final long serialVersionUID = 1L;
 
     public EditExtensionLaunchAction(Frame frame, File extension, File module) {
@@ -1776,7 +1779,7 @@ public class ModuleManagerWindow extends JFrame {
     } 
   }
 
-  private static class ShowErrorLogAction extends AbstractAction {
+  private class ShowErrorLogAction extends AbstractAction {
     private static final long serialVersionUID = 1L;
 
     private Frame frame;

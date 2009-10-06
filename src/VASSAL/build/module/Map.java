@@ -132,10 +132,10 @@ import VASSAL.configure.ColorConfigurer;
 import VASSAL.configure.CompoundValidityChecker;
 import VASSAL.configure.Configurer;
 import VASSAL.configure.ConfigurerFactory;
+import VASSAL.configure.HotKeyConfigurer;
 import VASSAL.configure.IconConfigurer;
 import VASSAL.configure.IntConfigurer;
 import VASSAL.configure.MandatoryComponent;
-import VASSAL.configure.NamedHotKeyConfigurer;
 import VASSAL.configure.PlayerIdFormattedStringConfigurer;
 import VASSAL.configure.VisibilityCondition;
 import VASSAL.counters.ColoredBorder;
@@ -159,7 +159,6 @@ import VASSAL.tools.AdjustableSpeedScrollPane;
 import VASSAL.tools.ComponentSplitter;
 import VASSAL.tools.KeyStrokeSource;
 import VASSAL.tools.LaunchButton;
-import VASSAL.tools.NamedKeyStroke;
 import VASSAL.tools.ToolBarComponent;
 import VASSAL.tools.UniqueIdManager;
 import VASSAL.tools.WrapLayout;
@@ -222,7 +221,7 @@ public class Map extends AbstractConfigurable implements GameComponent, MouseLis
   protected String moveToFormat;
   protected String createFormat;
   protected String changeFormat = "$" + MESSAGE + "$"; //$NON-NLS-1$ //$NON-NLS-2$
-  protected NamedKeyStroke moveKey;
+  protected KeyStroke moveKey;
   protected PropertyChangeListener globalPropertyListener;
   protected String tooltip = ""; //$NON-NLS-1$
   protected MutablePropertiesContainer propsContainer = new MutablePropertiesContainer.Impl();
@@ -298,7 +297,7 @@ public class Map extends AbstractConfigurable implements GameComponent, MouseLis
     }
     else if (EDGE_WIDTH.equals(key)) {
       if (value instanceof String) {
-        value = Integer.valueOf((String) value);
+        value = new Integer((String) value);
       }
       try {
         edgeBuffer = new Dimension(((Integer) value).intValue(), edgeBuffer.height);
@@ -309,7 +308,7 @@ public class Map extends AbstractConfigurable implements GameComponent, MouseLis
     }
     else if (EDGE_HEIGHT.equals(key)) {
       if (value instanceof String) {
-        value = Integer.valueOf((String) value);
+        value = new Integer((String) value);
       }
       try {
         edgeBuffer = new Dimension(edgeBuffer.width, ((Integer) value).intValue());
@@ -343,7 +342,7 @@ public class Map extends AbstractConfigurable implements GameComponent, MouseLis
     }
     else if (HIGHLIGHT_THICKNESS.equals(key)) {
       if (value instanceof String) {
-        value = Integer.valueOf((String) value);
+        value = new Integer((String) value);
       }
       if (highlighter instanceof ColoredBorder) {
         ((ColoredBorder) highlighter).setThickness(((Integer) value).intValue());
@@ -378,9 +377,9 @@ public class Map extends AbstractConfigurable implements GameComponent, MouseLis
     }
     else if (MOVE_KEY.equals(key)) {
       if (value instanceof String) {
-        value = NamedHotKeyConfigurer.decode((String) value);
+        value = HotKeyConfigurer.decode((String) value);
       }
-      moveKey = (NamedKeyStroke) value;
+      moveKey = (KeyStroke) value;
     }
     else if (TOOLTIP.equals(key)) {
       tooltip = (String) value;
@@ -453,7 +452,7 @@ public class Map extends AbstractConfigurable implements GameComponent, MouseLis
       return getChangeFormat();
     }
     else if (MOVE_KEY.equals(key)) {
-      return NamedHotKeyConfigurer.encode(moveKey);
+      return HotKeyConfigurer.encode(moveKey);
     }
     else if (TOOLTIP.equals(key)) {
       return (tooltip == null || tooltip.length() == 0)
@@ -472,7 +471,7 @@ public class Map extends AbstractConfigurable implements GameComponent, MouseLis
         }
       }
     };
-    launchButton = new LaunchButton(Resources.getString("Editor.Map.map"), TOOLTIP, BUTTON_NAME, HOTKEY, ICON, al);
+    launchButton = new LaunchButton("Map", TOOLTIP, BUTTON_NAME, HOTKEY, ICON, al);
     launchButton.setEnabled(false);
     launchButton.setVisible(false);
     if (e != null) {
@@ -648,7 +647,7 @@ public class Map extends AbstractConfigurable implements GameComponent, MouseLis
     GameModule.getGameModule().getToolBar().add(launchButton);
     if (shouldDockIntoMainWindow()) {
       final IntConfigurer config =
-        new IntConfigurer(MAIN_WINDOW_HEIGHT, null, -1);
+        new IntConfigurer(MAIN_WINDOW_HEIGHT, null, new Integer(-1));
       Prefs.getGlobalPrefs().addOption(null, config);
       final ComponentSplitter splitter = new ComponentSplitter();
 
@@ -690,7 +689,7 @@ mainWindowDock = splitter.splitBottom(splitter.getSplitAncestor(GameModule.getGa
       new IntConfigurer(
         PREFERRED_EDGE_DELAY,
         Resources.getString("Map.scroll_delay_preference"), //$NON-NLS-1$
-        PREFERRED_EDGE_SCROLL_DELAY
+        new Integer(PREFERRED_EDGE_SCROLL_DELAY)
       )
     );
 
@@ -1340,8 +1339,6 @@ mainWindowDock = splitter.splitBottom(splitter.getSplitAncestor(GameModule.getGa
   /** The vertical component of the autoscrolling vector, -1, 0, or 1. */
   protected int sy;
 
-  protected int dx, dy;
-
   /**
    * Begin autoscrolling the map if the given point is within the given
    * distance from a viewport edge.
@@ -1356,29 +1353,11 @@ mainWindowDock = splitter.splitBottom(splitter.getSplitAncestor(GameModule.getGa
     final int py = evtPt.y - vrect.y;
 
     // determine scroll vector
-    sx = 0;    
-    if (px < dist && px >= 0) {
-      sx = -1;
-      dx = dist - px;
-    }
-    else if (px < vrect.width && px >= vrect.width - dist) {
-      sx = 1;
-      dx = dist - (vrect.width - px);
-    }
+    sx = px < dist && px >= 0 ? -1 :
+        (px < vrect.width && px >= vrect.width - dist ? 1 : 0);
 
-    sy = 0;    
-    if (py < dist && py >= 0) {
-      sy = -1;
-      dy = dist - py;
-    }
-    else if (py < vrect.height && py >= vrect.height - dist) {
-      sy = 1;
-      dy = dist - (vrect.height - py);
-    }
-
-    dx /= 2;
-    dy /= 2;
-
+    sy = py < dist && py >= 0 ? -1 :
+        (py < vrect.height && py >= vrect.height - dist ? 1 : 0);
 
     // start autoscrolling if we have a nonzero scroll vector
     if (sx != 0 || sy != 0) {
@@ -1405,6 +1384,8 @@ mainWindowDock = splitter.splitBottom(splitter.getSplitAncestor(GameModule.getGa
         final long t1 = System.currentTimeMillis();
         final int dt = (int)((t1 - t0)/2);
         t0 = t1;
+
+        scroll(sx*dt, sy*dt);
 
         // Check whether we have hit an edge
         final Rectangle vrect = scroll.getViewport().getViewRect();
@@ -1802,13 +1783,8 @@ mainWindowDock = splitter.splitBottom(splitter.getSplitAncestor(GameModule.getGa
   }
   
 
-  /**
-   * Return the auto-move key. It may be named, so just return
-   * the allocated KeyStroke.
-   * @return auto move keystroke
-   */
   public KeyStroke getMoveKey() {
-    return moveKey.getKeyStroke();
+    return moveKey;
   }
 
   /**
@@ -1900,7 +1876,7 @@ mainWindowDock = splitter.splitBottom(splitter.getSplitAncestor(GameModule.getGa
       if (mainWindowDock != null) {
         if (mainWindowDock.getHideableComponent().isShowing()) {
           Prefs.getGlobalPrefs().getOption(MAIN_WINDOW_HEIGHT)
-               .setValue(mainWindowDock.getTopLevelAncestor().getHeight());
+              .setValue(new Integer(mainWindowDock.getTopLevelAncestor().getHeight()));
         }
         mainWindowDock.hideComponent();
         toolBar.setVisible(false);
@@ -2117,7 +2093,7 @@ mainWindowDock = splitter.splitBottom(splitter.getSplitAncestor(GameModule.getGa
   }
 
   public static String getConfigureTypeName() {
-    return Resources.getString("Editor.Map.component_type"); //$NON-NLS-1$
+    return "Map Window";
   }
 
   public String getMapName() {
@@ -2132,7 +2108,7 @@ mainWindowDock = splitter.splitBottom(splitter.getSplitAncestor(GameModule.getGa
     mapName = s;
     setConfigureName(mapName);
     if (tooltip == null || tooltip.length() == 0) {
-      launchButton.setToolTipText(s != null ? Resources.getString("Map.show_hide", s) : Resources.getString("Map.show_hide", Resources.getString("Map.map"))); //$NON-NLS-1$ //$NON-NLS-2$  //$NON-NLS-3$
+      launchButton.setToolTipText(s != null ? Resources.getString("Map.show_hide", s) : Resources.getString("Map.show_hide", Resources.getString("Map.map"))); //$NON-NLS-1$ //$NON-NLS-2$
     }
   }
 
@@ -2142,27 +2118,27 @@ mainWindowDock = splitter.splitBottom(splitter.getSplitAncestor(GameModule.getGa
 
   public String[] getAttributeDescriptions() {
     return new String[] {
-      Resources.getString("Editor.Map.map_name"), //$NON-NLS-1$
-      Resources.getString("Editor.Map.mark_pieces_moved"), //$NON-NLS-1$
-      Resources.getString("Editor.Map.mark_unmoved_button_text"), //$NON-NLS-1$
-      Resources.getString("Editor.Map.mark_unmoved_tooltip_text"), //$NON-NLS-1$
-      Resources.getString("Editor.Map.mark_unmoved_button_icon"), //$NON-NLS-1$
-      Resources.getString("Editor.Map.horizontal"), //$NON-NLS-1$
-      Resources.getString("Editor.Map.vertical"), //$NON-NLS-1$
-      Resources.getString("Editor.Map.bkgdcolor"), //$NON-NLS-1$
-      Resources.getString("Editor.Map.multiboard"), //$NON-NLS-1$
-      Resources.getString("Editor.Map.bc_selected_counter"), //$NON-NLS-1$
-      Resources.getString("Editor.Map.bt_selected_counter"), //$NON-NLS-1$
-      Resources.getString("Editor.Map.show_hide"), //$NON-NLS-1$
-      Resources.getString(Resources.BUTTON_TEXT),
-      Resources.getString(Resources.TOOLTIP_TEXT),
-      Resources.getString(Resources.BUTTON_ICON),
-      Resources.getString(Resources.HOTKEY_LABEL),
-      Resources.getString("Editor.Map.report_move_within"), //$NON-NLS-1$
-      Resources.getString("Editor.Map.report_move_to"), //$NON-NLS-1$
-      Resources.getString("Editor.Map.report_created"), //$NON-NLS-1$
-      Resources.getString("Editor.Map.report_modified"), //$NON-NLS-1$
-      Resources.getString("Editor.Map.key_applied_all") //$NON-NLS-1$
+      "Map Name:  ",
+      "Mark pieces that move (if they possess the proper trait):  ",
+      "\"Mark unmoved\" button text:  ",
+      "\"Mark unmoved\" tooltip text:  ",
+      "\"Mark unmoved\" button icon:  ",
+      "Horizontal Padding:  ",
+      "Vertical Padding:  ",
+      "Background color:  ",
+      "Can contain multiple boards?",
+      "Border color for selected counters:  ",
+      "Border thickness for selected counters:  ",
+      "Include toolbar button to show/hide?",
+      "Toolbar button text:  ",
+      "Toolbar tooltip text:  ",
+      "Toolbar button icon:  ",
+      "Hotkey:  ",
+      "Auto-report format for movement within this map:  ",
+      "Auto-report format for movement to this map:  ",
+      "Auto-report format for units created in this map:  ",
+      "Auto-report format for units modified on this map:  ",
+      "Key Command to apply to all units ending movement on this map:  "
     };
   }
 
@@ -2209,12 +2185,12 @@ mainWindowDock = splitter.splitBottom(splitter.getSplitAncestor(GameModule.getGa
       String.class,
       String.class, 
       IconConfig.class,
-      NamedKeyStroke.class,
+      KeyStroke.class,
       MoveWithinFormatConfig.class,
       MoveToFormatConfig.class,
       CreateFormatConfig.class,
       ChangeFormatConfig.class,
-      NamedKeyStroke.class
+      KeyStroke.class
     };
   }
 

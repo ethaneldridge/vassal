@@ -28,18 +28,15 @@ import java.awt.event.MouseEvent;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Set;
-
 import javax.swing.Box;
 import javax.swing.KeyStroke;
-
 import VASSAL.build.GameModule;
 import VASSAL.build.module.Map;
 import VASSAL.build.module.documentation.HelpFile;
 import VASSAL.command.Command;
+import VASSAL.configure.HotKeyConfigurer;
 import VASSAL.configure.IntConfigurer;
-import VASSAL.configure.NamedHotKeyConfigurer;
 import VASSAL.configure.StringConfigurer;
-import VASSAL.tools.NamedKeyStroke;
 import VASSAL.tools.SequenceEncoder;
 
 /**
@@ -51,7 +48,7 @@ import VASSAL.tools.SequenceEncoder;
  */
 public class ActionButton extends Decorator implements EditablePiece {
   public static final String ID = "button;";
-  protected NamedKeyStroke stroke;
+  protected KeyStroke stroke;
   protected Rectangle bounds = new Rectangle();
   protected ButtonPusher pusher;
   protected String description = "";
@@ -81,7 +78,7 @@ public class ActionButton extends Decorator implements EditablePiece {
   }
 
   protected KeyCommand[] myGetKeyCommands() {
-    return new KeyCommand[0];
+    return null;
   }
 
   public Command myKeyEvent(KeyStroke stroke) {
@@ -117,7 +114,7 @@ public class ActionButton extends Decorator implements EditablePiece {
   public void mySetType(String type) {
     SequenceEncoder.Decoder st = new SequenceEncoder.Decoder(type, ';');
     st.nextToken();
-    stroke = st.nextNamedKeyStroke('A');
+    stroke = st.nextKeyStroke('A');
     bounds.x = st.nextInt(-20);
     bounds.y = st.nextInt(-20);
     bounds.width = st.nextInt(40);
@@ -139,22 +136,22 @@ public class ActionButton extends Decorator implements EditablePiece {
     private IntConfigurer yConfig;
     private IntConfigurer widthConfig;
     private IntConfigurer heightConfig;
-    private NamedHotKeyConfigurer strokeConfig;
+    private HotKeyConfigurer strokeConfig;
     protected StringConfigurer descConfig;
 
     public Ed(ActionButton p) {
       box = Box.createVerticalBox();
       descConfig = new StringConfigurer(null, "Description:  ", p.description);
       box.add(descConfig.getControls());
-      strokeConfig = new NamedHotKeyConfigurer(null, "Invoke Key Command:  ", p.stroke);
+      strokeConfig = new HotKeyConfigurer(null, "Invoke Key Command:  ", p.stroke);
       box.add(strokeConfig.getControls());
-      xConfig = new IntConfigurer(null, "Button X-offset:  ", p.bounds.x);
+      xConfig = new IntConfigurer(null, "Button X-offset:  ", new Integer(p.bounds.x));
       box.add(xConfig.getControls());
-      yConfig = new IntConfigurer(null, "Button Y-offset:  ", p.bounds.y);
+      yConfig = new IntConfigurer(null, "Button Y-offset:  ", new Integer(p.bounds.y));
       box.add(yConfig.getControls());
-      widthConfig = new IntConfigurer(null, "Button Width:  ", p.bounds.width);
+      widthConfig = new IntConfigurer(null, "Button Width:  ", new Integer(p.bounds.width));
       box.add(widthConfig.getControls());
-      heightConfig = new IntConfigurer(null, "Button Height:  ", p.bounds.height);
+      heightConfig = new IntConfigurer(null, "Button Height:  ", new Integer(p.bounds.height));
       box.add(heightConfig.getControls());
     }
 
@@ -239,12 +236,11 @@ public class ActionButton extends Decorator implements EditablePiece {
         }
         if (piece instanceof ActionButton) {
           ActionButton action = (ActionButton) piece;
-          if (action.stroke != null && action.stroke.getKeyStroke() != null && action.bounds.contains(point)) {
+          if (action.stroke != null && action.bounds.contains(point)) {
             // Save state prior to command
             p.setProperty(Properties.SNAPSHOT,
               PieceCloner.getInstance().clonePiece(p));
-            
-            Command command = p.keyEvent(action.stroke.getKeyStroke());
+            Command command = p.keyEvent(action.stroke);
             GameModule.getGameModule().sendAndLog(command);
           }
         }

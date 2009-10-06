@@ -39,7 +39,6 @@ import VASSAL.tools.DataArchive;
 import VASSAL.tools.ErrorDialog;
 import VASSAL.tools.JarArchive;
 import VASSAL.tools.ThrowableUtils;
-import VASSAL.tools.icon.IconFactory;
 import VASSAL.tools.menu.MacOSXMenuManager;
 import VASSAL.tools.menu.MenuBarProxy;
 import VASSAL.tools.menu.MenuManager;
@@ -63,7 +62,6 @@ public class Player extends Launcher {
   }
 
   protected void launch() throws IOException {
-    new IconFactory();  // Initialise the Icon Factory
     if (lr.builtInModule) {
       GameModule.init(createModule(createDataArchive()));
       

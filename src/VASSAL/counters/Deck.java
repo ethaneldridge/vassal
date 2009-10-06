@@ -67,14 +67,11 @@ import VASSAL.command.Command;
 import VASSAL.command.CommandEncoder;
 import VASSAL.command.NullCommand;
 import VASSAL.configure.ColorConfigurer;
-import VASSAL.configure.PropertyExpression;
 import VASSAL.i18n.Localization;
 import VASSAL.i18n.Resources;
-import VASSAL.tools.ArrayUtils;
 import VASSAL.tools.ErrorDialog;
 import VASSAL.tools.FormattedString;
-import VASSAL.tools.NamedKeyStroke;
-import VASSAL.tools.NamedKeyStrokeListener;
+import VASSAL.tools.KeyStrokeListener;
 import VASSAL.tools.ReadErrorDialog;
 import VASSAL.tools.ScrollPane;
 import VASSAL.tools.SequenceEncoder;
@@ -101,22 +98,18 @@ public class Deck extends Stack implements PlayerRoster.SideChangeListener {
   protected boolean shuffle = true;
   protected String faceDownOption = ALWAYS;
   protected String shuffleOption = ALWAYS;
-  protected String shuffleCommand = "";
   protected boolean allowMultipleDraw = false;
   protected boolean allowSelectDraw = false;
   protected boolean reversible = false;
   protected String reshuffleCommand = ""; //$NON-NLS-1$
   protected String reshuffleTarget;
   protected String reshuffleMsgFormat;
-  protected NamedKeyStrokeListener reshuffleListener;
-  protected NamedKeyStroke reshuffleKey;
+  protected KeyStrokeListener reshuffleListener;
+  protected KeyStroke reshuffleKey;
   protected String reverseMsgFormat;
-  protected String reverseCommand;
-  protected NamedKeyStroke reverseKey;
-  protected NamedKeyStrokeListener reverseListener;
   protected String shuffleMsgFormat;
-  protected NamedKeyStrokeListener shuffleListener;
-  protected NamedKeyStroke shuffleKey;
+  protected KeyStrokeListener shuffleListener;
+  protected KeyStroke shuffleKey;
   protected String faceDownMsgFormat;
   protected boolean drawFaceUp;
   protected boolean persistable;
@@ -140,9 +133,7 @@ public class Deck extends Stack implements PlayerRoster.SideChangeListener {
   protected List<DeckGlobalKeyCommand> globalCommands =
     new ArrayList<DeckGlobalKeyCommand>();
   protected boolean hotkeyOnEmpty;
-  protected NamedKeyStroke emptyKey;
-  private boolean restrictOption;
-  private PropertyExpression restrictExpression = new PropertyExpression();
+  protected KeyStroke emptyKey;
 
   protected CommandEncoder commandEncoder = new CommandEncoder() {
     public Command decode(String command) {
@@ -338,24 +329,19 @@ public class Deck extends Stack implements PlayerRoster.SideChangeListener {
     faceDownMsgFormat = st.nextToken(""); //$NON-NLS-1$
     drawFaceUp = st.nextBoolean(false);
     persistable = st.nextBoolean(false);
-    shuffleKey = st.nextNamedKeyStroke(null);
-    reshuffleKey = st.nextNamedKeyStroke(null);
+    shuffleKey = st.nextKeyStroke(null);
+    reshuffleKey = st.nextKeyStroke(null);
     maxStack = st.nextInt(10);
     setCountExpressions(st.nextStringArray(0));
     expressionCounting = st.nextBoolean(false);
     setGlobalCommands(st.nextStringArray(0));
     hotkeyOnEmpty = st.nextBoolean(false);
-    emptyKey = st.nextNamedKeyStroke(null);
+    emptyKey = st.nextKeyStroke(null);
     selectDisplayProperty.setFormat(st.nextToken("$"+BasicPiece.BASIC_NAME+"$"));
     selectSortProperty = st.nextToken("");
-    restrictOption = st.nextBoolean(false);
-    restrictExpression.setExpression(st.nextToken(""));
-    shuffleCommand = st.nextToken(Resources.getString("Deck.shuffle"));
-    reverseCommand = st.nextToken(Resources.getString("Deck.reverse"));
-    reverseKey = st.nextNamedKeyStroke(null);
     
     if (shuffleListener == null) {
-      shuffleListener = new NamedKeyStrokeListener(new ActionListener() {
+      shuffleListener = new KeyStrokeListener(new ActionListener() {
         public void actionPerformed(ActionEvent e) {
           GameModule.getGameModule().sendAndLog(shuffle());
           repaintMap();
@@ -366,7 +352,7 @@ public class Deck extends Stack implements PlayerRoster.SideChangeListener {
     shuffleListener.setKeyStroke(getShuffleKey());
 
     if (reshuffleListener == null) {
-      reshuffleListener = new NamedKeyStrokeListener(new ActionListener() {
+      reshuffleListener = new KeyStrokeListener(new ActionListener() {
         public void actionPerformed(ActionEvent e) {
           GameModule.getGameModule().sendAndLog(sendToDeck());
           repaintMap();
@@ -375,17 +361,6 @@ public class Deck extends Stack implements PlayerRoster.SideChangeListener {
       GameModule.getGameModule().addKeyStrokeListener(reshuffleListener);
     }
     reshuffleListener.setKeyStroke(getReshuffleKey());
-    
-    if (reverseListener == null) {
-      reverseListener = new NamedKeyStrokeListener(new ActionListener() {
-        public void actionPerformed(ActionEvent e) {
-          GameModule.getGameModule().sendAndLog(reverse());
-          repaintMap();
-        }
-      });
-      GameModule.getGameModule().addKeyStrokeListener(reverseListener);
-    }
-    reverseListener.setKeyStroke(getReverseKey());
   }
 
   public String getFaceDownOption() {
@@ -463,23 +438,7 @@ public class Deck extends Stack implements PlayerRoster.SideChangeListener {
   public void setReverseMsgFormat(String reverseMsgFormat) {
     this.reverseMsgFormat = reverseMsgFormat;
   }
-  
-  public String getReverseCommand() {
-    return reverseCommand;
-  }
-  
-  public void setReverseCommand(String s) {
-    reverseCommand = s;
-  }
 
-  public NamedKeyStroke getReverseKey() {
-    return reverseKey;
-  }
-  
-  public void setReverseKey(NamedKeyStroke reverseKey) {
-    this.reverseKey = reverseKey;
-  }
-  
   public String getShuffleMsgFormat() {
     return shuffleMsgFormat;
   }
@@ -488,20 +447,12 @@ public class Deck extends Stack implements PlayerRoster.SideChangeListener {
     this.shuffleMsgFormat = shuffleMsgFormat;
   }
 
-  public NamedKeyStroke getShuffleKey() {
+  public KeyStroke getShuffleKey() {
     return shuffleKey;
   }
   
-  public void setShuffleKey(NamedKeyStroke shuffleKey) {
+  public void setShuffleKey(KeyStroke shuffleKey) {
     this.shuffleKey = shuffleKey;
-  }
-
-  public String getShuffleCommand() {
-    return shuffleCommand;
-  }
-  
-  public void setShuffleCommand(String s) {
-    shuffleCommand = s;
   }
   
   public void setShuffle(boolean shuffle) {
@@ -534,8 +485,8 @@ public class Deck extends Stack implements PlayerRoster.SideChangeListener {
         goodExpressionCount++;
       }
     }
-
-    this.countExpressions = ArrayUtils.copyOf(c, goodExpressionCount);
+    this.countExpressions = new CountExpression[goodExpressionCount];
+    System.arraycopy(c, 0, countExpressions, 0, goodExpressionCount);
     while (countExpressions.length > expressionProperties.size()) {
       expressionProperties.add(new MutableProperty.Impl("",this));
     }
@@ -597,11 +548,11 @@ public class Deck extends Stack implements PlayerRoster.SideChangeListener {
     this.reshuffleCommand = reshuffleCommand;
   }
   
-  public NamedKeyStroke getReshuffleKey() {
+  public KeyStroke getReshuffleKey() {
     return reshuffleKey;
   }
   
-  public void setReshuffleKey(NamedKeyStroke reshuffleKey) {
+  public void setReshuffleKey(KeyStroke reshuffleKey) {
     this.reshuffleKey = reshuffleKey;
   }
 
@@ -639,55 +590,14 @@ public class Deck extends Stack implements PlayerRoster.SideChangeListener {
     hotkeyOnEmpty = b;
   }
   
-  @Deprecated public KeyStroke getEmptyKey() {
-    return emptyKey.getKeyStroke();
-  }
-
-  public NamedKeyStroke getNamedEmptyKey() {
+  public KeyStroke getEmptyKey() {
     return emptyKey;
   }
   
-  @Deprecated public void setEmptyKey(KeyStroke k) {
-    emptyKey = new NamedKeyStroke(k);
-  }
-
-  public void setEmptyKey(NamedKeyStroke k) {
+  public void setEmptyKey(KeyStroke k) {
     emptyKey = k;
   }
-  
-  
-  public void setRestrictOption(boolean restrictOption) {
-    this.restrictOption = restrictOption;
-  }
 
-  public boolean isRestrictOption() {
-    return restrictOption;
-  }
-
-  public void setRestrictExpression(PropertyExpression restrictExpression) {
-    this.restrictExpression = restrictExpression;
-  }
-
-  public PropertyExpression getRestrictExpression() {
-    return restrictExpression;
-  }
-
-  /**
-   * Does the specified GamePiece meet the rules to be contained
-   * in this Deck.
-   * 
-   * @param piece
-   * @return
-   */
-  public boolean mayContain(GamePiece piece) {
-    if (! restrictOption || restrictExpression.isNull()) {
-      return true;
-    }
-    else {
-      return restrictExpression.accept(piece);
-    }
-  }
-  
   public String getType() {
     final SequenceEncoder se = new SequenceEncoder(';');
     se.append(drawOutline)
@@ -717,12 +627,7 @@ public class Deck extends Stack implements PlayerRoster.SideChangeListener {
       .append(hotkeyOnEmpty)
       .append(emptyKey)
       .append(selectDisplayProperty.getFormat())
-      .append(selectSortProperty)
-      .append(restrictOption)
-      .append(restrictExpression)
-      .append(shuffleCommand)
-      .append(reverseCommand)
-      .append(reverseKey);
+      .append(selectSortProperty);
     return ID + se.getValue();
   }
 
@@ -1017,7 +922,7 @@ public class Deck extends Stack implements PlayerRoster.SideChangeListener {
       ArrayList<KeyCommand> l = new ArrayList<KeyCommand>();
       KeyCommand c = null;
       if (USE_MENU.equals(shuffleOption)) {
-        c = new KeyCommand(shuffleCommand, getShuffleKey(), this) {
+        c = new KeyCommand(Resources.getString("Deck.shuffle"), getShuffleKey(), this) { //$NON-NLS-1$
           private static final long serialVersionUID = 1L;
 
           public void actionPerformed(ActionEvent e) {
@@ -1039,7 +944,7 @@ public class Deck extends Stack implements PlayerRoster.SideChangeListener {
         l.add(c);
       }
       if (USE_MENU.equals(faceDownOption)) {
-        KeyCommand faceDownAction = new KeyCommand(faceDown ? Resources.getString("Deck.face_up") : Resources.getString("Deck.face_down"), NamedKeyStroke.NULL_KEYSTROKE, this) { //$NON-NLS-1$ //$NON-NLS-2$
+        KeyCommand faceDownAction = new KeyCommand(faceDown ? Resources.getString("Deck.face_up") : Resources.getString("Deck.face_down"), null, this) { //$NON-NLS-1$ //$NON-NLS-2$
           private static final long serialVersionUID = 1L;
 
           public void actionPerformed(ActionEvent e) {
@@ -1051,7 +956,7 @@ public class Deck extends Stack implements PlayerRoster.SideChangeListener {
         l.add(faceDownAction);
       }
       if (reversible) {
-        c = new KeyCommand(Resources.getString("Deck.reverse_order"), NamedKeyStroke.NULL_KEYSTROKE, this) { //$NON-NLS-1$
+        c = new KeyCommand(Resources.getString("Deck.reverse_order"), null, this) { //$NON-NLS-1$
           private static final long serialVersionUID = 1L;
 
           public void actionPerformed(ActionEvent e) {
@@ -1063,7 +968,7 @@ public class Deck extends Stack implements PlayerRoster.SideChangeListener {
         l.add(c);
       }
       if (allowMultipleDraw) {
-        c = new KeyCommand(Resources.getString("Deck.draw_multiple"), NamedKeyStroke.NULL_KEYSTROKE, this) { //$NON-NLS-1$
+        c = new KeyCommand(Resources.getString("Deck.draw_multiple"), null, this) { //$NON-NLS-1$
           private static final long serialVersionUID = 1L;
 
           public void actionPerformed(ActionEvent e) {
@@ -1073,7 +978,7 @@ public class Deck extends Stack implements PlayerRoster.SideChangeListener {
         l.add(c);
       }
       if (allowSelectDraw) {
-        c = new KeyCommand(Resources.getString("Deck.draw_specific"), NamedKeyStroke.NULL_KEYSTROKE, this) { //$NON-NLS-1$
+        c = new KeyCommand(Resources.getString("Deck.draw_specific"), null, this) { //$NON-NLS-1$
           private static final long serialVersionUID = 1L;
 
           public void actionPerformed(ActionEvent e) {
@@ -1084,7 +989,7 @@ public class Deck extends Stack implements PlayerRoster.SideChangeListener {
         l.add(c);
       }
       if (persistable) {
-        c = new KeyCommand(Resources.getString(Resources.SAVE), NamedKeyStroke.NULL_KEYSTROKE, this) {
+        c = new KeyCommand(Resources.getString(Resources.SAVE), null, this) {
           private static final long serialVersionUID = 1L;
 
           public void actionPerformed(ActionEvent e) {
@@ -1093,7 +998,7 @@ public class Deck extends Stack implements PlayerRoster.SideChangeListener {
           }
         };
         l.add(c);
-        c = new KeyCommand(Resources.getString(Resources.LOAD), NamedKeyStroke.NULL_KEYSTROKE, this) {
+        c = new KeyCommand(Resources.getString(Resources.LOAD), null, this) {
           private static final long serialVersionUID = 1L;
 
           public void actionPerformed(ActionEvent e) {
@@ -1465,7 +1370,7 @@ public class Deck extends Stack implements PlayerRoster.SideChangeListener {
   /**
    * An object that parses expression strings from the config window
    */
-  protected static class CountExpression {
+  protected class CountExpression {
     private String fullstring;
     private String name;
     private String expression;

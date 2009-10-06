@@ -84,8 +84,9 @@ public class TurnComponent extends AbstractConfigurable {
     return null;
   }
 
-  public Class<?>[] getAllowableConfigureComponents() {
-    return new Class<?>[0];
+  @SuppressWarnings("unchecked")
+  public Class[] getAllowableConfigureComponents() {
+    return null;
   }
 
   public void addTo(Buildable parent) {

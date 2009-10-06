@@ -43,6 +43,7 @@ import javax.imageio.ImageIO;
 import javax.imageio.ImageWriter;
 import javax.imageio.event.IIOWriteProgressListener;
 import javax.imageio.stream.ImageOutputStream;
+import javax.swing.KeyStroke;
 import javax.swing.SwingUtilities;
 
 import org.jdesktop.swingworker.SwingWorker;
@@ -57,10 +58,8 @@ import VASSAL.configure.ColorConfigurer;
 import VASSAL.configure.Configurer;
 import VASSAL.configure.ConfigurerFactory;
 import VASSAL.configure.IconConfigurer;
-import VASSAL.i18n.Resources;
 import VASSAL.tools.ErrorDialog;
 import VASSAL.tools.LaunchButton;
-import VASSAL.tools.NamedKeyStroke;
 import VASSAL.tools.ProgressDialog;
 import VASSAL.tools.WriteErrorDialog;
 import VASSAL.tools.filechooser.FileChooser;
@@ -132,10 +131,10 @@ public class ImageSaver extends AbstractConfigurable {
 
   public String[] getAttributeDescriptions() {
     return new String[] {
-    		Resources.getString(Resources.BUTTON_TEXT),
-    		Resources.getString(Resources.TOOLTIP_TEXT),
-    		Resources.getString(Resources.BUTTON_ICON),
-    		Resources.getString(Resources.HOTKEY_LABEL),
+      "Button Text:  ",
+      "Tooltip Text:  ",
+      "Button icon:  ",
+      "Hotkey:  "
     };
   }
 
@@ -144,7 +143,7 @@ public class ImageSaver extends AbstractConfigurable {
       String.class,
       String.class,
       IconConfig.class,
-      NamedKeyStroke.class
+      KeyStroke.class
     };
   }
 
@@ -492,7 +491,7 @@ public class ImageSaver extends AbstractConfigurable {
   }
 
   public static String getConfigureTypeName() {
-    return Resources.getString("Editor.ImageSaver.component_type"); //$NON-NLS-1$
+    return "Image Capture Tool";
   }
 
   public Class<?>[] getAllowableConfigureComponents() {

@@ -619,37 +619,4 @@ public class ImageUtils {
   public static BufferedImage toCompatibleImage(BufferedImage src) {
     return GraphicsUtilities.toCompatibleImage(src);
   }
-
-  /*
-   * What Image suffixes does Vassal know about?
-   * Used by the MassPieceLoader to identify candidate images.
-   */
-  public static final String GIF_SUFFIX = ".gif";
-  public static final String PNG_SUFFIX = ".png";
-  public static final String SVG_SUFFIX = ".svg";
-  public static final String JPG_SUFFIX = ".jpg";
-  public static final String JPEG_SUFFIX = ".jpeg";
-  public static final String[] IMAGE_SUFFIXES = new String[] {
-    GIF_SUFFIX, PNG_SUFFIX, SVG_SUFFIX, JPG_SUFFIX, JPEG_SUFFIX
-  };                                                           
-  
-  public static boolean hasImageSuffix(String name) {
-    final String s = name.toLowerCase();
-    for (String suffix : IMAGE_SUFFIXES) {
-      if (s.endsWith(suffix)) {
-        return true;
-      }
-    }
-    return false;
-  }
-  
-  public static String stripImageSuffix(String name) {
-    final String s = name.toLowerCase();
-    for (String suffix : IMAGE_SUFFIXES) {
-      if (s.endsWith(suffix)) {
-        return name.substring(0, name.length()-suffix.length());
-      }
-    }
-    return name;
-  }
 }

@@ -1,14 +1,10 @@
 package VASSAL.configure;
 
-import VASSAL.build.BadDataReport;
 import VASSAL.build.module.properties.PropertySource;
 import VASSAL.counters.GamePiece;
 import VASSAL.counters.PieceFilter;
-import VASSAL.i18n.Resources;
-import VASSAL.script.expression.Expression;
-import VASSAL.script.expression.ExpressionException;
-import VASSAL.script.expression.NullExpression;
-import VASSAL.tools.ErrorDialog;
+import VASSAL.counters.PropertiesPieceFilter;
+import VASSAL.tools.FormattedString;
 
 /*
  * Class encapsulating a Property Match Expression
@@ -16,7 +12,8 @@ import VASSAL.tools.ErrorDialog;
  */
 public class PropertyExpression implements PieceFilter {
   
-  protected Expression expression = new NullExpression();
+  protected String expression = "";
+  protected PieceFilter filter = null;
   
   public PropertyExpression() {
 
@@ -26,46 +23,32 @@ public class PropertyExpression implements PieceFilter {
     setExpression(s);
   }
 
-  public void setExpression(String s) {
-    expression = Expression.createPropertyExpression(s);
+  public void setExpression(String expression) {
+    this.expression = expression;
+    filter = null;
   }
 
   public String getExpression() {
-    return expression.getExpression();
+    return expression;
   }
 
   public boolean isNull() {
-    return expression == null || expression instanceof NullExpression;
+    return expression == null || expression.length() == 0;
+  }
+  
+  public boolean isDynamic() {
+    return expression != null && expression.indexOf('$') >= 0;
   }
   
   public PieceFilter getFilter(PropertySource source) {
-    return expression.getFilter(source);
-  }
-  
-  public PieceFilter getFilter() {
-    return expression.getFilter();
+    if (filter == null || isDynamic()) {
+      filter = PropertiesPieceFilter.parse(new FormattedString(getExpression()).getText(source)); 
+    }
+    return filter;
   }
 
   public boolean accept(GamePiece piece) {
     return getFilter(piece).accept(piece);
-  }
-  
-  /**
-   * Evaluate the Property Expression as true/false using
-   * a supplied property source
-   * 
-   * @param ps Property Source   * 
-   * @return boolean result
-   */
-  public boolean isTrue(PropertySource ps) {
-    String result = null;
-    try {
-      result = expression.evaluate(ps);
-    }
-    catch (ExpressionException e) {
-      ErrorDialog.dataError(new BadDataReport(Resources.getString("Error.expression_error"), "Expression="+getExpression()+", Error="+e.getError(), e));
-    }
-    return "true".equals(result);
   }
   
 }

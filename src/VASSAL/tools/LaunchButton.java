@@ -26,8 +26,8 @@ import javax.swing.KeyStroke;
 
 import VASSAL.build.GameModule;
 import VASSAL.configure.Configurer;
+import VASSAL.configure.HotKeyConfigurer;
 import VASSAL.configure.IconConfigurer;
-import VASSAL.configure.NamedHotKeyConfigurer;
 import VASSAL.configure.StringConfigurer;
 import VASSAL.i18n.Localization;
 import VASSAL.i18n.Resources;
@@ -46,7 +46,7 @@ public class LaunchButton extends JButton {
   protected String iconAtt;
   protected IconConfigurer iconConfig;
   protected String toolTipText;
-  protected NamedKeyStrokeListener keyListener;
+  protected KeyStrokeListener keyListener;
   protected Configurer nameConfig, keyConfig;
 
   public LaunchButton(String text, String textAttribute,
@@ -68,7 +68,7 @@ public class LaunchButton extends JButton {
     iconAtt = iconAttribute;
     iconConfig = new IconConfigurer(iconAtt, null, null);
     setAlignmentY(0.0F);
-    keyListener = new NamedKeyStrokeListener(new ActionListener() {
+    keyListener = new KeyStrokeListener(new ActionListener() {
       public void actionPerformed(ActionEvent e) {
         if (isEnabled() && getParent() != null && getParent().isShowing()) {
           al.actionPerformed(e);
@@ -100,7 +100,7 @@ public class LaunchButton extends JButton {
       return getText();
     }
     else if (key.equals(keyAtt)) {
-      return NamedHotKeyConfigurer.encode(keyListener.getNamedKeyStroke());
+      return HotKeyConfigurer.encode(keyListener.getKeyStroke());
     }
     else if (key.equals(iconAtt)) {
       return iconConfig.getValueString();
@@ -124,14 +124,9 @@ public class LaunchButton extends JButton {
       }
       else if (key.equals(keyAtt)) {
         if (value instanceof String) {
-          value = NamedHotKeyConfigurer.decode((String) value);
+          value = HotKeyConfigurer.decode((String) value);
         }
-        if (value instanceof NamedKeyStroke) {
-          keyListener.setKeyStroke((NamedKeyStroke) value);
-        }
-        else {
-          keyListener.setKeyStroke((KeyStroke) value); // Compatibility - custom code
-        }
+        keyListener.setKeyStroke((KeyStroke) value);
         setToolTipText(toolTipText);
       }
       else if (key.equals(tooltipAtt)) {
@@ -151,10 +146,8 @@ public class LaunchButton extends JButton {
   public void setToolTipText(String text) {
     toolTipText = text;
     if (keyListener.getKeyStroke() != null) {
-      text = (text == null ? "" : text + " "); //$NON-NLS-1$ //$NON-NLS-2$
-      if (!keyListener.getNamedKeyStroke().isNamed()) {
-        text += "[" + NamedHotKeyConfigurer.getString(keyListener.getKeyStroke()) + "]"; //$NON-NLS-1$ //$NON-NLS-2$      
-      }
+      text = (text == null ? "" : text + " ") //$NON-NLS-1$ //$NON-NLS-2$
+          + "[" + HotKeyConfigurer.getString(keyListener.getKeyStroke()) + "]"; //$NON-NLS-1$ //$NON-NLS-2$
     }
     super.setToolTipText(text);
   }
@@ -168,7 +161,7 @@ public class LaunchButton extends JButton {
 
   public Configurer getHotkeyConfigurer() {
     if (keyConfig == null && keyAtt != null) {
-      keyConfig = new NamedHotKeyConfigurer(keyAtt, Resources.getString("Editor.hotkey_label"), keyListener.getNamedKeyStroke()); //$NON-NLS-1$
+      keyConfig = new HotKeyConfigurer(keyAtt, Resources.getString("Editor.hotkey_label"), keyListener.getKeyStroke()); //$NON-NLS-1$
     }
     return keyConfig;
   }

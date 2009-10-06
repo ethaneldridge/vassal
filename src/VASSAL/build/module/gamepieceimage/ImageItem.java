@@ -35,7 +35,6 @@ import java.util.List;
 import VASSAL.build.AutoConfigurable;
 import VASSAL.configure.StringEnum;
 import VASSAL.configure.VisibilityCondition;
-import VASSAL.tools.ArrayUtils;
 import VASSAL.tools.SequenceEncoder;
 import VASSAL.tools.image.ImageUtils;
 import VASSAL.tools.imageop.AbstractTileOpImpl;
@@ -72,29 +71,33 @@ public class ImageItem extends Item {
   }
   
   public String[] getAttributeDescriptions() {
-    return ArrayUtils.insert(
-      super.getAttributeDescriptions(), 2,
-      "Image:  ",
-      "Image is:  "
-    );
+    final String a[] = new String[] { "Image:  ", "Image is:  " };
+    final String b[] = super.getAttributeDescriptions();
+    final String c[] = new String[a.length + b.length];
+    System.arraycopy(b, 0, c, 0, 2);
+    System.arraycopy(a, 0, c, 2, a.length);
+    System.arraycopy(b, 2, c, a.length+2, b.length-2);
+    return c;
   }
 
   public Class<?>[] getAttributeTypes() {
-    return ArrayUtils.insert(
-      super.getAttributeTypes(), 2,
-      new Class<?>[]{
-        Image.class,
-        TextSource.class
-      }
-    );
+    final Class<?> a[] = new Class<?>[] { Image.class, TextSource.class };
+    final Class<?> b[] = super.getAttributeTypes();
+    final Class<?> c[] = new Class<?>[a.length + b.length];
+    System.arraycopy(b, 0, c, 0, 2);
+    System.arraycopy(a, 0, c, 2, a.length);
+    System.arraycopy(b, 2, c, a.length+2, b.length-2);
+    return c;
   }
 
   public String[] getAttributeNames() {
-    return ArrayUtils.insert(
-      super.getAttributeNames(), 2,
-      IMAGE,
-      SOURCE
-    );
+    final String a[] = new String[] { IMAGE, SOURCE };
+    final String b[] = super.getAttributeNames();
+    final String c[] = new String[a.length + b.length];
+    System.arraycopy(b, 0, c, 0, 2);
+    System.arraycopy(a, 0, c, 2, a.length);
+    System.arraycopy(b, 2, c, a.length+2, b.length-2);
+    return c;
   }
   
   public void setAttribute(String key, Object o) {

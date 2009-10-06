@@ -33,8 +33,6 @@ import VASSAL.command.Command;
 import VASSAL.command.CommandEncoder;
 import VASSAL.configure.Configurer;
 import VASSAL.configure.FormattedStringConfigurer;
-import VASSAL.i18n.Resources;
-import VASSAL.tools.ArrayUtils;
 
 /**
  * This component places a button into the controls window toolbar. Pressing the button generates random numbers and
@@ -51,7 +49,7 @@ public class InternetDiceButton extends DiceButton implements GameComponent, Com
   }
 
   public static String getConfigureTypeName() {
-    return Resources.getString("Editor.InternetDiceButton.component_type"); //$NON-NLS-1$
+    return "Internet Dice Button";
   }
 
   public Class<?>[] getAttributeTypes() {
@@ -66,9 +64,12 @@ public class InternetDiceButton extends DiceButton implements GameComponent, Com
 
   public static class InternetReportFormatConfig extends ReportFormatConfig {
     public Configurer getConfigurer(AutoConfigurable c, String key, String name) {
-      final FormattedStringConfigurer config =
-        (FormattedStringConfigurer) super.getConfigurer(c, key, name);
-      config.setOptions(ArrayUtils.append(config.getOptions(), DETAILS));
+      FormattedStringConfigurer config = (FormattedStringConfigurer) super.getConfigurer(c, key, name);
+      String[] options = config.getOptions();
+      String[] newOptions = new String[options.length + 1];
+      System.arraycopy(options, 0, newOptions, 0, options.length);
+      newOptions[options.length] = DETAILS;
+      config.setOptions(newOptions);
       return config;
     }
   }
@@ -129,8 +130,7 @@ public class InternetDiceButton extends DiceButton implements GameComponent, Com
     }
     return s;
   }
-
-  private static class SetSecondaryEmail extends Command {
+  private class SetSecondaryEmail extends Command {
     private String msg;
 
     private SetSecondaryEmail(String s) {

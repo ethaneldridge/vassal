@@ -38,8 +38,7 @@ import VASSAL.tools.SequenceEncoder;
 public class SubMenu extends Decorator implements TranslatablePiece {
   public static final String ID = "submenu;";
   private String subMenu;
-  private KeyCommandSubMenu keyCommandSubMenu; 
-  private final KeyCommand[] keyCommands = new KeyCommand[1];
+  private KeyCommandSubMenu[] keyCommands = new KeyCommandSubMenu[1];
 
   public SubMenu() {
     this(ID+"Sub-Menu;",null);
@@ -68,14 +67,11 @@ public class SubMenu extends Decorator implements TranslatablePiece {
   }
 
   public void mySetType(String type) {
-    final SequenceEncoder.Decoder st = new SequenceEncoder.Decoder(type,';');
+    SequenceEncoder.Decoder st = new SequenceEncoder.Decoder(type,';');
     st.nextToken();
     subMenu = st.nextToken();
-    keyCommandSubMenu = new KeyCommandSubMenu(subMenu, this, this);
-    keyCommandSubMenu.setCommands(
-      StringArrayConfigurer.stringToArray(st.nextToken()));
-
-    keyCommands[0] = keyCommandSubMenu;
+    keyCommands[0] = new KeyCommandSubMenu(subMenu,this, this);
+    keyCommands[0].setCommands(StringArrayConfigurer.stringToArray(st.nextToken()));
   }
 
   protected KeyCommand[] myGetKeyCommands() {
@@ -87,15 +83,14 @@ public class SubMenu extends Decorator implements TranslatablePiece {
   }
 
   public String myGetType() {
-    final SequenceEncoder se = new SequenceEncoder(';');
-    se.append(getMenuName()).append(
-      StringArrayConfigurer.arrayToString(getSubcommands()));
+    SequenceEncoder se = new SequenceEncoder(';');
+    se.append(getMenuName()).append(StringArrayConfigurer.arrayToString(getSubcommands()));
     return ID+se.getValue();
   }
 
   public String[] getSubcommands() {
     final ArrayList<String> l = new ArrayList<String>();
-    for (Iterator<String> i = keyCommandSubMenu.getCommands(); i.hasNext(); ) {
+    for (Iterator<String> i = keyCommands[0].getCommands(); i.hasNext(); ) {
       l.add(i.next());
     }
     return l.toArray(new String[l.size()]);

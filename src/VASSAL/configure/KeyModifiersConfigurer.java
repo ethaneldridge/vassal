@@ -34,7 +34,7 @@ public class KeyModifiersConfigurer extends Configurer implements KeyListener {
   private JTextField tf;
 
   public KeyModifiersConfigurer(String key, String name) {
-    super(key, name, 0);
+    super(key, name, new Integer(0));
   }
 
   public Component getControls() {
@@ -60,7 +60,7 @@ public class KeyModifiersConfigurer extends Configurer implements KeyListener {
       s = "0";
     }
     try {
-      setValue(Integer.valueOf(s));
+      setValue(new Integer(s));
     }
     catch (NumberFormatException e) {
       // Set to null if saved value is not a number
@@ -88,6 +88,6 @@ public class KeyModifiersConfigurer extends Configurer implements KeyListener {
   }
 
   public void keyPressed(KeyEvent e) {
-    setValue(e.getModifiers());
+    setValue(new Integer(e.getModifiers()));
   }
 }

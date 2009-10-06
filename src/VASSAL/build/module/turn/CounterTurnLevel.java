@@ -26,7 +26,6 @@ import java.beans.PropertyChangeListener;
 import VASSAL.build.module.documentation.HelpFile;
 import VASSAL.configure.IntConfigurer;
 import VASSAL.configure.VisibilityCondition;
-import VASSAL.tools.ArrayUtils;
 import VASSAL.tools.SequenceEncoder;
 
 public class CounterTurnLevel extends TurnLevel {
@@ -141,10 +140,10 @@ public class CounterTurnLevel extends TurnLevel {
 
   protected Component getSetControl() {
     
-    final IntConfigurer config = new IntConfigurer("", " "+getConfigureName()+":  ", current); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
+    IntConfigurer config = new IntConfigurer("", " "+getConfigureName()+":  ", new Integer(current)); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
     config.addPropertyChangeListener(new PropertyChangeListener() {
       public void propertyChange(PropertyChangeEvent e) {
-        current = (Integer) ((IntConfigurer) e.getSource()).getValue();
+        current = ((Integer) ((IntConfigurer) e.getSource()).getValue()).intValue();
         myValue.setPropertyValue(getValueString());
       }});
     
@@ -152,40 +151,42 @@ public class CounterTurnLevel extends TurnLevel {
   }
 
   public String[] getAttributeDescriptions() {
-    return ArrayUtils.append(
-      super.getAttributeDescriptions(),
-      "Start Value:  ",
-      "Increment By:  ",
-      "Loop?",
-      "Maximum value:  "
-    );
+    String a[] = super.getAttributeDescriptions();
+    String b[] = new String[] { "Start Value:  ", "Increment By:  ", "Loop?", "Maximum value:  " };
+    String c[]= new String[a.length + b.length];
+    System.arraycopy(a, 0, c, 0, a.length);
+    System.arraycopy(b, 0, c, a.length, b.length);
+    return c;
   }
 
   public Class<?>[] getAttributeTypes() {
-    return ArrayUtils.append(
-      super.getAttributeTypes(),
+    final Class<?> a[] = super.getAttributeTypes();
+    final Class<?> b[] = new Class<?>[] {
       Integer.class,
       Integer.class,
       Boolean.class,
       Integer.class
-    );
+    };
+    final Class<?> c[]= new Class<?>[a.length + b.length];
+    System.arraycopy(a, 0, c, 0, a.length);
+    System.arraycopy(b, 0, c, a.length, b.length);
+    return c;
   }
 
   public String[] getAttributeNames() {
-    return ArrayUtils.append(
-      super.getAttributeNames(),
-      START,
-      INCR,
-      LOOP,
-      LOOP_LIMIT
-    );
+    String a[] = super.getAttributeNames();
+    String b[] = new String[] { START, INCR, LOOP, LOOP_LIMIT };
+    String c[]= new String[a.length + b.length];
+    System.arraycopy(a, 0, c, 0, a.length);
+    System.arraycopy(b, 0, c, a.length, b.length);
+    return c;  
   }
 
   public void setAttribute(String key, Object value) {
 
     if (START.equals(key)) {
       if (value instanceof String) {
-        value = Integer.valueOf((String) value);
+        value = new Integer((String) value);
       }
       start = ((Integer) value).intValue();
       current = start;
@@ -193,7 +194,7 @@ public class CounterTurnLevel extends TurnLevel {
     }
     else if (INCR.equals(key)) {
       if (value instanceof String) {
-        value = Integer.valueOf((String) value);
+        value = new Integer((String) value);
       }
       incr = ((Integer) value).intValue();
     }
@@ -205,7 +206,7 @@ public class CounterTurnLevel extends TurnLevel {
     }
     else if (LOOP_LIMIT.equals(key)) {
       if (value instanceof String) {
-        value = Integer.valueOf((String) value);
+        value = new Integer((String) value);
       }
       loopLimit = ((Integer) value).intValue();
     }

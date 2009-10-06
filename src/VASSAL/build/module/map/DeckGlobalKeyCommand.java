@@ -35,10 +35,8 @@ import VASSAL.counters.DeckVisitorDispatcher;
 import VASSAL.counters.GlobalCommand;
 import VASSAL.counters.KeyCommand;
 import VASSAL.counters.PieceFilter;
-import VASSAL.i18n.Resources;
-import VASSAL.tools.NamedKeyStroke;
-import VASSAL.tools.SequenceEncoder;
 import VASSAL.tools.RecursionLimiter.Loopable;
+import VASSAL.tools.SequenceEncoder;
 
 /**
  * This version of {@link MassKeyCommand} is added directly to a
@@ -57,7 +55,7 @@ public class DeckGlobalKeyCommand extends MassKeyCommand {
   }
   
   public static String getConfigureTypeName() {
-    return Resources.getString("Editor.DeckGlobalKeyCommand.component_type"); //$NON-NLS-1$
+    return "Deck Global Key Command";
   }
   
   public void addTo(Buildable parent) {
@@ -119,7 +117,7 @@ public class DeckGlobalKeyCommand extends MassKeyCommand {
   public void decode(String s) {
     SequenceEncoder.Decoder sd = new SequenceEncoder.Decoder(s, '|');
     setConfigureName(sd.nextToken(""));
-    setAttribute(KEY_COMMAND, sd.nextNamedKeyStroke('A'));
+    setAttribute(KEY_COMMAND, sd.nextKeyStroke('A'));
     setAttribute(PROPERTIES_FILTER, sd.nextToken(null));
     setAttribute(DECK_COUNT, sd.nextInt(0));
     setAttribute(REPORT_FORMAT, sd.nextToken(""));
@@ -128,11 +126,11 @@ public class DeckGlobalKeyCommand extends MassKeyCommand {
   
   public String[] getAttributeDescriptions() {
     return new String[]{
-    	Resources.getString(Resources.NAME_LABEL),
-    	Resources.getString("Editor.DeckGlobalKeyCommand.command"), //$NON-NLS-1$
-    	Resources.getString("Editor.DeckGlobalKeyCommand.matching_properties"), //$NON-NLS-1$
-    	Resources.getString("Editor.DeckGlobalKeyCommand.affects"), //$NON-NLS-1$
-    	Resources.getString("Editor.report_format"), //$NON-NLS-1$
+      "Menu Command:  ",
+      "Global Command:  ",
+      "Matching properties:  ",
+      "Affects:  ",
+      "Report Format:  "
     };
   }
 
@@ -150,7 +148,7 @@ public class DeckGlobalKeyCommand extends MassKeyCommand {
   public Class<?>[] getAttributeTypes() {
     return new Class<?>[]{
       String.class,
-      NamedKeyStroke.class,
+      KeyStroke.class,
       PropertyExpression.class,
       DeckPolicyConfig2.class,
       ReportFormatConfig.class

@@ -29,7 +29,6 @@ import java.awt.RenderingHints;
 import VASSAL.build.AutoConfigurable;
 import VASSAL.configure.StringEnum;
 import VASSAL.configure.VisibilityCondition;
-import VASSAL.tools.ArrayUtils;
 import VASSAL.tools.SequenceEncoder;
 
 public class ShapeItem extends Item {
@@ -65,35 +64,38 @@ public class ShapeItem extends Item {
   }
   
   public String[] getAttributeDescriptions() {
-    return ArrayUtils.insert(
-      super.getAttributeDescriptions(), 2,
-      "Width:  ",
-      "Height:  ",
-      "Shape:  ",
-      "Bevel:  "
-    );
+    String a[] = new String[] { "Width:  ", "Height:  ", "Shape:  ", "Bevel:  " };
+    String b[] = super.getAttributeDescriptions();
+    String c[] = new String[a.length + b.length];
+    System.arraycopy(b, 0, c, 0, 2);
+    System.arraycopy(a, 0, c, 2, a.length);
+    System.arraycopy(b, 2, c, a.length+2, b.length-2);
+    return c;
   }
 
   public Class<?>[] getAttributeTypes() {
-    return ArrayUtils.insert(
-      super.getAttributeTypes(), 2,
-      new Class<?>[] {
-        Integer.class,
-        Integer.class,
-        ShapeConfig.class,
-        Integer.class
-      }
-    );
+    final Class<?> a[] = new Class<?>[] {
+      Integer.class,
+      Integer.class,
+      ShapeConfig.class,
+      Integer.class
+    };
+    final Class<?> b[] = super.getAttributeTypes();
+    final Class<?> c[] = new Class<?>[a.length + b.length];
+    System.arraycopy(b, 0, c, 0, 2);
+    System.arraycopy(a, 0, c, 2, a.length);
+    System.arraycopy(b, 2, c, a.length+2, b.length-2);
+    return c;
   }
 
   public String[] getAttributeNames() {
-    return ArrayUtils.insert(
-      super.getAttributeNames(), 2,
-      WIDTH,
-      HEIGHT,
-      SHAPE,
-      BEVEL
-    );
+    String a[] = new String[] { WIDTH, HEIGHT, SHAPE, BEVEL };
+    String b[] = super.getAttributeNames();
+    String c[] = new String[a.length + b.length];
+    System.arraycopy(b, 0, c, 0, 2);
+    System.arraycopy(a, 0, c, 2, a.length);
+    System.arraycopy(b, 2, c, a.length+2, b.length-2);
+    return c;
   }
   
   public static class ShapeConfig extends StringEnum {
@@ -104,13 +106,13 @@ public class ShapeItem extends Item {
   public void setAttribute(String key, Object o) {
     if (WIDTH.equals(key)) {
       if (o instanceof String) {
-        o = Integer.valueOf((String) o);
+        o = new Integer((String) o);
       }
       width = ((Integer) o).intValue();
     }
     else if (HEIGHT.equals(key)) {
       if (o instanceof String) {
-        o = Integer.valueOf((String) o);
+        o = new Integer((String) o);
       }
       height = ((Integer) o).intValue();
     }  
@@ -119,7 +121,7 @@ public class ShapeItem extends Item {
     }
     else if (BEVEL.equals(key)) {
       if (o instanceof String) {
-        o = Integer.valueOf((String) o);
+        o = new Integer((String) o);
       }
       bevel = ((Integer) o).intValue();
     }  

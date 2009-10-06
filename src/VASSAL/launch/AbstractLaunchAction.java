@@ -479,7 +479,7 @@ public abstract class AbstractLaunchAction extends AbstractAction {
     }
 
     protected Process launch(String[] args) throws IOException {
-      Logger.log(StringUtils.join(" ", args));
+      Logger.log(StringUtils.join(args, " "));
 
       // set up and start the child process
       final ProcessBuilder pb = new ProcessBuilder(args);

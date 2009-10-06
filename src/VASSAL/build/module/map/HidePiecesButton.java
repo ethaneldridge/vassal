@@ -23,11 +23,9 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
-
 import javax.swing.JPanel;
-
+import javax.swing.KeyStroke;
 import org.w3c.dom.Element;
-
 import VASSAL.build.AutoConfigurable;
 import VASSAL.build.Buildable;
 import VASSAL.build.Configurable;
@@ -42,10 +40,8 @@ import VASSAL.configure.ConfigurerFactory;
 import VASSAL.configure.IconConfigurer;
 import VASSAL.configure.VisibilityCondition;
 import VASSAL.i18n.ComponentI18nData;
-import VASSAL.i18n.Resources;
 import VASSAL.i18n.Translatable;
 import VASSAL.tools.LaunchButton;
-import VASSAL.tools.NamedKeyStroke;
 
 /**
  * This removes all game pieces from the (@link Map)
@@ -160,11 +156,11 @@ public class HidePiecesButton extends JPanel implements MouseListener,
 
   public String[] getAttributeDescriptions() {
     return new String[]{
-      Resources.getString(Resources.BUTTON_TEXT), 
-      Resources.getString(Resources.TOOLTIP_TEXT),
-      Resources.getString(Resources.HOTKEY_LABEL),
-      Resources.getString("Editor.HidePieceButton.show_icon"), //$NON-NLS-1$
-      Resources.getString("Editor.HidePieceButton.hide_icon"), //$NON-NLS-1$
+      "Button Text:  ", 
+      "Tooltip text:  ",
+      "Hotkey:  ",
+      "Icon when pieces are showing:  ",
+      "Icon when pieces are hidden:  "
     };
   }
 
@@ -172,7 +168,7 @@ public class HidePiecesButton extends JPanel implements MouseListener,
     return new Class<?>[]{
       String.class,
       String.class,
-      NamedKeyStroke.class,
+      KeyStroke.class,
       ShowingIconConfig.class,
       HiddenIconConfig.class
     };
@@ -231,7 +227,7 @@ public class HidePiecesButton extends JPanel implements MouseListener,
   }
 
   public static String getConfigureTypeName() {
-    return Resources.getString("Editor.HidePieceButton.component_type"); //$NON-NLS-1$
+    return "Hide Pieces Button";
   }
 
   public String getConfigureName() {

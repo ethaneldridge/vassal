@@ -2,9 +2,8 @@ package VASSAL.build.module.map;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-
 import javax.swing.Icon;
-
+import javax.swing.KeyStroke;
 import VASSAL.build.AbstractConfigurable;
 import VASSAL.build.AutoConfigurable;
 import VASSAL.build.Buildable;
@@ -13,9 +12,7 @@ import VASSAL.build.module.documentation.HelpFile;
 import VASSAL.configure.StringArrayConfigurer;
 import VASSAL.configure.StringEnum;
 import VASSAL.configure.VisibilityCondition;
-import VASSAL.i18n.Resources;
 import VASSAL.tools.LaunchButton;
-import VASSAL.tools.NamedKeyStroke;
 
 /**
  * Adds a button to the toolbar to manipulate Game Piece Layers
@@ -115,13 +112,13 @@ public class LayerControl extends AbstractConfigurable {
 
   public String[] getAttributeDescriptions() {
     return new String[] {
-    		Resources.getString(Resources.BUTTON_TEXT),
-    		Resources.getString(Resources.TOOLTIP_TEXT),
-    		Resources.getString(Resources.BUTTON_ICON),
-    		Resources.getString(Resources.HOTKEY_LABEL),
-    		Resources.getString("Editor.LayerControl.action"), //$NON-NLS-1$
-    		Resources.getString("Editor.LayerControl.skip_layer"), //$NON-NLS-1$
-    		Resources.getString("Editor.LayerControl.affect_layer"), //$NON-NLS-1$
+      "Button text:  ",
+      "Tooltip text:  ",
+      "Button Icon:  ",
+      "Hotkey:  ",
+      "Action:  ",
+      "Skip layers with no counters?",
+      "Affect which layers? (Use layer names or numbers)"
     };
   }
 
@@ -130,7 +127,7 @@ public class LayerControl extends AbstractConfigurable {
       String.class,
       String.class,
       Icon.class,
-      NamedKeyStroke.class,
+      KeyStroke.class,
       CommandConfig.class,
       Boolean.class,
       String[].class
@@ -231,7 +228,7 @@ public class LayerControl extends AbstractConfigurable {
   }
 
   public static String getConfigureTypeName() {
-    return Resources.getString("Editor.LayerControl.component_type"); //$NON-NLS-1$
+    return "Game Piece Layer Control";
   }
 
   public void removeFrom(Buildable parent) {

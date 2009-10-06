@@ -19,11 +19,7 @@
 package VASSAL.tools.io;
 
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.InputStream;
 import java.io.IOException;
-import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -87,44 +83,5 @@ public class FileUtils {
 
     // store leaves which can't be deleted in the failed list
     if (!parent.delete()) failed.add(parent);
-  }
-
-  /**
-   * Tries very hard to move a file.
-   *
-   * @param src the source file
-   * @param dst the destination file
-   * @throws IOException on failure
-   */
-  public static void move(File src, File dst) throws IOException {
-    if (src.equals(dst)) return;
-
-    // done if File.renameTo() works on the first shot
-    if (src.renameTo(dst)) return;
-    // otherwise, maybe we're on a platform where we must delete dst first
-    dst.delete();
-    if (src.renameTo(dst)) return;
-
-    // otherwise, do the copy manually
-    InputStream in = null;
-    try {
-      in = new FileInputStream(src);
-      OutputStream out = null;
-      try {
-        out = new FileOutputStream(dst);
-        IOUtils.copy(in, out);
-        out.close();
-      }
-      finally {
-        IOUtils.closeQuietly(out);
-      }
-
-      in.close();
-    }
-    finally {
-      IOUtils.closeQuietly(in);
-    }
-
-    src.delete();
   }
 }

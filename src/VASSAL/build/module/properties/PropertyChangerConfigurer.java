@@ -23,13 +23,10 @@ import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.util.HashMap;
 import java.util.Map;
-
 import javax.swing.BoxLayout;
 import javax.swing.JPanel;
-
 import VASSAL.build.module.gamepieceimage.StringEnumConfigurer;
 import VASSAL.configure.Configurer;
-import VASSAL.configure.FormattedExpressionConfigurer;
 import VASSAL.configure.StringArrayConfigurer;
 import VASSAL.configure.StringConfigurer;
 import VASSAL.tools.SequenceEncoder;
@@ -58,27 +55,27 @@ public class PropertyChangerConfigurer extends Configurer {
   protected static final Map<String,Character> descriptionToCode =
     new HashMap<String,Character>();
   static {
-    typeToCode.put(PropertySetter.class, PLAIN_CODE);
-    typeToCode.put(PropertyPrompt.class, PROMPT_CODE);
-    typeToCode.put(NumericPropertyPrompt.class, PROMPT_CODE);
-    typeToCode.put(IncrementProperty.class, INCR_CODE);
-    typeToCode.put(EnumeratedPropertyPrompt.class, ENUM_CODE);
+    typeToCode.put(PropertySetter.class, new Character(PLAIN_CODE));
+    typeToCode.put(PropertyPrompt.class, new Character(PROMPT_CODE));
+    typeToCode.put(NumericPropertyPrompt.class, new Character(PROMPT_CODE));
+    typeToCode.put(IncrementProperty.class, new Character(INCR_CODE));
+    typeToCode.put(EnumeratedPropertyPrompt.class, new Character(ENUM_CODE));
     typeToDescription.put(PropertySetter.class, PLAIN_TYPE);
     typeToDescription.put(PropertyPrompt.class, PROMPT_TYPE);
     typeToDescription.put(NumericPropertyPrompt.class, PROMPT_TYPE);
     typeToDescription.put(IncrementProperty.class, INCREMENT_TYPE);
     typeToDescription.put(EnumeratedPropertyPrompt.class, SELECT_TYPE);
-    descriptionToCode.put(PLAIN_TYPE, PLAIN_CODE);
-    descriptionToCode.put(INCREMENT_TYPE, INCR_CODE);
-    descriptionToCode.put(PROMPT_TYPE, PROMPT_CODE);
-    descriptionToCode.put(SELECT_TYPE, ENUM_CODE);
+    descriptionToCode.put(PLAIN_TYPE, new Character(PLAIN_CODE));
+    descriptionToCode.put(INCREMENT_TYPE, new Character(INCR_CODE));
+    descriptionToCode.put(PROMPT_TYPE, new Character(PROMPT_CODE));
+    descriptionToCode.put(SELECT_TYPE, new Character(ENUM_CODE));
   }
   protected Constraints constraints;
   protected JPanel controls;
   protected StringEnumConfigurer typeConfig;
-  protected FormattedExpressionConfigurer valueConfig;
+  protected StringConfigurer valueConfig;
   protected StringConfigurer promptConfig;
-  protected FormattedExpressionConfigurer incrConfig;
+  protected StringConfigurer incrConfig;
   protected StringArrayConfigurer validValuesConfig;
 
   public PropertyChangerConfigurer(String key, String name, Constraints constraints) {
@@ -99,11 +96,11 @@ public class PropertyChangerConfigurer extends Configurer {
       controls.setLayout(new BoxLayout(controls, BoxLayout.X_AXIS));
       typeConfig = new StringEnumConfigurer(null, "Type:  ", new String[]{PLAIN_TYPE, INCREMENT_TYPE, PROMPT_TYPE, SELECT_TYPE});
       typeConfig.addPropertyChangeListener(l);
-      valueConfig = new FormattedExpressionConfigurer(null, "New Value:  ");
+      valueConfig = new StringConfigurer(null, "New Value:  ");
       valueConfig.addPropertyChangeListener(l);
       promptConfig = new StringConfigurer(null, "Prompt:  ");
       promptConfig.addPropertyChangeListener(l);
-      incrConfig = new FormattedExpressionConfigurer(null, "Increment by:  ");
+      incrConfig = new StringConfigurer(null, "Increment by:  ");
       incrConfig.addPropertyChangeListener(l);
       validValuesConfig = new StringArrayConfigurer(null, "Valid Values");
       validValuesConfig.addPropertyChangeListener(l);

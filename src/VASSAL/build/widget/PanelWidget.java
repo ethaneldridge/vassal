@@ -188,7 +188,7 @@ public class PanelWidget extends Widget {
     }
     else if (COLS.equals(name)) {
       if (value instanceof String) {
-        value = Integer.valueOf((String) value);
+        value = new Integer((String) value);
       }
 
       nColumns = ((Integer) value).intValue();

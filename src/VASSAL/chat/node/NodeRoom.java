@@ -99,16 +99,8 @@ public class NodeRoom extends SimpleRoom implements LockableRoom {
     return isMember;
   }
 
-  public boolean isOwner(NodePlayer p) {
-    return p != null && owner != null && owner.equals(p.getId());
-  }
-  
   public String getOwner() {
     return owner;
-  }
-  
-  public Player getOwningPlayer() {
-    return getPlayer(owner);
   }
 
   public void lock() {

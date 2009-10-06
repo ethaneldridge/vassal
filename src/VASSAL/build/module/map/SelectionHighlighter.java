@@ -42,7 +42,6 @@ import VASSAL.configure.PropertyExpression;
 import VASSAL.configure.VisibilityCondition;
 import VASSAL.counters.GamePiece;
 import VASSAL.counters.Highlighter;
-import VASSAL.i18n.Resources;
 import VASSAL.tools.image.ImageUtils;
 import VASSAL.tools.imageop.ScaledImagePainter;
 
@@ -110,20 +109,12 @@ public class SelectionHighlighter extends AbstractConfigurable implements Highli
   }
 
   public static String getConfigureTypeName() {
-    return Resources.getString("Editor.SelectionHighlight.component_type"); //$NON-NLS-1$
+    return "Highlighter";
   }
 
   public String[] getAttributeDescriptions() {
-    return new String[]{
-    		Resources.getString(Resources.NAME_LABEL),
-    		Resources.getString("Editor.SelectionHighlight.active_property"), //$NON-NLS-1$
-    		Resources.getString("Editor.SelectionHighlight.use_image"), //$NON-NLS-1$
-    		Resources.getString("Editor.SelectionHighlight.border_color"), //$NON-NLS-1$
-    		Resources.getString("Editor.SelectionHighlight.border_thickness"), //$NON-NLS-1$
-    		Resources.getString("Editor.SelectionHighlight.image"), //$NON-NLS-1$
-    		Resources.getString("Editor.SelectionHighlight.offset_x"), //$NON-NLS-1$
-    		Resources.getString("Editor.SelectionHighlight.offset_y"),//$NON-NLS-1$
-    };
+    return new String[]{"Name:  ", "Active if Properties Match:  ", "Use Image", "Border Color:  ", "Border Thickness:  ", "Image:  ", "X Offset:  ",
+                        "Y Offset:  "};
   }
 
   public Class<?>[] getAttributeTypes() {
@@ -182,7 +173,7 @@ public class SelectionHighlighter extends AbstractConfigurable implements Highli
     }
     else if (key.equals(THICKNESS)) {
       if (value instanceof String) {
-        value = Integer.valueOf((String) value);
+        value = new Integer((String) value);
       }
       thickness = ((Integer) value).intValue();
     }
@@ -192,7 +183,7 @@ public class SelectionHighlighter extends AbstractConfigurable implements Highli
     }
     else if (key.equals(X_OFFSET)) {
       if (value instanceof String) {
-        value = Integer.valueOf((String) value);
+        value = new Integer((String) value);
       }
       try {
         x = ((Integer) value).intValue();
@@ -203,7 +194,7 @@ public class SelectionHighlighter extends AbstractConfigurable implements Highli
     }
     else if (key.equals(Y_OFFSET)) {
       if (value instanceof String) {
-        value = Integer.valueOf((String) value);
+        value = new Integer((String) value);
       }
       try {
         y = ((Integer) value).intValue();

@@ -62,7 +62,7 @@ public class PeerInfo {
 
   public PeerInfo(String pChatName, String pAddresses, int pPort) {
     this(pChatName, pAddresses);
-    zPort = pPort;
+    zPort = new Integer(pPort);
   }
 
   public void updateWith(PeerInfo pPeerInfo) {
@@ -150,7 +150,7 @@ public class PeerInfo {
   }
 
   public void setPort(int pPort) {
-    zPort = pPort;
+    zPort = new Integer(pPort);
   }
 
   public String format() {

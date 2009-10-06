@@ -24,9 +24,8 @@ import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
-import java.io.InputStream;
 import java.io.IOException;
-import java.io.OutputStream;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -62,19 +61,18 @@ import VASSAL.configure.DirectoryConfigurer;
 import VASSAL.counters.GamePiece;
 import VASSAL.i18n.Resources;
 import VASSAL.launch.Launcher;
+import VASSAL.tools.ArchiveWriter;
+import VASSAL.tools.Deobfuscator;
 import VASSAL.tools.ErrorDialog;
+import VASSAL.tools.Obfuscator;
 import VASSAL.tools.ReadErrorDialog;
 import VASSAL.tools.ThrowableUtils;
 import VASSAL.tools.WarningDialog;
 import VASSAL.tools.WriteErrorDialog;
 import VASSAL.tools.filechooser.FileChooser;
 import VASSAL.tools.filechooser.LogAndSaveFileFilter;
-import VASSAL.tools.io.DeobfuscatingInputStream;
 import VASSAL.tools.io.FastByteArrayOutputStream;
-import VASSAL.tools.io.FileArchive;
 import VASSAL.tools.io.IOUtils;
-import VASSAL.tools.io.ObfuscatingOutputStream;
-import VASSAL.tools.io.ZipArchive;
 import VASSAL.tools.menu.MenuManager;
 
 /**
@@ -89,8 +87,7 @@ public class GameState implements CommandEncoder {
   protected Action loadGame, saveGame, newGame, closeGame;
   protected String lastSave;
   protected DirectoryConfigurer savedGameDirectoryPreference;
-  protected String loadComments;
-  
+
   public GameState() {}
 
   /**
@@ -288,7 +285,6 @@ public class GameState implements CommandEncoder {
    * file should be that returned by {@link #getRestoreCommand}.
    */
   public void loadGame() {
-    loadComments = "";
     final FileChooser fc = GameModule.getGameModule().getFileChooser();
     fc.addChoosableFileFilter(new LogAndSaveFileFilter());
 
@@ -310,7 +306,6 @@ public class GameState implements CommandEncoder {
       // post 3.0 save file
       final SaveMetaData saveData = (SaveMetaData) metaData;
       if (saveData.getModuleData() != null) {
-        loadComments = saveData.getLocalizedDescription();
         final String saveModuleName = saveData.getModuleName();
         final String saveModuleVersion = saveData.getModuleVersion();
         final String moduleName = GameModule.getGameModule().getGameName();
@@ -449,16 +444,15 @@ public class GameState implements CommandEncoder {
    */
   public String getNewPieceId() {
     long time = System.currentTimeMillis();
-    String id = Long.toString(time);
+    String id = (new Long(time)).toString();
     while (pieces.get(id) != null) {
-      id = Long.toString(++time);
+      time++;
+      id = (new Long(time)).toString();
     }
     return id;
   }
 
   public void loadContinuation(File f) throws IOException {
-    GameModule.getGameModule().warn(
-        Resources.getString("GameState.loading", f.getName()));  //$NON-NLS-1$
     Command c = decodeSavedGame(f);
     CommandFilter filter = new CommandFilter() {
       protected boolean accept(Command c) {
@@ -469,11 +463,6 @@ public class GameState implements CommandEncoder {
     if (c != null) {
       c.execute();
     }
-    String msg = Resources.getString("GameState.loaded", f.getName());  //$NON-NLS-1$
-    if (loadComments != null && loadComments.length() > 0) {
-      msg += ": " + loadComments;
-    }
-    GameModule.getGameModule().warn(msg);
   }
 
   /**
@@ -571,31 +560,19 @@ public class GameState implements CommandEncoder {
   public static final String END_SAVE = "end_save";  //$NON-NLS-1$
 
   public void saveGame(File f) throws IOException {
-// FIXME: Extremely inefficient! Write directly to ZipArchive OutputStream
+    final FastByteArrayOutputStream out = new FastByteArrayOutputStream();
     final String save = saveString();
-    final FastByteArrayOutputStream ba = new FastByteArrayOutputStream();
-    OutputStream out = null;
-    try {
-      out = new ObfuscatingOutputStream(ba);
-      out.write(save.getBytes("UTF-8"));
-      out.close();
-    }
-    finally {
-      IOUtils.closeQuietly(out);
-    }
+    new Obfuscator(save.getBytes("UTF-8")).write(out);  //$NON-NLS-1$
+    lastSave = save;
 
-    FileArchive archive = null;
-    try {
-      archive = new ZipArchive(f);
-      archive.add(SAVEFILE_ZIP_ENTRY, ba.toInputStream());
-      (new SaveMetaData()).save(archive);
-      archive.close();
-    }
-    finally {
-      IOUtils.closeQuietly(archive);
-    }
-
+    final ArchiveWriter saver = new ArchiveWriter(f.getPath());
+    saver.addFile(SAVEFILE_ZIP_ENTRY, out.toInputStream());
+    (new SaveMetaData()).save(saver);
+    saver.write();
     Launcher.getInstance().sendSaveCmd(f);
+    if (saver.getArchive() != null) {
+      saver.getArchive().close();
+    }
   }
   
   public void loadGameInBackground(final File f) {
@@ -637,9 +614,6 @@ public class GameState implements CommandEncoder {
   
             if (loadCommand != null) {
               msg = Resources.getString("GameState.loaded", shortName);  //$NON-NLS-1$
-              if (loadComments != null && loadComments.length() > 0) {
-                msg += ": " + loadComments;
-              }
             }
             else {
               msg = Resources.getString("GameState.invalid_savefile", shortName);  //$NON-NLS-1$
@@ -723,18 +697,8 @@ public class GameState implements CommandEncoder {
       for (ZipEntry entry = zipInput.getNextEntry(); entry != null;
            entry = zipInput.getNextEntry()) {
         if (SAVEFILE_ZIP_ENTRY.equals(entry.getName())) {
-          InputStream din = null;
-          try {
-            din = new DeobfuscatingInputStream(zipInput);
-// FIXME: toString() is very inefficient, make decode() use the stream directly
-            final Command c = GameModule.getGameModule().decode(
-              IOUtils.toString(din, "UTF-8"));
-            din.close();
-            return c;
-          }
-          finally {
-            IOUtils.closeQuietly(din);
-          }
+          return GameModule.getGameModule().decode(
+            new Deobfuscator(zipInput).getString());
         }
       }
       zipInput.close();

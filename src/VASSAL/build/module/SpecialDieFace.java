@@ -26,7 +26,6 @@ import VASSAL.build.module.documentation.HelpFile;
 import VASSAL.configure.Configurer;
 import VASSAL.configure.ConfigurerFactory;
 import VASSAL.configure.IconConfigurer;
-import VASSAL.i18n.Resources;
 
 public class SpecialDieFace extends AbstractConfigurable {
 
@@ -39,14 +38,14 @@ public class SpecialDieFace extends AbstractConfigurable {
   private String imageName;
 
   public static String getConfigureTypeName() {
-    return Resources.getString("Editor.SpecialDieFace.component_type"); //$NON-NLS-1$
+    return "Symbolic Die Face";
   }
 
   public String[] getAttributeDescriptions() {
     return new String[]{
-    		Resources.getString("Editor.SpecialDieFace.text_value"), //$NON-NLS-1$
-    	    Resources.getString("Editor.SpecialDieFace.numeric_value"), //$NON-NLS-1$
-    	    Resources.getString("Editor.SpecialDieFace.icon") //$NON-NLS-1$
+      "Text Value:  ",
+      "Numerical value:  ",
+      "Icon:  "
     };
   }
 

@@ -21,11 +21,10 @@ package VASSAL.build.module;
 import java.awt.Container;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-
 import javax.swing.JComponent;
 import javax.swing.JDialog;
 import javax.swing.JPanel;
-
+import javax.swing.KeyStroke;
 import VASSAL.build.AutoConfigurable;
 import VASSAL.build.Buildable;
 import VASSAL.build.GameModule;
@@ -41,11 +40,9 @@ import VASSAL.build.widget.TabWidget;
 import VASSAL.configure.Configurer;
 import VASSAL.configure.ConfigurerFactory;
 import VASSAL.configure.IconConfigurer;
-import VASSAL.i18n.Resources;
 import VASSAL.preferences.PositionOption;
 import VASSAL.tools.KeyStrokeSource;
 import VASSAL.tools.LaunchButton;
-import VASSAL.tools.NamedKeyStroke;
 
 /**
  * A top-level Widget for displaying Charts
@@ -78,9 +75,9 @@ public class ChartWindow extends Widget {
       }
     };
     launch = new LaunchButton(null, TOOLTIP, BUTTON_TEXT, HOTKEY, ICON, al);
-    setAttribute(NAME, Resources.getString("Editor.ChartWindow.component_type"));
-    setAttribute(BUTTON_TEXT, Resources.getString("Editor.ChartWindow.component_type"));
-    launch.setAttribute(TOOLTIP, Resources.getString("Editor.ChartWindow.component_type"));
+    setAttribute(NAME, "Charts");
+    setAttribute(BUTTON_TEXT, "Charts");
+    launch.setAttribute(TOOLTIP, "Charts");
   }
 
   /**
@@ -150,7 +147,8 @@ public class ChartWindow extends Widget {
     }
   }
 
-  public Class<?>[] getAllowableConfigureComponents() {
+  @SuppressWarnings("unchecked")
+  public Class[] getAllowableConfigureComponents() {
     return new Class[]{
       Chart.class,
       HtmlChart.class,
@@ -181,17 +179,17 @@ public class ChartWindow extends Widget {
   }
 
   public static String getConfigureTypeName() {
-    return Resources.getString("Editor.ChartWindow.component_type"); //$NON-NLS-1$
+    return "Charts";
   }
 
   public String[] getAttributeDescriptions() {
     return new String[]{
-    		Resources.getString(Resources.NAME_LABEL),
-    	    Resources.getString(Resources.BUTTON_TEXT),
-    	    Resources.getString(Resources.TOOLTIP_TEXT),
-    	    Resources.getString(Resources.BUTTON_ICON),
-    	    Resources.getString(Resources.HOTKEY_LABEL)
-    	    };
+      "Name:  ",
+      "Button text:  ",
+      "Tooltip text:  ",
+      "Button icon:  ",
+      "Hotkey:  "
+    };
   }
 
   public Class<?>[] getAttributeTypes() {
@@ -200,7 +198,7 @@ public class ChartWindow extends Widget {
       String.class,
       String.class,
       IconConfig.class,
-      NamedKeyStroke.class
+      KeyStroke.class
     };
   }
 

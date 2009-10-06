@@ -19,7 +19,6 @@
 package VASSAL.build.module.map;
 
 import VASSAL.counters.GamePiece;
-import VASSAL.tools.ArrayUtils;
 
 /** Stores {@link VASSAL.counters.GamePiece}s in a simple array */
 public class SimplePieceCollection implements PieceCollection {
@@ -60,7 +59,9 @@ public class SimplePieceCollection implements PieceCollection {
   }
 
   public GamePiece[] getPieces() {
-    return ArrayUtils.copyOf(pieces, pieceCount);
+    GamePiece p[] = new GamePiece[pieceCount];
+    System.arraycopy(pieces, 0, p, 0, pieceCount);
+    return p;
   }
   
   public GamePiece[] getAllPieces() {

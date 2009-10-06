@@ -35,6 +35,7 @@ import java.beans.PropertyChangeListener;
 
 import javax.swing.Box;
 import javax.swing.JLabel;
+import javax.swing.KeyStroke;
 import javax.swing.SwingUtilities;
 
 import VASSAL.build.AbstractConfigurable;
@@ -47,9 +48,9 @@ import VASSAL.build.module.gamepieceimage.StringEnumConfigurer;
 import VASSAL.build.module.properties.PropertySource;
 import VASSAL.configure.Configurer;
 import VASSAL.configure.ConfigurerFactory;
+import VASSAL.configure.HotKeyConfigurer;
 import VASSAL.configure.IconConfigurer;
 import VASSAL.configure.IntConfigurer;
-import VASSAL.configure.NamedHotKeyConfigurer;
 import VASSAL.configure.PlayerIdFormattedStringConfigurer;
 import VASSAL.configure.PropertyExpression;
 import VASSAL.configure.StringArrayConfigurer;
@@ -60,11 +61,9 @@ import VASSAL.counters.Embellishment;
 import VASSAL.counters.GamePiece;
 import VASSAL.counters.GlobalCommand;
 import VASSAL.counters.PieceFilter;
-import VASSAL.i18n.Resources;
 import VASSAL.i18n.TranslatableConfigurerFactory;
 import VASSAL.tools.FormattedString;
 import VASSAL.tools.LaunchButton;
-import VASSAL.tools.NamedKeyStroke;
 import VASSAL.tools.RecursionLimiter;
 import VASSAL.tools.ToolBarComponent;
 
@@ -92,9 +91,8 @@ public class MassKeyCommand extends AbstractConfigurable
   private static final String ALWAYS = "Always";
   public static final String CHECK_PROPERTY = "property";
   public static final String CHECK_VALUE = "propValue";
-  public static final String SINGLE_MAP = "singleMap";
   protected LaunchButton launch;
-  protected NamedKeyStroke stroke = new NamedKeyStroke();
+  protected KeyStroke stroke = KeyStroke.getKeyStroke(0, 0);
   protected String[] names = new String[0];
   protected String condition;
   protected String checkProperty;
@@ -105,7 +103,6 @@ public class MassKeyCommand extends AbstractConfigurable
   protected Map map;
   protected GlobalCommand globalCommand = new GlobalCommand(this);
   protected FormattedString reportFormat = new FormattedString();
-  protected boolean singleMap = true;
 
   public MassKeyCommand() {
     ActionListener al = new ActionListener() {
@@ -130,14 +127,7 @@ public class MassKeyCommand extends AbstractConfigurable
   }
 
   public void apply() {
-    if (singleMap) {
-      apply(map);
-    }
-    else {
-      for (Map m : Map.getMapList()) {
-        apply(m);
-      }
-    }
+    apply(map);
   }
 
   public void apply(Map m) {
@@ -151,34 +141,32 @@ public class MassKeyCommand extends AbstractConfigurable
   public String[] getAttributeDescriptions() {
     if (condition == null) {
       return new String[]{
-    	Resources.getString(Resources.DESCRIPTION),
-    	Resources.getString("Editor.MassKey.key"), //$NON-NLS-1$
-    	Resources.getString("Editor.MassKey.match"), //$NON-NLS-1$
-    	Resources.getString("Editor.MassKey.counters"), //$NON-NLS-1$
-    	Resources.getString("Editor.MassKey.deck_content"), //$NON-NLS-1$
-        Resources.getString(Resources.BUTTON_TEXT),
-        Resources.getString(Resources.TOOLTIP_TEXT),
-        Resources.getString(Resources.BUTTON_ICON),
-        Resources.getString(Resources.HOTKEY_LABEL),
-        Resources.getString("Editor.MassKey.suppress"), //$NON-NLS-1$
-        Resources.getString("Editor.report_format"), //$NON-NLS-1$
+        "Description:  ",
+        "Key Command:  ",
+        "Matching properties:  ",
+        "Apply to contents of Decks:  ",
+        "Button text:  ",
+        "Tooltip text:  ",
+        "Button Icon:  ",
+        "Hotkey:  ",
+        "Suppress individual reports?",
+        "Report Format:  "
       };
     }
     else {
       // Backward compatibility
       return new String[]{
-    	Resources.getString(Resources.DESCRIPTION),
-    	Resources.getString("Editor.MassKey.key"), //$NON-NLS-1$
-    	Resources.getString("Editor.MassKey.match"), //$NON-NLS-1$
-    	Resources.getString("Editor.MassKey.counters"), //$NON-NLS-1$
-    	Resources.getString("Editor.MassKey.deck_content"), //$NON-NLS-1$
-        Resources.getString(Resources.BUTTON_TEXT),
-        Resources.getString(Resources.TOOLTIP_TEXT),
-        Resources.getString(Resources.BUTTON_ICON),
-        Resources.getString(Resources.HOTKEY_LABEL),
-        Resources.getString("Editor.MassKey.suppress"), //$NON-NLS-1$
-        Resources.getString("Editor.report_format"), //$NON-NLS-1$
-        Resources.getString("Editor.MassKey.apply"), //$NON-NLS-1$
+        "Description:  ",
+        "Key Command:  ",
+        "Matching properties:  ",
+        "Apply to contents of Decks:  ",
+        "Button text:  ",
+        "Tooltip text:  ",
+        "Button Icon:  ",
+        "Hotkey:  ",
+        "Suppress individual reports?",
+        "Report Format:  ",
+        "Apply Command:  "
       };
     }
   }
@@ -188,7 +176,6 @@ public class MassKeyCommand extends AbstractConfigurable
       NAME,
       KEY_COMMAND,
       PROPERTIES_FILTER,
-      SINGLE_MAP,
       DECK_COUNT,
       BUTTON_TEXT,
       TOOLTIP,
@@ -213,14 +200,13 @@ public class MassKeyCommand extends AbstractConfigurable
     if (condition == null) {
       return new Class<?>[]{
         String.class,
-        NamedKeyStroke.class,
+        KeyStroke.class,
         PropertyExpression.class,
-        Boolean.class,
         DeckPolicyConfig.class,
         String.class,
         String.class,
         IconConfig.class,
-        NamedKeyStroke.class,
+        KeyStroke.class,
         Boolean.class,
         ReportFormatConfig.class
       };
@@ -229,14 +215,13 @@ public class MassKeyCommand extends AbstractConfigurable
       // Backward compatibility
       return new Class<?>[]{
         String.class,
-        NamedKeyStroke.class,
+        KeyStroke.class,
         String.class,
-        Boolean.class,
         DeckPolicyConfig.class,
         String.class,
         String.class,
         IconConfig.class,
-        NamedKeyStroke.class,
+        KeyStroke.class,
         Boolean.class,
         ReportFormatConfig.class,
         Prompt.class
@@ -283,7 +268,7 @@ public class MassKeyCommand extends AbstractConfigurable
       };
       PropertyChangeListener l2 = new PropertyChangeListener() {
         public void propertyChange(PropertyChangeEvent evt) {
-          setValue(getIntValue());
+          setValue(new Integer(getIntValue()));
         }
       };
       typeConfig.addPropertyChangeListener(l);
@@ -321,11 +306,11 @@ public class MassKeyCommand extends AbstractConfigurable
           switch ((i).intValue()) {
           case 0:
             typeConfig.setValue(NONE);
-            intConfig.setValue(1);
+            intConfig.setValue(new Integer(1));
             break;
           case -1:
             typeConfig.setValue(ALL);
-            intConfig.setValue(1);
+            intConfig.setValue(new Integer(1));
             break;
           default:
             typeConfig.setValue(FIXED);
@@ -343,7 +328,7 @@ public class MassKeyCommand extends AbstractConfigurable
 
     public void setValue(String s) {
       if (s != null) {
-        setValue(Integer.valueOf(s));
+        setValue(new Integer(s));
       }
     }
 
@@ -359,7 +344,7 @@ public class MassKeyCommand extends AbstractConfigurable
       return getConfigureName();
     }
     else if (KEY_COMMAND.equals(key)) {
-      return NamedHotKeyConfigurer.encode(stroke);
+      return HotKeyConfigurer.encode(stroke);
     }
     else if (AFFECTED_PIECE_NAMES.equals(key)) {
       return names == null || names.length == 0 ? null : StringArrayConfigurer.arrayToString(names);
@@ -384,9 +369,6 @@ public class MassKeyCommand extends AbstractConfigurable
     }
     else if (REPORT_FORMAT.equals(key)) {
       return reportFormat.getFormat();
-    }
-    else if (SINGLE_MAP.equals(key)) {
-      return String.valueOf(singleMap);
     }
     else {
       return launch.getAttributeValueString(key);
@@ -416,7 +398,10 @@ public class MassKeyCommand extends AbstractConfigurable
   }
 
   public PieceFilter getFilter() {
-    return propertiesFilter.getFilter();
+    if (propertiesFilter.isDynamic()) {
+      buildFilter();
+    }
+    return filter;
   }
 
   private void buildFilter() {
@@ -458,9 +443,9 @@ public class MassKeyCommand extends AbstractConfigurable
     }
     else if (KEY_COMMAND.equals(key)) {
       if (value instanceof String) {
-        value = NamedHotKeyConfigurer.decode((String) value);
+        value = HotKeyConfigurer.decode((String) value);
       }
-      stroke = (NamedKeyStroke) value;
+      stroke = (KeyStroke) value;
       globalCommand.setKeyStroke(stroke);
     }
     else if (AFFECTED_PIECE_NAMES.equals(key)) {
@@ -515,12 +500,6 @@ public class MassKeyCommand extends AbstractConfigurable
     else if (REPORT_FORMAT.equals(key)) {
       reportFormat.setFormat((String) value);
       globalCommand.setReportFormat((String) value);
-    }
-    else if (SINGLE_MAP.equals(key)) {
-      if (value instanceof String) {
-        value = Boolean.valueOf((String) value);
-      }
-      singleMap = (((Boolean) value).booleanValue());
     }
     else {
       launch.setAttribute(key, value);

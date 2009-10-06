@@ -41,7 +41,6 @@ import VASSAL.configure.StringEnumConfigurer;
 import VASSAL.configure.VisibilityCondition;
 import VASSAL.i18n.ComponentI18nData;
 import VASSAL.i18n.Resources;
-import VASSAL.tools.ArrayUtils;
 import VASSAL.tools.FormattedString;
 import VASSAL.tools.SequenceEncoder;
 
@@ -259,33 +258,36 @@ public class ListTurnLevel extends TurnLevel implements ActionListener {
   }
 
   public String[] getAttributeDescriptions() {
-    return ArrayUtils.append(
-      super.getAttributeDescriptions(),
-      "List of Items",
-      "Allow players to hide items in this list?",
-      "Allow players to change which item goes first?",
-      "Prompt to players to select which item goes first:  "
-    );
+    String a[] = super.getAttributeDescriptions();
+    String b[] = new String[] { "List of Items", "Allow players to hide items in this list?",
+        "Allow players to change which item goes first?", "Prompt to players to select which item goes first:  " };
+    String c[] = new String[a.length + b.length];
+    System.arraycopy(a, 0, c, 0, a.length);
+    System.arraycopy(b, 0, c, a.length, b.length);
+    return c;
   }
 
   public Class<?>[] getAttributeTypes() {
-    return ArrayUtils.append(
-      super.getAttributeTypes(),
+    final Class<?> a[] = super.getAttributeTypes();
+    final Class<?> b[] = new Class<?>[] {
       String[].class,
       Boolean.class,
       Boolean.class,
       String.class
-    );
+    };
+    final Class<?> c[] = new Class<?>[a.length + b.length];
+    System.arraycopy(a, 0, c, 0, a.length);
+    System.arraycopy(b, 0, c, a.length, b.length);
+    return c;
   }
 
   public String[] getAttributeNames() {
-    return ArrayUtils.append(
-      super.getAttributeNames(),
-      LIST,
-      CONFIG_LIST,
-      CONFIG_FIRST,
-      PROMPT
-    );
+    String a[] = super.getAttributeNames();
+    String b[] = new String[] { LIST, CONFIG_LIST, CONFIG_FIRST, PROMPT };
+    String c[] = new String[a.length + b.length];
+    System.arraycopy(a, 0, c, 0, a.length);
+    System.arraycopy(b, 0, c, a.length, b.length);
+    return c;
   }
 
   public void setAttribute(String key, Object value) {

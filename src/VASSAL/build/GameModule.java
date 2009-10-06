@@ -76,7 +76,6 @@ import VASSAL.build.widget.PieceSlot;
 import VASSAL.command.Command;
 import VASSAL.command.CommandEncoder;
 import VASSAL.command.Logger;
-import VASSAL.command.NullCommand;
 import VASSAL.configure.CompoundValidityChecker;
 import VASSAL.configure.MandatoryComponent;
 import VASSAL.counters.GamePiece;
@@ -86,14 +85,12 @@ import VASSAL.i18n.Resources;
 import VASSAL.launch.PlayerWindow;
 import VASSAL.preferences.Prefs;
 import VASSAL.tools.ArchiveWriter;
-import VASSAL.tools.ArrayUtils;
 import VASSAL.tools.CRCUtils;
 import VASSAL.tools.DataArchive;
 import VASSAL.tools.FutureUtils;
 import VASSAL.tools.KeyStrokeListener;
 import VASSAL.tools.KeyStrokeSource;
 import VASSAL.tools.MTRandom;
-import VASSAL.tools.NamedKeyStroke;
 import VASSAL.tools.ReadErrorDialog;
 import VASSAL.tools.ToolBarComponent;
 import VASSAL.tools.WarningDialog;
@@ -163,10 +160,6 @@ public abstract class GameModule extends AbstractConfigurable implements Command
   protected List<String> deferredChat = new ArrayList<String>();
 
   protected int nextGpId = 0;
-  
-  protected boolean loggingPaused = false;  
-  protected Object loggingLock = new Object();
-  protected Command pausedCommands;
   
   /*
    * Store the currently building GpId source. Only meaningful while
@@ -383,8 +376,8 @@ public abstract class GameModule extends AbstractConfigurable implements Command
       l.addKeyStrokeSource(s);
     }
   }
-   
-  @Deprecated public void fireKeyStroke(KeyStroke stroke) {
+  
+  public void fireKeyStroke(KeyStroke stroke) {
     if (stroke != null) {
       for (KeyStrokeListener l : keyStrokeListeners) {
         l.keyPressed(stroke);
@@ -392,12 +385,6 @@ public abstract class GameModule extends AbstractConfigurable implements Command
     }
   }
 
-  public void fireKeyStroke(NamedKeyStroke stroke) {
-    if (stroke != null && !stroke.isNull()) {
-      fireKeyStroke(stroke.getKeyStroke());
-    }
-  }
-  
   /**
    * @return the name of the game for this module
    */
@@ -447,7 +434,10 @@ public abstract class GameModule extends AbstractConfigurable implements Command
    * @see #encode
    */
   public void addCommandEncoder(CommandEncoder ce) {
-    commandEncoders = ArrayUtils.append(commandEncoders, ce);
+    final CommandEncoder[] oldValue = commandEncoders;
+    commandEncoders = new CommandEncoder[oldValue.length + 1];
+    System.arraycopy(oldValue, 0, commandEncoders, 0, oldValue.length);
+    commandEncoders[oldValue.length] = ce;
   }
 
   /**
@@ -459,7 +449,17 @@ public abstract class GameModule extends AbstractConfigurable implements Command
    * @see #encode
    */
   public void removeCommandEncoder(CommandEncoder ce) {
-    commandEncoders = ArrayUtils.remove(commandEncoders, ce);
+    for (int i = 0; i < commandEncoders.length; ++i) {
+      if (ce.equals(commandEncoders[i])) {
+        final CommandEncoder[] oldValue = commandEncoders;
+        commandEncoders = new CommandEncoder[oldValue.length - 1];
+        System.arraycopy(oldValue, 0, commandEncoders, 0, i);
+        if (i < commandEncoders.length) {
+          System.arraycopy(oldValue, i + 1, commandEncoders, i, commandEncoders.length - i);
+        }
+        break;
+      }
+    }
   }
 
   /**
@@ -739,64 +739,10 @@ public abstract class GameModule extends AbstractConfigurable implements Command
    */
   public void sendAndLog(Command c) {
     if (c != null && !c.isNull()) {
-      synchronized(loggingLock) {
-        if (loggingPaused) {
-          if (pausedCommands == null) {
-            pausedCommands = c;
-          }
-          else {
-            pausedCommands.append(c);
-          }
-        }
-        else {
-          getServer().sendToOthers(c);
-          getLogger().log(c);
-        }
-      }
+      getServer().sendToOthers(c);
+      getLogger().log(c);
     }
   }
-  
-  /**
-   * Pause logging and return true if successful.
-   * Return false if logging already paused
-   * 
-   * While Paused, commands are accumulated into pausedCommands so that they
-   * can all be logged at the same time, and generate a single UNDO command.
-   * 
-   * @return
-   */
-  public boolean pauseLogging () {
-    synchronized(loggingLock) {
-      if (loggingPaused) {
-        return false;
-      }
-      loggingPaused = true;
-      pausedCommands = null;
-      return true;
-    }
-  }
-
-  /**
-   * Restart logging and return any outstanding commands
-   */
-  public Command unPauseLogging() {
-    Command c = null;
-    synchronized(loggingLock) {
-      c = pausedCommands == null ? new NullCommand() : pausedCommands;
-      pausedCommands = null;
-      loggingPaused = false;    
-    }
-    return c;
-  }
-  
-  /**
-   * Clear outstanding Commands
-   * Use where the calling level handles the sending of outstanding commands
-   */
-  public void clearPausedCommands() {
-    pausedCommands = null;
-  }
-
 
   private static String userId = null;
 
@@ -989,9 +935,12 @@ public abstract class GameModule extends AbstractConfigurable implements Command
       writer.addFile(BUILDFILE,  
         new ByteArrayInputStream(save.getBytes("UTF-8")));  //$NON-NLS-1$
 
-      if (saveAs) writer.saveAs(true);
-      else writer.save(true);
-
+      if (saveAs) {
+        writer.saveAs(true);
+      }
+      else {
+        writer.write(true);
+      }
       lastSavedConfiguration = save;
     }
     catch (IOException e) {
@@ -1009,14 +958,14 @@ public abstract class GameModule extends AbstractConfigurable implements Command
    * Return values of Global properties
    */
   public Object getProperty(Object key) {
-    if (GlobalOptions.PLAYER_SIDE.equals(key) || GlobalOptions.PLAYER_SIDE_ALT.equals(key)) {
+    if (GlobalOptions.PLAYER_SIDE.equals(key)) {
       String mySide = PlayerRoster.getMySide();
       return mySide == null ? "" : mySide;  //$NON-NLS-1$
     }
-    else if (GlobalOptions.PLAYER_NAME.equals(key) || GlobalOptions.PLAYER_NAME_ALT.equals(key)) {
+    else if (GlobalOptions.PLAYER_NAME.equals(key)) {
       return getPrefs().getValue(GameModule.REAL_NAME);
     }
-    else if (GlobalOptions.PLAYER_ID.equals(key) || GlobalOptions.PLAYER_ID_ALT.equals(key)) {
+    else if (GlobalOptions.PLAYER_ID.equals(key)) {
       return GlobalOptions.getInstance().getPlayerId();
     }
     MutableProperty p = propsContainer.getMutableProperty(String.valueOf(key));
@@ -1041,7 +990,7 @@ public abstract class GameModule extends AbstractConfigurable implements Command
   }
   
   public Object getLocalizedProperty(Object key) {
-    if (GlobalOptions.PLAYER_SIDE.equals(key) || GlobalOptions.PLAYER_SIDE_ALT.equals(key)) {
+    if (GlobalOptions.PLAYER_SIDE.equals(key)) {
       String mySide = PlayerRoster.getMyLocalizedSide();
       return mySide == null ? "" : mySide;  //$NON-NLS-1$
     }
@@ -1060,22 +1009,20 @@ public abstract class GameModule extends AbstractConfigurable implements Command
   protected Long buildCrc() {
     final List<File> files = new ArrayList<File>();
     if (getDataArchive().getArchive() != null) {
-      files.add(new File(getDataArchive().getName()));
+      files.add(new File(getDataArchive().getArchive().getName()));
     }
-
     for (ModuleExtension ext : getComponentsOf(ModuleExtension.class)) {
       if (ext.getDataArchive().getArchive() != null) {
-        files.add(new File(ext.getDataArchive().getName()));
+        files.add(new File(ext.getDataArchive().getArchive().getName()));
       }
     }
-
     try {
       return CRCUtils.getCRC(files);
     }
     catch (IOException e) {
       VASSAL.tools.logging.Logger.log(e, "Error generating CRC");
-      return 0L;
     }
+    return 0L;
   }
   
   public ComponentI18nData getI18nData() {

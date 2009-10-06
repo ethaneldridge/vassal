@@ -39,7 +39,6 @@ import javax.swing.KeyStroke;
 import VASSAL.build.AutoConfigurable;
 import VASSAL.build.Configurable;
 import VASSAL.build.GameModule;
-import VASSAL.tools.NamedKeyStroke;
 import VASSAL.tools.ReflectionUtils;
 
 /**
@@ -122,9 +121,6 @@ public class AutoConfigurer extends Configurer
     }
     else if (KeyStroke.class.isAssignableFrom(type)) {
       config = new HotKeyConfigurer(key, prompt);
-    }
-    else if (NamedKeyStroke.class.isAssignableFrom(type)) {
-      config = new NamedHotKeyConfigurer(key, prompt);
     }
     else if (File.class.isAssignableFrom(type)) {
       config = new FileConfigurer(key, prompt,

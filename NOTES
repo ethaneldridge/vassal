@@ -1,4 +1,5 @@
-The VASSAL Team is happy to announce the release of VASSAL 3.2.0-beta1.
+The VASSAL Team is happy to announce the release of VASSAL 3.1.9, which
+fixes several problems found in earlier versions.
 
 *********************
 Download
@@ -6,99 +7,85 @@ Download
 
 For Linux:
 
-  http://downloads.sourceforge.net/vassalengine/VASSAL-3.2.0-beta1-linux.tar.bz2
+  http://downloads.sourceforge.net/vassalengine/VASSAL-3.1.9-linux.tar.bz2
 
 For Mac OS X:
 
-  http://downloads.sourceforge.net/vassalengine/VASSAL-3.2.0-beta1-macosx.dmg
+  http://downloads.sourceforge.net/vassalengine/VASSAL-3.1.9-macosx.dmg
 
 For Windows:
 
-  http://downloads.sourceforge.net/vassalengine/VASSAL-3.2.0-beta1-windows.exe
+  http://downloads.sourceforge.net/vassalengine/VASSAL-3.1.9-windows.exe
 
 For other operating systems:
 
-  http://downloads.sourceforge.net/vassalengine/VASSAL-3.2.0-beta1-other.zip
+  http://downloads.sourceforge.net/vassalengine/VASSAL-3.1.9-other.zip
 
 Source code:
 
-  http://downloads.sourceforge.net/vassalengine/VASSAL-3.2.0-beta1-src.zip
+  http://downloads.sourceforge.net/vassalengine/VASSAL-3.1.9-src.zip
 
 
 *********************
-Changes since 3.1:
+Changes since 3.1.0
 *********************
 
-Please report all bugs in beta8, even if they are bugs which you've
-already reported against other betas. We take your bug reports very
-seriously---they're the reason we've been able to fix so many bugs.
+The following bugs are fixed in 3.1.9:
+
+* Bug 2817613: Bad initial zoom level when loading old Zoomer attributes
+* Rolled back fix for Bug 2813765
+
+The following bugs are fixed in 3.1.8:
+
+* Bug 2817069: IllegalComponentStateException in MenuDisplayer
+* Bug 2817064: Global Key Commands can send Null KeyStrokes
+* Bug 2817038: NPE in MetaDataFactory.buildMetaData()
+* Bug 2816275: NPE in Embellishment adding layer with no image
+* Bug 2813782: NPE in VASSAL.counters.AreaOfEffect.getArea
+* Bug 2813765: Can't always Peek at a card, even though you can unmask it
+
+The following bugs are fixed in 3.1.7:
+
+* Bug 2811307: Extraneous error messages in Embellishment following property
+* Bug 2811211: Area of Effect does not display in all Zoned Grids 
+* Bug 2806392: Observer side linked to password
+* Bug 2806183: Trigger action fails to execute another TA more than once
+* Bug 2805282: SendToLocation does not undo correctly
+* Bug 2804153: NPE in ModuleManager when refreshing Save Folder
+
+The following bugs are fixed in 3.1.6:
+
+* Bug 2798275: Layer following prop does not allow non-string custom props
+* Bug 2794703: StackOverflow using Embellishment level following property
+* Bug 2793103: Memory check fails on Linux due to architecture mismatch
+* Bug: Transparent images used for orthogonal rotations of opaque sources
+* Bug: Incorrect PropertySource used to evaluate properties
+* Bug: Use bounds for primary screen on multi-monitor X11 systems.
+
+For changes prior to 3.1.6, see the change log.
+
+The recommended minimum Java version for VASSAL 3.1 has changed. A bug in
+versions of Java prior to 1.5.0_08 (a.k.a. Java 5 update 8) prevents some
+images from loading properly. We now recommend that anyone using a version
+of Java older than 1.5.0_08 upgrade to *at least* 1.5.0_08.
+
+For Linux and Mac users, this should require no action on your part. Windows
+users installing VASSAL 3.1.9 with the Windows installer will be prompted to
+update Java if what they have is older than 1.5.0_08.
+
+For feature changes from 3.0 to 3.1, see the release notes for 3.1.0.
+
+Please report all bugs, even if they are bugs which you've already reported
+against other versions. We take your bug reports very seriously---they're
+the reason we're able to find and fix bugs.
 
 
-*********************
-New Features in 3.2
-*********************
-
-* Levels within a Layer can be moved up or down the level list using buttons. 
-  [RFE 1604275]
- 
-* Mass Piece Loader activated by 'Add Multiple Pieces' and 'Add Multiple Cards'
-  options in right-click menu in Editor. Specify a folder of images, specify a
-  counter template and Vassal will automatically load the images and generate 
-  units. [RFE 132985]
-   
-* Description field added to Toolbar Menu and Multi-Action button components.
-  [RFE 2005463]
-   
-* Specify Keystrokes by name - Key Commands can be entered as single Key
-  Strokes as in earlier versions of Vassal, or can be given a 2 or more
-  character names. Named Key Strokes are essentially 'invisible' to users.
-  Vassal guarantees that a unique real keyStroke will be allocated to each
-  uniquely named Keystroke. [RFE 1604269]
- 
-* Decks can specify by Property Expression which pieces are allowed to be
-  Drag 'n Dropped onto them. Piece which may not be added are returned to
-  where the drag started. [RFE 1406133]
-
-* Decks can now specify a Hotkey for the Reverse and FaceUp/Down command
-  and can customize the Reverse and Re-shuffle menu command names. [RFE 2799261]
-  
-* Counters now support the DeckPosition property. If a piece is not in a
-  Deck, 0 is returned. If a piece is in a Deck, then the position of the 
-  piece relative to the top of the Deck is returned. The top piece returns
-  1, the next piece down returns 2 etc. [RFE 2799291]
-    
-* Support for mp3 sound files. [RFE 1913850]
-
-* Fix Display/Color handling for Grids and Numberings. Allow Numbering to
-  be visible when grid not visible in Zones. [RFE 1637018]
-
-* Implementation of BeanShell allowing Arbitrarily complex Java Expressions to
-  be used in Property Match Expressions, In-line Java Expressions and new
-  Calculated Property trait . [RFE 1565025] 
-  
-* Display the Log File Comments in the Chat Window when a log file is opened
-  or continued. [RFE 2717634]
-
-* Global Key Commands created on a Map now have an option to affect
-  counters on all Maps, not just the Map they are created on. [RFE 2456733]
-  
-* Traits that move a counter (Send To Location, Return to Deck, Moved Fixed 
-  Distance, Pivot) now update the same location Oldxxxxxx properties that
-  Drag and Drop movement does. [RFE 2803311]
-  
-* Added repeat(loop) option to Trigger Action and Multi-action button. [RFE 2813702]
-
-* Ensure all commands generated by a single user action are UNDOne by a single
-  click of the UNDO action. [RFE 2816016]
 *********************
 Help us test
 *********************
 
-This is a beta release, and may still contain some rough edges. Should
-you find any problems/oddities/bugs, please tell us so that we can fix
-them before VASSAL 3.2.0 is released. Also, if you've had problems with
-3.1.x or a previous 3.2.0 beta, please check and let us know if those
-problems are resolved in 3.2.0-beta1.
+Should you find any problems/oddities/bugs, please tell us so that we can
+fix them for the next release of VASSAL.
 
 Report bugs here in the Technical Support & Bugs category at the VASSAL
 forums:
@@ -110,4 +97,4 @@ or by email to uckelman@nomic.net.
 
 Cheers,
 
-Joel Uckelman, for the VASSAL Team
+Joel Uckelman, for The VASSAL Team

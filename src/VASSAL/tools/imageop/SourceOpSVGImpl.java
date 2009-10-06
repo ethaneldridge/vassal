@@ -86,7 +86,7 @@ public class SourceOpSVGImpl extends AbstractTiledOpImpl
     try {
       final SVGRenderer renderer = new SVGRenderer(
         archive.getImageURL(name),
-        new BufferedInputStream(archive.getInputStream(name))
+        new BufferedInputStream(archive.getImageInputStream(name))
       );
 
       return renderer.render();
@@ -113,7 +113,7 @@ public class SourceOpSVGImpl extends AbstractTiledOpImpl
     try {
       InputStream in = null;
       try {
-        in = archive.getInputStream(name);
+        in = archive.getImageInputStream(name);
       }
       catch (FileNotFoundException e) {
         throw new ImageNotFoundException(name, e);

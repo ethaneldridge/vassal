@@ -26,6 +26,7 @@ import java.util.ArrayList;
 import java.util.Iterator;
 
 import javax.swing.JPopupMenu;
+import javax.swing.KeyStroke;
 
 import VASSAL.build.AutoConfigurable;
 import VASSAL.build.Buildable;
@@ -40,9 +41,8 @@ import VASSAL.command.NullCommand;
 import VASSAL.configure.ColorConfigurer;
 import VASSAL.configure.Configurer;
 import VASSAL.configure.GamePieceFormattedStringConfigurer;
-import VASSAL.configure.NamedHotKeyConfigurer;
+import VASSAL.configure.HotKeyConfigurer;
 import VASSAL.configure.PlayerIdFormattedStringConfigurer;
-import VASSAL.configure.PropertyExpression;
 import VASSAL.configure.StringArrayConfigurer;
 import VASSAL.configure.StringEnum;
 import VASSAL.configure.VisibilityCondition;
@@ -50,9 +50,7 @@ import VASSAL.counters.Deck;
 import VASSAL.counters.GamePiece;
 import VASSAL.counters.Stack;
 import VASSAL.i18n.ComponentI18nData;
-import VASSAL.i18n.Resources;
 import VASSAL.i18n.TranslatableConfigurerFactory;
-import VASSAL.tools.NamedKeyStroke;
 import VASSAL.tools.UniqueIdManager;
 
 public class DrawPile extends SetupStack {
@@ -97,11 +95,6 @@ public class DrawPile extends SetupStack {
   private VisibilityCondition selectionAllowedVisibleCondition = new VisibilityCondition() {
     public boolean shouldBeVisible() {
       return dummy.isAllowSelectDraw();
-    }
-  };
-  private VisibilityCondition restrictExpressionVisibleCondition = new VisibilityCondition() {
-    public boolean shouldBeVisible() {
-      return dummy.isRestrictOption();
     }
   };
   protected static UniqueIdManager idMgr = new UniqueIdManager("Deck");
@@ -150,15 +143,11 @@ public class DrawPile extends SetupStack {
   public static final String FACE_DOWN = "faceDown";
   public static final String DRAW_FACE_UP = "drawFaceUp";
   public static final String FACE_DOWN_REPORT_FORMAT = "faceDownFormat";
-  public static final String FACE_DOWN_HOTKEY = "faceDownHotkey";
   public static final String SHUFFLE = "shuffle";
   public static final String SHUFFLE_REPORT_FORMAT = "shuffleFormat";
   public static final String SHUFFLE_HOTKEY = "shuffleHotkey";
-  public static final String SHUFFLE_COMMAND = "shuffleCommand";
   public static final String REVERSIBLE = "reversible";
   public static final String REVERSE_REPORT_FORMAT = "reverseFormat";
-  public static final String REVERSE_HOTKEY = "reverseHotkey";
-  public static final String REVERSE_COMMAND = "reverseCommand";
   public static final String DRAW = "draw";
   public static final String COLOR = "color";
   public static final String MAXSTACK = "maxStack";
@@ -173,9 +162,7 @@ public class DrawPile extends SetupStack {
   public static final String CAN_SAVE = "canSave";
   public static final String HOTKEY_ON_EMPTY = "hotkeyOnEmpty";
   public static final String EMPTY_HOTKEY = "emptyHotkey"; 
-  public static final String RESTRICT_OPTION = "restrictOption";
-  public static final String RESTRICT_EXPRESSION = "restrictExpression";
-  
+
   public static final String ALWAYS = "Always";
   public static final String NEVER = "Never";
   public static final String USE_MENU = "Via right-click Menu";
@@ -234,13 +221,10 @@ public class DrawPile extends SetupStack {
       DRAW_FACE_UP,
       FACE_DOWN_REPORT_FORMAT,
       SHUFFLE,
-      SHUFFLE_COMMAND,
       SHUFFLE_REPORT_FORMAT,
       SHUFFLE_HOTKEY,
       REVERSIBLE,
-      REVERSE_COMMAND,
       REVERSE_REPORT_FORMAT,
-      REVERSE_HOTKEY,
       DRAW,
       COLOR,
       HOTKEY_ON_EMPTY,
@@ -253,91 +237,79 @@ public class DrawPile extends SetupStack {
       CAN_SAVE,
       MAXSTACK,
       EXPRESSIONCOUNTING,
-      COUNTEXPRESSIONS,
-      RESTRICT_OPTION,
-      RESTRICT_EXPRESSION
+      COUNTEXPRESSIONS
     };
   }
 
   public String[] getAttributeDescriptions() {
     return new String[]{
-    		Resources.getString(Resources.NAME_LABEL),  
-    		Resources.getString("Editor.DrawPile.owning_board"), //$NON-NLS-1$
-    		Resources.getString("Editor.DrawPile.xposition"), //$NON-NLS-1$
-    		Resources.getString("Editor.DrawPile.yposition"), //$NON-NLS-1$
-    		Resources.getString("Editor.DrawPile.width"), //$NON-NLS-1$
-    		Resources.getString("Editor.DrawPile.height"), //$NON-NLS-1$
-    		Resources.getString("Editor.DrawPile.multi_draw"), //$NON-NLS-1$
-    		Resources.getString("Editor.DrawPile.specific_draw"), //$NON-NLS-1$
-    		Resources.getString("Editor.DrawPile.list_cards"), //$NON-NLS-1$
-    		Resources.getString("Editor.DrawPile.sort_cards"), //$NON-NLS-1$
-    		Resources.getString("Editor.DrawPile.facedown"), //$NON-NLS-1$
-    		Resources.getString("Editor.DrawPile.faceup"), //$NON-NLS-1$
-    		Resources.getString("Editor.DrawPile.facedown_report"), //$NON-NLS-1$
-    		Resources.getString("Editor.DrawPile.reshuffle"), //$NON-NLS-1$
-    		Resources.getString("Editor.DrawPile.reshuffle_text"), //$NON-NLS-1$
-    		Resources.getString("Editor.DrawPile.reshuffle_report"), //$NON-NLS-1$
-    		Resources.getString("Editor.DrawPile.reshuffle_key"), //$NON-NLS-1$
-    		Resources.getString("Editor.DrawPile.reverse"), //$NON-NLS-1$
-    		Resources.getString("Editor.DrawPile.reverse_text"), //$NON-NLS-1$
-    		Resources.getString("Editor.DrawPile.reverse_report"), //$NON-NLS-1$
-    		Resources.getString("Editor.DrawPile.reverse_key"), //$NON-NLS-1$
-    		Resources.getString("Editor.DrawPile.outline"), //$NON-NLS-1$
-    		Resources.getString("Editor.DrawPile.color"), //$NON-NLS-1$
-    		Resources.getString("Editor.DrawPile.empty_key"), //$NON-NLS-1$
-    		Resources.getString("Editor.DrawPile.empty_keyfrom"), //$NON-NLS-1$
-    		Resources.getString("Editor.DrawPile.send_deck"), //$NON-NLS-1$
-    		Resources.getString("Editor.DrawPile.send_text"), //$NON-NLS-1$
-    		Resources.getString("Editor.DrawPile.send_report"), //$NON-NLS-1$
-    		Resources.getString("Editor.DrawPile.send_key"), //$NON-NLS-1$
-    		Resources.getString("Editor.DrawPile.send_deck_name"), //$NON-NLS-1$
-    		Resources.getString("Editor.DrawPile.saved"), //$NON-NLS-1$
-    		Resources.getString("Editor.DrawPile.maxdisplay"), //$NON-NLS-1$
-    		Resources.getString("Editor.DrawPile.perform_express"), //$NON-NLS-1$
-    		Resources.getString("Editor.DrawPile.count_express"), //$NON-NLS-1$
-    		Resources.getString("Editor.DrawPile.restrict_drag"), //$NON-NLS-1$
-    		Resources.getString("Editor.DrawPile.match_express"), //$NON-NLS-1$
+      "Name:  ",
+      "Belongs to board:  ",
+      "X position:  ",
+      "Y position:  ",
+      "Width:  ",
+      "Height:  ",
+      "Allow Multiple Cards to be Drawn?",
+      "Allow Specific Cards to be Drawn?",
+      "When selecting, list cards using",
+      "When selecting, sort cards by",
+      "Contents are Face-down:  ",
+      "Draw new cards face up?",
+      "Face-down Report Format:  ",
+      "Re-shuffle:  ",
+      "Re-shuffle Report Format:  ",
+      "Re-shuffle Hot Key:  ",
+      "Reversible?",
+      "Reverse Report Format:  ",
+      "Draw Outline when empty?",
+      "Color:  ",
+      "Send Hotkey when empty?",
+      "Hot Key to send when Deck empties:  ",
+      "Include command to send entire deck to another deck?",
+      "Send Menu text:  ",
+      "Send Report Format:  ",
+      "Send Hot Key:  ",
+      "Name of deck to send to:  ",
+      "Can be saved-to/loaded-from a file?",
+      "Maximum Cards to display in Stack:",
+      "Perform counting of property expressions?",
+      "Expressions to count:"
     };
   }
 
   public Class<?>[] getAttributeTypes() {
     return new Class<?>[]{
-      String.class, // NAME
-      OwningBoardPrompt.class, // OWNING_BOARD
-      Integer.class, // X_POSITION
-      Integer.class, // Y_POSITION
-      Integer.class, // WIDTH
-      Integer.class, // HEIGHT
-      Boolean.class, // ALLOW_MULTIPLE
-      Boolean.class, // ALLOW_SELECT
-      PiecePropertyConfig.class, // SELECT_DISPLAY_PROPERTY
-      String.class, // SELECT_SORT_PROPERTY
-      Prompt.class, // FACE_DOWN
-      Boolean.class, // DRAW_FACE_UP
-      FormattedStringConfig.class, // FACE_DOWN_REPORT_FORMAT
-      Prompt.class, // SHUFFLE
-      String.class, // SHUFFLE_COMMAND
-      FormattedStringConfig.class, // SHUFFLE_REPORT_FORMAT
-      NamedKeyStroke.class, // SHUFFLE_HOTKEY
-      Boolean.class, // REVERSIBLE
-      String.class, // REVERSE_COMMAND
-      FormattedStringConfig.class, // REVERSE_REPORT_FORMAT
-      NamedKeyStroke.class, // REVERSE_HOTKEY
-      Boolean.class, // DRAW
-      Color.class, // COLOR
-      Boolean.class, // HOTKEY_ON_EMPTY
-      NamedKeyStroke.class, // EMPTY_HOTKEY
-      Boolean.class, // RESHUFFLABLE
-      String.class, // RESHUFFLE_COMMAND
-      FormattedStringConfig.class, // RESHUFFLE_MESSAGE
-      NamedKeyStroke.class, // RESHUFFLE_HOTKEY
-      AssignedDeckPrompt.class, // RESHUFFLE_TARGET
-      Boolean.class, // CAN_SAVE
-      Integer.class, // MAXSTACK
-      Boolean.class, // EXPRESSIONCOUNTING
-      String[].class, // COUNTEXPRESSIONS
-      Boolean.class, // RESTRICT_OPTION
-      PropertyExpression.class //RESTRICT_EXPRESSION
+      String.class,
+      OwningBoardPrompt.class,
+      Integer.class,
+      Integer.class,
+      Integer.class,
+      Integer.class,
+      Boolean.class,
+      Boolean.class,
+      PiecePropertyConfig.class,
+      String.class,
+      Prompt.class,
+      Boolean.class,
+      FormattedStringConfig.class,
+      Prompt.class,
+      FormattedStringConfig.class,
+      KeyStroke.class,
+      Boolean.class,
+      FormattedStringConfig.class,
+      Boolean.class,
+      Color.class,
+      Boolean.class,
+      KeyStroke.class,
+      Boolean.class,
+      String.class,
+      FormattedStringConfig.class,
+      KeyStroke.class,
+      AssignedDeckPrompt.class,
+      Boolean.class,
+      Integer.class,
+      Boolean.class,
+      String[].class
     };
   }
 
@@ -412,25 +384,16 @@ public class DrawPile extends SetupStack {
       return dummy.getReshuffleMsgFormat();
     }
     else if (RESHUFFLE_HOTKEY.equals(key)) {
-      return NamedHotKeyConfigurer.encode(dummy.getReshuffleKey());
-    }
-    else if (SHUFFLE_COMMAND.equals(key)) {
-      return dummy.getShuffleCommand();
+      return HotKeyConfigurer.encode(dummy.getReshuffleKey());
     }
     else if (SHUFFLE_REPORT_FORMAT.equals(key)) {
       return dummy.getShuffleMsgFormat();
     }
     else if (SHUFFLE_HOTKEY.equals(key)) {
-      return NamedHotKeyConfigurer.encode(dummy.getShuffleKey());
-    }
-    else if (REVERSE_COMMAND.equals(key)) {
-      return dummy.getReverseCommand();
+      return HotKeyConfigurer.encode(dummy.getShuffleKey());
     }
     else if (REVERSE_REPORT_FORMAT.equals(key)) {
       return dummy.getReverseMsgFormat();
-    }
-    else if (REVERSE_HOTKEY.equals(key)) {
-      return NamedHotKeyConfigurer.encode(dummy.getReverseKey());
     }
     else if (FACE_DOWN_REPORT_FORMAT.equals(key)) {
       return dummy.getFaceDownMsgFormat();
@@ -442,13 +405,7 @@ public class DrawPile extends SetupStack {
       return String.valueOf(dummy.isHotkeyOnEmpty());
     }
     else if (EMPTY_HOTKEY.equals(key)) {
-      return NamedHotKeyConfigurer.encode(dummy.getNamedEmptyKey());
-    }
-    else if (RESTRICT_OPTION.equals(key)) {
-      return String.valueOf(dummy.isRestrictOption());
-    }
-    else if (RESTRICT_EXPRESSION.equals(key)) {
-      return dummy.getRestrictExpression().getExpression(); 
+      return HotKeyConfigurer.encode(dummy.getEmptyKey());
     }
     else {
       return super.getAttributeValueString(key);
@@ -462,13 +419,13 @@ public class DrawPile extends SetupStack {
     }
     if (WIDTH.equals(key)) {
       if (value instanceof String) {
-        value = Integer.valueOf((String) value);
+        value = new Integer((String) value);
       }
       dummy.getSize().width = ((Integer) value).intValue();
     }
     else if (HEIGHT.equals(key)) {
       if (value instanceof String) {
-        value = Integer.valueOf((String) value);
+        value = new Integer((String) value);
       }
       dummy.getSize().height = ((Integer) value).intValue();
     }
@@ -540,7 +497,7 @@ public class DrawPile extends SetupStack {
     }
     if (MAXSTACK.equals(key)) {
       if (value instanceof String) {
-        value = Integer.valueOf((String) value);
+        value = new Integer((String) value);
       }
       dummy.setMaxStack(((Integer) value).intValue());
     }    
@@ -569,9 +526,9 @@ public class DrawPile extends SetupStack {
     }
     else if (RESHUFFLE_HOTKEY.equals(key)) {
       if (value instanceof String) {
-        value = NamedHotKeyConfigurer.decode((String) value);
+        value = HotKeyConfigurer.decode((String) value);
       }
-      dummy.setReshuffleKey((NamedKeyStroke) value);
+      dummy.setReshuffleKey((KeyStroke) value);
     }
     else if (RESHUFFLE_TARGET.equals(key)) {
       dummy.setReshuffleTarget((String) value);
@@ -579,29 +536,17 @@ public class DrawPile extends SetupStack {
     else if (RESHUFFLE_MESSAGE.equals(key)) {
       dummy.setReshuffleMsgFormat((String) value);
     }
-    else if (REVERSE_COMMAND.equals(key)) {
-      dummy.setReverseCommand((String) value);
-    }
     else if (REVERSE_REPORT_FORMAT.equals(key)) {
       dummy.setReverseMsgFormat((String) value);
-    }
-    else if (REVERSE_HOTKEY.equals(key)) {
-      if (value instanceof String) {
-        value = NamedHotKeyConfigurer.decode((String) value);
-      }
-      dummy.setReverseKey((NamedKeyStroke) value);
-    }
-    else if (SHUFFLE_COMMAND.equals(key)) {
-      dummy.setShuffleCommand((String) value);
     }
     else if (SHUFFLE_REPORT_FORMAT.equals(key)) {
       dummy.setShuffleMsgFormat((String) value);
     }
     else if (SHUFFLE_HOTKEY.equals(key)) {
       if (value instanceof String) {
-        value = NamedHotKeyConfigurer.decode((String) value);
+        value = HotKeyConfigurer.decode((String) value);
       }
-      dummy.setShuffleKey((NamedKeyStroke) value);
+      dummy.setShuffleKey((KeyStroke) value);
     }
     else if (FACE_DOWN_REPORT_FORMAT.equals(key)) {
       dummy.setFaceDownMsgFormat((String) value);
@@ -620,23 +565,9 @@ public class DrawPile extends SetupStack {
     }
     else if (EMPTY_HOTKEY.equals(key)) {
       if (value instanceof String) {
-        value = NamedHotKeyConfigurer.decode((String) value);
+        value = HotKeyConfigurer.decode((String) value);
       }
-      dummy.setEmptyKey((NamedKeyStroke) value);
-    }
-    else if (RESTRICT_OPTION.equals(key)) {
-      if (value instanceof Boolean) {
-        dummy.setRestrictOption(Boolean.TRUE.equals(value));
-      }
-      else {
-        dummy.setRestrictOption("true".equals(value));
-      }
-    }
-    else if (RESTRICT_EXPRESSION.equals(key)) {
-      if (value instanceof String) {
-        value = new PropertyExpression((String) value);
-      }
-      dummy.setRestrictExpression((PropertyExpression) value);
+      dummy.setEmptyKey((KeyStroke) value);
     }
     else {
       super.setAttribute(key, value);
@@ -657,14 +588,10 @@ public class DrawPile extends SetupStack {
     else if (FACE_DOWN_REPORT_FORMAT.equals(name)) {
       return faceDownFormatVisibleCondition;
     }
-    else if (SHUFFLE_REPORT_FORMAT.equals(name) 
-        || SHUFFLE_HOTKEY.equals(name)
-        || SHUFFLE_COMMAND.equals(name)) {
+    else if (SHUFFLE_REPORT_FORMAT.equals(name) || SHUFFLE_HOTKEY.equals(name)) {
       return shuffleFormatVisibleCondition;
     }
-    else if (REVERSE_REPORT_FORMAT.equals(name)
-        || REVERSE_HOTKEY.equals(name)
-        || REVERSE_COMMAND.equals(name)) {
+    else if (REVERSE_REPORT_FORMAT.equals(name)) {
       return reverseFormatVisibleCondition;
     }
     else if (COUNTEXPRESSIONS.equals(name)) {
@@ -675,9 +602,6 @@ public class DrawPile extends SetupStack {
     }
     else if (SELECT_DISPLAY_PROPERTY.equals(name) || SELECT_SORT_PROPERTY.equals(name)) {
       return selectionAllowedVisibleCondition;
-    }
-    else if (RESTRICT_EXPRESSION.equals(name)) {
-      return restrictExpressionVisibleCondition;
     }
     else {
       return null;
@@ -741,7 +665,7 @@ public class DrawPile extends SetupStack {
   }
 
   public static String getConfigureTypeName() {
-    return Resources.getString("Editor.DrawPile.deck"); //$NON-NLS-1$
+    return "Deck";
   }
   
   public ComponentI18nData getI18nData() {

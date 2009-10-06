@@ -34,7 +34,9 @@ import java.util.ArrayList;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
+import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.JTextField;
 import javax.swing.KeyStroke;
 import javax.swing.SwingUtilities;
 
@@ -47,9 +49,7 @@ import VASSAL.build.module.map.boardPicker.board.mapgrid.Zone;
 import VASSAL.command.Command;
 import VASSAL.configure.BooleanConfigurer;
 import VASSAL.configure.ChooseComponentDialog;
-import VASSAL.configure.FormattedExpressionConfigurer;
-import VASSAL.configure.FormattedStringConfigurer;
-import VASSAL.configure.NamedHotKeyConfigurer;
+import VASSAL.configure.HotKeyConfigurer;
 import VASSAL.configure.PropertyExpression;
 import VASSAL.configure.PropertyExpressionConfigurer;
 import VASSAL.configure.StringConfigurer;
@@ -58,7 +58,6 @@ import VASSAL.i18n.PieceI18nData;
 import VASSAL.i18n.Resources;
 import VASSAL.i18n.TranslatablePiece;
 import VASSAL.tools.FormattedString;
-import VASSAL.tools.NamedKeyStroke;
 import VASSAL.tools.SequenceEncoder;
 /**
  * This trait adds a command that sends a piece to another location. Options for the
@@ -84,8 +83,8 @@ public class SendToLocation extends Decorator implements TranslatablePiece {
   protected KeyCommand[] command;
   protected String commandName;
   protected String backCommandName;
-  protected NamedKeyStroke key;
-  protected NamedKeyStroke backKey;
+  protected KeyStroke key;
+  protected KeyStroke backKey;
   protected FormattedString mapId = new FormattedString("");
   protected FormattedString boardName = new FormattedString("");
   protected FormattedString x = new FormattedString("");
@@ -117,13 +116,13 @@ public class SendToLocation extends Decorator implements TranslatablePiece {
     type = type.substring(ID.length());
     SequenceEncoder.Decoder st = new SequenceEncoder.Decoder(type, ';');
     commandName = st.nextToken("");
-    key = st.nextNamedKeyStroke(null);
+    key = st.nextKeyStroke(null);
     mapId.setFormat(st.nextToken(""));
     boardName.setFormat(st.nextToken(""));
     x.setFormat(st.nextToken("0"));
     y.setFormat(st.nextToken("0"));
     backCommandName = st.nextToken("");
-    backKey = st.nextNamedKeyStroke(null);
+    backKey = st.nextKeyStroke(null);
     xIndex.setFormat(st.nextToken("0"));
     yIndex.setFormat(st.nextToken("0"));
     xOffset.setFormat(st.nextToken("0"));
@@ -165,10 +164,10 @@ public class SendToLocation extends Decorator implements TranslatablePiece {
       sendCommand = new KeyCommand(commandName, key, Decorator.getOutermost(this), this);
       backCommand = new KeyCommand(backCommandName, backKey, Decorator.getOutermost(this), this);
       ArrayList<KeyCommand> l = new ArrayList<KeyCommand>();
-      if (commandName.length() > 0 && key != null && !key.isNull()) {
+      if (commandName.length() > 0 && key != null) {
         l.add(sendCommand);
       }
-      if (backCommandName.length() > 0 && backKey != null && !backKey.isNull()) {
+      if (backCommandName.length() > 0 && backKey != null) {
         l.add(backCommand);
       }
       command = l.toArray(new KeyCommand[l.size()]);
@@ -314,7 +313,6 @@ public class SendToLocation extends Decorator implements TranslatablePiece {
         }
         setProperty(BACK_MAP, getMap());
         setProperty(BACK_POINT, getPosition());
-        setOldProperties();
         if (!Boolean.TRUE.equals(outer.getProperty(Properties.IGNORE_GRID))) {
           dest = map.snapTo(dest);
         }
@@ -333,7 +331,6 @@ public class SendToLocation extends Decorator implements TranslatablePiece {
       Map backMap = (Map) getProperty(BACK_MAP);
       Point backPoint = (Point) getProperty(BACK_POINT);
       if (backMap != null && backPoint != null) {
-         setOldProperties();
          c = backMap.placeOrMerge(outer, backPoint);
          // Apply Auto-move key
          if (backMap.getMoveKey() != null) {
@@ -425,22 +422,22 @@ public class SendToLocation extends Decorator implements TranslatablePiece {
   public static class Ed implements PieceEditor {
     protected StringConfigurer nameInput;
     protected StringConfigurer backNameInput;
-    protected NamedHotKeyConfigurer keyInput;
-    protected NamedHotKeyConfigurer backKeyInput;
-    protected FormattedStringConfigurer mapIdInput;
-    protected FormattedStringConfigurer boardNameInput;
-    protected FormattedStringConfigurer xInput;
-    protected FormattedStringConfigurer yInput;
+    protected HotKeyConfigurer keyInput;
+    protected HotKeyConfigurer backKeyInput;
+    protected JTextField mapIdInput;
+    protected JTextField boardNameInput;
+    protected StringConfigurer xInput;
+    protected StringConfigurer yInput;
     protected BooleanConfigurer advancedInput;
-    protected FormattedStringConfigurer xIndexInput;
-    protected FormattedStringConfigurer xOffsetInput;
-    protected FormattedStringConfigurer yIndexInput;
-    protected FormattedStringConfigurer yOffsetInput;
+    protected StringConfigurer xIndexInput;
+    protected StringConfigurer xOffsetInput;
+    protected StringConfigurer yIndexInput;
+    protected StringConfigurer yOffsetInput;
     protected StringConfigurer descInput;
     protected StringEnumConfigurer destInput;
-    protected PropertyExpressionConfigurer propertyInput;
-    protected FormattedStringConfigurer zoneInput;
-    protected FormattedStringConfigurer regionInput;
+    protected StringConfigurer propertyInput;
+    protected StringConfigurer zoneInput;
+    protected StringConfigurer regionInput;
     //protected Map map;
     protected JPanel controls;
     protected Box mapControls;
@@ -457,13 +454,13 @@ public class SendToLocation extends Decorator implements TranslatablePiece {
       nameInput = new StringConfigurer(null, "Command name:  ", p.commandName);
       controls.add(nameInput.getControls());
 
-      keyInput = new NamedHotKeyConfigurer(null,"Keyboard Command:  ",p.key);
+      keyInput = new HotKeyConfigurer(null,"Keyboard Command:  ",p.key);
       controls.add(keyInput.getControls());
 
       backNameInput = new StringConfigurer(null, "Send Back Command name:  ", p.backCommandName);
       controls.add(backNameInput.getControls());
 
-      backKeyInput = new NamedHotKeyConfigurer(null,"Send Back Keyboard Command:  ",p.backKey);
+      backKeyInput = new HotKeyConfigurer(null,"Send Back Keyboard Command:  ",p.backKey);
       controls.add(backKeyInput.getControls());
       
       destInput = new StringEnumConfigurer(null, "Destination:  ", DEST_OPTIONS);
@@ -480,8 +477,15 @@ public class SendToLocation extends Decorator implements TranslatablePiece {
       controls.add(destInput.getControls());
       
       mapControls = Box.createHorizontalBox();
-      mapIdInput = new FormattedExpressionConfigurer(null, "Map:  ", p.mapId.getFormat(), p);
-      mapControls.add(mapIdInput.getControls());
+      mapIdInput = new JTextField(12);
+      mapIdInput.setText(p.mapId.getFormat());
+      //map = Map.getMapById(p.mapId.getFormat());
+      //if (map != null) {
+      //  mapIdInput.setText(map.getMapName());
+      //}
+      mapIdInput.setEditable(true);
+      mapControls.add(new JLabel("Map:  "));
+      mapControls.add(mapIdInput);
       JButton select = new JButton("Select");
       select.addActionListener(new ActionListener() {
         public void actionPerformed(ActionEvent e) {
@@ -499,8 +503,11 @@ public class SendToLocation extends Decorator implements TranslatablePiece {
       controls.add(mapControls);
 
       boardControls = Box.createHorizontalBox();
-      boardNameInput = new FormattedExpressionConfigurer(null, "Board:  ", p.boardName.getFormat(), p);
-      boardControls.add(boardNameInput.getControls());
+      boardNameInput = new JTextField(12);
+      boardNameInput.setText(p.boardName.getFormat());
+      boardNameInput.setEditable(true);
+      boardControls.add(new JLabel("Board:  "));
+      boardControls.add(boardNameInput);
       select = new JButton("Select");
       select.addActionListener(new ActionListener() {
         public void actionPerformed(ActionEvent e) {
@@ -518,16 +525,16 @@ public class SendToLocation extends Decorator implements TranslatablePiece {
       controls.add(boardControls);
       
       
-      xInput = new FormattedExpressionConfigurer(null, "X Position:  ", p.x.getFormat(), p);
+      xInput = new StringConfigurer(null, "X Position:  ", p.x.getFormat());
       controls.add(xInput.getControls());
 
-      yInput = new FormattedExpressionConfigurer(null, "Y Position:  ", p.y.getFormat(), p);
+      yInput = new StringConfigurer(null, "Y Position:  ", p.y.getFormat());
       controls.add(yInput.getControls());
       
-      zoneInput = new FormattedExpressionConfigurer(null, "Zone Name:  ", p.zone.getFormat(), p);
+      zoneInput = new StringConfigurer(null, "Zone Name:  ", p.zone.getFormat());
       controls.add(zoneInput.getControls());
 
-      regionInput = new FormattedExpressionConfigurer(null, "Region Name:  ", p.region.getFormat(), p);
+      regionInput = new StringConfigurer(null, "Region Name:  ", p.region.getFormat());
       controls.add(regionInput.getControls());
       
       propertyInput = new PropertyExpressionConfigurer(null, "Property Match:  ", p.propertyFilter);
@@ -541,16 +548,16 @@ public class SendToLocation extends Decorator implements TranslatablePiece {
       controls.add(advancedInput.getControls());
       
       advancedControls = Box.createHorizontalBox();
-      xIndexInput = new FormattedExpressionConfigurer(null, "Additional X offset:  ", p.xIndex.getFormat(), p);
+      xIndexInput = new StringConfigurer(null, "Additional X offset:  ", p.xIndex.getFormat());
       advancedControls.add(xIndexInput.getControls());
-      xOffsetInput = new FormattedExpressionConfigurer(null, " times ", p.xOffset.getFormat(), p);
+      xOffsetInput = new StringConfigurer(null, " times ", p.xOffset.getFormat());
       advancedControls.add(xOffsetInput.getControls());
       controls.add(advancedControls);
       
       advancedControls = Box.createHorizontalBox();
-      yIndexInput = new FormattedExpressionConfigurer(null, "Additional Y offset:  ", p.yIndex.getFormat(), p);
+      yIndexInput = new StringConfigurer(null, "Additional Y offset:  ", p.yIndex.getFormat());
       advancedControls.add(yIndexInput.getControls());
-      yOffsetInput = new FormattedExpressionConfigurer(null, " times ", p.yOffset.getFormat(), p);
+      yOffsetInput = new StringConfigurer(null, " times ", p.yOffset.getFormat());
       advancedControls.add(yOffsetInput.getControls());
       controls.add(advancedControls);
       
@@ -580,12 +587,12 @@ public class SendToLocation extends Decorator implements TranslatablePiece {
     }
     
     private void clearBoard() {
-      boardNameInput.setValue("");
+      boardNameInput.setText("");
     }
 
     private void clearMap() {
       //map = null;
-      mapIdInput.setValue("");
+      mapIdInput.setText("");
     }
 
     private void selectBoard() {
@@ -593,7 +600,7 @@ public class SendToLocation extends Decorator implements TranslatablePiece {
       d.setVisible(true);
       if (d.getTarget() != null) {
         Board b = (Board) d.getTarget();
-        boardNameInput.setValue(b.getName());
+        boardNameInput.setText(b.getName());
       }
     }
 
@@ -602,7 +609,7 @@ public class SendToLocation extends Decorator implements TranslatablePiece {
       d.setVisible(true);
       if (d.getTarget() != null) {
         Map map = (Map) d.getTarget();
-        mapIdInput.setValue(map.getMapName());
+        mapIdInput.setText(map.getMapName());
       }
     }
 
@@ -613,14 +620,14 @@ public class SendToLocation extends Decorator implements TranslatablePiece {
     public String getType() {
       SequenceEncoder se = new SequenceEncoder(';');
       se.append(nameInput.getValueString())
-          .append(keyInput.getValueString())
+          .append((KeyStroke)keyInput.getValue())
           //.append(map == null ? "" : map.getIdentifier())
-          .append(mapIdInput.getValueString())
-          .append(boardNameInput.getValueString())
+          .append(mapIdInput.getText())
+          .append(boardNameInput.getText())
           .append(xInput.getValueString())
           .append(yInput.getValueString())
           .append(backNameInput.getValueString())
-          .append(backKeyInput.getValueString())
+          .append((KeyStroke)backKeyInput.getValue())
           .append(xIndexInput.getValueString())
           .append(yIndexInput.getValueString())
           .append(xOffsetInput.getValueString())

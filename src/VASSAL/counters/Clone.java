@@ -4,20 +4,17 @@ import java.awt.Component;
 import java.awt.Graphics;
 import java.awt.Rectangle;
 import java.awt.Shape;
-
 import javax.swing.BoxLayout;
 import javax.swing.JPanel;
 import javax.swing.KeyStroke;
-
 import VASSAL.build.GameModule;
 import VASSAL.build.module.documentation.HelpFile;
 import VASSAL.command.AddPiece;
 import VASSAL.command.Command;
-import VASSAL.configure.NamedHotKeyConfigurer;
+import VASSAL.configure.HotKeyConfigurer;
 import VASSAL.configure.StringConfigurer;
 import VASSAL.i18n.PieceI18nData;
 import VASSAL.i18n.TranslatablePiece;
-import VASSAL.tools.NamedKeyStroke;
 import VASSAL.tools.SequenceEncoder;
 
 /*
@@ -46,7 +43,7 @@ public class Clone extends Decorator implements TranslatablePiece {
   public static final String ID = "clone;";
   protected KeyCommand[] command;
   protected String commandName;
-  protected NamedKeyStroke key;
+  protected KeyStroke key;
   protected KeyCommand cloneCommand;
 
   public Clone() {
@@ -62,7 +59,7 @@ public class Clone extends Decorator implements TranslatablePiece {
     type = type.substring(ID.length());
     SequenceEncoder.Decoder st = new SequenceEncoder.Decoder(type, ';');
     commandName = st.nextToken();
-    key = st.nextNamedKeyStroke('C');
+    key = st.nextKeyStroke('C');
     command = null;
   }
 
@@ -75,7 +72,7 @@ public class Clone extends Decorator implements TranslatablePiece {
   protected KeyCommand[] myGetKeyCommands() {
     if (command == null) {
       cloneCommand = new KeyCommand(commandName, key, Decorator.getOutermost(this), this);
-      if (commandName.length() > 0 && key != null && ! key.isNull()) {
+      if (commandName.length() > 0 && key != null) {
         command =
             new KeyCommand[]{cloneCommand};
       }
@@ -149,7 +146,7 @@ public class Clone extends Decorator implements TranslatablePiece {
    
   public static class Ed implements PieceEditor {
     private StringConfigurer nameInput;
-    private NamedHotKeyConfigurer keyInput;
+    private HotKeyConfigurer keyInput;
     private JPanel controls;
 
     public Ed(Clone p) {
@@ -159,7 +156,7 @@ public class Clone extends Decorator implements TranslatablePiece {
       nameInput = new StringConfigurer(null, "Command name:  ", p.commandName);
       controls.add(nameInput.getControls());
 
-      keyInput = new NamedHotKeyConfigurer(null,"Keyboard Command:  ",p.key);
+      keyInput = new HotKeyConfigurer(null,"Keyboard Command:  ",p.key);
       controls.add(keyInput.getControls());
 
     }
@@ -170,7 +167,7 @@ public class Clone extends Decorator implements TranslatablePiece {
 
     public String getType() {
       SequenceEncoder se = new SequenceEncoder(';');
-      se.append(nameInput.getValueString()).append(keyInput.getValueString());
+      se.append(nameInput.getValueString()).append((KeyStroke)keyInput.getValue());
       return ID + se.getValue();
     }
 

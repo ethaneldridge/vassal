@@ -187,13 +187,13 @@ public class GamePieceLayout extends AbstractConfigurable implements Visualizabl
     }
     else if (WIDTH.equals(key)) {
       if (value instanceof String) {
-        value = Integer.valueOf((String) value);
+        value = new Integer((String) value);
       }
       setWidth(((Integer) value).intValue());
     }
     else if (HEIGHT.equals(key)) {
       if (value instanceof String) {
-        value = Integer.valueOf((String) value);
+        value = new Integer((String) value);
       }
       setHeight(((Integer) value).intValue());
     }

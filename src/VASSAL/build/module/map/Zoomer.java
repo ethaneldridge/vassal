@@ -53,6 +53,7 @@ import javax.swing.JScrollPane;
 import javax.swing.JSpinner;
 import javax.swing.JSplitPane;
 import javax.swing.JTextField;
+import javax.swing.KeyStroke;
 import javax.swing.ListModel;
 import javax.swing.ListSelectionModel;
 import javax.swing.SpinnerNumberModel;
@@ -82,7 +83,6 @@ import VASSAL.configure.StringArrayConfigurer;
 import VASSAL.i18n.Resources;
 import VASSAL.tools.ErrorDialog;
 import VASSAL.tools.LaunchButton;
-import VASSAL.tools.NamedKeyStroke;
 
 /**
  * Controls the zooming in/out of a {@link Map} window.
@@ -285,7 +285,7 @@ public class Zoomer extends AbstractConfigurable implements GameComponent {
   }
 
   public static String getConfigureTypeName() {
-    return Resources.getString("Editor.Zoom.component_type"); //$NON-NLS-1$
+    return "Zoom capability";
   }
 
   public String[] getAttributeNames() {
@@ -309,20 +309,20 @@ public class Zoomer extends AbstractConfigurable implements GameComponent {
 
   public String[] getAttributeDescriptions() {
     return new String[]{
-      "", //$NON-NLS-1$
-      Resources.getString("Editor.Zoom.preset"), //$NON-NLS-1$
-      Resources.getString("Editor.Zoom.in_tooltip"), //$NON-NLS-1$
-      Resources.getString("Editor.Zoom.in_button"), //$NON-NLS-1$
-      Resources.getString("Editor.Zoom.in_icon"), //$NON-NLS-1$
-      Resources.getString("Editor.Zoom.in_key"), //$NON-NLS-1$
-      Resources.getString("Editor.Zoom.select_tooltip"), //$NON-NLS-1$
-      Resources.getString("Editor.Zoom.select_button"), //$NON-NLS-1$
-      Resources.getString("Editor.Zoom.select_icon"), //$NON-NLS-1$
-      Resources.getString("Editor.Zoom.select_key"), //$NON-NLS-1$
-      Resources.getString("Editor.Zoom.out_tooltip"), //$NON-NLS-1$
-      Resources.getString("Editor.Zoom.out_button"), //$NON-NLS-1$
-      Resources.getString("Editor.Zoom.out_icon"), //$NON-NLS-1$
-      Resources.getString("Editor.Zoom.out_key"), //$NON-NLS-1$
+      "",
+      "Preset zoom levels:  ",
+      "Zoom in tooltip text:  ",
+      "Zoom in button text:  ",
+      "Zoom in Icon:  ",
+      "Zoom in hotkey:  ",
+      "Zoom select tooltip text",
+      "Zoom select button text",
+      "Zoom select Icon",
+      "Zoom select hotkey",
+      "Zoom out tooltip text:  ",
+      "Zoom out button text:  ",
+      "Zoom out Icon:  ",
+      "Zoom out hotkey:  "
     };
   }
 
@@ -333,15 +333,15 @@ public class Zoomer extends AbstractConfigurable implements GameComponent {
       String.class,
       String.class,
       InIconConfig.class,
-      NamedKeyStroke.class,
+      KeyStroke.class,
       String.class,
       String.class,
       PickIconConfig.class,
-      NamedKeyStroke.class,
+      KeyStroke.class,
       String.class,
       String.class,
       OutIconConfig.class,
-      NamedKeyStroke.class
+      KeyStroke.class
     };
   }
 
@@ -419,8 +419,8 @@ public class Zoomer extends AbstractConfigurable implements GameComponent {
         public void insertUpdate(DocumentEvent e) { validate(); }
         public void removeUpdate(DocumentEvent e) { validate(); }
 
-        private static final String pattern =
-          "^(\\d*[1-9]\\d*(/\\d*[1-9]\\d*|\\.\\d*)?|0*\\.\\d*[1-9]\\d*)$"; //$NON-NLS-1$
+        private final String pattern =
+          "^(\\d*[1-9]\\d*(/\\d*[1-9]\\d*|\\.\\d*)?|0*\\.\\d*[1-9]\\d*)$";
 
         private void validate() {
           // valid entries match the pattern and aren't already in the list
@@ -479,7 +479,7 @@ public class Zoomer extends AbstractConfigurable implements GameComponent {
       buttonBox.add(removeButton);
 
       // Set Initial button
-      initialButton = new JButton(Resources.getString("Editor.zoom.set_initial")); //$NON-NLS-1$
+      initialButton = new JButton("Set Initial");
       initialButton.addActionListener(new ActionListener() {
         public void actionPerformed(ActionEvent e) {
           // set the new initial scale level
@@ -496,7 +496,7 @@ public class Zoomer extends AbstractConfigurable implements GameComponent {
       leftBox.add(buttonBox);
 
       final JLabel explanation =
-        new JLabel(Resources.getString("Editor.zoom.initial_zoom")); //$NON-NLS-1$
+        new JLabel("An '*' indicates the initial zoom level.");
       explanation.setAlignmentX(JLabel.CENTER_ALIGNMENT);
 
       leftBox.add(
@@ -529,7 +529,7 @@ public class Zoomer extends AbstractConfigurable implements GameComponent {
      * Accepts fractions as "n/d".
      */
     protected double parseLevel(String text) {
-      final String[] s = text.split("/"); //$NON-NLS-1$
+      final String[] s = text.split("/");
       try {
         return s.length > 1 ?
           Double.parseDouble(s[0])/Double.parseDouble(s[1]) :
@@ -593,7 +593,7 @@ public class Zoomer extends AbstractConfigurable implements GameComponent {
 
       public Object getElementAt(int i) {
         return z.state.getLevels().get(i) + 
-          (z.state.getInitialLevel() == i ? " *" : ""); //$NON-NLS-1$ //$NON-NLS-2$
+          (z.state.getInitialLevel() == i ? " *" : "");
       }
 
       public int getSize() {
@@ -690,7 +690,7 @@ public class Zoomer extends AbstractConfigurable implements GameComponent {
   public void setAttribute(String key, Object val) {
     if (ZOOM_START.equals(key)) {
       if (val instanceof String) {
-        val = Integer.valueOf((String) val);
+        val = new Integer((String) val);
       }
 
       if (val != null) {
@@ -736,7 +736,7 @@ public class Zoomer extends AbstractConfigurable implements GameComponent {
     }
     else if (FACTOR.equals(key)) {  // deprecated key
       if (val instanceof String) {
-        val = Double.valueOf((String) val);
+        val = new Double((String) val);
       }
 
       if (val != null) {
@@ -749,7 +749,7 @@ public class Zoomer extends AbstractConfigurable implements GameComponent {
     }
     else if (MAX.equals(key)) {     // deprecated key
       if (val instanceof String) {
-        val = Integer.valueOf((String) val);
+        val = new Integer((String) val);
       }
   
       if (val != null) {
@@ -876,10 +876,10 @@ public class Zoomer extends AbstractConfigurable implements GameComponent {
     protected final JPopupMenu.Separator sep;
     protected final ButtonGroup bg;
 
-    private static final String OTHER = "Other..."; //$NON-NLS-1$
-    private static final String FIT_WIDTH = "Fit Width"; //$NON-NLS-1$
-    private static final String FIT_HEIGHT = "Fit Height"; //$NON-NLS-1$ 
-    private static final String FIT_VISIBLE = "Fit Visible";  //$NON-NLS-1$
+    private static final String OTHER = "Other...";
+    private static final String FIT_WIDTH = "Fit Width";
+    private static final String FIT_HEIGHT = "Fit Height";
+    private static final String FIT_VISIBLE = "Fit Visible";
 
     private static final long serialVersionUID = 1L;
 
@@ -892,7 +892,7 @@ public class Zoomer extends AbstractConfigurable implements GameComponent {
       bg = new ButtonGroup();
 
       other = new JRadioButtonMenuItem(
-        Resources.getString("Zoomer.ZoomMenu.other")); //$NON-NLS-1$
+        Resources.getString("Zoomer.ZoomMenu.other"));
       other.setActionCommand(OTHER);
       other.addActionListener(this);
       bg.add(other);
@@ -901,19 +901,19 @@ public class Zoomer extends AbstractConfigurable implements GameComponent {
       addSeparator();
 
       final JMenuItem fw = new JMenuItem(
-        Resources.getString("Zoomer.ZoomMenu.fit_width")); //$NON-NLS-1$
+        Resources.getString("Zoomer.ZoomMenu.fit_width"));
       fw.setActionCommand(FIT_WIDTH);
       fw.addActionListener(this);
       add(fw);
 
       final JMenuItem fh = new JMenuItem(
-        Resources.getString("Zoomer.ZoomMenu.fit_height")); //$NON-NLS-1$
+        Resources.getString("Zoomer.ZoomMenu.fit_height"));
       fh.setActionCommand(FIT_HEIGHT);
       fh.addActionListener(this);
       add(fh);
 
       final JMenuItem fv = new JMenuItem(
-        Resources.getString("Zoomer.ZoomMenu.fit_visible")); //$NON-NLS-1$
+        Resources.getString("Zoomer.ZoomMenu.fit_visible"));
       fv.setActionCommand(FIT_VISIBLE);
       fv.addActionListener(this);
       add(fv);
@@ -924,7 +924,7 @@ public class Zoomer extends AbstractConfigurable implements GameComponent {
 
       final List<Double> levels = state.getLevels();
       for (int i = 0; i < levels.size(); ++i) {
-        final String zs = Long.toString(Math.round(levels.get(i)*100)) + "%"; //$NON-NLS-1$
+        final String zs = Long.toString(Math.round(levels.get(i)*100)) + "%";
         final JMenuItem item = new JRadioButtonMenuItem(zs);
         item.setActionCommand(Integer.toString(i));
         item.addActionListener(this);
@@ -949,7 +949,7 @@ public class Zoomer extends AbstractConfigurable implements GameComponent {
       if (OTHER.equals(cmd)) {      
         final ZoomDialog dialog = new ZoomDialog((Frame)
           SwingUtilities.getAncestorOfClass(Frame.class, map.getView()),
-          Resources.getString("Zoomer.ZoomDialog.title"), true); //$NON-NLS-1$
+          Resources.getString("Zoomer.ZoomDialog.title"), true);
         dialog.setVisible(true);
 
         final double z = dialog.getResult()/100.0;
@@ -1024,7 +1024,7 @@ public class Zoomer extends AbstractConfigurable implements GameComponent {
       final Insets dinset = new Insets(0, 0, 0, 0);
 
       final JLabel ratioLabel = new JLabel(
-        Resources.getString("Zoomer.ZoomDialog.zoom_ratio")); //$NON-NLS-1$
+        Resources.getString("Zoomer.ZoomDialog.zoom_ratio"));
       c.gridx = 0;
       c.gridy = 0;
       c.weightx = 0;
@@ -1050,7 +1050,7 @@ public class Zoomer extends AbstractConfigurable implements GameComponent {
 
       ratioBox.add(Box.createHorizontalStrut(hsep));
 
-      final JLabel ratioColon = new JLabel(":"); //$NON-NLS-1$
+      final JLabel ratioColon = new JLabel(":");
       ratioBox.add(ratioColon);
 
       ratioBox.add(Box.createHorizontalStrut(hsep));
@@ -1061,7 +1061,7 @@ public class Zoomer extends AbstractConfigurable implements GameComponent {
       ratioBox.add(ratioDenominatorSpinner);
 
       final JLabel percentLabel = new JLabel(
-        Resources.getString("Zoomer.ZoomDialog.zoom_percent")); //$NON-NLS-1$
+        Resources.getString("Zoomer.ZoomDialog.zoom_percent"));
       c.gridx = 0;
       c.gridy = 1;
       c.weightx = 0;
@@ -1089,7 +1089,7 @@ public class Zoomer extends AbstractConfigurable implements GameComponent {
       updateRatio();
 
       percentBox.add(Box.createHorizontalStrut(hsep));
-      final JLabel percentSign = new JLabel("%"); //$NON-NLS-1$
+      final JLabel percentSign = new JLabel("%");
       percentBox.add(percentSign);
 
       // buttons
@@ -1151,10 +1151,9 @@ public class Zoomer extends AbstractConfigurable implements GameComponent {
       // disconnect listener to prevent circularity
       percentSpinner.removeChangeListener(this);
 
-      percentModel.setValue(
+      percentModel.setValue(new Double(
         ratioNumeratorModel.getNumber().doubleValue() /
-        ratioDenominatorModel.getNumber().doubleValue() * 100.0
-      );
+        ratioDenominatorModel.getNumber().doubleValue() * 100.0));
 
       percentSpinner.addChangeListener(this);
     }
@@ -1232,8 +1231,8 @@ public class Zoomer extends AbstractConfigurable implements GameComponent {
       ratioNumeratorSpinner.removeChangeListener(this);
       ratioDenominatorSpinner.removeChangeListener(this);
    
-      ratioNumeratorModel.setValue(p1);
-      ratioDenominatorModel.setValue(q1);
+      ratioNumeratorModel.setValue(new Integer(p1));
+      ratioDenominatorModel.setValue(new Integer(q1));
   
       ratioNumeratorSpinner.addChangeListener(this);
       ratioDenominatorSpinner.addChangeListener(this);

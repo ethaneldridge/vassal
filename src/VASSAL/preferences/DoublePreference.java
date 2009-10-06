@@ -46,7 +46,7 @@ public class DoublePreference extends BasicPreference {
 
   public void setDefaultValue(Object value) {
     if (value instanceof String) {
-      value = Double.valueOf((String) value);
+      value = new Double((String) value);
     }
     defaultValue = ((Double) value).doubleValue();
       
@@ -54,14 +54,13 @@ public class DoublePreference extends BasicPreference {
 
   public Configurer getPreferenceConfigurer() {
     if (config == null) {
-      config =
-        new DoubleConfigurer(getVariableName(), getDescription(), defaultValue);
+      config = new DoubleConfigurer(getVariableName(), getDescription(), new Double(defaultValue));
       config.addPropertyChangeListener(new PropertyChangeListener() {
         public void propertyChange(PropertyChangeEvent e) {
           updateGlobalProperty(config.getValueString());          
-        }
-      });
+        }});
     }
     return config;
   }
+
 }

@@ -48,13 +48,11 @@ import VASSAL.build.module.map.boardPicker.Board;
 import VASSAL.command.Command;
 import VASSAL.command.NullCommand;
 import VASSAL.configure.BooleanConfigurer;
-import VASSAL.configure.FormattedExpressionConfigurer;
-import VASSAL.configure.NamedHotKeyConfigurer;
+import VASSAL.configure.HotKeyConfigurer;
 import VASSAL.configure.StringConfigurer;
 import VASSAL.i18n.PieceI18nData;
 import VASSAL.i18n.TranslatablePiece;
 import VASSAL.tools.FormattedString;
-import VASSAL.tools.NamedKeyStroke;
 import VASSAL.tools.SequenceEncoder;
 
 /**
@@ -66,7 +64,7 @@ public class Translate extends Decorator implements TranslatablePiece {
   public static final String ID = "translate;";
   protected KeyCommand[] commands;
   protected String commandName;
-  protected NamedKeyStroke keyCommand;
+  protected KeyStroke keyCommand;
   protected FormattedString xDist = new FormattedString("");
   protected FormattedString xIndex = new FormattedString("");
   protected FormattedString xOffset = new FormattedString("");
@@ -99,7 +97,7 @@ public class Translate extends Decorator implements TranslatablePiece {
     type = type.substring(ID.length());
     SequenceEncoder.Decoder st = new SequenceEncoder.Decoder(type, ';');
     commandName = st.nextToken("Move Forward");
-    keyCommand = st.nextNamedKeyStroke('M');
+    keyCommand = st.nextKeyStroke('M');
     xDist.setFormat(st.nextToken(_0));
     yDist.setFormat(st.nextToken("60"));
     moveStack = st.nextBoolean(true);
@@ -114,7 +112,7 @@ public class Translate extends Decorator implements TranslatablePiece {
   protected KeyCommand[] myGetKeyCommands() {
     if (commands == null) {
       moveCommand = new KeyCommand(commandName, keyCommand, Decorator.getOutermost(this), this);
-      if (commandName.length() > 0 && keyCommand != null && !keyCommand.isNull()) {
+      if (commandName.length() > 0) {
         commands = new KeyCommand[]{moveCommand};
       }
       else {
@@ -159,7 +157,6 @@ public class Translate extends Decorator implements TranslatablePiece {
     myGetKeyCommands();
     Command c = null;
     if (moveCommand.matches(stroke)) {
-      setOldProperties();
       if (mover == null) {
         mover = new MoveExecuter();
         mover.setKeyEvent(stroke);
@@ -182,7 +179,7 @@ public class Translate extends Decorator implements TranslatablePiece {
 
   protected Command moveTarget(GamePiece target) {
     // Has this piece already got a move scheduled? If so, then we
-    // need to use the endpoint of any existing moves as our
+    // need to use the endpoint of any exsiting moves as our
     // starting point.
     Point p = mover.getUpdatedPosition(target);
     
@@ -291,17 +288,17 @@ public class Translate extends Decorator implements TranslatablePiece {
   
 
   public static class Editor implements PieceEditor {
-    private FormattedExpressionConfigurer xDist;
-    private FormattedExpressionConfigurer yDist;
+    private StringConfigurer xDist;
+    private StringConfigurer yDist;
     private StringConfigurer name;
-    private NamedHotKeyConfigurer key;
+    private HotKeyConfigurer key;
     private JPanel controls;
     private BooleanConfigurer moveStack;
     protected BooleanConfigurer advancedInput;
-    protected FormattedExpressionConfigurer xIndexInput;
-    protected FormattedExpressionConfigurer xOffsetInput;
-    protected FormattedExpressionConfigurer yIndexInput;
-    protected FormattedExpressionConfigurer yOffsetInput;
+    protected StringConfigurer xIndexInput;
+    protected StringConfigurer xOffsetInput;
+    protected StringConfigurer yIndexInput;
+    protected StringConfigurer yOffsetInput;
     protected StringConfigurer descInput;
 
     public Editor(Translate t) {
@@ -311,11 +308,11 @@ public class Translate extends Decorator implements TranslatablePiece {
       controls.add(descInput.getControls());
       name = new StringConfigurer(null, "Command Name:  ", t.commandName);
       controls.add(name.getControls());
-      key = new NamedHotKeyConfigurer(null, "Keyboard shortcut:  ", t.keyCommand);
+      key = new HotKeyConfigurer(null, "Keyboard shortcut:  ", t.keyCommand);
       controls.add(key.getControls());
-      xDist = new FormattedExpressionConfigurer(null, "Distance to the right:  ", t.xDist.getFormat(), t);
+      xDist = new StringConfigurer(null, "Distance to the right:  ", t.xDist.getFormat());
       controls.add(xDist.getControls());
-      yDist = new FormattedExpressionConfigurer(null, "Distance upwards:  ", t.yDist.getFormat(), t);
+      yDist = new StringConfigurer(null, "Distance upwards:  ", t.yDist.getFormat());
       controls.add(yDist.getControls());
       moveStack = new BooleanConfigurer(null, "Move entire stack?",
                                         Boolean.valueOf(t.moveStack));
@@ -329,16 +326,16 @@ public class Translate extends Decorator implements TranslatablePiece {
       controls.add(advancedInput.getControls());
       
       Box b = Box.createHorizontalBox();
-      xIndexInput = new FormattedExpressionConfigurer(null, "Additional offset to the right:  ", t.xIndex.getFormat(), t);
+      xIndexInput = new StringConfigurer(null, "Additional offset to the right:  ", t.xIndex.getFormat());
       b.add(xIndexInput.getControls());
-      xOffsetInput = new FormattedExpressionConfigurer(null, " times ", t.xOffset.getFormat(), t);
+      xOffsetInput = new StringConfigurer(null, " times ", t.xOffset.getFormat());
       b.add(xOffsetInput.getControls());
       controls.add(b);
       
       b = Box.createHorizontalBox();
-      yIndexInput = new FormattedExpressionConfigurer(null, "Additional offset upwards:  ", t.yIndex.getFormat(), t);
+      yIndexInput = new StringConfigurer(null, "Additional offset upwards:  ", t.yIndex.getFormat());
       b.add(yIndexInput.getControls());
-      yOffsetInput = new FormattedExpressionConfigurer(null, " times ", t.yOffset.getFormat(), t);
+      yOffsetInput = new StringConfigurer(null, " times ", t.yOffset.getFormat());
       b.add(yOffsetInput.getControls());
       controls.add(b);
       
@@ -368,7 +365,7 @@ public class Translate extends Decorator implements TranslatablePiece {
     public String getType() {
       SequenceEncoder se = new SequenceEncoder(';');
       se.append(name.getValueString())
-        .append(key.getValueString())
+        .append((KeyStroke) key.getValue())
         .append(xDist.getValueString())
         .append(yDist.getValueString())
         .append(moveStack.getValueString())

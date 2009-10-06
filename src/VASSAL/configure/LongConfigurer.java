@@ -26,7 +26,7 @@ package VASSAL.configure;
  */
 public class LongConfigurer extends StringConfigurer {
   public LongConfigurer(String key, String name) {
-    this(key, name, 0L);
+    this(key, name, new Long(0));
   }
 
   public LongConfigurer(String key, String name, Long val) {

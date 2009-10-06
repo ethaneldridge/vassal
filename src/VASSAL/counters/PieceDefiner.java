@@ -1,7 +1,7 @@
 /*
  * $Id$
  *
- * Copyright (c) 2000-2009 by Rodney Kinney, Brent Easton
+ * Copyright (c) 2000-2003 by Rodney Kinney
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Library General Public
@@ -132,7 +132,6 @@ public class PieceDefiner extends JPanel implements HelpWindowExtension {
       availableModel.addElement(new Restricted());
       availableModel.addElement(new Marker());
       availableModel.addElement(new DynamicProperty());
-      availableModel.addElement(new CalculatedProperty());
       availableModel.addElement(new SetGlobalProperty());
     }
   }
@@ -540,7 +539,7 @@ public class PieceDefiner extends JPanel implements HelpWindowExtension {
       BrowserSupport.openURL(h.getContents().toString());
     }
   }
-  
+
   protected boolean edit(int index) {
     Object o = inUseModel.elementAt(index);
     if (!(o instanceof EditablePiece)) {
@@ -601,17 +600,14 @@ public class PieceDefiner extends JPanel implements HelpWindowExtension {
       ed = p.getEditor();
       setLayout(new BoxLayout(getContentPane(), BoxLayout.Y_AXIS));
       add(ed.getControls());
-      
       JButton b = new JButton("Ok");
       b.addActionListener(new ActionListener() {
         public void actionPerformed(ActionEvent evt) {
           dispose();
         }
       });
-      
       JPanel panel = new JPanel();
       panel.add(b);
-      
       b = new JButton("Cancel");
       b.addActionListener(new ActionListener() {
         public void actionPerformed(ActionEvent evt) {
@@ -620,17 +616,6 @@ public class PieceDefiner extends JPanel implements HelpWindowExtension {
         }
       });
       panel.add(b);
-      
-      if (p.getHelpFile() != null) {
-        b = new JButton("Help");
-        b.addActionListener(new ActionListener() {
-          public void actionPerformed(ActionEvent evt) {
-            p.getHelpFile().showWindow(Ed.this);
-          }
-        });
-        panel.add(b);
-      }
-      
       add(panel);
       pack();
       setLocationRelativeTo(getOwner());
@@ -674,7 +659,7 @@ public class PieceDefiner extends JPanel implements HelpWindowExtension {
 
   private JPanel availablePanel;
   private JScrollPane availableScroll;
-  protected JList availableList;
+  private JList availableList;
   private JButton helpButton;
   private JButton importButton;
   private JPanel addRemovePanel;

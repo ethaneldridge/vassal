@@ -33,26 +33,22 @@ import java.awt.Graphics2D;
 import java.awt.Rectangle;
 import java.awt.Shape;
 import java.awt.geom.AffineTransform;
-import java.util.ArrayList;
-import java.util.List;
-
 import javax.swing.Box;
 import javax.swing.Icon;
 import javax.swing.JOptionPane;
+import javax.swing.KeyStroke;
 import javax.swing.SwingUtilities;
-
 import VASSAL.build.module.GlobalOptions;
 import VASSAL.build.module.Map;
 import VASSAL.build.module.documentation.HelpFile;
 import VASSAL.command.ChangeTracker;
 import VASSAL.command.Command;
+import VASSAL.configure.HotKeyConfigurer;
 import VASSAL.configure.IconConfigurer;
 import VASSAL.configure.IntConfigurer;
-import VASSAL.configure.NamedHotKeyConfigurer;
 import VASSAL.configure.StringConfigurer;
 import VASSAL.i18n.PieceI18nData;
 import VASSAL.i18n.TranslatablePiece;
-import VASSAL.tools.NamedKeyStroke;
 import VASSAL.tools.SequenceEncoder;
 
 /**
@@ -65,7 +61,7 @@ public class MovementMarkable extends Decorator implements TranslatablePiece {
   private int xOffset = 0;
   private int yOffset = 0;
   private String command;
-  private NamedKeyStroke key;
+  private KeyStroke key;
   private IconConfigurer movedIcon = new IconConfigurer(null, "Marker Image:  ", "/images/moved.gif");
   private boolean hasMoved = false;
 
@@ -93,7 +89,7 @@ public class MovementMarkable extends Decorator implements TranslatablePiece {
     xOffset = st.nextInt(0);
     yOffset = st.nextInt(0);
     command = st.nextToken("Mark Moved");
-    key = st.nextNamedKeyStroke('M');
+    key = st.nextKeyStroke('M');
   }
 
   public void mySetState(String newState) {
@@ -115,7 +111,7 @@ public class MovementMarkable extends Decorator implements TranslatablePiece {
   }
 
   public Command myKeyEvent(javax.swing.KeyStroke stroke) {
-    if (stroke != null && key.equals(stroke)) {
+    if (stroke != null && stroke.equals(key)) {
       ChangeTracker c = new ChangeTracker(this);
       // Set the property on the entire piece so all traits can respond
       Decorator.getOutermost(this)
@@ -213,7 +209,7 @@ public class MovementMarkable extends Decorator implements TranslatablePiece {
     private IntConfigurer xOff;
     private IntConfigurer yOff;
     private StringConfigurer command;
-    private NamedHotKeyConfigurer key;
+    private HotKeyConfigurer key;
     private Box box;
 
     private Ed(MovementMarkable p) {
@@ -221,11 +217,11 @@ public class MovementMarkable extends Decorator implements TranslatablePiece {
       box = Box.createVerticalBox();
       command = new StringConfigurer(null,"Command:  ",p.command);
       box.add(command.getControls());
-      key = new NamedHotKeyConfigurer(null,"Keyboard command:  ",p.key);
+      key = new HotKeyConfigurer(null,"Keyboard command:  ",p.key);
       box.add(key.getControls());
       box.add(iconConfig.getControls());
-      xOff = new IntConfigurer(null, "Horizontal Offset:  ", p.xOffset);
-      yOff = new IntConfigurer(null, "Vertical Offset:  ", p.yOffset);
+      xOff = new IntConfigurer(null, "Horizontal Offset:  ", new Integer(p.xOffset));
+      yOff = new IntConfigurer(null, "Vertical Offset:  ", new Integer(p.yOffset));
       box.add(xOff.getControls());
       box.add(yOff.getControls());
     }
@@ -255,21 +251,12 @@ public class MovementMarkable extends Decorator implements TranslatablePiece {
           .append(xOff.getValueString())
           .append(yOff.getValueString())
           .append(command.getValueString())
-          .append(key.getValueString());
+          .append((KeyStroke)key.getValue());
       return ID + se.getValue();
     }
 
     public String getState() {
       return "false";
     }
-  }
-  
-  /**
-   * Return Property names exposed by this trait
-   */
-  public List<String> getPropertyNames() {
-    ArrayList<String> l = new ArrayList<String>();
-    l.add(Properties.MOVED);
-    return l;
   }
 }

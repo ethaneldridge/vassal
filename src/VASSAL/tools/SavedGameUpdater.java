@@ -95,22 +95,19 @@ public class SavedGameUpdater {
   }
 
   protected void findPieceSlots(List<Configurable> l, Properties p) {
-    final Configurable last = l.size() == 0 ?
-      GameModule.getGameModule() : l.get(l.size() - 1);
+    Object last = l.size() == 0 ?
+                  GameModule.getGameModule() : l.get(l.size() - 1);
 
     if (last instanceof PieceSlot) {
-      final PieceSlot slot = (PieceSlot) last;
-
-      // Resolve prototypes
-      final GamePiece clone =
-        PieceCloner.getInstance().clonePiece(slot.getPiece());
-
+      PieceSlot slot = (PieceSlot) last;
+      GamePiece clone = PieceCloner.getInstance().clonePiece(slot.getPiece()); // Resolve prototypes
       p.setProperty(clone.getType(),
         ComponentPathBuilder.getInstance().getId(
           l.toArray(new Configurable[l.size()])));
     }
-    else {
-      final Configurable[] children = last.getConfigureComponents();
+    else if (last instanceof Configurable) {
+      Configurable c = (Configurable) last;
+      Configurable[] children = c.getConfigureComponents();
       for (int i = 0; i < children.length; ++i) {
         l.add(children[i]);
         findPieceSlots(l, p);

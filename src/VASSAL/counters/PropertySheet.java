@@ -695,7 +695,7 @@ public class PropertySheet extends Decorator implements TranslatablePiece {
     String[] defaultValues;
 
 
-    public static class SmartTable extends JTable {
+    public class SmartTable extends JTable {
       private static final long serialVersionUID = 1L;
 
       SmartTable(TableModel m) {
@@ -853,17 +853,6 @@ public class PropertySheet extends Decorator implements TranslatablePiece {
     return getI18nData(menuNames, descriptions);
   }
 
-  /**
-   * Return Property names exposed by this trait
-   */
-  public List<String> getPropertyNames() {
-    ArrayList<String> l = new ArrayList<String>();
-    for (String prop : properties.keySet()) {
-      l.add(prop);
-    }
-    return l;
-  }
-  
   private static class Ed implements PieceEditor {
 
     private PropertyPanel m_panel;

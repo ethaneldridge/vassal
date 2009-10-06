@@ -60,7 +60,6 @@ import VASSAL.command.Command;
 import VASSAL.configure.ColorConfigurer;
 import VASSAL.configure.SingleChildInstance;
 import VASSAL.configure.VisibilityCondition;
-import VASSAL.i18n.Resources;
 import VASSAL.tools.ErrorDialog;
 import VASSAL.tools.imageop.ImageOp;
 import VASSAL.tools.imageop.Op;
@@ -142,17 +141,17 @@ public class Board extends AbstractConfigurable implements GridContainer {
 
   public String[] getAttributeDescriptions() {
     return new String[] {
-    		Resources.getString(Resources.NAME_LABEL),
-    		Resources.getString("Editor.Board.image"), //$NON-NLS-1$
-    		Resources.getString("Editor.Board.reverse"), //$NON-NLS-1$
-    		Resources.getString("Editor.Board.width"), //$NON-NLS-1$
-    		Resources.getString("Editor.Board.height"), //$NON-NLS-1$
-    		Resources.getString(Resources.COLOR_LABEL),
+      "Board name:  ",
+      "Board image:  ",
+      "Reversible:  ",
+      "Board width:  ",
+      "Board height:  ",
+      "Background color:  "
     };
   }
   
   public static String getConfigureTypeName() {
-    return Resources.getString("Editor.Board.component_type"); //$NON-NLS-1$
+    return "Board";
   }
 
   public Class<?>[] getAttributeTypes() {
@@ -222,7 +221,7 @@ public class Board extends AbstractConfigurable implements GridContainer {
     }
     else if (WIDTH.equals(key)) {
       if (val instanceof String) {
-        val = Integer.valueOf((String) val);
+        val = new Integer((String) val);
       }
       if (val != null) {
         boundaries.setSize(((Integer) val).intValue(), boundaries.height);
@@ -230,7 +229,7 @@ public class Board extends AbstractConfigurable implements GridContainer {
     }
     else if (HEIGHT.equals(key)) {
       if (val instanceof String) {
-        val = Integer.valueOf((String) val);
+        val = new Integer((String) val);
       }
       if (val != null) {
         boundaries.setSize(boundaries.width, ((Integer) val).intValue());

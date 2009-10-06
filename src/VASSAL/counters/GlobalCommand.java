@@ -27,11 +27,11 @@ import VASSAL.build.module.Chatter;
 import VASSAL.build.module.Map;
 import VASSAL.command.Command;
 import VASSAL.command.NullCommand;
+import VASSAL.tools.ErrorDialog;
 import VASSAL.tools.FormattedString;
-import VASSAL.tools.NamedKeyStroke;
-import VASSAL.tools.RecursionLimitException;
 import VASSAL.tools.RecursionLimiter;
 import VASSAL.tools.RecursionLimiter.Loopable;
+import VASSAL.tools.RecursionLimitException;
 
 /**
  * Applies a given keyboard command to all counters on a map
@@ -51,10 +51,6 @@ public class GlobalCommand {
     this.keyStroke = keyStroke;
   }
 
-  public void setKeyStroke(NamedKeyStroke keyStroke) {
-    this.keyStroke = keyStroke.getKeyStroke();
-  }
-  
   public void setReportFormat(String format) {
     this.reportFormat.setFormat(format);
   }
@@ -87,6 +83,9 @@ public class GlobalCommand {
    */
   public Command apply(Map[] m, PieceFilter filter) {
     Command c = new NullCommand();
+    if (keyStroke == null) {  // Do not issue Null keystrokes
+      return c;
+    }
     try {
       RecursionLimiter.startExecution(owner);
       String reportText = reportFormat.getLocalizedText();
@@ -114,7 +113,7 @@ public class GlobalCommand {
       }
     }
     catch (RecursionLimitException e) {
-      RecursionLimiter.infiniteLoop(e);
+      ErrorDialog.infiniteLoop(e);
     }
     finally {
       RecursionLimiter.endExecution();

@@ -51,11 +51,10 @@ import VASSAL.command.Command;
 import VASSAL.configure.BooleanConfigurer;
 import VASSAL.configure.ColorConfigurer;
 import VASSAL.configure.DoubleConfigurer;
+import VASSAL.configure.HotKeyConfigurer;
 import VASSAL.configure.IntConfigurer;
-import VASSAL.configure.NamedHotKeyConfigurer;
 import VASSAL.configure.StringConfigurer;
 import VASSAL.i18n.PieceI18nData;
-import VASSAL.tools.NamedKeyStroke;
 import VASSAL.tools.SequenceEncoder;
 import VASSAL.tools.image.ImageUtils;
 
@@ -74,7 +73,7 @@ public class Footprint extends MovementMarkable {
   protected List<Point> pointList = new ArrayList<Point>();
 
   // Type Variables (Configured in Ed)
-  protected NamedKeyStroke trailKey;                // Control Key to invoke
+  protected KeyStroke trailKey;                // Control Key to invoke
   protected String menuCommand;                // Menu Command
   protected boolean initiallyVisible = false;  // Are Trails initially visible?
   protected boolean globallyVisible = false;   // Are Trails shared between players?
@@ -165,7 +164,7 @@ public class Footprint extends MovementMarkable {
     final SequenceEncoder.Decoder st = new SequenceEncoder.Decoder(type, ';');
     st.nextToken();
 
-    trailKey = st.nextNamedKeyStroke(DEFAULT_TRAIL_KEY);
+    trailKey = st.nextKeyStroke(DEFAULT_TRAIL_KEY);
     menuCommand = st.nextToken(DEFAULT_MENU_COMMAND);
     initiallyVisible = st.nextBoolean(DEFAULT_INITIALLY_VISIBLE.booleanValue());
     globallyVisible = st.nextBoolean(DEFAULT_GLOBALLY_VISIBLE.booleanValue());
@@ -578,7 +577,7 @@ public class Footprint extends MovementMarkable {
 
   public KeyCommand[] myGetKeyCommands() {
     if (commands == null) {
-      if (trailKey != null && ! trailKey.isNull()) {
+      if (trailKey != null) {
         showTrailCommand = new KeyCommand(menuCommand, trailKey, Decorator.getOutermost(this), this);
       }
       if (showTrailCommand != null
@@ -628,7 +627,7 @@ public class Footprint extends MovementMarkable {
    * Point Limit
    */
   protected static class Ed implements PieceEditor {
-    private NamedHotKeyConfigurer trailKeyInput;
+    private HotKeyConfigurer trailKeyInput;
     private JPanel controls;
     private StringConfigurer mc;
     private BooleanConfigurer iv;
@@ -647,7 +646,7 @@ public class Footprint extends MovementMarkable {
       controls.setLayout(new BoxLayout(controls, BoxLayout.Y_AXIS));
 
       Box b;
-      trailKeyInput = new NamedHotKeyConfigurer(null, "Key Command:  ", p.trailKey);
+      trailKeyInput = new HotKeyConfigurer(null, "Key Command:  ", p.trailKey);
       controls.add(trailKeyInput.getControls());
 
       mc = new StringConfigurer(null, "Menu Command:  ", p.menuCommand);
@@ -661,7 +660,7 @@ public class Footprint extends MovementMarkable {
                                  Boolean.valueOf(p.globallyVisible));
       controls.add(gv.getControls());
 
-      cr = new IntConfigurer(null, "Circle Radius:  ", p.circleRadius);
+      cr = new IntConfigurer(null, "Circle Radius:  ", new Integer(p.circleRadius));
       controls.add(cr.getControls());
 
       fc = new ColorConfigurer(null, "Circle Fill Color:  ", p.fillColor);
@@ -670,23 +669,23 @@ public class Footprint extends MovementMarkable {
       lc = new ColorConfigurer(null, "Line Color:  ", p.lineColor);
       controls.add(lc.getControls());
 
-      lw = new DoubleConfigurer(null,"Line thickness:  ", p.lineWidth);
+      lw = new DoubleConfigurer(null,"Line thickness:  ",new Double(p.lineWidth));
       controls.add(lw.getControls());
 
-      st = new IntConfigurer(null, "Selected Unit Trail Transparency (0-100):  ", p.selectedTransparency);
+      st = new IntConfigurer(null, "Selected Unit Trail Transparency (0-100):  ", new Integer(p.selectedTransparency));
       controls.add(st.getControls());
 
-      ut = new IntConfigurer(null, "Unselected Unit Trail Transparency (0-100):  ", p.unSelectedTransparency);
+      ut = new IntConfigurer(null, "Unselected Unit Trail Transparency (0-100):  ", new Integer(p.unSelectedTransparency));
       controls.add(ut.getControls());
 
       b = Box.createHorizontalBox();
-      pb = new IntConfigurer(null, "Display Trail Points Off-map for ", p.edgePointBuffer);
+      pb = new IntConfigurer(null, "Display Trail Points Off-map for ", new Integer(p.edgePointBuffer));
       b.add(pb.getControls());
       b.add(new JLabel("pixels"));
       controls.add(b);
 
       b = Box.createHorizontalBox();
-      db = new IntConfigurer(null, "Display Trails Off-map for  ", p.edgeDisplayBuffer);
+      db = new IntConfigurer(null, "Display Trails Off-map for  ", new Integer(p.edgeDisplayBuffer));
       b.add(db.getControls());
       b.add(new JLabel("pixels"));
       controls.add(b);
@@ -699,7 +698,7 @@ public class Footprint extends MovementMarkable {
     public String getType() {
       final SequenceEncoder se = new SequenceEncoder(';');
       se.append(ID)
-        .append(trailKeyInput.getValueString())
+        .append((KeyStroke) trailKeyInput.getValue())
         .append(mc.getValueString())
         .append(iv.getValueString())
         .append(gv.getValueString())

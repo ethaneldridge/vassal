@@ -421,13 +421,11 @@ public class ModuleExtension extends AbstractBuildable implements GameComponent,
     return Builder.toString(doc);
   }
 
-  protected void write(boolean saveAs) throws IOException {
+  public void save() throws IOException {
     vassalVersionCreated = Info.getVersion();
     if (archive instanceof ArchiveWriter) {
-      final ArchiveWriter w = (ArchiveWriter) archive;
-
       try {
-        (new ExtensionMetaData(this)).save(w);
+        (new ExtensionMetaData(this)).save((ArchiveWriter) archive);
       }
       // FIXME: review error message
       catch (IOException e) {
@@ -435,12 +433,10 @@ public class ModuleExtension extends AbstractBuildable implements GameComponent,
       }
 
       final String save = buildString();
-      w.addFile(GameModule.BUILDFILE,
-                new ByteArrayInputStream(save.getBytes("UTF-8"))); //$NON-NLS-1$
-
-      if (saveAs) w.saveAs(true); 
-      else w.save(true);
-
+      ((ArchiveWriter) archive).addFile
+          (GameModule.BUILDFILE,
+           new ByteArrayInputStream(save.getBytes("UTF-8"))); //$NON-NLS-1$
+      ((ArchiveWriter) archive).write(true);
       lastSave = save;
     }
     else {
@@ -448,12 +444,27 @@ public class ModuleExtension extends AbstractBuildable implements GameComponent,
     }
   }
 
-  public void save() throws IOException {
-    write(false);
-  }
-
   public void saveAs() throws IOException {
-    write(true);
+    vassalVersionCreated = Info.getVersion();
+    if (archive instanceof ArchiveWriter) {
+      try {
+        (new ExtensionMetaData(this)).save((ArchiveWriter) archive);
+      }
+      // FIXME: review error message
+      catch (IOException e) {
+        Logger.log(e);
+      }
+
+      final String save = buildString();
+      ((ArchiveWriter) archive).addFile(
+          GameModule.BUILDFILE,
+          new ByteArrayInputStream(save.getBytes("UTF-8"))); //$NON-NLS-1$
+      ((ArchiveWriter) archive).saveAs(true);
+      lastSave = save;
+    }
+    else {
+      throw new IOException("Read-only extension");
+    }
   }
 
   public void remove(ExtensionElement el) {

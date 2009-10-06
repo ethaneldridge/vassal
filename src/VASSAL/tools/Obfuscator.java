@@ -1,6 +1,4 @@
 /*
- * $Id$
- *
  * Copyright (c) 2000-2006 by Rodney Kinney
  *
  * This library is free software; you can redistribute it and/or
@@ -20,6 +18,7 @@ package VASSAL.tools;
 
 import java.io.BufferedOutputStream;
 import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -32,9 +31,7 @@ import VASSAL.tools.io.IOUtils;
  * to prevent the casual cheat of hand-editing a logfile.
  * 
  * @author rkinney
- * @deprecated Use {@link ObfuscatingOutputStream} instead.
  */
-@Deprecated
 public class Obfuscator {
   public static final String HEADER = "!VCSK";
   private static final Random rand = new Random();
@@ -62,8 +59,9 @@ public class Obfuscator {
 
   // Convert a plain text file to an obfuscated file
   public static void main(String[] args) throws Exception {
-    final InputStream in =
-      args.length > 0 ? new FileInputStream(args[0]) : System.in;
+    System.out.println("Encoding " + args[0]);
+
+    final InputStream in = new FileInputStream(args[0]);
     final byte[] data;
     try {
       data = IOUtils.toByteArray(in);
@@ -73,7 +71,8 @@ public class Obfuscator {
     }
 
     Obfuscator o = new Obfuscator(data);
-    o.write(new BufferedOutputStream(System.out));
+    o.write(new BufferedOutputStream(new FileOutputStream(args[0])));
+    System.out.println("Done!");
     System.exit(0);
   }
 }

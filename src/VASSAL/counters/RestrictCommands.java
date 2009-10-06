@@ -25,14 +25,12 @@ import java.awt.Rectangle;
 import java.awt.Shape;
 import java.awt.event.InputEvent;
 import java.util.ArrayList;
-
 import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.JComboBox;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.KeyStroke;
-
 import VASSAL.build.module.documentation.HelpFile;
 import VASSAL.command.Command;
 import VASSAL.configure.KeyStrokeArrayConfigurer;
@@ -201,7 +199,7 @@ public class RestrictCommands extends Decorator implements EditablePiece {
   public static class Ed implements PieceEditor {
 
     protected StringConfigurer name;
-    protected PropertyExpressionConfigurer propertyMatch;
+    protected StringConfigurer propertyMatch;
     protected KeyStrokeArrayConfigurer watchKeys;
     protected JComboBox actionOption;
     protected JPanel box;
@@ -223,7 +221,7 @@ public class RestrictCommands extends Decorator implements EditablePiece {
       b.add(actionOption);
       box.add(b);
       
-      propertyMatch = new PropertyExpressionConfigurer(null, "Restrict when properties match:  ", piece.propertyMatch, Decorator.getOutermost(piece));
+      propertyMatch = new PropertyExpressionConfigurer(null, "Restrict when properties match:  ", piece.propertyMatch);
       box.add(propertyMatch.getControls());
 
       watchKeys = new KeyStrokeArrayConfigurer(null, "Restrict these Key Commands  ", piece.watchKeys);

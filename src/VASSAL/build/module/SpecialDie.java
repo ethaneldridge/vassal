@@ -26,7 +26,6 @@ import VASSAL.build.Buildable;
 import VASSAL.build.module.documentation.HelpFile;
 import VASSAL.configure.Configurer;
 import VASSAL.configure.FormattedStringConfigurer;
-import VASSAL.i18n.Resources;
 import VASSAL.i18n.TranslatableConfigurerFactory;
 import VASSAL.tools.FormattedString;
 
@@ -50,15 +49,11 @@ public class SpecialDie extends AbstractConfigurable {
   }
 
   public static String getConfigureTypeName() {
-    return Resources.getString("Editor.SpecialDie.component_type"); //$NON-NLS-1$
+    return "Symbolic Die";
   }
 
   public String[] getAttributeDescriptions() {
-    return new String[]{
-    		Resources.getString(Resources.NAME_LABEL),
-    		Resources.getString("Editor.SpecialDie.result_format") //$NON-NLS-1$
-    };
-    		
+    return new String[]{"Name:  ", "Results format:  "};
   }
 
   public Class<?>[] getAttributeTypes() {

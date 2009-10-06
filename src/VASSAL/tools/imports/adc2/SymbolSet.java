@@ -1,6 +1,4 @@
 /*
- * $Id$
- *
  * Copyright (c) 2008 by Michael Kiefte
  *
  * This library is free software; you can redistribute it and/or
@@ -35,13 +33,11 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
-import java.util.Map;
 import java.util.HashMap;
 
 import javax.imageio.ImageIO;
 
 import VASSAL.build.GameModule;
-import VASSAL.tools.ArrayUtils;
 import VASSAL.tools.filechooser.BMPFileFilter;
 import VASSAL.tools.imports.FileFormatException;
 import VASSAL.tools.imports.ImportAction;
@@ -421,29 +417,26 @@ public class SymbolSet extends Importer{
    * @return The most frequently occuring dimension for game pieces in this module.
    */
   public Dimension getModalSize() {
-    final HashMap<Dimension,Integer> histogram =
-      new HashMap<Dimension,Integer>();
-
+    final HashMap<Dimension, Integer> histogram = new HashMap<Dimension, Integer>();
     for (SymbolData piece : gamePieceData) {
-      final BufferedImage im = piece.getImage();
-      final Dimension d = new Dimension(im.getWidth(), im.getHeight());
-      final Integer i = histogram.get(d);
-      histogram.put(d, i == null ? 1 : i+1);
+      BufferedImage im = piece.getImage();
+      Dimension d = new Dimension(im.getWidth(), im.getHeight());
+      Integer i = histogram.get(d);
+      if (i == null)
+        histogram.put(d, 1);
+      else
+        histogram.put(d, i+1);
     }
-
     int max = 0;
     final Dimension maxDim = new Dimension(0,0);
-    for (Map.Entry<Dimension,Integer> e : histogram.entrySet()) {
-      final Dimension d = e.getKey();
-      final int n = e.getValue();
-
+    for (Dimension d : histogram.keySet()) {
+      int n = histogram.get(d);
       if (n > max) {
         max = n;          
         maxDim.height = d.height;
         maxDim.width = d.width;
       }
     }
-
     return maxDim;
   }
 
@@ -602,7 +595,8 @@ public class SymbolSet extends Importer{
       try {
         input = new BufferedReader(new FileReader(sdx));
 
-        final SymbolData[] pieces = ArrayUtils.copyOf(gamePieceData);
+        SymbolData[] pieces = new SymbolData[gamePieceData.length];
+        System.arraycopy(gamePieceData, 0, pieces, 0, pieces.length);
 
         String line = null;      
         try {

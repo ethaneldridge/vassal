@@ -25,8 +25,8 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
-
 import javax.swing.JOptionPane;
+import javax.swing.KeyStroke;
 
 import VASSAL.build.AbstractConfigurable;
 import VASSAL.build.AutoConfigurable;
@@ -38,9 +38,7 @@ import VASSAL.configure.Configurer;
 import VASSAL.configure.ConfigurerFactory;
 import VASSAL.configure.IconConfigurer;
 import VASSAL.counters.GamePiece;
-import VASSAL.i18n.Resources;
 import VASSAL.tools.LaunchButton;
-import VASSAL.tools.NamedKeyStroke;
 import VASSAL.tools.WriteErrorDialog;
 import VASSAL.tools.filechooser.FileChooser;
 import VASSAL.tools.io.IOUtils;
@@ -79,10 +77,10 @@ public class TextSaver extends AbstractConfigurable {
 
   public String[] getAttributeDescriptions() {
     return new String[] {
-    		Resources.getString(Resources.BUTTON_TEXT),
-    		Resources.getString(Resources.TOOLTIP_TEXT),
-    		Resources.getString(Resources.BUTTON_ICON),
-    		Resources.getString(Resources.HOTKEY_LABEL),
+      "Button Text:  ", 
+      "Tooltip Text:  ",
+      "Button icon:  ",
+      "Hotkey:  "
     };
   }
 
@@ -91,7 +89,7 @@ public class TextSaver extends AbstractConfigurable {
       String.class,
       String.class,
       IconConfig.class,
-      NamedKeyStroke.class
+      KeyStroke.class
     };
   }
 
@@ -167,7 +165,7 @@ public class TextSaver extends AbstractConfigurable {
   }
 
   public static String getConfigureTypeName() {
-    return Resources.getString("Editor.TextCapture.component_type"); //$NON-NLS-1$
+    return "Text Capture Tool";
   }
 
   /** 

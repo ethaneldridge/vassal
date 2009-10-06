@@ -20,23 +20,18 @@ package VASSAL.tools;
 
 import java.awt.Color;
 import java.awt.event.InputEvent;
-import java.util.Iterator;
 import java.util.NoSuchElementException;
-
 import javax.swing.KeyStroke;
-
 import VASSAL.configure.ColorConfigurer;
 import VASSAL.configure.HotKeyConfigurer;
-import VASSAL.configure.NamedHotKeyConfigurer;
-import VASSAL.configure.PropertyExpression;
 import VASSAL.configure.StringArrayConfigurer;
 
 /**
  * Encodes a sequence of Strings into a single String with a given delimiter.
- * Escapes the delimiter character if it occurs in the element strings. 
+ * Escapes the delimiter character if it occurs in the element strings.
  *
- * This is a very handy class for storing structured data into flat text and
- * quite a bit faster than parsing an XML document.
+ * This is a very handy class for storing structured data into flat text and quite a bit faster than parsing
+ * an XML document.
  *
  * For example, a structure such as {A,{B,C}} can be encoded with
  *
@@ -104,13 +99,10 @@ public class SequenceEncoder {
   }
 
   public SequenceEncoder append(KeyStroke stroke) {
-    return append(HotKeyConfigurer.encode(stroke));
+    String s = HotKeyConfigurer.encode(stroke);
+    return append(s != null ? s : "");
   }
 
-  public SequenceEncoder append(NamedKeyStroke stroke) {
-    return append(NamedHotKeyConfigurer.encode(stroke));
-  }
-  
   public SequenceEncoder append(Color color) {
     String s = ColorConfigurer.colorToString(color);
     return append(s != null ? s : "");
@@ -120,10 +112,6 @@ public class SequenceEncoder {
     return append(StringArrayConfigurer.arrayToString(s));
   }
 
-  public SequenceEncoder append(PropertyExpression p) {
-    return append(p.getExpression());
-  }
-  
   public String getValue() {
     return buffer != null ? buffer.toString() : null;
   }
@@ -147,7 +135,7 @@ public class SequenceEncoder {
     }
   }
 
-  public static class Decoder implements Iterator<String> {
+  public static class Decoder {
     private String val;
     private char delimit;
 
@@ -199,18 +187,6 @@ public class SequenceEncoder {
         value = value.substring(1, value.length() - 1);
       }
       return value;
-    }
-
-    public boolean hasNext() {
-      return hasMoreTokens();
-    }
-
-    public String next() {
-      return nextToken();
-    }
-  
-    public void remove() {
-      throw new UnsupportedOperationException();
     }
 
     public Decoder copy() {
@@ -307,31 +283,7 @@ public class SequenceEncoder {
       }
       return defaultValue;
     }
-    
-    public NamedKeyStroke nextNamedKeyStroke(char defaultValue) {
-      return nextNamedKeyStroke(NamedKeyStroke.getNamedKeyStroke(defaultValue, InputEvent.CTRL_MASK));
-    }
-    
-    public NamedKeyStroke nextNamedKeyStroke() {
-      return nextNamedKeyStroke(NamedKeyStroke.NULL_KEYSTROKE);
-    }
-    
-    public NamedKeyStroke nextNamedKeyStroke(NamedKeyStroke defaultValue) {
-      if (val != null) {
-        String s = nextToken();
-        if (s.length() == 0) {
-          defaultValue = null;
-        }
-        else if (s.indexOf(',') < 0) {
-          defaultValue = NamedKeyStroke.getNamedKeyStroke(s.charAt(0), InputEvent.CTRL_MASK);
-        }
-        else {
-          defaultValue = NamedHotKeyConfigurer.decode(s);
-        }
-      }
-      return defaultValue == null ? NamedKeyStroke.NULL_KEYSTROKE : defaultValue;
-    }
-   
+
     /**
      * Return the next token, or the default value if there are no more tokens
      * @param defaultValue
@@ -350,7 +302,9 @@ public class SequenceEncoder {
         retVal = StringArrayConfigurer.stringToArray(nextToken());
       }
       if (retVal.length < minLength) {
-        retVal = ArrayUtils.copyOf(retVal, minLength);
+        String[] old = retVal;
+        retVal = new String[minLength];
+        System.arraycopy(old,0,retVal,0,old.length);
       }
       return retVal;
     }

@@ -33,9 +33,7 @@ import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.util.ArrayList;
 import java.util.List;
-
 import javax.swing.KeyStroke;
-
 import VASSAL.build.AbstractConfigurable;
 import VASSAL.build.AutoConfigurable;
 import VASSAL.build.Buildable;
@@ -62,9 +60,7 @@ import VASSAL.i18n.Resources;
 import VASSAL.i18n.TranslatableConfigurerFactory;
 import VASSAL.tools.FormattedString;
 import VASSAL.tools.LaunchButton;
-import VASSAL.tools.NamedKeyStroke;
 import VASSAL.tools.SequenceEncoder;
-import VASSAL.tools.StringUtils;
 import VASSAL.tools.UniqueIdManager;
 
 /**
@@ -301,7 +297,7 @@ public class LOS_Thread extends AbstractConfigurable implements
     }
     else if (HIDE_OPACITY.equals(key)) {
       if (value instanceof String) {
-        value = Integer.valueOf((String) value);
+        value = new Integer((String) value);
       }
       setTransparency(((Integer) value).intValue());
     }
@@ -651,7 +647,12 @@ public class LOS_Thread extends AbstractConfigurable implements
   }
 
   protected String getLosCheckList() {
-    return StringUtils.join(", ", checkList);
+// FIXME: should use StringBuilder?
+    String list = "";
+    for (String loc : checkList) {
+      list += (list.length() > 0 ? ", ": "") + loc;
+    }
+    return list;
   }
   
   /** Since we register ourselves as a MouseMotionListener directly,
@@ -738,7 +739,7 @@ public class LOS_Thread extends AbstractConfigurable implements
   }
 
   public static String getConfigureTypeName() {
-    return Resources.getString("Editor.LosThread.component_type"); //$NON-NLS-1$
+    return "Line of Sight Thread";
   }
 
   public VASSAL.build.module.documentation.HelpFile getHelpFile() {
@@ -747,23 +748,23 @@ public class LOS_Thread extends AbstractConfigurable implements
 
   public String[] getAttributeDescriptions() {
     return new String[]{
-      Resources.getString(Resources.NAME_LABEL),
-      Resources.getString(Resources.BUTTON_TEXT),
-      Resources.getString(Resources.TOOLTIP_TEXT),                        
-      Resources.getString(Resources.BUTTON_ICON),
-      Resources.getString(Resources.HOTKEY_LABEL),
-      Resources.getString("Editor.report_format"), //$NON-NLS-1$
-      Resources.getString("Editor.LosThread.persistence"), //$NON-NLS-1$
-      Resources.getString("Editor.LosThread.icon_persist"), //$NON-NLS-1$
-      Resources.getString("Editor.LosThread.visible"), //$NON-NLS-1$
-      Resources.getString("Editor.LosThread.start_grid"), //$NON-NLS-1$
-      Resources.getString("Editor.LosThread.end_grid"), //$NON-NLS-1$
-      Resources.getString("Editor.LosThread.draw_range"), //$NON-NLS-1$
-      Resources.getString("Editor.LosThread.pixel_range"), //$NON-NLS-1$
-      Resources.getString("Editor.LosThread.round_fractions"), //$NON-NLS-1$
-      Resources.getString("Editor.LosThread.hidden"), //$NON-NLS-1$
-      Resources.getString("Editor.LosThread.opacity"), //$NON-NLS-1$
-      Resources.getString(Resources.COLOR_LABEL),
+      "Thread name:  ",
+      "Button text:  ",
+      "Tooltip text:  ",                        
+      "Button Icon:  ",
+      "Hotkey:  ",
+      "Report Format:  ",
+      "Persistence:  ",
+      "Button Icon when LOS persisting:  ",
+      "Visible to Opponent:  ",
+      "Force start of thread to snap to grid?",
+      "Force end of thread to snap to grid?",
+      "Draw Range?",
+      "Pixels per range unit (0 to use Grid calculation):  ",
+      "Round fractions:  ",
+      "Hide Pieces while drawing?",
+      "Opacity of hidden pieces (0-100%):  ",
+      "Thread color:  "
     };
   }
 
@@ -773,7 +774,7 @@ public class LOS_Thread extends AbstractConfigurable implements
       String.class,
       String.class,
       IconConfig.class,
-      NamedKeyStroke.class,
+      KeyStroke.class,
       ReportFormatConfig.class,
       PersistenceOptions.class,
       IconConfig.class,

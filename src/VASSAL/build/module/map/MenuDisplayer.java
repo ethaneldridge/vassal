@@ -161,11 +161,8 @@ public class MenuDisplayer extends MouseAdapter implements Buildable {
       }
 
       // Move commands from main menu into submenus
-      for (java.util.Map.Entry<KeyCommandSubMenu,JMenu> e : 
-                                                        subMenus.entrySet()) {
-        final KeyCommandSubMenu menuCommand = e.getKey();
-        final JMenu subMenu = e.getValue();
-
+      for (KeyCommandSubMenu menuCommand : subMenus.keySet()) {      
+        JMenu subMenu = subMenus.get(menuCommand);
         for (Iterator<String> it2 = menuCommand.getCommands(); it2.hasNext();) {
           final ArrayList<JMenuItem> matchingCommands =
             commandNames.get(it2.next());

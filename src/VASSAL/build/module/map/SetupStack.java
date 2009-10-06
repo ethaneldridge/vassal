@@ -251,12 +251,12 @@ public class SetupStack extends AbstractConfigurable implements GameComponent, U
 
   public String[] getAttributeDescriptions() {
     return new String[]{
-    	Resources.getString(Resources.NAME_LABEL),
-    	Resources.getString("Editor.StartStack.board"), //$NON-NLS-1$
-    	Resources.getString("Editor.StartStack.grid"), //$NON-NLS-1$
-    	Resources.getString("Editor.StartStack.location"), //$NON-NLS-1$
-    	Resources.getString("Editor.StartStack.position_x"), //$NON-NLS-1$
-    	Resources.getString("Editor.StartStack.position_y"), //$NON-NLS-1$
+      "Name:  ",
+      "Belongs to Board:  ",
+      "Use Grid Location:  ",
+      "Location:  ",
+      "X position:  ",
+      "Y position:  "
     };
   }
 
@@ -321,7 +321,7 @@ public class SetupStack extends AbstractConfigurable implements GameComponent, U
     }
     else if (USE_GRID_LOCATION.equals(key)) {
       if (value instanceof String) {
-        value = Boolean.valueOf((String) value);
+        value = new Boolean((String) value);
       }
       useGridLocation = ((Boolean) value).booleanValue();
     }
@@ -330,13 +330,13 @@ public class SetupStack extends AbstractConfigurable implements GameComponent, U
     }
     else if (X_POSITION.equals(key)) {
       if (value instanceof String) {
-        value = Integer.valueOf((String) value);
+        value = new Integer((String) value);
       }
       pos.x = ((Integer) value).intValue();
     }
     else if (Y_POSITION.equals(key)) {
       if (value instanceof String) {
-        value = Integer.valueOf((String) value);
+        value = new Integer((String) value);
       }
       pos.y = ((Integer) value).intValue();
     }
@@ -367,7 +367,7 @@ public class SetupStack extends AbstractConfigurable implements GameComponent, U
   }
 
   public static String getConfigureTypeName() {
-    return Resources.getString("Editor.StartStack.component_type"); //$NON-NLS-1$
+    return "At-Start Stack";
   }
 
   public void removeFrom(Buildable parent) {
@@ -864,8 +864,8 @@ public class SetupStack extends AbstractConfigurable implements GameComponent, U
     public static class View extends JPanel implements DropTargetListener, DragGestureListener, DragSourceListener, DragSourceMotionListener {
       
       private static final long serialVersionUID = 1L;
-      protected static final int CURSOR_ALPHA = 127;
-      protected static final int EXTRA_BORDER = 4;
+      final int CURSOR_ALPHA = 127;
+      final int EXTRA_BORDER = 4;
       protected Board myBoard;
       protected MapGrid myGrid;
       protected SetupStack myStack;

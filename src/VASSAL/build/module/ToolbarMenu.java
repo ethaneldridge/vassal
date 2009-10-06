@@ -30,7 +30,6 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
 import javax.swing.AbstractButton;
 import javax.swing.Icon;
 import javax.swing.JButton;
@@ -38,8 +37,8 @@ import javax.swing.JMenu;
 import javax.swing.JMenuItem;
 import javax.swing.JPopupMenu;
 import javax.swing.JToolBar;
+import javax.swing.KeyStroke;
 import javax.swing.SwingUtilities;
-
 import VASSAL.build.AbstractConfigurable;
 import VASSAL.build.Buildable;
 import VASSAL.build.GameModule;
@@ -48,7 +47,6 @@ import VASSAL.command.Command;
 import VASSAL.configure.StringArrayConfigurer;
 import VASSAL.i18n.Resources;
 import VASSAL.tools.LaunchButton;
-import VASSAL.tools.NamedKeyStroke;
 import VASSAL.tools.ToolBarComponent;
 
 /**
@@ -67,7 +65,6 @@ public class ToolbarMenu extends AbstractConfigurable
   public static final String BUTTON_HOTKEY = "hotkey"; //$NON-NLS-1$
   public static final String TOOLTIP = "tooltip"; //$NON-NLS-1$
   public static final String MENU_ITEMS = "menuItems"; //$NON-NLS-1$
-  public static final String DESCRIPTION = "description"; //$NON-NLS-1$
   /** Buttons where this property contains a JPopupMenu will turn into sub-menus */
   public static final String MENU_PROPERTY = "ToolbarMenu.popup"; //$NON-NLS-1$
   protected List<String> menuItems = new ArrayList<String>();
@@ -95,29 +92,22 @@ public class ToolbarMenu extends AbstractConfigurable
   }
 
   public String[] getAttributeDescriptions() {
-    return new String[] {
-        Resources.getString(Resources.DESCRIPTION),
-        Resources.getString(Resources.BUTTON_TEXT), 
-        Resources.getString(Resources.TOOLTIP_TEXT), 
-        Resources.getString(Resources.BUTTON_ICON),
-        Resources.getString(Resources.HOTKEY_LABEL), 
-        Resources.getString("Editor.ToolbarMenu.menu_entries")}; //$NON-NLS-1$
+    return new String[] {Resources.getString(Resources.BUTTON_TEXT), Resources.getString(Resources.TOOLTIP_TEXT), Resources.getString(Resources.BUTTON_ICON), 
+                         Resources.getString(Resources.HOTKEY_LABEL),Resources.getString("Editor.ToolbarMenu.menu_entries")}; //$NON-NLS-1$
   }
 
   public Class<?>[] getAttributeTypes() {
     return new Class<?>[] {
       String.class,
       String.class,
-      String.class,
       Icon.class,
-      NamedKeyStroke.class,
+      KeyStroke.class,
       String[].class
     };
   }
 
   public String[] getAttributeNames() {
     return new String[] {
-      DESCRIPTION,
       BUTTON_TEXT,
       TOOLTIP,
       BUTTON_ICON,
@@ -130,9 +120,6 @@ public class ToolbarMenu extends AbstractConfigurable
     if (MENU_ITEMS.equals(key)) {
       return StringArrayConfigurer.arrayToString(
         menuItems.toArray(new String[menuItems.size()]));
-    }
-    else if(DESCRIPTION.equals(key)) {
-      return getConfigureName();
     }
     else {
       return launch.getAttributeValueString(key);
@@ -152,9 +139,6 @@ public class ToolbarMenu extends AbstractConfigurable
     else if (BUTTON_TEXT.equals(key)) {
       setConfigureName((String) value);
       launch.setAttribute(key, value);
-    }
-    else if(DESCRIPTION.equals(key)) {
-      setConfigureName((String) value);
     }
     else {
       launch.setAttribute(key, value);

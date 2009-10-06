@@ -1,7 +1,7 @@
 /*
  * $Id$
  *
- * Copyright (c) 2000-2009 by Rodney Kinney, Joel Uckelman, Brent Easton
+ * Copyright (c) 2000-2009 by Rodney Kinney, Joel Uckelman
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Library General Public
@@ -27,9 +27,12 @@ import java.awt.image.FilteredImageSource;
 import java.awt.Toolkit;
 import java.awt.Rectangle;
 import java.util.Collection;
+import java.util.zip.ZipInputStream;
 import javax.swing.ImageIcon;
 import VASSAL.tools.imageop.Op;
 ////////////////////////////////////////////////////////
+
+import static VASSAL.tools.IterableEnumeration.iterate;
 
 import java.applet.AudioClip;
 import java.awt.Dimension;
@@ -53,26 +56,25 @@ import java.util.List;
 import java.util.Map;
 import java.util.SortedSet;
 import java.util.TreeSet;
+import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 import sun.applet.AppletAudioClip;
 
 import VASSAL.tools.image.ImageUtils;
 import VASSAL.tools.image.svg.SVGImageUtils;
 import VASSAL.tools.image.svg.SVGRenderer;
-import VASSAL.tools.io.FileArchive;
 import VASSAL.tools.io.IOUtils;
-import VASSAL.tools.io.ZipArchive;
+import VASSAL.tools.logging.Logger;
 
 /**
  * Wrapper around a Zip archive with methods to cache images
  */
 public class DataArchive extends SecureClassLoader implements Closeable {
-
-  protected FileArchive archive;
+  protected ZipFile archive = null;
 
   protected List<DataArchive> extensions = new ArrayList<DataArchive>();
 
-// FIXME: these should go into a cache, like images have 
+// FIXME: this needs to become a ConcurrentSoftHashMap like for images
   private final Map<String,AudioClip> soundCache =
     new HashMap<String,AudioClip>();
 
@@ -84,15 +86,13 @@ public class DataArchive extends SecureClassLoader implements Closeable {
   public static final String SOUND_DIR = "sounds/";
   protected String soundDir = SOUND_DIR;
 
-  public static final String ICON_DIR = "icons/";
-  
   protected DataArchive() {
     super(DataArchive.class.getClassLoader());
   }
 
   public DataArchive(String zipName, String imageDir) throws IOException {
     this();
-    archive = new ZipArchive(zipName);
+    archive = new ZipFile(zipName);
     this.imageDir = imageDir;
   }
 
@@ -103,33 +103,21 @@ public class DataArchive extends SecureClassLoader implements Closeable {
   public String getName() {
     return archive == null ? "data archive" : archive.getName();
   }
- 
-  public FileArchive getArchive() {
-    return archive;
-  }
- 
+  
   public String getImagePrefix() {
     return imageDir;
+  }
+
+  public ZipFile getArchive() {
+    return archive;
   }
 
   public AudioClip getCachedAudioClip(String name) throws IOException {
     final String path = soundDir + name;
     AudioClip clip = soundCache.get(path);
     if (clip == null) {
-      if (name.toLowerCase().endsWith(".mp3")) {
-        clip = new Mp3AudioClip(path); 
-      }
-      else {
-        InputStream stream = null;
-        try {
-          stream = getInputStream(path);
-          clip = new AppletAudioClip(IOUtils.toByteArray(stream));
-          soundCache.put(path,clip);
-        }
-        finally {
-          IOUtils.closeQuietly(stream);
-        }
-      }
+      clip = new AppletAudioClip(IOUtils.toByteArray(getInputStream(path)));
+      soundCache.put(path,clip);
     }
     return clip;
   }
@@ -141,9 +129,7 @@ public class DataArchive extends SecureClassLoader implements Closeable {
    * @return an <code>InputStream</code> which contains the image file
    * @throws IOException if there is a problem reading the image file
    * @throws FileNotFoundException if the image file doesn't exist
-   * @deprecated Use {@link #getInputStream(String)} instead.
    */
-  @Deprecated
   public InputStream getImageInputStream(String fileName)
                                     throws IOException, FileNotFoundException {
 // FIXME: We should give notice that we're going to stop searching for
@@ -192,16 +178,8 @@ public class DataArchive extends SecureClassLoader implements Closeable {
    */
   public InputStream getInputStream(String fileName)
                                     throws IOException, FileNotFoundException {
-    // requested file is a resource, try our JARs
-    if (fileName.startsWith("/")) {
-      final InputStream in = getClass().getResourceAsStream(fileName);
-      if (in != null) return in;
-      throw new FileNotFoundException("Resource not found: " + fileName);
-    }
-
-    // requested file is in this archive
-    if (archive != null && archive.contains(fileName))
-      return archive.getInputStream(fileName);
+    final ZipEntry entry = archive.getEntry(fileName);
+    if (entry != null) return archive.getInputStream(entry);
    
     // we don't have it, try our extensions 
     for (DataArchive ext : extensions) {
@@ -249,7 +227,8 @@ public class DataArchive extends SecureClassLoader implements Closeable {
       throw new IOException("Must save before accessing contents");
     }
 
-    if (archive.contains(fileName)) {
+    final ZipEntry entry = archive.getEntry(fileName);
+    if (entry != null) {
       return new URL(getURL(), fileName);
     }
     
@@ -280,16 +259,8 @@ public class DataArchive extends SecureClassLoader implements Closeable {
       fileName.startsWith("/") ? fileName : getImagePrefix() + fileName);
   }
 
-  public boolean contains(String fileName) throws IOException {
-    if (archive == null) return false;
-    return archive.contains(fileName);
-  }
-
   public void close() throws IOException {
-    if (archive != null) {
-      archive.revert(); // ensure that we don't modify the archive
-      archive.close();
-    }
+    if (archive != null) archive.close();
   }
 
   public String[] getImageNames() {
@@ -318,18 +289,12 @@ public class DataArchive extends SecureClassLoader implements Closeable {
       new TreeSet<String>(String.CASE_INSENSITIVE_ORDER);
 
     if (archive != null) {
-      try {
-//        for (String filename : archive.getFiles(imageDir)) {
-        for (String filename : archive.getFiles("images")) {
-          s.add(filename.substring(imageDir.length()));
+      for (ZipEntry entry : iterate(archive.entries())) {
+        if (entry.getName().startsWith(imageDir)) {
+          s.add(entry.getName().substring(imageDir.length()));
         }
       }
-      catch (IOException e) {
-// FIXME: don't swallow this exception!
-        e.printStackTrace();
-      }
     }
-
     return s;
   }
 
@@ -398,18 +363,14 @@ public class DataArchive extends SecureClassLoader implements Closeable {
 
   @Override
   protected Class<?> findClass(String name) throws ClassNotFoundException {
-    InputStream stream = null;
     try {
       final String slashname = name.replace('.', '/');
-      stream = getInputStream(slashname + ".class");
-      final byte[] data = IOUtils.toByteArray(stream);
+      final byte[] data =
+        IOUtils.toByteArray(getInputStream(slashname + ".class"));
       return defineClass(name, data, 0, data.length, cs);
     }
     catch (IOException e) {
       throw new ClassNotFoundException("Unable to load class " + name, e);
-    }
-    finally {
-      IOUtils.closeQuietly(stream);
     }
   }
 
@@ -555,7 +516,32 @@ public class DataArchive extends SecureClassLoader implements Closeable {
    */
   @Deprecated
   protected SortedSet<String> setOfImageNames() {
-    return getImageNameSet();
+    final TreeSet<String> s = new TreeSet<String>();
+    if (archive != null) {
+      ZipInputStream zis = null;
+      try {
+        zis = new ZipInputStream(new FileInputStream(archive.getName()));
+
+        ZipEntry entry = null;
+        while ((entry = zis.getNextEntry()) != null) {
+          if (entry.getName().startsWith(imageDir)) {
+            s.add(entry.getName().substring(imageDir.length()));
+          }
+        }
+
+        zis.close();
+      }
+      catch (IOException e) {
+        Logger.log(e);
+      }
+      finally {
+        IOUtils.closeQuietly(zis);
+      }
+    }
+    for (DataArchive ext : extensions) {
+      s.addAll(ext.setOfImageNames());
+    }
+    return s;
   }
 
 // FIXME: hook these up to ImageOp methods
@@ -703,7 +689,7 @@ public class DataArchive extends SecureClassLoader implements Closeable {
         return new FileInputStream(new File(dir, file));
       }
     }
-    catch (IOException e) {
+    catch (Exception e) {
       return null;
     }
   }
