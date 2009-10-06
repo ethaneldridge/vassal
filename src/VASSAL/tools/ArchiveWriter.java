@@ -1,5 +1,5 @@
 /*
- * $Id$
+ *se $Id$
  *
  * Copyright (c) 2000-2008 by Rodney Kinney, Joel Uckelman
  *
@@ -314,8 +314,6 @@ public class ArchiveWriter extends DataArchive {
                 new BufferedInputStream(
                   new FileInputStream(archive.getName())));
 
-          
-
           while ((entry = in.getNextEntry()) != null) {
             // skip modified or new entries
             final String name = entry.getName();
@@ -415,7 +413,21 @@ public class ArchiveWriter extends DataArchive {
           byte[] contents;
 
           if (o instanceof String) {
-            contents = SVGImageUtils.relativizeExternalReferences((String) o);
+// FIXME: Should provide a better error message when we encounter malformed
+// SVG. Best would be to warn user when the SVG is first loaded.
+            try {
+              contents = SVGImageUtils.relativizeExternalReferences((String) o);
+            }
+            catch (IOException e) {
+              // Note: we catch here and continue becuase the user will
+              // appreciate being able to save whatever he can.
+              ErrorDialog.show(
+                "Error.file_write_error",
+                entry == null ? "" : entry.getName()
+              );
+
+              continue;
+            }
           }
           else if (o instanceof byte[]) {
             contents = (byte[]) o;
