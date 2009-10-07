@@ -19,6 +19,7 @@
 package VASSAL.counters;
 
 import java.awt.Point;
+import java.util.NoSuchElementException;
 
 import javax.swing.KeyStroke;
 
@@ -148,7 +149,12 @@ public abstract class Decorator implements GamePiece, StateMergeable {
   public void setState(String newState) {
     SequenceEncoder.Decoder st = new SequenceEncoder.Decoder(newState, '\t');
     mySetState(st.nextToken());
-    piece.setState(st.nextToken());
+    try {
+      piece.setState(st.nextToken());
+    }
+    catch (NoSuchElementException e) {
+      throw new IllegalStateException("Please submit this bug: No state for Decorator="+myGetType());
+    }
   }
 
   /**
