@@ -32,6 +32,7 @@ Changes since 3.1.0
 
 The following bugs are fixed in 3.1.12:
 
+* Bug 2873163: Cannot save module after adding bad SVG image
 * Bug 2871323: NPE in ImageIOException
 * Bug 2844284: Global key cmd "Suppress individual reports" bug
 * Bug 2835838: bad transparency for Type 2 Truecolor PNGs
