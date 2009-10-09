@@ -291,7 +291,9 @@ public class DataArchive extends SecureClassLoader implements Closeable {
     if (archive != null) {
       for (ZipEntry entry : iterate(archive.entries())) {
         if (entry.getName().startsWith(imageDir)) {
-          s.add(entry.getName().substring(imageDir.length()));
+          if (!entry.getName().equals(imageDir)) {
+            s.add(entry.getName().substring(imageDir.length()));
+          }
         }
       }
     }
