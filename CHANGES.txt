@@ -1,4 +1,10 @@
-3.1.12 - ??
+3.1.12 - 15 October 2009
+
+* Bug 2873163: Cannot save module after adding bad SVG image
+* Bug 2871323: NPE in ImageIOException
+* Bug 2844284: Global key cmd "Suppress individual reports" bug
+* Bug 2835838: bad transparency for Type 2 Truecolor PNGs
+* Bug: DataArchive.getImageNameSet() returns empty string for images dir
 
 3.1.11 - 30 September 2009
 
