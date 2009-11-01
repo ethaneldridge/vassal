@@ -32,6 +32,8 @@ Changes since 3.1.0
 
 The following bugs are fixed in 3.1.13:
 
+* Bug: Removed spurious Vengine.jar from l4j classpath.
+
 
 The following bugs are fixed in 3.1.12:
 
