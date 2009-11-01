@@ -32,8 +32,8 @@ Changes since 3.1.0
 
 The following bugs are fixed in 3.1.13:
 
-* Bug: Removed spurious Vengine.jar from l4j classpath.
-
+* Bug: Removed spurious Vengine.jar from Launch4j classpath.
+* Bug: Confusing error message on attempt to run from "other" ZIP on Windows
 
 The following bugs are fixed in 3.1.12:
 

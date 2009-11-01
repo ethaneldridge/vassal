@@ -174,8 +174,7 @@ $(TMPDIR)/VASSAL-$(VERSION)-linux.tar.bz2: version release-other
 	tar cjvf $@ -C $(TMPDIR) VASSAL-$(VERSION)
 
 $(TMPDIR)/VASSAL-$(VERSION)-windows.exe: version release-other $(TMPDIR)/VASSAL.exe
-	cp dist/windows/VASSAL.bat $(TMPDIR)/VASSAL-$(VERSION)
-	rm $(TMPDIR)/VASSAL-$(VERSION)/VASSAL.sh
+	rm $(TMPDIR)/VASSAL-$(VERSION)/VASSAL.{sh,bat}
 	cp $(TMPDIR)/VASSAL.exe $(TMPDIR)/VASSAL-$(VERSION)
 	for i in `find $(TMPDIR)/VASSAL-$(VERSION) -type d` ; do \
 		echo SetOutPath \"\$$INSTDIR\\`echo $$i | \
