@@ -90,7 +90,9 @@ of Java older than 1.5.0_08 upgrade to *at least* 1.5.0_08.
 
 For Linux and Mac users, this should require no action on your part. Windows
 users installing VASSAL 3.1.13 with the Windows installer will be prompted to
-update Java if what they have is older than 1.5.0_08.
+update Java if what they have is older than 1.5.0_08. If you are a Windows
+user, you might also need to restart your computer after installing a Java
+update in order for Java programs to work properly.
 
 For feature changes from 3.0 to 3.1, see the release notes for 3.1.0.
 
