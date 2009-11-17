@@ -1,7 +1,7 @@
 /*
  * $Id$
  *
- * Copyright (c) 2000 by Rodney Kinney
+ * Copyright (c) 2000-2009 by Rodney Kinney, Brent Easton
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Library General Public
@@ -183,7 +183,6 @@ public class BasicLogger implements Logger, Buildable, GameComponent, CommandEnc
   }
 
   public void setup(boolean show) {
-    VASSAL.tools.logging.Logger.log("BasicLogger.setup() - Game starting = "+show+", endLogAction.enabled()="+endLogAction.isEnabled()); // Debug [2817148] 
     newLogAction.setEnabled(show);
     if (show) {
       logOutput.clear();
@@ -215,7 +214,6 @@ public class BasicLogger implements Logger, Buildable, GameComponent, CommandEnc
       endLogAction.setEnabled(false);
       stepAction.setEnabled(false);
       outputFile = null;
-      VASSAL.tools.logging.Logger.log("BasicLogger.setup() - Game ending, outPutfile set to null"); // Debug [2817148] 
     }
   }
 
@@ -243,8 +241,7 @@ public class BasicLogger implements Logger, Buildable, GameComponent, CommandEnc
   /*
    * Check if user would like to create a new logfile
    */
-  public void queryNewLogFile(boolean atStart) {
-    VASSAL.tools.logging.Logger.log("BasicLogger.queryNewLogfile() - atStart="+atStart); // Debug [2817148] 
+  public void queryNewLogFile(boolean atStart) { 
     String prefName;
     String prompt;
     if (isLogging()) {
@@ -285,7 +282,6 @@ public class BasicLogger implements Logger, Buildable, GameComponent, CommandEnc
    */
   public void write() throws IOException {
     if (!logOutput.isEmpty()) {
-      VASSAL.tools.logging.Logger.log("BasicLogger.write() - outputFile = "+(outputFile == null ? "null" : outputFile.getPath())); // Debug [2817148] 
       final Command log = beginningState;
       for (Command c : logOutput) {
         log.append(new LogCommand(c, logInput, stepAction));
@@ -295,19 +291,17 @@ public class BasicLogger implements Logger, Buildable, GameComponent, CommandEnc
       final FastByteArrayOutputStream out = new FastByteArrayOutputStream();
       new Obfuscator(s.getBytes("UTF-8")).write(out); //$NON-NLS-1$    
 
-      if (outputFile == null) { // Debug [2817148] 
-        throw new IllegalStateException("Logfile variable is null, please submit this bug"); // Debug [2817148] 
-      } // Debug [2817148] 
       final ArchiveWriter saver = new ArchiveWriter(outputFile.getPath());
       saver.addFile(GameState.SAVEFILE_ZIP_ENTRY, out.toInputStream()); //$NON-NLS-1$
       metadata.save(saver);
       saver.write();
       Launcher.getInstance().sendSaveCmd(outputFile);
-
-      GameModule.getGameModule().getGameState().setModified(false);
+      
+      GameModule.getGameModule().getGameState().setModified(false); 
       undoAction.setEnabled(false);
-      endLogAction.setEnabled(false);
     }
+
+    endLogAction.setEnabled(false);
   }
  
   private File getSaveFile() {
@@ -334,9 +328,7 @@ public class BasicLogger implements Logger, Buildable, GameComponent, CommandEnc
   }
  
   protected void beginOutput() {
-    VASSAL.tools.logging.Logger.log("BasicLogger.beginOutput(), call getSaveFile()"); // Debug [2817148] 
     outputFile = getSaveFile();
-    VASSAL.tools.logging.Logger.log("BasicLogger.beginOutput(), outputFile = "+(outputFile == null ? "null" : outputFile.getPath())); // Debug [2817148] 
     if (outputFile == null) return;
 
     final GameModule gm = GameModule.getGameModule();
@@ -426,8 +418,7 @@ public class BasicLogger implements Logger, Buildable, GameComponent, CommandEnc
         write();
         GameModule.getGameModule().warn(Resources.getString("BasicLogger.logfile_written"));  //$NON-NLS-1$
         newLogAction.setEnabled(true);
-        GameModule.getGameModule().appendToTitle(null);
-        VASSAL.tools.logging.Logger.log("BasicLogger.endLogAction.actionPerformed() - outPutfile set to null"); // Debug [2817148] 
+        GameModule.getGameModule().appendToTitle(null); 
         outputFile = null;
       }
       catch (IOException ex) {
@@ -439,8 +430,7 @@ public class BasicLogger implements Logger, Buildable, GameComponent, CommandEnc
   protected Action newLogAction = new AbstractAction(Resources.getString("BasicLogger.begin_logfile")) {  //$NON-NLS-1$
     private static final long serialVersionUID = 1L;
 
-    public void actionPerformed(ActionEvent e) {
-      VASSAL.tools.logging.Logger.log("BasicLogger.newLogAction.actionPerformed()"); // Debug [2817148] 
+    public void actionPerformed(ActionEvent e) { 
       beginOutput();
     }
   };
