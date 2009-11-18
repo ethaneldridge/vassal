@@ -1,7 +1,7 @@
 /*
  * $Id$
  *
- * Copyright (c) 2000-2007 by Rodney Kinney
+ * Copyright (c) 2000-2009 by Rodney Kinney, Brent Easton
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Library General Public
@@ -20,13 +20,12 @@ package VASSAL.chat.ui;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.event.ComponentAdapter;
-import java.awt.event.ComponentEvent;
 import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.net.URL;
+
 import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
@@ -43,6 +42,7 @@ import javax.swing.KeyStroke;
 import javax.swing.SwingUtilities;
 import javax.swing.WindowConstants;
 import javax.swing.tree.TreePath;
+
 import VASSAL.build.AbstractBuildable;
 import VASSAL.build.Buildable;
 import VASSAL.build.GameModule;
@@ -126,29 +126,27 @@ public class ChatServerControls extends AbstractBuildable {
       launch.setIcon(new ImageIcon(iconURL));
       launch.setText(null);
     }
-    GameModule.getGameModule().getFrame().addComponentListener(new ComponentAdapter() {
-      public void componentShown(ComponentEvent e) {
-        GameModule.getGameModule().getFrame().removeComponentListener(this);
-        final IconConfigurer iconConfig = new IconConfigurer("serverControlsIcon", Resources.getString("Chat.server_controls_button_icon"), "/images/connect.gif"); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
-        iconConfig.setValue("/images/connect.gif");  //$NON-NLS-1$
-        GlobalOptions.getInstance().addOption(iconConfig);
-        iconConfig.addPropertyChangeListener(new PropertyChangeListener() {
-          public void propertyChange(PropertyChangeEvent evt) {
-            launch.setIcon(iconConfig.getIconValue());
-          }
-        });
-        iconConfig.fireUpdate();
-        final HotKeyConfigurer keyConfig = new HotKeyConfigurer("serverControlsHotKey", Resources.getString("Chat.server_controls_hotkey"), l.getKeyStroke());   //$NON-NLS-1$ //$NON-NLS-2$
-        GlobalOptions.getInstance().addOption(keyConfig);
-        keyConfig.addPropertyChangeListener(new PropertyChangeListener() {
-          public void propertyChange(PropertyChangeEvent evt) {
-            l.setKeyStroke((KeyStroke) keyConfig.getValue());
-            launch.setToolTipText(Resources.getString("Chat.server_controls_tooltip", HotKeyConfigurer.getString(l.getKeyStroke())));  //$NON-NLS-1$
-          }
-        });
-        keyConfig.fireUpdate();
+
+    final IconConfigurer iconConfig = new IconConfigurer("serverControlsIcon", Resources.getString("Chat.server_controls_button_icon"), "/images/connect.gif"); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
+    iconConfig.setValue("/images/connect.gif");  //$NON-NLS-1$
+    GlobalOptions.getInstance().addOption(iconConfig);
+    iconConfig.addPropertyChangeListener(new PropertyChangeListener() {
+      public void propertyChange(PropertyChangeEvent evt) {
+        launch.setIcon(iconConfig.getIconValue());
       }
     });
+    iconConfig.fireUpdate();
+    
+    final HotKeyConfigurer keyConfig = new HotKeyConfigurer("serverControlsHotKey", Resources.getString("Chat.server_controls_hotkey"), l.getKeyStroke());   //$NON-NLS-1$ //$NON-NLS-2$
+    GlobalOptions.getInstance().addOption(keyConfig);
+    keyConfig.addPropertyChangeListener(new PropertyChangeListener() {
+      public void propertyChange(PropertyChangeEvent evt) {
+        l.setKeyStroke((KeyStroke) keyConfig.getValue());
+        launch.setToolTipText(Resources.getString("Chat.server_controls_tooltip", HotKeyConfigurer.getString(l.getKeyStroke())));  //$NON-NLS-1$
+      }
+    });
+    keyConfig.fireUpdate();
+      
     gm.addKeyStrokeListener(l);
     gm.getToolBar().add(launch);
   }

@@ -32,6 +32,7 @@ Changes since 3.1.0
 
 The following bugs are fixed in 3.1.13:
 
+* Bug 2899561: Module is marked 'dirty' as soon as it is opened.
 * Bug 2888918: IndexOutOfBoundsException in SpecialDie.getImageName()
 * Bug 2817148: NPE in BasicLogger.write() - Trying to log to closed logfile
 * Bug 2816987: IndexOutOfBoundsException in SpecialDie.getTextValue()

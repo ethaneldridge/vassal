@@ -1,7 +1,7 @@
 /*
  * $Id$
  *
- * Copyright (c) 2000-2007 by Rodney Kinney
+ * Copyright (c) 2000-2009 by Rodney Kinney, Brent Easton
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Library General Public
@@ -45,13 +45,15 @@ public class EditModuleAction extends LoadModuleAction {
   }
 
   protected void loadModule(File f) throws IOException {
-    ArchiveWriter archive = new ArchiveWriter(new ZipFile(f.getPath()));
+    final ArchiveWriter archive = new ArchiveWriter(new ZipFile(f.getPath()));
     GameModule.init(new BasicModule(archive));
 // FIXME: really hide the MM?
 //    ModuleManagerWindow.getInstance().setVisible(false);
-    JFrame frame = GameModule.getGameModule().getFrame();
+    final JFrame frame = GameModule.getGameModule().getFrame();
     frame.setVisible(true);
-    ModuleEditorWindow w = new ModuleEditorWindow(GameModule.getGameModule());
+    // GameModule only produces a final buildString() once it's frame is displayed
+    GameModule.getGameModule().updateLastSave();
+    final ModuleEditorWindow w = new ModuleEditorWindow(GameModule.getGameModule());
     w.setLocation(0, frame.getY() + frame.getHeight());
     w.setSize(Info.getScreenBounds(frame).width/2,w.getHeight());
     w.setVisible(true);
