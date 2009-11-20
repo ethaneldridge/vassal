@@ -87,7 +87,9 @@ public class TriggerAction extends Decorator implements TranslatablePiece, Loopa
   protected KeyCommand[] myGetKeyCommands() {
     if (command.length() > 0 && key != null) {
       final KeyCommand c = new KeyCommand(command, key, Decorator.getOutermost(this), matchesFilter());
-      c.setEnabled(getMap() != null);
+      if (getMap() == null) {
+        c.setEnabled(false);
+      }
       return new KeyCommand[] {c};
     }
     else {
