@@ -32,12 +32,13 @@ Changes since 3.1.0
 
 The following bugs are fixed in 3.1.13:
 
+* Bug 2900930: Trigger Actions not disabled when Property Expression fails
 * Bug 2899561: Module is marked 'dirty' as soon as it is opened.
 * Bug 2888918: IndexOutOfBoundsException in SpecialDie.getImageName()
 * Bug 2817148: NPE in BasicLogger.write() - Trying to log to closed logfile
 * Bug 2816987: IndexOutOfBoundsException in SpecialDie.getTextValue()
 * Bug: Removed spurious Vengine.jar from Launch4j classpath.
-* Bug: Confusing error message on attempt to run from "other" ZIP on Windows
+* Bug: Confusing error message on attempt to run without unzipping on Windows
 
 The following bugs are fixed in 3.1.12:
 
