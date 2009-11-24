@@ -32,6 +32,7 @@ Changes since 3.1.0
 
 The following bugs are fixed in 3.1.13:
 
+* Bug 2902254: NPE in {Player,Editor}.PromptLaunchAction.actionPerformed()
 * Bug 2900930: Trigger Actions not disabled when Property Expression fails
 * Bug 2899561: Module is marked 'dirty' as soon as it is opened.
 * Bug 2888918: IndexOutOfBoundsException in SpecialDie.getImageName()
