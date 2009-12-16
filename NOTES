@@ -32,6 +32,7 @@ Changes since 3.1.0
 
 The following bugs are fixed in 3.1.14:
 
+* Bug 2912371: Custom step/undo/connect icons not showing in 3.1.13
 
 The following bugs are fixed in 3.1.13:
 
