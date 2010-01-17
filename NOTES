@@ -30,9 +30,14 @@ Source code:
 Changes since 3.1.0
 *********************
 
+New in 3.1.14:
+
+* RFE: Total player count now appears in the Server Status pane.
+
 The following bugs are fixed in 3.1.14:
 
 * Bug 2912371: Custom step/undo/connect icons not showing in 3.1.13
+* Bug: user.home property is not passed from Module Manager to Player or Editor
 
 The following bugs are fixed in 3.1.13:
 
