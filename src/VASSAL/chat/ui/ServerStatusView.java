@@ -52,6 +52,7 @@ public class ServerStatusView extends JTabbedPane implements ChangeListener, Tre
   private DefaultTreeModel[] historicalModels;
   private JTree treeCurrent;
   private JTree[] historicalTrees;
+  private int totalPlayers;
 
   public ServerStatusView(ServerStatus status) {
     this.status = status;
@@ -61,6 +62,7 @@ public class ServerStatusView extends JTabbedPane implements ChangeListener, Tre
   private void initComponents() {
     JPanel current = new JPanel(new BorderLayout());
     JToolBar toolbar = new JToolBar();
+
     toolbar.setFloatable(false);
     JButton b = new JButton(Resources.getString("Chat.refresh")); //$NON-NLS-1$
     b.addActionListener(new ActionListener() {
@@ -102,6 +104,8 @@ public class ServerStatusView extends JTabbedPane implements ChangeListener, Tre
     tree.getSelectionModel().setSelectionMode(TreeSelectionModel.SINGLE_TREE_SELECTION);
     tree.setCellRenderer(new Render());
     tree.expandRow(0);
+    tree.setLargeModel(true);
+    tree.setRowHeight( 18 );
     tree.addTreeSelectionListener(this);
     tree.addTreeExpansionListener(new TreeExpansionListener() {
       public void treeExpanded(TreeExpansionEvent event) {
@@ -239,6 +243,7 @@ public class ServerStatusView extends JTabbedPane implements ChangeListener, Tre
   private void refresh(DefaultTreeModel m,
                        ServerStatus.ModuleSummary[] modules) {
     final MutableTreeNode root = (MutableTreeNode) m.getRoot();
+    this.totalPlayers = 0;
     while (root.getChildCount() > 0) {
       m.removeNodeFromParent((MutableTreeNode) root.getChildAt(0));
     }
@@ -253,6 +258,8 @@ public class ServerStatusView extends JTabbedPane implements ChangeListener, Tre
         m.insertNodeInto(createNode(s), root, root.getChildCount());
       }
     }
+    final DefaultMutableTreeNode rootTmp = (DefaultMutableTreeNode) m.getRoot();
+    rootTmp.setUserObject(Resources.getString(Resources.VASSAL)+" (" + this.totalPlayers + ")");
   }
 
   private DefaultMutableTreeNode createNode(Object o) {
@@ -260,9 +267,10 @@ public class ServerStatusView extends JTabbedPane implements ChangeListener, Tre
     if (o instanceof ServerStatus.ModuleSummary) {
       children = ((ServerStatus.ModuleSummary) o).getRooms();
 
-	  int players = ((ServerStatus.ModuleSummary) o).numPlayers();
+      int players = ((ServerStatus.ModuleSummary) o).numPlayers();
       String moduleName = new String(((ServerStatus.ModuleSummary) o).getModuleName()+ " ("+players+")");
       ((ServerStatus.ModuleSummary) o).setModuleName( moduleName );
+      this.totalPlayers = this.totalPlayers + players;
     }
     else if (o instanceof SimpleRoom) {
       List<Player> l = ((Room)o).getPlayerList();
