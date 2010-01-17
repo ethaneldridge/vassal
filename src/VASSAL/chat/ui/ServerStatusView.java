@@ -105,7 +105,7 @@ public class ServerStatusView extends JTabbedPane implements ChangeListener, Tre
     tree.setCellRenderer(new Render());
     tree.expandRow(0);
     tree.setLargeModel(true);
-    tree.setRowHeight( 18 );
+    tree.setRowHeight(18);  // FIXME: check whether this is necessary
     tree.addTreeSelectionListener(this);
     tree.addTreeExpansionListener(new TreeExpansionListener() {
       public void treeExpanded(TreeExpansionEvent event) {
@@ -243,13 +243,14 @@ public class ServerStatusView extends JTabbedPane implements ChangeListener, Tre
   private void refresh(DefaultTreeModel m,
                        ServerStatus.ModuleSummary[] modules) {
     final MutableTreeNode root = (MutableTreeNode) m.getRoot();
-    this.totalPlayers = 0;
+    totalPlayers = 0;
+
     while (root.getChildCount() > 0) {
       m.removeNodeFromParent((MutableTreeNode) root.getChildAt(0));
     }
 
     if (modules.length == 0) {
-      DefaultMutableTreeNode n = new DefaultMutableTreeNode(
+      final DefaultMutableTreeNode n = new DefaultMutableTreeNode(
         Resources.getString("Chat.no_connections")); //$NON-NLS-1$
       n.setAllowsChildren(false);
     }
@@ -258,34 +259,39 @@ public class ServerStatusView extends JTabbedPane implements ChangeListener, Tre
         m.insertNodeInto(createNode(s), root, root.getChildCount());
       }
     }
-    final DefaultMutableTreeNode rootTmp = (DefaultMutableTreeNode) m.getRoot();
-    rootTmp.setUserObject(Resources.getString(Resources.VASSAL)+" (" + this.totalPlayers + ")");
+
+    // append total number of players on server to root node
+    root.setUserObject(
+      Resources.getString(Resources.VASSAL) + " (" + totalPlayers + ")");
   }
 
   private DefaultMutableTreeNode createNode(Object o) {
     Object[] children = null;
     if (o instanceof ServerStatus.ModuleSummary) {
-      children = ((ServerStatus.ModuleSummary) o).getRooms();
+      final ServerStatus.ModuleSummary ms = (ServerStatus.ModuleSummary) o;
 
-      int players = ((ServerStatus.ModuleSummary) o).numPlayers();
-      String moduleName = new String(((ServerStatus.ModuleSummary) o).getModuleName()+ " ("+players+")");
-      ((ServerStatus.ModuleSummary) o).setModuleName( moduleName );
-      this.totalPlayers = this.totalPlayers + players;
+      children = ms.getRooms();
+
+      final int players = ms.numPlayers();
+      ms.setModuleName(ms.getModuleName() + " (" + players + ")");
+      totalPlayers += players;
     }
     else if (o instanceof SimpleRoom) {
-      List<Player> l = ((Room)o).getPlayerList();
+      final SimpleRoom r = (SimpleRoom) o;
+
+      final List<Player> l = r.getPlayerList();
       
       // append the number of players to each room name
-      String roomName = new String(((SimpleRoom) o).getName()+" ("+l.size()+")");
-      ((SimpleRoom) o).setName( roomName );
+      r.setName(r.getName() + " (" + l.size() + ")");
       
       children = l.toArray(new Player[l.size()]);
     }
 
-    DefaultMutableTreeNode node = new DefaultMutableTreeNode(o);
+    final DefaultMutableTreeNode node = new DefaultMutableTreeNode(o);
+
     if (children != null) {
-      for (int i = 0; i < children.length; ++i) {
-        node.add(createNode(children[i]));
+      for (Object c : children) {
+        node.add(createNode(c));
       }
     }
 
