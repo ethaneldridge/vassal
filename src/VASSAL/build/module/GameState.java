@@ -223,13 +223,16 @@ public class GameState implements CommandEncoder {
      middle of a startup. */
   private boolean gameStarting = false;
   private boolean gameStarted = false;
-  
-  private boolean gameUpdating = false;
+ 
+  // 
+  // FIXME: This will become unnecessary when we do model-view separation.
+  //
+  private volatile boolean gameUpdating = false;
 
   /** 
    * Start a game for updating (via editor).
+   * <em>NOTE: This method is not for use in custom code.</em>
    */
-  
   public void setup(boolean gameStarting, boolean gameUpdating) {
 	  this.gameUpdating = gameUpdating;
 	  setup(gameStarting);
@@ -245,7 +248,10 @@ public class GameState implements CommandEncoder {
   public boolean isUpdating() {
 	  return this.gameUpdating;
   }
-  
+  // 
+  // END FIXME
+  //
+
   /**
    * Start/end a game.  Prompt to save if the game state has been
    * modified since last save.  Invoke {@link GameComponent#setup}
