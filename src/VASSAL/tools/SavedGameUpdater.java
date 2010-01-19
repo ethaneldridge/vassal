@@ -52,7 +52,7 @@ public class SavedGameUpdater {
    * @throws IOException
    */
   public void updateSavedGame(Properties pieceSlot, File savedGame) throws IOException {
-    GameModule.getGameModule().getGameState().setup(false);
+    GameModule.getGameModule().getGameState().setup(false, true);
     GameModule.getGameModule().getGameState().loadGameInBackground(savedGame);
     while (!GameModule.getGameModule().getGameState().isGameStarted()) {
       try {
@@ -92,6 +92,7 @@ public class SavedGameUpdater {
       }
     }
     GameModule.getGameModule().getGameState().saveGame(savedGame);
+    GameModule.getGameModule().getGameState().updateDone();
   }
 
   protected void findPieceSlots(List<Configurable> l, Properties p) {

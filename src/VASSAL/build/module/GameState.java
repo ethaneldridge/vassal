@@ -223,7 +223,29 @@ public class GameState implements CommandEncoder {
      middle of a startup. */
   private boolean gameStarting = false;
   private boolean gameStarted = false;
+  
+  private boolean gameUpdating = false;
 
+  /** 
+   * Start a game for updating (via editor).
+   */
+  
+  public void setup(boolean gameStarting, boolean gameUpdating) {
+	  this.gameUpdating = gameUpdating;
+	  setup(gameStarting);
+  }
+  
+  /**
+   * Indicated game update is completed and game is saved.
+   */
+  public void updateDone() {
+	  this.gameUpdating = false;
+  }
+  
+  public boolean isUpdating() {
+	  return this.gameUpdating;
+  }
+  
   /**
    * Start/end a game.  Prompt to save if the game state has been
    * modified since last save.  Invoke {@link GameComponent#setup}
