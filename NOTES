@@ -36,6 +36,7 @@ New in 3.1.14:
 
 The following bugs are fixed in 3.1.14:
 
+* Bug 2944858: Misplaced AreaOfEffect center when board is magnified
 * Bug 2933236: ArrayIndexOutOfBoundsException in StackMetrics.draw()
 * Bug 2912371: Custom step/undo/connect icons not showing in 3.1.13
 * Bug: user.home property is not passed from Module Manager to Player or Editor
