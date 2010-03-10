@@ -1,5 +1,13 @@
-3.1.14 - ??
+3.1.14 - 10 March 2010
 
+* RFE: Total player count now appears in the Server Status pane.
+
+* Bug 2944858: Misplaced AreaOfEffect center when board is magnified
+* Bug 2933236: ArrayIndexOutOfBoundsException in StackMetrics.draw()
+* Bug 2912371: Custom step/undo/connect icons not showing in 3.1.13
+* Bug: user.home property is not passed from Module Manager to Player or Editor
+* Bug: Only select marker if original piece was selected. Prevents
+  autoselecting of markers when placed via Global Key Command.
 
 3.1.13 - 2 December 2009 
 
@@ -325,23 +333,29 @@ is available.
 * Bug: SpecialDiceButton use correct format for text/window-title
 
 3.0.18 - 3 February 2008
+
 * Remove LOS_Thread console output.
 * Bug: Fix LaunchButton focusability.
 
 3.0.17 - 30 December 2007
+
 * Bug: Load extensions for built-in modules.
 
 3.0.16 - 27 December 2007
+
 * Bug: Don't report legacy clone/delete actions for invisible pieces
 
 3.0.15 - 17 December 2007
+
 * Bug: NullPointerException in Embelishment
 * RFE: SetupStack now understands locations on grids and regions.
 
 3.0.14 - 17 December 2007
+
 * Not released.
 
 3.0.13 - 8 November 2007
+
 Usability improvements:
 * Move up/down/top/bottom keys preserve order when multiple pieces are
 selected.
@@ -350,6 +364,7 @@ selected.
 marker.
 
 3.0.12 - 20 October 2007
+
 * Bug: Untrapped error on "Jump right in"
 * Bug: Arbitrary rotations on private maps,
 * Bug: Decks with Mask traits assigned to "any side"
@@ -358,48 +373,60 @@ marker.
 * Bug: Boards that have no name
 
 3.0.11 - 8 October 2007
+
 * Bug: A number of minor bugs with PropertySheet dialogs, toolbar menus,
 prefix names, stack movement.
 
 3.0.10 - 4 October 2007
+
 * Bug: Fixed a NullPointerException.
 
 3.0.9 - 3 October 2007
+
 * Bug: Fixed some problems with non-docking Map Windows, including the Map
 Overview Window and toolbar.
 
 3.0.8 - 1 Ocbober 2007
+
 * Restored high-quality image scaling preference.
 
 3.0.7 - 26 September 2007
+
 * Added High-quality scaling algorithm for zooming in. The scaling is
 faster than the previous smooth-scaling algorithm, so the "Use smooth
 scaling" preferences option has been removed.
 
 3.0.6 - 5 September 2007
+
 * Not released.
 
 3.0.5 - 1 September 2007
+
 * Bug: Layout problems with the board picker in the Game Setup wizard.
 * Bug: Untrapped error when adding a new Chart to a module.
 
 3.0.4 - 29 August 2007
+
 * Bug: Masked pieces can be un-masked by non-owners
 * Bug: The "Level1=" field is not property initialized in the Layer
 properties editor.
 
 3.0.3 - 21 August 2007
+
 * Bug: Problem creating module installers.
 
 3.0.2 - 16 August 2007
+
 * Not released.
 
 3.0.1 - 13 August 2007 
+
 * Bug: Multi-Action buttons no longer appear as sub-menus within a Toolbar
 menu
 * Bug: Dynamic Properties are correctly substituted within a Text Label.
 
 3.0.0 - 9 August 2007
+
 * Choose between central server and direct peer-to-peer connection
 * Internationalization support: Modules can be translated into any
 language via module extensions
@@ -426,3 +453,4 @@ opponent's window
 * Allow Transparent Border/Bg color in Mouse Over Stack Viewer
 * Send To Location - specify Zone, other piece's location
 * Shift clicking on map should not deselect counters
+

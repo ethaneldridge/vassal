@@ -40,6 +40,8 @@ The following bugs are fixed in 3.1.14:
 * Bug 2933236: ArrayIndexOutOfBoundsException in StackMetrics.draw()
 * Bug 2912371: Custom step/undo/connect icons not showing in 3.1.13
 * Bug: user.home property is not passed from Module Manager to Player or Editor
+* Bug: Only select marker if original piece was selected. Prevents
+  autoselecting of markers when placed via Global Key Command.
 
 The following bugs are fixed in 3.1.13:
 
@@ -110,6 +112,10 @@ users installing VASSAL 3.1.14 with the Windows installer will be prompted to
 update Java if what they have is older than 1.5.0_08. If you are a Windows
 user, you must restart your computer after installing a Java update in order
 for Java programs to work properly.
+
+We encourage Windows users to upgrade to Java 1.6.0_18 (a.k.a. Java 6
+Update 18) or newer, in order to avoid various bugs present in earlier
+versions of Java.
 
 For feature changes from 3.0 to 3.1, see the release notes for 3.1.0.
 
