@@ -33,9 +33,11 @@ Changes since 3.1.0
 Changes in 3.1.15:
 
 * Windows installer now suggests JRE 1.6.0_19 for Java upgrades.
+* URLs for version checking and bug reporting switched to vassalengine.org.
 
 * Bug: ADC2 line definition names are max 25 chars long.
 * Bug: Incorrect color for empty messages in chat pane
+* Bug: Only one connection record is listed per timestamp in server history.
 
 New in 3.1.14:
 
