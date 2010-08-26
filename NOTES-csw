@@ -1,12 +1,32 @@
-The VASSAL Team is happy to announce the release of VASSAL 3.1.14, which fixes several problems found in earlier versions.
+The VASSAL Team is happy to announce the release of VASSAL 3.1.15, which fixes several problems found in earlier versions.
 <h3>Download</h3>
-* <a href='http://downloads.sourceforge.net/vassalengine/VASSAL-3.1.14-linux.tar.bz2' target='_new'>Linux</a>
-* <a href='http://downloads.sourceforge.net/vassalengine/VASSAL-3.1.14-macosx.dmg' target='_new'>Mac OS X</a>
-* <a href='http://downloads.sourceforge.net/vassalengine/VASSAL-3.1.14-windows.exe' target='_new'>Windows</a>
-* <a href='http://downloads.sourceforge.net/vassalengine/VASSAL-3.1.14-other.zip'  target='_new'>Other</a>
-* <a href='http://downloads.sourceforge.net/vassalengine/VASSAL-3.1.14-src.zip' target='_new'>Source code</a>
+* <a href='http://downloads.sourceforge.net/vassalengine/VASSAL-3.1.15-linux.tar.bz2' target='_new'>Linux</a>
+* <a href='http://downloads.sourceforge.net/vassalengine/VASSAL-3.1.15-macosx.dmg' target='_new'>Mac OS X</a>
+* <a href='http://downloads.sourceforge.net/vassalengine/VASSAL-3.1.15-windows.exe' target='_new'>Windows</a>
+* <a href='http://downloads.sourceforge.net/vassalengine/VASSAL-3.1.15-other.zip'  target='_new'>Other</a>
+* <a href='http://downloads.sourceforge.net/vassalengine/VASSAL-3.1.15-src.zip' target='_new'>Source code</a>
 <h3>Changes since 3.1.0</h3>
-New in 3.1.14:
+Changes in 3.1.15:
+
+* Windows installer now suggests JRE 1.6.0_21 for Java upgrades.
+* URLs for version checking and bug reporting switched to vassalengine.org.
+* Starting with this release, all Bug and RFE numbers refer to the ones in our Bugzilla tracker at http://www.vassalengine.org/tracker.
+
+The following bugs are fixed in 3.1.15:
+
+* Bug: ADC2 line definition names are max 25 chars long.
+* Bug: Incorrect color for empty messages in chat pane
+* Bug: Only one connection record is listed per timestamp in server history.
+
+The following bugs which affect VASSAL on Windows are fixed in Java 6 Update
+21. If you are using an earlier version of Java, we strongly recommend
+upgrading to at least this version.
+
+* Bug 2601: NPE in sun.awt.shell.Win32ShellFolderManager2.isFileSystemRoot()
+* Bug 2572: IOException in Win32ShellFolder2.getFileSystemPath0()
+* Bug 2552: NPE in sun.awt.shell.Win32ShellFolder2.pidlsEqual()
+
+Changes in 3.1.14:
 
 * RFE: Total player count now appears in the Server Status pane.
 
@@ -18,66 +38,13 @@ The following bugs are fixed in 3.1.14:
 * Bug: user.home property is not passed from Module Manager to Player or Editor
 * Bug: Only select marker if original piece was selected. Prevents autoselecting of markers when placed via Global Key Command.
 
-The following bugs are fixed in 3.1.13:
+For changes prior to 3.1.14, see the change log. For feature changes from 3.0 to 3.1, see the release notes for 3.1.0.
 
-* Bug 2902254: NPE in {Player,Editor}.PromptLaunchAction.actionPerformed()
-* Bug 2900930: Trigger Actions not disabled when Property Expression fails
-* Bug 2899561: Module is marked 'dirty' as soon as it is opened.
-* Bug 2888918: IndexOutOfBoundsException in SpecialDie.getImageName()
-* Bug 2817148: NPE in BasicLogger.write() - Trying to log to closed logfile
-* Bug 2816987: IndexOutOfBoundsException in SpecialDie.getTextValue()
-* Bug: Removed spurious Vengine.jar from Launch4j classpath.
-* Bug: Confusing error message on attempt to run without unzipping on Windows
+VASSAL has a new User's Guide! You can view the User's Guide by selecting "User's Guide" from the Help menu in any of VASSAL's components.
 
-The following bugs are fixed in 3.1.12:
+The recommended minimum Java version for VASSAL 3.1 has changed. A bug in versions of Java prior to 1.5.0_08 (a.k.a. Java 5 update 8) prevents some images from loading properly. We now recommend that anyone using a version of Java older than 1.5.0_08 upgrade to *at least* 1.5.0_08.
 
-* Bug 2873163: Cannot save module after adding bad SVG image
-* Bug 2871323: NPE in ImageIOException
-* Bug 2844284: Global key cmd "Suppress individual reports" bug
-* Bug 2835838: bad transparency for Type 2 Truecolor PNGs
-* Bug: DataArchive.getImageNameSet() returns empty string for images dir
-
-New in 3.1.11:
-* The Mac OS X bundle has been updated to run with a 64-bit JVM if one is available.
-
-The following bugs are fixed in 3.1.11:
-* Bug 2849638: StackOverflowError - Return to Deck and Map auto-move
-* Bug 2844284: GKC does not "Suppress individual reports" across maps
-* Bug 2839916: Player with no Name does not appear properly on Server (II)
-* Bug 2817002: UnsatisfiedLinkError in JNA on some versions of Mac OS X
-
-New in 3.1.10:
-* VASSAL has a new User's Guide! You can view the User's Guide by selecting "User's Guide" from the Help menu in any of VASSAL's components.
-
-The following bugs are fixed in 3.1.10:
-* Bug 2839923: Users not showing an IP address
-* Bug 2839916: Player with no Name does not appear properly on Server
-* Bug 2838915: ArrayIndexOutOfBoundsException in ReportState.myKeyEvent()
-* Bug 2835827: Use images with premultiplied alpha on Macs
-* Bug 2835735: ArrayIndexOutOfBoundsException in PieceDefiner
-* Bug 2833840: IllegalArgumentException in FileChooser with Java 1.5
-* Bug 2832499: IllegalArgumentException in PropertySheet
-* Bug 2832472: Inventory: Pieces appear multiple times
-* Bug 2832471: Inventory: Label for folders cannot contain properties
-* Bug 2827225: NPE in NodeClient.doInvite()
-* Bug 2826715: NPE in GlobalProperty.encode()
-* Bug 2825175: Game Piece Inventory: "Draw Piece Images?" option is broken
-* Bug 2817139: NPE in RangeFilter ctor
-* Bug 2827113: ArrayIndexOutOfBoundsException in Embellishment
-* Bug 2817070: PropertySheet saves empty hotkey as null
-* Bug 2756330: StackOverflowError in BasicPiece.mySetType()
-* Bug 2735630: IllegalArgumentException due to non-UTF8 ZipEntry names
-* Bug 2259361: NPE in FreeRotator - Counter moved or deleted during rotate
-
-For changes prior to 3.1.8, see the change log.
-
-The recommended minimum Java version for VASSAL 3.1 has changed. A bug in versions of Java prior to 1.5.0_08 (a.k.a. Java 5 update 8 ) prevents some images from loading properly. We now recommend that anyone using a version of Java older than 1.5.0_08 upgrade to *at least* 1.5.0_08.
-
-For Linux and Mac users, this should require no action on your part. Windows users installing VASSAL 3.1.14 with the Windows installer will be prompted to update Java if what they have is older than 1.5.0_08. If you are a Windows user, you must restart your computer after installing a Java update in order for Java programs to work properly.
-
-We encourage Windows users to upgrade to Java 1.6.0_18 (a.k.a. Java 6 Update 18) or newer, in order to avoid various bugs present in earlier versions of Java.
-
-For feature changes from 3.0 to 3.1, see the release notes for 3.1.0.
+Furthermore, we recommend that Windows users in particular upgrade to at least Java 1.6.0_21 (a.k.a. Java 6 Update 21), in order to avoid bugs present in earlier versions of Java. Windows users installing VASSAL 3.1.15 with the Windows installer will be prompted to update Java if what they have is older than 1.6.0_21. After upgrading Java on Windows, you must restart your computer in order for Java programs to work properly.
 
 Please report all bugs, even if they are bugs which you've already reported against other versions. We take your bug reports very seriously---they're the reason we're able to find and fix bugs.
 
@@ -88,4 +55,4 @@ Report bugs here in the Technical Support & Bugs category at the <a href='http:/
 
 Cheers,
 
-Joel Uckelman, for The VASSAL Team
+The VASSAL Team
