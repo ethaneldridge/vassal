@@ -110,7 +110,7 @@ fast-compile: $(CLASSDIR)
 
 test: $(CLASSDIR)
 	$(JC) $(JCFLAGS) $(shell find $(TESTDIR) -name '*.java')
-	$(JAVA) -classpath $(CLASSPATH) org.junit.runner.JUnitCore $(shell echo $(TESTS) | sed "s/^$(TESTDIR)\/\(.*\)\.java$$/\1/" | tr '/' '.')
+	$(JAVA) -classpath $(CLASSPATH) org.junit.runner.JUnitCore $(shell find $(TESTDIR) -path '$(TESTDIR)/VASSAL/test' -prune -o -name '*.java' -print | sed "s/^$(TESTDIR)\/\(.*\)\.java$$/\1/" | tr '/' '.')
 
 #show:
 #	echo $(patsubst %,-C $(TMPDIR)/doc %,$(wildcard $(TMPDIR)/doc/*)) 
