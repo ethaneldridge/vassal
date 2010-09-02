@@ -17,7 +17,7 @@
 # Linux. (It will fail with "Invalid command:  System::Call"). To remedy
 # this, you can either: 
 #
-# 1) Install nsis on a Windows system, and copy the Plugins\System.dll file
+# 1) Install NSIS on a Windows system, and copy the Plugins\System.dll file
 # into /usr/share/nsis/plugins, or
 #
 # 2) Get both the (Windows) binary and source for NSIS and build with scons:
@@ -39,7 +39,9 @@
 SHELL:=/bin/bash
 
 SRCDIR:=src
+TESTDIR:=test
 LIBDIR:=lib
+LIBDIRND:=lib-nondist
 CLASSDIR:=classes
 TMPDIR:=tmp
 JDOCDIR:=javadoc
@@ -53,7 +55,7 @@ VERSION:=$(VNUM)-svn$(SVNVERSION)
 
 #CLASSPATH:=$(CLASSDIR):$(LIBDIR)/*
 
-CLASSPATH:=$(CLASSDIR):$(shell echo $(LIBDIR)/*.jar | tr ' ' ':')
+CLASSPATH:=$(CLASSDIR):$(shell echo $(LIBDIR)/*.jar | tr ' ' ':'):$(shell echo $(LIBDIRND)/*.jar | tr ' ' ':')
 JAVAPATH:=/usr/bin
 
 JC:=$(JAVAPATH)/javac
@@ -62,13 +64,14 @@ JCFLAGS:=-d $(CLASSDIR) -source 5 -target 5 -Xlint -classpath $(CLASSPATH) \
 
 JAR:=$(JAVAPATH)/jar
 JDOC:=$(JAVAPATH)/javadoc
+JAVA:=$(JAVAPATH)/java
 
 NSIS:=PATH=$$PATH:~/java/nsis makensis
 
 LAUNCH4J:=~/java/launch4j/launch4j
 
-SOURCES:=$(shell find $(SRCDIR) -name '*.java' | sed "s/^$(SRCDIR)\///")
-CLASSES:=$(SOURCES:.java=.class)
+#SOURCES:=$(shell find $(SRCDIR) -name '*.java' | sed "s/^$(SRCDIR)\///")
+#CLASSES:=$(SOURCES:.java=.class)
 JARS:=Vengine.jar
 
 vpath %.class $(shell find $(CLASSDIR) -type d)
@@ -102,8 +105,12 @@ $(CLASSDIR)/help: $(CLASSDIR)
 i18n: $(CLASSDIR)
 	for i in `cd $(SRCDIR) && find VASSAL -name '*.properties'`; do cp $(SRCDIR)/$$i $(CLASSDIR)/$$i; done
 
-fast-compile:
+fast-compile: $(CLASSDIR)
 	$(JC) $(JCFLAGS) $(shell find $(SRCDIR) -name '*.java')
+
+test: $(CLASSDIR)
+	$(JC) $(JCFLAGS) $(shell find $(TESTDIR) -name '*.java')
+	$(JAVA) -classpath $(CLASSPATH) org.junit.runner.JUnitCore $(shell echo $(TESTS) | sed "s/^$(TESTDIR)\/\(.*\)\.java$$/\1/" | tr '/' '.')
 
 #show:
 #	echo $(patsubst %,-C $(TMPDIR)/doc %,$(wildcard $(TMPDIR)/doc/*)) 
@@ -115,7 +122,7 @@ Vengine.jar: all $(TMPDIR)
 	cp dist/Vengine.mf $(TMPDIR)
 	(echo -n 'Class-Path: ' ; \
 		find $(LIBDIR) -name '*.jar' -printf '%f\n  ' | \
-		sed -e '/Vengine.jar/d' -e '/AppleJavaExtensions.jar/d' -e '/^  $$/d' \
+		sed -e '/Vengine.jar/d' -e '/^  $$/d' \
 	) >>$(TMPDIR)/Vengine.mf
 	$(JAR) cvfm $(LIBDIR)/$@ $(TMPDIR)/Vengine.mf -C $(CLASSDIR) .
 	pushd $(LIBDIR) ; $(JAR) i $@ ; popd
@@ -152,7 +159,6 @@ $(TMPDIR)/VASSAL-$(VERSION).app: version all $(JARS) $(TMPDIR)
 	cp dist/macosx/JavaApplicationStub $@/Contents/MacOS
 	cp dist/macosx/VASSAL.icns $@/Contents/Resources
 	svn export $(LIBDIR) $@/Contents/Resources/Java
-	rm $@/Contents/Resources/Java/AppleJavaExtensions.jar
 	svn export $(DOCDIR) $@/Contents/Resources/doc
 	cp $(LIBDIR)/Vengine.jar $@/Contents/Resources/Java
 
@@ -163,7 +169,6 @@ $(TMPDIR)/VASSAL-$(VERSION)-other.zip: version all $(JARS) $(TMPDIR)/VASSAL.exe
 	mkdir -p $(TMPDIR)/VASSAL-$(VERSION)
 	svn export $(DOCDIR) $(TMPDIR)/VASSAL-$(VERSION)/doc
 	svn export $(LIBDIR) $(TMPDIR)/VASSAL-$(VERSION)/lib
-	rm $(TMPDIR)/VASSAL-$(VERSION)/lib/AppleJavaExtensions.jar
 	cp $(LIBDIR)/Vengine.jar $(TMPDIR)/VASSAL-$(VERSION)/lib
 	cp dist/VASSAL.sh dist/windows/VASSAL.bat $(TMPDIR)/VASSAL.exe $(TMPDIR)/VASSAL-$(VERSION)
 	pushd $(TMPDIR) ; zip -9rv $(notdir $@) VASSAL-$(VERSION) ; popd
@@ -201,7 +206,7 @@ release-other: $(TMPDIR)/VASSAL-$(VERSION)-other.zip
 
 release-src: $(TMPDIR)/VASSAL-$(VERSION)-src.zip
 
-release: clean release-other release-linux release-windows release-macosx
+release: clean release-other release-linux release-windows release-macosx test
 
 clean-release:
 	$(RM) -r $(TMPDIR)/* $(LIBDIR)/Vengine.jar
@@ -218,4 +223,4 @@ clean-javadoc:
 clean: clean-release
 	$(RM) -r $(CLASSDIR)/*
 
-.PHONY: all fast-compile clean release release-linux release-macosx release-windows release-other clean-release i18n icons images help javadoc clean-javadoc version
+.PHONY: all fast-compile test clean release release-linux release-macosx release-windows release-other clean-release i18n icons images help javadoc clean-javadoc version
