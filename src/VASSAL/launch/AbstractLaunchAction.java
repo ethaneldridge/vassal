@@ -389,6 +389,9 @@ public abstract class AbstractLaunchAction extends AbstractAction {
 
         al.add("-Xdock:name=" + d_name);
         al.add("-Xdock:icon=" + d_icon);
+
+        // turn off Quartz, it causes font rendering problems
+        al.add("-Dapple.awt.graphics.UseQuartz=false");
       }
       else if (Info.isWindows()) {
         // Disable the 2D to Direct3D pipeline?
