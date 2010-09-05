@@ -41,7 +41,8 @@ public class MemoryUtils {
   /**
    * Gets the amount of physical memory (RAM) in this machine, in bytes.
    *
-   * @return the amount of RAM, in bytes
+   * @return the amount of RAM, in bytes; or -1 if the amount of RAM
+   * cannot be queried.
    */
   public static long getPhysicalMemory() {
     // FIXME: use org.apache.commons.lang.SystemUtils for OS check in 3.2
@@ -53,9 +54,17 @@ public class MemoryUtils {
       // by the bug in which causes incorrect reporting over 2GB. Hence,
       // we can handle them in the normal way.
 
-      final OperatingSystemMXBean osb =
-        (OperatingSystemMXBean) ManagementFactory.getOperatingSystemMXBean();
-      return osb.getTotalPhysicalMemorySize();
+      final Object o = ManagementFactory.getOperatingSystemMXBean();
+
+      if (o instanceof OperatingSystemMXBean) {
+        final OperatingSystemMXBean osb = (OperatingSystemMXBean) o;
+        return osb.getTotalPhysicalMemorySize();
+      }
+      else {
+        // We didn't get a com.sun.management.OperatingSystemMXBean. This
+        // can happen if we're running on a non-Sun JVM.
+        return -1;
+      }
     }
     else {
       // FIXME: totalPhysicalMemorySize() doesn't return the correct result
