@@ -393,9 +393,10 @@ public abstract class AbstractLaunchAction extends AbstractAction {
         // Quartz can cause font rendering problems; turn it off?
         final Boolean disableQuartz = 
           (Boolean) Prefs.getGlobalPrefs().getValue(Prefs.DISABLE_QUARTZ);
-        if (Boolean.TRUE.equals(disableQuartz)) {
-          al.add("-Dapple.awt.graphics.UseQuartz=false");
-        }
+
+        al.add("-Dapple.awt.graphics.UseQuartz=" + 
+          (Boolean.TRUE.equals(disableQuartz) ? "false" : "true")
+        );
       }
       else if (Info.isWindows()) {
         // Disable the 2D to Direct3D pipeline?

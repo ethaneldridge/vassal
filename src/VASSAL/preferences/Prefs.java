@@ -265,7 +265,7 @@ public class Prefs implements Closeable {
       final BooleanConfigurer quartzConf = new BooleanConfigurer(
         DISABLE_QUARTZ,
         Resources.getString("Prefs.disable_quartz"),
-        Boolean.FALSE
+        Boolean.TRUE
       );
       globalPrefs.addOption(quartzConf);
     }
