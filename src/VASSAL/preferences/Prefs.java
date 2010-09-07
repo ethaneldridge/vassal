@@ -53,6 +53,7 @@ public class Prefs implements Closeable {
   /** Preferences key for the directory containing modules */
   public static final String MODULES_DIR_KEY = "modulesDir"; // $NON_NLS-1$
   public static final String DISABLE_D3D = "disableD3d";
+  public static final String DISABLE_QUARTZ = "disableD3d";
   private static Prefs globalPrefs;
   private Map<String, Configurer> options = new HashMap<String, Configurer>();
   private Properties storedValues = new Properties();
@@ -258,7 +259,17 @@ public class Prefs implements Closeable {
       );
       globalPrefs.addOption(d3dConf);
     }
-    
+
+    // Option to disable Quartz renderer
+    if (Info.isMacOSX()) {
+      final BooleanConfigurer quartzConf = new BooleanConfigurer(
+        DISABLE_QUARTZ,
+        Resources.getString("Prefs.disable_quartz"),
+        Boolean.FALSE
+      );
+      globalPrefs.addOption(quartzConf);
+    }
+
     final BooleanConfigurer wizardConf = new BooleanConfigurer(
       WizardSupport.WELCOME_WIZARD_KEY,
       Resources.getString("WizardSupport.ShowWizard"),
