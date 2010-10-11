@@ -39,9 +39,11 @@ Changes in 3.1.15:
 
 The following bugs are fixed in 3.1.15:
 
-* Bug: ADC2 line definition names are max 25 chars long.
+* Bug 2924: Mac OS X: Quartz renderer misrenders fonts
+* Bug 2883: MemoryUtilsImpl is misnamed
+* Bug: ADC2 line definition names are max 25 chars long
 * Bug: Incorrect color for empty messages in chat pane
-* Bug: Only one connection record is listed per timestamp in server history.
+* Bug: Only one connection record is listed per timestamp in server history
 
 The following bugs which affect VASSAL on Windows are fixed in Java 6 Update
 21. If you are using an earlier version of Java, we strongly recommend
