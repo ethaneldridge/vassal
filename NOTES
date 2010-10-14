@@ -32,7 +32,7 @@ Changes since 3.1.0
 
 Changes in 3.1.15:
 
-* Windows installer now suggests JRE 1.6.0_21 for Java upgrades.
+* Windows installer now suggests JRE 1.6.0_22 for Java upgrades.
 * URLs for version checking and bug reporting switched to vassalengine.org.
 * Starting with this release, all Bug and RFE numbers refer to the ones
   in our Bugzilla tracker at http://www.vassalengine.org/tracker.
