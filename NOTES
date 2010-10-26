@@ -39,6 +39,7 @@ Changes in 3.1.15:
 
 The following bugs are fixed in 3.1.15:
 
+* Bug 3095: JPEGs with bad color profiles throw CMMException
 * Bug 2924: Mac OS X: Quartz renderer misrenders fonts
 * Bug 2883: MemoryUtilsImpl is misnamed
 * Bug: ADC2 line definition names are max 25 chars long

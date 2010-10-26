@@ -291,6 +291,17 @@ public class ImageLoader {
         try {
           size = new Dimension(reader.getWidth(0), reader.getHeight(0));
         }
+        catch (CMMException e) {
+          // Note: ImageIO can throw a CMMException for JPEGs which have
+          // broken color profiles. This problem is noted in Sun Bugs 6444360
+          // and 6839133.
+          //
+          // http://bugs.sun.com/view_bug.do?bug_id=6444360
+          // http://bugs.sun.com/view_bug.do?bug_id=6839133
+          //
+          ErrorDialog.dataError(new BadDataReport("Broken image", name));
+          throw (IOException) new IOException().initCause(e);
+        }
         catch (IllegalArgumentException e) {
           // Note: ImageIO can throw IllegalArgumentExceptions for certain
           // kinds of broken images, e.g., JPEGs which are in the RGB color
