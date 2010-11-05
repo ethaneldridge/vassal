@@ -134,12 +134,8 @@ public class CounterGlobalKeyCommand extends Decorator
   }
 
   public Command myKeyEvent(KeyStroke stroke) {
-    Command c = null;
     myGetKeyCommands();
-    if (myCommand.matches(stroke)) {
-      c = apply();
-    }
-    return c;
+    return myCommand.matches(stroke) ? apply() : null;
   }
 
   public void mySetState(String newState) {
@@ -199,7 +195,7 @@ public class CounterGlobalKeyCommand extends Decorator
     }
 
     return c;
-    }
+  }
   
   public PieceI18nData getI18nData() {
     return getI18nData(commandName, getCommandDescription(description, "Command name"));
