@@ -42,6 +42,7 @@ The following bugs are fixed in 3.1.15:
 * Bug 3095: JPEGs with bad color profiles throw CMMException
 * Bug 2924: Mac OS X: Quartz renderer misrenders fonts
 * Bug 2883: MemoryUtilsImpl is misnamed
+* Bug 2463: NPE in Map.getAttributeValueString()
 * Bug: ADC2 line definition names are max 25 chars long
 * Bug: Incorrect color for empty messages in chat pane
 * Bug: Only one connection record is listed per timestamp in server history
