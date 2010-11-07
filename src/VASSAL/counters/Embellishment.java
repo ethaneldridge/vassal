@@ -284,14 +284,12 @@ public class Embellishment extends Decorator implements TranslatablePiece {
     checkPropertyLevel(); // Name Change?
     String name = null;
 
-    /*
-     * Fix check value valid.
-     */
-    String commonName =(value > 0 && value < this.commonName.length) ? getCommonName(localized, value - 1) : null;
+    final String cname = 0 < value && value < commonName.length ?
+                         getCommonName(localized, value - 1) : null;
 
-    if (value > 0 && commonName != null && commonName.length() > 0) {
+    if (cname != null && cname.length() > 0) {
       final SequenceEncoder.Decoder st =
-        new SequenceEncoder.Decoder(commonName, '+');
+        new SequenceEncoder.Decoder(cname, '+');
       final String first = st.nextToken();
       if (st.hasMoreTokens()) {
         final String second = st.nextToken();
@@ -309,6 +307,7 @@ public class Embellishment extends Decorator implements TranslatablePiece {
     else {
       name = (localized ? piece.getLocalizedName() : piece.getName());
     }
+
     return name;
   }
  
