@@ -43,7 +43,9 @@ The following bugs are fixed in 3.1.15:
 * Bug 2979: CounterGlobalKeyCommand logs its changes separately
 * Bug 2924: Mac OS X: Quartz renderer misrenders fonts
 * Bug 2883: MemoryUtilsImpl is misnamed
+* Bug 2813: NPE in Decorator.setId()
 * Bug 2463: NPE in Map.getAttributeValueString()
+* Bug 2451: ArrayIndexOutOfBoundsException in Embellishment.getCommonName()
 * Bug: ADC2 line definition names are max 25 chars long
 * Bug: Incorrect color for empty messages in chat pane
 * Bug: Only one connection record is listed per timestamp in server history
