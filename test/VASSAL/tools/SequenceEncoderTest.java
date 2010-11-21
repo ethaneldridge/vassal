@@ -25,11 +25,11 @@ import static org.junit.Assert.*;
 public class SequenceEncoderTest {
   @Test
   public void testSingleQuoteBug2481() {
-    final SequenceEncoder se = new SequenceEncoder(',');
-    se.append("stuff").append("'");
+    // NB: This input can only be produced by hand-editing,
+    // not by SequenceEncoder.
+    final String bad = "stuff,'";
 
-    final SequenceEncoder.Decoder sd =
-      new SequenceEncoder.Decoder(se.getValue(), ',');
+    final SequenceEncoder.Decoder sd = new SequenceEncoder.Decoder(bad, ',');
 
     assertEquals("stuff", sd.nextToken());
     assertEquals("'", sd.nextToken());
