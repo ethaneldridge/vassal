@@ -28,6 +28,7 @@ import VASSAL.configure.Configurer;
 import VASSAL.configure.FormattedStringConfigurer;
 import VASSAL.i18n.TranslatableConfigurerFactory;
 import VASSAL.tools.FormattedString;
+import VASSAL.tools.logging.Logger;
 
 public class SpecialDie extends AbstractConfigurable {
 
@@ -116,9 +117,10 @@ public class SpecialDie extends AbstractConfigurable {
     format.setProperty(NAME, getLocalizedConfigureName());
     // No Faces may be defined, or opponent may have a version of the module with more faces defined than we have
     final int faceCount = getFaceCount();
-    if (faceCount == 0 || faceCount < face-1) {
+    if  (face < 0 || face >= faceCount)  {
       format.setProperty(RESULT, "undefined"); //$NON-NLS-1$   
-      format.setProperty(NUMERICAL_VALUE, "0"); //$NON-NLS-1$   
+      format.setProperty(NUMERICAL_VALUE, "0"); //$NON-NLS-1$
+      Logger.log("Special Die (" + getConfigureName() +"): no such face " + face);
     }
     else {
       final SpecialDieFace aFace = dieFaceList.get(face);      
@@ -131,7 +133,8 @@ public class SpecialDie extends AbstractConfigurable {
   public int getIntValue(int face) {
     // No Faces may be defined, or opponent may have a version of the module with more faces defined than we have
     final int faceCount = getFaceCount();
-    if (faceCount == 0 || faceCount < face-1) {
+    if  (face < 0 || face >= faceCount)  {
+      Logger.log("Special Die (" + getConfigureName() +"): no such face " + face);
       return 0;
     }
     else {
@@ -142,7 +145,8 @@ public class SpecialDie extends AbstractConfigurable {
   public String getImageName(int face) {
     // No Faces may be defined, or opponent may have a version of the module with more faces defined than we have
     final int faceCount = getFaceCount();
-    if (faceCount == 0 || faceCount < face-1) {
+    if  (face < 0 || face >= faceCount)  {
+      Logger.log("Special Die (" + getConfigureName() +"): no such face " + face);
       return ""; //$NON-NLS-1$      
     }
     else {
