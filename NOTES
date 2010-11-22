@@ -39,24 +39,27 @@ Changes in 3.1.15:
 
 The following bugs are fixed in 3.1.15:
 
-* Bug 3095: JPEGs with bad color profiles throw CMMException
-* Bug 2979: CounterGlobalKeyCommand logs its changes separately
-* Bug 2924: Mac OS X: Quartz renderer misrenders fonts
-* Bug 2883: MemoryUtilsImpl is misnamed
-* Bug 2813: NPE in Decorator.setId()
-* Bug 2463: NPE in Map.getAttributeValueString()
-* Bug 2451: ArrayIndexOutOfBoundsException in Embellishment.getCommonName()
-* Bug: ADC2 line definition names are max 25 chars long
-* Bug: Incorrect color for empty messages in chat pane
-* Bug: Only one connection record is listed per timestamp in server history
+* 3095: JPEGs with bad color profiles throw CMMException
+* 2979: CounterGlobalKeyCommand logs its changes separately
+* 2949: IndexOutOfBoundsException in SpecialDiceButton.ResultsIcon.setResults()
+* 2924: Mac OS X: Quartz renderer misrenders fonts
+* 2883: MemoryUtilsImpl is misnamed
+* 2813: NPE in Decorator.setId()
+* 2803: IndexOutOfBoundsException in SpecialDie.getTextValue()
+* 2602: ClassCastException in Decorator.setProperty()
+* 2463: NPE in Map.getAttributeValueString()
+* 2451: ArrayIndexOutOfBoundsException in Embellishment.getCommonName()
+* ADC2 line definition names are max 25 chars long
+* Incorrect color for empty messages in chat pane
+* Only one connection record is listed per timestamp in server history
 
 The following bugs which affect VASSAL on Windows are fixed in Java 6 Update
 21. If you are using an earlier version of Java, we strongly recommend
 upgrading to at least this version.
 
-* Bug 2601: NPE in sun.awt.shell.Win32ShellFolderManager2.isFileSystemRoot()
-* Bug 2572: IOException in Win32ShellFolder2.getFileSystemPath0()
-* Bug 2552: NPE in sun.awt.shell.Win32ShellFolder2.pidlsEqual()
+* 2601: NPE in sun.awt.shell.Win32ShellFolderManager2.isFileSystemRoot()
+* 2572: IOException in Win32ShellFolder2.getFileSystemPath0()
+* 2552: NPE in sun.awt.shell.Win32ShellFolder2.pidlsEqual()
 
 
 Changes in 3.1.14:
@@ -65,12 +68,12 @@ Changes in 3.1.14:
 
 The following bugs are fixed in 3.1.14:
 
-* Bug 2944858: Misplaced AreaOfEffect center when board is magnified
-* Bug 2933236: ArrayIndexOutOfBoundsException in StackMetrics.draw()
-* Bug 2912371: Custom step/undo/connect icons not showing in 3.1.13
-* Bug: user.home property is not passed from Module Manager to Player or Editor
-* Bug: Only select marker if original piece was selected. Prevents
-  autoselecting of markers when placed via Global Key Command.
+* 2944858: Misplaced AreaOfEffect center when board is magnified
+* 2933236: ArrayIndexOutOfBoundsException in StackMetrics.draw()
+* 2912371: Custom step/undo/connect icons not showing in 3.1.13
+* user.home property is not passed from Module Manager to Player or Editor
+* Only select marker if original piece was selected. Prevents autoselecting
+  of markers when placed via Global Key Command.
 
 For changes prior to 3.1.14, see the change log. For feature changes from 3.0
 to 3.1, see the release notes for 3.1.0.
