@@ -39,6 +39,8 @@ Changes in 3.1.15:
 
 The following bugs are fixed in 3.1.15:
 
+* 3208: Adjust Windows installer to detect Java 6u22 and later
+* 3179: JNA needs Kernel32 to be public
 * 3095: JPEGs with bad color profiles throw CMMException
 * 2979: CounterGlobalKeyCommand logs its changes separately
 * 2949: IndexOutOfBoundsException in SpecialDiceButton.ResultsIcon.setResults()
@@ -47,6 +49,7 @@ The following bugs are fixed in 3.1.15:
 * 2813: NPE in Decorator.setId()
 * 2803: IndexOutOfBoundsException in SpecialDie.getTextValue()
 * 2602: ClassCastException in Decorator.setProperty()
+* 2549: Mac OS X: Failed to create temporary file for jnidispatch library
 * 2463: NPE in Map.getAttributeValueString()
 * 2451: ArrayIndexOutOfBoundsException in Embellishment.getCommonName()
 * ADC2 line definition names are max 25 chars long
