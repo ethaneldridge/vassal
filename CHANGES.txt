@@ -1,4 +1,36 @@
-3.1.15 - ???
+3.1.15 - 2 December 2010
+
+* Windows installer now suggests JRE 1.6.0_22 for Java upgrades.
+* URLs for version checking and bug reporting switched to vassalengine.org.
+* Starting with this release, all Bug and RFE numbers refer to the ones
+  in our Bugzilla tracker at http://www.vassalengine.org/tracker.
+
+Bugs fixed:
+
+* 3208: Adjust Windows installer to detect Java 6u22 and later
+* 3179: JNA needs Kernel32 to be public
+* 3095: JPEGs with bad color profiles throw CMMException
+* 2979: CounterGlobalKeyCommand logs its changes separately
+* 2949: IndexOutOfBoundsException in SpecialDiceButton.ResultsIcon.setResults()
+* 2924: Mac OS X: Quartz renderer misrenders fonts
+* 2883: MemoryUtilsImpl is misnamed
+* 2813: NPE in Decorator.setId()
+* 2803: IndexOutOfBoundsException in SpecialDie.getTextValue()
+* 2602: ClassCastException in Decorator.setProperty()
+* 2549: Mac OS X: Failed to create temporary file for jnidispatch library
+* 2463: NPE in Map.getAttributeValueString()
+* 2451: ArrayIndexOutOfBoundsException in Embellishment.getCommonName()
+* ADC2 line definition names are max 25 chars long
+* Incorrect color for empty messages in chat pane
+* Only one connection record is listed per timestamp in server history
+
+The following bugs which affect VASSAL on Windows are fixed in Java 6 Update
+21. If you are using an earlier version of Java, we strongly recommend
+upgrading to at least this version.
+
+* 2601: NPE in sun.awt.shell.Win32ShellFolderManager2.isFileSystemRoot()
+* 2572: IOException in Win32ShellFolder2.getFileSystemPath0()
+* 2552: NPE in sun.awt.shell.Win32ShellFolder2.pidlsEqual()
 
 3.1.14 - 10 March 2010
 
