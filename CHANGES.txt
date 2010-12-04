@@ -1,4 +1,4 @@
-3.1.15 - 2 December 2010
+3.1.15 - 5 December 2010
 
 * Windows installer now suggests JRE 1.6.0_22 for Java upgrades.
 * URLs for version checking and bug reporting switched to vassalengine.org.
