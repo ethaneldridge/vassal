@@ -1,4 +1,4 @@
-The VASSAL Team is happy to announce the release of VASSAL 3.1.15, which
+The VASSAL Team is happy to announce the release of VASSAL 3.1.16, which
 fixes several problems found in earlier versions.
 
 *********************
@@ -7,28 +7,31 @@ Download
 
 For Linux:
 
-  http://downloads.sourceforge.net/vassalengine/VASSAL-3.1.15-linux.tar.bz2
+  http://downloads.sourceforge.net/vassalengine/VASSAL-3.1.16-linux.tar.bz2
 
 For Mac OS X:
 
-  http://downloads.sourceforge.net/vassalengine/VASSAL-3.1.15-macosx.dmg
+  http://downloads.sourceforge.net/vassalengine/VASSAL-3.1.16-macosx.dmg
 
 For Windows:
 
-  http://downloads.sourceforge.net/vassalengine/VASSAL-3.1.15-windows.exe
+  http://downloads.sourceforge.net/vassalengine/VASSAL-3.1.16-windows.exe
 
 For other operating systems:
 
-  http://downloads.sourceforge.net/vassalengine/VASSAL-3.1.15-other.zip
+  http://downloads.sourceforge.net/vassalengine/VASSAL-3.1.16-other.zip
 
 Source code:
 
-  http://downloads.sourceforge.net/vassalengine/VASSAL-3.1.15-src.zip
+  http://downloads.sourceforge.net/vassalengine/VASSAL-3.1.16-src.zip
 
 
 *********************
 Changes since 3.1.0
 *********************
+
+Changes in 3.1.16:
+
 
 Changes in 3.1.15:
 
@@ -64,21 +67,7 @@ upgrading to at least this version.
 * 2572: IOException in Win32ShellFolder2.getFileSystemPath0()
 * 2552: NPE in sun.awt.shell.Win32ShellFolder2.pidlsEqual()
 
-
-Changes in 3.1.14:
-
-* RFE: Total player count now appears in the Server Status pane.
-
-The following bugs are fixed in 3.1.14:
-
-* 2944858: Misplaced AreaOfEffect center when board is magnified
-* 2933236: ArrayIndexOutOfBoundsException in StackMetrics.draw()
-* 2912371: Custom step/undo/connect icons not showing in 3.1.13
-* user.home property is not passed from Module Manager to Player or Editor
-* Only select marker if original piece was selected. Prevents autoselecting
-  of markers when placed via Global Key Command.
-
-For changes prior to 3.1.14, see the change log. For feature changes from 3.0
+For changes prior to 3.1.15, see the change log. For feature changes from 3.0
 to 3.1, see the release notes for 3.1.0.
 
 VASSAL has a new User's Guide! You can view the User's Guide by selecting
@@ -91,7 +80,7 @@ of Java older than 1.5.0_08 upgrade to *at least* 1.5.0_08.
 
 Furthermore, we recommend that Windows users in particular upgrade to at
 least Java 1.6.0_21 (a.k.a. Java 6 Update 21), in order to avoid bugs present
-in earlier versions of Java. Windows users installing VASSAL 3.1.15 with the
+in earlier versions of Java. Windows users installing VASSAL 3.1.16 with the
 Windows installer will be prompted to update Java if what they have is older
 than 1.6.0_22. After upgrading Java on Windows, you must restart your computer
 in order for Java programs to work properly.
