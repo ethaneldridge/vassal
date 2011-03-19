@@ -36,7 +36,7 @@ Changes in 3.1.16:
 The following bugs are fixed in 3.1.16:
 
 * 3486: ConfigureTree.isValidParent() should permit subclasses
-
+* 3465: Empty DynamicProperty causes IllegalStateException on loading
 
 Changes in 3.1.15:
 
