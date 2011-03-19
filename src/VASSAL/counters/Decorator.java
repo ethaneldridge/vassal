@@ -153,7 +153,7 @@ public abstract class Decorator implements GamePiece, StateMergeable {
       piece.setState(st.nextToken());
     }
     catch (NoSuchElementException e) {
-      throw new IllegalStateException("Please submit this bug: No state for Decorator="+myGetType());
+      throw new IllegalStateException("No state for Decorator=" + myGetType());
     }
   }
 
