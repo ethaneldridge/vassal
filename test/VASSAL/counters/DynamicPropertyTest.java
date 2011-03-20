@@ -37,7 +37,20 @@ public class DynamicPropertyTest {
     
     assertEquals(pieceName, dp.getValue());
   }
-
+  
+  @Test
+  public void testNonStringSetPropertyBug3479() {
+    // If a dynamic property has a name of "Moved" then setProperty can be
+    // called with a Boolean
+    final String propName = "Moved";
+    final BasicPiece piece = new BasicPiece(BasicPiece.ID + ";;;");
+    final DynamicProperty dp = new DynamicProperty(DynamicProperty.ID + propName, piece);
+    
+    dp.setProperty(propName, Boolean.TRUE);
+    
+    assertEquals(Boolean.TRUE.toString(), dp.getProperty(propName));
+  }
+ 
   @Test
   public void testNullSetProperty() {
     // setProperty of null should result in getProperty of empty string
