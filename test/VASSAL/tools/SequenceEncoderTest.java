@@ -1,5 +1,5 @@
 /*
- * $Id: SequenceEncoderTest.java 7393 2010-10-11 22:11:05Z uckelman $
+ * $Id$
  *
  * Copyright (c) 2009 by Brent Easton
  *

@@ -1,5 +1,5 @@
 /*
- * $Id: ShowHelpAction.java 3365 2008-03-25 18:10:42Z uckelman $
+ * $Id$
  *
  * Copyright (c) 2009 by Joel Uckelman 
  *
