@@ -37,4 +37,16 @@ public class DynamicPropertyTest {
     
     assertEquals(pieceName, dp.getValue());
   }
+
+  @Test
+  public void testNullSetProperty() {
+    // setProperty of null should result in getProperty of empty string
+    final String propName = "Name";
+    final BasicPiece piece = new BasicPiece(BasicPiece.ID + ";;;");
+    final DynamicProperty dp = new DynamicProperty(DynamicProperty.ID + propName, piece);
+    
+    dp.setProperty(propName, null);
+    
+    assertEquals("", dp.getProperty(propName));
+  }
 }
