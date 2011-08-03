@@ -32,6 +32,8 @@ Changes since 3.1.0
 
 Changes in 3.1.16:
 
+* Windows installer now suggests JRE 1.6.0_26 for Java upgrades.
+
 The following bugs are fixed in 3.1.16:
 
 * 3486: ConfigureTree.isValidParent() should permit subclasses

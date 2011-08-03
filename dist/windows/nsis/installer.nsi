@@ -34,7 +34,7 @@
 !define AROOT "Software\Classes"
 !define JAVA_MINIMUM "1.6.0_22"
 # FIXME: would be better if we read the download URL from our own site
-!define JRE_URL "http://javadl.sun.com/webapps/download/AutoDL?BundleId=42732"
+!define JRE_URL "http://javadl.sun.com/webapps/download/AutoDL?BundleId=49024"
 
 Name "VASSAL"
 OutFile "${TMPDIR}/VASSAL-${VERSION}-windows.exe"
