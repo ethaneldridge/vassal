@@ -18,6 +18,7 @@ The following bugs are fixed in 3.1.16:
 * 3463: Infinite recursion if $PieceName$ specified as Text Label
 * 3465: Empty DynamicProperty causes IllegalStateException on loading
 * 3277: NPE because MTRandom.setSeed() not called by Random() in Java 7
+* 2907: Don't dump stack traces for missing images
 
 Changes in 3.1.15:
 
