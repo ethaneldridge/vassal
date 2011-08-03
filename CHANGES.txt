@@ -4,6 +4,7 @@
 
 Bugs fixed:
 
+* 3500: ArrayIndexOutOfBoundsException in TurnComponent.getTurnLevel()
 * 3486: ConfigureTree.isValidParent() should permit subclasses
 * 3479: DynamicProperty.setProperty() casts non-Strings to String 
 * 3472: Initial value of DynamicProperty is not evaluated
