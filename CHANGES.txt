@@ -12,6 +12,7 @@ Bugs fixed:
 * 3465: Empty DynamicProperty causes IllegalStateException on loading
 * 3277: NPE because MTRandom.setSeed() not called by Random() in Java 7
 * 2907: Don't dump stack traces for missing images
+* 2633: BrowserLaunchingInitializingException in BrowserSupport()
 
 3.1.15 - 6 December 2010
 
