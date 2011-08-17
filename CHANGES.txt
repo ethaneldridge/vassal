@@ -1,4 +1,4 @@
-3.1.16 - 4 August 2011
+3.1.16 - 17 August 2011
 
 * Windows installer now suggests JRE 1.6.0_26 for Java upgrades.
 
@@ -13,6 +13,7 @@ Bugs fixed:
 * 3277: NPE because MTRandom.setSeed() not called by Random() in Java 7
 * 3115: NPE in PlayerHand.mapSize()
 * 2907: Don't dump stack traces for missing images
+* 2815: ArrayIndexOutOfBoundsException in Stack.insertPieceAt()
 * 2633: BrowserLaunchingInitializingException in BrowserSupport()
 
 3.1.15 - 6 December 2010
