@@ -63,7 +63,7 @@ For changes prior to 3.1.15, see the change log. For feature changes from 3.0 to
 
 VASSAL has a new User's Guide! You can view the User's Guide by selecting "User's Guide" from the Help menu in any of VASSAL's components.
 
-The recommended minimum Java version for VASSAL 3.1 has changed. A bug in versions of Java prior to 1.5.0_08 (a.k.a. Java 5 update 8) prevents some images from loading properly. We now recommend that anyone using a version of Java older than 1.5.0_08 upgrade to [i]at least[/i] 1.5.0_08.  
+The recommended minimum Java version for VASSAL 3.1 has changed. A bug in versions of Java prior to 1.5.0_08 (a.k.a. Java 5 Update 8) prevents some images from loading properly. We now recommend that anyone using a version of Java older than 1.5.0_08 upgrade to [i]at least[/i] 1.5.0_08.  
 
 Furthermore, we recommend that Windows users in particular upgrade to at least Java 1.6.0_21 (a.k.a. Java 6 Update 21), in order to avoid bugs present in earlier versions of Java. Windows users installing VASSAL 3.1.16 with the Windows installer will be prompted to update Java if what they have is older than 1.6.0_22. After upgrading Java on Windows, you must restart your computer in order for Java programs to work properly.
 
