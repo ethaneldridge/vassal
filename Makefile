@@ -50,8 +50,8 @@ DISTDIR:=dist
 
 VNUM:=3.1.16
 SVNVERSION:=$(shell svnversion | perl -pe 's/(\d+:)?(\d+[MS]?)/$$2/; s/(\d+)M/$$1+1/e')
-VERSION:=$(VNUM)-svn$(SVNVERSION)
-#VERSION:=$(VNUM)
+#VERSION:=$(VNUM)-svn$(SVNVERSION)
+VERSION:=$(VNUM)
 
 #CLASSPATH:=$(CLASSDIR):$(LIBDIR)/*
 
@@ -66,7 +66,7 @@ JAR:=$(JAVAPATH)/jar
 JDOC:=$(JAVAPATH)/javadoc
 JAVA:=$(JAVAPATH)/java
 
-NSIS:=PATH=$$PATH:~/java/nsis makensis
+NSIS:=PATH=~/java/nsis:$$PATH makensis
 
 LAUNCH4J:=~/java/launch4j/launch4j
 
