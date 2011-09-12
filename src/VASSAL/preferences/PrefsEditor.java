@@ -146,7 +146,7 @@ public class PrefsEditor {
     addOption(category, c);
   }
 
-  public void addOption(String category, Configurer c) {
+  public synchronized void addOption(String category, Configurer c) {
     if (category == null) {
       category = Resources.getString("Prefs.general_tab"); //$NON-NLS-1$
     }
@@ -170,7 +170,7 @@ public class PrefsEditor {
     pan.add(b);
   }
 
-  private void storeValues() {
+  private synchronized void storeValues() {
     savedValues.clear();
     for (Configurer c : options) {
       c.setFrozen(true);
@@ -184,7 +184,7 @@ public class PrefsEditor {
     return archive;
   }
 
-  protected void cancel() {
+  protected synchronized void cancel() {
     for (Configurer c : options) {
       c.setValue(savedValues.get(c));
       c.setFrozen(false);
@@ -192,7 +192,7 @@ public class PrefsEditor {
     dialog.setVisible(false);
   }
 
-  protected void save() {
+  protected synchronized void save() {
     for (Configurer c : options) {
       if ((savedValues.get(c) == null && c.getValue() != null) || (savedValues.get(c) != null && !savedValues.get(c).equals(c.getValue()))) {
         c.fireUpdate();
