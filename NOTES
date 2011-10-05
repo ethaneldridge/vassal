@@ -32,6 +32,7 @@ Changes since 3.1.0
 
 The following bugs are fixed in 3.1.17:
 
+* 3986: Counters disappear during Undo
 * 3280: IllegalArgumentException in StackMetrics.relativePosition()
 * 2798: ConcurrentModificationException in PrefsEditor.save()
 
