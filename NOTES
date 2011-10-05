@@ -30,6 +30,10 @@ Source code:
 Changes since 3.1.0
 *********************
 
+Changes in 3.1.17:
+
+* Windows installer now suggests JRE 1.6.0_27 for Java upgrades.
+
 The following bugs are fixed in 3.1.17:
 
 * 3987: Updated server fallback IP address to game.vassalengine.org
