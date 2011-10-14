@@ -38,6 +38,8 @@ The following bugs are fixed in 3.1.17:
 
 * 3987: Updated server fallback IP address to game.vassalengine.org
 * 3986: Counters disappear during Undo
+* 3915: IOException in BrowserSupport when opening PDFs
+* 3910: IOException in BrowserSupport when opening web pages
 * 3280: IllegalArgumentException in StackMetrics.relativePosition()
 * 2798: ConcurrentModificationException in PrefsEditor.save()
 
