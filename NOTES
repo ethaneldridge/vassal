@@ -36,6 +36,7 @@ Changes in 3.1.17:
 
 The following bugs are fixed in 3.1.17:
 
+* 4054: Inserting a GamePiece Layer generates an OutOfBounds error
 * 3987: Updated server fallback IP address to game.vassalengine.org
 * 3986: Counters disappear during Undo
 * 3915: IOException in BrowserSupport when opening PDFs
