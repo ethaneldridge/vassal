@@ -67,6 +67,7 @@ import VASSAL.build.IllegalBuildException;
 import VASSAL.build.module.Plugin;
 import VASSAL.build.module.documentation.HelpFile;
 import VASSAL.build.module.documentation.HelpWindow;
+import VASSAL.build.widget.CardSlot;
 import VASSAL.build.widget.PieceSlot;
 import VASSAL.i18n.Resources;
 import VASSAL.i18n.TranslateAction;
@@ -360,16 +361,17 @@ public class ConfigureTree extends JTree implements PropertyChangeListener, Mous
         if (cutData != null) {
           final DefaultMutableTreeNode targetNode = getTreeNode(target);
           final Configurable cutObj = (Configurable) cutData.getUserObject();
+          final Configurable convertedCutObj = convertChild(target, cutObj);
           if (remove(getParent(cutData), cutObj)) {
-            insert(target, cutObj, targetNode.getChildCount());
+            insert(target, convertedCutObj, targetNode.getChildCount());
           }
-          copyData = getTreeNode(cutObj);
+          copyData = getTreeNode(convertedCutObj);
         }
         else if (copyData != null) {
           final Configurable copyBase = (Configurable) copyData.getUserObject();
           Configurable clone = null;
           try {
-            clone = copyBase.getClass().getConstructor().newInstance();
+            clone = convertChild(target, copyBase.getClass().getConstructor().newInstance());
           }
           catch (Throwable t) {
             ReflectionUtils.handleNewInstanceFailure(t, copyBase.getClass());
@@ -396,6 +398,38 @@ public class ConfigureTree extends JTree implements PropertyChangeListener, Mous
             isValidParent(target, (Configurable) copyData.getUserObject()));
   }
 
+  /**
+   * Some components need to be converted to a new type before insertion.
+   * 
+   * Currently this is used to allow cut and paste of CardSlots and PieceSlots
+   * between Decks and GamePiece Palette components.
+   * 
+   * @param parent
+   * @param child
+   * @return new Child
+   */
+  protected Configurable convertChild (Configurable parent, Configurable child) {
+    if (child.getClass() == PieceSlot.class && isAllowedChildClass(parent, CardSlot.class)) {
+      return new CardSlot((PieceSlot) child);
+    }
+    else if (child.getClass() == CardSlot.class && isAllowedChildClass(parent, PieceSlot.class)) {
+      return new PieceSlot((CardSlot) child);
+    }
+    else {
+      return child;
+    }
+  }
+  
+  protected boolean isAllowedChildClass(Configurable parent, Class<?> childClass) {
+    final Class<?>[] allowableClasses = parent.getAllowableConfigureComponents();
+    for (int i = 0; i < allowableClasses.length; i++) {
+      if (allowableClasses[i] == childClass) {
+        return true;
+      }
+    }
+    return false;
+  } 
+  
   /**
    * Allocate new PieceSlot Id's to any PieceSlot sub-components
    * 
@@ -836,7 +870,8 @@ public class ConfigureTree extends JTree implements PropertyChangeListener, Mous
     if (parent != null && child != null) {
       final Class<?> c[] = parent.getAllowableConfigureComponents();
       for (int i = 0; i < c.length; ++i) {
-        if (c[i].isAssignableFrom(child.getClass())) {
+        if (c[i].isAssignableFrom(child.getClass()) || 
+            ((c[i] == CardSlot.class) && (child.getClass() == PieceSlot.class))) { // Allow PieceSlots to be pasted to Decks
           return true;
         }
       }
