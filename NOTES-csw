@@ -1,11 +1,26 @@
-The VASSAL Team is happy to announce the release of VASSAL 3.1.16, which fixes several problems found in earlier versions.
+The VASSAL Team is happy to announce the release of VASSAL 3.1.17, which fixes several problems found in earlier versions.
 <h3>Download</h3>
-* <a href='http://downloads.sourceforge.net/vassalengine/VASSAL-3.1.16-linux.tar.bz2' target='_new'>Linux</a>
-* <a href='http://downloads.sourceforge.net/vassalengine/VASSAL-3.1.16-macosx.dmg' target='_new'>Mac OS X</a>
-* <a href='http://downloads.sourceforge.net/vassalengine/VASSAL-3.1.16-windows.exe' target='_new'>Windows</a>
-* <a href='http://downloads.sourceforge.net/vassalengine/VASSAL-3.1.16-other.zip'  target='_new'>Other</a>
-* <a href='http://downloads.sourceforge.net/vassalengine/VASSAL-3.1.16-src.zip' target='_new'>Source code</a>
+* <a href='http://downloads.sourceforge.net/vassalengine/VASSAL-3.1.17-linux.tar.bz2' target='_new'>Linux</a>
+* <a href='http://downloads.sourceforge.net/vassalengine/VASSAL-3.1.17-macosx.dmg' target='_new'>Mac OS X</a>
+* <a href='http://downloads.sourceforge.net/vassalengine/VASSAL-3.1.17-windows.exe' target='_new'>Windows</a>
+* <a href='http://downloads.sourceforge.net/vassalengine/VASSAL-3.1.17-other.zip'  target='_new'>Other</a>
+* <a href='http://downloads.sourceforge.net/vassalengine/VASSAL-3.1.17-src.zip' target='_new'>Source code</a>
 <h3>Changes since 3.1.0</h3>
+Changes in 3.1.17:
+
+* Windows installer now suggests JRE 1.6.0_27 for Java upgrades.
+
+The following bugs are fixed in 3.1.17:
+
+* 4054: Inserting a GamePiece Layer generates an OutOfBounds error
+* 4051: Allow Cut and Paste between Decks and GamePiece Palette
+* 3987: Updated server fallback IP address to game.vassalengine.org
+* 3986: Counters disappear during Undo
+* 3915: IOException in BrowserSupport when opening PDFs
+* 3910: IOException in BrowserSupport when opening web pages
+* 3280: IllegalArgumentException in StackMetrics.relativePosition()
+* 2798: ConcurrentModificationException in PrefsEditor.save()
+
 Changes in 3.1.16:
 
 * Windows installer now suggests JRE 1.6.0_26 for Java upgrades.
@@ -24,44 +39,13 @@ The following bugs are fixed in 3.1.16:
 * 2815: ArrayIndexOutOfBoundsException in Stack.insertPieceAt()
 * 2633: BrowserLaunchingInitializingException in BrowserSupport()
 
-Changes in 3.1.15:
-
-* Windows installer now suggests JRE 1.6.0_22 for Java upgrades.
-* URLs for version checking and bug reporting switched to vassalengine.org.
-* Starting with this release, all Bug and RFE numbers refer to the ones in our Bugzilla tracker at http://www.vassalengine.org/tracker.
-
-The following bugs are fixed in 3.1.15:
-
-* 3208: Adjust Windows installer to detect Java 6u22 and later
-* 3179: JNA needs Kernel32 to be public
-* 3095: JPEGs with bad color profiles throw CMMException
-* 2979: CounterGlobalKeyCommand logs its changes separately
-* 2949: IndexOutOfBoundsException in SpecialDiceButton.ResultsIcon.setResults()
-* 2924: Mac OS X: Quartz renderer misrenders fonts
-* 2883: MemoryUtilsImpl is misnamed
-* 2813: NPE in Decorator.setId()
-* 2803: IndexOutOfBoundsException in SpecialDie.getTextValue()
-* 2602: ClassCastException in Decorator.setProperty()
-* 2549: Mac OS X: Failed to create temporary file for jnidispatch library
-* 2463: NPE in Map.getAttributeValueString()
-* 2451: ArrayIndexOutOfBoundsException in Embellishment.getCommonName()
-* ADC2 line definition names are max 25 chars long
-* Incorrect color for empty messages in chat pane
-* Only one connection record is listed per timestamp in server history
-
-The following bugs which affect VASSAL on Windows are fixed in Java 6 Update 21. If you are using an earlier version of Java, we strongly recommend upgrading to at least this version.
-
-* 2601: NPE in sun.awt.shell.Win32ShellFolderManager2.isFileSystemRoot()
-* 2572: IOException in Win32ShellFolder2.getFileSystemPath0()
-* 2552: NPE in sun.awt.shell.Win32ShellFolder2.pidlsEqual()
-
-For changes prior to 3.1.15, see the change log. For feature changes from 3.0 to 3.1, see the release notes for 3.1.0.
+For changes prior to 3.1.16, see the change log. For feature changes from 3.0 to 3.1, see the release notes for 3.1.0.
 
 VASSAL has a new User's Guide! You can view the User's Guide by selecting "User's Guide" from the Help menu in any of VASSAL's components.
 
 The recommended minimum Java version for VASSAL 3.1 has changed. A bug in versions of Java prior to 1.5.0_08 (a.k.a. Java 5 Update 8 ) prevents some images from loading properly. We now recommend that anyone using a version of Java older than 1.5.0_08 upgrade to *at least* 1.5.0_08.
 
-Furthermore, we recommend that Windows users in particular upgrade to at least Java 1.6.0_21 (a.k.a. Java 6 Update 21), in order to avoid bugs present in earlier versions of Java. Windows users installing VASSAL 3.1.16 with the Windows installer will be prompted to update Java if what they have is older than 1.6.0_22. After upgrading Java on Windows, you must restart your computer in order for Java programs to work properly.
+Furthermore, we recommend that Windows users in particular upgrade to at least Java 1.6.0_21 (a.k.a. Java 6 Update 21), in order to avoid bugs present in earlier versions of Java. Windows users installing VASSAL 3.1.17 with the Windows installer will be prompted to update Java if what they have is older than 1.6.0_27. After upgrading Java on Windows, you must restart your computer in order for Java programs to work properly.
 
 Please report all bugs, even if they are bugs which you've already reported against other versions. We take your bug reports very seriously---they're the reason we're able to find and fix bugs.
 

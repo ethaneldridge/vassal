@@ -78,7 +78,7 @@ Furthermore, we recommend that Windows users in particular upgrade to at
 least Java 1.6.0_21 (a.k.a. Java 6 Update 21), in order to avoid bugs present
 in earlier versions of Java. Windows users installing VASSAL 3.1.17 with the
 Windows installer will be prompted to update Java if what they have is older
-than 1.6.0_22. After upgrading Java on Windows, you must restart your computer
+than 1.6.0_27. After upgrading Java on Windows, you must restart your computer
 in order for Java programs to work properly.
 
 Please report all bugs, even if they are bugs which you've already reported
