@@ -1,3 +1,18 @@
+3.1.17 - 21 October 2011
+
+* Windows installer now suggests JRE 1.6.0_27 for Java upgrades.
+
+Bugs fixed:
+
+* 4054: Inserting a GamePiece Layer generates an OutOfBounds error
+* 4051: Allow Cut and Paste between Decks and GamePiece Palette
+* 3987: Updated server fallback IP address to game.vassalengine.org
+* 3986: Counters disappear during Undo
+* 3915: IOException in BrowserSupport when opening PDFs
+* 3910: IOException in BrowserSupport when opening web pages
+* 3280: IllegalArgumentException in StackMetrics.relativePosition()
+* 2798: ConcurrentModificationException in PrefsEditor.save()
+
 3.1.16 - 17 August 2011
 
 * Windows installer now suggests JRE 1.6.0_26 for Java upgrades.
