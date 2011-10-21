@@ -1,0 +1,71 @@
+<p>
+The VASSAL Team is happy to announce the release of VASSAL 3.1.17, which
+fixes several problems found in earlier versions
+</p>
+<h2>Download</h2>
+<ul>
+	<li><a href="http://downloads.sourceforge.net/vassalengine/VASSAL-3.1.17-linux.tar.bz2" target="_blank">Linux</a></li>
+	<li><a href="http://downloads.sourceforge.net/vassalengine/VASSAL-3.1.17-macosx.dmg">Mac OS X</a></li>
+	<li><a href="http://downloads.sourceforge.net/vassalengine/VASSAL-3.1.17-windows.exe">Windows</a>
+	</li>
+	<li><a href="http://downloads.sourceforge.net/vassalengine/VASSAL-3.1.17-other.zip">Other</a></li>
+	<li><a href="http://downloads.sourceforge.net/vassalengine/VASSAL-3.1.17-src.zip">Source</a></li>
+</ul>
+<h2>Changes since 3.1.0</h2>
+<h3>Changes in 3.1.17</h3>
+<ul>
+  <li>Windows installer now suggests JRE 1.6.0_27 for Java upgrades.</li>
+</ul>
+<p>
+The following bugs are fixed in 3.1.17:
+</p>
+<ul>
+  <li>4054: Inserting a GamePiece Layer generates an OutOfBounds error
+  <li>4051: Allow Cut and Paste between Decks and GamePiece Palette
+  <li>3987: Updated server fallback IP address to game.vassalengine.org
+  <li>3986: Counters disappear during Undo
+  <li>3915: IOException in BrowserSupport when opening PDFs
+  <li>3910: IOException in BrowserSupport when opening web pages
+  <li>3280: IllegalArgumentException in StackMetrics.relativePosition()
+  <li>2798: ConcurrentModificationException in PrefsEditor.save()
+</ul>
+<h3>Changes in 3.1.16</h3>
+<ul>
+	<li>Windows installer now suggests JRE 1.6.0_26 for Java upgrades.</li>
+</ul>
+<p>
+The following bugs are fixed in 3.1.16:
+</p>
+<ul>
+	<li>3500: ArrayIndexOutOfBoundsException in TurnComponent.getTurnLevel()</li>
+	<li>3486: ConfigureTree.isValidParent() should permit subclasses</li>
+	<li>3479: DynamicProperty.setProperty() casts non-Strings to String </li>
+	<li>3472: Initial value of DynamicProperty is not evaluated</li>
+	<li>3463: Infinite recursion if $PieceName$ specified as Text Label</li>
+	<li>3465: Empty DynamicProperty causes IllegalStateException on loading</li>
+	<li>3277: NPE because MTRandom.setSeed() not called by Random() in Java 7</li>
+	<li>3115: NPE in PlayerHand.mapSize()</li>
+	<li>2907: Don't dump stack traces for missing images</li>
+	<li>2815: ArrayIndexOutOfBoundsException in Stack.insertPieceAt()</li>
+	<li>2633: BrowserLaunchingInitializingException in BrowserSupport()</li>
+</ul>
+<p>
+For changes prior to 3.1.16, see the change log. For feature changes from 3.0 to 3.1, see the release notes for 3.1.0.
+</p>
+<p>
+VASSAL has a new User's Guide! You can view the User's Guide by selecting &quot;User's Guide&quot; from the Help menu in any of VASSAL's components.
+</p>
+<p>
+The recommended minimum Java version for VASSAL 3.1 has changed. A bug in versions of Java prior to 1.5.0_08 (a.k.a. Java 5 Update 8) prevents some images from loading properly. We now recommend that anyone using a version of Java older than 1.5.0_08 upgrade to <em>at least</em> 1.5.0_08. Furthermore, we recommend that Windows users in particular upgrade to at least Java 1.6.0_21 (a.k.a. Java 6 Update 21), in order to avoid bugs present in earlier versions of Java. Windows users installing VASSAL 3.1.16 with the Windows installer will be prompted to update Java if what they have is older than 1.6.0_27. After upgrading Java on Windows, you must restart your computer in order for Java programs to work properly.
+</p>
+<p>
+Please report all bugs, even if they are bugs which you've already reported against other versions. We take your bug reports very seriously&mdash;they're the reason we're able to find and fix bugs.
+</p>
+<h2>Help us test</h2>
+<p>
+Should you find any problems/oddities/bugs, please tell us so that we can fix them for the next release of VASSAL. Report bugs here in the Technical Support &amp; Bugs category at the <a href="../forums/viewforum.php?f=3">VASSAL forums</a> or by <a href="mailto:uckelman@nomic.net">email</a>.
+</p>
+<p>
+Cheers,<br />
+The VASSAL Team
+</p>
