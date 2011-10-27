@@ -76,6 +76,15 @@ public class ImageLoader {
     try {
       img = ImageIO.read(new MemoryCacheImageInputStream(in));
     }
+    catch (ArrayIndexOutOfBoundsException e) {
+      // Note: ImageIO can throw an ArrayIndexOutOfBoundsException for
+      // some corrupt JPEGs. This problem is noted in Sun Bug 6351707,
+      //
+      // http://bugs.sun.com/bugdatabase/view_bug.do?bug_id=6351707
+      //
+      ErrorDialog.dataError(new BadDataReport("Broken image", name));
+      throw (IOException) new IOException().initCause(e);
+    }
     catch (CMMException e) {
       // Note: ImageIO can throw a CMMException for JPEGs which have
       // broken color profiles. This problem is noted in Sun Bug 6444360,

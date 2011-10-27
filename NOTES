@@ -30,6 +30,10 @@ Source code:
 Changes since 3.1.0
 *********************
 
+The following bugs are fixed in 3.1.18:
+
+* 3547: Corrupt JPEG causes ArrayIndexOutOfBoundsException
+
 Changes in 3.1.17:
 
 * Windows installer now suggests JRE 1.6.0_27 for Java upgrades.
