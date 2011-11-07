@@ -152,6 +152,7 @@ public class PrefsEditor {
     if (category == null) {
       category = Resources.getString("Prefs.general_tab"); //$NON-NLS-1$
     }
+
     JPanel pan = null;
     int i = 0;
     for (i = 0; i < optionsTab.getTabCount(); ++i) {
@@ -160,17 +161,21 @@ public class PrefsEditor {
         break;
       }
     }
+
     if (i >= optionsTab.getTabCount()) { // No match
       pan = new JPanel();
       pan.setLayout(new BoxLayout(pan, BoxLayout.Y_AXIS));
       optionsTab.addTab(category, pan);
     }
+
     if (iterating) {
       extras.add(c);
-    } else {
-    options.add(c);
     }
-    Box b = Box.createHorizontalBox();
+    else {
+      options.add(c);
+    }
+
+    final Box b = Box.createHorizontalBox();
     b.add(c.getControls());
     b.add(Box.createHorizontalGlue());
     pan.add(b);
