@@ -32,7 +32,10 @@ Changes since 3.1.0
 
 The following bugs are fixed in 3.1.18:
 
-* 3547: Corrupt JPEG causes ArrayIndexOutOfBoundsException
+* 3457: Corrupt JPEG causes ArrayIndexOutOfBoundsException
+* 2815: ArrayIndexOutOfBoundsException in Stack.insertPieceAt()
+* 2798: ConcurrentModificationException in PrefsEditor.save()
+* 2715: NPE in Map.setup()
 
 Changes in 3.1.17:
 
