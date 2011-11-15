@@ -1201,7 +1201,6 @@ public class PieceMover extends AbstractBuildable
                       new StringSelection(""), this); //$NON-NLS-1$
         dge.getDragSource().addDragSourceMotionListener(this);
       }
-      
       // FIXME: Fix by replacing AWT Drag 'n Drop with Swing DnD.
       // Catch and ignore spurious DragGestures 
       catch (InvalidDnDOperationException e) {   
@@ -1216,6 +1215,9 @@ public class PieceMover extends AbstractBuildable
       if (!isDragImageSupported) {
         removeDragCursor();
       }
+
+      final DragSource ds = e.getDragSourceContext().getDragSource();
+      ds.removeDragSourceMotionListener(this);
     }
 
     public void dragEnter(DragSourceDragEvent e) {
