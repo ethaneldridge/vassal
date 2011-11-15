@@ -1205,7 +1205,7 @@ public class PieceMover extends AbstractBuildable
       // Catch and ignore spurious DragGestures 
       catch (InvalidDnDOperationException e) {   
       }
-    }    
+    }
     
     ///////////////////////////////////////////////////////////////////////////
     // DRAG SOURCE LISTENER INTERFACE
