@@ -1,4 +1,4 @@
-The VASSAL Team is happy to announce the release of VASSAL 3.1.17, which
+The VASSAL Team is happy to announce the release of VASSAL 3.1.18, which
 fixes several problems found in earlier versions.
 
 *********************
@@ -7,28 +7,32 @@ Download
 
 For Linux:
 
-  http://downloads.sourceforge.net/vassalengine/VASSAL-3.1.17-linux.tar.bz2
+  http://downloads.sourceforge.net/vassalengine/VASSAL-3.1.18-linux.tar.bz2
 
 For Mac OS X:
 
-  http://downloads.sourceforge.net/vassalengine/VASSAL-3.1.17-macosx.dmg
+  http://downloads.sourceforge.net/vassalengine/VASSAL-3.1.18-macosx.dmg
 
 For Windows:
 
-  http://downloads.sourceforge.net/vassalengine/VASSAL-3.1.17-windows.exe
+  http://downloads.sourceforge.net/vassalengine/VASSAL-3.1.18-windows.exe
 
 For other operating systems:
 
-  http://downloads.sourceforge.net/vassalengine/VASSAL-3.1.17-other.zip
+  http://downloads.sourceforge.net/vassalengine/VASSAL-3.1.18-other.zip
 
 Source code:
 
-  http://downloads.sourceforge.net/vassalengine/VASSAL-3.1.17-src.zip
+  http://downloads.sourceforge.net/vassalengine/VASSAL-3.1.18-src.zip
 
 
 *********************
 Changes since 3.1.0
 *********************
+
+Changes in 3.1.18:
+
+* Windows installer now suggests JRE 1.6.0_30 for Java upgrades.
 
 The following bugs are fixed in 3.1.18:
 
@@ -54,25 +58,7 @@ The following bugs are fixed in 3.1.17:
 * 3280: IllegalArgumentException in StackMetrics.relativePosition()
 * 2798: ConcurrentModificationException in PrefsEditor.save()
 
-Changes in 3.1.16:
-
-* Windows installer now suggests JRE 1.6.0_26 for Java upgrades.
-
-The following bugs are fixed in 3.1.16:
-
-* 3500: ArrayIndexOutOfBoundsException in TurnComponent.getTurnLevel()
-* 3486: ConfigureTree.isValidParent() should permit subclasses
-* 3479: DynamicProperty.setProperty() casts non-Strings to String 
-* 3472: Initial value of DynamicProperty is not evaluated
-* 3463: Infinite recursion if $PieceName$ specified as Text Label
-* 3465: Empty DynamicProperty causes IllegalStateException on loading
-* 3277: NPE because MTRandom.setSeed() not called by Random() in Java 7
-* 3115: NPE in PlayerHand.mapSize()
-* 2907: Don't dump stack traces for missing images
-* 2815: ArrayIndexOutOfBoundsException in Stack.insertPieceAt()
-* 2633: BrowserLaunchingInitializingException in BrowserSupport()
-
-For changes prior to 3.1.16, see the change log. For feature changes from 3.0
+For changes prior to 3.1.17, see the change log. For feature changes from 3.0
 to 3.1, see the release notes for 3.1.0.
 
 VASSAL has a new User's Guide! You can view the User's Guide by selecting
@@ -85,9 +71,9 @@ of Java older than 1.5.0_08 upgrade to *at least* 1.5.0_08.
 
 Furthermore, we recommend that Windows users in particular upgrade to at
 least Java 1.6.0_21 (a.k.a. Java 6 Update 21), in order to avoid bugs present
-in earlier versions of Java. Windows users installing VASSAL 3.1.17 with the
+in earlier versions of Java. Windows users installing VASSAL 3.1.18 with the
 Windows installer will be prompted to update Java if what they have is older
-than 1.6.0_27. After upgrading Java on Windows, you must restart your computer
+than 1.6.0_30. After upgrading Java on Windows, you must restart your computer
 in order for Java programs to work properly.
 
 Please report all bugs, even if they are bugs which you've already reported

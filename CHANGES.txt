@@ -1,3 +1,16 @@
+3.1.18 - 19 December 2011
+
+* Windows installer now suggests JRE 1.6.0_30 for Java upgrades.
+
+Bugs fixed:
+
+* 4126: PieceMover.dragDropEnd() does not remove DragSourceMotionListener
+* 4106: Send to Location to a counter using a Property Expression not working
+* 3457: Corrupt JPEG causes ArrayIndexOutOfBoundsException
+* 2815: ArrayIndexOutOfBoundsException in Stack.insertPieceAt()
+* 2798: ConcurrentModificationException in PrefsEditor.save()
+* 2715: NPE in Map.setup()
+
 3.1.17 - 21 October 2011
 
 * Windows installer now suggests JRE 1.6.0_27 for Java upgrades.
