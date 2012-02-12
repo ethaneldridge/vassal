@@ -541,6 +541,7 @@ public abstract class AbstractLaunchAction extends AbstractAction {
       catch (CancellationException e) {
         // FIXME: bug until we enable cancellation of loading
         ErrorDialog.bug(e);
+        ModuleManagerWindow.getInstance().setWaitCursor(false);
       }
       catch (InterruptedException e) {
         ErrorDialog.bug(e);
