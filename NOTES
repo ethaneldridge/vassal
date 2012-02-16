@@ -30,6 +30,14 @@ Source code:
 Changes since 3.1.0
 *********************
 
+The following bugs are fixed in 3.1.19:
+
+* 4258: Large image masks in Non-Rectangular trait lock up the GUI
+* 4184: Should use DocumentListener to catch updates on Swing text fields
+* 4132: Bad layout for Map window obscures Global Key Command buttons
+* 3075: NegativeArraySizeException when snapshotting large maps 
+* Bad tile-counting when snapshotting maps
+
 Changes in 3.1.18:
 
 * Windows installer now suggests JRE 1.6.0_30 for Java upgrades.
