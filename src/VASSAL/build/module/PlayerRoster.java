@@ -410,14 +410,23 @@ public class PlayerRoster extends AbstractConfigurable implements CommandEncoder
 
     availableSides.removeAll(alreadyTaken);
     availableSides.add(0, OBSERVER);
-    String newSide = (String) JOptionPane.showInputDialog(GameModule.getGameModule().getFrame(),
-        Resources.getString("PlayerRoster.join_game_as"), Resources.getString("PlayerRoster.choose_side"), //$NON-NLS-1$ //$NON-NLS-2$
-        JOptionPane.QUESTION_MESSAGE, null, availableSides.toArray(new String[availableSides.size()]), OBSERVER);
+
+    final GameModule g = GameModule.getGameModule();
+    final String newSide = (String) JOptionPane.showInputDialog(
+      g.getFrame(),
+      Resources.getString("PlayerRoster.join_game_as"), //$NON-NLS-1$
+      Resources.getString("PlayerRoster.choose_side"), //$NON-NLS-1$
+      JOptionPane.QUESTION_MESSAGE,
+      null,
+      availableSides.toArray(new String[availableSides.size()]),
+      OBSERVER
+    );
+
     if (newSide != null) {
-      PlayerInfo me = new PlayerInfo(GameModule.getUserId(), GlobalOptions.getInstance().getPlayerId(), newSide);
-      Add a = new Add(this, me.playerId, me.playerName, me.side);
+      final PlayerInfo me = new PlayerInfo(GameModule.getUserId(), GlobalOptions.getInstance().getPlayerId(), newSide);
+      final Add a = new Add(this, me.playerId, me.playerName, me.side);
       a.execute();
-      GameModule.getGameModule().getServer().sendToOthers(a);
+      g.getServer().sendToOthers(a);
     }
   }
 
