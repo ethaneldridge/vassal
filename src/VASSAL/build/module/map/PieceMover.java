@@ -1181,24 +1181,35 @@ public class PieceMover extends AbstractBuildable
       dragWin = dge.getComponent();
       drawWin = null;
       dropWin = null;
+      
+      int offsetMult = -1;
 
       if (!isDragImageSupported) {
         makeDragCursor(dragPieceOffCenterZoom);
         setDrawWinToOwnerOf(dragWin);
         SwingUtilities.convertPointToScreen(mousePosition, drawWin);
         moveDragCursor(mousePosition.x, mousePosition.y);
+        offsetMult = 1;
       }
 
       final BufferedImage dragImage = makeDragImage(dragPieceOffCenterZoom);
 
+      final int xOffset =
+        offsetMult * (boundingBox.x + currentPieceOffsetX - EXTRA_BORDER);
+      final int yOffset =
+        offsetMult * (boundingBox.y + currentPieceOffsetY - EXTRA_BORDER);
+
+    	final Point dragPointOffset = new Point(xOffset, yOffset);
+
       // begin dragging
       try {
-        final Point dragPointOffset = new Point(
-          boundingBox.x + currentPieceOffsetX - EXTRA_BORDER,
-          boundingBox.y + currentPieceOffsetY - EXTRA_BORDER);
-        dge.startDrag(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR),
-                      dragImage, dragPointOffset,
-                      new StringSelection(""), this); //$NON-NLS-1$
+        dge.startDrag(
+          Cursor.getPredefinedCursor(Cursor.HAND_CURSOR),
+          dragImage,
+          dragPointOffset,
+          new StringSelection(""),
+          this
+        );
         dge.getDragSource().addDragSourceMotionListener(this);
       }
       // FIXME: Fix by replacing AWT Drag 'n Drop with Swing DnD.
