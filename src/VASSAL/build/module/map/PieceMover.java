@@ -61,6 +61,7 @@ import javax.swing.JRootPane;
 import javax.swing.KeyStroke;
 import javax.swing.SwingUtilities;
 
+import VASSAL.Info;
 import VASSAL.build.AbstractBuildable;
 import VASSAL.build.Buildable;
 import VASSAL.build.GameModule;
@@ -1189,6 +1190,9 @@ public class PieceMover extends AbstractBuildable
         setDrawWinToOwnerOf(dragWin);
         SwingUtilities.convertPointToScreen(mousePosition, drawWin);
         moveDragCursor(mousePosition.x, mousePosition.y);
+        offsetMult = 1;
+      }
+      else if (Info.isMacOSX()) {
         offsetMult = 1;
       }
 
