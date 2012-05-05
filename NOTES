@@ -39,6 +39,7 @@ The following bugs are fixed in 3.1.19:
 * 4184: Should use DocumentListener to catch updates on Swing text fields
 * 4132: Bad layout for Map window obscures Global Key Command buttons
 * 3075: NegativeArraySizeException when snapshotting large maps 
+* 1924: Put settings directory in system-appropriate location
 * Bad tile-counting when snapshotting maps
 
 Changes in 3.1.18:

@@ -36,7 +36,7 @@ import VASSAL.tools.version.VersionTokenizer;
  * Class for storing release-related information
  */
 public final class Info {
-  private static final String VERSION = "3.1.18"; //$NON-NLS-1$
+  private static final String VERSION = "3.1.19-svn8137"; //$NON-NLS-1$
   
   // Do not allow editing of modules with this revision or later
   private static final String EXPIRY_VERSION = "3.2";  //$NON-NLS-1$
@@ -263,13 +263,21 @@ public final class Info {
 // FIXME: this is a misleading name for this function
   public static File getHomeDir() {
     if (homeDir == null) {
-      homeDir = new File(System.getProperty("user.home"), "VASSAL"); //$NON-NLS-1$ //$NON-NLS-2$
-      if (!homeDir.exists()) {
-        homeDir.mkdir();
+      if (isMacOSX) {
+        homeDir = new File(
+          System.getProperty("user.home"), "Library/Application Support/VASSAL"
+        );
       }
-      else if (!homeDir.isDirectory()) {
-// FIXME: Is this a good idea?!!
-        homeDir.delete();
+      else if (isWindows) {
+        homeDir = new File(System.getenv("APPDATA") + "/VASSAL");
+      }
+      else {
+        homeDir = new File(System.getProperty("user.home"), ".VASSAL");
+      }
+
+      if (!homeDir.exists()) {
+// FIXME: What if this fails? This should be done from someplace that
+// can signal failure properly.
         homeDir.mkdir();
       }
     }

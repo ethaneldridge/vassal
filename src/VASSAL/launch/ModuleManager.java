@@ -39,6 +39,8 @@ import javax.swing.JFrame;
 import javax.swing.JMenuBar;
 import javax.swing.SwingUtilities;
 
+import org.apache.commons.io.FileUtils;
+
 import VASSAL.Info;
 import VASSAL.build.module.metadata.AbstractMetaData;
 import VASSAL.build.module.metadata.MetaDataFactory;
@@ -272,6 +274,16 @@ public class ModuleManager {
     Thread.setDefaultUncaughtExceptionHandler(new ExceptionHandler());
 
     start.initSystemProperties();
+
+    // check whether we need to migrate pre-3.1.19 preferences
+    final File oldprefs =
+      new File(System.getProperty("user.home"), "VASSAL/Preferences");
+    if (oldprefs.exists()) {
+      final File newprefs = new File(Info.getHomeDir(), "Preferences");
+      if (!newprefs.exists()) {
+        FileUtils.copyFile(oldprefs, newprefs);
+      }
+    }
 
     if (Info.isMacOSX()) new MacOSXMenuManager();
     else new ModuleManagerMenuManager();
