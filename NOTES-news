@@ -1,17 +1,35 @@
 <p>
-The VASSAL Team is happy to announce the release of VASSAL 3.1.18, which
+The VASSAL Team is happy to announce the release of VASSAL 3.1.19, which
 fixes several problems found in earlier versions
 </p>
 <h2>Download</h2>
 <ul>
-	<li><a href="http://downloads.sourceforge.net/vassalengine/VASSAL-3.1.18-linux.tar.bz2" target="_blank">Linux</a></li>
-	<li><a href="http://downloads.sourceforge.net/vassalengine/VASSAL-3.1.18-macosx.dmg">Mac OS X</a></li>
-	<li><a href="http://downloads.sourceforge.net/vassalengine/VASSAL-3.1.18-windows.exe">Windows</a>
+	<li><a href="http://downloads.sourceforge.net/vassalengine/VASSAL-3.1.19-linux.tar.bz2" target="_blank">Linux</a></li>
+	<li><a href="http://downloads.sourceforge.net/vassalengine/VASSAL-3.1.19-macosx.dmg">Mac OS X</a></li>
+	<li><a href="http://downloads.sourceforge.net/vassalengine/VASSAL-3.1.19-windows.exe">Windows</a>
 	</li>
-	<li><a href="http://downloads.sourceforge.net/vassalengine/VASSAL-3.1.18-other.zip">Other</a></li>
-	<li><a href="http://downloads.sourceforge.net/vassalengine/VASSAL-3.1.18-src.zip">Source</a></li>
+	<li><a href="http://downloads.sourceforge.net/vassalengine/VASSAL-3.1.19-other.zip">Other</a></li>
+	<li><a href="http://downloads.sourceforge.net/vassalengine/VASSAL-3.1.19-src.zip">Source</a></li>
 </ul>
 <h2>Changes since 3.1.0</h2>
+<h3>Changes in 3.1.19</h3>
+<ul>
+  <li>Windows installer now suggests JRE 1.6.0_32 for Java upgrades.</li>
+</ul>
+<p>
+The following bugs are fixed in 3.1.19:
+</p>
+<ul>
+  <li>4363: When retiring, cancelling side selection leaves side == null</li>
+  <li>4259: When retiring, 'Become observer' fails to update other players' rosters</li>
+  <li>4258: Large image masks in Non-Rectangular trait lock up the GUI</li>
+  <li>4204: Java 7 has incorrect offset for drag images</li>
+  <li>4184: Should use DocumentListener to catch updates on Swing text fields</li>
+  <li>4132: Bad layout for Map window obscures Global Key Command buttons</li>
+  <li>3075: NegativeArraySizeException when snapshotting large maps </li>
+  <li>1924: Put settings directory in system-appropriate location</li>
+  <li>Bad tile-counting when snapshotting maps</li>
+</ul>
 <h3>Changes in 3.1.18</h3>
 <ul>
   <li>Windows installer now suggests JRE 1.6.0_30 for Java upgrades.</li>
@@ -27,31 +45,14 @@ The following bugs are fixed in 3.1.18:
   <li>2798: ConcurrentModificationException in PrefsEditor.save()</li>
   <li>2715: NPE in Map.setup()</li>
 </ul>
-<h3>Changes in 3.1.17</h3>
-<ul>
-  <li>Windows installer now suggests JRE 1.6.0_27 for Java upgrades.</li>
-</ul>
 <p>
-The following bugs are fixed in 3.1.17:
-</p>
-<ul>
-  <li>4054: Inserting a GamePiece Layer generates an OutOfBounds error
-  <li>4051: Allow Cut and Paste between Decks and GamePiece Palette
-  <li>3987: Updated server fallback IP address to game.vassalengine.org
-  <li>3986: Counters disappear during Undo
-  <li>3915: IOException in BrowserSupport when opening PDFs
-  <li>3910: IOException in BrowserSupport when opening web pages
-  <li>3280: IllegalArgumentException in StackMetrics.relativePosition()
-  <li>2798: ConcurrentModificationException in PrefsEditor.save()
-</ul>
-<p>
-For changes prior to 3.1.17, see the change log. For feature changes from 3.0 to 3.1, see the release notes for 3.1.0.
+For changes prior to 3.1.18, see the change log. For feature changes from 3.0 to 3.1, see the release notes for 3.1.0.
 </p>
 <p>
 VASSAL has a new User's Guide! You can view the User's Guide by selecting &quot;User's Guide&quot; from the Help menu in any of VASSAL's components.
 </p>
 <p>
-The recommended minimum Java version for VASSAL 3.1 has changed. A bug in versions of Java prior to 1.5.0_08 (a.k.a. Java 5 Update 8) prevents some images from loading properly. We now recommend that anyone using a version of Java older than 1.5.0_08 upgrade to <em>at least</em> 1.5.0_08. Furthermore, we recommend that Windows users in particular upgrade to at least Java 1.6.0_21 (a.k.a. Java 6 Update 21), in order to avoid bugs present in earlier versions of Java. Windows users installing VASSAL 3.1.18 with the Windows installer will be prompted to update Java if what they have is older than 1.6.0_30. After upgrading Java on Windows, you must restart your computer in order for Java programs to work properly.
+The recommended minimum Java version for VASSAL 3.1 has changed. A bug in versions of Java prior to 1.5.0_08 (a.k.a. Java 5 Update 8) prevents some images from loading properly. We now recommend that anyone using a version of Java older than 1.5.0_08 upgrade to <em>at least</em> 1.5.0_08. Furthermore, we recommend that Windows users in particular upgrade to at least Java 1.6.0_21 (a.k.a. Java 6 Update 21), in order to avoid bugs present in earlier versions of Java. Windows users installing VASSAL 3.1.19 with the Windows installer will be prompted to update Java if what they have is older than 1.6.0_32. After upgrading Java on Windows, you must restart your computer in order for Java programs to work properly.
 </p>
 <p>
 Please report all bugs, even if they are bugs which you've already reported against other versions. We take your bug reports very seriously&mdash;they're the reason we're able to find and fix bugs.
