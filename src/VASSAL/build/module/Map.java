@@ -636,10 +636,11 @@ public class Map extends AbstractConfigurable implements GameComponent, MouseLis
    * @see DragBuffer
    */
   public void addTo(Buildable b) {
-      useLaunchButton = useLaunchButtonEdit;
+    useLaunchButton = useLaunchButtonEdit;
     idMgr.add(this);
-    GameModule.getGameModule().addCommandEncoder(
-      new ChangePropertyCommandEncoder(this));
+
+    final GameModule g = GameModule.getGameModule();
+    g.addCommandEncoder(new ChangePropertyCommandEncoder(this));
 
     validator = new CompoundValidityChecker(
       new MandatoryComponent(this, BoardPicker.class),
@@ -657,8 +658,8 @@ public class Map extends AbstractConfigurable implements GameComponent, MouseLis
       theMap, DnDConstants.ACTION_MOVE, dgl);
     theMap.setDropTarget(PieceMover.DragHandler.makeDropTarget(
       theMap, DnDConstants.ACTION_MOVE, this));
-    GameModule.getGameModule().getGameState().addGameComponent(this);
-    GameModule.getGameModule().getToolBar().add(launchButton);
+    g.getGameState().addGameComponent(this);
+    g.getToolBar().add(launchButton);
     if (shouldDockIntoMainWindow()) {
       final IntConfigurer config =
         new IntConfigurer(MAIN_WINDOW_HEIGHT, null, new Integer(-1));
@@ -673,15 +674,15 @@ mainWindowDock = splitter.splitBottom(splitter.getSplitAncestor(GameModule.getGa
 */
 
       mainWindowDock = splitter.splitBottom(
-        splitter.getSplitAncestor(
-          GameModule.getGameModule().getControlPanel(), -1),
-        layeredPane, true);
+        splitter.getSplitAncestor(g.getControlPanel(), -1),
+        layeredPane, true
+      );
 
-      GameModule.getGameModule().addKeyStrokeSource(
+      g.addKeyStrokeSource(
         new KeyStrokeSource(theMap, JComponent.WHEN_FOCUSED));
     }
     else {
-      GameModule.getGameModule().addKeyStrokeSource(
+      g.addKeyStrokeSource(
         new KeyStrokeSource(theMap, JComponent.WHEN_IN_FOCUSED_WINDOW));
     }
     // Fix for bug 1630993: toolbar buttons not appearing
@@ -698,7 +699,7 @@ mainWindowDock = splitter.splitBottom(splitter.getSplitAncestor(GameModule.getGa
     });
 
     PlayerRoster.addSideChangeListener(this);
-    GameModule.getGameModule().getPrefs().addOption(
+    g.getPrefs().addOption(
       Resources.getString("Prefs.general_tab"), //$NON-NLS-1$
       new IntConfigurer(
         PREFERRED_EDGE_DELAY,
@@ -707,7 +708,7 @@ mainWindowDock = splitter.splitBottom(splitter.getSplitAncestor(GameModule.getGa
       )
     );
 
-    GameModule.getGameModule().getPrefs().addOption(
+    g.getPrefs().addOption(
       Resources.getString("Prefs.general_tab"), //$NON-NLS-1$
       new BooleanConfigurer(
         MOVING_STACKS_PICKUP_UNITS,
