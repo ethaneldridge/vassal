@@ -1846,6 +1846,8 @@ mainWindowDock = splitter.splitBottom(splitter.getSplitAncestor(GameModule.getGa
    */
   public void setup(boolean show) {
     if (show) {
+      final GameModule g = GameModule.getGameModule();
+
       if (shouldDockIntoMainWindow()) {
         mainWindowDock.showComponent();
         final int height = ((Integer)
@@ -1855,8 +1857,8 @@ mainWindowDock = splitter.splitBottom(splitter.getSplitAncestor(GameModule.getGa
           top.setSize(top.getWidth(), height);
         }
         if (toolBar.getParent() == null) {
-          GameModule.getGameModule().getToolBar().addSeparator();
-          GameModule.getGameModule().getToolBar().add(toolBar);
+          g.getToolBar().addSeparator();
+          g.getToolBar().add(toolBar);
         }
         toolBar.setVisible(true);
       }
@@ -1869,7 +1871,7 @@ mainWindowDock = splitter.splitBottom(splitter.getSplitAncestor(GameModule.getGa
                 topWindow.setVisible(false);
               }
               else {
-                GameModule.getGameModule().getGameState().setup(false);
+                g.getGameState().setup(false);
               }
             }
           });
@@ -1878,12 +1880,11 @@ mainWindowDock = splitter.splitBottom(splitter.getSplitAncestor(GameModule.getGa
           topWindow.setSize(600, 400);
           final PositionOption option =
             new PositionOption(PositionOption.key + getIdentifier(), topWindow);
-          GameModule.getGameModule().getPrefs().addOption(option);
+          g.getPrefs().addOption(option);
         }
         theMap.getTopLevelAncestor().setVisible(!useLaunchButton);
         theMap.revalidate();
       }
-      
     }
     else {
       pieces.clear();
