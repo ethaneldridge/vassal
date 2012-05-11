@@ -30,6 +30,10 @@ Source code:
 Changes since 3.1.0
 *********************
 
+The following bugs are fixed in 3.1.20:
+
+* 1921: Better adjustment for splitter between log and map panes
+
 Changes in 3.1.19:
 
 * Windows installer now suggests JRE 1.6.0_32 for Java upgrades.
