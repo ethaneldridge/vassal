@@ -1,7 +1,7 @@
 /*
  * $Id$
  *
- * Copyright (c) 2000-2008 by Rodney Kinney
+ * Copyright (c) 2000-2012 by Rodney Kinney, Brent Easton
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Library General Public
@@ -89,7 +89,8 @@ public class GlobalProperties extends AbstractConfigurable implements MutablePro
     }
     tempToolbar.setDelegate((ToolBarComponent) parent);
     propertySource = (PropertySource) parent;
-    GameModule.getGameModule().addCommandEncoder(new ChangePropertyCommandEncoder(this));
+    GameModule.getGameModule().addCommandEncoder(
+      new ChangePropertyCommandEncoder(this));    
   }
   
   public void addMutableProperty(String key, MutableProperty p) {
@@ -131,11 +132,18 @@ public class GlobalProperties extends AbstractConfigurable implements MutablePro
     }
     return property;
   }
-  
+ 
   /*
    * Null i18n key prefix for this component
    */
   public String getI18nPrefix() {
     return "";
+  }
+  
+  /**
+   * Use the identity of the owning container (i.e. Module, map or zone)
+   */
+  public String getMutablePropertiesContainerId() {
+    return parent.getMutablePropertiesContainerId();
   }
 }
