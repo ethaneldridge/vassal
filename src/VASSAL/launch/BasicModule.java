@@ -95,24 +95,18 @@ public class BasicModule extends GameModule {
       }
     }
 
-    try {
-      if (in == null) {
-        build(null);
-      }
-      else {
-        try {
-          final Document doc = Builder.createDocument(in);
-          build(doc.getDocumentElement());
-          in.close();
-        }
-        finally {
-          IOUtils.closeQuietly(in);
-        }
-      }
+    if (in == null) {
+      build(null);
     }
-    // FIXME: review error message
-    catch (IOException ex) {
-      throw new IllegalArgumentException(ex);
+    else {
+      try {
+        final Document doc = Builder.createDocument(in);
+        build(doc.getDocumentElement());
+        in.close();
+      }
+      finally {
+        IOUtils.closeQuietly(in);
+      }
     }
 
     MenuManager.getInstance().addAction("Prefs.edit_preferences",
