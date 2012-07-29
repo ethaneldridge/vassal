@@ -144,6 +144,24 @@ Found:
 
 !define JAVA_EXE "java.exe"
 
+!macro CheckRegistryJRE
+  ClearErrors
+  ReadRegStr $R1 HKLM "${JRE_ROOT}" "CurrentVersion"
+  ReadRegStr $R0 HKLM "${JRE_ROOT}\$R1" "JavaHome"
+  IfErrors +3
+  StrCpy $R0 "$R0\bin\${JAVA_EXE}"
+  IfFileExists $R0 JREFound +1 
+!macroend
+
+!macro CheckRegistryJDK
+  ClearErrors
+  ReadRegStr $R1 HKLM "${JDK_ROOT}" "CurrentVersion"
+  ReadRegStr $R0 HKLM "${JDK_ROOT}\$R1" "JavaHome"
+  IfErrors +3 
+  StrCpy $R0 "$R0\bin\${JAVA_EXE}"
+  IfFileExists $R0 JREFound +1 
+!macroend
+
 !macro GetJREPath_
   !verbose push
   !verbose ${_GETJAVAVERSION_VERBOSE}
@@ -155,47 +173,19 @@ Found:
   ; check JavaHome
   ClearErrors
   ReadEnvStr $R0 "JAVA_HOME"
-  IfErrors CheckRegistry64JRE
+  IfErrors CheckRegistry
   StrCpy $R0 "$R0\bin\${JAVA_EXE}"
-  IfFileExists $R0 JREFound CheckRegistry64JRE
+  IfFileExists $R0 JREFound
 
-CheckRegistry64JRE:
+CheckRegistry:
   ${If} ${RunningX64}
-    ClearErrors
     SetRegView 64
-    ReadRegStr $R1 HKLM "${JRE_ROOT}" "CurrentVersion"
-    ReadRegStr $R0 HKLM "${JRE_ROOT}\$R1" "JavaHome"
-    IfErrors CheckRegistry64JDK
-    StrCpy $R0 "$R0\bin\${JAVA_EXE}"
-    IfFileExists $R0 JREFound CheckRegistry64JDK
-
-CheckRegistry64JDK:
-    ClearErrors
-    SetRegView 64
-    ReadRegStr $R1 HKLM "${JDK_ROOT}" "CurrentVersion"
-    ReadRegStr $R0 HKLM "${JDK_ROOT}\$R1" "JavaHome"
-    IfErrors CheckRegistry32JRE
-    StrCpy $R0 "$R0\bin\${JAVA_EXE}"
-    IfFileExists $R0 JREFound CheckRegistry32JRE
+    !insertmacro CheckRegistryJRE
+    !insertmacro CheckRegistryJDK
   ${EndIf}
-
-CheckRegistry32JRE:
-  ClearErrors
   SetRegView 32
-  ReadRegStr $R1 HKLM "${JRE_ROOT}" "CurrentVersion"
-  ReadRegStr $R0 HKLM "${JRE_ROOT}\$R1" "JavaHome"
-  IfErrors CheckRegistry32JDK
-  StrCpy $R0 "$R0\bin\${JAVA_EXE}"
-  IfFileExists $R0 JREFound CheckRegistry32JDK
-
-CheckRegistry32JDK:
-  ClearErrors
-  SetRegView 32
-  ReadRegStr $R1 HKLM "${JDK_ROOT}" "CurrentVersion"
-  ReadRegStr $R0 HKLM "${JDK_ROOT}\$R1" "JavaHome"
-  IfErrors JRENotFound
-  StrCpy $R0 "$R0\bin\${JAVA_EXE}"
-  IfFileExists $R0 JREFound JRENotFound
+  !insertmacro CheckRegistryJRE
+  !insertmacro CheckRegistryJDK
 
 JRENotFound:
   StrCpy $R0 ""    
