@@ -32,6 +32,12 @@ Changes since 3.1.0
 
 The following bugs are fixed in 3.1.20:
 
+* 4639: Movement trail trait erroneously draws dots on unmoved pieces
+* 4599: Cannot return to having no image in BasicPiece trait
+* 4473: TabWidget updates its name using stale values
+* 4459: Property filter built incorrectly in MassKeyCommand
+* 4278: Map-level global properties of the same name messed up online
+* 3988: Windows installer does not recognize 64-bit JVMs
 * 1921: Better adjustment for splitter between log and map panes
 
 Changes in 3.1.19:
