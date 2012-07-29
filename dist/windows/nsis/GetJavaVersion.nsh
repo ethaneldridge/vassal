@@ -150,7 +150,7 @@ Found:
   ReadRegStr $R0 HKLM "${JRE_ROOT}\$R1" "JavaHome"
   IfErrors +3
   StrCpy $R0 "$R0\bin\${JAVA_EXE}"
-  IfFileExists $R0 JREFound +1 
+  IfFileExists $R0 JREFound
 !macroend
 
 !macro CheckRegistryJDK
@@ -159,7 +159,7 @@ Found:
   ReadRegStr $R0 HKLM "${JDK_ROOT}\$R1" "JavaHome"
   IfErrors +3 
   StrCpy $R0 "$R0\bin\${JAVA_EXE}"
-  IfFileExists $R0 JREFound +1 
+  IfFileExists $R0 JREFound
 !macroend
 
 !macro GetJREPath_
