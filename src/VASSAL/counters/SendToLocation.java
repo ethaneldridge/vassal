@@ -1,7 +1,7 @@
 /*
  * $Id$
  *
- * Copyright (c) 2003 by Rodney Kinney
+ * Copyright (c) 2003-2012 by Rodney Kinney, Brent Easton
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Library General Public
@@ -46,6 +46,7 @@ import VASSAL.build.module.documentation.HelpFile;
 import VASSAL.build.module.map.boardPicker.Board;
 import VASSAL.build.module.map.boardPicker.board.Region;
 import VASSAL.build.module.map.boardPicker.board.mapgrid.Zone;
+import VASSAL.command.ChangeTracker;
 import VASSAL.command.Command;
 import VASSAL.configure.BooleanConfigurer;
 import VASSAL.configure.ChooseComponentDialog;
@@ -332,6 +333,11 @@ public class SendToLocation extends Decorator implements TranslatablePiece {
       Point backPoint = (Point) getProperty(BACK_POINT);
       if (backMap != null && backPoint != null) {
          c = backMap.placeOrMerge(outer, backPoint);
+         final ChangeTracker tracker = new ChangeTracker(this);
+         setProperty(BACK_MAP, null);
+         setProperty(BACK_POINT, null);
+         c.append(tracker.getChangeCommand());
+
          // Apply Auto-move key
          if (backMap.getMoveKey() != null) {
            c.append(outer.keyEvent(backMap.getMoveKey()));
