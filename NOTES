@@ -46,6 +46,8 @@ The following bugs are fixed in 3.1.20:
 * 3988: Windows installer does not recognize 64-bit JVMs
 * 3278: Corrupt module should not cause unchecked exception
 * 2807: ArrayIndexOutOfBoundsException in CropOpBitmapImpl.eval()
+* 2719: RotateScaleOpBitmapImpl created with scale == 0
+* 2573: Negative scale factor passed to RotateScaleOpBitmapImpl
 * 1921: Better adjustment for splitter between log and map panes
 
 Changes in 3.1.19:
