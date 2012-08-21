@@ -361,6 +361,11 @@ public class Deck extends Stack implements PlayerRoster.SideChangeListener {
       GameModule.getGameModule().addKeyStrokeListener(reshuffleListener);
     }
     reshuffleListener.setKeyStroke(getReshuffleKey());
+    
+    final DrawPile myPile = DrawPile.findDrawPile(getDeckName());
+    if (myPile != null) {
+      myPile.setDeck(this);
+    }
   }
 
   public String getFaceDownOption() {

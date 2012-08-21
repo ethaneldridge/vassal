@@ -648,6 +648,10 @@ public class DrawPile extends SetupStack {
     return myDeck;
   }
 
+  public void setDeck(Deck deck) {
+    myDeck = deck;
+  }
+  
   protected boolean placeNonStackingSeparately() {
     return false;
   }
@@ -674,5 +678,6 @@ public class DrawPile extends SetupStack {
     myI18nData.setAttributeTranslatable(SELECT_SORT_PROPERTY, false);
     return myI18nData;
   }
+
 }
 
