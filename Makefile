@@ -50,8 +50,8 @@ DISTDIR:=dist
 
 VNUM:=3.1.20
 SVNVERSION:=$(shell svnversion | perl -pe 's/(\d+:)?(\d+[MS]?)/$$2/; s/(\d+)M/$$1+1/e')
-VERSION:=$(VNUM)-svn$(SVNVERSION)
-#VERSION:=$(VNUM)
+#VERSION:=$(VNUM)-svn$(SVNVERSION)
+VERSION:=$(VNUM)
 
 #CLASSPATH:=$(CLASSDIR):$(LIBDIR)/*
 

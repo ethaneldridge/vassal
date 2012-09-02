@@ -10,6 +10,31 @@ The VASSAL Team is happy to announce the release of VASSAL 3.1.19, which fixes s
 
 [size=16][b]Changes since 3.1.0[/b][/size]
 
+Changes in 3.1.20:
+
+* Windows installer now suggests JRE 1.6.0_35 for Java upgrades, and installs 64-bit JREs on 64-bit systems.
+
+The following bugs are fixed in 3.1.20:
+
+* 4745: Snapshot tool fails to force unloaded map tiles to load
+* 4705: Decks behave strangely after loading saved game
+* 4696: Embellishment follows property to display first level when property is null instead of erroring
+* 4639: Movement trail trait erroneously draws dots on unmoved pieces
+* 4599: Cannot return to having no image in BasicPiece trait
+* 4473: TabWidget updates its name using stale values
+* 4459: Property filter built incorrectly in MassKeyCommand
+* 4297: Send Back Command disabled after undo
+* 4244: Dynamic Property Set/Increment expressions cannot access Properties defined above them
+* 4278: Map-level global properties of the same name messed up online
+* 3988: Windows installer does not recognize 64-bit JVMs
+* 3278: Corrupt module should not cause unchecked exception
+* 2807: ArrayIndexOutOfBoundsException in CropOpBitmapImpl.eval()
+* 2719: RotateScaleOpBitmapImpl created with scale == 0
+* 2696: ArrayIndexOutOfBoundsException in Map.popMouseListener()
+* 2573: Negative scale factor passed to RotateScaleOpBitmapImpl
+* 2554: NumberFormatException in SVGImageUtils.getImageSize()
+* 1921: Better adjustment for splitter between log and map panes
+
 Changes in 3.1.19:
 
 * Windows installer now suggests JRE 1.6.0_32 for Java upgrades.
@@ -26,26 +51,13 @@ The following bugs are fixed in 3.1.19:
 * 1924: Put settings directory in system-appropriate location
 * Bad tile-counting when snapshotting maps
 
-Changes in 3.1.18:
-
-* Windows installer now suggests JRE 1.6.0_30 for Java upgrades.
-
-The following bugs are fixed in 3.1.18:
-
-* 4126: PieceMover.dragDropEnd() does not remove DragSourceMotionListener
-* 4106: Send to Location to a counter using a Property Expression not working
-* 3457: Corrupt JPEG causes ArrayIndexOutOfBoundsException
-* 2815: ArrayIndexOutOfBoundsException in Stack.insertPieceAt()
-* 2798: ConcurrentModificationException in PrefsEditor.save()
-* 2715: NPE in Map.setup()
-
-For changes prior to 3.1.18, see the change log. For feature changes from 3.0 to 3.1, see the release notes for 3.1.0.
+For changes prior to 3.1.19, see the change log. For feature changes from 3.0 to 3.1, see the release notes for 3.1.0.
 
 VASSAL has a new User's Guide! You can view the User's Guide by selecting "User's Guide" from the Help menu in any of VASSAL's components.
 
 The recommended minimum Java version for VASSAL 3.1 has changed. A bug in versions of Java prior to 1.5.0_08 (a.k.a. Java 5 Update 8) prevents some images from loading properly. We now recommend that anyone using a version of Java older than 1.5.0_08 upgrade to [i]at least[/i] 1.5.0_08.  
 
-Furthermore, we recommend that Windows users in particular upgrade to at least Java 1.6.0_21 (a.k.a. Java 6 Update 21), in order to avoid bugs present in earlier versions of Java. Windows users installing VASSAL 3.1.19 with the Windows installer will be prompted to update Java if what they have is older than 1.6.0_32. After upgrading Java on Windows, you must restart your computer in order for Java programs to work properly.
+Furthermore, we recommend that Windows users in particular upgrade to at least Java 1.6.0_21 (a.k.a. Java 6 Update 21), in order to avoid bugs present in earlier versions of Java. Windows users installing VASSAL 3.1.19 with the Windows installer will be prompted to update Java if what they have is older than 1.6.0_35. After upgrading Java on Windows, you must restart your computer in order for Java programs to work properly.
 
 Please report all bugs, even if they are bugs which you've already reported against other versions. We take your bug reports very seriously---they're the reason we're able to find and fix bugs.
 
