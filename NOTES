@@ -37,6 +37,7 @@ Changes in 3.1.20:
 
 The following bugs are fixed in 3.1.20:
 
+* 4745: Snapshot tool fails to force unloaded map tiles to load
 * 4705: Decks behave strangely after loading saved game
 * 4696: Embellishment follows property to display first level when property is
   null instead of erroring
@@ -54,7 +55,7 @@ The following bugs are fixed in 3.1.20:
 * 2719: RotateScaleOpBitmapImpl created with scale == 0
 * 2696: ArrayIndexOutOfBoundsException in Map.popMouseListener()
 * 2573: Negative scale factor passed to RotateScaleOpBitmapImpl
-* 2554:  NumberFormatException in SVGImageUtils.getImageSize()
+* 2554: NumberFormatException in SVGImageUtils.getImageSize()
 * 1921: Better adjustment for splitter between log and map panes
 
 Changes in 3.1.19:
