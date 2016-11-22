@@ -43,6 +43,7 @@ import VASSAL.tools.concurrent.listener.EventListenerSupport;
  */
 public class Tailer {
   private static final Logger logger = LoggerFactory.getLogger(Tailer.class);
+  String lineSeparator = System.getProperty("line.separator");
 
   protected static final long DEFAULT_POLL_INTERVAL = 1000L;
 
@@ -198,7 +199,7 @@ public class Tailer {
             String line;
             while ((line = raf.readLine()) != null) {
               // readLine strips newlines, we put them back
-              lsup.notify(line + "\n");
+              lsup.notify(line + lineSeparator);
             }
 
             position = raf.getFilePointer();

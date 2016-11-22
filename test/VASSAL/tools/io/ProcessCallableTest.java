@@ -19,24 +19,27 @@
 
 package VASSAL.tools.io;
 
-import java.io.ByteArrayInputStream;
+import static org.junit.Assert.assertArrayEquals;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.fail;
+
 import java.io.ByteArrayOutputStream;
 import java.io.OutputStream;
 import java.util.concurrent.CancellationException;
-import java.util.concurrent.Executors;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
 import org.junit.Test;
-
-import static org.junit.Assert.*;
 
 public class ProcessCallableTest {
 
   @Test
   public void testNormal() throws Exception {
-    final byte[] eout = "Jackdaws love my big sphinx of quartz.\n".getBytes();
-    final byte[] eerr = "Veldt jynx grimps waqf zho buck.\n".getBytes();
+
+    String lineSeparator = System.getProperty("line.separator"); // Unix = \n, Windows = \r\n (affects # of bytes)OO
+    final byte[] eout = String.format("Jackdaws love my big sphinx of quartz.%s", lineSeparator).getBytes();
+    final byte[] eerr = String.format("Veldt jynx grimps waqf zho buck.%s", lineSeparator).getBytes();
 
     final ProcessBuilder pb = new ProcessBuilder(
       "java",
