@@ -46,7 +46,7 @@ JDOCDIR:=javadoc
 DOCDIR:=doc
 DISTDIR:=dist
 
-VNUM:=3.2.17
+VNUM:=3.2.18
 #SVNVERSION:=$(shell svnversion | perl -pe 's/(\d+:)?(\d+[MS]?)/$$2/; s/(\d+)M/$$1+1/e')
 SVNVERSION:=$(shell git svn log -1 --oneline | grep -oP '^r\K\d+')
 VERSION:=$(VNUM)-svn$(SVNVERSION)
